@@ -1,5 +1,5 @@
 {
- "build": "ed816620e0",
+ "build": "5731d45ac1",
  "order": [
   "theme_glass.js",
   "pager.js",
@@ -58,6 +58,7 @@
   "purchase.js",
   "salereturn.js",
   "nightgap.js",
+  "costgap.js",
   "daybook.js",
   "rptkit.js",
   "campaigns.js",
@@ -246,6 +247,7 @@
   "stock2.js",
   "salereturn.js",
   "nightgap.js",
+  "costgap.js",
   "daybook.js",
   "rptkit.js",
   "campaigns.js",
@@ -331,6 +333,7 @@
   "stock2.js",
   "salereturn.js",
   "nightgap.js",
+  "costgap.js",
   "daybook.js",
   "rptkit.js",
   "campaigns.js",
@@ -919,6 +922,7 @@
   "stock",
   "salereturn",
   "nightgap",
+  "costgap",
   "daybook",
   "campaigns",
   "cheques",
@@ -1043,7 +1047,7 @@
   "stock2.js": [
    "B.s2<-salereturn.js",
    "B.s2<-nightgap.js",
-   "B.flagChip<-entry.js"
+   "B.s2<-costgap.js"
   ],
   "daybook.js": [
    "B.reportLinks<-forms_stock.js",
