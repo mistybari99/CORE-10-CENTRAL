@@ -17,3 +17,4 @@ html[data-theme=glass-light],html[data-theme=glass-dark]{--glass-blur: 18px;--gl
 :root[data-theme^=brand] header.top:has(.navmain){flex-wrap:wrap;row-gap:4px}
 /* fix: rows of buttons touching the inputs above/below */
 #app :is(input,select,textarea)+.row,#app .row+:is(input,select,textarea,.row){margin-top:8px}
+:root[data-theme^=brand] .tabs button.on,:root[data-theme^=brand] .tabs button.tab.on{background:color-mix(in srgb,var(--amber) 20%,var(--s1));border-color:var(--amber);color:var(--ink);box-shadow:inset 0 -3px 0 var(--amber)}
