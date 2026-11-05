@@ -156,3 +156,12 @@ Owner has phases 72..111 installed. setup-run-15.html: ONE Copy block with phase
 | 117 | 32233 | `0b770c9139e06fc791340b9ac11c146d3af21b6cdeed4ecd35345a8be3127381` |
 | 118 | 51067 | `1bb51430c9bd72f8de774a1afae7ac13185f3fe44da7fd7fb6d72c5def38640d` |
 | 121 | 10062 | `1a6399aecf183fe5638ec68250de31d3e371ae0277494c337e5b886c3f91276a` |
+
+
+## 2026-11-05 — Safe offline worker updates
+
+Only sw.js changes. Existing core.js, index.html, configuration, asset hashes and precache URLs remain byte-for-byte unchanged.
+
+A failed shell or asset download now rejects installation before skipWaiting, preserving the previous offline worker/cache. Offline requests carrying a content hash use only an exact cache match and otherwise return 503, preventing old bytes from masquerading as a new version. The new worker version is bos-sw-58937687db-safe-update.
+
+Validation: five worker regression cases pass; all 200 root JS files pass node --check; all index references exist and the inline CSP hash matches. Local Chromium mobile login check: zero page errors/missing local resources and no horizontal overflow. Live authenticated flows, real mobile offline use, database and printers were not tested. Rollback: revert this patch commit; configuration and database are untouched.
