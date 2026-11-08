@@ -25,14 +25,33 @@ function scopedLocations(){
  if(!isStaff())return allLocations();
  var allowed=assignedIds();return allLocations().filter(function(loc){return allowed.has(Number(loc.id))})
 }
+/* Server-verified mapping only. Never trust bizctx's first-business fallback. */
+var verifiedLocations=new Map(),verifiedKey="",verifyPromise=null;
+function ensureVerifiedLocations(){
+ var ctx=A.S.ctx;if(!ctx||ctx.is_owner||!ctx.profile||!ctx.profile.id||!A.sb||typeof A.sb.rpc!=="function")return;
+ var ids=Array.from(assignedIds()).sort(function(a,b){return a-b});
+ var key=String(ctx.profile.id)+":"+ids.join(",");
+ if(key===verifiedKey)return;
+ verifiedKey=key;verifiedLocations=new Map();
+ verifyPromise=Promise.all(ids.map(function(id){
+  return Promise.resolve().then(function(){return A.sb.rpc("org_unit_scope",{p_location:id})})
+   .then(function(reply){
+    var data=reply&&!reply.error?reply.data:null;
+    if(data&&data.mapped===true&&data.business_id!==null&&data.business_id!==undefined){
+      var businessId=Number(data.business_id);
+      if(Number.isSafeInteger(businessId)&&businessId>0&&verifiedKey===key)verifiedLocations.set(id,businessId)
+    }
+   },function(){/* denied/unavailable => no assignment */})
+ })).then(function(){
+  if(verifiedKey!==key)return;
+  synchronizeStaff();schedule()
+ },function(){/* fail closed */});
+}
 function allowedBusinesses(){
  if(!isStaff())return originalList();
+ ensureVerifiedLocations();
  var ids=new Set();
- scopedLocations().forEach(function(loc){
-   if(loc.org_unit_id===null||loc.org_unit_id===undefined)return;
-   var business=B.biz.locBizId&&B.biz.locBizId(loc);
-   if(business!==null&&business!==undefined)ids.add(Number(business))
- });
+ assignedIds().forEach(function(id){if(verifiedLocations.has(id))ids.add(verifiedLocations.get(id))});
  return originalList().filter(function(biz){return ids.has(Number(biz.id))});
 }
 function synchronizeStaff(){

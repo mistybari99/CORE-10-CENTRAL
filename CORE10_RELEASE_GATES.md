@@ -9,7 +9,7 @@ Status: **frontend owner/tenant separation implemented; live multi-business secu
 * Non-owner users belong only to explicitly assigned business(es) and operational place(s); role grants determine actions within that scope.
 * A staff login must never expose CORE 10 master UI, sister businesses, master settings, owner identity, or another business's business profile.
 * A global owner may see all business units and drill down; they must be able to distinguish business totals from consolidated totals.
-* Unknown, missing, stale or conflicting assignments must fail closed (no automatic assignment to "first business").
+* Unknown, missing, stale or conflicting assignments must fail closed (no automatic assignment to "first business"). Staff UI resolves a business only from the authenticated `org_unit_scope(p_location)` result for a staff-assigned location. A missing/denied RPC yields no business UI.
 * Moving a location between businesses requires separate impact analysis and a deliberate approved operation. Never auto-migrate history.
 
 ## Source discovery
@@ -47,7 +47,7 @@ Run the original Phase 123 `org_scope_preflight()` under a real owner authentica
 
 ## Presentation delivered
 
-- `core10-shell.js` implements owner branding and staff-scoped presentation.
+- `core10-shell.js` implements owner branding and staff-scoped presentation. Staff business identity now requires a server-verified `org_unit_scope` mapping; no local first-business fallback.
 - `owner.html` plus `core10-owner.webmanifest` offer the owner a separate CORE 10 installation/launch identity. Existing `index.html` remains Islamia-branded.
 - Location, access control and portfolio are still driven by existing Supabase objects. No business or location data has been changed here.
 - **Presentation filtering does not make a user secure. RLS and RPC validations are release gates.**

@@ -8,7 +8,7 @@ function session(owner,assigned,cur){
  const rows=[{id:11,org_unit_id:101},{id:12,org_unit_id:102}];
  const businesses=[{id:1,name_bn:"Islamia"},{id:2,name_bn:"Paint"}];
  const ctx={is_owner:owner,locations:assigned};
- const app={S:{ctx,lang:"bn"},H:{}};
+ const app={S:{ctx:{...ctx,profile:{id:owner?"owner-1":"staff-1"}},lang:"bn"},H:{},sb:{rpc:async(name,args)=>({data:name==="org_unit_scope"?{mapped:true,business_id:args.p_location===11?1:2}:null})}};
  const env={};
  Object.defineProperty(env,"locs",{configurable:true,get(){return rows},set(_){}});
  Object.defineProperty(env,"locsAll",{configurable:true,get(){return rows}});
@@ -19,7 +19,9 @@ function session(owner,assigned,cur){
  vm.runInNewContext(source,context,{filename:"core10-shell.js"});
  return {bos,win,id:()=>id,app};
 }
+async function main(){
 let s=session(false,[11],2);
+await new Promise(resolve=>setImmediate(resolve));
 assert.deepEqual(Array.from(s.bos.biz.list(),x=>x.id),[1]);
 assert.deepEqual(Array.from(s.bos.ENV.locsAll,x=>x.id),[11]);
 assert.equal(s.bos.biz.switcherHTML(),"");
@@ -27,11 +29,15 @@ assert.equal(s.bos.ia.visible({route:"organization"}),false);
 assert.equal(s.bos.biz.setCur(2),false);
 assert.equal(s.bos.biz.brand().en,"Islamia");
 let orphan=session(false,[],2);
+await new Promise(resolve=>setImmediate(resolve));
 assert.equal(orphan.bos.biz.list().length,0);
 assert.equal(orphan.bos.biz.brand().en,"Your Business");
 let owner=session(true,[],1);
+await new Promise(resolve=>setImmediate(resolve));
 assert.deepEqual(Array.from(owner.bos.biz.list(),x=>x.id),[1,2]);
 assert.equal(owner.bos.ENV.locsAll.length,2);
 assert.match(owner.bos.biz.switcherHTML(),/ALL/);
 assert.equal(owner.bos.ia.visible({route:"organization"}),true);
-console.log("PASS: owner, authorized Islamia staff, and unassigned staff UI smoke tests");
+console.log("PASS: owner, server-verified Islamia staff, and unassigned staff UI smoke tests");
+}
+main().catch(e=>{console.error(e);process.exitCode=1});
