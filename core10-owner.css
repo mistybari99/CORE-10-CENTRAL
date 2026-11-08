@@ -234,3 +234,27 @@ body[data-core10-owner] .core10-emblem{
 @media(prefers-reduced-motion:reduce){
   body[data-core10-owner] *{scroll-behavior:auto!important;transition-duration:0s!important}
 }
+
+/* CORE 10 master portfolio does not inherit the Islamia POS bottom tab bar. */
+body[data-core10-owner].core10-master .bnav,
+body[data-core10-owner].core10-master #bnav{display:none!important}
+body[data-core10-owner].core10-master.has-bnav #app{padding-bottom:28px!important}
+/* One-tap Islamia business entry: no nested generic sweets-business accordion. */
+body[data-core10-owner] .ph-category.ph-islamia{padding:0;overflow:hidden}
+body[data-core10-owner] .ph-brand-entry{
+ display:block;width:100%;min-height:126px;padding:17px 18px;text-align:left;
+ border:0;border-radius:15px;background:var(--card);color:var(--text);
+ box-shadow:none;cursor:pointer
+}
+body[data-core10-owner] .ph-brand-entry:hover,
+body[data-core10-owner] .ph-brand-entry:focus-visible{background:var(--s1h,#f6fbfc)}
+body[data-core10-owner] .ph-brand-head{display:flex;align-items:center;gap:12px}
+body[data-core10-owner] .ph-brand-name{display:flex;flex:1;flex-direction:column;gap:3px;min-width:0}
+body[data-core10-owner] .ph-brand-name strong{font-size:1.08rem;line-height:1.4;color:var(--ink)}
+body[data-core10-owner] .ph-brand-name small{font-size:.76rem;line-height:1.4;color:var(--muted)}
+body[data-core10-owner] .ph-brand-chevron{font-size:1.85rem;font-weight:400;line-height:1;color:var(--ruby)}
+body[data-core10-owner] .ph-brand-foot{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ margin-top:14px;padding-top:11px;border-top:1px solid var(--line);
+ color:var(--ruby);font-size:.82rem;font-weight:750
+}

@@ -75,3 +75,12 @@ Never claim `99%` or `production secure` without a real database audit, real sta
 * Owner theme choice is stored in `core10_owner_theme` instead of `bos_theme`. Initially the owner entry reads `bos_theme` if there is no owner preference. Subsequent owner choices never write `bos_theme`. Islamia users retain their existing theme preference unchanged. Future CORE 10 styling should apply only to the owner workspace.
 * Owner users who sign in via the business entry are routed to `owner.html`; non-owners who enter the owner portal are routed back to `index.html` after authentication.
 * This is reusable **software architecture**, not a copy-and-diverge codebase. Business / branch identity is resolved by user authorization; backend RLS / RPC security gates documented above remain blockers before expanding to live multi-business operation.
+
+## CORE 10 master → Islamia ERP one-tap entry (2026-11-09)
+
+* The single configured sweets business is displayed as **ইসলামিয়া মিষ্টি ঘর**, not a generic **মিষ্টি ও বেকারি** category. This is display-only; no business records are renamed.
+* Owner clicks the Islamia business tile → the existing `index.html?workspace=islamia&biz=<id>#/locations` ERP with the selected business, native Islamia theme and the existing grouped branch/factory/godown location screen.
+* The explicit owner-only business workspace bypasses the usual owner→CORE 10 redirect; all regular staff remain on the existing Islamia entry and do not see the CORE 10 workspace return button.
+* Within the Islamia ERP, the owner has a clear **← CORE 10** return control. This is a UI navigation mode, not a new login or a new data permission.
+* On the CORE 10 **Organization** master portfolio page only, the inherited POS bottom tab bar is suppressed using the `core10-master` body class and owner-scoped CSS. Other routes, including Islamia ERP, retain their prior navigation.
+* Data model, database scopes, stock, brand profiles and Islamia CSS remain untouched; full tenant-isolation audits remain release blockers.

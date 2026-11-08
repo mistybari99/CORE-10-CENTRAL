@@ -4,7 +4,7 @@
 var B=window.BOS,A=window.BOS_APP,L=window.BOS_LAZY;
 if(!B||!A||!A.H||!L)return;
 var categories=[
- {key:"sweets",bn:"মিষ্টি ও বেকারি",en:"Sweets & Bakery",sym:"◈",rx:/food|sweet|misty|mishti|bakery|cake|dessert|islamia|মিষ্টি|বেকারি|ইসলামিয়া|ইসলামিয়া/i},
+ {key:"sweets",bn:"ইসলামিয়া মিষ্টি ঘর",en:"Islamia Misty Ghar",sym:"◈",rx:/food|sweet|misty|mishti|bakery|cake|dessert|islamia|মিষ্টি|বেকারি|ইসলামিয়া|ইসলামিয়া/i},
  {key:"paint",bn:"রং ও হার্ডওয়্যার",en:"Paints & Hardware",sym:"◐",rx:/paint|colour|color|hardware|asian|berger|classic|রং|কালার|হার্ডওয়্যার/i},
  {key:"construction",bn:"কনস্ট্রাকশন",en:"Construction",sym:"▥",rx:/construct|building|civil|pwd|jabeda|নির্মাণ|কনস্ট্রাকশন/i},
  {key:"online",bn:"অনলাইন ও ডিজিটাল",en:"Online & Digital",sym:"⌘",rx:/e.?commerce|online|digital|tech|internet|web|অনলাইন|ডিজিটাল/i}
@@ -38,6 +38,14 @@ function businessHTML(biz,map,assigned){
    '<button class="ph-open" type="button" data-act="ph_open" data-v="'+escape(biz.id)+'">'+escape(tr("এই ব্যবসার লোকেশন খুলুন","Open this business's locations"))+' →</button></div></details>'
 }
 function categoryHTML(cat,businesses,map,assigned){
+ // The existing Islamia ERP is a business workspace, not a generic industry accordion.
+ // Keep the business ID for navigation; the visible name does NOT mutate org_units.
+ if(cat.key==="sweets"&&businesses.length===1){
+   var target=businesses[0],linked=assigned.get(String(target.id))||[];
+   return '<section class="ph-category ph-islamia" data-category="sweets"><button type="button" class="ph-brand-entry" data-act="ph_enter" data-v="'+escape(target.id)+'" aria-label="'+escape(tr("ইসলামিয়া মিষ্টি ঘরের ERP ও সব ব্রাঞ্চ খুলুন","Open Islamia Misty Ghar ERP and all branches"))+'">'+
+     '<span class="ph-brand-head"><span class="ph-symbol" aria-hidden="true">◈</span><span class="ph-brand-name"><strong>'+escape(tr("ইসলামিয়া মিষ্টি ঘর","Islamia Misty Ghar"))+'</strong><small>'+linked.length+' '+escape(tr("টি সংযুক্ত লোকেশন","linked locations"))+'</small></span><span class="ph-brand-chevron" aria-hidden="true">›</span></span>'+
+     '<span class="ph-brand-foot">'+escape(tr("সম্পূর্ণ ERP ও সব ব্রাঞ্চ খুলুন","Open full ERP and all branches"))+' <span aria-hidden="true">→</span></span></button></section>'
+ }
  return '<section class="ph-category" data-category="'+cat.key+'"><div class="ph-category-top"><span class="ph-symbol" aria-hidden="true">'+cat.sym+'</span><div><h3>'+escape(tr(cat.bn,cat.en))+'</h3><small>'+businesses.length+' '+escape(tr("টি ব্যবসা","businesses"))+'</small></div></div>'+
  (businesses.length?businesses.map(function(b){return businessHTML(b,map,assigned)}).join(""):'<div class="ph-empty">'+
  escape(tr("এখনো এই বিভাগের ব্যবসা যুক্ত হয়নি","No business is configured in this category"))+
@@ -86,6 +94,21 @@ var oldLoad=L.load;
 if(typeof oldLoad==="function")L.load=function(){var route=arguments[0],value=oldLoad.apply(this,arguments);return Promise.resolve(value).then(function(v){if(route==="organization")attach();return v})};
 attach();
 A.H.ph_manage=function(){var x=document.getElementById("ph_admin");if(x){x.open=true;x.scrollIntoView({behavior:"smooth",block:"start"})}};
+A.H.ph_enter=function(button){
+ if(!owner()||!B.biz||!B.biz.setCur)return;
+ var id=Number(button&&button.dataset&&button.dataset.v);
+ if(!Number.isSafeInteger(id)||id<=0)return;
+ var business=(B.biz.list?B.biz.list():[]).find(function(x){return Number(x.id)===id});
+ if(!business||categoryFor(business)!=="sweets")return;
+ if(!B.biz.setCur(id))return;
+ // Existing Islamia app entry has its original logo, theme, routes, POS and branch list.
+ // Only an authenticated owner may use this explicit business-workspace launch.
+ var url=new URL("index.html",window.location.href);
+ url.searchParams.set("workspace","islamia");
+ url.searchParams.set("biz",String(id));
+ url.hash="#/locations";
+ window.location.assign(url.href)
+};
 A.H.ph_open=function(button){
  var id=Number(button.dataset.v);if(!Number.isFinite(id)||!B.biz||!B.biz.setCur||!B.biz.setCur(id))return;
  if(location.hash==="#/locations"){if(window.BOS_NAV)window.BOS_NAV.afterBiz()}else location.hash="#/locations"
