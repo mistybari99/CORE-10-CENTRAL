@@ -43,7 +43,7 @@ function categoryHTML(cat,businesses,map,assigned){
  escape(tr("এখনো এই বিভাগের ব্যবসা যুক্ত হয়নি","No business is configured in this category"))+
  (owner()?'<button type="button" class="ph-set" data-act="ph_manage">'+escape(tr("ব্যবসা যোগ করুন","Set up business"))+'</button>':"")+'</div>')+'</section>'
 }
-function render(){
+function render(){if(!owner())return;
  var host=document.getElementById("ph_overview");if(!host||!document.getElementById("og_body"))return;
  var expanded=Array.from(host.querySelectorAll(".ph-business[open]")).map(function(x){return x.dataset.biz});
  var expandedGroups=Array.from(host.querySelectorAll(".ph-location[open]")).map(function(x){return x.closest(".ph-business").dataset.biz+"|"+x.dataset.kind});
@@ -66,7 +66,7 @@ function render(){
 }
 var observer,pending=false;
 function rerender(){if(pending)return;pending=true;Promise.resolve().then(function(){pending=false;render()})}
-function enhance(){
+function enhance(){if(!owner())return;
  var top=document.getElementById("og_top"),body=document.getElementById("og_body");if(!top||!body)return;
  if(document.getElementById("ph_overview")){rerender();return}
  var parent=top.parentNode;if(!parent)return;
