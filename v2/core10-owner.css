@@ -1,0 +1,236 @@
+/* CORE 10 | Executive Ocean v1
+ * Scope: Owner workspace ONLY. This file is linked by owner.html, not index.html.
+ * Visual-only design layer: no changes to permissions, ledgers, forms or business data.
+ *
+ * Design tokens: midnight navy / ocean teal / mist / cloud.
+ * Future owner brand redesign: update this single stylesheet + CORE 10 icon.
+ */
+body[data-core10-owner]{
+  --c10-navy:#0d2133; --c10-navy-deep:#091a2b; --c10-navy-soft:#183950;
+  --c10-teal:#087f8c; --c10-teal-hover:#066775; --c10-cyan:#59d5d0;
+  --c10-mint:#d7f3ef; --c10-cloud:#f2f6fa; --c10-white:#ffffff;
+  --c10-text:#172d3f; --c10-muted:#657a8a; --c10-line:#dce6ec;
+  --ruby:#087f8c;--ruby-deep:#066571;--ruby-hi:#0a98a5;
+  --gold:#087f8c;--gold-lt:#b4f2e9;--gold-pale:#ddf3f1;
+  --brand:#087f8c;--brand-2:#066571;--amber:#087f8c;--amber-hi:#42c3bc;
+  --bg:#f2f6fa;--ivory:#f2f6fa;--paper:#ffffff;--card:#ffffff;
+  --text:#172d3f;--ink:#172d3f;--ink-2:#425c6c;--muted:#657a8a;
+  --line:#dce6ec;--hair:#dce6ec;--s0:#f2f6fa;--s1:#ffffff;
+  --s1h:#f6fbfc;--s2:#edf3f7;--s3:#e2edf2;
+  --ok:#12634d;--ok-bg:#dcf4eb;--warn:#865600;--warn-bg:#fff2d5;
+  --bad:#ad3544;--bad-bg:#fde8ec;
+  --shadow:0 12px 32px rgba(9,31,47,.07);
+  --shadow-sm:0 3px 12px rgba(9,31,47,.05);
+  --ruby-grad:linear-gradient(135deg,#0b8996,#086774);
+  --gold-grad:linear-gradient(135deg,#60d7cd,#0c8c98);
+  --grad-brand:linear-gradient(135deg,#0b8996,#086774);
+  --chip-on:rgba(8,127,140,.1);
+  color:var(--text);background:var(--bg);
+}
+html[data-theme=dark] body[data-core10-owner],
+html[data-theme=brand-dark] body[data-core10-owner],
+html[data-theme=glass-dark] body[data-core10-owner]{
+  --bg:#102231;--ivory:#102231;--paper:#193446;--card:#193446;
+  --text:#e8f5f8;--ink:#e8f5f8;--ink-2:#b6d0dc;--muted:#9eb9c5;
+  --line:#2c4a5b;--hair:#2c4a5b;
+  --s0:#102231;--s1:#193446;--s1h:#24475a;--s2:#122b3d;--s3:#102538;
+  --gold-lt:#8fe5df;--gold-pale:#174b52;--ok-bg:#164737;
+  --warn-bg:#45371d;--bad-bg:#4d2631;
+  --shadow:0 12px 30px rgba(0,0,0,.24);
+  --shadow-sm:0 2px 10px rgba(0,0,0,.18);
+}
+body[data-core10-owner] :focus-visible{outline:3px solid #37b9bd;outline-offset:2px}
+body[data-core10-owner] a{color:var(--ruby)}
+body[data-core10-owner] #app{letter-spacing:0}
+body[data-core10-owner] h2,
+body[data-core10-owner] h3{color:var(--ink)}
+body[data-core10-owner] .card{
+  border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow-sm)
+}
+body[data-core10-owner] .card.panel{border-color:var(--line);box-shadow:var(--shadow)}
+body[data-core10-owner] .tile{
+  background:var(--card);color:var(--text);border:1px solid var(--line);
+  box-shadow:var(--shadow-sm);border-radius:15px;min-height:106px;gap:12px
+}
+body[data-core10-owner] .tile:after{display:none}
+body[data-core10-owner] .tile svg{color:var(--ruby)}
+body[data-core10-owner] .tile.t-ruby,
+body[data-core10-owner] .tile.t-ink{
+  background:linear-gradient(135deg,var(--c10-navy),var(--c10-navy-soft));
+  color:#eafaff;border-color:#204d60
+}
+body[data-core10-owner] .tile.t-ruby svg,
+body[data-core10-owner] .tile.t-ink svg{color:var(--c10-cyan)}
+body[data-core10-owner] .tile.t-gold{
+  background:var(--c10-mint);color:#0d444e;border-color:#b7e5df
+}
+body[data-core10-owner] .tile.t-gold svg{color:#0b7180}
+body[data-core10-owner] .badge{
+  background:#087f8c;color:white;border:2px solid var(--card)
+}
+body[data-core10-owner] button,
+body[data-core10-owner] .btn{border-color:var(--line);color:var(--ruby)}
+body[data-core10-owner] button.primary{
+  background:var(--ruby-grad);color:#fff;border:1px solid #086f79;
+  box-shadow:0 4px 12px rgba(8,127,140,.16)
+}
+body[data-core10-owner] button.danger{color:var(--bad);border-color:var(--bad)}
+body[data-core10-owner] input,
+body[data-core10-owner] select,
+body[data-core10-owner] textarea{
+  border-color:var(--line);background:var(--card);color:var(--text)
+}
+body[data-core10-owner] input:focus,
+body[data-core10-owner] select:focus,
+body[data-core10-owner] textarea:focus{
+  border-color:var(--ruby);box-shadow:0 0 0 3px rgba(8,127,140,.13)
+}
+body[data-core10-owner] header.top{
+  background:var(--card);border-bottom:1px solid var(--line);
+  box-shadow:0 2px 14px rgba(9,31,47,.045)
+}
+body[data-core10-owner] header.top:after{display:none}
+body[data-core10-owner] header.top h1{color:var(--ink);font-weight:800}
+body[data-core10-owner] header.top h1.brandh::before{
+  color:var(--c10-navy);letter-spacing:.05em;font:800 1.1rem/1.2 system-ui,sans-serif
+}
+/* Sidebar: restrained deep-blue navigation surface, not the Islamia red/gold drawer */
+body[data-core10-owner] .drawer{
+  background:var(--c10-navy);color:#c9dbe6;border-inline-end:1px solid #285063;
+  box-shadow:10px 0 30px rgba(6,24,37,.11)
+}
+body[data-core10-owner] .dr-head{
+  min-height:74px;padding:16px 13px;border-bottom:1px solid rgba(219,245,251,.13)
+}
+body[data-core10-owner] .dr-head .nm b{color:#ffffff;font:800 1.05rem/1.25 system-ui,sans-serif}
+body[data-core10-owner] .dr-head .nm i{color:#79dcd7;font:600 .72rem/1.4 system-ui,sans-serif;letter-spacing:.08em}
+body[data-core10-owner] .drawer .rb,
+body[data-core10-owner] .drawer .dr-g,
+body[data-core10-owner] .drawer .dr-it,
+body[data-core10-owner] .drawer .dr-rc,
+body[data-core10-owner] .drawer .dr-ftog,
+body[data-core10-owner] .drawer .hbtn{
+  color:#c9dbe6;border-color:transparent;background:transparent
+}
+body[data-core10-owner] .drawer .dr-i .dr-it svg,
+body[data-core10-owner] .drawer .dr-i .dr-rc svg,
+body[data-core10-owner] .drawer .dr-g .cv{color:#86afc2}
+body[data-core10-owner] .drawer .dr-i.on:before{background:#45c9c5;width:4px}
+body[data-core10-owner] .drawer .dr-i.on,
+body[data-core10-owner] .drawer .rb[aria-current=page]{
+  background:rgba(63,202,197,.11)
+}
+body[data-core10-owner] .drawer .dr-i.on .dr-it,
+body[data-core10-owner] .drawer .dr-i.on .dr-rc{color:#fff}
+body[data-core10-owner] .drawer .rb:hover,
+body[data-core10-owner] .drawer .dr-it:hover,
+body[data-core10-owner] .drawer .dr-g:hover{background:rgba(110,208,216,.1);color:#fff}
+body[data-core10-owner] .dr-search{padding:14px 12px 9px}
+body[data-core10-owner] .dr-search input{
+  background:#19394d;color:#fff;border:1px solid #32566b;
+  border-radius:10px;min-height:44px
+}
+body[data-core10-owner] .dr-search input::placeholder{color:#b0c5d1}
+body[data-core10-owner] .drawer .dr-biz{
+  border-bottom:1px solid rgba(219,245,251,.13);padding:10px 12px!important
+}
+body[data-core10-owner] .drawer .dr-biz label,
+body[data-core10-owner] .drawer label{color:#b0ccd9}
+body[data-core10-owner] .drawer .dr-biz select{
+  background:#1b3d52;color:#fff;border:1px solid #375f71;border-radius:10px
+}
+body[data-core10-owner] .drawer .dr-foot{border-color:#2c5266;background:#102a3d;color:#d5e6f1}
+body[data-core10-owner] .drawer .dr-fx,
+body[data-core10-owner] .drawer .dr-fxi{background:#102a3d;color:#d5e6f1}
+body[data-core10-owner] .drawer .dr-ftog{color:#c4dce8}
+body[data-core10-owner] .ph-nav{padding:10px 12px}
+body[data-core10-owner] .ph-nav button{
+  background:linear-gradient(135deg,#0b6676,#0b5066);color:#f0ffff;
+  border:1px solid #2a8f9c;border-radius:11px;font-weight:750
+}
+/* Business portfolio is the owner's first-class work surface */
+body[data-core10-owner] .ph-hero{
+  padding:24px 25px;border-radius:19px;border:1px solid #246579;
+  background:radial-gradient(circle at 95% 15%,rgba(44,191,192,.28),transparent 38%),
+    linear-gradient(125deg,#0d2133,#154257);box-shadow:0 12px 26px rgba(7,39,61,.12)
+}
+body[data-core10-owner] .ph-kicker{color:#9ce9e5;font:750 .72rem/1.5 system-ui,sans-serif;letter-spacing:.13em}
+body[data-core10-owner] .ph-hero h2{color:#fff;font-size:1.6rem;letter-spacing:-.02em}
+body[data-core10-owner] .ph-hero p{color:#c2e6ea}
+body[data-core10-owner] .ph-stats{border-color:rgba(211,251,255,.2);gap:25px}
+body[data-core10-owner] .ph-category{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow-sm);padding:16px
+}
+body[data-core10-owner] .ph-symbol{
+  background:var(--c10-mint);color:#0c6170;border-radius:11px
+}
+body[data-core10-owner] .ph-business,
+body[data-core10-owner] .ph-location{border:1px solid var(--line);border-radius:11px}
+body[data-core10-owner] .ph-business[open]{border-color:#8dcbd0}
+body[data-core10-owner] .ph-business>summary:hover,
+body[data-core10-owner] .ph-location>summary:hover{background:rgba(8,127,140,.05)}
+body[data-core10-owner] .ph-open{color:var(--ruby);background:var(--c10-mist);border-color:#b9dedf}
+body[data-core10-owner] .ph-admin{border-color:var(--line)}
+body[data-core10-owner] .ph-warning{border-left-color:#0a91a0}
+/* Home + overview widgets */
+body[data-core10-owner] .hgreet{
+  padding:16px 20px;margin:0 0 16px;background:var(--card);
+  border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow-sm)
+}
+body[data-core10-owner] .hsec{color:var(--text);font-weight:800}
+body[data-core10-owner] #hv_stats .stat,
+body[data-core10-owner] #hv_main .stat,
+body[data-core10-owner] #hv_main .qt{
+  background:var(--card);border:1px solid var(--line);
+  box-shadow:var(--shadow-sm);border-radius:14px
+}
+body[data-core10-owner] #hv_mods .tile,
+body[data-core10-owner] #hv_cats .tile{min-height:103px}
+body[data-core10-owner] .hrow{border-color:var(--line)}
+body[data-core10-owner] .dash-ok{color:var(--ok)}
+/* Login / authentication */
+body[data-core10-owner] #app:has(.login-logo){
+  max-width:500px;margin-inline:auto;padding-top:min(6vh,50px)
+}
+body[data-core10-owner] #app:has(.login-logo) header.top{
+  position:relative;border-radius:13px;margin:0 0 18px;box-shadow:none
+}
+body[data-core10-owner] #app .tabs::before{
+  content:"CORE 10 · OWNER WORKSPACE";
+  font:800 .79rem/1.5 system-ui,sans-serif;letter-spacing:.08em;
+  color:var(--ruby);padding:8px 0 5px
+}
+body[data-core10-owner] #app:has(.login-logo) .card.panel{
+  border-radius:20px;padding:22px;box-shadow:0 18px 48px rgba(15,43,62,.12)
+}
+body[data-core10-owner] .core10-emblem{
+  color:#a6fff0;background:#0d2133;border:1px solid #267b87
+}
+@media(min-width:1024px){
+  body[data-core10-owner]{--sb-w:280px;--ct-w:1280px;--desk-gut:28px}
+  body[data-core10-owner].desk-sb .drawer{border-radius:0}
+  body[data-core10-owner].desk-sb #app{background:transparent}
+  body[data-core10-owner].desk-sb header.top{
+    padding:15px 28px;min-height:70px
+  }
+  body[data-core10-owner] .ph-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  body[data-core10-owner] #hv_mods,
+  body[data-core10-owner] #hv_cats{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  body[data-core10-owner] #hv_stats .stats{gap:16px}
+}
+@media(min-width:1500px){
+  body[data-core10-owner]{--sb-w:296px;--ct-w:1400px}
+  body[data-core10-owner] #hv_mods,
+  body[data-core10-owner] #hv_cats{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  body[data-core10-owner] .ph-hero{padding:18px;border-radius:15px}
+  body[data-core10-owner] .ph-hero h2{font-size:1.35rem}
+  body[data-core10-owner] .ph-category{padding:13px}
+  body[data-core10-owner] header.top{border-bottom:1px solid var(--line)}
+  body[data-core10-owner] #app:has(.login-logo){padding-top:10px}
+}
+@media(prefers-reduced-motion:reduce){
+  body[data-core10-owner] *{scroll-behavior:auto!important;transition-duration:0s!important}
+}

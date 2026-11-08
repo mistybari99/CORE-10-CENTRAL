@@ -5,8 +5,8 @@
   "start_url": "./owner.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#fffbf4",
-  "theme_color": "#a1111e",
+  "background_color": "#f2f6fa",
+  "theme_color": "#0d2133",
   "icons": [
     {
       "src": "core10-owner-icon.svg",
