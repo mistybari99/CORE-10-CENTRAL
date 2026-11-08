@@ -65,3 +65,13 @@ Run the original Phase 123 `org_scope_preflight()` under a real owner authentica
 | Unassigned/pending/revoked user | No business data | No fallback to the first business |
 
 Never claim `99%` or `production secure` without a real database audit, real staff sessions and repeatable evidence.
+
+## Unchanged Islamia theme and portable workspace boundary
+
+**Implementation:** Islamia remains the original business workspace and retains its complete existing theme, logo, pages, inventory and transaction semantics. No copying, renaming or alteration of Islamia records is performed. CORE 10 shares the current ERP modules and CSS; its owner workspace is a separate entry/identity.
+
+* Islamia remains at `index.html` with the original `manifest.json`, `app.css`, `logo.webp`, `icon.svg` and `mark.svg`. This stage does not edit those assets.
+* CORE 10 owner portal remains `owner.html` with its separate installation name and icon. It **uses the same app.css and current theme choices** as Islamia. No new visual theme is applied in this stage. Its distinct icon uses the existing ruby/gold palette.
+* Owner theme choice is stored in `core10_owner_theme` instead of `bos_theme`. Initially the owner entry reads `bos_theme` if there is no owner preference. Subsequent owner choices never write `bos_theme`. Islamia users retain their existing theme preference unchanged. Future CORE 10 styling should apply only to the owner workspace.
+* Owner users who sign in via the business entry are routed to `owner.html`; non-owners who enter the owner portal are routed back to `index.html` after authentication.
+* This is reusable **software architecture**, not a copy-and-diverge codebase. Business / branch identity is resolved by user authorization; backend RLS / RPC security gates documented above remain blockers before expanding to live multi-business operation.

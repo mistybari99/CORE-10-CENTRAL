@@ -97,6 +97,14 @@ function redirectNonOwnerFromOwnerPortal(){
   window.location.replace(next.href);
  }catch(_){}
 }
+function redirectOwnerFromBusinessPortal(){
+ if(!isOwner()||!document.body||document.body.dataset.core10Owner==="1")return;
+ try{
+  var next=new URL("owner.html",window.location.href);
+  next.hash=window.location.hash||"#/home";
+  window.location.replace(next.href);
+ }catch(_){}
+}
 function currentName(){
  if(isOwner())return MASTER;
  if(!isStaff())return null;
@@ -106,6 +114,7 @@ function currentName(){
 function isIslamia(name){return /islam[iy]a|ইসলামি/gi.test(String(name&&name.bn||"")+" "+String(name&&name.en||""))}
 function branding(){
  redirectNonOwnerFromOwnerPortal();
+ redirectOwnerFromBusinessPortal();
  var identity=currentName();if(!identity)return;
  var brandName=identity.bn||identity.en;
  var heads=document.querySelectorAll("h1.brandh");
@@ -199,7 +208,7 @@ if(typeof MutationObserver==="function"&&document.body){
  observer.observe(document.body,{subtree:true,childList:true,characterData:true});
 }
 var style=document.createElement("style");style.id="core10-shell-css";style.textContent=
- '.core10-emblem,.core10-tenant-emblem{display:inline-flex;align-items:center;justify-content:center;flex:none;width:34px;height:34px;border-radius:10px;font:800 14px/1 system-ui,sans-serif;background:#182537;color:#f5d18a;border:1px solid #b89c62}'+
+ '.core10-emblem,.core10-tenant-emblem{display:inline-flex;align-items:center;justify-content:center;flex:none;width:34px;height:34px;border-radius:10px;font:800 14px/1 system-ui,sans-serif;background:var(--ruby,#a1111e);color:var(--gold-lt,#f1d27c);border:1px solid #b89c62}'+
  '.core10-tenant-emblem{background:var(--card,#fff);color:var(--text,#333);border-color:var(--line,#ccc)}'+
  '.dr-head .core10-emblem,.dr-head .core10-tenant-emblem{width:36px;height:44px;margin-right:4px}';
 document.head.appendChild(style);
