@@ -47,7 +47,8 @@ BEGIN
       WHERE (item->>'business_id')::bigint NOT IN (10,20)
          OR item->>'id' IN ('release:2','release:3','exception:1',
                            'emergency:2','pay:2','item_change:2','item_change:3',
-                           'entry:eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee')
+                           'entry:eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+                           'entry:ffffffff-ffff-4fff-8fff-ffffffffffff')
   ) THEN
     RAISE EXCEPTION 'FAIL: unmapped, conflicting, approved or inactive leak';
   END IF;
