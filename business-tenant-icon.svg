@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+<title id="title">Business Workspace</title>
+<rect width="512" height="512" rx="104" fill="#183347"/>
+<rect x="106" y="112" width="138" height="138" rx="24" fill="#38b5ba"/>
+<rect x="268" y="112" width="138" height="138" rx="24" fill="#d7f3ef"/>
+<rect x="106" y="274" width="138" height="125" rx="24" fill="#d7f3ef"/>
+<rect x="268" y="274" width="138" height="125" rx="24" fill="#38b5ba"/>
+</svg>

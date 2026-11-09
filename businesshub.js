@@ -150,8 +150,9 @@ A.H.ph_enter=async function(button){
   await B.biz.reload();business=(B.biz.list?B.biz.list():[]).find(function(x){return Number(x.id)===id})
  }
  if(!business||!B.biz.setCur(id))return;
- var url=new URL("index.html",window.location.href);
- url.searchParams.set("workspace",categoryFor(business)==="sweets"?"islamia":"business");
+ var sweets=categoryFor(business)==="sweets";
+ var url=new URL(sweets?"index.html":"business.html",window.location.href);
+ url.searchParams.set("workspace",sweets?"islamia":"business");
  url.searchParams.set("biz",String(id));
  url.hash="#/locations";
  window.location.assign(url.href)

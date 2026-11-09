@@ -157,6 +157,21 @@ function redirectNonOwnerFromOwnerPortal(){
   window.location.replace(next.href);
  }catch(_){}
 }
+function redirectStaffToOwnBusinessPortal(){
+ if(!isStaff()||!document.body)return;
+ var permitted=allowedBusinesses();
+ if(permitted.length!==1)return;
+ var identity=B.biz.brand();
+ var islamia=isIslamia(identity);
+ var neutral=document.body.dataset.businessTenant==="1";
+ if((islamia&&neutral)||(!islamia&&!neutral)){
+  try{
+   var next=new URL(islamia?"index.html":"business.html",window.location.href);
+   next.search="";next.hash=window.location.hash||"#/home";
+   window.location.replace(next.href)
+  }catch(_){}
+ }
+}
 function redirectOwnerFromBusinessPortal(){
  if(isOwnerBusinessWorkspace())return;
  if(!isOwner()||!document.body||document.body.dataset.core10Owner==="1")return;
@@ -179,6 +194,7 @@ function branding(){
  syncMasterNavigation();
  redirectNonOwnerFromOwnerPortal();
  redirectOwnerFromBusinessPortal();
+ redirectStaffToOwnBusinessPortal();
  if(isOwnerBusinessWorkspace())ensureWorkspaceReturn();
  var identity=currentName();if(!identity)return;
  var brandName=identity.bn||identity.en;
