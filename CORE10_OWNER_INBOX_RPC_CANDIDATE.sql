@@ -7,6 +7,7 @@
 -- {certified:true,scope:"owner",business_id:null|number,items:[...]}
 -- certified:true asserts the server enforces this contract WHEN deployed; this
 -- candidate must NOT be deployed until security certification is complete.
+-- Only active businesses may appear. Planned and inactive businesses deny access.
 BEGIN;
 
 CREATE OR REPLACE FUNCTION public.core10_owner_inbox_v1(
@@ -35,7 +36,7 @@ BEGIN
      OR NOT EXISTS (
         SELECT 1 FROM public.org_units b
         WHERE b.id = p_business_id AND b.kind = 'business'
-          AND b.status <> 'inactive'
+          AND b.status = 'active'
      )
   ) THEN
     RAISE EXCEPTION 'invalid business' USING ERRCODE = '22023';
@@ -98,7 +99,7 @@ BEGIN
     SELECT c.id,c.request_type,c.title,c.created_at,c.business_id
     FROM candidates c
     JOIN public.org_units b ON b.id=c.business_id
-       AND b.kind='business' AND b.status<>'inactive'
+       AND b.kind='business' AND b.status = 'active'
     WHERE c.business_id BETWEEN 1 AND 9007199254740991
       AND (p_business_id IS NULL OR c.business_id=p_business_id)
   ), limited AS (
