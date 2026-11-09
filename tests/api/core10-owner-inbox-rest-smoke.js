@@ -117,8 +117,16 @@ function accepted(r,label,businessId,count) {
     "unregistered authenticated user");
   refused(await rpc(jwt(people.owner,{exp:Math.floor(Date.now()/1000)-3600}),
     {p_business_id:10,p_limit:40}),"expired signed JWT");
-  const tampered=jwt(people.owner);
-  refused(await rpc(tampered.slice(0,-1)+(tampered.at(-1)==="A"?"B":"A"),
+  // Mutate the FIRST base64url character of the signature. Mutating its
+  // final character is unreliable: unused trailing base64 bits can produce
+  // a different token string with the exact same decoded HMAC bytes.
+  const signed=jwt(people.owner);
+  const tokenParts=signed.split(".");
+  assert.equal(tokenParts.length,3);
+  const signature=tokenParts[2];
+  assert.ok(signature.length>1);
+  tokenParts[2]=(signature[0]==="A"?"B":"A")+signature.slice(1);
+  refused(await rpc(tokenParts.join("."),
     {p_business_id:null,p_limit:40}),"invalid JWT HMAC");
   refused(await rpc(null,{p_business_id:null,p_limit:40}),"anonymous request");
   refused(await rpc(owner,{p_business_id:30,p_limit:40}),"inactive business");
