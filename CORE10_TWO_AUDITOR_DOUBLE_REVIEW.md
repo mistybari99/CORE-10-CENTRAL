@@ -59,3 +59,10 @@ Auditor 1 requested continuity for Islamia's existing ERP. Auditor 2 refused to 
 - Agreed changes: wrap staff `locBizId`, `profileFor`, `profile`, and `logo` at the existing shell boundary. Keep original owner calls unchanged; no SQL/table writes.
 - Added regression checks to `tests/core10-complete-mapping-smoke.js`; both audit rounds must pass on actual Node in GitHub Actions.
 - Owner-side unlinked-location fallback in bundled `bizctx.js` remains separate release blocker pending a coordinated source/bundle migration. This guard cannot replace database authorization.
+
+
+## Round 4 — Pending request cross-session data race and UI cleanup
+
+Auditor A (operations) requires owner switch and logout to render a clean local business inbox and leave Islamia legacy operations untouched. Auditor B (security) found that inbox request `key` previously lacked the owner's authenticated profile ID, so an old response for the same business could overwrite another owner's session view. They agreed to bind both business and master request keys to `ctx.profile.id`, reject responses/errors from a stale scope or node, refuse a missing profile ID, and immediately clear stale inbox content on signout/unset scope.
+
+**Two rounds of regression** now exercise both network response orders (old-first and new-first), then logout cleanup. This proves only UI behavior; production API/RLS remains unverified.

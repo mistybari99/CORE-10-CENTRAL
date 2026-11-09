@@ -25,12 +25,12 @@ function harness(mode,reply){
    return null
   }
  };
- const app={S:{ctx:{is_owner:mode!=="staff"},lang:"bn"},H:{},
-  sb:{rpc(name,args){calls.push({name,args});return Promise.resolve(reply)}}};
+ const app={S:{ctx:{is_owner:mode!=="staff",profile:{id:"owner-primary"}},lang:"bn"},H:{},
+  sb:{rpc(name,args){calls.push({name,args});return Promise.resolve(typeof reply==="function"?reply():reply)}}};
  const biz={list:()=>[{id:1,name_bn:"Islamia"},{id:2,name_bn:"Paint"}],cur:()=>1};
  const win={location,BOS_APP:app,BOS:{biz},addEventListener(){}};
  vm.runInNewContext(source,{window:win,document,location,MutationObserver:undefined,Promise,Array,Set,Map,Number,console});
- return {calls,node:()=>host.child,api:win.CORE10_OWNER_INBOX};
+ return {calls,node:()=>host.child,api:win.CORE10_OWNER_INBOX,app};
 }
 async function settle(){await new Promise(r=>setImmediate(r))}
 function valid(){
@@ -70,6 +70,26 @@ async function audit(round){
  assert.equal(test({...valid(),items:[{...valid().items[0],status:"approved"}]},sc),null);
  assert.equal(test({...valid(),certified:false},sc),null);
  assert.equal(test({...valid(),business_id:2},sc),null);
- console.log("PASS: Auditor A+B, validation round "+round);
+ // Auditor A: account transitions do not interrupt the current business inbox.
+ // Auditor B: a slower old-session API response cannot render after a new owner enters.
+ const queues=[];
+ const swapped=harness("business",()=>new Promise(resolve=>queues.push(resolve)));
+ await settle();assert.equal(queues.length,1);
+ swapped.app.S.ctx.profile.id="owner-new";
+ swapped.api.scan();await settle();assert.equal(queues.length,2);
+ const fresh={...valid(),items:[{...valid().items[0],id:"entry:new",title:"NEW OWNER RECORD"}]};
+ const stale={...valid(),items:[{...valid().items[0],id:"entry:old",title:"OLD OWNER PRIVATE"}]};
+ if(round===1){
+  queues[1]({data:fresh});await settle();
+  queues[0]({data:stale});await settle()
+ }else{
+  queues[0]({data:stale});await settle();
+  queues[1]({data:fresh});await settle()
+ }
+ assert.match(swapped.node().innerHTML,/NEW OWNER RECORD/);
+ assert.doesNotMatch(swapped.node().innerHTML,/OLD OWNER PRIVATE/);
+ swapped.app.S.ctx.profile=null;swapped.api.scan();await settle();
+ assert.equal(swapped.node().innerHTML,"");
+ console.log("PASS: Auditor A+B, validation + session-race round "+round);
 }
 (async()=>{await audit(1);await audit(2)})().catch(e=>{console.error(e);process.exitCode=1});

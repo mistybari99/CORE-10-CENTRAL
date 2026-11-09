@@ -11,10 +11,11 @@ var requestSeq=0,currentNode=null,currentKey="";
 function esc(x){return String(x==null?"":x).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function tr(b,e){return A.S.lang==="en"?e:b}
 function scope(){
- var ctx=A.S.ctx;if(!ctx||ctx.is_owner!==true||!document.body)return null;
+ var ctx=A.S.ctx;if(!ctx||ctx.is_owner!==true||!document.body||!ctx.profile||ctx.profile.id==null)return null;
+ var principal=String(ctx.profile.id);if(!principal||principal==="undefined"||principal==="null")return null;
  if(document.body.dataset.core10Owner==="1"){
   if(String(location.hash||"")!=="#/organization")return null;
-  return {kind:"master",id:null,key:"master"}
+  return {kind:"master",id:null,key:"master:"+principal}
  }
  var search=window.location.search||"";
  if(!/(?:^|[?&])workspace=(?:islamia|business)(?:&|$)/.test(search))return null;
@@ -24,7 +25,7 @@ function scope(){
  if(!Number.isSafeInteger(id))return null;
  if(String(B.biz.cur())!==String(id))return null;
  if(!(B.biz.list()||[]).some(function(x){return Number(x.id)===id}))return null;
- return {kind:"business",id:id,key:"business:"+id}
+ return {kind:"business",id:id,key:"business:"+id+":"+principal}
 }
 function nodeFor(s){
  if(s.kind==="master"){
@@ -97,12 +98,13 @@ async function refresh(){
   var rows=safeRows(result.data,s);
   node.innerHTML=rows===null?message(s,tr("Approval API-এর Scope যাচাই ব্যর্থ। অন্য ব্যবসার তথ্য দেখানো হয়নি।","Approval scope validation failed. No other-business data has been shown."),"warn"):displayRows(rows,s)
  }catch(_){
-  if(id===requestSeq&&node.isConnected)node.innerHTML=message(s,tr("নিরাপদ Approval API পাওয়া যাচ্ছে না।","The secured approval API is unavailable."),"warn")
+  if(id===requestSeq&&node.isConnected&&currentNode===node&&currentKey===s.key&&scope()&&scope().key===s.key)
+   node.innerHTML=message(s,tr("নিরাপদ Approval API পাওয়া যাচ্ছে না।","The secured approval API is unavailable."),"warn")
  }
 }
 function scan(){
  var s=scope();
- if(!s){currentNode=null;currentKey="";requestSeq++;return}
+ if(!s){if(currentNode&&currentNode.isConnected)currentNode.innerHTML="";currentNode=null;currentKey="";requestSeq++;return}
  var node=nodeFor(s);if(!node)return;
  if(node!==currentNode||s.key!==currentKey)refresh()
 }
