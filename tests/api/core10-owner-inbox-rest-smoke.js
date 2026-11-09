@@ -4,6 +4,27 @@
 "use strict";
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
+const fs = require("node:fs");
+const path = require("node:path");
+const vm = require("node:vm");
+const frontendSource = fs.readFileSync(path.join(__dirname,"..","..","core10-owner-inbox.js"),"utf8");
+function checkedFrontendRows(payload,kind,businessId) {
+  const location = {search:"",hash:"#/contract-test"};
+  const app = {S:{ctx:{is_owner:false,profile:{id:"test"}},lang:"en"},H:{},sb:{}};
+  const win = {BOS_APP:app,BOS:{biz:{
+    list:()=>[{id:10,name_en:"Test A"},{id:20,name_en:"Test B"}],
+    cur:()=>10
+  }},location,addEventListener(){}};
+  const doc = {body:{dataset:{}},head:{appendChild(){}},
+    addEventListener(){},querySelector(){return null},
+    createElement(){return {style:{},textContent:"",id:""}}
+  };
+  vm.runInNewContext(frontendSource,{window:win,document:doc,location,
+    MutationObserver:undefined,Promise,Number,Set,Map,Array,console});
+  const rows = win.CORE10_OWNER_INBOX.validate(payload,{kind,id:businessId});
+  return rows===null?null:rows.length;
+}
+
 const secret = process.env.CORE10_CI_JWT_SECRET;
 const endpoint = process.env.CORE10_CI_REST_URL || "http://127.0.0.1:3000/rpc/core10_owner_inbox_v1";
 if (!secret || secret.length < 32) {
@@ -57,9 +78,22 @@ function accepted(r,label,businessId,count) {
 }
 (async()=>{
   const owner=jwt(people.owner);
-  const all=accepted(await rpc(owner,{p_business_id:null,p_limit:40}),"master owner",null,9);
-  const ten=accepted(await rpc(owner,{p_business_id:10,p_limit:40}),"business 10 owner",10,6);
-  const twenty=accepted(await rpc(owner,{p_business_id:20,p_limit:40}),"business 20 owner",20,3);
+  const masterResponse = await rpc(owner,{p_business_id:null,p_limit:40});
+  const tenResponse = await rpc(owner,{p_business_id:10,p_limit:40});
+  const twentyResponse = await rpc(owner,{p_business_id:20,p_limit:40});
+  const all=accepted(masterResponse,"master owner",null,9);
+  const ten=accepted(tenResponse,"business 10 owner",10,6);
+  const twenty=accepted(twentyResponse,"business 20 owner",20,3);
+  // End-to-end serialization contract: real signed-JWT PostgREST JSON must
+  // pass the actual browser-side validator, not a hand-crafted mock alone.
+  assert.equal(checkedFrontendRows(masterResponse.data,"master",null),9);
+  assert.equal(checkedFrontendRows(tenResponse.data,"business",10),6);
+  assert.equal(checkedFrontendRows(twentyResponse.data,"business",20),3);
+  assert.equal(checkedFrontendRows({...tenResponse.data,business_id:"10"},"business",10),null);
+  assert.equal(checkedFrontendRows({...tenResponse.data,items:[
+    ...tenResponse.data.items,twentyResponse.data.items[0]
+  ]},"business",10),null);
+  console.log("PASS: real PostgREST response -> actual frontend validator (3 valid, 2 rejected)");
   assert.ok(ten.has("release:1"));
   assert.ok(all.has("release:1"));
   assert.ok(twenty.has("entry_change:1"));
