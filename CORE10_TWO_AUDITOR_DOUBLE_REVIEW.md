@@ -52,3 +52,10 @@ Auditor 1 requested continuity for Islamia's existing ERP. Auditor 2 refused to 
 4. Implement and test tenant-scoped source RLS/RPC and staff REST/RPC negative tests; keep production switch OFF until gates pass.
 5. Build audited transactional decision endpoints with idempotent transition, approval policy, actor/business checks and audit log; then add Approve/Reject UI.
 6. Verify master rollup and local business inbox deduplicate the same request IDs.
+
+## Round 3 — Tenant identity adapter hardening (2026-11-09)
+- Audit role A: Current legacy Business Profile, signed Logo URL and location names must not break for authorized single-business staff or owner.
+- Audit role B: Even when `BOS.biz.locBizId` uses fallback internally, *staff-facing adapter* must return null if any location mapping is pending, denied, mixed across businesses or does not contain requested place ID. Profile/logo/profileFor also fail closed.
+- Agreed changes: wrap staff `locBizId`, `profileFor`, `profile`, and `logo` at the existing shell boundary. Keep original owner calls unchanged; no SQL/table writes.
+- Added regression checks to `tests/core10-complete-mapping-smoke.js`; both audit rounds must pass on actual Node in GitHub Actions.
+- Owner-side unlinked-location fallback in bundled `bizctx.js` remains separate release blocker pending a coordinated source/bundle migration. This guard cannot replace database authorization.

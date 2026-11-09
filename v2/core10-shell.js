@@ -13,6 +13,10 @@ var originalCur=B.biz.cur.bind(B.biz);
 var originalSetCur=B.biz.setCur.bind(B.biz);
 var originalSwitcher=B.biz.switcherHTML.bind(B.biz);
 var originalBrandFor=typeof B.biz.brandFor==="function"?B.biz.brandFor.bind(B.biz):null;
+var originalLocBizId=typeof B.biz.locBizId==="function"?B.biz.locBizId.bind(B.biz):null;
+var originalProfileFor=typeof B.biz.profileFor==="function"?B.biz.profileFor.bind(B.biz):null;
+var originalProfile=typeof B.biz.profile==="function"?B.biz.profile.bind(B.biz):null;
+var originalLogo=typeof B.biz.logo==="function"?B.biz.logo.bind(B.biz):null;
 var descLocs=Object.getOwnPropertyDescriptor(B.ENV,"locs");
 var descAll=Object.getOwnPropertyDescriptor(B.ENV,"locsAll");
 function allLocations(){
@@ -104,6 +108,23 @@ if(originalBrandFor)B.biz.brandFor=function(locId){
  if(isStaff()&&!scopedLocations().some(function(loc){return Number(loc.id)===Number(locId)}))return PRIVATE;
  return originalBrandFor(locId)
 };
+/* Identity adapters: tenant clients never infer business identity from a
+ * first-business fallback, profile, or logo before server-verified mapping. */
+function staffBusinessReady(){
+ return !isStaff()||(verifyReady&&verifiedLocations.size===assignedIds().size&&allowedBusinesses().length===1)
+}
+if(originalLocBizId)B.biz.locBizId=function(loc){
+ if(!isStaff())return originalLocBizId(loc);
+ if(!loc||!Number.isSafeInteger(Number(loc.id))||!staffBusinessReady())return null;
+ var id=Number(loc.id),business=verifiedLocations.get(id);
+ return allowedBusinesses().some(function(x){return Number(x.id)===business})?business:null
+};
+if(originalProfileFor)B.biz.profileFor=function(locId){
+ if(isStaff()&&(!staffBusinessReady()||!scopedLocations().some(function(x){return Number(x.id)===Number(locId)})))return null;
+ return originalProfileFor(locId)
+};
+if(originalProfile)B.biz.profile=function(){return staffBusinessReady()?originalProfile():null};
+if(originalLogo)B.biz.logo=function(){return staffBusinessReady()?originalLogo():null};
 B.biz.switcherHTML=function(){return isStaff()||isOwnerBusinessWorkspace()?"":originalSwitcher()};
 function ownerWorkspaceKind(){
  if(!isOwner()||!document.body||document.body.dataset.core10Owner==="1")return "";
