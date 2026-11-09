@@ -87,3 +87,56 @@ Central → select Business → Add Showroom / Factory / Warehouse → business-
 Existing approved Central Decision Book decisions **C10-D001, D002, D006, D007, D008, D009, D010, D021, D024, D025** already broadly align. Owner's clarified desire to add sites *from Central* can be implemented as an additional entry point to the same business-local server-verified form; this updates UI convenience, not the underlying source of authority. No duplicate or routine Decision Book audit rows were created. Amend a **single relevant master architecture decision** only after Owner approves this proposal.
 
 **PR nature:** Documentation-only Draft, no production or current app behavior changed.
+
+
+## 8. Follow-up: Owner-controlled UX, strict permissions, dynamic business templates (2026-11-10)
+
+**Owner clarification:** One-time configurable ERP; staff sees only the assigned branded business, may see a navigation option **Allowed / Locked / Hidden** as explicitly configured; Owner retains authority over optional feature toggles and delegated access. Creating a new Paint / Construction business or facility should automatically link its database identities and settings and never require new coding for already-supported workflows.
+
+### Track 1 — Permission evidence (read-only, not equivalent to an authenticated user acceptance test)
+
+- **Already implemented**: \`public.role_form_perms\` has 118 rows; \`can_do(form,action)\` returns role-based view/enter/approve; \`has_grant(grant,location)\` supports owner, roles, user grants and emergency grants. \`role_form_overrides133\`, \`rule_grant_overrides133\`, \`rule_overrides\` provide business-specific override storage. Live \`rules\` include many optional switches.
+- **Already implemented**: \`optviews.js\` is listed in bundle-manifest, \`nav.js\` loads \`my_option_views\` and calls \`optviews.apply\`. The dedicated Owner-only \`Who sees what\` screen sets Show/Hide/Locked for individual users and roles using server RPCs. A locked link is annotated and click-captured to display a lock sheet; Hide filters menu entries. \`settings2.js\` also includes global \`ui_noperm_mode\` (lock or hide for no permission).
+- **No current live evidence**: both \`user_option_view\` and \`role_option_view\` have zero records as of this audit. The existing UI/endpoint implementation therefore has **NOT** been certified for actual newly applied visibility changes, deep-link bypass, refresh, session switch, offline/stale caches, revoked permission, role precedence or full server access denial. Do not mark it “complete”.
+- **Critical semantic distinction**: Show/Hide/Locked controls presentation. It MUST NOT grant permission. Render \`Allowed\` only when module available AND business active AND role/user permission AND assigned business/location all pass at the server. Locked can be visible but non-actionable; Hidden must not appear in menu/search/favourites or branded staff UX. Direct URL/REST/API cannot bypass database access. Check whether a Hidden-but-authorized deep link is intentionally permitted (UX preference) or should be denied by a separate route policy.
+- **Grant precedence**: \`_ov_effective\` applies per-user override before role defaults; when multiple roles conflict, the existing role visibility merge favors Show over Locked over Hide. This should be explicitly presented to Owner and tested: broad role grants must never quietly override an Owner's expected restricted staff access.
+- **RLS dependency**: With \`org_scope_on=false\`, \`can_do\` takes its legacy global role matrix; business \`_form_eff133\` only applies in the ON branch. Other conditional RLS policies similarly relax business scoping when OFF. Keep optional operations switches Owner-controlled, but **do not leave tenant isolation switchable or grant-dependent** during multi-business production. Rebuild consistent backend isolation and retest all affected code.
+- **Staff branding**: \`core10-shell.js\` obtains a verified business ID for all assigned locations using \`org_unit_scope\`, blocks mixed/ambiguous mappings and suppresses Central navigation; \`business_profiles\` stores branding. Still audit every direct page, browser history/search, exports, storage, and RPC, not just the shell.
+
+### Track 2 — Exact module/template reconciliation
+
+Current \`business_templates\` live states:
+- \`food_manufacturing\`: **available**; module list includes POS, Stock, Purchase, Production, Costing, Accounting, Reports.
+- \`hardware_paint\`: **not_implemented**, despite registered built partial features \`cheque_pdc\`, \`principal_schemes\`, \`tinting\`; variants, business-specific parties, dealer POS and scheme accounting paths are registered as not built.
+- \`dealership\`: **not_implemented**, though some cheque/scheme features exist.
+- \`construction\`, \`technology\`, \`online_store\`: **not_implemented**. \`import_export\`: **needs_setup**.
+- \`businesshub.js\` assigns *portfolio categories* from regex on business code/template/name. \`ia.js\` contains broadly shared route groups including factories/production, finance, settings, paint tinting, etc., with permissions but not a fully certified per-business module eligibility service. A category label is not a secure module manifest; don't remove code or physically move tables based on category names.
+
+**Recommended separation** (configurable, not destructive):
+| Layer | Modules / examples | Visibility rule |
+|---|---|---|
+| CORE 10 master-only | multi-business portfolio, global organizational and legal setup, group settings, cross-business consolidated views, system/security governance | Authenticated Master Owner; never staff |
+| Shared Business Core | Item Master, category, purchase, inventory, location, transfer, POS where relevant, accounts, CRM, staff, approval, local reports | Enabled only if template supports it and user has appropriate business/location grant |
+| Food / Bakery | batch production, recipes/BOM, cake, doi/sweets, expiry, food wastage/QC, factory/store transfers | Sweets template default, other businesses only when explicitly applicable |
+| Paint / Hardware | tinting, size/shade/variant, manufacturer brand, dealer scheme, cheque/PDC, paint inventory | Paint template default only after certified workflow completion |
+| Construction | job/project, BOQ, site material issue/return, subcontractor work, contract billing, project costing | Construction template when implemented |
+| Technology / Digital | project/service delivery, subscriptions, client invoicing, automation, digital integrations | Technology template when implemented |
+
+**Business-scoped on/off** should have these independent concepts: (1) feature supported by deployed software, (2) feature enabled for this business by Owner, (3) action permitted for this user and location, (4) UI display preference Show/Locked/Hide. No “enable” setting should pretend a \`not_implemented\` template feature is already deployable. Shared module code remains present once; each business only sees an eligible/configured workspace.
+
+### Track 3 — Dynamic provisioning and safe Owner changes
+
+**Desired creation transaction:** Central selects existing/new legal entity → new Business record → approved template/modules → business profile/brand → default role settings/permissions with deny-by-default → business-scoped numbering + item namespace + warehouses/branches/sites → operational \`locations\` with server-resolved \`org_unit_id\` → initial reporting scopes → activation readiness checks. Use one reusable RPC/service and idempotency key; no per-business hardcoded code or separate app builds.
+
+The current \`places135.js\` wizard does individual \`org_unit_save\` (legal entity, business, branch) and \`business_place_create135\` RPC calls in sequence. Each RPC has its own transaction; a failure partway can leave a partially provisioned business. Client IDs reduce duplicate retries but do not make the entire wizard atomic. Add a transactional provisioning coordinator or explicit \`DRAFT -> SETTING_UP -> READY -> ACTIVE\` state machine with resume/compensating rollback, and clear evidence of what was completed. Never change existing \`locations.id\` values.
+
+**Owner administration plan:** \`Central > Business > Settings\` (per-business modules/branding), \`Central > Security > Users / Roles\` (scope, action permissions, visibility) and \`Central > System\` (global safety/migrations, restricted). The staff app remains business-branded, grants are business/location-specific, and a staff account with no grant sees nothing sensitive. Include **View as Staff** preview with signed-session API verification (not only frontend simulation), effective-permission explanation, impact review, versioned configuration history, reversible changes, and capability rollout states.
+
+### P0 acceptance before declaring “everything is ready”
+1. Owner tests Role- and User-specific Show, Locked, Hidden; wrong link and direct REST deny; no Central or sibling business logo/name; revoked user cannot access cached, API, export, reports or storage.
+2. Set up an isolated new Paint business and at least one branch/warehouse without code changes; ensure labels/stock/items/roles/reporting/billing are correctly scoped, while \`not_implemented\` modules remain unavailable with accurate status.
+3. Simulate a crash during 4th provisioning step and retry with same key: exactly one business and expected sites, either fully configured or explicitly recoverable in DRAFT; no orphan/unmapped sites.
+4. Validate full cross-business movement safety, data retention and audit trail, one business at a time, then secure activation. Repeat with Construction only once its template has real implementation.
+5. Keep legacy Sweets workspaces operable and preserve stock/account data during every change.
+
+**Disposition:** Architecture analysis and recommended gates only; no production data changes, module removal, switch toggles, merge, or live activation. Retain the existing Owner option controls rather than rebuilding them; prioritize integration verification, scope hardening and template readiness.
