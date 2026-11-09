@@ -117,6 +117,13 @@ function accepted(r,label,businessId,count) {
     "unregistered authenticated user");
   refused(await rpc(jwt(people.owner,{exp:Math.floor(Date.now()/1000)-3600}),
     {p_business_id:10,p_limit:40}),"expired signed JWT");
+  // Signed but wrong-audience tokens must never reach a certified owner inbox.
+  // This protects against accepting credentials minted for another service.
+  refused(await rpc(jwt(people.owner,{aud:"another-service"}), 
+    {p_business_id:10,p_limit:40}),"wrong JWT audience");
+  // A correctly signed token that is not yet valid must also be rejected.
+  refused(await rpc(jwt(people.owner,{nbf:Math.floor(Date.now()/1000)+3600}),
+    {p_business_id:10,p_limit:40}),"future not-before JWT");
   // Mutate the FIRST base64url character of the signature. Mutating its
   // final character is unreliable: unused trailing base64 bits can produce
   // a different token string with the exact same decoded HMAC bytes.
