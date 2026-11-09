@@ -140,3 +140,47 @@ The current \`places135.js\` wizard does individual \`org_unit_save\` (legal ent
 5. Keep legacy Sweets workspaces operable and preserve stock/account data during every change.
 
 **Disposition:** Architecture analysis and recommended gates only; no production data changes, module removal, switch toggles, merge, or live activation. Retain the existing Owner option controls rather than rebuilding them; prioritize integration verification, scope hardening and template readiness.
+
+## 9. Non-negotiable enterprise scale: EASY SETUP ≠ LITE ERP (owner clarification)
+
+**Enterprise product requirement; not a claim of current delivery:** Quick Setup minimizes user input and clicks, never features, reports, controls, business complexity or scale. Advanced Setup exposes the SAME architecture and capabilities at finer granularity. Never split this into weak "basic ERP" and separate enterprise ERP products.
+
+### Explicit scale target
+- Support and load-test **100+ branches/showrooms, 100+ factories/production sites, and 100+ warehouses/godowns inside a single business**, and multiple such businesses in one Central Portfolio. This is a DESIGN/TEST OBJECTIVE, not a verified capacity claim.
+- No hardcoded location or business counts, fixed branch arrays, arbitrary per-business facility ceilings or linear API fan-out for portfolio totals. Use proper canonical business/unit/location IDs, indexed scoped queries, pagination, filters, bulk setup/import, transactional stock ledgers, bounded background reporting jobs and monitored retries.
+- Keep physical stock Location IDs and existing links stable. Model groups, legal entities, business workspaces, operating sites and multiple stock bins/locations as distinct hierarchy levels.
+
+### Universal enterprise capabilities (composable 10+ industry templates)
+All supported business types must be able to select compatible capabilities from a comprehensive registry, including:
+1. Master data: items/variants, UOM conversion, brands, locations/sites/stock bins, prices, customers/suppliers, legal entities, multiple currency/tax schemes, cost centers and numbering.
+2. Operations: purchasing/PO/receiving/returns, stock ledger/transfers/in-transit, warehouse replenishment, manufacturing BOM/recipe/routing, batches/expiry/serial, quality control, waste, cost valuation, POS, invoicing, delivery and online orders.
+3. Finance/control: accounts receivable/payable, cash/bank, GL and reconciliation where actually implemented, financial periods, budgets, approval thresholds, segregation of duties, owner exceptions, audit history and reports.
+4. Workforce, integrations and enterprise governance: branch staff/roles, attendance, payroll where implemented, notifications/automation, offline synchronization, API/web integration, data backup/restore, audit and activity logs, change-control, secrets/security.
+5. Enterprise reports: portfolio, business, brand, branch, factory, warehouse, project and product drilldowns; sales, gross/net profit, margin, stock valuation/aging, production output/yield/waste, purchases, customer/supplier dues, cash flow, forecasts, KPI trends, approvals, exceptions and exports.
+6. Industry packs: Sweets/Bakery, Restaurant/Kitchen, Paint/Hardware, Retail/Wholesale, Manufacturing, Construction, Import-Export, E-commerce, Technology/Digital, and Services.
+
+**Critical distinction:** An extensive catalog is not the same as completed software. Every capability in a versioned feature registry must disclose supported-and-tested, implemented-unverified, partial, not-implemented or not-applicable status, dependencies, relevant business templates, role permissions, report coverage and acceptance tests. The application must never mark an incomplete business template fully ready or silently hide missing functionality. Owner controls may configure existing functionality; genuinely unbuilt features still require development and verification.
+
+### Master AND individual Business Owner Boards
+- CORE 10 Central controls multi-business portfolio, legal entities, group-wide configuration, all identities/roles, business creation and consolidated performance.
+- Every business also contains a full Business Owner Board for its own branches, facilities, operational modules, staff grants, user/role Show-Locked-Hidden choices, business-specific workflow rules, approval thresholds, local analytics, finances, reports and brand settings.
+- Both views use one authoritative configuration and permission model. A change scoped in a Business Owner Board is instantly reflected in Central; no duplicated ownership data or conflicting systems.
+- Staff sees its verified business brand and only its authorized sites, transactions and actions. Hidden and Locked are UI options; backend authorization is mandatory regardless of presentation or direct URL/API.
+- Optional operational switches remain Owner-configurable. Database tenant isolation and global security are NOT ordinary optional business switches.
+
+### Quick vs Advanced setup — identical feature completeness
+- Quick Setup asks just essentials: business category/template, legal entity, name/brand, initial facilities, chosen default role/module profile. Then it PROVISIONS all applicable fully implemented enterprise capabilities and safe defaults, keeping advanced fields adjustable.
+- Advanced Setup exposes detailed accounting/stock/procurement/production rules, roles, access visibility, sites, integration, approval, numbering and reporting configurations on exactly the same engine.
+- One transactional or auditable resumable provisioning coordinator ensures no partially active businesses, duplicate sites or inconsistent role/ledger records if a setup step fails. Idempotent retry/repair is mandatory.
+- For an already-implemented industry capability, future business/branch/factory/warehouse creation MUST require configuration only, not code edits.
+
+### Enterprise readiness acceptance — NOT yet passed
+- In isolated staging, provision at least two active businesses, ten category templates and **100 branches + 100 factories + 100 warehouses within one business**, using the normal UI/API without code edits.
+- Validate stock/production/purchases/transfers/approvals under concurrent staff operations, inter-site operations, retry/crash/offline recovery, and balances against audit ledgers. Test business-scoped reports and Central consolidated report reconciliation, no internal-transfer double counting.
+- Prove real authenticated user/role/business/location permissions for Show/Locked/Hidden plus direct REST, reports, exports, storage, offline and revoked users; no cross-business leakage.
+- Run production-like load, query-plan and p95 latency benchmarks, recovery/restore drills and capacity/cost checks before claiming enterprise ready; don't invent passing numbers.
+- Confirm each of ten templates is FULLY IMPLEMENTED before activating it for real businesses; report partial/not-built modules and all missing reporting coverage without concealing them. Preserve existing Islamiya live data and workflows.
+
+**Sequencing:** isolate tenant data and role semantics -> consolidate reusable ERP/catalog registry -> scalable automatic provisioning and 300+ site structure -> Master & Business Owner Boards -> reporting definitions and reconciled aggregates -> industry template build-out -> production-like resilience/performance certification.
+
+**Governance:** Scope clarified in the existing Draft PR only. No production DB writes, migrations, toggles, PR merges, deployment, or new Decision Book audit-log rows.
