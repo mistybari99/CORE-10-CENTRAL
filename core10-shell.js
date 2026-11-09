@@ -23,7 +23,10 @@ function assignedIds(){
 }
 function scopedLocations(){
  if(!isStaff())return allLocations();
- var allowed=assignedIds();return allLocations().filter(function(loc){return allowed.has(Number(loc.id))})
+ ensureVerifiedLocations();
+ var distinct=new Set(verifiedLocations.values());
+ if(distinct.size!==1)return [];
+ return allLocations().filter(function(loc){return verifiedLocations.has(Number(loc.id))})
 }
 /* Server-verified mapping only. Never trust bizctx's first-business fallback. */
 var verifiedLocations=new Map(),verifiedKey="",verifyPromise=null;
@@ -44,7 +47,12 @@ function ensureVerifiedLocations(){
    },function(){/* denied/unavailable => no assignment */})
  })).then(function(){
   if(verifiedKey!==key)return;
-  synchronizeStaff();schedule()
+  synchronizeStaff();schedule();
+  // Re-check visible location UI only after server verification completes.
+  // Do not read another business when a mapping is absent or ambiguous.
+  if(window.location&&/^#\/?locations(?:\/|$)/.test(window.location.hash||"")){
+   try{window.dispatchEvent(new Event("bos:biz"))}catch(_){}
+  }
  },function(){/* fail closed */});
 }
 function allowedBusinesses(){
@@ -52,6 +60,9 @@ function allowedBusinesses(){
  ensureVerifiedLocations();
  var ids=new Set();
  assignedIds().forEach(function(id){if(verifiedLocations.has(id))ids.add(verifiedLocations.get(id))});
+ // One staff scope cannot mix unrelated businesses. Multiple branches within one
+ // business are valid, but cross-business mappings must fail closed.
+ if(ids.size!==1)return [];
  return originalList().filter(function(biz){return ids.has(Number(biz.id))});
 }
 function synchronizeStaff(){
@@ -85,7 +96,7 @@ B.biz.brand=function(){
  return originalBrand()
 };
 if(originalBrandFor)B.biz.brandFor=function(locId){
- if(isStaff()&&!assignedIds().has(Number(locId)))return PRIVATE;
+ if(isStaff()&&!scopedLocations().some(function(loc){return Number(loc.id)===Number(locId)}))return PRIVATE;
  return originalBrandFor(locId)
 };
 B.biz.switcherHTML=function(){return isStaff()?"":originalSwitcher()};
