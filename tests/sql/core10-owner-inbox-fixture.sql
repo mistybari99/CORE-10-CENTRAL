@@ -7,7 +7,8 @@ GRANT USAGE ON SCHEMA public TO authenticated,anon;
 GRANT USAGE ON SCHEMA auth TO authenticated,anon;
 
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE
-  AS $fn$ SELECT NULLIF(current_setting('request.jwt.claim.sub',true),'')::uuid $fn$;
+  AS $fn$ SELECT COALESCE(NULLIF(current_setting('request.jwt.claim.sub',true),''),
+       (NULLIF(current_setting('request.jwt.claims',true),'')::jsonb ->> 'sub'))::uuid $fn$;
 GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated,anon;
 CREATE TABLE public.profiles(id uuid PRIMARY KEY,status text NOT NULL);
 CREATE TABLE public.user_roles(user_id uuid NOT NULL,role_code text NOT NULL);
