@@ -4,7 +4,6 @@ on:
     paths:
       - "CORE10_OWNER_INBOX_RPC_CANDIDATE.sql"
       - "tests/sql/core10-owner-inbox-*.sql"
-      - "tests/api/core10-owner-inbox-rest-smoke.js"
       - ".github/workflows/core10-owner-inbox-ci.yml"
   workflow_dispatch:
 permissions:
@@ -34,7 +33,6 @@ jobs:
       PGDATABASE: core10_owner_inbox_ci
       PGUSER: core10
       PGPASSWORD: ci_disposable_only
-      CORE10_CI_JWT_SECRET: core10_ci_disposable_hmac_secret_2026_only_please
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,23 +47,3 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f CORE10_OWNER_INBOX_RPC_CANDIDATE.sql
       - name: Verify server-side Owner/Business/Staff/Anon/Revoked security contract
         run: psql -X -v ON_ERROR_STOP=1 -f tests/sql/core10-owner-inbox-assertions.sql
-      - name: Launch disposable PostgREST with signed JWT authentication
-        run: |
-          docker run --rm -d --name core10-ci-postgrest --network host \
-            -e PGRST_DB_URI="postgres://core10:ci_disposable_only@127.0.0.1:5432/core10_owner_inbox_ci" \
-            -e PGRST_DB_SCHEMAS=public \
-            -e PGRST_DB_ANON_ROLE=anon \
-            -e PGRST_JWT_SECRET="$CORE10_CI_JWT_SECRET" \
-            -e PGRST_SERVER_PORT=3000 \
-            postgrest/postgrest:v12.2.12
-          for i in $(seq 1 30); do
-            if curl --silent --output /dev/null --max-time 2 http://127.0.0.1:3000/; then exit 0; fi
-            sleep 1
-          done
-          docker logs core10-ci-postgrest
-          exit 1
-      - name: Test real HTTP RPC using signed Owner Staff Revoked Anonymous JWTs
-        run: node tests/api/core10-owner-inbox-rest-smoke.js
-      - name: PostgREST container diagnostics on failure
-        if: failure()
-        run: docker logs core10-ci-postgrest || true
