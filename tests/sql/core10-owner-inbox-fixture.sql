@@ -57,3 +57,11 @@ INSERT INTO public.org_units(id,parent_id,kind,status) VALUES
 INSERT INTO public.locations(id,org_unit_id) VALUES (103,31);
 INSERT INTO public.entries(id,location_id) VALUES
  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',103);
+
+-- A planned business is not operational: pending approvals must not be exposed,
+-- even in the master-owner rollup or via an explicitly requested business id.
+INSERT INTO public.org_units(id,parent_id,kind,status) VALUES
+ (40,NULL,'business','planned'),(41,40,'branch','active');
+INSERT INTO public.locations(id,org_unit_id) VALUES (104,41);
+INSERT INTO public.entries(id,location_id) VALUES
+ ('ffffffff-ffff-4fff-8fff-ffffffffffff',104);
