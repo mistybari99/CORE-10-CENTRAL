@@ -36,28 +36,28 @@ const tick=async()=>{await new Promise(resolve=>setImmediate(resolve))};
 async function audit(round){
  const s=make(),original=s.options();
  assert.equal(original.length,0);
- assert.deepEqual(s.visible(),[]);
+ assert.deepEqual(Array.from(s.visible()),[]);
  await tick();
  // Verify in opposite order between the two independent audit rounds.
  const first=round===1?11:12,second=first===11?12:11;
  s.answer(first,{data:{mapped:true,business_id:1}});await tick();
- assert.deepEqual(s.visible(),[]);assert.deepEqual(s.options(),[]);
+ assert.deepEqual(Array.from(s.visible()),[]);assert.deepEqual(Array.from(s.options()),[]);
  s.answer(second,{data:{mapped:true,business_id:1}});await tick();
- assert.deepEqual(s.visible(),[11,12]);assert.deepEqual(s.options(),[1]);
+ assert.deepEqual(Array.from(s.visible()),[11,12]);assert.deepEqual(Array.from(s.options()),[1]);
  s.ctx.locations=[11];
- assert.deepEqual(s.options(),[]);assert.deepEqual(s.visible(),[]);
+ assert.deepEqual(Array.from(s.options()),[]);assert.deepEqual(Array.from(s.visible()),[]);
  await tick();s.answer(11,{data:{mapped:true,business_id:1}});await tick();
- assert.deepEqual(s.visible(),[11]);
- const conflict=make();assert.deepEqual(conflict.options(),[]);await tick();
+ assert.deepEqual(Array.from(s.visible()),[11]);
+ const conflict=make();assert.deepEqual(Array.from(conflict.options()),[]);await tick();
  conflict.answer(11,{data:{mapped:true,business_id:1}});
  conflict.answer(12,{data:{mapped:true,business_id:2}});await tick();
- assert.deepEqual(conflict.options(),[]);assert.deepEqual(conflict.visible(),[]);
+ assert.deepEqual(Array.from(conflict.options()),[]);assert.deepEqual(Array.from(conflict.visible()),[]);
  const missing=make();missing.options();await tick();
  missing.answer(11,{data:{mapped:true,business_id:1}});
  missing.answer(12,{error:{message:"Denied"}});await tick();
- assert.deepEqual(missing.visible(),[]);assert.deepEqual(missing.options(),[]);
+ assert.deepEqual(Array.from(missing.visible()),[]);assert.deepEqual(Array.from(missing.options()),[]);
  const master=make([],true);
- assert.deepEqual(master.options(),[1,2]);assert.deepEqual(master.visible(),[11,12]);
+ assert.deepEqual(Array.from(master.options()),[1,2]);assert.deepEqual(Array.from(master.visible()),[11,12]);
  console.log("PASS: complete staff mapping and owner permissions round "+round)
 }
 (async()=>{await audit(1);await audit(2)})().catch(e=>{console.error(e);process.exitCode=1});
