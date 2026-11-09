@@ -88,6 +88,7 @@ function accepted(r,label,businessId,count) {
     {p_business_id:null,p_limit:40}),"invalid JWT HMAC");
   refused(await rpc(null,{p_business_id:null,p_limit:40}),"anonymous request");
   refused(await rpc(owner,{p_business_id:30,p_limit:40}),"inactive business");
+  refused(await rpc(owner,{p_business_id:40,p_limit:40}),"planned business");
   refused(await rpc(owner,{p_business_id:999,p_limit:40}),"unknown business");
   refused(await rpc(owner,{p_business_id:10,p_limit:41}),"limit above 40");
   refused(await rpc(owner,{p_business_id:10,p_limit:0}),"zero limit");
