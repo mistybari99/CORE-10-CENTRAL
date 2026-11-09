@@ -49,17 +49,22 @@ function message(s,info,tone){
  return header(s)+'<p class="c10-inbox-note c10-inbox-'+esc(tone||"info")+'">'+esc(info)+'</p>'
 }
 function safeRows(data,s){
- if(!data||data.certified!==true||data.scope!=="owner"||!Array.isArray(data.items))return null;
+ if(!data||data.certified!==true||data.scope!=="owner"||!Array.isArray(data.items)||data.items.length>40)return null;
  if(s.kind==="business"&&Number(data.business_id)!==s.id)return null;
  if(s.kind==="master"&&data.business_id!==null)return null;
  var allowed=new Set((B.biz.list()||[]).map(function(x){return Number(x.id)})),seen=new Set;
  var list=[];
  for(var i=0;i<data.items.length;i++){
-  var row=data.items[i],id=row&&row.id,biz=Number(row&&row.business_id);
-  if(!(typeof id==="string"||typeof id==="number")||!String(id)||seen.has(String(id))||!Number.isSafeInteger(biz)||!allowed.has(biz)||s.kind==="business"&&biz!==s.id)return null;
+  var row=data.items[i],id=row&&row.id;
+  // The server must return canonical stable IDs and numeric positive business IDs.
+  var biz=row&&row.business_id;
+  if(typeof id!=="string"||!/^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/.test(id)||
+     seen.has(id)||typeof biz!=="number"||!Number.isSafeInteger(biz)||biz<=0||
+     !allowed.has(biz)||(s.kind==="business"&&biz!==s.id))return null;
   if(row.status!=="pending")return null;
-  if(typeof row.title!=="string"||row.title.length>300)return null;
-  if(typeof row.request_type!=="string"||row.request_type.length>100)return null;
+  if(typeof row.title!=="string"||row.title.length===0||row.title.length>300)return null;
+  if(typeof row.request_type!=="string"||row.request_type.length===0||row.request_type.length>100)return null;
+  if(row.created_at!=null&&(typeof row.created_at!=="string"||!/^\d{4}-\d\d-\d\dT/.test(row.created_at)))return null;
   seen.add(String(id));list.push(row);
  }
  return list

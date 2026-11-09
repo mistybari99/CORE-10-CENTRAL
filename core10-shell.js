@@ -24,18 +24,21 @@ function assignedIds(){
 function scopedLocations(){
  if(!isStaff())return allLocations();
  ensureVerifiedLocations();
+ // Wait for every location mapping, not just the first successful RPC.
+ // One missing or conflicting assignment invalidates the entire staff scope.
+ if(!verifyReady||verifiedLocations.size!==assignedIds().size)return [];
  var distinct=new Set(verifiedLocations.values());
  if(distinct.size!==1)return [];
  return allLocations().filter(function(loc){return verifiedLocations.has(Number(loc.id))})
 }
 /* Server-verified mapping only. Never trust bizctx's first-business fallback. */
-var verifiedLocations=new Map(),verifiedKey="",verifyPromise=null;
+var verifiedLocations=new Map(),verifiedKey="",verifyPromise=null,verifyReady=false;
 function ensureVerifiedLocations(){
  var ctx=A.S.ctx;if(!ctx||ctx.is_owner||!ctx.profile||!ctx.profile.id||!A.sb||typeof A.sb.rpc!=="function")return;
  var ids=Array.from(assignedIds()).sort(function(a,b){return a-b});
  var key=String(ctx.profile.id)+":"+ids.join(",");
  if(key===verifiedKey)return;
- verifiedKey=key;verifiedLocations=new Map();
+ verifiedKey=key;verifiedLocations=new Map();verifyReady=false;
  verifyPromise=Promise.all(ids.map(function(id){
   return Promise.resolve().then(function(){return A.sb.rpc("org_unit_scope",{p_location:id})})
    .then(function(reply){
@@ -47,6 +50,7 @@ function ensureVerifiedLocations(){
    },function(){/* denied/unavailable => no assignment */})
  })).then(function(){
   if(verifiedKey!==key)return;
+  verifyReady=true;
   synchronizeStaff();schedule();
   // Re-check visible location UI only after server verification completes.
   // Do not read another business when a mapping is absent or ambiguous.
@@ -58,6 +62,7 @@ function ensureVerifiedLocations(){
 function allowedBusinesses(){
  if(!isStaff())return originalList();
  ensureVerifiedLocations();
+ if(!verifyReady||verifiedLocations.size!==assignedIds().size)return [];
  var ids=new Set();
  assignedIds().forEach(function(id){if(verifiedLocations.has(id))ids.add(verifiedLocations.get(id))});
  // One staff scope cannot mix unrelated businesses. Multiple branches within one
