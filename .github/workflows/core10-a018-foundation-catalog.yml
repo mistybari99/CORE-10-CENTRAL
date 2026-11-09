@@ -6,14 +6,18 @@ on:
       - "feature/c10-a018-*"
     paths:
       - "core10-capability-registry.js"
+      - "core10-entity-compatibility.js"
       - "data/core10_capability_catalog_v1.json"
       - "tests/core10-foundation-catalog-smoke.js"
+      - "tests/core10-entity-compatibility-smoke.js"
       - ".github/workflows/core10-a018-foundation-catalog.yml"
   pull_request:
     paths:
       - "core10-capability-registry.js"
+      - "core10-entity-compatibility.js"
       - "data/core10_capability_catalog_v1.json"
       - "tests/core10-foundation-catalog-smoke.js"
+      - "tests/core10-entity-compatibility-smoke.js"
       - ".github/workflows/core10-a018-foundation-catalog.yml"
   workflow_dispatch:
 
@@ -22,7 +26,7 @@ permissions:
 
 jobs:
   foundation-catalog:
-    name: Read-only enterprise capability contract
+    name: Read-only enterprise capability and entity compatibility contracts
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -36,3 +40,5 @@ jobs:
           node-version: "22"
       - name: Validate 10 primary templates and false-ready protections
         run: node tests/core10-foundation-catalog-smoke.js
+      - name: Validate legacy entity ancestry and stable location IDs
+        run: node tests/core10-entity-compatibility-smoke.js
