@@ -1,0 +1,49 @@
+name: CORE 10 - Owner Inbox RPC Security CI
+on:
+  pull_request:
+    paths:
+      - "CORE10_OWNER_INBOX_RPC_CANDIDATE.sql"
+      - "tests/sql/core10-owner-inbox-*.sql"
+      - ".github/workflows/core10-owner-inbox-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owner-rpc-gates:
+    name: Isolated Owner/Staff/Anon/Revoked SQL RPC Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_owner_inbox_ci
+          POSTGRES_USER: core10
+          POSTGRES_PASSWORD: ci_disposable_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U core10 -d core10_owner_inbox_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: core10_owner_inbox_ci
+      PGUSER: core10
+      PGPASSWORD: ci_disposable_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PostgreSQL client if absent
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+      - name: Create isolated two-business mapping schema and scenarios
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/sql/core10-approval-mapping-fixture.sql
+      - name: Add owner, staff, revoked roles and approval statuses
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/sql/core10-owner-inbox-fixture.sql
+      - name: Compile candidate RPC and apply explicit grants in CI only
+        run: psql -X -v ON_ERROR_STOP=1 -f CORE10_OWNER_INBOX_RPC_CANDIDATE.sql
+      - name: Verify server-side Owner/Business/Staff/Anon/Revoked security contract
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/sql/core10-owner-inbox-assertions.sql
