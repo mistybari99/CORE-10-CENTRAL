@@ -66,5 +66,18 @@ jobs:
           done
           grep -Fxq '08_real_signed_sessions,MANUAL_REQUIRED' /tmp/core10-postinstall-gate.csv
           grep -Fxq '09_release_decision,STOP_UNTIL_OWNER_APPROVAL' /tmp/core10-postinstall-gate.csv
+      - name: Verify organization-mode OFF always blocks release even with RPC installed
+        run: |
+          psql -X -v ON_ERROR_STOP=1 <<'SQL' > /tmp/core10-org-mode-off-gate.csv
+          BEGIN;
+          CREATE OR REPLACE FUNCTION public._org_on123() RETURNS boolean
+            LANGUAGE sql STABLE AS $fn$ SELECT false $fn$;
+          \i CORE10_OWNER_INBOX_RELEASE_PREFLIGHT.sql
+          ROLLBACK;
+          SQL
+          cat /tmp/core10-org-mode-off-gate.csv
+          grep -Eq '04_org_mode[[:space:]]*\\|[[:space:]]*BLOCK' /tmp/core10-org-mode-off-gate.csv
+          grep -Eq '06_rpc_security_definer[[:space:]]*\\|[[:space:]]*PASS' /tmp/core10-org-mode-off-gate.csv
+          grep -Eq '09_release_decision[[:space:]]*\\|[[:space:]]*STOP_UNTIL_OWNER_APPROVAL' /tmp/core10-org-mode-off-gate.csv
       - name: Verify server-side Owner/Business/Staff/Anon/Revoked security contract
         run: psql -X -v ON_ERROR_STOP=1 -f tests/sql/core10-owner-inbox-assertions.sql
