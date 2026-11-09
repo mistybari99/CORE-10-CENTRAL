@@ -70,6 +70,10 @@ async function audit(round){
  assert.equal(test({...valid(),items:[{...valid().items[0],status:"approved"}]},sc),null);
  assert.equal(test({...valid(),certified:false},sc),null);
  assert.equal(test({...valid(),business_id:2},sc),null);
+ // Strict server contract: never coerce forged scope IDs, including null and fractions.
+ assert.equal(test({...valid(),business_id:"1"},sc),null);
+ assert.equal(test({...valid(),business_id:null},sc),null);
+ assert.equal(test({...valid(),business_id:1.5},sc),null);
  // Auditor A: account transitions do not interrupt the current business inbox.
  // Auditor B: a slower old-session API response cannot render after a new owner enters.
  const queues=[];
