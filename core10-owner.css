@@ -303,3 +303,11 @@ body[data-core10-owner] .ph-business-title strong{font-size:.92rem;line-height:1
 body[data-core10-owner] .ph-business-title small{font-size:.74rem;color:var(--muted)}
 body[data-core10-owner] .ph-business-count{font-size:.74rem}
 @media(max-width:600px){body[data-core10-owner] .ph-new-business{width:100%}}
+
+/* Owner-only inline business creation path; uses existing org_unit_save form */
+body[data-core10-owner] .ph-master-actions{align-items:center;flex-wrap:wrap;gap:12px}
+body[data-core10-owner] .ph-add-chooser{display:flex;flex:1 1 100%;align-items:center;flex-wrap:wrap;gap:9px;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+body[data-core10-owner] .ph-add-chooser label{flex-basis:100%;font-size:.84rem}
+body[data-core10-owner] .ph-add-chooser select{flex:1;min-width:160px}
+body[data-core10-owner] .ph-legal-confirm{min-height:44px;padding:8px 15px;border-radius:10px;background:var(--ruby);color:white;border:0}
+@media(max-width:600px){body[data-core10-owner] .ph-add-chooser select,body[data-core10-owner] .ph-legal-confirm{flex-basis:100%}}

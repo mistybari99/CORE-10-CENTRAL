@@ -46,7 +46,7 @@ function categoryHTML(cat,businesses,map,assigned){
      '<span class="ph-brand-head"><span class="ph-symbol" aria-hidden="true">◈</span><span class="ph-brand-name"><strong>'+escape(tr("ইসলামিয়া মিষ্টি ঘর","Islamia Misty Ghar"))+'</strong><small>'+linked.length+' '+escape(tr("টি সংযুক্ত লোকেশন","linked locations"))+'</small></span><span class="ph-brand-chevron" aria-hidden="true">›</span></span>'+
      '<span class="ph-brand-foot">'+escape(tr("সম্পূর্ণ ERP ও সব ব্রাঞ্চ খুলুন","Open full ERP and all branches"))+' <span aria-hidden="true">→</span></span></button></section>'
  }
- return '<section class="ph-category" data-category="'+cat.key+'"><div class="ph-category-top"><span class="ph-symbol" aria-hidden="true">'+cat.sym+'</span><div><h3>'+escape(tr(cat.bn,cat.en))+'</h3><small>'+businesses.length+' '+escape(tr("টি ব্যবসা","businesses"))+'</small></div></div>'+
+ return '<section class="ph-category" data-category="'+cat.key+'"><div class="ph-category-top"><span class="ph-symbol" aria-hidden="true">'+cat.sym+'</span><div><h3>'+escape(cat.key==="sweets"?tr("মিষ্টি ও বেকারি ব্যবসাসমূহ","Sweets & Bakery Businesses"):tr(cat.bn,cat.en))+'</h3><small>'+businesses.length+' '+escape(tr("টি ব্যবসা","businesses"))+'</small></div></div>'+
  (businesses.length?businesses.map(function(b){return businessHTML(b,map,assigned)}).join(""):'<div class="ph-empty">'+
  escape(tr("এখনো এই বিভাগের ব্যবসা যুক্ত হয়নি","No business is configured in this category"))+
  (owner()?'<button type="button" class="ph-set" data-act="ph_addbusiness">'+escape(tr("+ ব্যবসা যোগ করুন","+ Add business"))+'</button>':"")+'</div>')+'</section>'
@@ -112,7 +112,34 @@ var oldLoad=L.load;
 if(typeof oldLoad==="function")L.load=function(){var route=arguments[0],value=oldLoad.apply(this,arguments);return Promise.resolve(value).then(function(v){if(route==="organization")attach();return v})};
 attach();
 A.H.ph_manage=function(){if(owner())location.hash="#/organization/manage"};
-A.H.ph_addbusiness=function(){if(owner())location.hash="#/organization/manage"};
+A.H.ph_addbusiness=function(){
+ if(!owner()||!A.H.og_add)return;
+ var legal=units().filter(function(x){return x.kind==="legal_entity"&&x.status!=="inactive"});
+ var old=document.getElementById("ph_legal_chooser");if(old)old.remove();
+ if(!legal.length){
+  if(A.toast)A.toast(tr("প্রথমে Group-এর অধীনে Legal Entity তৈরি করুন।","First create a Legal Entity under your Group."));
+  location.hash="#/organization/manage";return
+ }
+ if(legal.length===1){
+  A.H.og_add({dataset:{v:String(legal[0].id)}});return
+ }
+ var host=document.querySelector("#ph_overview .ph-master-actions");if(!host)return;
+ var chooser=document.createElement("div");chooser.id="ph_legal_chooser";chooser.className="ph-add-chooser";
+ chooser.innerHTML='<label for="ph_legal_parent">'+escape(tr("কোন Legal Entity-এর অধীনে?","Which legal entity?"))+'</label>'+
+  '<select id="ph_legal_parent">'+legal.map(function(x){return '<option value="'+escape(x.id)+'">'+escape(name(x))+'</option>'}).join("")+'</select>'+
+  '<button type="button" class="ph-legal-confirm" data-act="ph_add_legal">'+escape(tr("পরবর্তী ধাপ","Continue"))+'</button>';
+ host.appendChild(chooser)
+};
+A.H.ph_add_legal=function(){
+ if(!owner()||!A.H.og_add)return;
+ var chooser=document.getElementById("ph_legal_chooser");
+ var field=chooser&&chooser.querySelector("#ph_legal_parent");
+ var id=Number(field&&field.value);
+ if(!Number.isSafeInteger(id)||id<=0)return;
+ var legal=units().find(function(x){return Number(x.id)===id&&x.kind==="legal_entity"&&x.status!=="inactive"});
+ if(!legal)return;
+ chooser.remove();A.H.og_add({dataset:{v:String(legal.id)}})
+};
 A.H.ph_portfolio=function(){if(owner())location.hash="#/organization"};
 A.H.ph_enter=async function(button){
  if(!owner()||!B.biz||!B.biz.setCur)return;
