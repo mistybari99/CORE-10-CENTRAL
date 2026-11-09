@@ -32,10 +32,10 @@ function groupHTML(locations){
 }
 function businessHTML(biz,map,assigned){
  var linked=assigned.get(String(biz.id))||[],legal=chain(biz,map).find(function(x){return x.kind==="legal_entity"});
- return '<details class="ph-business" data-biz="'+escape(biz.id)+'"><summary><span><b>'+escape(name(biz))+'</b>'+
-   (legal?'<small>'+escape(name(legal))+'</small>':"")+'</span><span class="ph-business-count">'+linked.length+' <span aria-hidden="true">⌄</span></span></summary>'+
-   '<div class="ph-business-body">'+groupHTML(linked)+
-   '<button class="ph-open" type="button" data-act="ph_open" data-v="'+escape(biz.id)+'">'+escape(tr("এই ব্যবসার লোকেশন খুলুন","Open this business's locations"))+' →</button></div></details>'
+ return '<div class="ph-business ph-business-direct" data-biz="'+escape(biz.id)+'"><button type="button" class="ph-business-launch" data-act="ph_enter" data-v="'+escape(biz.id)+'" aria-label="'+escape(tr("ব্যবসা খুলুন","Open business")+': '+name(biz))+'">'+
+ '<span class="ph-business-title"><strong>'+escape(name(biz))+'</strong>'+
+ (legal?'<small>'+escape(name(legal))+'</small>':'')+'</span>'+
+ '<span class="ph-business-count">'+linked.length+' '+escape(tr("লোকেশন","locations"))+'　›</span></button></div>'
 }
 function categoryHTML(cat,businesses,map,assigned){
  // The existing Islamia ERP is a business workspace, not a generic industry accordion.
@@ -49,7 +49,7 @@ function categoryHTML(cat,businesses,map,assigned){
  return '<section class="ph-category" data-category="'+cat.key+'"><div class="ph-category-top"><span class="ph-symbol" aria-hidden="true">'+cat.sym+'</span><div><h3>'+escape(tr(cat.bn,cat.en))+'</h3><small>'+businesses.length+' '+escape(tr("টি ব্যবসা","businesses"))+'</small></div></div>'+
  (businesses.length?businesses.map(function(b){return businessHTML(b,map,assigned)}).join(""):'<div class="ph-empty">'+
  escape(tr("এখনো এই বিভাগের ব্যবসা যুক্ত হয়নি","No business is configured in this category"))+
- (owner()?'<button type="button" class="ph-set" data-act="ph_manage">'+escape(tr("ব্যবসা যোগ করুন","Set up business"))+'</button>':"")+'</div>')+'</section>'
+ (owner()?'<button type="button" class="ph-set" data-act="ph_addbusiness">'+escape(tr("+ ব্যবসা যোগ করুন","+ Add business"))+'</button>':"")+'</div>')+'</section>'
 }
 function render(){if(!owner())return;
  var host=document.getElementById("ph_overview");if(!host||!document.getElementById("og_body"))return;
@@ -68,7 +68,7 @@ function render(){if(!owner())return;
  escape(groups.length||legals.length?tr("সব ব্যবসার কাঠামো এক জায়গায়","All businesses under one organization"):tr("মূল প্রতিষ্ঠান এখনো সেটআপ করা হয়নি","Master organization is not configured yet"))+
  '</p><div class="ph-stats"><span><b>'+businesses.length+'</b> '+escape(tr("ব্যবসা","businesses"))+'</span><span><b>'+(places().length-unlinked)+'</b> '+escape(tr("সংযুক্ত লোকেশন","linked locations"))+'</span></div></header>'+
  (unlinked?'<div class="ph-warning">'+unlinked+" "+escape(tr("টি লোকেশন এখনো কোনো ব্যবসার সঙ্গে নিশ্চিতভাবে যুক্ত নয়। কোনো ডেটা সরানো হয়নি।","locations are not explicitly linked to a business. No data was moved."))+'</div>':"")+
- '<div class="ph-grid">'+cards+'</div><div class="ph-footer-tools"><button type="button" class="ph-manage-link" data-act="ph_manage">⚙ '+escape(tr("ব্যবসার কাঠামো পরিচালনা","Manage business structure"))+'</button></div>';
+ '<div class="ph-master-actions"><button type="button" class="ph-new-business" data-act="ph_addbusiness">'+escape(tr("+ নতুন ব্যবসা যোগ করুন","+ Add a business"))+'</button></div><div class="ph-grid">'+cards+'</div><div class="ph-footer-tools"><button type="button" class="ph-manage-link" data-act="ph_manage">⚙ '+escape(tr("ব্যবসার কাঠামো পরিচালনা","Manage business structure"))+'</button></div>';
  host.querySelectorAll(".ph-business").forEach(function(d){if(expanded.includes(d.dataset.biz))d.open=true});
  host.querySelectorAll(".ph-location").forEach(function(d){if(expandedGroups.includes(d.closest(".ph-business").dataset.biz+"|"+d.dataset.kind))d.open=true})
 }
@@ -112,18 +112,19 @@ var oldLoad=L.load;
 if(typeof oldLoad==="function")L.load=function(){var route=arguments[0],value=oldLoad.apply(this,arguments);return Promise.resolve(value).then(function(v){if(route==="organization")attach();return v})};
 attach();
 A.H.ph_manage=function(){if(owner())location.hash="#/organization/manage"};
+A.H.ph_addbusiness=function(){if(owner())location.hash="#/organization/manage"};
 A.H.ph_portfolio=function(){if(owner())location.hash="#/organization"};
-A.H.ph_enter=function(button){
+A.H.ph_enter=async function(button){
  if(!owner()||!B.biz||!B.biz.setCur)return;
  var id=Number(button&&button.dataset&&button.dataset.v);
  if(!Number.isSafeInteger(id)||id<=0)return;
  var business=(B.biz.list?B.biz.list():[]).find(function(x){return Number(x.id)===id});
- if(!business||categoryFor(business)!=="sweets")return;
- if(!B.biz.setCur(id))return;
- // Existing Islamia app entry has its original logo, theme, routes, POS and branch list.
- // Only an authenticated owner may use this explicit business-workspace launch.
+ if(!business&&typeof B.biz.reload==="function"){
+  await B.biz.reload();business=(B.biz.list?B.biz.list():[]).find(function(x){return Number(x.id)===id})
+ }
+ if(!business||!B.biz.setCur(id))return;
  var url=new URL("index.html",window.location.href);
- url.searchParams.set("workspace","islamia");
+ url.searchParams.set("workspace",categoryFor(business)==="sweets"?"islamia":"business");
  url.searchParams.set("biz",String(id));
  url.hash="#/locations";
  window.location.assign(url.href)

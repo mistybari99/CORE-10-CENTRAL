@@ -290,3 +290,16 @@ body[data-core10-owner] .ph-management-view #og_body{margin-top:12px}
  body[data-core10-owner] .ph-footer-tools{justify-content:center}
  body[data-core10-owner] .ph-manage-link{width:100%}
 }
+
+/* CORE 10 business launcher — owner only */
+body[data-core10-owner] .ph-master-actions{display:flex;justify-content:flex-start;margin:14px 0 18px}
+body[data-core10-owner] .ph-new-business{min-height:46px;padding:8px 18px;border:1px solid #087f8c;border-radius:12px;background:#087f8c;color:#fff;font-size:.9rem;font-weight:750;box-shadow:none}
+body[data-core10-owner] .ph-new-business:hover{background:#066775;color:white}
+body[data-core10-owner] .ph-business-direct{padding:0;overflow:hidden}
+body[data-core10-owner] .ph-business-launch{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:70px;padding:12px 13px;border:0;border-radius:10px;background:var(--card);color:var(--ink);text-align:start;box-shadow:none}
+body[data-core10-owner] .ph-business-launch:hover{background:var(--s1h,#f6fbfc)}
+body[data-core10-owner] .ph-business-title{display:flex;flex-direction:column;gap:3px;min-width:0}
+body[data-core10-owner] .ph-business-title strong{font-size:.92rem;line-height:1.35;overflow-wrap:anywhere}
+body[data-core10-owner] .ph-business-title small{font-size:.74rem;color:var(--muted)}
+body[data-core10-owner] .ph-business-count{font-size:.74rem}
+@media(max-width:600px){body[data-core10-owner] .ph-new-business{width:100%}}

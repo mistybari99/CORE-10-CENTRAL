@@ -89,23 +89,26 @@ if(originalBrandFor)B.biz.brandFor=function(locId){
  return originalBrandFor(locId)
 };
 B.biz.switcherHTML=function(){return isStaff()?"":originalSwitcher()};
-function isIslamiaOwnerWorkspace(){
- if(!isOwner()||!document.body||document.body.dataset.core10Owner==="1")return false;
+function ownerWorkspaceKind(){
+ if(!isOwner()||!document.body||document.body.dataset.core10Owner==="1")return "";
  var search=window.location&&window.location.search||"";
- return /(?:^|[?&])workspace=islamia(?:&|$)/.test(search)
+ var match=search.match(/(?:^|[?&])workspace=(islamia|business)(?:&|$)/);
+ return match?match[1]:""
 }
+function isIslamiaOwnerWorkspace(){return ownerWorkspaceKind()==="islamia"}
+function isOwnerBusinessWorkspace(){return !!ownerWorkspaceKind()}
 function requestedIslamiaBusiness(){
  var search=window.location&&window.location.search||"";
  var matched=search.match(/(?:^|[?&])biz=([1-9][0-9]*)(?:&|$)/);
  return matched?Number(matched[1]):null
 }
 function synchronizeOwnerWorkspace(){
- if(!isIslamiaOwnerWorkspace())return;
+ if(!isOwnerBusinessWorkspace())return;
  var id=requestedIslamiaBusiness();
  var business=originalList().find(function(b){return Number(b.id)===id});
  var detail=business?[business.template_code,business.name_bn,business.name_en,business.code].join(" "):"";
  var sweets=/food|sweet|misty|mishti|bakery|cake|dessert|islamia|মিষ্টি|বেকারি|ইসলামিয়া|ইসলামিয়া/i.test(detail);
- if(!business||!sweets){
+ if(!business||(isIslamiaOwnerWorkspace()&&!sweets)){
   try{var main=new URL("owner.html",window.location.href);main.search="";main.hash="#/organization";window.location.replace(main.href)}catch(_){}
   return
  }
@@ -117,8 +120,8 @@ function syncMasterNavigation(){
  document.body.classList.toggle("core10-master",isMaster)
 }
 function ensureWorkspaceReturn(){
- if(!isIslamiaOwnerWorkspace()||!document.body)return;
- document.body.dataset.core10Business="islamia";
+ if(!isOwnerBusinessWorkspace()||!document.body)return;
+ document.body.dataset.core10Business=isIslamiaOwnerWorkspace()?"islamia":"other";
  var app=document.getElementById("app"),header=app&&app.querySelector("header.top");
  if(!header||app.querySelector(".core10-return-bar"))return;
  var bar=document.createElement("nav");
@@ -131,7 +134,7 @@ function ensureWorkspaceReturn(){
    url.search="";url.hash="#/organization";window.location.assign(url.href)
  });
  var caption=document.createElement("span");
- caption.textContent="ইসলামিয়া মিষ্টি ঘর · ERP";
+ caption.textContent=isIslamiaOwnerWorkspace()?"ইসলামিয়া মিষ্টি ঘর · ERP":(B.biz.text?B.biz.text():"Business ERP");
  bar.appendChild(btn);bar.appendChild(caption);
  header.insertAdjacentElement("afterend",bar)
 }
@@ -144,7 +147,7 @@ function redirectNonOwnerFromOwnerPortal(){
  }catch(_){}
 }
 function redirectOwnerFromBusinessPortal(){
- if(isIslamiaOwnerWorkspace())return;
+ if(isOwnerBusinessWorkspace())return;
  if(!isOwner()||!document.body||document.body.dataset.core10Owner==="1")return;
  try{
   var next=new URL("owner.html",window.location.href);
@@ -154,6 +157,7 @@ function redirectOwnerFromBusinessPortal(){
 }
 function currentName(){
  if(isIslamiaOwnerWorkspace())return B.biz.legacy||{bn:"ইসলামিয়া মিষ্টি ঘর",en:"ISLAMIYA MISTY GHAR"};
+ if(isOwnerBusinessWorkspace())return originalBrand();
  if(isOwner())return MASTER;
  if(!isStaff())return null;
  var brand=B.biz.brand();
@@ -164,7 +168,7 @@ function branding(){
  syncMasterNavigation();
  redirectNonOwnerFromOwnerPortal();
  redirectOwnerFromBusinessPortal();
- if(isIslamiaOwnerWorkspace())ensureWorkspaceReturn();
+ if(isOwnerBusinessWorkspace())ensureWorkspaceReturn();
  var identity=currentName();if(!identity)return;
  var brandName=identity.bn||identity.en;
  var heads=document.querySelectorAll("h1.brandh");
@@ -179,7 +183,11 @@ function branding(){
   if(title&&title.textContent!==brandName)title.textContent=brandName;
   if(subtitle&&subtitle.textContent!==(identity.en||brandName))subtitle.textContent=identity.en||brandName;
   var img=drawer.querySelector("img");
-  if(isOwner()&&!isIslamiaOwnerWorkspace()&&img){img.replaceWith(createMonogram());img=null}
+  if(isOwner()&&!isOwnerBusinessWorkspace()&&img){img.replaceWith(createMonogram());img=null}
+  if(isOwnerBusinessWorkspace()&&!isIslamiaOwnerWorkspace()&&img){
+   var profileLogo=B.biz.logo&&B.biz.logo();
+   if(profileLogo)img.src=profileLogo;else img.replaceWith(createStaffMonogram(identity))
+  }
   if(isStaff()&&!isIslamia(identity)){
     var profileLogo=B.biz.logo&&B.biz.logo();
     if(profileLogo&&img&&img.getAttribute("src")!==profileLogo)img.setAttribute("src",profileLogo);
@@ -189,10 +197,14 @@ function branding(){
  var top=document.querySelector("header.top");
  if(top){
   var mainImg=top.querySelector("img.brand");
-  if(isOwner()&&!isIslamiaOwnerWorkspace()&&mainImg)mainImg.replaceWith(createMonogram());
+  if(isOwner()&&!isOwnerBusinessWorkspace()&&mainImg)mainImg.replaceWith(createMonogram());
+  if(isOwnerBusinessWorkspace()&&!isIslamiaOwnerWorkspace()&&mainImg){
+   var profileLogo=B.biz.logo&&B.biz.logo();
+   if(profileLogo)mainImg.src=profileLogo;else mainImg.replaceWith(createStaffMonogram(identity))
+  }
   if(isStaff()&&!isIslamia(identity)&&mainImg)mainImg.replaceWith(createStaffMonogram(identity))
  }
- var titleText=isOwner()&&!isIslamiaOwnerWorkspace()?"CORE 10 · Business Management":identity.en||brandName;
+ var titleText=isOwner()&&!isOwnerBusinessWorkspace()?"CORE 10 · Business Management":identity.en||brandName;
  if(document.title!==titleText)document.title=titleText;
 }
 function createMonogram(){
@@ -261,9 +273,9 @@ var style=document.createElement("style");style.id="core10-shell-css";style.text
  '.core10-emblem,.core10-tenant-emblem{display:inline-flex;align-items:center;justify-content:center;flex:none;width:34px;height:34px;border-radius:10px;font:800 14px/1 system-ui,sans-serif;background:var(--ruby,#a1111e);color:var(--gold-lt,#f1d27c);border:1px solid #b89c62}'+
  '.core10-tenant-emblem{background:var(--card,#fff);color:var(--text,#333);border-color:var(--line,#ccc)}'+
  '.dr-head .core10-emblem,.dr-head .core10-tenant-emblem{width:36px;height:44px;margin-right:4px}'+
- 'body[data-core10-business=islamia] .core10-return-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 11px;border-bottom:1px solid var(--line);margin-bottom:13px;font-size:.82rem;color:var(--muted)}'+
- 'body[data-core10-business=islamia] .core10-return-btn{min-height:38px;padding:4px 12px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ruby);font-size:.82rem;font-weight:700}';
+ 'body[data-core10-business] .core10-return-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 11px;border-bottom:1px solid var(--line);margin-bottom:13px;font-size:.82rem;color:var(--muted)}'+
+ 'body[data-core10-business] .core10-return-btn{min-height:38px;padding:4px 12px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ruby);font-size:.82rem;font-weight:700}';
 document.head.appendChild(style);
 schedule();
-window.CORE10_SHELL={isOwner:isOwner,allowedBusinesses:allowedBusinesses,scopedLocations:scopedLocations,refresh:schedule};
+window.CORE10_SHELL={isOwner:isOwner,allowedBusinesses:allowedBusinesses,scopedLocations:scopedLocations,refresh:schedule,isOwnerBusinessWorkspace:isOwnerBusinessWorkspace};
 })();
