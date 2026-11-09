@@ -148,3 +148,12 @@
 - [x] Atomized partnership, non-equity investment, payoff and financial distinctions.
 - [x] Atomized independent tenant and SaaS-later boundary.
 - [ ] Software implementation, real-user security test, performance test, and live release — **not done**.
+
+## Post-R080 approved scope extensions — 2026-11-10
+
+This file intentionally preserves the earlier R001–R080 reconciliation as a historical versioned baseline, **not** the complete latest ledger. The CURRENT complete owner requirement ledger is the existing [REQUIREMENTS LOCK Google Sheet](https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106) containing **R001–R114**.
+
+- **C10-D039 / R081–R088**: Original owner-approved 18-section [Enterprise Simulation & Decision Intelligence directive](CORE10_ENTERPRISE_SIMULATION_DECISION_INTELLIGENCE_DIRECTIVE_2026-11-10.md), 20 registered model families and the hard deferred-build gate.
+- **C10-D040 / R089–R114**: Owner-approved [Enterprise Simulation & Decision Intelligence v2.0 extension](CORE10_SIMULATION_DECISION_INTELLIGENCE_V2_EXTENSION_2026-11-10.md), 26 additional detailed capability contracts U01–U26 spanning trusted data, model certification, cross-module impacts, cashflow/feasibility, optimization, governance, monitoring and future platform integration.
+- **Same C10-A025** remains **DEFERRED / NOT BUILT** until the next two-to-three *genuinely completed and verified* ERP packages, plus P0 security and relevant architecture/finance/report contracts. Documentation and preliminary audits do not count.
+- **C10-A024** SaaS commercialization remains a separate later-phase action. No new ERP codebase, external product data sharing, production DB writes, merges or deployment authorized by these additions.
