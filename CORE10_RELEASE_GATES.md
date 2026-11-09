@@ -84,3 +84,14 @@ Never claim `99%` or `production secure` without a real database audit, real sta
 * Within the Islamia ERP, the owner has a clear **← CORE 10** return control. This is a UI navigation mode, not a new login or a new data permission.
 * On the CORE 10 **Organization** master portfolio page only, the inherited POS bottom tab bar is suppressed using the `core10-master` body class and owner-scoped CSS. Other routes, including Islamia ERP, retain their prior navigation.
 * Data model, database scopes, stock, brand profiles and Islamia CSS remain untouched; full tenant-isolation audits remain release blockers.
+
+## Business Owner context vs CORE 10 master owner — decision (2026-11-09)
+
+The global owner has two explicitly distinct modes, using the **same authenticated identity**:
+
+1. **CORE 10 Master** (`owner.html#/organization`): consolidated portfolio, business onboarding, group-level policies, cross-business decisions. Never treated as the owner dashboard of a single operational business.
+2. **Business Full Owner** (`index.html?workspace=islamia&biz=ID#/home` or `business.html?workspace=business&biz=ID#/home`): full owner privileges inside the selected business only, preserving that business's theme and ERP. The business card opens the Business Owner Dashboard first, not Locations. All existing forms, approval queues, owner board and ERP routes stay accessible to the owner from this workspace.
+
+**Implemented UI:** `core10-business-owner.js` provides a business-identity-confirmed Owner landing with quick links to pending approvals, exceptions, existing owner board, locations, staff, stock and reports; no unverified approval totals are shown. It is installed only in the two business entry points and activates only for authenticated global-owner sessions with an explicit valid business selection. There is a clear return path to CORE 10 Master.
+
+**Not yet implemented/certified:** each underlying approvals RPC and owner-board widget still needs business-aware server filtering and ownership checks. Existing `ownerboard.js` and some reports query without explicit `business_id`, and may show consolidated figures in a business workspace. The landing page deliberately avoids claiming that such values are business-specific until production RLS/RPC audit, scope-aware query redesign, and tests are complete. Never present a global count as a local count. The global owner retains legal technical authority, but owner operation within a selected business should always carry an immutable verified `business_id` context to every API and approval action.

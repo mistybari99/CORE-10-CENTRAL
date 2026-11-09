@@ -154,7 +154,7 @@ A.H.ph_enter=async function(button){
  var url=new URL(sweets?"index.html":"business.html",window.location.href);
  url.searchParams.set("workspace",sweets?"islamia":"business");
  url.searchParams.set("biz",String(id));
- url.hash="#/locations";
+ url.hash="#/home";
  window.location.assign(url.href)
 };
 A.H.ph_open=function(button){
