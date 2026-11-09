@@ -1,4 +1,4 @@
--- C10-A007 isolated integration assertions: 2 active + 1 inactive business.
+-- C10-A007 isolated integration assertions: 2 active + inactive and planned businesses.
 -- Validates JSON shape, canonical IDs, business scoping and 4 role classes.
 \set ON_ERROR_STOP on
 DO $test$
@@ -78,11 +78,16 @@ BEGIN
   EXCEPTION WHEN invalid_parameter_value THEN NULL;
   END;
   BEGIN
+    PERFORM public.core10_owner_inbox_v1(40,40);
+    RAISE EXCEPTION 'FAIL planned business granted';
+  EXCEPTION WHEN invalid_parameter_value THEN NULL;
+  END;
+  BEGIN
     PERFORM public.core10_owner_inbox_v1(10,41);
     RAISE EXCEPTION 'FAIL invalid limit granted';
   EXCEPTION WHEN invalid_parameter_value THEN NULL;
   END;
-  RAISE NOTICE 'PASS invalid/inactive scope + oversized limit denied';
+  RAISE NOTICE 'PASS invalid/inactive/planned scope + oversized limit denied';
 END $test$;
 
 SELECT set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000002',false);
