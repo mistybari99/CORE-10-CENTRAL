@@ -61,8 +61,20 @@ These links are relative to the GitHub Draft PR branch containing this index; th
 6. **RECORD** evidence, acceptance, blockers and necessary explicit decision revision into the existing Decision Book. **Latest explicit Owner correction overrides older suggestions**; unchallenged design recommendations may be baseline but do not grant release authority.
 7. **HAND OVER** the exact verified work state, commit/PR and remaining next gate for smooth long-term continuation.
 
-## 8. Current preferred next action
-Begin/continue **C10-A018** foundation reconciliation, producing a canonical entity model, tenant-safe mapping plan, industry capability matrix and clear implementation/test status for R001–R114. Do not start Simulation A025 or SaaS A024 prematurely.
+## 8. Latest verified development checkpoint (2026-11-10)
+
+**C10-A018 started — IN PROGRESS, NOT COMPLETED.** [Draft PR #7](https://github.com/mistybari99/CORE-10-CENTRAL/pull/7), branch `feature/c10-a018-foundation-catalog-v1`, contains:
+- Versioned observed-state 10-primary-industry capability manifest, optional Dealership pack, target organization hierarchy and 100+ / 100+ / 100+ enterprise site test objective (not load-tested).
+- Reusable, fail-closed, read-only JavaScript catalog validator and readiness checks; NOT live API authorization.
+- Node smoke tests and an isolated GitHub Actions workflow.
+- Last verified code SHA: `115b8c75cf2fcbe137c56f493fe663a2c2792c63`; foundation PR CI run `42720245209` **SUCCESS**, prior frontend guard PR CI run `42720245396` **SUCCESS**. These test the catalog contract and frontend regressions ONLY; they do not certify live RLS, tenancy, business provisioning or financial workflow.
+
+The existing Central Decision Book `NEXT ACTIONS` now marks A018 **In progress** and `CHANGE LOG` entry C017 records this step. No PR merge, production Supabase write or deployment has been performed; this progress does **not** count as a qualifying completed major package for deferred Simulation A025.
+
+**Next exact A018 gate:** reconcile canonical Platform/Tenant/Legal Entity/Business/Operating Site/Stock Location relationships against live schema, legacy stock-location IDs and owner scope; then build/test secure foundation integration in draft/staging. A019 tenant security is still blocked until genuine authenticated REST/RPC negative tests. Defer Simulation A025 and SaaS A024.
+
+## 9. Current preferred next action
+Continue **C10-A018** with verified entity mapping, tenant-safe security design, integration acceptance and clear status/coverage for R001–R114. Use PR #7 for incremental code and PR #6 for architecture/reference; prevent duplicate catalog engines or governance books.
 
 ---
 **IMPORTANT:** This is a lightweight Project onboarding index. The **Google Central Decision Book and current verified code/database are the sole authoritative sources for product policy and live implementation respectively**. Keep this index updated when entry-point links or major milestones change, instead of duplicating or rewriting all 114 requirements here.
