@@ -1,0 +1,19 @@
+# Temporary runner-dispatch diagnostic, no DB/API calls and no secrets.
+# Remove before merge. Checks if any pull_request job is scheduled by GitHub.
+name: CORE 10 - Runner Dispatch Diagnostic
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/core10-runner-diagnostic.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runner-dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify job is actually scheduled
+        run: |
+          echo "GitHub hosted runner job started."
+          echo "No code, database or network calls."
