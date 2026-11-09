@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - "CORE10_OWNER_INBOX_RPC_CANDIDATE.sql"
+      - "CORE10_OWNER_INBOX_RELEASE_PREFLIGHT.sql"
       - "tests/sql/core10-owner-inbox-*.sql"
       - ".github/workflows/core10-owner-inbox-ci.yml"
   workflow_dispatch:
@@ -43,7 +44,27 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/sql/core10-approval-mapping-fixture.sql
       - name: Add owner, staff, revoked roles and approval statuses
         run: psql -X -v ON_ERROR_STOP=1 -f tests/sql/core10-owner-inbox-fixture.sql
+      - name: Prepare isolated RLS grants and org-mode fixtures
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/sql/core10-owner-inbox-release-gate-fixture.sql
+      - name: Verify release gate FAILS before RPC installation
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -A -t -F ',' -f CORE10_OWNER_INBOX_RELEASE_PREFLIGHT.sql > /tmp/core10-preinstall-gate.csv
+          cat /tmp/core10-preinstall-gate.csv
+          for gate in 01_required_schema 02_rls_enabled 03_owner_helpers 04_org_mode 05_two_active_businesses; do
+            grep -Fxq "${gate},PASS" /tmp/core10-preinstall-gate.csv
+          done
+          grep -Fxq '06_rpc_security_definer,BLOCK' /tmp/core10-preinstall-gate.csv
+          grep -Fxq '07_rpc_execute_grants,BLOCK' /tmp/core10-preinstall-gate.csv
       - name: Compile candidate RPC and apply explicit grants in CI only
         run: psql -X -v ON_ERROR_STOP=1 -f CORE10_OWNER_INBOX_RPC_CANDIDATE.sql
+      - name: Verify release gate PASSES structural checks after isolated installation
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -A -t -F ',' -f CORE10_OWNER_INBOX_RELEASE_PREFLIGHT.sql > /tmp/core10-postinstall-gate.csv
+          cat /tmp/core10-postinstall-gate.csv
+          for gate in 01_required_schema 02_rls_enabled 03_owner_helpers 04_org_mode 05_two_active_businesses 06_rpc_security_definer 07_rpc_execute_grants; do
+            grep -Fxq "${gate},PASS" /tmp/core10-postinstall-gate.csv
+          done
+          grep -Fxq '08_real_signed_sessions,MANUAL_REQUIRED' /tmp/core10-postinstall-gate.csv
+          grep -Fxq '09_release_decision,STOP_UNTIL_OWNER_APPROVAL' /tmp/core10-postinstall-gate.csv
       - name: Verify server-side Owner/Business/Staff/Anon/Revoked security contract
         run: psql -X -v ON_ERROR_STOP=1 -f tests/sql/core10-owner-inbox-assertions.sql
