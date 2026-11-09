@@ -1,0 +1,40 @@
+name: CORE 10 - Double Audit Frontend Gates
+on:
+  push:
+    branches: [main]
+    paths:
+      - "core10-shell.js"
+      - "core10-owner-inbox.js"
+      - "tests/core10-*.js"
+      - ".github/workflows/core10-double-audit.yml"
+  pull_request:
+    paths:
+      - "core10-shell.js"
+      - "core10-owner-inbox.js"
+      - "tests/core10-*.js"
+      - ".github/workflows/core10-double-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  owner-and-tenant-guards:
+    name: Owner Inbox + Staff Boundary (double-pass)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Configure Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Prior compatibility smoke
+        run: node tests/core10-shell-smoke.js
+      - name: Auditor 1 + 2 - staff mapping two rounds
+        run: node tests/core10-complete-mapping-smoke.js
+      - name: Auditor 1 + 2 - owner inbox negative tests two rounds
+        run: node tests/core10-owner-inbox-smoke.js
