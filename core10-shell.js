@@ -99,7 +99,7 @@ if(originalBrandFor)B.biz.brandFor=function(locId){
  if(isStaff()&&!scopedLocations().some(function(loc){return Number(loc.id)===Number(locId)}))return PRIVATE;
  return originalBrandFor(locId)
 };
-B.biz.switcherHTML=function(){return isStaff()?"":originalSwitcher()};
+B.biz.switcherHTML=function(){return isStaff()||isOwnerBusinessWorkspace()?"":originalSwitcher()};
 function ownerWorkspaceKind(){
  if(!isOwner()||!document.body||document.body.dataset.core10Owner==="1")return "";
  var search=window.location&&window.location.search||"";
@@ -260,6 +260,11 @@ function protectOrganization(){
  var prev=window.BOS_PAGES.organization;
  var wrapped=function(){
    if(!isOwner()){location.hash="#/home";return Promise.resolve()}
+   if(isOwnerBusinessWorkspace()){
+    var url=new URL("owner.html",window.location.href);
+    url.search="";url.hash="#/organization";window.location.assign(url.href);
+    return Promise.resolve()
+   }
    return prev.apply(this,arguments)
  };
  wrapped.__core10Protected=true;
@@ -276,7 +281,7 @@ protectOrganization();
 if(B.ia&&typeof B.ia.visible==="function"){
  var oldVisible=B.ia.visible;
  B.ia.visible=function(item){
-  if(item&&item.route==="organization"&&!isOwner())return false;
+  if(item&&item.route==="organization"&&(!isOwner()||isOwnerBusinessWorkspace()))return false;
   return oldVisible.apply(this,arguments)
  }
 }
