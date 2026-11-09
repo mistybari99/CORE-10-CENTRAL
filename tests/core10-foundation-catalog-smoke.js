@@ -11,7 +11,7 @@ const evidence=()=>Object.fromEntries(["end_to_end","authenticated_permissions",
 function testCatalogStructure(){
  const verdict=registry.validateCatalog(manifest);
  assert.equal(verdict.ok,true,verdict.errors.join(", "));
- assert.equal(manifest.templates.length,10);
+ assert.ok(manifest.templates.length>=10);
  assert.equal(new Set(manifest.templates.map(t=>t.id)).size,10);
  assert.deepEqual(manifest.canonical_hierarchy.map(x=>x.kind),registry.CANONICAL_HIERARCHY);
  assert.equal(manifest.enterprise_capacity_target.hard_limit,false);
@@ -58,6 +58,10 @@ function testRejectFabricatedReadiness(){
  assert.equal(registry.validateCatalog(synthetic).ok,true);
  assert.equal(registry.assessReadiness(synthetic,"sweets_bakery").eligible,true);
  assert.equal(registry.assessReadiness(synthetic,"restaurant").eligible,false);
+ const future=clone(manifest);
+ future.templates.push({id:"future_industry_pack",source_code:null,source_status:"unregistered",readiness:"not_implemented",name_en:"Future Owner-Defined Industry",modules:[]});
+ assert.equal(registry.validateCatalog(future).ok,true);
+ assert.equal(registry.assessReadiness(future,"future_industry_pack").eligible,false);
  console.log("PASS A018: every module and template needs explicit E2E evidence before readiness");
 }
 function testDataModelFailuresFailClosed(){
