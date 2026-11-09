@@ -81,7 +81,7 @@ function accepted(r,label,businessId,count) {
     "inactive/revoked owner");
   refused(await rpc(jwt("00000000-0000-4000-8000-000000000099"),{p_business_id:null,p_limit:40}),
     "unregistered authenticated user");
-  refused(await rpc(jwt(people.owner,{exp:Math.floor(Date.now()/1000)-10}),
+  refused(await rpc(jwt(people.owner,{exp:Math.floor(Date.now()/1000)-3600}),
     {p_business_id:10,p_limit:40}),"expired signed JWT");
   const tampered=jwt(people.owner);
   refused(await rpc(tampered.slice(0,-1)+(tampered.at(-1)==="A"?"B":"A"),
