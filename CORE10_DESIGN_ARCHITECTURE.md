@@ -36,3 +36,9 @@ Version 1 — November 9, 2026
 - Confirm CORE 10 dark sidebar, cloud workspace and teal actions render in owner portal only.
 - Verify real owner session and staff sessions, especially when navigating from a deep link.
 - Backend multi-business tenant isolation is **not certified** by this visual update.
+
+## CORE 10 portfolio vs technical management (2026-11-09)
+
+The organization portfolio route `#/organization` shows CORE 10 and its business cards. Group/Legal Entity/Business management forms are not displayed in the portfolio. The footer's owner-only Manage business structure button opens `#/organization/manage`.
+
+The management route uses the EXISTING `org122.js` forms with a Back to businesses action. This is a UI split only: no changes to location IDs, staff grants, inventories, schema, or current Islamia brand assets. The inherited POS tab bar remains hidden on CORE 10 organization routes.

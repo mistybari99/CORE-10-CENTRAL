@@ -61,28 +61,46 @@ function render(){if(!owner())return;
  var businesses=all.filter(function(x){return x.kind==="business"&&x.status!=="inactive"});
  var assigned=new Map;businesses.forEach(function(b){assigned.set(String(b.id),[])});
  var unlinked=0;places().forEach(function(p){var id=businessFor(p,map);if(id&&assigned.has(id))assigned.get(id).push(p);else unlinked++});
- var title=groups.length?groups.map(name).join(" · "):legals.length?legals.map(name).join(" · "):tr("মূল প্রতিষ্ঠান","Master Organization");
+ var title="CORE 10";
  var cards=categories.map(function(cat){return categoryHTML(cat,businesses.filter(function(b){return categoryFor(b)===cat.key}),map,assigned)}).join("");
  var misc=businesses.filter(function(b){return categoryFor(b)==="other"});if(misc.length)cards+=categoryHTML(other,misc,map,assigned);
  host.innerHTML='<header class="ph-hero"><span class="ph-kicker">'+escape(tr("মাস্টার বিজনেস পোর্টফোলিও","Master Business Portfolio"))+'</span><h2>'+escape(title)+'</h2><p>'+
  escape(groups.length||legals.length?tr("সব ব্যবসার কাঠামো এক জায়গায়","All businesses under one organization"):tr("মূল প্রতিষ্ঠান এখনো সেটআপ করা হয়নি","Master organization is not configured yet"))+
  '</p><div class="ph-stats"><span><b>'+businesses.length+'</b> '+escape(tr("ব্যবসা","businesses"))+'</span><span><b>'+(places().length-unlinked)+'</b> '+escape(tr("সংযুক্ত লোকেশন","linked locations"))+'</span></div></header>'+
  (unlinked?'<div class="ph-warning">'+unlinked+" "+escape(tr("টি লোকেশন এখনো কোনো ব্যবসার সঙ্গে নিশ্চিতভাবে যুক্ত নয়। কোনো ডেটা সরানো হয়নি।","locations are not explicitly linked to a business. No data was moved."))+'</div>':"")+
- '<div class="ph-grid">'+cards+'</div>';
+ '<div class="ph-grid">'+cards+'</div><div class="ph-footer-tools"><button type="button" class="ph-manage-link" data-act="ph_manage">⚙ '+escape(tr("ব্যবসার কাঠামো পরিচালনা","Manage business structure"))+'</button></div>';
  host.querySelectorAll(".ph-business").forEach(function(d){if(expanded.includes(d.dataset.biz))d.open=true});
  host.querySelectorAll(".ph-location").forEach(function(d){if(expandedGroups.includes(d.closest(".ph-business").dataset.biz+"|"+d.dataset.kind))d.open=true})
 }
 var observer,pending=false;
 function rerender(){if(pending)return;pending=true;Promise.resolve().then(function(){pending=false;render()})}
+// Portfolio and technical management are separate owner-only routes.
+function managing(){return String(location.hash||"")==="#/organization/manage"}
+function syncView(){
+ var portfolio=document.getElementById("ph_overview"),management=document.getElementById("ph_admin");
+ if(!owner()||!portfolio||!management)return;
+ var manage=managing();
+ portfolio.hidden=manage;management.hidden=!manage;
+ if(document.body&&document.body.classList){
+  document.body.classList.toggle("core10-portfolio",!manage);
+  document.body.classList.toggle("core10-manage-structure",manage)
+ }
+ var title=document.querySelector("#app > header.top h1");
+ if(title)title.textContent=manage?tr("ব্যবসার কাঠামো পরিচালনা","Business Structure Settings"):tr("CORE 10 · ব্যবসাসমূহ","CORE 10 · Businesses")
+}
 function enhance(){if(!owner())return;
  var top=document.getElementById("og_top"),body=document.getElementById("og_body");if(!top||!body)return;
- if(document.getElementById("ph_overview")){rerender();return}
+ if(document.getElementById("ph_overview")){syncView();rerender();return}
  var parent=top.parentNode;if(!parent)return;
- var overview=document.createElement("section");overview.id="ph_overview";overview.setAttribute("aria-label",tr("সব ব্যবসা","All businesses"));
- var admin=document.createElement("details");admin.id="ph_admin";admin.className="ph-admin";
- var title=document.createElement("summary");title.textContent=tr("প্রতিষ্ঠানের কাঠামো পরিচালনা","Manage organization structure");admin.appendChild(title);
- parent.insertBefore(overview,top);parent.insertBefore(admin,top);admin.appendChild(top);admin.appendChild(body);
- if(observer)observer.disconnect();observer=new MutationObserver(rerender);observer.observe(body,{childList:true});render()
+ var portfolio=document.createElement("section");portfolio.id="ph_overview";portfolio.setAttribute("aria-label",tr("সব ব্যবসা","All businesses"));
+ var management=document.createElement("section");management.id="ph_admin";management.className="ph-admin ph-management-view";
+ var toolbar=document.createElement("div");toolbar.className="ph-manage-toolbar";
+ toolbar.innerHTML='<button type="button" class="ph-back" data-act="ph_portfolio">← '+escape(tr("সব ব্যবসায় ফিরুন","Back to all businesses"))+'</button><p>'+
+  escape(tr("প্রতিষ্ঠান, Legal Entity ও ব্যবসার সেটআপ এখানে পরিচালনা করুন।","Manage organization, legal entities and business setup here."))+'</p>';
+ management.appendChild(toolbar);
+ parent.insertBefore(portfolio,top);parent.insertBefore(management,top);management.appendChild(top);management.appendChild(body);
+ if(observer)observer.disconnect();observer=new MutationObserver(rerender);observer.observe(body,{childList:true});
+ syncView();render()
 }
 function attach(){
  var pages=window.BOS_PAGES,old=pages&&pages.organization;
@@ -93,7 +111,8 @@ function attach(){
 var oldLoad=L.load;
 if(typeof oldLoad==="function")L.load=function(){var route=arguments[0],value=oldLoad.apply(this,arguments);return Promise.resolve(value).then(function(v){if(route==="organization")attach();return v})};
 attach();
-A.H.ph_manage=function(){var x=document.getElementById("ph_admin");if(x){x.open=true;x.scrollIntoView({behavior:"smooth",block:"start"})}};
+A.H.ph_manage=function(){if(owner())location.hash="#/organization/manage"};
+A.H.ph_portfolio=function(){if(owner())location.hash="#/organization"};
 A.H.ph_enter=function(button){
  if(!owner()||!B.biz||!B.biz.setCur)return;
  var id=Number(button&&button.dataset&&button.dataset.v);

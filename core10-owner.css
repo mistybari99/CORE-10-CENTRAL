@@ -258,3 +258,35 @@ body[data-core10-owner] .ph-brand-foot{
  margin-top:14px;padding-top:11px;border-top:1px solid var(--line);
  color:var(--ruby);font-size:.82rem;font-weight:750
 }
+
+/* Owner-only: business portfolio vs technical organization settings. */
+body[data-core10-owner] #ph_overview[hidden],
+body[data-core10-owner] #ph_admin[hidden]{display:none!important}
+body[data-core10-owner].core10-portfolio #app>nav.crumb{display:none!important}
+body[data-core10-owner].core10-portfolio header.top h1{color:var(--ink);font-weight:800}
+body[data-core10-owner] .ph-footer-tools{display:flex;justify-content:flex-end;margin:12px 0 30px}
+body[data-core10-owner] .ph-manage-link{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ width:auto;min-height:42px;padding:8px 14px;border:1px solid var(--line);
+ border-radius:10px;background:var(--card);color:var(--ruby);
+ font-size:.8rem;font-weight:700;box-shadow:none
+}
+body[data-core10-owner] .ph-manage-link:hover{border-color:var(--ruby)}
+body[data-core10-owner] .ph-management-view{margin:0 0 30px;padding:0;border:0}
+body[data-core10-owner] .ph-manage-toolbar{
+ display:flex;align-items:flex-start;flex-direction:column;gap:9px;
+ margin:3px 0 19px;padding:13px 15px;border:1px solid var(--line);
+ border-radius:13px;background:var(--card)
+}
+body[data-core10-owner] .ph-manage-toolbar p{margin:0;font-size:.8rem;color:var(--muted)}
+body[data-core10-owner] .ph-manage-toolbar .ph-back{
+ display:inline-flex;align-items:center;min-height:40px;padding:6px 12px;
+ background:var(--c10-navy);color:#fff;border:1px solid var(--c10-navy);
+ border-radius:10px;font-size:.84rem;font-weight:750;box-shadow:none
+}
+body[data-core10-owner] .ph-management-view #og_top,
+body[data-core10-owner] .ph-management-view #og_body{margin-top:12px}
+@media(max-width:600px){
+ body[data-core10-owner] .ph-footer-tools{justify-content:center}
+ body[data-core10-owner] .ph-manage-link{width:100%}
+}
