@@ -64,7 +64,7 @@
       nodes.set(id,n);
       summary.org_units++;
       if(n.kind==="business")summary.businesses++;
-      if(SITE_KIN.includes(n.kind))summary.operating_sites++;
+      if(SITE_KINDS.includes(n.kind))summary.operating_sites++;
     });
     snapshot.org_units.forEach(function(n){
       var id=obj(n)&&key(n.id);
@@ -105,7 +105,7 @@
       if(owner.kind==="business"){
         business=owner;
         summary.legacy_direct_locations++;
-      }else if(SITE_KIN.includes(owner.kind)){
+      }else if(SITE_KINDS.includes(owner.kind)){
         siteId=ownerId;
         business=nodes.get(key(owner.parent_id));
         summary.explicit_site_locations++;
