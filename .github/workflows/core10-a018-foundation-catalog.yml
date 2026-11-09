@@ -1,0 +1,38 @@
+name: CORE 10 - A018 Foundation Catalog Contract
+
+on:
+  push:
+    branches:
+      - "feature/c10-a018-*"
+    paths:
+      - "core10-capability-registry.js"
+      - "data/core10_capability_catalog_v1.json"
+      - "tests/core10-foundation-catalog-smoke.js"
+      - ".github/workflows/core10-a018-foundation-catalog.yml"
+  pull_request:
+    paths:
+      - "core10-capability-registry.js"
+      - "data/core10_capability_catalog_v1.json"
+      - "tests/core10-foundation-catalog-smoke.js"
+      - ".github/workflows/core10-a018-foundation-catalog.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  foundation-catalog:
+    name: Read-only enterprise capability contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout proposed foundation code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate 10 primary templates and false-ready protections
+        run: node tests/core10-foundation-catalog-smoke.js
