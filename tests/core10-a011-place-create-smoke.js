@@ -199,6 +199,22 @@ async function run(){
   assert.equal(f.elements.c10_place_error.hidden,true);
   assert.equal(f.toast.length,0);
  });
+ await check("replaced sheet with same DOM IDs cannot receive old RPC success or error",async()=>{
+  for(const outcome of ["success","error"]){
+   let f=fixture();site.install(f.w);f.open();let finish;
+   f.w.BOS_APP.sb.rpc=()=>new Promise(resolve=>{finish=resolve});
+   const pending=f.w.BOS_APP.H.c10_place_create();
+   // Simulate a different modal replacing the original DOM nodes while keeping IDs.
+   const replacement={events:{},addEventListener(){}};
+   const originalGet=f.w.document.getElementById;
+   f.w.document.getElementById=id=>id==="c10_place_form"?replacement:originalGet(id);
+   finish(outcome==="success"?{data:{id:105,business_id:3,kind:"factory",status:"setting_up"}}:{error:{message:"permission denied"}});
+   await pending;
+   assert.equal(f.closeCount(),0);assert.equal(f.toast.length,0);
+   assert.equal(f.w.location.hash,"#/home");
+   assert.equal(f.elements.c10_place_error.hidden,true);
+  }
+ });
  await check("never issues direct table writes from creation UI",()=>{
   const s=fs.readFileSync("core10-place-setup.js","utf8");
   assert.doesNotMatch(s,/\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(/);
