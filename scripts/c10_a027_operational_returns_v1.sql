@@ -8,7 +8,7 @@ CREATE TABLE c10_demo.operational_returns_v1(
  kind text NOT NULL CHECK(kind IN ('sale_return','purchase_return')),
  reason text NOT NULL CHECK(length(btrim(reason)) BETWEEN 5 AND 500),
  request_key text NOT NULL CHECK(length(btrim(request_key)) BETWEEN 1 AND 120),
- lines jsonb NOT NULL CHECK(jsonb_typeof(lines)='array'),
+ lines jsonb NOT NULL CHECK(jsonb_typeof(lines)='object' AND jsonb_typeof(lines->'lines')='array'),
  status text NOT NULL DEFAULT 'draft' CHECK(status IN('draft','approved','posted')),
  created_by uuid NOT NULL,
  approved_by uuid,
