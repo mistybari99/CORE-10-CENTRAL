@@ -139,7 +139,7 @@ BEGIN
  FOR v_site IN SELECT value FROM jsonb_array_elements(v_sites) LOOP
   IF jsonb_typeof(v_site)<>'object' OR
     (SELECT count(*) FROM jsonb_object_keys(v_site))<>2 OR
-    v_site->>'kind' NOT IN ('showroom','factory','godown','warehouse','project') OR
+    coalesce(v_site->>'kind','') NOT IN ('showroom','factory','godown','warehouse','project') OR
     length(btrim(coalesce(v_site->>'label',''))) NOT BETWEEN 1 AND 120 THEN
    RAISE EXCEPTION 'invalid_industry_sites';
   END IF;
