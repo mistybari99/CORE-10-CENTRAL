@@ -20,6 +20,7 @@ const jwt=role=>{
  return [Buffer.from(JSON.stringify({alg:"HS256"})).toString("base64url"),
    Buffer.from(JSON.stringify(body)).toString("base64url"),"synthetic_signature_ONLY_MOCK"].join(".");
 };
+const tokenByRole=Object.fromEntries(roles.map(role=>[role,jwt(role)]));
 function httpJson(status,body){return{status,json:async()=>body}}
 function mock(options={}){
  const calls=[];
@@ -37,10 +38,10 @@ function mock(options={}){
    role=roles.find(r=>env["C10_STAGE_"+r+"_EMAIL"]===payload.email);
    if(!role)return httpJson(400,{error:"invalid_credentials"});
    calls.push("signin:"+role);
-   return httpJson(200,{access_token:jwt(role)});
+   return httpJson(200,{access_token:tokenByRole[role]});
   }
   const auth=opts.headers?.Authorization;
-  if(auth)role=roles.find(r=>auth==="Bearer "+jwt(r));
+  if(auth)role=roles.find(r=>auth==="Bearer "+tokenByRole[r]);
   if(u.pathname==="/auth/v1/user"){
    if(!role)return httpJson(401,{error:"invalid"});
    calls.push("user:"+role);
