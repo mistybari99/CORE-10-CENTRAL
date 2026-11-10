@@ -52,6 +52,12 @@
 ### Live post-apply negative test (Claude, 2026-11-10, read-only, no writes)
 Ran on IMG-ERP-SG via SQL role switch (`SET LOCAL ROLE anon/authenticated`, not signed JWT): direct `_cost_actual` and `_costx_recompute` -> `insufficient_privilege` for both roles (PASS); `cost_gap_items()` as authenticated without owner context -> `not allowed` from its own `_costx_ok()` guard, proving the definer wrapper still reaches the helper chain (PASS). Still NOT a signed-in app test.
 
+### A004/A005 next-scope inventory (Claude, 2026-11-10, SELECT-only, NO change made)
+IMG-ERP-SG: 20 public SECURITY DEFINER non-trigger functions are anon-executable; 6 have no guard by a keyword heuristic (heuristic, NOT proof): `_costx_pct`, `login_failed`, `login_precheck`, `staff_directory`, `web_catalog_v2`, `web_site_config`.
+- Likely intentional public: `login_failed`, `login_precheck`, `web_catalog_v2`, `web_site_config` (website/login pre-check) — still verify output has no cost/PII.
+- **Review first:** `staff_directory` (possible staff PII exposure to anon) and `_costx_pct` (internal costing helper, same family as the A004 pair; check whether it leaks cost %).
+- Next increment: read bodies + callers (JS grep + pg_proc), run role-switch negative tests, then propose a narrow ACL/guard patch in Git with rollback and ask Owner for a specific go/no-go. Do not bulk-revoke.
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
