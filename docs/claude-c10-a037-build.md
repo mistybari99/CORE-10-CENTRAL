@@ -36,3 +36,9 @@ with 12 parallel same-document and 12 parallel distinct-document postings. Local
 ## Limitations (not done)
 Tax/VAT, WIP between start and finish, purchase-return costing, ingredient lots/FIFO, wastage/packaging, legacy Supabase item
 migration, real Supabase Auth users, UI. Do not present as live or audited.
+
+## CI evidence (GitHub Actions, PostgreSQL 17 service + PostgREST v12.2.12)
+Commit `d0638e9a45b8255595fe164ae6cc8b1f16d8c3be`: run https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/42835209675 — SUCCESS.
+Steps passed: schema build; accounting math / BLOCK rule / idempotency / immutability / owner-only security SQL test; REST database seed;
+PostgREST start; signed-JWT HTTP test (role denials, direct-DML denial, 12 parallel same-document and 12 parallel distinct-document postings).
+Synthetic JWT CI is NOT real Supabase Auth proof. Release blockers: tax, WIP, purchase-return costing, FIFO lots, wastage/packaging, legacy Supabase migration, UI, real Auth users.
