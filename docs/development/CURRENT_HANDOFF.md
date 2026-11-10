@@ -84,6 +84,14 @@ IMG-ERP-SG: 20 public SECURITY DEFINER non-trigger functions are anon-executable
 - **GitHub Pages Source NOT VERIFIED:** repository advertises GitHub Pages and `https://mistybari99.github.io/CORE-10-CENTRAL/`, but the GitHub connector rejects the Pages configuration API and browser Settings access is not available in this session. **Unknown whether Source is `Deploy from a branch` (and which branch/folder) or `GitHub Actions`.** Owner: open https://github.com/mistybari99/CORE-10-CENTRAL/settings/pages → **Build and deployment → Source**; provide the selected option and Branch/Folder if applicable. Do not infer Source from `main`, URL, or green CI.
 - **Implementation state:** This was SELECT-only live catalog/user-role verification and a GitHub handoff documentation change; **no test logins were performed and no live Supabase data/auth changes were made**. Re-read this inventory against current DB before any A005 run. GitHub commit SHA and PR CI must be fetched after the documentation commit.
 
+## A005 step 1 — live rollback-only exposure scan (Claude, 2026-11-10)
+**Method (Owner authorized creating test users, to be removed):** `profiles_no_delete`/`uos123_no_delete` triggers make permanent test users NON-removable and pollute audit logs, so instead `tests/c10_a005_live_rollback_exposure_scan.sql` creates login-less synthetic users INSIDE one transaction and always ROLLS BACK. Verified residue after run: 0 `auth.users`, 0 `profiles`. SQL role+claims switch (PostgREST mechanism), NOT a signed HTTP JWT.
+**Result (SELECT visibility over all public tables/views):**
+- `anon`: sees rows in NO table. PASS.
+- `pending` new user (handle_new_user makes status `pending`, not owner): sees only `profiles`. PASS (expected own row; re-verify it is own-row only).
+- `active` user with ZERO roles: sees shared catalog/config only — `items` (no cost/margin/supplier columns exist), `locations`, `settings` (keys seen: business_name, lock/lockout params), `rules`, `roles`, `forms`, `profiles` (all active staff directory) and similar lookup tables. Appears BY DESIGN (`is_active()` read policies), not a cost/finance leak. Low note: lockout params (`max_fails`, `lock_minutes`) readable by any active staff.
+**Not yet done (next):** (a) write-denial matrix for the same personas (INSERT/UPDATE/DELETE on stock/sales/finance tables), (b) per-RPC call matrix for pending/no-role/limited-role users, (c) single business exists (`SWEETS`) so cross-business isolation cannot be tested until A018/A019 provision a second business in an isolated fixture. Write tests must also be rollback-only.
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
