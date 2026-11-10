@@ -6,6 +6,7 @@ on:
       - 'security/c10_a011_rpc_replay_ROLLBACK.sql'
       - 'tests/c10_a011_replay_fixture.sql'
       - 'tests/c10_a011_replay_tests.mjs'
+      - 'tests/c10_a011_real_auth_staging.mjs'
       - '.github/workflows/core10-a011-rpc-replay.yml'
   workflow_dispatch:
 permissions:
@@ -43,5 +44,6 @@ jobs:
         run: |
           psql --version
           node --check tests/c10_a011_replay_tests.mjs
+          node --check tests/c10_a011_real_auth_staging.mjs
       - name: Exact RPC replay, scope and rollback contracts
         run: node tests/c10_a011_replay_tests.mjs
