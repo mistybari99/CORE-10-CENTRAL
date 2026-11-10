@@ -79,8 +79,18 @@
       if(txt(n.client_id)&&txt(parent.client_id)&&n.client_id!==parent.client_id)
         errors.push("CROSS_CLIENT_PARENT:"+id);
       if(n.kind==="business"){
-        if(!txt(n.template_code)||!liveCodes.has(n.template_code)||!catalogCodes.has(n.template_code))
+        if(!txt(n.template_code)||!liveCodes.has(n.template_code)){
           errors.push("UNREGISTERED_BUSINESS_TEMPLATE:"+id);
+        }else if(n.template_code==="food_manufacturing"){
+          // REV-009: this historical legacy business is structurally mapped,
+          // but NEVER becomes the neutral sweets/bakery engine or shared tenant adapter.
+          var neutral=catalog.templates.find(function(t){return t&&t.id==="sweets_bakery"});
+          if(!neutral||neutral.source_code!==null||neutral.source_status==="available")
+            errors.push("LEGACY_FOOD_TEMPLATE_NOT_ISOLATED:"+id);
+          else warnings.push("LEGACY_FOOD_SOURCE_ISOLATED:"+id);
+        }else if(!catalogCodes.has(n.template_code)){
+          errors.push("UNREGISTERED_BUSINESS_TEMPLATE:"+id);
+        }
       }
     });
     snapshot.business_profiles.forEach(function(p){
