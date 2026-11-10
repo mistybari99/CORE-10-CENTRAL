@@ -39,6 +39,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Create disposable PostgREST roles
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
       - name: Build foundation and stock/operational modules in disposable DB
         run: |
           psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a018_demo_backend.sql
