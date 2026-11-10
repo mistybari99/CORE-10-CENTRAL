@@ -1,0 +1,35 @@
+name: CORE10 - PWA Offline Update Safety
+on:
+  push:
+    branches:
+      - "fix/sw-keep-cache-on-failed-update"
+    paths:
+      - "sw.js"
+      - "tests/sw-update-safety.js"
+      - ".github/workflows/core10-pwa-update-safety.yml"
+  pull_request:
+    paths:
+      - "sw.js"
+      - "tests/sw-update-safety.js"
+      - ".github/workflows/core10-pwa-update-safety.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-failure-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Chromium Playwright
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Failed-update preserves last known good offline app
+        run: node tests/sw-update-safety.js
