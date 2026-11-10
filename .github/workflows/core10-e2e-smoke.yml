@@ -13,6 +13,7 @@ on:
       - "data/**"
       - "v2/**"
       - "tests/e2e/**"
+      - "tests/core10-legacy-preservation.test.js"
       - ".github/workflows/core10-e2e-smoke.yml"
   pull_request:
     paths:
@@ -42,6 +43,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Preserve the existing Islamia ERP assets modules and 193 reports
+        run: node tests/core10-legacy-preservation.test.js
       - name: Forbidden files check
         run: node tests/e2e/forbidden_files.js
       - name: Install Playwright (outside repo tree, no tracing)
