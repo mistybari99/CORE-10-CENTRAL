@@ -1,0 +1,62 @@
+name: CORE 10 - Browser Smoke + Forbidden Files
+on:
+  push:
+    branches: [main]
+    paths:
+      - "*.html"
+      - "*.js"
+      - "*.css"
+      - "*.json"
+      - "*.webmanifest"
+      - "*.svg"
+      - "vendor/**"
+      - "data/**"
+      - "v2/**"
+      - "tests/e2e/**"
+      - ".github/workflows/core10-e2e-smoke.yml"
+  pull_request:
+    paths:
+      - "*.html"
+      - "*.js"
+      - "*.css"
+      - "*.json"
+      - "*.webmanifest"
+      - "*.svg"
+      - "vendor/**"
+      - "data/**"
+      - "v2/**"
+      - "tests/e2e/**"
+      - ".github/workflows/core10-e2e-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    name: Browser smoke (mobile, offline) + forbidden files
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Forbidden files check
+        run: node tests/e2e/forbidden_files.js
+      - name: Install Playwright (outside repo tree, no tracing)
+        run: |
+          mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
+          npm init -y >/dev/null
+          npm i -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/pw/node_modules" >> "$GITHUB_ENV"
+      - name: Browser smoke
+        run: node tests/e2e/smoke.js
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: tests/e2e/screenshots/
+          if-no-files-found: ignore
