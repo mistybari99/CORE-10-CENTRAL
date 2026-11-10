@@ -1,0 +1,34 @@
+name: C10-A019 SG canonical scope + RLS read-only compatibility gate
+on:
+  pull_request:
+    paths:
+      - 'scripts/c10_a019_sg_scope_preflight_readonly.sql'
+      - 'internal/core10-sg-scope-gate.js'
+      - 'tests/c10_a019_sg_scope_gate.test.js'
+      - 'data/c10_sg_scope_preflight_2026-11-11.json'
+      - '.github/workflows/core10-a019-sg-readonly-gate.yml'
+  push:
+    branches: ['feature/c10-a018-foundation-catalog-v1']
+    paths:
+      - 'scripts/c10_a019_sg_scope_preflight_readonly.sql'
+      - 'internal/core10-sg-scope-gate.js'
+      - 'tests/c10_a019_sg_scope_gate.test.js'
+      - 'data/c10_sg_scope_preflight_2026-11-11.json'
+      - '.github/workflows/core10-a019-sg-readonly-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sg-static-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: SG read-only compatibility, RLS composition and negative mutation tests
+        run: node tests/c10_a019_sg_scope_gate.test.js
+      - name: Emit current captured snapshot blockers (no Supabase credentials)
+        run: node internal/core10-sg-scope-gate.js
