@@ -76,9 +76,11 @@ DECLARE g bigint;
 BEGIN
  g:=c10_demo.change_access_v1(101,'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
   'site_grant.grant',NULL,1001,ARRAY['stock.read','stock.post'],'site-staff-grant');
- IF NOT EXISTS(SELECT 1 FROM c10_demo.site_grants
-    WHERE site_id=1001 AND user_id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'
-     AND active AND 'stock.post'=ANY(actions)) THEN
+ -- Site-grant base RLS is self-only; check the guarded owner audit and count
+ -- rather than querying another person's site_grants row directly.
+ IF NOT EXISTS(SELECT 1 FROM c10_demo.access_change_events_v1
+    WHERE id=g AND after_state->>'active'='true') OR
+   c10_demo.owner_access_metric_v1(101,'site_grant')<>2 THEN
   RAISE EXCEPTION 'business owner site access grant failed'; END IF;
  BEGIN
   PERFORM c10_demo.change_access_v1(101,'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
