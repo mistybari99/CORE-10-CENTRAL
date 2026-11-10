@@ -34,15 +34,16 @@
   if(registry.total!==registry.reports.length||
       registry.reports.length<baseline.legacy_reports.length)
     errors.push("REPORT_TOTAL_INVALID");
-  const sweets=catalog.templates.find(x=>x.id==="sweets_bakery");
-  if(!sweets||sweets.source_code!==baseline.legacy_food_template_code||!Array.isArray(sweets.modules))
-    errors.push("LEGACY_FOOD_TEMPLATE_MISSING");
-  else{
-   const present=new Set(sweets.modules.map(x=>x.id));
-   for(const id of baseline.sweets_module_ids)if(!present.has(id))errors.push("LEGACY_FOOD_MODULE_MISSING:"+id);
-   if(sweets.readiness==="certified"||sweets.readiness==="production_ready")
-     errors.push("UNCERTIFIED_FOOD_TEMPLATE_CLAIM");
-  }
+  // Existing custom business assets/reports are preserved independently of all
+  // shared industry packs. Never require a shared template to inherit their modules.
+  if(catalog.templates.some(t=>t.source_code===baseline.legacy_food_template_code))
+    errors.push("CUSTOMIZED_BACKEND_USED_AS_SHARED_ENGINE");
+  const newFood=catalog.templates.find(t=>t.id==="sweets_bakery");
+  if(!newFood||!Array.isArray(newFood.modules))
+    errors.push("INDEPENDENT_FOOD_PACK_MISSING");
+  else if(newFood.source_status==="available"&&
+      (!newFood.source_code||newFood.source_code===baseline.legacy_food_template_code))
+    errors.push("UNVERIFIED_SHARED_FOOD_BACKEND");
   if(filePaths!==undefined&&filePaths!==null){
    if(!Array.isArray(filePaths))errors.push("INVALID_FILE_LIST");
    else{

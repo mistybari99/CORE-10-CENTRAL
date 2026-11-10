@@ -85,45 +85,45 @@
   "templates": [
     {
       "id": "sweets_bakery",
-      "source_code": "food_manufacturing",
-      "source_status": "available",
-      "readiness": "implemented_unverified",
+      "source_code": null,
+      "source_status": "unregistered",
+      "readiness": "not_implemented",
       "name_en": "Sweets, Bakery & Food Manufacturing",
       "modules": [
         {
           "id": "pos",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "not_implemented",
+          "origin": "not_built"
         },
         {
           "id": "stock",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "not_implemented",
+          "origin": "not_built"
         },
         {
           "id": "purchase",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "not_implemented",
+          "origin": "not_built"
         },
         {
           "id": "production",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "not_implemented",
+          "origin": "not_built"
         },
         {
           "id": "costing",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "not_implemented",
+          "origin": "not_built"
         },
         {
           "id": "accounting",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "not_implemented",
+          "origin": "not_built"
         },
         {
           "id": "reports",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "not_implemented",
+          "origin": "not_built"
         }
       ]
     },

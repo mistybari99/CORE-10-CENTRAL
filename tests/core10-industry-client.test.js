@@ -2,7 +2,7 @@
 const assert=require("node:assert/strict");
 const catalog=require("../data/core10_capability_catalog_v1.json");
 const api=require("../core10-industry-client.js");
-const base={name:"Islamia",slug:"islamia",templateId:"sweets_bakery",brandHex:"#7C263A",mode:"advanced",
+const base={name:"Demo Business",slug:"demo-business",templateId:"sweets_bakery",brandHex:"#7C263A",mode:"advanced",
   sites:[{kind:"showroom",label:"Main"},{kind:"factory",label:"Cake factory"}],modules:["stock"]};
 const ctx={legalId:11,requestKey:"replay-key-001"};
 assert.equal(api.validate(catalog,base,ctx).p_template_id,"sweets_bakery");
