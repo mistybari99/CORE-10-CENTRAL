@@ -47,5 +47,9 @@ fetch("./data/core10_capability_catalog_v1.json",{cache:"no-store"}).then(r=>{if
  catalog=c;builder=CORE10_BUSINESS_BUILDER.create({catalog,releaseEnabled:false});
  $("template").innerHTML=c.templates.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name_en)+'</option>').join("");
  bind();draw();
+ window.CORE10_BUILDER_INSTANCE=Object.freeze({
+   snapshot:()=>builder.snapshot(),validate:()=>builder.validate(),
+   onChange:fn=>builder.onChange(fn)});
+ document.dispatchEvent(new Event("core10-builder-ready"));
 }).catch(e=>error("Cannot initialize business creation: "+e.message));
 })();
