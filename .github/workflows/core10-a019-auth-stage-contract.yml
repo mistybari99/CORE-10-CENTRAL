@@ -1,0 +1,38 @@
+name: C10-A019 Real Supabase Auth staging probe CONTRACT (mock CI only)
+on:
+  pull_request:
+    paths:
+      - 'tests/api/core10-supabase-auth-staging-probe.js'
+      - 'tests/api/core10-supabase-auth-staging-probe.test.js'
+      - '.github/workflows/core10-a019-auth-stage-contract.yml'
+      - '.github/workflows/core10-a019-auth-stage-manual.yml'
+  push:
+    branches: ['feature/c10-a018-*']
+    paths:
+      - 'tests/api/core10-supabase-auth-staging-probe.js'
+      - 'tests/api/core10-supabase-auth-staging-probe.test.js'
+      - '.github/workflows/core10-a019-auth-stage-contract.yml'
+      - '.github/workflows/core10-a019-auth-stage-manual.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe-contract-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test real-Auth harness with synthetic mock responses, including denied roles
+        run: node tests/api/core10-supabase-auth-staging-probe.test.js
+      - name: Assert staging runner fails closed without explicit configuration
+        run: |
+          if node tests/api/core10-supabase-auth-staging-probe.js; then
+            echo 'CRITICAL: staging probe ran without explicit credentials and approval'; exit 1
+          fi
+      - name: State certification boundary
+        run: echo 'PASS CONTRACT ONLY; no actual Supabase Auth user, migration, role, RLS, or production access tested'
