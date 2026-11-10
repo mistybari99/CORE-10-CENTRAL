@@ -47,6 +47,7 @@ function toBackendInput(catalog,model,context){
  if(!result.ok)throw Object.assign(new Error("BUSINESS_SETUP_INVALID"),{reasons:result.errors});
  if(!context||!Number.isSafeInteger(Number(context.legalId))||Number(context.legalId)<1)throw Error("AUTHORIZED_LEGAL_ENTITY_REQUIRED");
  if(!str(context.requestKey))throw Error("IDEMPOTENCY_KEY_REQUIRED");
+ if(result.template.source_code==="food_manufacturing")throw Error("SHARED_TEMPLATE_MUST_USE_INDEPENDENT_ADAPTER");
  if(result.template.source_status!=="available"||!str(result.template.source_code))throw Error("TEMPLATE_BACKEND_UNAVAILABLE");
  return {legalId:Number(context.legalId),slug:str(model.slug),template:result.template.source_code,
   displayName:str(model.name),mode:model.mode,sites:model.mode==="advanced"?model.sites.map(s=>({kind:s.kind,label:str(s.label)})):[],
