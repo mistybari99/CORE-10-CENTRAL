@@ -13,7 +13,7 @@ for(const id of ["template","businessName","slug","brand","mode","moduleChoices"
 assert.match(html,/core10-business-builder\.js/);
 assert.match(html,/core10-business-builder-ui\.js/);
 assert.match(ui,/releaseEnabled:false/);
-assert.match(ui,/production_ready/);
+assert.match(engine,/production_ready:false/);
 assert.doesNotMatch(ui,/\.rpc\(|service_role|method:\s*["']POST/);
 assert.match(html,/@media\(max-width:560px\)/);
 console.log("PASS: browser wizard syntax, DOM wiring and fail-closed preview");
