@@ -14,9 +14,15 @@
   if(["godown","warehouse","store","storehouse","storage"].includes(k))return "godown";
   return "other";
  }
+ function businessContextUnverified(){
+  // A business-scoped workspace must never reuse the global locsAll collection.
+  // Until a server-verified per-business site feed exists, fail closed.
+  var query=String(w.location&&w.location.search||"");
+  return /(?:^|[?&])workspace=(?:business|islamia)(?:&|$)/.test(query);
+ }
  function render(){
   var host=d.getElementById("ph_overview");
-  if(!host||!owner()){var old=d.getElementById("c10-site-workspace");if(old)old.remove();return}
+  if(!host||!owner()||businessContextUnverified()){var old=d.getElementById("c10-site-workspace");if(old)old.remove();return}
   var section=d.getElementById("c10-site-workspace");
   if(!section){section=d.createElement("section");section.id="c10-site-workspace";section.className="c10-site-workspace";host.appendChild(section)}
   var all=places(),groups={showroom:[],factory:[],godown:[],other:[]};
