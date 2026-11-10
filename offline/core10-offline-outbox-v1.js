@@ -1,6 +1,6 @@
-/* CORE10 A035 isolated/off-by-default browser outbox contract.
+/* CORE10 A035 isolated/off-by-default DRAFT ONLY outbox contract.
  * Does NOT install a service worker or modify live ERP. No passwords/tokens saved.
- * IndexedDB data is NOT encrypted; rollout needs device privacy controls and consent.
+ * Use existing A032 AES-GCM IndexedDB encrypted store via adapter; no plaintext IndexedDB.
  */
 (function(root,factory){
  "use strict";
@@ -24,35 +24,24 @@
    expectedLedgerVersion:x.expectedLedgerVersion
   });
  }
- function createIndexedDbStorage(idb){
-  if(!idb||typeof idb.open!=="function")error("INDEXEDDB_UNAVAILABLE");
-  let opening;
-  function db(){
-   if(opening)return opening;
-   opening=new Promise((resolve,reject)=>{
-    const req=idb.open("core10-a035-offline-outbox-v1",1);
-    req.onupgradeneeded=()=>{const database=req.result;
-      if(!database.objectStoreNames.contains("outbox"))database.createObjectStore("outbox",{keyPath:"localKey"});
-    };
-    req.onsuccess=()=>resolve(req.result);
-    req.onerror=()=>reject(req.error||new Error("INDEXEDDB_OPEN_FAILED"));
-   });return opening;
-  }
-  async function transaction(mode,operation){
-   const database=await db();
-   return new Promise((resolve,reject)=>{
-    const tx=database.transaction("outbox",mode);
-    let result;
-    const req=operation(tx.objectStore("outbox"));
-    req.onsuccess=()=>{result=req.result};
-    tx.oncomplete=()=>resolve(result);
-    tx.onerror=()=>reject(tx.error||new Error("INDEXEDDB_TX_FAILED"));
-    tx.onabort=()=>reject(tx.error||new Error("INDEXEDDB_TX_ABORTED"));
-   });
-  }
+ // Wrap the existing A032 encrypted IndexedDB load/save implementation.
+ // Never persist plaintext business drafts in a new local database.
+ function adaptEncryptedA032Storage(encrypted){
+  if(!encrypted||typeof encrypted.load!=="function"||
+   typeof encrypted.save!=="function")error("ENCRYPTED_A032_STORE_REQUIRED");
+  let lock=Promise.resolve();
   return Object.freeze({
-   all:()=>transaction("readonly",s=>s.getAll()),
-   put:row=>transaction("readwrite",s=>s.put(row))
+   all:async()=>{await lock;return encrypted.load()},
+   put:async row=>{
+    lock=lock.then(async()=>{
+     const all=await encrypted.load();
+     if(!Array.isArray(all))error("ENCRYPTED_STORE_CORRUPT");
+     const index=all.findIndex(x=>x.localKey===row.localKey);
+     if(index>=0)all[index]={...row};else all.push({...row});
+     await encrypted.save(all);
+    });
+    await lock;
+   }
   });
  }
  function create(config){
@@ -93,7 +82,7 @@
    try{
     const user=await subject();
     const mine=await list();
-    let applied=0,conflicts=0,retryable=0;
+    let staged=0,conflicts=0,retryable=0;
     for(const row of mine){
      if(row.status!=="queued")continue;
      if(user!==await subject())error("SUBJECT_CHANGED_DURING_REPLAY");
@@ -112,20 +101,20 @@
      if(user!==await subject())error("SUBJECT_CHANGED_DURING_REPLAY");
      if(!obj(response)||!safeId(response.id)||
        response.request_key!==row.requestKey||
-       !["applied","conflict"].includes(response.status))
+       !["staged","conflict"].includes(response.status))
       error("UNVERIFIED_SERVER_RECEIPT");
      const next={...row,status:response.status,receiptId:response.id,
       lastError:response.status==="conflict"?
        (typeof response.conflict_reason==="string"?response.conflict_reason:"NEEDS_MANUAL_REVIEW"):null};
      await config.storage.put(next);
-     if(response.status==="applied")applied++;else conflicts++;
+     if(response.status==="staged")staged++;else conflicts++;
     }
-    return Object.freeze({applied,conflicts,retryable});
+    return Object.freeze({staged,conflicts,retryable});
    }finally{flushing=false;}
   }
   return Object.freeze({enqueue,list,flush,status:()=>Object.freeze({
-   installedInProduction:false,automaticReplay:false,certified:false
+   installedInProduction:false,automaticReplay:false,stockPostingEnabled:false,certified:false
   })});
  }
- return Object.freeze({create,createIndexedDbStorage,validate});
+ return Object.freeze({create,adaptEncryptedA032Storage,validate});
 });
