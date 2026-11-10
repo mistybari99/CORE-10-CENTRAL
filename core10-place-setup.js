@@ -154,13 +154,16 @@
     var latest=context(w);
     if(!latest||latest.business_id!==ctx.business_id||latest.identity!==session)return;
     state.key=null;state.signature=null;
-    if(typeof A.toast==="function")A.toast(tr(w,"লোকেশন তৈরি হয়েছে; এখন সেটআপ সম্পূর্ণ করুন।","Location created; finish setup next."));
-    // A closed/replaced form must not close some other sheet or navigate the owner.
+    // Do not display a success message from an old/closed form or changed route.
     var liveForm=w.document.getElementById("c10_place_form");
     if(!liveForm||state.formSerial!==serial||string(w.location.hash)!==route)return;
+    if(typeof A.toast==="function")A.toast(tr(w,"লোকেশন তৈরি হয়েছে; এখন সেটআপ সম্পূর্ণ করুন।","Location created; finish setup next."));
     if(typeof A.closeSheet==="function")A.closeSheet();
     w.location.hash="#/locations";
-   }catch(e){if(context(w)&&state.formSerial===serial&&w.document.getElementById("c10_place_form"))notify(w,errorMessage(e))}
+   }catch(e){
+    var current=context(w);
+    if(current&&current.identity===session&&current.business_id===ctx.business_id&&state.formSerial===serial&&string(w.location.hash)===route&&w.document.getElementById("c10_place_form"))notify(w,errorMessage(e));
+   }
    finally{
     state.busy=false;
     // Reset the original button even when closeSheet has removed it from the DOM.
