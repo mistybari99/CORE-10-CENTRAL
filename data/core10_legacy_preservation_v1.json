@@ -2004,11 +2004,34 @@
     "accounting",
     "reports"
   ],
-  "legacy_food_template_code": "food_manufacturing",
   "protected_entry_routes": [
     "index.html",
     "owner.html",
     "business.html",
     "core10-business-builder.html"
-  ]
+  ],
+  "legacy_module_assets": {
+    "pos": [
+      "pos.js"
+    ],
+    "stock": [
+      "stock2.js",
+      "stockx.js"
+    ],
+    "purchase": [
+      "purchase.js"
+    ],
+    "production": [
+      "prodplan.js"
+    ],
+    "costing": [
+      "costing.js"
+    ],
+    "accounting": [
+      "accounts.js"
+    ],
+    "reports": [
+      "reports.js"
+    ]
+  }
 }
