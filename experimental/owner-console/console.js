@@ -4,15 +4,18 @@
 (function () {
   "use strict";
   var C = window.C10CONSOLE, P = C.providers, I = C.i18n;
-  var NAV = [["overview", "◎"], ["businesses", "▣"], ["hierarchy", "⌂"], ["modules", "▦"], ["stock", "▤"], ["trade", "⇄"], ["reports", "◈"], ["approvals", "✓"], ["setup", "⚙"]];
-  var NEEDS_BUSINESS = { hierarchy: 1, modules: 1, stock: 1, trade: 1, reports: 1, setup: 1 };
+  var NAV = [["overview", "◎"], ["businesses", "▣"], ["hierarchy", "⌂"], ["modules", "▦"], ["stock", "▤"], ["trade", "⇄"], ["reports", "◈"], ["approvals", "✓"], ["setup", "⚙"], ["connections", "⇋"]];
+  var NEEDS_BUSINESS = { hierarchy: 1, modules: 1, stock: 1, trade: 1, reports: 1, setup: 1, connections: 1 };
   var ROLES = {
     master_owner: { role: "master_owner", tenantId: 1, businessIds: [101, 102] },
     business_owner_101: { role: "business_owner", tenantId: 1, businessIds: [101] },
-    business_owner_102: { role: "business_owner", tenantId: 1, businessIds: [102] }
+    business_owner_102: { role: "business_owner", tenantId: 1, businessIds: [102] },
+    staff_101: { role: "staff", tenantId: 1, businessIds: [101] }   // NOT an owner: Connections must deny
   };
   var q = new URLSearchParams(location.search);
-  var state = { locale: q.get("lang") === "bn" ? "bn" : "en", roleKey: "master_owner", businessId: null, view: "overview",
+  // Connections is Bangla-first: opening it by deep link (?view=connections) defaults to Bangla unless ?lang=en is given.
+  var deepView = q.get("view") === "connections" ? "connections" : "overview";
+  var state = { locale: (q.get("lang") || (deepView === "connections" ? "bn" : "en")) === "bn" ? "bn" : "en", roleKey: "master_owner", businessId: null, view: deepView,
     stockFilter: "all", approvalFilter: "all", sim: q.get("state") || "", token: 0 };
   var $ = function (id) { return document.getElementById(id); };
   function t(k) { return I.t(state.locale, k); }
@@ -168,7 +171,13 @@
     root.appendChild(el("p", {}, [el("strong", { text: t("su.mode") + ": " }), chip("show", t("su." + s.mode))]));
     root.appendChild(table([t("su.title"), t("mod.state")], s.steps.map(function (st) { return [t("su." + st.key), chip(st.done ? "done" : "todo", st.done ? t("su.done") : t("su.todo"))]; })));
   }
-  var VIEWS = { overview: viewOverview, businesses: viewBusinesses, hierarchy: viewHierarchy, modules: viewModules, stock: viewStock, trade: viewTrade, reports: viewReports, approvals: viewApprovals, setup: viewSetup };
+  var portsStore = C.ports.createStore();   // in-memory synthetic store: lives only for this page load
+  function viewConnections(p, root) {
+    var pp = C.ports.createPortsProvider({ session: ROLES[state.roleKey], store: portsStore });
+    return C.portsUI.view({ el: el, t: t, locale: state.locale, businessId: state.businessId, roleKey: state.roleKey, announce: announce,
+      rerender: function () { return render(false); } }, pp, root);
+  }
+  var VIEWS = { overview: viewOverview, businesses: viewBusinesses, hierarchy: viewHierarchy, modules: viewModules, stock: viewStock, trade: viewTrade, reports: viewReports, approvals: viewApprovals, setup: viewSetup, connections: viewConnections };
 
   async function render(moveFocus) {
     var my = ++state.token;

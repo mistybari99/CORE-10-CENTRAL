@@ -1,0 +1,44 @@
+# CORE10 P6: Owner Connections (ports settings) preview inside the standalone owner console. Synthetic fixture only.
+# No Supabase, no network, no real keys. Tests run provider rules (mirroring A038 SQL), secret hygiene and the browser UI.
+name: CORE10 - P6 Owner Connections
+on:
+  push:
+    branches:
+      - "feature/c10-claude-ports-settings-ui-*"
+    paths:
+      - "experimental/owner-console/**"
+      - "tests/owner-console/**"
+      - ".github/workflows/core10-p6-ports-settings-ci.yml"
+  pull_request:
+    paths:
+      - "experimental/owner-console/**"
+      - "tests/owner-console/**"
+      - ".github/workflows/core10-p6-ports-settings-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owner-connections:
+    name: Ports provider rules, secret hygiene, role gating, responsive 1440/768/360, keyboard, no dead buttons
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Ports provider contracts (live needs passed test, kill switch, failed test forces off, no secret retrievable)
+        run: node tests/owner-console/ports.provider.test.js
+      - name: Existing owner console provider contracts still hold
+        run: node tests/owner-console/provider.test.js
+      - name: Install Playwright Chromium
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Connections browser tests (three breakpoints, Bangla-first, secret echo, ladder, kill switch, roles, keyboard, states, dead buttons)
+        run: node tests/owner-console/ports.ui.e2e.js
+      - name: Existing owner console browser tests still hold
+        run: node tests/owner-console/ui.e2e.js
