@@ -29,13 +29,21 @@ function parseConfig(env) {
   const ref=url.hostname.split(".")[0];
   if(ref===PRODUCTION_REF||env.C10_STAGING_PROJECT_REF!==ref)rejected("PRODUCTION_OR_REF_MISMATCH_BLOCKED");
   const key=env.C10_STAGING_ANON_KEY||"";
-  if(!key||key.startsWith("sb_secret_")||key.startsWith("sb_service_"))rejected("ANON_API_KEY_REQUIRED");
-  if(key.split(".").length===3) {
+  if(typeof key!=="string"||!key||key.startsWith("sb_secret_")||
+     key.startsWith("sb_service_")||/service[_-]?role/i.test(key))
+    rejected("ANON_API_KEY_REQUIRED");
+  if(key.startsWith("sb_publishable_")) {
+    if(!/^sb_publishable_[A-Za-z0-9_-]{8,}$/.test(key))
+      rejected("MALFORMED_PUBLISHABLE_KEY_BLOCKED");
+  } else {
+    const pieces=key.split(".");
+    if(pieces.length!==3||pieces.some(p=>!p||!/^[A-Za-z0-9_-]+$/.test(p)))
+      rejected("ANON_API_KEY_REQUIRED");
     try {
-      const jwt=JSON.parse(Buffer.from(key.split(".")[1],"base64url").toString("utf8"));
-      if(jwt.role!=="anon")rejected("SERVICE_ROLE_OR_NON_ANON_KEY_BLOCKED");
+      const jwt=JSON.parse(Buffer.from(pieces[1],"base64url").toString("utf8"));
+      if(!jwt||jwt.role!=="anon")rejected("SERVICE_ROLE_OR_NON_ANON_KEY_BLOCKED");
     } catch(e) {if(e.code)throw e; rejected("INVALID_ANON_JWT_KEY");}
-  } else if(!key.startsWith("sb_publishable_"))rejected("ANON_API_KEY_REQUIRED");
+  }
   let users;
   try {users=JSON.parse(env.C10_STAGING_TEST_USERS_JSON||"");} catch {rejected("INVALID_STAGING_USERS");}
   if(!users||typeof users!=="object"||Array.isArray(users)||Object.keys(users).sort().join(",")!==[...ROLES].sort().join(","))rejected("INVALID_STAGING_USERS");
@@ -56,9 +64,38 @@ function parseConfig(env) {
   return Object.freeze({url:url.origin,projectRef:ref,key,users});
 }
 async function send(url,options,http=fetch) {
-  const response=await http(url,{...options,signal:AbortSignal.timeout(15000)});
+  // Never follow an HTTP redirect while carrying staged bearer/anon credentials.
+  // No external redirects, cookies or cross-host credential forwarding are allowed.
+  let response;
+  try {response=await http(url,{...options,redirect:"error",
+    signal:AbortSignal.timeout(15000)});}
+  catch {rejected("STAGING_NETWORK_OR_REDIRECT_DENIED");}
+  if(!response||!Number.isInteger(response.status)||
+     (response.status>=300&&response.status<400))
+    rejected("STAGING_NETWORK_OR_REDIRECT_DENIED");
   let body;try{body=await response.json()}catch{body=null}
   return{status:response.status,body};
+}
+function tokenClaims(accessToken) {
+  // Local parsing is NOT a signature verification. GoTrue /auth/v1/user and
+  // PostgREST must verify the actual issued signature against staging auth.
+  const parts=String(accessToken||"").split(".");
+  if(parts.length!==3||parts.some(p=>!p||!/^[A-Za-z0-9_-]+$/.test(p)))
+    rejected("GOTRUE_ACCESS_TOKEN_CLAIMS_INVALID");
+  try {
+    const payload=JSON.parse(Buffer.from(parts[1],"base64url").toString("utf8"));
+    const aud=payload&&payload.aud;
+    if(!payload||payload.role!=="authenticated"||
+       !(aud==="authenticated"||(Array.isArray(aud)&&aud.includes("authenticated")))||
+       typeof payload.sub!=="string"||
+       !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(payload.sub)||
+       !Number.isFinite(payload.exp)||payload.exp<=Date.now()/1000)
+      rejected("GOTRUE_ACCESS_TOKEN_CLAIMS_INVALID");
+    return {sub:payload.sub};
+  } catch(e) {
+    if(e&&e.code)throw e;
+    rejected("GOTRUE_ACCESS_TOKEN_CLAIMS_INVALID");
+  }
 }
 function expectRows(result,expected,label) {
   if(result.status!==200||!Array.isArray(result.body))rejected("STAGING_AUTH_DATA_API_NOT_READY:"+label);
@@ -75,11 +112,13 @@ async function auth(config,user,http) {
   if(grant.status!==200||typeof grant.body?.access_token!=="string"||
      !grant.body.access_token)rejected("GOTRUE_LOGIN_FAILED");
   const token=grant.body.access_token;
+  const claims=tokenClaims(token);
   const identity=await send(config.url+"/auth/v1/user",{
     method:"GET",headers:{"apikey":config.key,authorization:"Bearer "+token}
   },http);
   if(identity.status!==200||typeof identity.body?.id!=="string"||
-     !identity.body.id)rejected("GOTRUE_SIGNED_USER_VERIFICATION_FAILED");
+     identity.body.id!==claims.sub)
+    rejected("GOTRUE_SIGNED_USER_VERIFICATION_FAILED");
   return{token,id:identity.body.id};
 }
 async function read(config,token,path,http) {
@@ -139,4 +178,4 @@ if(require.main===module) {
       .catch(e=>{console.error("FAIL C10-A019 "+(e.code||"STAGING_TEST_FAILED"));process.exitCode=1});
   }catch(e){console.error("BLOCKED C10-A019 "+(e.code||"STAGING_CONFIG_INVALID"));process.exitCode=1}
 }
-module.exports={parseConfig,run,expectRows,corruptSignature,PRODUCTION_REF,AGREEMENT,SEED,ROLES};
+module.exports={parseConfig,run,expectRows,corruptSignature,tokenClaims,PRODUCTION_REF,AGREEMENT,SEED,ROLES};
