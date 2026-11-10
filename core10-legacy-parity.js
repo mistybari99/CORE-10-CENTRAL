@@ -34,14 +34,15 @@
   if(registry.total!==registry.reports.length||
       registry.reports.length<baseline.legacy_reports.length)
     errors.push("REPORT_TOTAL_INVALID");
-  const sweets=catalog.templates.find(x=>x.id==="sweets_bakery");
-  if(!sweets||sweets.source_code!==baseline.legacy_food_template_code||!Array.isArray(sweets.modules))
-    errors.push("LEGACY_FOOD_TEMPLATE_MISSING");
+  // The legacy app/report contract stays private to its own Business Workspace.
+  // Never require a generic industry template to point at the legacy template/backend.
+  const shared=catalog.templates.find(x=>x.id==="sweets_bakery");
+  if(!shared||!Array.isArray(shared.modules))errors.push("INVALID_SHARED_INDUSTRY_TEMPLATE");
   else{
-   const present=new Set(sweets.modules.map(x=>x.id));
-   for(const id of baseline.sweets_module_ids)if(!present.has(id))errors.push("LEGACY_FOOD_MODULE_MISSING:"+id);
-   if(sweets.readiness==="certified"||sweets.readiness==="production_ready")
-     errors.push("UNCERTIFIED_FOOD_TEMPLATE_CLAIM");
+   if(shared.source_code===baseline.legacy_food_template_code)
+     errors.push("LEGACY_BACKEND_BOUND_TO_SHARED_TEMPLATE");
+   if(shared.readiness==="supported_and_tested"&&shared.source_status!=="available")
+     errors.push("UNVERIFIED_SHARED_TEMPLATE_CLAIM");
   }
   if(filePaths!==undefined&&filePaths!==null){
    if(!Array.isArray(filePaths))errors.push("INVALID_FILE_LIST");

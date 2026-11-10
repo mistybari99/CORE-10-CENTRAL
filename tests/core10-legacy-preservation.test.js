@@ -22,9 +22,10 @@ fail(parity.check(baseline,rerouted,catalog,files),"REPORT_ROUTE_CHANGED:r001");
 const renamed=copy(registry);renamed.reports[1].name.en="Renamed";
 fail(parity.check(baseline,renamed,catalog,files),"REPORT_NAME_CHANGED:r002");
 fail(parity.check(baseline,registry,catalog,files.filter(x=>x!=="pos.js")),"LEGACY_FILE_REMOVED:pos.js");
-const lostModule=copy(catalog);lostModule.templates.find(t=>t.id==="sweets_bakery").modules=
-  lostModule.templates.find(t=>t.id==="sweets_bakery").modules.filter(m=>m.id!=="production");
-fail(parity.check(baseline,registry,lostModule,files),"LEGACY_FOOD_MODULE_MISSING:production");
+// Legacy reports and assets remain protected, but generic catalog must NOT bind their backend.
+const misbound=copy(catalog);misbound.templates.find(t=>t.id==="sweets_bakery").source_code=baseline.legacy_food_template_code;
+misbound.templates.find(t=>t.id==="sweets_bakery").source_status="available";
+fail(parity.check(baseline,registry,misbound,files),"LEGACY_BACKEND_BOUND_TO_SHARED_TEMPLATE");
 const duplicate=copy(registry);duplicate.reports.push(duplicate.reports[0]);duplicate.total++;
 fail(parity.check(baseline,duplicate,catalog,files),"DUPLICATE_OR_INVALID_REPORT");
 assert.equal(parity.check(baseline,registry,catalog).checked.legacyFiles,null);

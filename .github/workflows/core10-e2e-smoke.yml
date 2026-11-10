@@ -11,6 +11,9 @@ on:
       - "*.svg"
       - "vendor/**"
       - "data/**"
+      - "core10-engines/**"
+      - "tests/core10-neutral-engines.test.js"
+      - "tests/core10-business-builder.test.js"
       - "v2/**"
       - "tests/e2e/**"
       - "tests/core10-legacy-preservation.test.js"
@@ -27,6 +30,9 @@ on:
       - "*.svg"
       - "vendor/**"
       - "data/**"
+      - "core10-engines/**"
+      - "tests/core10-neutral-engines.test.js"
+      - "tests/core10-business-builder.test.js"
       - "v2/**"
       - "tests/e2e/**"
       - ".github/workflows/core10-e2e-smoke.yml"
@@ -47,6 +53,10 @@ jobs:
           node-version: 22
       - name: Preserve the existing Islamia ERP assets modules and 193 reports
         run: node tests/core10-legacy-preservation.test.js
+      - name: Check neutral operational engines and legacy adapter isolation
+        run: |
+          node tests/core10-neutral-engines.test.js
+          node tests/core10-business-builder.test.js
       - name: Forbidden files check
         run: node tests/e2e/forbidden_files.js
       - name: Install Playwright (outside repo tree, no tracing)
