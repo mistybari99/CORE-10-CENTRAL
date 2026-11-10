@@ -133,6 +133,12 @@ If GitHub Pages serves `main` root (strongly suggested: `.nojekyll`, root `index
 - Open frontend candidate worth reviewing separately: **PR #1** (`sw.js` keeps previous offline cache when a worker update fails). Class M (service worker/offline) — needs real-phone offline update test before release; not touched by Claude.
 - Other open drafts untouched: #2 (offline cache variant), #3/#5/#4 (owner inbox/mapping, A006/A007), #6 (docs), #7 (A018 foundation).
 
+## GitHub Pages VERIFIED by Owner screenshot (2026-11-10)
+- Settings -> Pages: **Source = Deploy from a branch; Branch = `main`, folder `/ (root)`**; live at https://mistybari99.github.io/CORE-10-CENTRAL/ ; deployed by the "pages build and deployment" workflow (github-pages environment), last deployed ~9h before the screenshot. Site visibility is public (private publishing needs GitHub Enterprise). Enforce HTTPS on.
+- **Release rule:** any commit merged to `main` publishes the WHOLE repo root publicly within minutes. Class L releases therefore = a small PR containing ONLY app files, branched fresh from `main`, never PR #8/#7 wholesale (they carry `security/*.sql`, rollback scripts, tests, `docs/development/`). Rollback = revert the merge commit on `main` (Pages redeploys). Verify live via `sw.js` `VERSION` + `bundle-manifest.json` `build`. Claude's sandbox cannot fetch the live site (proxy 403), so live smoke is Owner/ChatGPT-assisted unless the proxy allows `github.io`.
+- **Existing exposure (already on `main`, NOT caused by this work):** root files such as `setup-run-*.html`, `setup-sql*.html`, `CORE10_*.sql`, `CORE10_*.md` are publicly served and reveal schema/RLS/RPC design. Recommended (Class L, separate PR): move them out of the served root or publish via an Actions `dist/` artifact. Not done.
+- No Class L frontend change is currently ready: the open frontend candidate is PR #1 (service worker offline cache; needs real-phone offline test).
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
