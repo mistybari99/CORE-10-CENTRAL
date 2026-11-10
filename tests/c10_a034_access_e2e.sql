@@ -64,7 +64,7 @@ BEGIN
     WHERE business_id=101 AND audited_access_changes=3
      AND active_business_owners=2 AND active_managers=2
      AND active_investors=2 AND NOT real_auth_account_verified)<>1 THEN
-  RAISE EXCEPTION 'audited access overview incorrect'; END IF;
+  RAISE EXCEPTION 'audited access overview incorrect: %', (SELECT row_to_json(g) FROM c10_demo.access_governance_overview_v1 g WHERE business_id=101); END IF;
 END $$;
 COMMIT;
 
