@@ -4,6 +4,7 @@ on:
     paths:
       - 'internal/core10-pages-package.js'
       - 'tests/core10-pages-package.test.js'
+      - 'tests/core10-pages-artifact-http.test.js'
       - '.github/workflows/core10-a018-pages-package.yml'
       - '.github/workflows/pages-dist.yml.disabled'
   push:
@@ -11,6 +12,7 @@ on:
     paths:
       - 'internal/core10-pages-package.js'
       - 'tests/core10-pages-package.test.js'
+      - 'tests/core10-pages-artifact-http.test.js'
       - '.github/workflows/core10-a018-pages-package.yml'
       - '.github/workflows/pages-dist.yml.disabled'
   workflow_dispatch:
@@ -26,7 +28,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Test publish allowlist, legacy entry parity and negative security fixtures
+      - name: Test allowlist, legacy entry parity, disabled release template, and negative security fixtures
         run: node tests/core10-pages-package.test.js
-      - name: Build and verify non-public staging artifact (NO DEPLOYMENT)
+      - name: Build non-public staging artifact (NO DEPLOYMENT)
         run: node internal/core10-pages-package.js "$RUNNER_TEMP/core10-pages-candidate"
+      - name: Run HTTP parity and forbidden internal-file tests on exact artifact
+        run: node tests/core10-pages-artifact-http.test.js "$RUNNER_TEMP/core10-pages-candidate"
