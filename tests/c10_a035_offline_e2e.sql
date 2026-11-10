@@ -10,8 +10,8 @@ BEGIN
  IF a<>c10_demo.replay_offline_stock_v1(5001,8001,10,0,'device-suggest-plus10') OR
   (SELECT status FROM c10_demo.offline_stock_receipts_v1 WHERE id=a)<>'staged'
  THEN RAISE EXCEPTION 'draft idempotence or staging incorrect'; END IF;
- IF (SELECT on_hand FROM c10_demo.stock_balances_v1
-   WHERE location_id=5001 AND item_id=8001)<>0 OR
+ IF EXISTS(SELECT 1 FROM c10_demo.stock_balances_v1
+   WHERE location_id=5001 AND item_id=8001) OR
    EXISTS(SELECT 1 FROM c10_demo.stock_movements) THEN
   RAISE EXCEPTION 'OFFLINE DRAFT CHANGED STOCK'; END IF;
  b:=c10_demo.replay_offline_stock_v1(5001,8001,1,9,'device-stale');
