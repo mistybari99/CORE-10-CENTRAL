@@ -1,4 +1,4 @@
--- SYNTHETIC fixture mimicking observed live structure (assumed column names; verify read-only first).
+-- SYNTHETIC fixture mimicking observed live structure (org_units.name_bn verified via live read-only information_schema).
 -- Throwaway PostgreSQL only. Never run against Supabase.
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF;
@@ -9,8 +9,8 @@ END $$;
 CREATE TABLE public.org_units (
   id bigint PRIMARY KEY, parent_id bigint REFERENCES public.org_units(id),
   kind text NOT NULL CHECK (kind IN ('group','legal_entity','business','unit')),
-  name text NOT NULL, active boolean NOT NULL DEFAULT true);
-INSERT INTO public.org_units(id,parent_id,kind,name) VALUES
+  name_bn text NOT NULL, active boolean NOT NULL DEFAULT true);
+INSERT INTO public.org_units(id,parent_id,kind,name_bn) VALUES
  (1,NULL,'group','Group'),
  (2,1,'legal_entity','ISL'),
  (3,2,'business','SWEETS'),
