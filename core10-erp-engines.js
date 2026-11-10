@@ -70,12 +70,11 @@ function approval(input){
  return bad("server_rpc_required");
 }
 function report(input){
- if(!input||!id(input.business_id)||!Array.isArray(input.sales)||!Array.isArray(input.purchases))return bad("invalid_report");
- var sales=0,purchases=0;
- for(var s of input.sales){if(!s||id(s.business_id)!==id(input.business_id)||num(s.total)===null)return bad("invalid_sales_scope");if(s.status!=="posted"||s.simulation_only===true)return bad("unposted_sale");sales+=s.total}
- for(var p of input.purchases){if(!p||id(p.business_id)!==id(input.business_id)||num(p.total)===null)return bad("invalid_purchase_scope");if(p.status!=="posted"||p.simulation_only===true)return bad("unposted_purchase");purchases+=p.total}
- if(!Number.isFinite(sales+purchases)||sales+purchases>1e12)return bad("overflow");
- return {ok:true,sales:money(sales),purchases:money(purchases),net_cash_difference:money(sales-purchases),note:"Cash difference is not accounting profit",simulation_only:true};
+ // P0: the browser cannot attest that a transaction was posted.
+ // A caller can forge status, business_id and totals; only an authenticated,
+ // tenant-scoped server RPC can source certified financial records.
+ return bad("server_rpc_required");
 }
+
 return Object.freeze({inventory:inventory,production:production,purchase:purchase,sale:sale,approval:approval,report:report});
 });
