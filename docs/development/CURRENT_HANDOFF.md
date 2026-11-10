@@ -115,6 +115,9 @@ Run on IMG-ERP-SG in one always-rolled-back transaction (residue re-checked = 0)
 - **NEW FINDING (grant level):** `anon` has write-class table grants incl. **TRUNCATE (bypasses RLS)** on 14 RLS-enabled tables with no anon write policy: customers, doc_template_choice, emergency_requests, entries, exceptions, grant_defs, loc_split_backup_20261103, location_settings, option_lists, release_requests, rule_grants, rules, sale_payments, sales. PostgREST exposes no TRUNCATE verb, so not API-exploitable; fix is defense in depth. Candidate `security/c10_a005_anon_write_grants_candidate.sql` + exact `..._ROLLBACK.sql` + isolated test/CI wiring committed. **NOT APPLIED** (Class H; needs Owner go/no-go). Local PG16 test PASS.
 - **Pages (inferred, NOT verified):** `.nojekyll` + root `index.html`, no Pages workflow, no gh-pages branch => almost certainly "Deploy from a branch: main / root". Release verification marker: `sw.js` `VERSION` and `bundle-manifest.json` `build`. The Claude sandbox cannot fetch the live site (proxy 403), so live smoke tests must be done by the Owner/ChatGPT until fixed.
 
+### Owner non-regression check (Claude, 2026-11-10, rollback-only; after A004 + A004b applied)
+Synthetic active user with role `owner` (`is_owner()=true`): `cost_gap_items`, `cost_extra_item_set` (write, rolled back), `partner_overview`, `staff_directory`, `mkt_spend_lines`, `rpt131_cash_close` all returned OK. Owner full access is intact; no residue. Owner policy model: Owner can do everything (is_owner() policies); other roles are limited by their own rules. The pending anon write-grant candidate only touches the `anon` role and cannot affect the Owner (authenticated role).
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
