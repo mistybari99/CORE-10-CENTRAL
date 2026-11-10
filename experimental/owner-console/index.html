@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="robots" content="noindex">
+<title>CORE 10 Owner Command Center (synthetic preview)</title>
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="ports.css">
+</head>
+<body>
+<a class="skip" id="skip" href="#view">Skip to main content</a>
+<div class="shell" id="shell">
+  <header class="top" role="banner">
+    <div class="brand"><span class="logo" aria-hidden="true">C10</span><h1 id="appTitle">CORE 10 Owner Command Center</h1></div>
+    <div class="controls">
+      <div class="lang" role="group" aria-label="Language" id="langGroup">
+        <button type="button" id="langBn" data-lang="bn" aria-pressed="false">বাংলা</button>
+        <button type="button" id="langEn" data-lang="en" aria-pressed="true">English</button>
+      </div>
+      <label class="field"><span id="lblViewAs">Preview as</span>
+        <select id="roleSel"></select></label>
+      <label class="field"><span id="lblBiz">Business context</span>
+        <select id="bizSel"></select></label>
+      <button type="button" id="refreshBtn" class="ghost">Refresh</button>
+    </div>
+    <p class="badge" id="badge" role="note"></p>
+  </header>
+  <nav class="nav" id="nav" aria-label="Main navigation"></nav>
+  <main class="main" id="main">
+    <div class="live" id="live" role="status" aria-live="polite"></div>
+    <section id="view" tabindex="-1" aria-labelledby="viewTitle"></section>
+  </main>
+</div>
+<script src="fixtures.js"></script>
+<script src="providers.js"></script>
+<script src="ports-fixtures.js"></script>
+<script src="ports.js"></script>
+<script src="i18n.js"></script>
+<script src="ports-ui.js"></script>
+<script src="console.js"></script>
+</body>
+</html>

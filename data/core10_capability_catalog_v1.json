@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "catalog_id": "core10-foundation-business-capabilities",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "observed_at": "2026-11-10",
   "authority": {
     "repository": "mistybari99/CORE-10-CENTRAL",
@@ -85,45 +85,45 @@
   "templates": [
     {
       "id": "sweets_bakery",
-      "source_code": "food_manufacturing",
-      "source_status": "available",
-      "readiness": "implemented_unverified",
+      "source_code": null,
+      "source_status": "needs_setup",
+      "readiness": "partial",
       "name_en": "Sweets, Bakery & Food Manufacturing",
       "modules": [
         {
           "id": "pos",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "not_implemented",
+          "origin": "shared_engine_pending_verification"
         },
         {
           "id": "stock",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "partial",
+          "origin": "shared_engine_pending_verification"
         },
         {
           "id": "purchase",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "partial",
+          "origin": "shared_engine_pending_verification"
         },
         {
           "id": "production",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "partial",
+          "origin": "shared_engine_pending_verification"
         },
         {
           "id": "costing",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "partial",
+          "origin": "shared_engine_pending_verification"
         },
         {
           "id": "accounting",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "partial",
+          "origin": "shared_engine_pending_verification"
         },
         {
           "id": "reports",
-          "status": "implemented_unverified",
-          "origin": "declared_in_template"
+          "status": "partial",
+          "origin": "shared_engine_pending_verification"
         }
       ]
     },

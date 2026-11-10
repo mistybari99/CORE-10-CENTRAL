@@ -1,0 +1,29 @@
+name: CORE10 A011 Business Site UI Contracts
+on:
+  pull_request:
+    paths:
+      - 'core10-place-setup.js'
+      - 'core10-business-owner.js'
+      - 'index.html'
+      - 'business.html'
+      - 'tests/core10-a011-place-create-smoke.js'
+      - '.github/workflows/core10-a011-place-create.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  site-creation-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static JavaScript syntax
+        run: |
+          node --check core10-place-setup.js
+          node --check core10-business-owner.js
+          node --check tests/core10-a011-place-create-smoke.js
+      - name: Site creation regression and isolation tests
+        run: node tests/core10-a011-place-create-smoke.js

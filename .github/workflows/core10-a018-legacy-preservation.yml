@@ -1,0 +1,42 @@
+name: CORE10 A018 Legacy Islamia Preservation
+on:
+  push:
+    branches: ["feature/c10-a018-islamia-preservation-*"]
+  pull_request:
+    paths:
+      - "data/core10_legacy_preservation_v1.json"
+      - "data/report_registry.json"
+      - "data/core10_capability_catalog_v1.json"
+      - "core10-legacy-parity*"
+      - "core10-business-builder.html"
+      - "tests/core10-legacy-preservation.test.js"
+      - "tests/fixtures/core10-legacy-item-codes-v1.json"
+      - "tests/e2e/core10-industry-neutral-browser.js"
+      - ".github/workflows/core10-a018-legacy-preservation.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  legacy-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Enforce no loss of existing Islamia reports modules and assets
+        run: node tests/core10-legacy-preservation.test.js
+      - name: Verify no forbidden files in public served tree
+        run: node tests/e2e/forbidden_files.js
+      - name: Install pinned Chromium outside served repository
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-playwright" && cd "$RUNNER_TEMP/core10-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Verify business-neutral template setup at mobile and desktop
+        run: node tests/e2e/core10-industry-neutral-browser.js

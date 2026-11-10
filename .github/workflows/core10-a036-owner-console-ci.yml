@@ -1,0 +1,39 @@
+# CORE10 A036: standalone Owner Command Center preview (synthetic fixture). No Supabase, no network, no secrets.
+name: CORE10 - A036 Owner Command Center
+on:
+  push:
+    branches:
+      - "feature/c10-claude-owner-console-*"
+    paths:
+      - "experimental/owner-console/**"
+      - "tests/owner-console/**"
+      - ".github/workflows/core10-a036-owner-console-ci.yml"
+  pull_request:
+    paths:
+      - "experimental/owner-console/**"
+      - "tests/owner-console/**"
+      - ".github/workflows/core10-a036-owner-console-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owner-console:
+    name: Provider isolation, responsive 1440/768/360, keyboard, locale, states, no dead buttons
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Provider, isolation, i18n and no-secret contracts
+        run: node tests/owner-console/provider.test.js
+      - name: Install Playwright Chromium
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Browser tests (three breakpoints, keyboard, locale, isolation, states, dead-button audit)
+        run: node tests/owner-console/ui.e2e.js

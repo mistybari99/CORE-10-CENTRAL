@@ -1,0 +1,31 @@
+name: CORE10 Neutral Report Family Engine
+on:
+  push:
+    branches: [main]
+    paths:
+      - "core10-operational-report-policy.js"
+      - "core10-operational-router.js"
+      - "data/core10_capability_catalog_v1.json"
+      - "tests/core10-report-family-engine.test.js"
+      - ".github/workflows/core10-report-family-ci.yml"
+  pull_request:
+    paths:
+      - "core10-operational-report-policy.js"
+      - "core10-operational-router.js"
+      - "data/core10_capability_catalog_v1.json"
+      - "tests/core10-report-family-engine.test.js"
+      - ".github/workflows/core10-report-family-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  report-families:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify 10 industries and scoped read-only report proposals
+        run: node tests/core10-report-family-engine.test.js

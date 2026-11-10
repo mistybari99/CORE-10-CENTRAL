@@ -1,0 +1,2037 @@
+{
+  "schema_version": 1,
+  "kind": "core10_islamia_legacy_preservation_baseline",
+  "source_repository": "mistybari99/CORE-10-CENTRAL",
+  "source_commit": "84ba8a2f95bf6e83e96d4c2053a731d32f0ea23c",
+  "guarantees": [
+    "preserve_existing_file_paths",
+    "preserve_report_id_and_name",
+    "no_report_status_regression",
+    "preserve_route_contract",
+    "preserve_legacy_food_module_contract",
+    "no_auto_migration_or_duplicate_business"
+  ],
+  "notes": "Code/reports preservation baseline. Does not certify live operational behavior, RLS, finance calculations or availability. Changing this baseline requires explicit review.",
+  "legacy_files": [
+    "a11yfix.js",
+    "accounts.js",
+    "ai_core.js",
+    "announce.js",
+    "app.css",
+    "app.js",
+    "assistant.js",
+    "assistant_tools.js",
+    "attend2.js",
+    "attendance.js",
+    "auditreports.js",
+    "badges107.js",
+    "balancecheck.js",
+    "barcode.js",
+    "batchrep.js",
+    "biz.js",
+    "bizctx.js",
+    "books85.js",
+    "books96.js",
+    "bulkitems.js",
+    "business-tenant-icon.svg",
+    "business-tenant.css",
+    "business-tenant.webmanifest",
+    "business.html",
+    "businesshub.js",
+    "c2rpt.js",
+    "campaigns.js",
+    "capacity.js",
+    "cashdrawer.js",
+    "cashmoves.js",
+    "catpick.js",
+    "chanedit.js",
+    "charts.js",
+    "cheques127.js",
+    "coldstart.js",
+    "config.js",
+    "connect.js",
+    "control.js",
+    "controls.css",
+    "controls.js",
+    "core.js",
+    "core10-business-builder-staging.js",
+    "core10-business-builder-ui.js",
+    "core10-business-builder.html",
+    "core10-business-builder.js",
+    "core10-business-owner.js",
+    "core10-home.js",
+    "core10-industry-client.js",
+    "core10-owner-business-entry.js",
+    "core10-owner-icon.svg",
+    "core10-owner-inbox.js",
+    "core10-owner-theme.js",
+    "core10-owner.css",
+    "core10-owner.webmanifest",
+    "core10-place-setup.css",
+    "core10-place-setup.js",
+    "core10-shell.js",
+    "cost116.js",
+    "costattrib.js",
+    "costboard.js",
+    "costgap.js",
+    "costing.js",
+    "costsources.js",
+    "couponuse.js",
+    "crm_360.js",
+    "crm_consent.js",
+    "crm_coupons.js",
+    "crm_dupes.js",
+    "crm_feedback.js",
+    "crm_leads.js",
+    "crm_loyalty.js",
+    "crm_profile.js",
+    "crm_rfm.js",
+    "crm_segments.js",
+    "crm_tasks.js",
+    "custinsight.js",
+    "customers.js",
+    "dash.js",
+    "dashx.js",
+    "dashx_metrics.js",
+    "daybook.js",
+    "delegation.js",
+    "desktop.css",
+    "dues.js",
+    "employees.js",
+    "entry.js",
+    "errlog.js",
+    "expenseregister.js",
+    "filters.js",
+    "finance2.js",
+    "flow.js",
+    "forecast.js",
+    "forms.js",
+    "forms_cash.js",
+    "forms_factory.js",
+    "forms_sales.js",
+    "forms_staff.js",
+    "forms_stock.js",
+    "formscreens.js",
+    "freshness.js",
+    "guards.js",
+    "i18n.js",
+    "ia.js",
+    "icon.svg",
+    "icons3d.js",
+    "impexp124.js",
+    "inbox.js",
+    "index.html",
+    "infohint.js",
+    "integrations.js",
+    "invoice.js",
+    "invoiceview.js",
+    "itemimg.js",
+    "itemmaster.js",
+    "items2.js",
+    "kbdfix.js",
+    "landed.js",
+    "landed_q4.js",
+    "lazy.js",
+    "listctl.js",
+    "lists.js",
+    "locations.js",
+    "locgroups.js",
+    "mark.svg",
+    "market.js",
+    "moneyaccounts.js",
+    "moneycontrols.js",
+    "moneysrc.js",
+    "monthclose.js",
+    "nav.js",
+    "navstack.js",
+    "nightgap.js",
+    "notifications.js",
+    "openparties.js",
+    "optionsx.js",
+    "optviews.js",
+    "order_parser.js",
+    "orderreports.js",
+    "org122.js",
+    "otherincome.js",
+    "owner.html",
+    "ownerboard.js",
+    "packflags.js",
+    "pager.js",
+    "parallel.js",
+    "partners.js",
+    "paths.js",
+    "pay.js",
+    "payrequests.js",
+    "payroll.js",
+    "periodlock.js",
+    "photo.js",
+    "pinsign.js",
+    "places135.js",
+    "pos.js",
+    "posfail.js",
+    "printbooks.js",
+    "prodplan.js",
+    "prodreports.js",
+    "profile134.js",
+    "profitcheck.js",
+    "purchase.js",
+    "purchaseprint.js",
+    "purchrep.js",
+    "rb4common.js",
+    "recipebook.js",
+    "recipes.js",
+    "recon118.js",
+    "reporthub.js",
+    "reporthub_ask.js",
+    "reporthub_parse.js",
+    "reporthub_time.js",
+    "reportnotes.js",
+    "reports.js",
+    "reports131.js",
+    "reports2.js",
+    "reportsmap.js",
+    "restoredrill.js",
+    "returnrules.js",
+    "rollout.js",
+    "rptkit.js",
+    "rules.js",
+    "s1setup.js",
+    "salary.js",
+    "salereturn.js",
+    "salesx.js",
+    "scan.js",
+    "scan_core.js",
+    "scan_items.js",
+    "scan_native.js",
+    "schemes128.js",
+    "settings2.js",
+    "setupadvisor.js",
+    "setupundo.js",
+    "shifts.js",
+    "shortages.js",
+    "staffreports.js",
+    "statements.js",
+    "stepw_common.js",
+    "stock2.js",
+    "stockout.js",
+    "stockrep.js",
+    "stockx.js",
+    "styles.css",
+    "sw.js",
+    "switchboard.js",
+    "swreg.js",
+    "targets.js",
+    "theme.css",
+    "theme_glass.css",
+    "theme_glass.js",
+    "tinting129.js",
+    "todo.js",
+    "tpl_docs.js",
+    "tpl_labels.js",
+    "tpl_msgs.js",
+    "tpl_registry.js",
+    "tpl_samples.js",
+    "tplpicker.js",
+    "trace.js",
+    "twofa.js",
+    "variants125.js",
+    "wallets.js",
+    "website.js",
+    "whatsnew.js",
+    "xb_cakejobs.js",
+    "xb_paycapture.js",
+    "xb_paysms.js",
+    "xb_riders.js",
+    "xc_summary.js",
+    "xc_unsold.js"
+  ],
+  "baseline_legacy_files_count": 231,
+  "legacy_report_registry": {
+    "version": 1,
+    "count": 193,
+    "status_counts": {
+      "incomplete": 20,
+      "implemented": 170,
+      "unverified": 2,
+      "unavailable": 1
+    }
+  },
+  "legacy_reports": [
+    {
+      "id": "r001",
+      "no": 1,
+      "status": "incomplete",
+      "route": "owner",
+      "name_bn": "নির্বাহী ড্যাশবোর্ড",
+      "name_en": "Executive dashboard",
+      "area": "exec"
+    },
+    {
+      "id": "r002",
+      "no": 2,
+      "status": "incomplete",
+      "route": "report/pos_day_close",
+      "name_bn": "দৈনিক ব্যবসার সারসংক্ষেপ",
+      "name_en": "Daily business summary",
+      "area": "exec"
+    },
+    {
+      "id": "r003",
+      "no": 3,
+      "status": "incomplete",
+      "route": "report/l1_pnl",
+      "name_bn": "মাসিক ব্যবসার সারসংক্ষেপ",
+      "name_en": "Monthly business summary",
+      "area": "exec"
+    },
+    {
+      "id": "r004",
+      "no": 4,
+      "status": "incomplete",
+      "route": "report/l1_pnl",
+      "name_bn": "বিক্রি, মোট লাভ ও নিট লাভ",
+      "name_en": "Sales, gross profit and net profit",
+      "area": "exec"
+    },
+    {
+      "id": "r005",
+      "no": 5,
+      "status": "implemented",
+      "route": "report/l3_shop_pnl",
+      "name_bn": "শাখা তুলনা",
+      "name_en": "Outlet comparison",
+      "area": "exec"
+    },
+    {
+      "id": "r006",
+      "no": 6,
+      "status": "implemented",
+      "route": "brandpnl",
+      "name_bn": "ব্র্যান্ড তুলনা",
+      "name_en": "Brand comparison",
+      "area": "exec"
+    },
+    {
+      "id": "r007",
+      "no": 7,
+      "status": "implemented",
+      "route": "prodreports",
+      "name_bn": "কারখানা বনাম খুচরা",
+      "name_en": "Factory versus retail",
+      "area": "exec"
+    },
+    {
+      "id": "r008",
+      "no": 8,
+      "status": "unverified",
+      "route": "finance2",
+      "name_bn": "বাজেট বনাম বাস্তব",
+      "name_en": "Budget versus actual",
+      "area": "exec"
+    },
+    {
+      "id": "r009",
+      "no": 9,
+      "status": "implemented",
+      "route": "targets",
+      "name_bn": "লক্ষ্য বনাম অর্জন",
+      "name_en": "Target versus achievement",
+      "area": "exec"
+    },
+    {
+      "id": "r010",
+      "no": 10,
+      "status": "implemented",
+      "route": "targets",
+      "name_bn": "KPI-র ধারা ও ব্যতিক্রম সতর্কতা",
+      "name_en": "KPI trends and exception alerts",
+      "area": "exec"
+    },
+    {
+      "id": "r011",
+      "no": 11,
+      "status": "implemented",
+      "route": "report/sales_summary",
+      "name_bn": "বিক্রির সারসংক্ষেপ",
+      "name_en": "Sales summary",
+      "area": "sales"
+    },
+    {
+      "id": "r012",
+      "no": 12,
+      "status": "implemented",
+      "route": "report/sales_trend",
+      "name_bn": "বিক্রির ধারা ও সময় তুলনা",
+      "name_en": "Sales trend and period comparison",
+      "area": "sales"
+    },
+    {
+      "id": "r013",
+      "no": 13,
+      "status": "implemented",
+      "route": "report/sales_combined",
+      "name_bn": "শাখা ও ব্র্যান্ড অনুযায়ী বিক্রি",
+      "name_en": "Sales by outlet and brand",
+      "area": "sales"
+    },
+    {
+      "id": "r014",
+      "no": 14,
+      "status": "implemented",
+      "route": "report/item_sales",
+      "name_bn": "আইটেম অনুযায়ী বিক্রি",
+      "name_en": "Item-wise sales",
+      "area": "sales"
+    },
+    {
+      "id": "r015",
+      "no": 15,
+      "status": "implemented",
+      "route": "report/category_sales",
+      "name_bn": "ক্যাটাগরি অনুযায়ী বিক্রি",
+      "name_en": "Category-wise sales",
+      "area": "sales"
+    },
+    {
+      "id": "r016",
+      "no": 16,
+      "status": "implemented",
+      "route": "report/hour_weekday",
+      "name_bn": "ঘণ্টা ও বার অনুযায়ী বিক্রি",
+      "name_en": "Sales by hour and weekday",
+      "area": "sales"
+    },
+    {
+      "id": "r017",
+      "no": 17,
+      "status": "implemented",
+      "route": "report/retail_wholesale",
+      "name_bn": "খুচরা বনাম পাইকারি",
+      "name_en": "Retail versus wholesale",
+      "area": "sales"
+    },
+    {
+      "id": "r018",
+      "no": 18,
+      "status": "implemented",
+      "route": "report/receipt_register",
+      "name_bn": "রসিদ ও ইনভয়েস তালিকা",
+      "name_en": "Receipt and invoice register",
+      "area": "sales"
+    },
+    {
+      "id": "r019",
+      "no": 19,
+      "status": "implemented",
+      "route": "report/payment_modes",
+      "name_bn": "পেমেন্ট পদ্ধতি রিপোর্ট",
+      "name_en": "Payment method report",
+      "area": "sales"
+    },
+    {
+      "id": "r020",
+      "no": 20,
+      "status": "incomplete",
+      "route": "discounts",
+      "name_bn": "ডিসকাউন্ট ও দাম বদল",
+      "name_en": "Discounts and price overrides",
+      "area": "sales"
+    },
+    {
+      "id": "r021",
+      "no": 21,
+      "status": "implemented",
+      "route": "report/voids",
+      "name_bn": "বাতিল, ফেরত ও রিটার্ন",
+      "name_en": "Voids, refunds and returns",
+      "area": "sales"
+    },
+    {
+      "id": "r022",
+      "no": 22,
+      "status": "implemented",
+      "route": "report/quick_unlisted",
+      "name_bn": "কুইক ও তালিকা-বহির্ভূত বিক্রি",
+      "name_en": "Quick and unlisted sales",
+      "area": "sales"
+    },
+    {
+      "id": "r023",
+      "no": 23,
+      "status": "incomplete",
+      "route": "report/sales_summary",
+      "name_bn": "গড় বিল ও বিলপ্রতি আইটেম",
+      "name_en": "Average bill and items per bill",
+      "area": "sales"
+    },
+    {
+      "id": "r024",
+      "no": 24,
+      "status": "implemented",
+      "route": "targets",
+      "name_bn": "শাখাভিত্তিক বিক্রির লক্ষ্য",
+      "name_en": "Sales target by outlet",
+      "area": "sales"
+    },
+    {
+      "id": "r025",
+      "no": 25,
+      "status": "implemented",
+      "route": "report/item_sales",
+      "name_bn": "সেরা, কম ও কমতি পণ্য",
+      "name_en": "Top, low and declining products",
+      "area": "sales"
+    },
+    {
+      "id": "r026",
+      "no": 26,
+      "status": "implemented",
+      "route": "report/x5_staff_trend",
+      "name_bn": "বিক্রয়কর্মী ও ক্যাশিয়ার অনুযায়ী বিক্রি",
+      "name_en": "Sales by salesperson and cashier",
+      "area": "sales"
+    },
+    {
+      "id": "r027",
+      "no": 27,
+      "status": "incomplete",
+      "route": "report/s10_orders",
+      "name_bn": "বিক্রির মাধ্যম বিশ্লেষণ",
+      "name_en": "Sales channel analysis",
+      "area": "sales"
+    },
+    {
+      "id": "r028",
+      "no": 28,
+      "status": "implemented",
+      "route": "report/q3_complaints",
+      "name_bn": "ফেরত ও রিফান্ডের কারণ",
+      "name_en": "Return and refund reasons",
+      "area": "sales"
+    },
+    {
+      "id": "r029",
+      "no": 29,
+      "status": "implemented",
+      "route": "report/l2_margin",
+      "name_bn": "আইটেম অনুযায়ী মোট লাভ ও মার্জিন",
+      "name_en": "Gross profit and margin by item",
+      "area": "product"
+    },
+    {
+      "id": "r030",
+      "no": 30,
+      "status": "implemented",
+      "route": "report/l2_margin",
+      "name_bn": "ক্যাটাগরি অনুযায়ী লাভজনকতা",
+      "name_en": "Profitability by category",
+      "area": "product"
+    },
+    {
+      "id": "r031",
+      "no": 31,
+      "status": "implemented",
+      "route": "report/l3_shop_pnl",
+      "name_bn": "শাখা অনুযায়ী লাভজনকতা",
+      "name_en": "Profitability by outlet",
+      "area": "product"
+    },
+    {
+      "id": "r032",
+      "no": 32,
+      "status": "incomplete",
+      "route": "items",
+      "name_bn": "বিক্রয়মূল্য বনাম বর্তমান খরচ",
+      "name_en": "Selling price versus current cost",
+      "area": "product"
+    },
+    {
+      "id": "r033",
+      "no": 33,
+      "status": "implemented",
+      "route": "prodreports",
+      "name_bn": "স্ট্যান্ডার্ড বনাম প্রকৃত খরচের পার্থক্য",
+      "name_en": "Standard versus actual cost variance",
+      "area": "product"
+    },
+    {
+      "id": "r034",
+      "no": 34,
+      "status": "implemented",
+      "route": "report/l2_margin",
+      "name_bn": "পণ্যভিত্তিক অবদান-লাভ",
+      "name_en": "Contribution profit by product",
+      "area": "product"
+    },
+    {
+      "id": "r035",
+      "no": 35,
+      "status": "implemented",
+      "route": "report/l2_margin",
+      "name_bn": "পণ্যের লাভজনকতার ক্রম",
+      "name_en": "Product profitability ranking",
+      "area": "product"
+    },
+    {
+      "id": "r036",
+      "no": 36,
+      "status": "incomplete",
+      "route": "items",
+      "name_bn": "দাম বদলের ইতিহাস ও প্রভাব",
+      "name_en": "Price change history and impact",
+      "area": "product"
+    },
+    {
+      "id": "r037",
+      "no": 37,
+      "status": "implemented",
+      "route": "report/item_sales",
+      "name_bn": "মুনাফায় ডিসকাউন্টের প্রভাব",
+      "name_en": "Discount impact on profit",
+      "area": "product"
+    },
+    {
+      "id": "r038",
+      "no": 38,
+      "status": "incomplete",
+      "route": "report/l2_margin",
+      "name_bn": "কম মার্জিন ও লোকসানের পণ্য",
+      "name_en": "Low-margin and loss-making products",
+      "area": "product"
+    },
+    {
+      "id": "r039",
+      "no": 39,
+      "status": "incomplete",
+      "route": "biz",
+      "name_bn": "পোর্টফোলিও: বেশি বিক্রি বনাম বেশি লাভ",
+      "name_en": "Portfolio: high sales versus high profit",
+      "area": "product"
+    },
+    {
+      "id": "r040",
+      "no": 40,
+      "status": "implemented",
+      "route": "prodreports",
+      "name_bn": "উৎপাদন পরিকল্পনা বনাম বাস্তব",
+      "name_en": "Production plan versus actual",
+      "area": "production"
+    },
+    {
+      "id": "r041",
+      "no": 41,
+      "status": "implemented",
+      "route": "report/f1_production",
+      "name_bn": "ব্যাচ ও উৎপাদন তালিকা",
+      "name_en": "Batch and production register",
+      "area": "production"
+    },
+    {
+      "id": "r042",
+      "no": 42,
+      "status": "implemented",
+      "route": "costing",
+      "name_bn": "রেসিপি ও BOM খরচ",
+      "name_en": "Recipe and BOM costing",
+      "area": "production"
+    },
+    {
+      "id": "r043",
+      "no": 43,
+      "status": "implemented",
+      "route": "prodreports",
+      "name_bn": "স্ট্যান্ডার্ড বনাম প্রকৃত উৎপাদন খরচ",
+      "name_en": "Standard versus actual manufacturing cost",
+      "area": "production"
+    },
+    {
+      "id": "r044",
+      "no": 44,
+      "status": "implemented",
+      "route": "prodreports",
+      "name_bn": "কাঁচামাল ব্যবহার বনাম রেসিপি",
+      "name_en": "Raw material use versus recipe",
+      "area": "production"
+    },
+    {
+      "id": "r045",
+      "no": 45,
+      "status": "implemented",
+      "route": "prodreports",
+      "name_bn": "ফলন বনাম মান",
+      "name_en": "Yield versus standard",
+      "area": "production"
+    },
+    {
+      "id": "r046",
+      "no": 46,
+      "status": "implemented",
+      "route": "costing",
+      "name_bn": "ব্যাচভিত্তিক উৎপাদন খরচ",
+      "name_en": "Batch-wise production cost",
+      "area": "production"
+    },
+    {
+      "id": "r047",
+      "no": 47,
+      "status": "incomplete",
+      "route": "costing",
+      "name_bn": "শ্রম ও ওভারহেড খরচ",
+      "name_en": "Labour and overhead cost",
+      "area": "production"
+    },
+    {
+      "id": "r048",
+      "no": 48,
+      "status": "implemented",
+      "route": "capacity",
+      "name_bn": "শ্রমঘণ্টাপ্রতি উৎপাদন",
+      "name_en": "Output per labour hour",
+      "area": "production"
+    },
+    {
+      "id": "r049",
+      "no": 49,
+      "status": "implemented",
+      "route": "prodreports",
+      "name_bn": "বাতিল, পুনঃকাজ ও উৎপাদন ক্ষতি",
+      "name_en": "Rejection, rework and production loss",
+      "area": "production"
+    },
+    {
+      "id": "r050",
+      "no": 50,
+      "status": "implemented",
+      "route": "prodreports",
+      "name_bn": "কারণ, পণ্য ও ব্যাচ অনুযায়ী অপচয়",
+      "name_en": "Wastage by reason, product and batch",
+      "area": "production"
+    },
+    {
+      "id": "r051",
+      "no": 51,
+      "status": "implemented",
+      "route": "capacity",
+      "name_bn": "ক্ষমতা ব্যবহার",
+      "name_en": "Capacity utilization",
+      "area": "production"
+    },
+    {
+      "id": "r052",
+      "no": 52,
+      "status": "implemented",
+      "route": "prodreports",
+      "name_bn": "উৎপাদন অর্ডার ও বাকি অর্ডার",
+      "name_en": "Production orders and pending orders",
+      "area": "production"
+    },
+    {
+      "id": "r053",
+      "no": 53,
+      "status": "implemented",
+      "route": "prodreports",
+      "name_bn": "উৎপাদন থেকে চালানের মিল",
+      "name_en": "Production-to-dispatch reconciliation",
+      "area": "production"
+    },
+    {
+      "id": "r054",
+      "no": 54,
+      "status": "implemented",
+      "route": "report/k3_store_ledger",
+      "name_bn": "তৈরি মাল: বানানো, বিক্রি, বাকি",
+      "name_en": "Finished goods: produced, sold, remaining",
+      "area": "production"
+    },
+    {
+      "id": "r055",
+      "no": 55,
+      "status": "implemented",
+      "route": "prodreports",
+      "name_bn": "উৎপাদন খরচ পার্থক্য বিশ্লেষণ",
+      "name_en": "Manufacturing cost variance analysis",
+      "area": "production"
+    },
+    {
+      "id": "r056",
+      "no": 56,
+      "status": "implemented",
+      "route": "report/stock_balance",
+      "name_bn": "আইটেম ও জায়গা অনুযায়ী মজুত",
+      "name_en": "Stock levels by item and place",
+      "area": "stock"
+    },
+    {
+      "id": "r057",
+      "no": 57,
+      "status": "implemented",
+      "route": "report/stock_balance",
+      "name_bn": "মজুতের মূল্য",
+      "name_en": "Stock value",
+      "area": "stock"
+    },
+    {
+      "id": "r058",
+      "no": 58,
+      "status": "implemented",
+      "route": "report/stock_low",
+      "name_bn": "কম মজুতের তালিকা",
+      "name_en": "Low-stock list",
+      "area": "stock"
+    },
+    {
+      "id": "r059",
+      "no": 59,
+      "status": "implemented",
+      "route": "stockx",
+      "name_bn": "আবার অর্ডারের পরামর্শ",
+      "name_en": "Reorder suggestions",
+      "area": "stock"
+    },
+    {
+      "id": "r060",
+      "no": 60,
+      "status": "implemented",
+      "route": "report/stock_balance",
+      "name_bn": "কাঁচামালের মজুত",
+      "name_en": "Raw material stock",
+      "area": "stock"
+    },
+    {
+      "id": "r061",
+      "no": 61,
+      "status": "implemented",
+      "route": "report/stock_balance",
+      "name_bn": "তৈরি মালের মজুত",
+      "name_en": "Finished goods stock",
+      "area": "stock"
+    },
+    {
+      "id": "r062",
+      "no": 62,
+      "status": "implemented",
+      "route": "report/stock_balance",
+      "name_bn": "প্যাকেজিং মজুত",
+      "name_en": "Packaging stock",
+      "area": "stock"
+    },
+    {
+      "id": "r063",
+      "no": 63,
+      "status": "implemented",
+      "route": "stockrep/ledger",
+      "name_bn": "মজুত চলাচল: শুরু, ঢোকা, বেরোনো, শেষ",
+      "name_en": "Stock movement: opening, in, out, closing",
+      "area": "stock"
+    },
+    {
+      "id": "r064",
+      "no": 64,
+      "status": "implemented",
+      "route": "report/transfers_register",
+      "name_bn": "ট্রান্সফার তালিকা",
+      "name_en": "Transfer register",
+      "area": "stock"
+    },
+    {
+      "id": "r065",
+      "no": 65,
+      "status": "implemented",
+      "route": "stockx",
+      "name_bn": "ট্রান্সফার গ্রহণে পার্থক্য",
+      "name_en": "Transfer receipt differences",
+      "area": "stock"
+    },
+    {
+      "id": "r066",
+      "no": 66,
+      "status": "implemented",
+      "route": "report/k2_count_variance",
+      "name_bn": "স্টক গণনার পার্থক্য",
+      "name_en": "Stock count variance",
+      "area": "stock"
+    },
+    {
+      "id": "r067",
+      "no": 67,
+      "status": "implemented",
+      "route": "report/item_slow",
+      "name_bn": "ধীর ও মৃত স্টক",
+      "name_en": "Slow and dead stock",
+      "area": "stock"
+    },
+    {
+      "id": "r068",
+      "no": 68,
+      "status": "incomplete",
+      "route": "batchrep/ageing",
+      "name_bn": "স্টকের বয়স",
+      "name_en": "Stock ageing",
+      "area": "stock"
+    },
+    {
+      "id": "r069",
+      "no": 69,
+      "status": "implemented",
+      "route": "report/expiry_soon",
+      "name_bn": "মেয়াদ তালিকা",
+      "name_en": "Expiry list",
+      "area": "stock"
+    },
+    {
+      "id": "r070",
+      "no": 70,
+      "status": "implemented",
+      "route": "batchrep/batches",
+      "name_bn": "ব্যাচের বয়স ও FEFO",
+      "name_en": "Batch ageing and FEFO view",
+      "area": "stock"
+    },
+    {
+      "id": "r071",
+      "no": 71,
+      "status": "implemented",
+      "route": "report/stock_adjustments",
+      "name_bn": "স্টক সমন্বয়: কে, কেন, কত",
+      "name_en": "Stock adjustments: who, why, value",
+      "area": "stock"
+    },
+    {
+      "id": "r072",
+      "no": 72,
+      "status": "implemented",
+      "route": "report/stock_integrity",
+      "name_bn": "ঋণাত্মক স্টক ও অসঙ্গতি তালিকা",
+      "name_en": "Negative stock and integrity list",
+      "area": "stock"
+    },
+    {
+      "id": "r073",
+      "no": 73,
+      "status": "implemented",
+      "route": "report/item_turnover",
+      "name_bn": "স্টক আবর্তন",
+      "name_en": "Stock turnover",
+      "area": "stock"
+    },
+    {
+      "id": "r074",
+      "no": 74,
+      "status": "implemented",
+      "route": "stockout",
+      "name_bn": "স্টক ফুরানো ও অপূর্ণ চাহিদা",
+      "name_en": "Stockout and unmet demand",
+      "area": "stock"
+    },
+    {
+      "id": "r075",
+      "no": 75,
+      "status": "implemented",
+      "route": "stockrep/recon",
+      "name_bn": "সময়কালের স্টক মিলান",
+      "name_en": "Period stock reconciliation",
+      "area": "stock"
+    },
+    {
+      "id": "r076",
+      "no": 76,
+      "status": "implemented",
+      "route": "report/wastage",
+      "name_bn": "অপচয় রিপোর্ট",
+      "name_en": "Wastage report",
+      "area": "quality"
+    },
+    {
+      "id": "r077",
+      "no": 77,
+      "status": "implemented",
+      "route": "report/wastage_rate",
+      "name_bn": "মজুত বা বিক্রির তুলনায় অপচয়",
+      "name_en": "Wastage as a share of stock or sales",
+      "area": "quality"
+    },
+    {
+      "id": "r078",
+      "no": 78,
+      "status": "implemented",
+      "route": "prodreports",
+      "name_bn": "উৎপাদনে অপচয় ও ফলন",
+      "name_en": "Production wastage and yield",
+      "area": "quality"
+    },
+    {
+      "id": "r079",
+      "no": 79,
+      "status": "implemented",
+      "route": "batchrep/expired",
+      "name_bn": "অবিক্রিত ও মেয়াদোত্তীর্ণ মাল",
+      "name_en": "Unsold and expired goods",
+      "area": "quality"
+    },
+    {
+      "id": "r080",
+      "no": 80,
+      "status": "implemented",
+      "route": "batchrep/unsold",
+      "name_bn": "ব্যাচ অনুযায়ী অবিক্রিত তৈরি মাল",
+      "name_en": "Unsold finished goods by batch",
+      "area": "quality"
+    },
+    {
+      "id": "r081",
+      "no": 81,
+      "status": "incomplete",
+      "route": "stockx",
+      "name_bn": "মেয়াদ নির্ধারণের কভারেজ",
+      "name_en": "Shelf-life setup coverage",
+      "area": "quality"
+    },
+    {
+      "id": "r082",
+      "no": 82,
+      "status": "implemented",
+      "route": "report/daily_closing",
+      "name_bn": "দিনশেষ স্টক বনাম পরদিন শুরু",
+      "name_en": "Daily closing stock versus next-day opening",
+      "area": "quality"
+    },
+    {
+      "id": "r083",
+      "no": 83,
+      "status": "implemented",
+      "route": "trace",
+      "name_bn": "ব্যাচ ট্রেস: সরবরাহকারীর লট থেকে বিক্রি",
+      "name_en": "Batch traceability: supplier lot to sale",
+      "area": "quality"
+    },
+    {
+      "id": "r084",
+      "no": 84,
+      "status": "implemented",
+      "route": "batchrep/distribution",
+      "name_bn": "শাখা ও ব্যাচ অনুযায়ী তৈরি মাল বণ্টন",
+      "name_en": "Finished goods distribution by outlet and batch",
+      "area": "quality"
+    },
+    {
+      "id": "r085",
+      "no": 85,
+      "status": "implemented",
+      "route": "recall",
+      "name_bn": "রিকল রিপোর্ট",
+      "name_en": "Recall report",
+      "area": "quality"
+    },
+    {
+      "id": "r086",
+      "no": 86,
+      "status": "implemented",
+      "route": "report/q2_hygiene",
+      "name_bn": "পরিচ্ছন্নতা চেকলিস্ট রিপোর্ট",
+      "name_en": "Hygiene checklist report",
+      "area": "quality"
+    },
+    {
+      "id": "r087",
+      "no": 87,
+      "status": "implemented",
+      "route": "report/q1_fridge_temp",
+      "name_bn": "ফ্রিজের তাপমাত্রা লগ",
+      "name_en": "Fridge temperature log",
+      "area": "quality"
+    },
+    {
+      "id": "r088",
+      "no": 88,
+      "status": "implemented",
+      "route": "report/q3_complaints",
+      "name_bn": "গ্রাহকের অভিযোগ",
+      "name_en": "Customer complaints",
+      "area": "quality"
+    },
+    {
+      "id": "r089",
+      "no": 89,
+      "status": "implemented",
+      "route": "stockx",
+      "name_bn": "মান পরিদর্শন ও বাতিল",
+      "name_en": "Quality inspection and rejection",
+      "area": "quality"
+    },
+    {
+      "id": "r090",
+      "no": 90,
+      "status": "implemented",
+      "route": "report/purchases_by_supplier",
+      "name_bn": "ক্রয়ের সারসংক্ষেপ",
+      "name_en": "Purchase summary",
+      "area": "purchase"
+    },
+    {
+      "id": "r091",
+      "no": 91,
+      "status": "implemented",
+      "route": "report/purchases_by_supplier",
+      "name_bn": "সরবরাহকারী অনুযায়ী ক্রয়",
+      "name_en": "Purchases by supplier",
+      "area": "purchase"
+    },
+    {
+      "id": "r092",
+      "no": 92,
+      "status": "implemented",
+      "route": "report/p2_rate_trend",
+      "name_bn": "আইটেম অনুযায়ী ক্রয়মূল্য",
+      "name_en": "Purchase value by item",
+      "area": "purchase"
+    },
+    {
+      "id": "r093",
+      "no": 93,
+      "status": "implemented",
+      "route": "report/p2_rate_trend",
+      "name_bn": "ক্রয়দামের ধারা",
+      "name_en": "Purchase price trend",
+      "area": "purchase"
+    },
+    {
+      "id": "r094",
+      "no": 94,
+      "status": "implemented",
+      "route": "report/p4_supplier_score",
+      "name_bn": "সরবরাহকারীর স্কোরকার্ড",
+      "name_en": "Supplier scorecard",
+      "area": "purchase"
+    },
+    {
+      "id": "r095",
+      "no": 95,
+      "status": "implemented",
+      "route": "report/p5_po_match",
+      "name_bn": "ক্রয় অর্ডার ও খোলা PO",
+      "name_en": "Purchase orders and open POs",
+      "area": "purchase"
+    },
+    {
+      "id": "r096",
+      "no": 96,
+      "status": "implemented",
+      "route": "report/p5_po_match",
+      "name_bn": "PO, GRN ও বিল মিল",
+      "name_en": "PO, GRN and bill match",
+      "area": "purchase"
+    },
+    {
+      "id": "r097",
+      "no": 97,
+      "status": "implemented",
+      "route": "report/p5_po_match",
+      "name_bn": "PO ডেলিভারির অবস্থা",
+      "name_en": "PO delivery status",
+      "area": "purchase"
+    },
+    {
+      "id": "r098",
+      "no": 98,
+      "status": "implemented",
+      "route": "report/supplier_ageing",
+      "name_bn": "সরবরাহকারীর পাওনার বয়স",
+      "name_en": "Supplier payables ageing",
+      "area": "purchase"
+    },
+    {
+      "id": "r099",
+      "no": 99,
+      "status": "implemented",
+      "route": "payables",
+      "name_bn": "সরবরাহকারীর খাতা",
+      "name_en": "Supplier ledger",
+      "area": "purchase"
+    },
+    {
+      "id": "r100",
+      "no": 100,
+      "status": "implemented",
+      "route": "purchrep",
+      "name_bn": "ক্রয় ফেরত",
+      "name_en": "Purchase returns",
+      "area": "purchase"
+    },
+    {
+      "id": "r101",
+      "no": 101,
+      "status": "implemented",
+      "route": "purchrep",
+      "name_bn": "চুক্তির দামের সাথে পার্থক্য",
+      "name_en": "Price variance against the agreed price",
+      "area": "purchase"
+    },
+    {
+      "id": "r102",
+      "no": 102,
+      "status": "implemented",
+      "route": "purchrep",
+      "name_bn": "সরবরাহকারীর ডেলিভারি কর্মক্ষমতা",
+      "name_en": "Supplier delivery performance",
+      "area": "purchase"
+    },
+    {
+      "id": "r103",
+      "no": 103,
+      "status": "implemented",
+      "route": "purchrep",
+      "name_bn": "সরবরাহকারীর বাতিলের হার",
+      "name_en": "Supplier rejection rate",
+      "area": "purchase"
+    },
+    {
+      "id": "r104",
+      "no": 104,
+      "status": "implemented",
+      "route": "purchrep",
+      "name_bn": "পছন্দের ও বিকল্প সরবরাহকারী",
+      "name_en": "Preferred and alternative suppliers",
+      "area": "purchase"
+    },
+    {
+      "id": "r105",
+      "no": 105,
+      "status": "implemented",
+      "route": "daybook",
+      "name_bn": "Daily Cash Book",
+      "name_en": "Daily Cash Book",
+      "area": "cash"
+    },
+    {
+      "id": "r106",
+      "no": 106,
+      "status": "implemented",
+      "route": "daybook",
+      "name_bn": "Day Book / Transaction Register",
+      "name_en": "Day Book / Transaction Register",
+      "area": "cash"
+    },
+    {
+      "id": "r107",
+      "no": 107,
+      "status": "implemented",
+      "route": "daybook",
+      "name_bn": "Daily Cash Flow",
+      "name_en": "Daily Cash Flow",
+      "area": "cash"
+    },
+    {
+      "id": "r108",
+      "no": 108,
+      "status": "implemented",
+      "route": "report/pos_day_close",
+      "name_bn": "Cashier Day Close",
+      "name_en": "Cashier Day Close",
+      "area": "cash"
+    },
+    {
+      "id": "r109",
+      "no": 109,
+      "status": "implemented",
+      "route": "shortages",
+      "name_bn": "Cash Shortage/Excess",
+      "name_en": "Cash Shortage/Excess",
+      "area": "cash"
+    },
+    {
+      "id": "r110",
+      "no": 110,
+      "status": "implemented",
+      "route": "report/w2_handover_vs_hub",
+      "name_bn": "Cash Handover vs Physical Count",
+      "name_en": "Cash Handover vs Physical Count",
+      "area": "cash"
+    },
+    {
+      "id": "r111",
+      "no": 111,
+      "status": "implemented",
+      "route": "wallets",
+      "name_bn": "Payment Method Reconciliation",
+      "name_en": "Payment Method Reconciliation",
+      "area": "cash"
+    },
+    {
+      "id": "r112",
+      "no": 112,
+      "status": "unverified",
+      "route": "finance2",
+      "name_bn": "Bank Reconciliation",
+      "name_en": "Bank Reconciliation",
+      "area": "cash"
+    },
+    {
+      "id": "r113",
+      "no": 113,
+      "status": "incomplete",
+      "route": "wallets",
+      "name_bn": "Mobile Financial Service and Card Settlement Recon",
+      "name_en": "Mobile Financial Service and Card Settlement Recon",
+      "area": "cash"
+    },
+    {
+      "id": "r114",
+      "no": 114,
+      "status": "implemented",
+      "route": "expenseregister",
+      "name_bn": "Expense Register",
+      "name_en": "Expense Register",
+      "area": "cash"
+    },
+    {
+      "id": "r115",
+      "no": 115,
+      "status": "implemented",
+      "route": "expenseregister",
+      "name_bn": "Expenses by Category/Head",
+      "name_en": "Expenses by Category/Head",
+      "area": "cash"
+    },
+    {
+      "id": "r116",
+      "no": 116,
+      "status": "implemented",
+      "route": "report/e2_expense_trend",
+      "name_bn": "Expense Trend and Period Comparison",
+      "name_en": "Expense Trend and Period Comparison",
+      "area": "cash"
+    },
+    {
+      "id": "r117",
+      "no": 117,
+      "status": "implemented",
+      "route": "report/e3_weak_control",
+      "name_bn": "Petty Cash, Imprest, Missing Receipts",
+      "name_en": "Petty Cash, Imprest, Missing Receipts",
+      "area": "cash"
+    },
+    {
+      "id": "r118",
+      "no": 118,
+      "status": "implemented",
+      "route": "dues",
+      "name_bn": "Accounts Receivable and Customer Dues",
+      "name_en": "Accounts Receivable and Customer Dues",
+      "area": "cash"
+    },
+    {
+      "id": "r119",
+      "no": 119,
+      "status": "implemented",
+      "route": "payables",
+      "name_bn": "Accounts Payable and Supplier Dues",
+      "name_en": "Accounts Payable and Supplier Dues",
+      "area": "cash"
+    },
+    {
+      "id": "r120",
+      "no": 120,
+      "status": "implemented",
+      "route": "report/receivable_aging",
+      "name_bn": "Receivable and Payable Ageing",
+      "name_en": "Receivable and Payable Ageing",
+      "area": "cash"
+    },
+    {
+      "id": "r121",
+      "no": 121,
+      "status": "implemented",
+      "route": "statements",
+      "name_bn": "P&L by Month and Outlet",
+      "name_en": "P&L by Month and Outlet",
+      "area": "cash"
+    },
+    {
+      "id": "r122",
+      "no": 122,
+      "status": "implemented",
+      "route": "accounts",
+      "name_bn": "Consolidated P&L",
+      "name_en": "Consolidated P&L",
+      "area": "cash"
+    },
+    {
+      "id": "r123",
+      "no": 123,
+      "status": "implemented",
+      "route": "accounts",
+      "name_bn": "Balance Sheet",
+      "name_en": "Balance Sheet",
+      "area": "cash"
+    },
+    {
+      "id": "r124",
+      "no": 124,
+      "status": "implemented",
+      "route": "statements",
+      "name_bn": "Cash Flow Statement",
+      "name_en": "Cash Flow Statement",
+      "area": "cash"
+    },
+    {
+      "id": "r125",
+      "no": 125,
+      "status": "incomplete",
+      "route": "biz",
+      "name_bn": "Cost Coverage and Break-even",
+      "name_en": "Cost Coverage and Break-even",
+      "area": "cash"
+    },
+    {
+      "id": "r126",
+      "no": 126,
+      "status": "implemented",
+      "route": "statements",
+      "name_bn": "Working Capital Summary",
+      "name_en": "Working Capital Summary",
+      "area": "cash"
+    },
+    {
+      "id": "r127",
+      "no": 127,
+      "status": "unavailable",
+      "route": null,
+      "name_bn": "Loan, Interest, Repayment Schedule (if applicable)",
+      "name_en": "Loan, Interest, Repayment Schedule (if applicable)",
+      "area": "cash"
+    },
+    {
+      "id": "r128",
+      "no": 128,
+      "status": "incomplete",
+      "route": "finance2",
+      "name_bn": "Tax/VAT Reconciliation (if applicable)",
+      "name_en": "Tax/VAT Reconciliation (if applicable)",
+      "area": "cash"
+    },
+    {
+      "id": "r129",
+      "no": 129,
+      "status": "implemented",
+      "route": "profitcheck",
+      "name_bn": "Owner's Financial Summary vs System",
+      "name_en": "Owner's Financial Summary vs System",
+      "area": "cash"
+    },
+    {
+      "id": "r130",
+      "no": 130,
+      "status": "implemented",
+      "route": "customers",
+      "name_bn": "Best Customers",
+      "name_en": "Best Customers",
+      "area": "customer"
+    },
+    {
+      "id": "r131",
+      "no": 131,
+      "status": "implemented",
+      "route": "report/d5_lapsed",
+      "name_bn": "New vs Repeat",
+      "name_en": "New vs Repeat",
+      "area": "customer"
+    },
+    {
+      "id": "r132",
+      "no": 132,
+      "status": "implemented",
+      "route": "report/d5_lapsed",
+      "name_bn": "Lapsed Customers",
+      "name_en": "Lapsed Customers",
+      "area": "customer"
+    },
+    {
+      "id": "r133",
+      "no": 133,
+      "status": "implemented",
+      "route": "report/receipt_register",
+      "name_bn": "Customer Purchase History",
+      "name_en": "Customer Purchase History",
+      "area": "customer"
+    },
+    {
+      "id": "r134",
+      "no": 134,
+      "status": "incomplete",
+      "route": "report/m1_rfm",
+      "name_bn": "Segmentation/RFM",
+      "name_en": "Segmentation/RFM",
+      "area": "customer"
+    },
+    {
+      "id": "r135",
+      "no": 135,
+      "status": "implemented",
+      "route": null,
+      "name_bn": "Customer Outstanding Dues",
+      "name_en": "Customer Outstanding Dues",
+      "area": "customer"
+    },
+    {
+      "id": "r136",
+      "no": 136,
+      "status": "implemented",
+      "route": null,
+      "name_bn": "Customer Receivable Ageing",
+      "name_en": "Customer Receivable Ageing",
+      "area": "customer"
+    },
+    {
+      "id": "r137",
+      "no": 137,
+      "status": "implemented",
+      "route": "report/credit_limit_use",
+      "name_bn": "Credit-limit Utilization",
+      "name_en": "Credit-limit Utilization",
+      "area": "customer"
+    },
+    {
+      "id": "r138",
+      "no": 138,
+      "status": "implemented",
+      "route": "custinsight",
+      "name_bn": "Customer Credit Risk and Overdue",
+      "name_en": "Customer Credit Risk and Overdue",
+      "area": "customer"
+    },
+    {
+      "id": "r139",
+      "no": 139,
+      "status": "implemented",
+      "route": "custinsight",
+      "name_bn": "Customer Lifetime Value",
+      "name_en": "Customer Lifetime Value",
+      "area": "customer"
+    },
+    {
+      "id": "r140",
+      "no": 140,
+      "status": "implemented",
+      "route": "custinsight",
+      "name_bn": "Customer Complaints and Return History",
+      "name_en": "Customer Complaints and Return History",
+      "area": "customer"
+    },
+    {
+      "id": "r141",
+      "no": 141,
+      "status": "implemented",
+      "route": "custinsight",
+      "name_bn": "Birthday Cake / Special Order Customer History",
+      "name_en": "Birthday Cake / Special Order Customer History",
+      "area": "customer"
+    },
+    {
+      "id": "r142",
+      "no": 142,
+      "status": "implemented",
+      "route": "staffreports",
+      "name_bn": "Attendance Summary",
+      "name_en": "Attendance Summary",
+      "area": "staff"
+    },
+    {
+      "id": "r143",
+      "no": 143,
+      "status": "implemented",
+      "route": "report/x5_staff_trend",
+      "name_bn": "Monthly Staff Indicators",
+      "name_en": "Monthly Staff Indicators",
+      "area": "staff"
+    },
+    {
+      "id": "r144",
+      "no": 144,
+      "status": "incomplete",
+      "route": "report/t4_staff_cost_ratio",
+      "name_bn": "Staff Cost vs Sales",
+      "name_en": "Staff Cost vs Sales",
+      "area": "staff"
+    },
+    {
+      "id": "r145",
+      "no": 145,
+      "status": "implemented",
+      "route": "payroll",
+      "name_bn": "Payroll and Salary Register",
+      "name_en": "Payroll and Salary Register",
+      "area": "staff"
+    },
+    {
+      "id": "r146",
+      "no": 146,
+      "status": "implemented",
+      "route": "payroll",
+      "name_bn": "Staff Advances and Deductions",
+      "name_en": "Staff Advances and Deductions",
+      "area": "staff"
+    },
+    {
+      "id": "r147",
+      "no": 147,
+      "status": "implemented",
+      "route": "staffreports",
+      "name_bn": "Overtime and Attendance Variance",
+      "name_en": "Overtime and Attendance Variance",
+      "area": "staff"
+    },
+    {
+      "id": "r148",
+      "no": 148,
+      "status": "implemented",
+      "route": "staffreports",
+      "name_bn": "Sales per Staff / Labour Hour",
+      "name_en": "Sales per Staff / Labour Hour",
+      "area": "staff"
+    },
+    {
+      "id": "r149",
+      "no": 149,
+      "status": "implemented",
+      "route": "staffreports",
+      "name_bn": "Production Output per Worker / Labour Hour",
+      "name_en": "Production Output per Worker / Labour Hour",
+      "area": "staff"
+    },
+    {
+      "id": "r150",
+      "no": 150,
+      "status": "implemented",
+      "route": "staffreports",
+      "name_bn": "Cashier-wise Cash Variance",
+      "name_en": "Cashier-wise Cash Variance",
+      "area": "staff"
+    },
+    {
+      "id": "r151",
+      "no": 151,
+      "status": "implemented",
+      "route": "biz",
+      "name_bn": "Staff Transaction Exception Report",
+      "name_en": "Staff Transaction Exception Report",
+      "area": "staff"
+    },
+    {
+      "id": "r152",
+      "no": 152,
+      "status": "implemented",
+      "route": "delegation",
+      "name_bn": "Staff Access and Permission Audit",
+      "name_en": "Staff Access and Permission Audit",
+      "area": "staff"
+    },
+    {
+      "id": "r153",
+      "no": 153,
+      "status": "implemented",
+      "route": "orderreports",
+      "name_bn": "Customer Order Register",
+      "name_en": "Customer Order Register",
+      "area": "orders"
+    },
+    {
+      "id": "r154",
+      "no": 154,
+      "status": "implemented",
+      "route": "onlineorders",
+      "name_bn": "Pending/Confirmed/Completed Orders",
+      "name_en": "Pending/Confirmed/Completed Orders",
+      "area": "orders"
+    },
+    {
+      "id": "r155",
+      "no": 155,
+      "status": "implemented",
+      "route": "orderreports",
+      "name_bn": "Custom Cake / Birthday Order Register",
+      "name_en": "Custom Cake / Birthday Order Register",
+      "area": "orders"
+    },
+    {
+      "id": "r156",
+      "no": 156,
+      "status": "implemented",
+      "route": "orderreports",
+      "name_bn": "Advance Payments and Outstanding Order Balances",
+      "name_en": "Advance Payments and Outstanding Order Balances",
+      "area": "orders"
+    },
+    {
+      "id": "r157",
+      "no": 157,
+      "status": "implemented",
+      "route": "orderreports",
+      "name_bn": "Order Cancellation and Refunds",
+      "name_en": "Order Cancellation and Refunds",
+      "area": "orders"
+    },
+    {
+      "id": "r158",
+      "no": 158,
+      "status": "implemented",
+      "route": "orderreports",
+      "name_bn": "On-time Delivery Performance",
+      "name_en": "On-time Delivery Performance",
+      "area": "orders"
+    },
+    {
+      "id": "r159",
+      "no": 159,
+      "status": "implemented",
+      "route": "orderreports",
+      "name_bn": "Delayed and Undelivered Orders",
+      "name_en": "Delayed and Undelivered Orders",
+      "area": "orders"
+    },
+    {
+      "id": "r160",
+      "no": 160,
+      "status": "implemented",
+      "route": "orderreports",
+      "name_bn": "Order-wise Production and Material Cost",
+      "name_en": "Order-wise Production and Material Cost",
+      "area": "orders"
+    },
+    {
+      "id": "r161",
+      "no": 161,
+      "status": "implemented",
+      "route": "orderreports",
+      "name_bn": "Order Profitability",
+      "name_en": "Order Profitability",
+      "area": "orders"
+    },
+    {
+      "id": "r162",
+      "no": 162,
+      "status": "implemented",
+      "route": "orderreports",
+      "name_bn": "Delivery Cost and Performance",
+      "name_en": "Delivery Cost and Performance",
+      "area": "orders"
+    },
+    {
+      "id": "r163",
+      "no": 163,
+      "status": "implemented",
+      "route": "orderreports",
+      "name_bn": "Order Fulfilment Rate",
+      "name_en": "Order Fulfilment Rate",
+      "area": "orders"
+    },
+    {
+      "id": "r164",
+      "no": 164,
+      "status": "implemented",
+      "route": "campaigns",
+      "name_bn": "Marketing Spend by Campaign/Period",
+      "name_en": "Marketing Spend by Campaign/Period",
+      "area": "marketing"
+    },
+    {
+      "id": "r165",
+      "no": 165,
+      "status": "implemented",
+      "route": "campaigns",
+      "name_bn": "Marketing Spend vs Sales",
+      "name_en": "Marketing Spend vs Sales",
+      "area": "marketing"
+    },
+    {
+      "id": "r166",
+      "no": 166,
+      "status": "implemented",
+      "route": "campaigns",
+      "name_bn": "Campaign Revenue and Contribution Profit",
+      "name_en": "Campaign Revenue and Contribution Profit",
+      "area": "marketing"
+    },
+    {
+      "id": "r167",
+      "no": 167,
+      "status": "implemented",
+      "route": "campaigns",
+      "name_bn": "Discount Campaign Performance",
+      "name_en": "Discount Campaign Performance",
+      "area": "marketing"
+    },
+    {
+      "id": "r168",
+      "no": 168,
+      "status": "implemented",
+      "route": "couponuse",
+      "name_bn": "Coupon/Offer Usage",
+      "name_en": "Coupon/Offer Usage",
+      "area": "marketing"
+    },
+    {
+      "id": "r169",
+      "no": 169,
+      "status": "implemented",
+      "route": "campaigns",
+      "name_bn": "Customer Acquisition Cost",
+      "name_en": "Customer Acquisition Cost",
+      "area": "marketing"
+    },
+    {
+      "id": "r170",
+      "no": 170,
+      "status": "implemented",
+      "route": "campaigns",
+      "name_bn": "Repeat Purchase after Promotion",
+      "name_en": "Repeat Purchase after Promotion",
+      "area": "marketing"
+    },
+    {
+      "id": "r171",
+      "no": 171,
+      "status": "implemented",
+      "route": "campaigns",
+      "name_bn": "Marketing ROI",
+      "name_en": "Marketing ROI",
+      "area": "marketing"
+    },
+    {
+      "id": "r172",
+      "no": 172,
+      "status": "implemented",
+      "route": "exceptions",
+      "name_bn": "Exception Summary",
+      "name_en": "Exception Summary",
+      "area": "audit"
+    },
+    {
+      "id": "r173",
+      "no": 173,
+      "status": "implemented",
+      "route": "auditreports",
+      "name_bn": "Audit and Correction Log",
+      "name_en": "Audit and Correction Log",
+      "area": "audit"
+    },
+    {
+      "id": "r174",
+      "no": 174,
+      "status": "implemented",
+      "route": "auditreports",
+      "name_bn": "Stock Adjustment Approval History",
+      "name_en": "Stock Adjustment Approval History",
+      "area": "audit"
+    },
+    {
+      "id": "r175",
+      "no": 175,
+      "status": "implemented",
+      "route": "auditreports",
+      "name_bn": "Discount and Price Override Approvals",
+      "name_en": "Discount and Price Override Approvals",
+      "area": "audit"
+    },
+    {
+      "id": "r176",
+      "no": 176,
+      "status": "implemented",
+      "route": "auditreports",
+      "name_bn": "Voids, Refunds, Unusual Transactions",
+      "name_en": "Voids, Refunds, Unusual Transactions",
+      "area": "audit"
+    },
+    {
+      "id": "r177",
+      "no": 177,
+      "status": "implemented",
+      "route": "auditreports",
+      "name_bn": "User Activity and Access History",
+      "name_en": "User Activity and Access History",
+      "area": "audit"
+    },
+    {
+      "id": "r178",
+      "no": 178,
+      "status": "incomplete",
+      "route": "report/x4_compliance",
+      "name_bn": "Missing/Incomplete Form Submissions",
+      "name_en": "Missing/Incomplete Form Submissions",
+      "area": "audit"
+    },
+    {
+      "id": "r179",
+      "no": 179,
+      "status": "implemented",
+      "route": "numaudit",
+      "name_bn": "Duplicate/Out-of-order Receipt and Paper Numbers",
+      "name_en": "Duplicate/Out-of-order Receipt and Paper Numbers",
+      "area": "audit"
+    },
+    {
+      "id": "r180",
+      "no": 180,
+      "status": "implemented",
+      "route": "auditreports",
+      "name_bn": "Unapproved Transactions and Approval Delays",
+      "name_en": "Unapproved Transactions and Approval Delays",
+      "area": "audit"
+    },
+    {
+      "id": "r181",
+      "no": 181,
+      "status": "implemented",
+      "route": "balancecheck",
+      "name_bn": "Data Integrity and Reconciliation Exceptions",
+      "name_en": "Data Integrity and Reconciliation Exceptions",
+      "area": "audit"
+    },
+    {
+      "id": "r182",
+      "no": 182,
+      "status": "implemented",
+      "route": "auditreports",
+      "name_bn": "Deleted, Reversed, Corrected Transaction History",
+      "name_en": "Deleted, Reversed, Corrected Transaction History",
+      "area": "audit"
+    },
+    {
+      "id": "r183",
+      "no": 183,
+      "status": "implemented",
+      "route": "auditreports",
+      "name_bn": "Missing Cost, Recipe, Batch or Expiry Data",
+      "name_en": "Missing Cost, Recipe, Batch or Expiry Data",
+      "area": "audit"
+    },
+    {
+      "id": "r184",
+      "no": 184,
+      "status": "implemented",
+      "route": "forecast",
+      "name_bn": "Daily/Weekly Sales Forecast",
+      "name_en": "Daily/Weekly Sales Forecast",
+      "area": "planning"
+    },
+    {
+      "id": "r185",
+      "no": 185,
+      "status": "implemented",
+      "route": "forecast",
+      "name_bn": "Item-wise Demand Forecast",
+      "name_en": "Item-wise Demand Forecast",
+      "area": "planning"
+    },
+    {
+      "id": "r186",
+      "no": 186,
+      "status": "implemented",
+      "route": "forecast",
+      "name_bn": "Production Requirement Forecast",
+      "name_en": "Production Requirement Forecast",
+      "area": "planning"
+    },
+    {
+      "id": "r187",
+      "no": 187,
+      "status": "implemented",
+      "route": "forecast",
+      "name_bn": "Raw Material Purchase Forecast",
+      "name_en": "Raw Material Purchase Forecast",
+      "area": "planning"
+    },
+    {
+      "id": "r188",
+      "no": 188,
+      "status": "implemented",
+      "route": "forecast",
+      "name_bn": "Expected Cash Inflow/Outflow",
+      "name_en": "Expected Cash Inflow/Outflow",
+      "area": "planning"
+    },
+    {
+      "id": "r189",
+      "no": 189,
+      "status": "implemented",
+      "route": "forecast",
+      "name_bn": "Upcoming Supplier Payment Forecast",
+      "name_en": "Upcoming Supplier Payment Forecast",
+      "area": "planning"
+    },
+    {
+      "id": "r190",
+      "no": 190,
+      "status": "implemented",
+      "route": "forecast",
+      "name_bn": "Expected Wastage and Expiry Risk",
+      "name_en": "Expected Wastage and Expiry Risk",
+      "area": "planning"
+    },
+    {
+      "id": "r191",
+      "no": 191,
+      "status": "implemented",
+      "route": "stockx",
+      "name_bn": "Outlet Replenishment Recommendations",
+      "name_en": "Outlet Replenishment Recommendations",
+      "area": "planning"
+    },
+    {
+      "id": "r192",
+      "no": 192,
+      "status": "implemented",
+      "route": "forecast",
+      "name_bn": "Sales and Profit Scenario Analysis",
+      "name_en": "Sales and Profit Scenario Analysis",
+      "area": "planning"
+    },
+    {
+      "id": "r193",
+      "no": 193,
+      "status": "implemented",
+      "route": "forecast",
+      "name_bn": "Seasonal and Festival Demand Analysis",
+      "name_en": "Seasonal and Festival Demand Analysis",
+      "area": "planning"
+    }
+  ],
+  "sweets_module_ids": [
+    "pos",
+    "stock",
+    "purchase",
+    "production",
+    "costing",
+    "accounting",
+    "reports"
+  ],
+  "protected_entry_routes": [
+    "index.html",
+    "owner.html",
+    "business.html",
+    "core10-business-builder.html"
+  ],
+  "legacy_module_assets": {
+    "pos": [
+      "pos.js"
+    ],
+    "stock": [
+      "stock2.js",
+      "stockx.js"
+    ],
+    "purchase": [
+      "purchase.js"
+    ],
+    "production": [
+      "prodplan.js"
+    ],
+    "costing": [
+      "costing.js"
+    ],
+    "accounting": [
+      "accounts.js"
+    ],
+    "reports": [
+      "reports.js"
+    ]
+  }
+}
