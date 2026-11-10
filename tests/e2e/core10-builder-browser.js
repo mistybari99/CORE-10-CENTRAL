@@ -14,7 +14,7 @@ const {createServer}=require("./static_server");
    const errors=[];
    page.on("pageerror",e=>errors.push(e.message));
    await page.goto(base+"/core10-business-builder.html",{waitUntil:"load"});
-   await page.locator("#template option").nth(9).waitFor({timeout:20000});
+   await page.waitForFunction(()=>document.querySelector("#template")?.options.length===10,null,{timeout:20000});
    assert.equal(await page.locator("#template option").count(),10,"ten industry templates");
    assert.equal(await page.locator("#createStagingDraft").isDisabled(),true,"production draft writes locked");
    await page.locator("#businessName").fill("Test Enterprise");
