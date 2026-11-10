@@ -19,7 +19,7 @@ const claude=read("CLAUDE.md"),agent=read("AGENTS.md");
 for(const s of ["docs/development/CORE10_GITHUB_FIRST_AI_PROTOCOL.md","docs/development/CURRENT_HANDOFF.md"]){
   assert(claude.includes(s)&&agent.includes(s),"agents must use the same canonical docs");
 }
-assert(read("docs/development/GITHUB_SUPABASE_MIGRATION_RUNBOOK.md").includes("no such"),"must not pretend deployment is configured");
+assert(read("docs/development/GITHUB_SUPABASE_MIGRATION_RUNBOOK.md").includes("no Git→Supabase auto migration has been certified"),"must not pretend database deployment is configured");
 const protocol = read("docs/development/CORE10_GITHUB_FIRST_AI_PROTOCOL.md");
 const claudeDoc = read("CLAUDE.md");
 const agentDoc = read("AGENTS.md");
