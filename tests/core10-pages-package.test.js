@@ -30,5 +30,15 @@ try {
  put("vendor/hijack.js");
  fs.writeFileSync(path.join(out,"vendor","exploit.sql"),"unsafe");
  assert.throws(()=>verify(out),/FORBIDDEN_PUBLISHED_ASSET/);
+ // Release pipeline contract: only the disabled template may refer to deploy-pages.
+ const repoRoot=path.resolve(__dirname,"..");
+ const disabled=path.join(repoRoot,".github/workflows/pages-dist.yml.disabled");
+ assert.ok(fs.existsSync(disabled),"Disabled release template missing");
+ assert.equal(fs.existsSync(path.join(repoRoot,".github/workflows/pages-dist.yml")),false,
+   "Never activate Pages release without verifying GitHub Actions publishing source");
+ const template=fs.readFileSync(disabled,"utf8");
+ assert.match(template,/node internal\/core10-pages-package\.js/);
+ assert.match(template,/node tests\/core10-pages-artifact-http\.test\.js/);
+ assert.doesNotMatch(template,/cp -r|mkdir dist|path:\\s*\\./);
  console.log("PASS C10-A018 Pages allowlist: required parity, safe assets, SQL exclusion, symlink, modified artifact and idempotent output guards");
 } finally {fs.rmSync(home,{recursive:true,force:true});}
