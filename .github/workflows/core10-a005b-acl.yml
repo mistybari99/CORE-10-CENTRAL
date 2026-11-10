@@ -1,0 +1,62 @@
+name: CORE 10 - A005b Function ACL Candidates (isolated)
+
+on:
+  push:
+    branches:
+      - "security/c10-a005b-*"
+    paths:
+      - "security/c10_a005b_acl_*.sql"
+      - "tests/c10_a005b_*.sql"
+      - ".github/workflows/core10-a005b-acl.yml"
+  pull_request:
+    paths:
+      - "security/c10_a005b_acl_*.sql"
+      - "tests/c10_a005b_*.sql"
+      - ".github/workflows/core10-a005b-acl.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  a005b-acl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: synthetic_only
+          POSTGRES_DB: core10_a005b
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_a005b"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: core10_a005b
+      PGUSER: postgres
+      PGPASSWORD: synthetic_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Create disposable roles and synthetic fixture
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE service_role NOLOGIN"
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a005b_fixture.sql
+      - name: Apply candidate ACL ONLY to disposable database
+        run: psql -v ON_ERROR_STOP=1 -f security/c10_a005b_acl_candidate.sql
+      - name: Negative-test direct calls and prove definer trigger chain still works
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a005b_after.sql
+      - name: Rollback restores exact pre-ACL
+        run: |
+          psql -v ON_ERROR_STOP=1 -f security/c10_a005b_acl_ROLLBACK.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a005b_rollback_check.sql
