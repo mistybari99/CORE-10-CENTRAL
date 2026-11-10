@@ -102,7 +102,7 @@ BEGIN
   RAISE EXCEPTION 'customer tenant accessed owner returns'; END IF;
  BEGIN
   PERFORM c10_demo.create_operational_return_v1(
-   (SELECT id FROM c10_demo.operational_documents_v1 LIMIT 1),
+   1,
    '[{"line_no":1,"quantity":1}]','Cross tenant return','customer-foreign');
   RAISE EXCEPTION 'customer forged return';
  EXCEPTION WHEN raise_exception THEN
