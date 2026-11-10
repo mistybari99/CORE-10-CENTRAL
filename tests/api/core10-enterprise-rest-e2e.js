@@ -42,6 +42,12 @@ function denied(r,label){
   label+" unexpectedly allowed: HTTP "+r.status+" "+JSON.stringify(r.data));
  console.log("PASS DENIED "+label+" [HTTP "+r.status+"]");
 }
+function deniedByPolicy(r,label,message){
+ assert.equal(r.status,400,label+": expected current SQL denial status; HTTP "+r.status);
+ assert.equal(r.data?.code,"P0001",label+": must be deliberate explicit server refusal");
+ assert.equal(r.data?.message,message,label+": unexpected error reason");
+ console.log("PASS DENIED BY RPC "+label+" [HTTP "+r.status+" "+message+"]");
+}
 function rows(r,label,n){const d=ok(r,label);assert.ok(Array.isArray(d),label+": not an array");assert.equal(d.length,n,label+": wrong row count "+JSON.stringify(d));return d}
 function rpc(name,token,body){return req("/rpc/"+name,{method:"POST",token,body})}
 const setup=(slug,request,mode="quick",sites=null)=>({
@@ -72,10 +78,10 @@ function isClientDenied(r,label){
  rows(await req("/stock_locations?select=id",{token:tok.customerStaff}),"customer staff segregated stock location",1);
 
  denied(await rpc("setup_business_v1",null,setup("anon","anon-001")),"anonymous setup denied");
- denied(await rpc("setup_business_v1",tok.manager,setup("manager-forge","manager-001")),"manager cannot forge tenant ownership");
- denied(await rpc("setup_business_v1",tok.investor,setup("investor-try","investor-001")),"investor cannot setup");
- denied(await rpc("setup_business_v1",tok.revoked,setup("revoked-try","revoked-001")),"revoked cannot setup");
- denied(await rpc("setup_business_v1",tok.customer,setup("foreign-owner","foreign-001")),"other tenant cannot setup in owner legal entity");
+ deniedByPolicy(await rpc("setup_business_v1",tok.manager,setup("manager-forge","manager-001")),"manager cannot forge tenant ownership","setup_not_authorized");
+ deniedByPolicy(await rpc("setup_business_v1",tok.investor,setup("investor-try","investor-001")),"investor cannot setup","setup_not_authorized");
+ deniedByPolicy(await rpc("setup_business_v1",tok.revoked,setup("revoked-try","revoked-001")),"revoked cannot setup","setup_not_authorized");
+ deniedByPolicy(await rpc("setup_business_v1",tok.customer,setup("foreign-owner","foreign-001")),"other tenant cannot setup in owner legal entity","setup_not_authorized");
 
  // RLS alone does not protect DRAFT status: direct table writes must be revoked.
  denied(await req("/businesses",{token:tok.owner,method:"POST",body:{
@@ -152,8 +158,8 @@ function isClientDenied(r,label){
  denied(await rpc("setup_business_v1",jwt(ids.owner,{exp:Math.floor(Date.now()/1000)-3600}),setup("expired","expired-001")),"expired JWT");
  denied(await rpc("setup_business_v1",jwt(ids.owner,{aud:"wrong-service"}),setup("bad-aud","bad-aud-001")),"wrong audience");
  denied(await rpc("setup_business_v1",jwt(ids.owner,{nbf:Math.floor(Date.now()/1000)+3600}),setup("not-yet-valid","nbf-001")),"future nbf JWT");
- denied(await rpc("setup_business_v1",jwt(ids.manager,{user_metadata:{is_owner:true,role:"tenant_owner"},app_metadata:{is_owner:true}}),setup("forged-metadata","forged-001")),"metadata does not escalate manager");
- denied(await rpc("setup_business_v1",jwt(ids.customer,{tenant_id:1,role:"authenticated",user_metadata:{tenant_id:1}}),setup("forged-tenant","forged-tenant-001")),"forged tenant does not escalate");
+ deniedByPolicy(await rpc("setup_business_v1",jwt(ids.manager,{user_metadata:{is_owner:true,role:"tenant_owner"},app_metadata:{is_owner:true}}),setup("forged-metadata","forged-001")),"metadata does not escalate manager","setup_not_authorized");
+ deniedByPolicy(await rpc("setup_business_v1",jwt(ids.customer,{tenant_id:1,role:"authenticated",user_metadata:{tenant_id:1}}),setup("forged-tenant","forged-tenant-001")),"forged tenant does not escalate","setup_not_authorized");
  rows(await req("/businesses?select=id",{token:tok.owner,headers:{"X-Requested-Role":"service_role","X-User-Id":ids.customer}}),"spoofed headers do not alter DB tenant identity",4);
  console.log("SUCCESS: signed JWT HTTP proves CRUD/RPC grant restrictions, real scope filtering, atomic setup/inventory, negative cases (CI synthetic tokens only).");
 })().catch(e=>{console.error(e);process.exitCode=1});
