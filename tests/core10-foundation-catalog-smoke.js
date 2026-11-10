@@ -25,8 +25,10 @@ function testCatalogStructure(){
  console.log("PASS A018: ten templates, canonical enterprise hierarchy and no artificial 300-site ceiling");
 }
 function testFalseReadinessIsBlocked(){
- assert.equal(manifest.templates.filter(t=>t.source_status==="available").length,1);
- assert.equal(registry.findTemplate(manifest,"sweets_bakery").source_code,"food_manufacturing");
+ assert.equal(manifest.templates.filter(t=>t.source_status==="available").length,0);
+ assert.equal(registry.findTemplate(manifest,"sweets_bakery").source_code,null);
+ assert.equal(registry.findTemplate(manifest,"sweets_bakery").source_status,"needs_setup");
+ assert.equal(registry.findTemplateByLiveCode(manifest,"food_manufacturing"),null,"REV-009: legacy food adapter is NOT a shared engine");
  assert.equal(registry.findTemplateByLiveCode(manifest,"hardware_paint").id,"paint_hardware");
  assert.equal(registry.findTemplateByLiveCode(manifest,"import_export").readiness,"partial");
  assert.equal(registry.findTemplate(manifest,"restaurant").source_status,"unregistered");
@@ -36,6 +38,7 @@ function testFalseReadinessIsBlocked(){
  assert.ok(summary.every(row=>row.eligible===false));
  assert.equal(registry.assessReadiness(manifest,"sweets_bakery").eligible,false);
  assert.ok(registry.assessReadiness(manifest,"sweets_bakery").reasons.includes("TEMPLATE_NOT_CERTIFIED"));
+ assert.ok(registry.assessReadiness(manifest,"sweets_bakery").reasons.includes("BACKEND_NOT_AVAILABLE"));
  assert.ok(registry.assessReadiness(manifest,"restaurant").reasons.includes("BACKEND_NOT_AVAILABLE"));
  assert.deepEqual(registry.assessReadiness(manifest,"UNKNOWN").reasons,["UNKNOWN_TEMPLATE"]);
  console.log("PASS A018: an available DB template does not imply end-to-end certified readiness");
@@ -52,6 +55,8 @@ function testRejectFabricatedReadiness(){
  assert.equal(partial.ok,false);
  assert.ok(partial.errors.includes("templates[0]:module_not_certified"));
  const synthetic=clone(manifest);
+ synthetic.templates[0].source_code="verified_independent_food_adapter";
+ synthetic.templates[0].source_status="available";
  synthetic.templates[0].readiness="supported_and_tested";
  synthetic.templates[0].verification=evidence();
  synthetic.templates[0].modules.forEach(m=>{m.status="supported_and_tested";m.verification=evidence()});
@@ -79,6 +84,10 @@ function testDataModelFailuresFailClosed(){
  const missing=clone(manifest);
  missing.templates=missing.templates.filter(t=>t.id!=="construction");
  assert.equal(registry.validateCatalog(missing).ok,false);
+ const legacyBackend=clone(manifest);
+ legacyBackend.templates[0].source_code="food_manufacturing";
+ legacyBackend.templates[0].source_status="available";
+ assert.ok(registry.validateCatalog(legacyBackend).errors.includes("templates[0]:legacy_food_backend_must_remain_private"));
  const falseBackend=clone(manifest);
  falseBackend.templates[1].source_code="restaurant";
  assert.equal(registry.validateCatalog(falseBackend).ok,false);
