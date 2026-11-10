@@ -62,6 +62,13 @@ IMG-ERP-SG: 20 public SECURITY DEFINER non-trigger functions are anon-executable
 - `staff_directory()`: SAFE — guarded by `is_active()`, anon receives `[]`. No change needed.
 - `_costx_pct(uuid)`: unguarded, anon/authenticated executable; all 5 callers are SECURITY DEFINER; no views/policies. Candidate `security/c10_a004b_costx_pct_acl_candidate.sql` + `..._ROLLBACK.sql` committed, **NOT applied, NOT yet isolation-tested** (add to fixture + CI paths first), then ask Owner for a specific go/no-go.
 
+## APPLIED TO PRODUCTION — A004b `_costx_pct` ACL (Claude, 2026-11-10)
+- Owner go/no-go: explicit "yes, apply" for exactly `security/c10_a004b_costx_pct_acl_candidate.sql` (CI PG17 PASS on a31674f). Applied via Supabase `execute_sql` (no migration-history row; drift to reconcile).
+- Pre-ACL `{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}` -> post `{postgres=X/postgres,service_role=X/postgres}` (verified).
+- Live role-switch test PASS: anon/authenticated direct call -> insufficient_privilege; `cost_gap_items()` as authenticated -> own `not allowed` guard; owner-run helper works. Not a signed-in app test.
+- ROLLBACK: `security/c10_a004b_costx_pct_acl_ROLLBACK.sql`. Do NOT re-apply.
+- Owner to recheck Cost Board + item cost % screens (same list as A004). Next: A005 (needs test owner/staff accounts), Pages source for Class L releases.
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
