@@ -16,12 +16,22 @@ function config(env){
   const url="https://"+ref+".supabase.co";
   if(env.C10_STAGE_URL && env.C10_STAGE_URL!==url)fail("STAGING_HOST_MISMATCH");
   const key=env.C10_STAGE_ANON_KEY||"";
-  if(!key||key.startsWith("sb_secret_")||/service[_-]?role/i.test(key))
+  if(!key||key.startsWith("sb_secret_")||key.startsWith("sb_service_")||
+     /service[_-]?role/i.test(key))
     fail("PUBLISHABLE_OR_ANON_KEY_REQUIRED");
-  if(key.includes(".") && !key.startsWith("sb_publishable_")){
-    try{const parts=key.split(".");const claims=JSON.parse(Buffer.from(parts[1],"base64url").toString());
-      if(claims.role!=="anon")fail("NON_ANON_API_KEY_FORBIDDEN");
-    }catch{fail("UNRECOGNIZED_ANON_KEY")}
+  // Do not silently accept arbitrary strings as an anon API key.
+  // Supabase publishes sb_publishable_* keys or legacy signed anon JWTs.
+  if(key.startsWith("sb_publishable_")){
+    if(!/^sb_publishable_[A-Za-z0-9_-]{8,}$/.test(key))
+      fail("UNRECOGNIZED_ANON_KEY");
+  } else {
+    const parts=key.split(".");
+    if(parts.length!==3||parts.some(x=>!x)||!parts.every(x=>/^[A-Za-z0-9_-]+$/.test(x)))
+      fail("UNRECOGNIZED_ANON_KEY");
+    let claims;
+    try{claims=JSON.parse(Buffer.from(parts[1],"base64url").toString("utf8"));}
+    catch{fail("UNRECOGNIZED_ANON_KEY")}
+    if(!claims||claims.role!=="anon")fail("NON_ANON_API_KEY_FORBIDDEN");
   }
   const accounts={};
   for(const label of ["OWNER_A","OWNER_B","STAFF_A","REVOKED_A"]){
