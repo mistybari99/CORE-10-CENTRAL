@@ -50,6 +50,13 @@ function create(options){
   if(!scoped||typeof scoped.rpc!=="function"||typeof scoped.from!=="function")fail("BACKEND_SCHEMA_MISSING");
   return scoped;
  }
+ async function listLegalEntities(){
+  if(!stagingEnabled)fail("STAGING_UNAVAILABLE");
+  const scoped=await db();
+  const r=await scoped.from("legal_entities").select("id,label,tenant_id").order("id");
+  if(r.error)throw r.error;
+  return r.data;
+ }
  async function listTemplates(){
   if(!stagingEnabled)fail("STAGING_UNAVAILABLE");
   const scoped=await db();
@@ -65,7 +72,7 @@ function create(options){
   return Object.freeze({business_id:r.data,setup_status:"draft",operational_enabled:false});
  }
  return Object.freeze({status:()=>Object.freeze({stagingEnabled,draftWritesEnabled,productionCertified:false}),
-  listTemplates,setupDraft});
+  listLegalEntities,listTemplates,setupDraft});
 }
 return Object.freeze({validate,create});
 });
