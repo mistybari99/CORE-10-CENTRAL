@@ -41,6 +41,14 @@
 **Pages route:** GitHub API for Pages settings is blocked from this sandbox (403 via proxy), so the real publishing source (branch/folder vs Actions) is still UNVERIFIED. No workflow in `.github/workflows` has a Pages deploy step by name. Owner can confirm in repo Settings -> Pages (Source). Until verified, no "live release" is claimed.
 **Next ONE action:** (1) Owner confirms Settings -> Pages source (or grants a token path) so Class L releases can be verified; (2) create staging Supabase project (or branch) so signed-JWT negative tests for owner/staff/anon can run against the real function set; (3) then Owner go/no-go on applying `security/c10_a004_cost_rpc_acl_candidate.sql`.
 
+## APPLIED TO PRODUCTION — A004 cost-RPC ACL (Claude, 2026-11-10)
+- **Owner go/no-go:** explicit "yes, apply" for exactly this change (ACL-only on `public._cost_actual(uuid)`, `public._costx_recompute()`), after being shown scope, caller trace and rollback. Owner declined a separate staging project.
+- **Applied via:** Supabase `execute_sql` on IMG-ERP-SG, SQL identical to `security/c10_a004_cost_rpc_acl_candidate.sql` at PR #8 (no migration-history entry was created; schema baseline in Git is still missing — track as drift).
+- **Pre-state:** ACL `{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}` for both.
+- **Post-state (verified by SELECT):** ACL `{postgres=X/postgres,service_role=X/postgres}`; anon/authenticated EXECUTE = false; service_role = true; the 5 SECURITY DEFINER callers keep owner postgres EXECUTE; owner read of `_cost_actual` works.
+- **ROLLBACK:** run `security/c10_a004_cost_rpc_acl_ROLLBACK.sql` (restores exact pre-ACL).
+- **NOT verified:** signed-in Cost Board / item pricing / factory production / sale-snapshot flows in the real app. **Owner to check:** Cost Board (cost-gap list), Item cost % settings (group + item), create one test sale with cost-extra on, factory production cost. Any "permission denied for function _cost_actual/_costx_recompute" → run rollback and report.
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
