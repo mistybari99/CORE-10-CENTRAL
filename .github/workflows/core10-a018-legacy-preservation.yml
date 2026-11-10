@@ -10,7 +10,8 @@ on:
       - "core10-legacy-parity*"
       - "core10-business-builder.html"
       - "tests/core10-legacy-preservation.test.js"
-      - "tests/e2e/core10-legacy-reuse-browser.js"
+      - "tests/fixtures/core10-legacy-item-codes-v1.json"
+      - "tests/e2e/core10-industry-neutral-browser.js"
       - ".github/workflows/core10-a018-legacy-preservation.yml"
   workflow_dispatch:
 permissions:
@@ -37,5 +38,5 @@ jobs:
           npm install -D playwright@1.63.0
           npx playwright install --with-deps chromium
           echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
-      - name: Verify existing-Islamia reuse navigation at mobile and desktop
-        run: node tests/e2e/core10-legacy-reuse-browser.js
+      - name: Verify business-neutral template setup at mobile and desktop
+        run: node tests/e2e/core10-industry-neutral-browser.js

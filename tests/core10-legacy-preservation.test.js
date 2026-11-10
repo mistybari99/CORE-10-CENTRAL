@@ -28,5 +28,15 @@ fail(parity.check(baseline,registry,lostModule,files),"LEGACY_FOOD_MODULE_MISSIN
 const duplicate=copy(registry);duplicate.reports.push(duplicate.reports[0]);duplicate.total++;
 fail(parity.check(baseline,duplicate,catalog,files),"DUPLICATE_OR_INVALID_REPORT");
 assert.equal(parity.check(baseline,registry,catalog).checked.legacyFiles,null);
-assert.match(fs.readFileSync(path.join(root,"core10-business-builder.html"),"utf8"),/core10-legacy-parity-ui\.js/);
+const builderPage=fs.readFileSync(path.join(root,"core10-business-builder.html"),"utf8");
+assert.doesNotMatch(builderPage,/islamia|islamiya|ইসলামিয়া|legacyReuse|legacy-parity-ui/i,"Do not make a customized business the common engine");
+const itemDictionary=require("../data/item_dictionary.json");
+const seeded=require("../data/seed_item_mapping.json");
+const originalCodes=require("./fixtures/core10-legacy-item-codes-v1.json");
+const observedCodes=new Set(itemDictionary.map(x=>x.code));
+assert.equal(observedCodes.size,itemDictionary.length,"Duplicate Item Dictionary codes");
+for(const code of originalCodes.codes)assert.ok(observedCodes.has(code),"Missing legacy dictionary code: "+code);
+assert.ok(itemDictionary.length>=originalCodes.count,"Dictionary entries silently lost");
+assert.equal(seeded.length,57,"Existing 57-item seed mapping changed without review");
+assert.notEqual(itemDictionary.length,seeded.length,"Never confuse Dictionary with live Item Master");
 console.log("PASS: legacy asset paths "+baseline.legacy_files.length+", report identities "+baseline.legacy_reports.length+", no status regression, 7 food modules, negative loss scenarios");
