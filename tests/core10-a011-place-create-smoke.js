@@ -129,6 +129,14 @@ async function run(){
   assert.equal(f.closeCount(),0);assert.equal(f.w.location.hash,"#/home");
   assert.match(f.elements.c10_place_error.textContent,/not confirmed/);
  });
+ await check("RPC cannot confirm a different site kind or unexpectedly active location",async()=>{
+  for(const payload of [{id:88,business_id:3,kind:"godown",status:"setting_up"},{id:89,business_id:3,kind:"factory",status:"active"}]){
+   let f=fixture();site.install(f.w);f.open();f.w.BOS_APP.sb.rpc=async()=>({data:payload});
+   await f.w.BOS_APP.H.c10_place_create();
+   assert.equal(f.closeCount(),0);assert.equal(f.w.location.hash,"#/home");
+   assert.equal(f.toast.length,0);assert.match(f.elements.c10_place_error.textContent,/not confirmed/);
+  }
+ });
  await check("identity switch during await prevents stale navigation",async()=>{
   let f=fixture();site.install(f.w);f.open();let complete;
   f.w.BOS_APP.sb.rpc=()=>new Promise(resolve=>{complete=resolve});
