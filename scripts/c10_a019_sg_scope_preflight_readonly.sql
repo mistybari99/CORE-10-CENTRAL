@@ -28,7 +28,7 @@ WITH
     'roles',roles::text,
     'active_only',(btrim(coalesce(qual,''))='is_active()'),
     'loc_scope_helper',(qual LIKE '%_loc_vis123(%'),
-    'org_disabled_bypass',(qual ~* 'NOT[[:space:]]+_org_on123[[:space:]]*\\(')
+    'org_disabled_bypass',(position('_org_on123()' in coalesce(qual,'')) > 0 AND position('NOT' in upper(coalesce(qual,''))) > 0)
   ) ORDER BY tablename,policyname),'[]'::jsonb) AS rows
   FROM pg_policies WHERE schemaname='public'
     AND tablename IN ('org_units','locations','items','business_profiles','business_templates','user_locations')
