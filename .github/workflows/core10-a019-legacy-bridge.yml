@@ -1,0 +1,59 @@
+# C10-A019: ONLY a disposable PostgreSQL integration proof.
+# Server-side source->canonical crosswalk; no live SG migrations, services or secrets.
+name: CORE10 A019 Legacy-Cohort Crosswalk / Tenant Identity
+on:
+  push:
+    branches:
+      - 'feature/c10-a018-*'
+    paths:
+      - 'internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql'
+      - 'tests/c10_a019_legacy_location_bridge_e2e.sql'
+      - '.github/workflows/core10-a019-legacy-bridge.yml'
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql'
+      - 'tests/c10_a019_legacy_location_bridge_e2e.sql'
+      - '.github/workflows/core10-a019-legacy-bridge.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  legacy-bridge-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_legacy_bridge
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_legacy_bridge"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGDATABASE: core10_legacy_bridge
+      PGUSER: postgres
+      PGPASSWORD: disposable_ci_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Create disposable PostgreSQL roles
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+      - name: Install existing neutral enterprise schema and synthetic fixtures
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+      - name: Build legacy-to-neutral stock-location bridge
+        run: psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql
+      - name: Test idempotent 8-place mapping boundaries, tampering, cross-tenant FKs, direct-auth denial
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a019_legacy_location_bridge_e2e.sql
