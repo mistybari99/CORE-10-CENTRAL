@@ -27,7 +27,7 @@ SELECT (:'site_created'::bigint=:'site_retry'::bigint) AS site_retry_same \gset
 \else
  \quit 1
 \endif
-DO $BEGIN
+DO $$BEGIN
  IF (SELECT count(*) FROM c10_demo.sites WHERE business_id=101 AND label='Demo Warehouse')<>1 THEN RAISE EXCEPTION 'duplicate site'; END IF;
  IF (SELECT count(*) FROM c10_demo.stock_locations WHERE site_id=(SELECT id FROM c10_demo.sites WHERE label='Demo Warehouse'))<>1 THEN RAISE EXCEPTION 'duplicate physical location'; END IF;
  IF (SELECT status FROM c10_demo.businesses WHERE slug='new-setup-business')<>'draft' THEN RAISE EXCEPTION 'fake business readiness'; END IF;
@@ -144,7 +144,7 @@ COMMIT;
 BEGIN;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
-DO $BEGIN
+DO $$BEGIN
  IF (SELECT count(*) FROM c10_demo.businesses)<>1 THEN RAISE EXCEPTION 'manager sees foreign business'; END IF;
  IF (SELECT count(*) FROM c10_demo.sites)<>3 THEN RAISE EXCEPTION 'manager site count'; END IF;
  IF (SELECT count(*) FROM c10_demo.items)<>1 THEN RAISE EXCEPTION 'manager item scope'; END IF;
@@ -154,7 +154,7 @@ DO $BEGIN
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM='manager incorrectly provisioned site' THEN RAISE; END IF;
  END;
-END $;
+END $$;
 SELECT c10_demo.post_stock_event(5002,8001,3,'manager-factory-01');
 COMMIT;
 
@@ -162,7 +162,7 @@ COMMIT;
 BEGIN;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','88888888-8888-4888-8888-888888888888',true);
-DO $BEGIN
+DO $$BEGIN
  IF (SELECT count(*) FROM c10_demo.businesses)<>1 THEN RAISE EXCEPTION 'customer staff business'; END IF;
  IF (SELECT count(*) FROM c10_demo.sites)<>1 THEN RAISE EXCEPTION 'customer staff site'; END IF;
  IF (SELECT count(*) FROM c10_demo.stock_movements)<>1 THEN RAISE EXCEPTION 'customer staff own stock read'; END IF;
@@ -173,7 +173,7 @@ DO $BEGIN
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM='customer staff cross-tenant stock post' THEN RAISE; END IF;
  END;
-END $;
+END $$;
 SELECT c10_demo.post_stock_event(6001,9001,2,'customer-staff-01');
 COMMIT;
 
@@ -183,7 +183,7 @@ SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 SELECT set_config('request.jwt.claim.tenant_id','2',true);
 SELECT set_config('request.jwt.claim.role','platform_admin',true);
-DO $BEGIN
+DO $$BEGIN
  IF (SELECT count(*) FROM c10_demo.businesses WHERE tenant_id=2)<>0 THEN
   RAISE EXCEPTION 'forged tenant/role metadata changed authorization';
  END IF;
@@ -193,7 +193,7 @@ DO $BEGIN
   RAISE EXCEPTION 'privilege escalation via direct membership insert';
  EXCEPTION WHEN insufficient_privilege THEN NULL;
  END;
-END $;
+END $$;
 ROLLBACK;
 
 -- Investor, revoked staff and platform operator must not inherit company stock visibility.
