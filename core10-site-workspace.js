@@ -15,10 +15,10 @@
   return "other";
  }
  function businessContextUnverified(){
-  // A business-scoped workspace must never reuse the global locsAll collection.
-  // Until a server-verified per-business site feed exists, fail closed.
-  var query=String(w.location&&w.location.search||"");
-  return /(?:^|[?&])workspace=(?:business|islamia)(?:&|$)/.test(query);
+  // P0: URL query strings and client-side workspace flags are not authorization.
+  // Global BOS.ENV.locs/locsAll have no verified per-business provenance.
+  // Hide this entire preview until an authenticated business-scoped RPC feed is wired.
+  return true;
  }
  function render(){
   var host=d.getElementById("ph_overview");
