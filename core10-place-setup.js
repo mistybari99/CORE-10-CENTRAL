@@ -163,11 +163,13 @@
    }catch(e){if(context(w)&&state.formSerial===serial&&w.document.getElementById("c10_place_form"))notify(w,errorMessage(e))}
    finally{
     state.busy=false;
+    // Reset the original button even when closeSheet has removed it from the DOM.
+    // Never touch a replacement sheet's submit control.
     var live=w.document.getElementById("c10_place_submit");
-    if(live&&state.formSerial===serial){
-     live.disabled=false;
-     live.removeAttribute&&live.removeAttribute("aria-busy");
-     live.textContent=tr(w,"লোকেশন তৈরি করুন","Create location");
+    if(button&&state.formSerial===serial&&(!live||live===button)){
+     button.disabled=false;
+     button.removeAttribute&&button.removeAttribute("aria-busy");
+     button.textContent=tr(w,"লোকেশন তৈরি করুন","Create location");
     }
    }
   };
