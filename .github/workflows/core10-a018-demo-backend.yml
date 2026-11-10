@@ -6,14 +6,18 @@ on:
       - "feature/c10-a018-*"
     paths:
       - "scripts/c10_a018_demo_backend.sql"
+      - "scripts/c10_a018_inventory_v1.sql"
       - "tests/c10_a018_demo_seed.sql"
       - "tests/c10_a018_demo_e2e.sql"
+      - "tests/c10_a018_inventory_e2e.sql"
       - ".github/workflows/core10-a018-demo-backend.yml"
   pull_request:
     paths:
       - "scripts/c10_a018_demo_backend.sql"
+      - "scripts/c10_a018_inventory_v1.sql"
       - "tests/c10_a018_demo_seed.sql"
       - "tests/c10_a018_demo_e2e.sql"
+      - "tests/c10_a018_inventory_e2e.sql"
       - ".github/workflows/core10-a018-demo-backend.yml"
   workflow_dispatch:
 
@@ -57,5 +61,9 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f scripts/c10_a018_demo_backend.sql
       - name: Seed two independent tenants and nine demo identities
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+      - name: Install isolated inventory balance and transfer integrity engine
+        run: psql -v ON_ERROR_STOP=1 -f scripts/c10_a018_inventory_v1.sql
       - name: Run transactional provisioning, permission, stock and reporting E2E
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_e2e.sql
+      - name: Run atomic inventory and tenant isolation E2E
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a018_inventory_e2e.sql
