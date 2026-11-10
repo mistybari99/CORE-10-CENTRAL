@@ -16,7 +16,8 @@ permissions:
   contents: read
 jobs:
   real-auth-stage:
-    if: ${{ inputs.approve_nonproduction_readonly == true }}
+    # Disabled candidate: if ever enabled, restrict secret-bearing jobs to main.
+    if: ${{ inputs.approve_nonproduction_readonly == true && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment: core10-staging-auth
     steps:
