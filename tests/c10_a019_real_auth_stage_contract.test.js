@@ -51,19 +51,31 @@ shouldBlock("revoked cannot have scope",e=>{const u=JSON.parse(e.C10_STAGING_TES
 const config=parseConfig(original);
 assert.equal(config.projectRef,ref);
 assert.equal(ROLES.length,6);
-const ids={tenantOwnerA:"auth-id-a",tenantOwnerB:"auth-id-b",siteStaffA:"auth-id-c",
- investorA:"auth-id-d",revokedA:"auth-id-e",platformOperator:"auth-id-f"};
-const tokens=Object.fromEntries(ROLES.map(role=>["mock-"+role,role]));
+const ids=Object.fromEntries(ROLES.map((role,i)=>[
+  role,"00000000-0000-4000-8000-"+String(i+1).padStart(12,"0")]));
+function testJwt(role,overrides={}) {
+  // Synthetically parseable ONLY. Staging GoTrue must cryptographically verify
+  // real issued tokens; these are never transmitted beyond the mocked test.
+  const head={alg:"HS256",typ:"JWT"};
+  const claims={sub:ids[role],role:"authenticated",aud:"authenticated",
+    exp:Math.floor(Date.now()/1000)+600,...overrides};
+  return [Buffer.from(JSON.stringify(head)).toString("base64url"),
+    Buffer.from(JSON.stringify(claims)).toString("base64url"),"synthetic_CI_signature"].join(".");
+}
+const tokenByRole=Object.fromEntries(ROLES.map(role=>[role,testJwt(role)]));
+const tokens=Object.fromEntries(ROLES.map(role=>[tokenByRole[role],role]));
 function reply(code,body){return{status:code,json:async()=>body}}
 let signIns=0,readCount=0,unapprovedWrites=0;
 async function fakeFetch(url,options){
  const uri=new URL(url),method=options.method||"GET",headers=options.headers||{};
  assert.equal(uri.origin,config.url);
+ assert.equal(options.redirect,"error","Bearer/anon credentials must never be forwarded through redirects");
+ assert.ok(options.signal instanceof AbortSignal,"A hard request deadline is mandatory");
  if(uri.pathname==="/auth/v1/token"){
   assert.equal(method,"POST");signIns++;
   const body=JSON.parse(options.body);
   const role=ROLES.find(r=>users[r].email===body.email&&users[r].password===body.password);
-  return role?reply(200,{access_token:"mock-"+role}):reply(401,{});
+  return role?reply(200,{access_token:tokenByRole[role]}):reply(401,{});
  }
  const role=tokens[headers.authorization?.replace(/^Bearer /,"")];
  if(uri.pathname==="/auth/v1/user"){
@@ -97,10 +109,42 @@ async function fakeFetch(url,options){
  // Effective role policy must fail closed even when URL was correctly stage-guarded.
  const leaky=async(url,options)=>{
    const r=await fakeFetch(url,options);
-   if(url.includes("/rest/v1/businesses")&&options.headers?.authorization==="Bearer mock-tenantOwnerA")
+   if(url.includes("/rest/v1/businesses")&&options.headers?.authorization==="Bearer "+tokenByRole.tenantOwnerA)
      return reply(200,[{id:101},{id:102},{id:201}]);
    return r;
  };
  await assert.rejects(run(config,leaky),/SIGNED_RLS_VISIBILITY_MISMATCH/);
+ shouldBlock("malformed publishable key",e=>e.C10_STAGING_ANON_KEY="sb_publishable_bad!",/MALFORMED_PUBLISHABLE_KEY_BLOCKED/);
+ shouldBlock("truncated publishable key",e=>e.C10_STAGING_ANON_KEY="sb_publishable_x",/MALFORMED_PUBLISHABLE_KEY_BLOCKED/);
+ shouldBlock("service role named key",e=>e.C10_STAGING_ANON_KEY="service_role_mock",/ANON_API_KEY_REQUIRED/);
+ const {tokenClaims}=require("../internal/core10-a019-real-auth-stage.js");
+ assert.deepEqual(tokenClaims(tokenByRole.tenantOwnerA),{sub:ids.tenantOwnerA});
+ for(const claims of [
+   {aud:"anonymous"},{role:"anon"},{exp:Math.floor(Date.now()/1000)-30},
+   {sub:"not-a-uuid"}
+ ])assert.throws(()=>tokenClaims(testJwt("tenantOwnerA",claims)),/GOTRUE_ACCESS_TOKEN_CLAIMS_INVALID/);
+ assert.throws(()=>tokenClaims("not_a_jwt"),/GOTRUE_ACCESS_TOKEN_CLAIMS_INVALID/);
+ const badAuthToken=async(url,options)=>{
+   const response=await fakeFetch(url,options);
+   if(url.includes("/auth/v1/token"))
+     return reply(200,{access_token:testJwt("tenantOwnerA",{role:"anon"})});
+   return response;
+ };
+ await assert.rejects(run(config,badAuthToken),/GOTRUE_ACCESS_TOKEN_CLAIMS_INVALID/);
+ const wrongSubject=async(url,options)=>{
+   const response=await fakeFetch(url,options);
+   if(url.includes("/auth/v1/user"))
+     return reply(200,{id:"ffffffff-ffff-4fff-8fff-ffffffffffff"});
+   return response;
+ };
+ await assert.rejects(run(config,wrongSubject),/GOTRUE_SIGNED_USER_VERIFICATION_FAILED/);
+ const redirected=async(url,options)=>{
+   assert.equal(options.redirect,"error");
+   if(url.includes("/auth/v1/token"))return reply(302,{location:"https://untrusted.invalid"});
+   return fakeFetch(url,options);
+ };
+ await assert.rejects(run(config,redirected),/STAGING_NETWORK_OR_REDIRECT_DENIED/);
+ const networkFailure=async()=>{throw new Error("should never leak staging credentials");};
+ await assert.rejects(run(config,networkFailure),/STAGING_NETWORK_OR_REDIRECT_DENIED/);
  console.log("PASS C10-A019 stage GoTrue contract MOCK: approval/project/anon key guards; six principals; two-tenant cross reads; revoked+investor+operator; fake bearer denied; no DB writes. NOT real Supabase Auth E2E.");
 })().catch(e=>{console.error("FAIL C10-A019 MOCK "+e.message);process.exitCode=1});
