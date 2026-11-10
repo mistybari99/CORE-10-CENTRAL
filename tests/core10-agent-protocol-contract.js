@@ -20,4 +20,18 @@ for(const s of ["docs/development/CORE10_GITHUB_FIRST_AI_PROTOCOL.md","docs/deve
   assert(claude.includes(s)&&agent.includes(s),"agents must use the same canonical docs");
 }
 assert(read("docs/development/GITHUB_SUPABASE_MIGRATION_RUNBOOK.md").includes("no such"),"must not pretend deployment is configured");
-process.stdout.write("PASS: Claude/ChatGPT common GitHub-first protocol, A004 resume checkpoint and DB release gates are versioned.\n");
+const protocol = read("docs/development/CORE10_GITHUB_FIRST_AI_PROTOCOL.md");
+const claudeDoc = read("CLAUDE.md");
+const agentDoc = read("AGENTS.md");
+const dbRunbook = read("docs/development/GITHUB_SUPABASE_MIGRATION_RUNBOOK.md");
+const checkpoint = read("docs/development/CURRENT_HANDOFF.md");
+assert(protocol.includes("Class L") && protocol.includes("Class M") && protocol.includes("Class H"), "progressive deployment risk classes missing");
+assert(protocol.includes("Owner-approved incremental live deployment"), "incremental live delivery policy missing");
+assert(claudeDoc.includes("progressive live releases"), "Claude not instructed to ship safe live UI increments");
+assert(agentDoc.includes("progressive low-risk live frontend releases"), "ChatGPT/other agents missing release permission");
+assert(dbRunbook.includes("frontend-only releases"), "DB runbook must distinguish safe frontend publishing");
+assert(checkpoint.includes("small live releases plus smoke tests"), "resume instructions omit live feedback loop");
+assert(protocol.includes("A004 cost-RPC ACL candidate") && protocol.includes("Do not auto-push on green CI"), "sensitive database change must remain gated");
+assert(protocol.includes("was **not verified**"), "must not falsely claim a working Pages deployment trigger");
+
+process.stdout.write("PASS: Claude/ChatGPT GitHub-first handoff, progressive live UI releases and risk-tiered DB release gates are versioned.\n");
