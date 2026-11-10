@@ -5,7 +5,8 @@
 CREATE SCHEMA c10_demo;
 CREATE FUNCTION c10_demo.actor_uid() RETURNS uuid
 LANGUAGE sql STABLE AS $$
- SELECT NULLIF(current_setting('request.jwt.claim.sub',true),'')::uuid
+ SELECT COALESCE(NULLIF(current_setting('request.jwt.claims',true),'')::jsonb ->> 'sub',
+                 NULLIF(current_setting('request.jwt.claim.sub',true),''))::uuid
 $$;
 
 CREATE TABLE c10_demo.tenants (
@@ -188,7 +189,7 @@ CREATE POLICY movement_scope_post ON c10_demo.stock_movements FOR INSERT TO auth
 -- Atomic inside the caller transaction; a repeated request key reuses the existing identity.
 -- Business remains DRAFT until full feature readiness and operational security gates pass.
 CREATE FUNCTION c10_demo.provision_business(p_legal bigint,p_slug text,p_template text,p_request text)
-RETURNS bigint LANGUAGE plpgsql SECURITY INVOKER SET search_path=c10_demo,pg_catalog AS $$
+RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $
 DECLARE v_tenant bigint; v_id bigint; v_existing record;
 BEGIN
  IF p_slug IS NULL OR btrim(p_slug)='' OR p_request IS NULL OR btrim(p_request)='' THEN
@@ -274,8 +275,11 @@ GRANT SELECT ON c10_demo.tenant_members,c10_demo.business_members,c10_demo.site_
  c10_demo.tenants,c10_demo.legal_entities,c10_demo.businesses,c10_demo.sites,
  c10_demo.stock_locations,c10_demo.items,c10_demo.stock_movements,c10_demo.stock_summary,
  c10_demo.templates TO authenticated;
-GRANT INSERT ON c10_demo.businesses,c10_demo.sites,c10_demo.stock_locations,c10_demo.stock_movements TO authenticated;
+-- Never grant direct table INSERT: this bypasses draft-only validation and idempotent provisioning.
+-- The explicitly guarded provision_business/provision_site RPCs run as limited entry points.
+REVOKE INSERT ON c10_demo.businesses,c10_demo.sites,c10_demo.stock_locations,c10_demo.stock_movements FROM authenticated;
 GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA c10_demo TO authenticated;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA c10_demo TO authenticated;
 -- NO anon grant. No member/role record writes granted to authenticated.
+-- RPCs are SECURITY DEFINER in disposable c10_demo only; this is NOT an approval to expose or deploy them to public/production.
 -- NO UPDATE or DELETE on stock movements; grants + RLS both deny them.
