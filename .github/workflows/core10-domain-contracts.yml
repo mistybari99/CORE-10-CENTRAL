@@ -1,0 +1,25 @@
+name: CORE10 Domain Contract Gates
+on:
+  pull_request:
+    paths:
+      - 'core10-site-hierarchy.js'
+      - 'core10-site-operations.js'
+      - 'core10-operations-engine.js'
+      - 'core10-erp-engines.js'
+      - 'core10-workflow.js'
+      - 'tests/core10-*.test.js'
+      - '.github/workflows/core10-domain-contracts.yml'
+  workflow_dispatch:
+jobs:
+  domain-contracts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Domain contract tests
+        run: node --test tests/core10-site-hierarchy.test.js tests/core10-site-operations.test.js tests/core10-operations-engine.test.js tests/core10-erp-engines.test.js tests/core10-workflow.test.js
