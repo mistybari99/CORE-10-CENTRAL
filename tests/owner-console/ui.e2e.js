@@ -46,7 +46,7 @@ const VIEWS = ["overview", "businesses", "hierarchy", "modules", "stock", "trade
     assert.equal(await page.evaluate(() => document.activeElement.dataset.view), "businesses"); await page.keyboard.press("Enter");
     await page.waitForSelector("#viewTitle"); assert.equal(await page.getAttribute('#nav button[data-view="businesses"]', "aria-current"), "page");
     assert.equal(await page.evaluate(() => document.activeElement.id), "view", "focus moves to the new view");
-    await page.focus('#nav button[data-view="businesses"]'); await page.keyboard.press("End"); assert.equal(await page.evaluate(() => document.activeElement.dataset.view), "setup");
+    await page.focus('#nav button[data-view="businesses"]'); await page.keyboard.press("End"); assert.equal(await page.evaluate(() => document.activeElement.dataset.view), "connections");
     await page.keyboard.press("Home"); assert.equal(await page.evaluate(() => document.activeElement.dataset.view), "overview");
     assert.ok((await page.locator("#live").getAttribute("aria-live")) === "polite"); ok("keyboard arrows/Home/End/Enter, focus management, landmarks, live region"); await ctx.close(); }
   // ---- 3) locale switch ----
