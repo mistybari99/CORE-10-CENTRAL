@@ -21,12 +21,12 @@ The deployed Islamia ERP database (IMG-ERP-SG, project `kbuhnpqooycqbzrfejcs`) h
 1. Modify reviewed declarative schema / SQL and generate a **versioned migration** in Git; keep access policies, dependent function changes, indexes, defaults, triggers and rollback notes in the same PR.
 2. Rebuild disposable DB from the baseline plus ordered migrations; run fixtures, negative role tests, and Islamia regression checks.
 3. On a separately confirmed staging Supabase target, apply exactly the Git-reviewed migration and test actual Auth/JWT, POST/REST/RPC/RLS, business/site scoping, data calculations and recovery. Never use production credentials or a live customer snapshot.
-4. Obtain Owner release authorization for the reviewed commit, target and rollback path.
+4. For impactful live DB/security/stock/financial changes, obtain specific Owner go/no-go for the reviewed commit, target and rollback path. Routine frontend-only releases are separately permitted by the Owner's standing progressive-release instruction and do not require a Supabase DB migration.
 5. Apply controlled production migrations from that same git SHA using a configured, audited deployment mechanism; verify migration history, desired objects, RLS/grants, drift and real operation after deployment.
 
 ## What not to assume
-- `git push` **does not inherently change Supabase**. A reviewed CI/CD integration or a controlled deployment step must exist and be correctly configured; no such integration has been certified for this repo at the checkpoint.
-- `supabase db reset --remote`, destructive recreations, arbitrary `supabase migration repair`, direct Dashboard SQL and automatic main→production deploy must not run on IMG-ERP-SG.
+- `git push` **does not inherently change Supabase**. The repository advertises a GitHub Pages website URL, but its actual publish trigger/source still needs verification; a frontend deployment is NOT a Supabase DB schema migration. A reviewed CI/CD integration or controlled DB deployment step must exist and be configured; no Git→Supabase auto migration has been certified.
+- `supabase db reset --remote`, destructive recreations, arbitrary `supabase migration repair`, untracked direct Dashboard SQL and automatic main→production **database migration** must not run on IMG-ERP-SG. This does not prohibit safe green-CI frontend website publishing.
 - Supabase paid preview branching is not mandatory for GitHub-first. A separate staging project or disposable local database may be used subject to actual availability and owner constraints; do not silently incur costs.
 - Running a SQL fixture in GitHub Actions proves only that the fixture worked. It does not certify the entire live SG schema or existing Islamia UI.
 - When an emergency fix is truly needed, explicitly arrange and log the exception, pre-change backup, exact versioned patch, post-change drift reconciliation and owner authorization. Do not normalize untracked hotfixes.
