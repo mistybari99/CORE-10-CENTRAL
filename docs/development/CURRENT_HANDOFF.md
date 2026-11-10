@@ -139,6 +139,12 @@ If GitHub Pages serves `main` root (strongly suggested: `.nojekyll`, root `index
 - **Existing exposure (already on `main`, NOT caused by this work):** root files such as `setup-run-*.html`, `setup-sql*.html`, `CORE10_*.sql`, `CORE10_*.md` are publicly served and reveal schema/RLS/RPC design. Recommended (Class L, separate PR): move them out of the served root or publish via an Actions `dist/` artifact. Not done.
 - No Class L frontend change is currently ready: the open frontend candidate is PR #1 (service worker offline cache; needs real-phone offline test).
 
+## LIVE smoke test #1 — real HTTP against the deployed site and Supabase (Claude, 2026-11-10)
+**Setup:** Owner approved a personal cloud environment `core-10-central` (env_016kTftP8ysYjuXraqrK4EDa) allowing exactly `mistybari99.github.io` and `kbuhnpqooycqbzrfejcs.supabase.co`; this session switched to it. Future Claude sessions should select that environment to repeat these checks.
+**Site:** `https://mistybari99.github.io/CORE-10-CENTRAL/` HTTP 200; live `sw.js` VERSION `bos-sw-20261109n1` and `bundle-manifest.json` build `58937687db` equal the repo's `main`. Headless Chromium (390x844): login page renders (title "ইসলামিয়া মিষ্টি ঘর · ISLAMIYA MISTY GHAR", staff ID + PIN inputs), **0 page errors, 0 failed requests**.
+**Anon HTTP (real PostgREST, public anon key, no writes):** `login_precheck` -> 200 `{"locked":false,"seconds_left":0}` (STABLE, read-only); `web_site_config` -> 200; direct `_costx_pct` -> **401 permission denied (A004b effective over HTTP)**; `GET /sales` -> 200 `[]`; `POST /sales` -> **401 permission denied for table sales (A005 effective over HTTP)**.
+**Not tested:** any signed-in user flow (needs a test account); Cost Board / item pricing UI as owner; service-worker offline behaviour.
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
