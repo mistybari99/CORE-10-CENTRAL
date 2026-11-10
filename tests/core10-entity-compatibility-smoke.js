@@ -27,6 +27,8 @@ function baseline(){
   assert.ok(r.mappings.every(m=>m.business_id===3&&m.legal_entity_id===2&&m.legacy_group_id===1));
   assert.ok(r.mappings.every(m=>m.operating_site_id===null&&m.tenant_id===null&&m.platform_id===null));
   assert.ok(r.warnings.includes("OPERATING_SITE_LAYER_MISSING:8"));
+  assert.ok(r.warnings.includes("LEGACY_FOOD_SOURCE_ISOLATED:3"));
+  assert.equal(catalog.templates.find(t=>t.id==="sweets_bakery").source_code,null);
   assert.equal(r.certifications.release_ready,false);
   assert.equal(r.certifications.tenant_isolation_verified,false);
   assert.equal(JSON.stringify(s),original,"No input may be mutated");
@@ -60,6 +62,12 @@ function negatives(){
   reject("profile linked to legal",s=>s.business_profiles[0].org_unit_id=2,"PROFILE_NOT_BUSINESS:");
   reject("duplicate profile",s=>s.business_profiles.push({org_unit_id:3}),"DUPLICATE_BUSINESS_PROFILE:");
   reject("unknown business template",s=>s.org_units[2].template_code="unregistered","UNREGISTERED_BUSINESS_TEMPLATE:");
+  const unsafelyShared=clone(catalog);
+  unsafelyShared.templates.find(t=>t.id==="sweets_bakery").source_code="food_manufacturing";
+  const bad=analyze(fixture(),unsafelyShared);
+  assert.equal(bad.ok,false);
+  assert.ok(bad.errors.includes("LEGACY_FOOD_TEMPLATE_NOT_ISOLATED:3"));
+  assert.equal(bad.mappings.length,0);
   reject("unknown source template",s=>{s.business_templates.push({code:"not_in_catalog",status:"available"});s.org_units[2].template_code="not_in_catalog"},"UNREGISTERED_BUSINESS_TEMPLATE:");
   reject("client mismatch",s=>{s.org_units[1].client_id="client_a";s.org_units[2].client_id="client_b"},"CROSS_CLIENT_PARENT:");
   reject("location points to group",s=>s.locations[0].org_unit_id=1,"LOCATION_PARENT_NOT_SITE_OR_BUSINESS:");
@@ -72,7 +80,7 @@ function driftAndScale(){
   drift.business_templates[0].status="needs_setup";
   const result=run(drift);
   assert.equal(result.ok,true);
-  assert.ok(result.warnings.includes("TEMPLATE_STATUS_DRIFT:food_manufacturing"));
+  assert.ok(result.warnings.includes("LEGACY_FOOD_SOURCE_ISOLATED:3"),"Legacy business must remain isolated when historical template status changes");
   assert.equal(result.certifications.release_ready,false);
   const many=fixture();
   many.locations=Array.from({length:305},(_,i)=>({id:10000+i,code:"l"+i,kind:"showroom",org_unit_id:3}));
