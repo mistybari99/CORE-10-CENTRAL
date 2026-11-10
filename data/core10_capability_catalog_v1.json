@@ -1,0 +1,489 @@
+{
+  "schema_version": 1,
+  "catalog_id": "core10-foundation-business-capabilities",
+  "version": "1.0.0",
+  "observed_at": "2026-11-10",
+  "authority": {
+    "repository": "mistybari99/CORE-10-CENTRAL",
+    "decision_book": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit",
+    "decisions": [
+      "C10-D008",
+      "C10-D030",
+      "C10-D031",
+      "C10-D032",
+      "C10-D033",
+      "C10-D036",
+      "C10-D037"
+    ],
+    "action": "C10-A018",
+    "requirement_ranges": [
+      "R001-R080",
+      "R081-R114"
+    ]
+  },
+  "notice": "DESIGN-TIME BASELINE ONLY. Readiness is not runtime authorization or current production certification. Reconcile with the latest database before release.",
+  "readiness_states": [
+    "supported_and_tested",
+    "implemented_unverified",
+    "partial",
+    "not_implemented",
+    "not_applicable"
+  ],
+  "source_states": [
+    "available",
+    "needs_setup",
+    "not_implemented",
+    "unregistered"
+  ],
+  "canonical_hierarchy": [
+    {
+      "kind": "platform",
+      "live_mapping": "future_platform_boundary",
+      "state": "not_implemented"
+    },
+    {
+      "kind": "tenant",
+      "live_mapping": "tenant_security_boundary_not_verified",
+      "state": "not_implemented"
+    },
+    {
+      "kind": "legal_entity",
+      "live_mapping": "org_units.kind=legal_entity",
+      "state": "implemented_unverified"
+    },
+    {
+      "kind": "business",
+      "live_mapping": "org_units.kind=business",
+      "state": "implemented_unverified"
+    },
+    {
+      "kind": "operating_site",
+      "live_mapping": "org_units branch/site or business_place_create135 mapping; partial",
+      "state": "partial"
+    },
+    {
+      "kind": "stock_location",
+      "live_mapping": "locations.id / locations.org_unit_id",
+      "state": "implemented_unverified"
+    }
+  ],
+  "enterprise_capacity_target": {
+    "branches_per_business": 100,
+    "factories_per_business": 100,
+    "warehouses_per_business": 100,
+    "measured": false,
+    "hard_limit": false
+  },
+  "invariants": {
+    "preserve_existing_location_ids": true,
+    "require_backend_tenant_business_isolation": true,
+    "never_toggle_org_scope_on_automatically": true,
+    "quick_setup_same_feature_catalog": true,
+    "unknown_module_is_unavailable": true,
+    "ui_visibility_is_not_authorization": true
+  },
+  "templates": [
+    {
+      "id": "sweets_bakery",
+      "source_code": "food_manufacturing",
+      "source_status": "available",
+      "readiness": "implemented_unverified",
+      "name_en": "Sweets, Bakery & Food Manufacturing",
+      "modules": [
+        {
+          "id": "pos",
+          "status": "implemented_unverified",
+          "origin": "declared_in_template"
+        },
+        {
+          "id": "stock",
+          "status": "implemented_unverified",
+          "origin": "declared_in_template"
+        },
+        {
+          "id": "purchase",
+          "status": "implemented_unverified",
+          "origin": "declared_in_template"
+        },
+        {
+          "id": "production",
+          "status": "implemented_unverified",
+          "origin": "declared_in_template"
+        },
+        {
+          "id": "costing",
+          "status": "implemented_unverified",
+          "origin": "declared_in_template"
+        },
+        {
+          "id": "accounting",
+          "status": "implemented_unverified",
+          "origin": "declared_in_template"
+        },
+        {
+          "id": "reports",
+          "status": "implemented_unverified",
+          "origin": "declared_in_template"
+        }
+      ]
+    },
+    {
+      "id": "restaurant",
+      "source_code": null,
+      "source_status": "unregistered",
+      "readiness": "not_implemented",
+      "name_en": "Restaurant, Fast Food & Cloud Kitchen",
+      "modules": [
+        {
+          "id": "restaurant_pos",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "kitchen_order",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "menu_recipe",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "food_delivery",
+          "status": "not_implemented",
+          "origin": "not_built"
+        }
+      ]
+    },
+    {
+      "id": "paint_hardware",
+      "source_code": "hardware_paint",
+      "source_status": "not_implemented",
+      "readiness": "not_implemented",
+      "name_en": "Paint, Hardware & Dealership",
+      "modules": [
+        {
+          "id": "cheque_pdc",
+          "status": "implemented_unverified",
+          "origin": "built_but_unverified"
+        },
+        {
+          "id": "principal_schemes",
+          "status": "implemented_unverified",
+          "origin": "built_but_unverified"
+        },
+        {
+          "id": "tinting",
+          "status": "implemented_unverified",
+          "origin": "built_but_unverified"
+        },
+        {
+          "id": "bulk_item_import",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "item_variants",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "dealer_pos_screens",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "party_scope_per_business",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "scheme_books_posting",
+          "status": "not_implemented",
+          "origin": "not_built"
+        }
+      ]
+    },
+    {
+      "id": "retail_wholesale",
+      "source_code": null,
+      "source_status": "unregistered",
+      "readiness": "not_implemented",
+      "name_en": "Retail, Wholesale & Distribution",
+      "modules": [
+        {
+          "id": "wholesale_pricing",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "distribution_orders",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "customer_credit",
+          "status": "not_implemented",
+          "origin": "not_built"
+        }
+      ]
+    },
+    {
+      "id": "general_manufacturing",
+      "source_code": null,
+      "source_status": "unregistered",
+      "readiness": "not_implemented",
+      "name_en": "General Manufacturing",
+      "modules": [
+        {
+          "id": "bill_of_materials",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "work_orders",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "production_routing",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "quality_control",
+          "status": "not_implemented",
+          "origin": "not_built"
+        }
+      ]
+    },
+    {
+      "id": "construction",
+      "source_code": "construction",
+      "source_status": "not_implemented",
+      "readiness": "not_implemented",
+      "name_en": "Construction & Project Management",
+      "modules": [
+        {
+          "id": "project_boq",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "project_budget",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "progress_billing",
+          "status": "not_implemented",
+          "origin": "not_built"
+        }
+      ]
+    },
+    {
+      "id": "import_export",
+      "source_code": "import_export",
+      "source_status": "needs_setup",
+      "readiness": "partial",
+      "name_en": "Import, Export & International Trade",
+      "modules": [
+        {
+          "id": "shipments",
+          "status": "implemented_unverified",
+          "origin": "built_but_unverified"
+        },
+        {
+          "id": "currencies",
+          "status": "implemented_unverified",
+          "origin": "built_but_unverified"
+        },
+        {
+          "id": "fx_rates",
+          "status": "implemented_unverified",
+          "origin": "built_but_unverified"
+        },
+        {
+          "id": "landed_cost",
+          "status": "implemented_unverified",
+          "origin": "built_but_unverified"
+        },
+        {
+          "id": "report_by_currency",
+          "status": "implemented_unverified",
+          "origin": "built_but_unverified"
+        },
+        {
+          "id": "letter_of_credit",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "customs_automation",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "accounting_posting",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "stock_link",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "bank_payments",
+          "status": "not_implemented",
+          "origin": "not_built"
+        }
+      ]
+    },
+    {
+      "id": "ecommerce",
+      "source_code": "online_store",
+      "source_status": "not_implemented",
+      "readiness": "not_implemented",
+      "name_en": "E-commerce & Online Store",
+      "modules": [
+        {
+          "id": "online_orders",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "channel_inventory",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "returns_portal",
+          "status": "not_implemented",
+          "origin": "not_built"
+        }
+      ]
+    },
+    {
+      "id": "technology_digital",
+      "source_code": "technology",
+      "source_status": "not_implemented",
+      "readiness": "not_implemented",
+      "name_en": "Technology, Software & Digital Products",
+      "modules": [
+        {
+          "id": "software_subscription",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "digital_delivery",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "service_tickets",
+          "status": "not_implemented",
+          "origin": "not_built"
+        }
+      ]
+    },
+    {
+      "id": "services",
+      "source_code": null,
+      "source_status": "unregistered",
+      "readiness": "not_implemented",
+      "name_en": "Services, Agency & Professional Services",
+      "modules": [
+        {
+          "id": "service_orders",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "time_tracking",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "contract_billing",
+          "status": "not_implemented",
+          "origin": "not_built"
+        }
+      ]
+    }
+  ],
+  "optional_packs": [
+    {
+      "id": "dealership",
+      "source_code": "dealership",
+      "source_status": "not_implemented",
+      "readiness": "not_implemented",
+      "modules": [
+        {
+          "id": "cheque_pdc",
+          "status": "implemented_unverified",
+          "origin": "built_but_unverified"
+        },
+        {
+          "id": "principal_schemes",
+          "status": "implemented_unverified",
+          "origin": "built_but_unverified"
+        },
+        {
+          "id": "vehicle_stock_and_sales",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "dealer_pos_screens",
+          "status": "not_implemented",
+          "origin": "not_built"
+        },
+        {
+          "id": "party_scope_per_business",
+          "status": "not_implemented",
+          "origin": "not_built"
+        }
+      ],
+      "evidence": []
+    }
+  ],
+  "enterprise_capability_coverage": [
+    "master_data",
+    "inventory",
+    "procurement",
+    "manufacturing",
+    "production_costing",
+    "pos_and_sales",
+    "accounts_receivable_payable",
+    "general_ledger_and_period_close",
+    "cash_and_bank",
+    "payments",
+    "approvals",
+    "role_access_and_visibility",
+    "staff_and_workforce",
+    "multi_site_transfer",
+    "quality_and_waste",
+    "partner_and_investor_agreements",
+    "business_reporting",
+    "central_consolidation",
+    "audit",
+    "backup_restore",
+    "offline_reconciliation",
+    "industry_integration",
+    "business_automation"
+  ],
+  "verification_policy": {
+    "fully_ready_requires": [
+      "end_to_end",
+      "authenticated_permissions",
+      "report_reconciliation",
+      "security_negative_tests",
+      "rollback_recovery"
+    ],
+    "no_template_is_certified_at_this_baseline": true,
+    "live_site_benchmarks_pending": true
+  }
+}
