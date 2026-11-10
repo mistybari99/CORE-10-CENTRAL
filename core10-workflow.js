@@ -6,10 +6,13 @@
 function fail(reason,step){return {ok:false,reason:reason,step:step}}
 function plan(input){
  if(!input||!Array.isArray(input.steps)||!input.steps.length||!input.business_id)return fail("invalid_workflow",0);
- var allowed={purchase:"purchase",receive:"inventory",produce:"production",transfer:"inventory",sale:"sale",approve:"approval",report:"report"};
+ var allowed={purchase:"purchase",receive:"inventory",produce:"production",sale:"sale",report:"report"};
+ // P0: never model stock transfers as one-sided inventory movements or trust a caller-supplied approval role.
+ // Both operations require verified, atomic server RPCs and remain blocked in this client planner.
  var stages=[],ids=new Set(),previous=null;
  for(var i=0;i<input.steps.length;i++){
   var step=input.steps[i],type=step&&step.type,ref=step&&step.ref,payload=step&&step.payload;
+  if(type==="transfer"||type==="approve")return fail("server_rpc_required",i);
   if(!Object.prototype.hasOwnProperty.call(allowed,type)||typeof ref!=="string"||!/^[a-zA-Z0-9_-]{1,64}$/.test(ref)||ids.has(ref)||!payload)return fail("invalid_step",i);
   if(String(payload.business_id)!==String(input.business_id))return fail("cross_business_step",i);
   if(type==="receive"&&previous!=="purchase")return fail("receive_requires_purchase",i);
