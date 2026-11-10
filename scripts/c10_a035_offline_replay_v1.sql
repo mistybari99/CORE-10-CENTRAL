@@ -122,7 +122,7 @@ GRANT SELECT ON c10_demo.offline_stock_snapshot_v1 TO authenticated;
 CREATE FUNCTION c10_demo.review_offline_stock_draft_v1(
  p_receipt bigint,p_decision text)
 RETURNS text LANGUAGE plpgsql SECURITY DEFINER
-SET search_path=c10_demo,pg_catalog AS $
+SET search_path=c10_demo,pg_catalog AS $$
 DECLARE v_rec c10_demo.offline_stock_receipts_v1%ROWTYPE;v_new text;
 BEGIN
  IF c10_demo.actor_uid() IS NULL OR p_receipt IS NULL OR
@@ -144,7 +144,7 @@ BEGIN
  SET review_status=v_new,reviewer_uid=c10_demo.actor_uid(),reviewed_at=now()
  WHERE id=p_receipt;
  RETURN v_new;
-END $;
+END $$;
 REVOKE EXECUTE ON FUNCTION c10_demo.review_offline_stock_draft_v1(bigint,text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION c10_demo.review_offline_stock_draft_v1(bigint,text) TO authenticated;
 
