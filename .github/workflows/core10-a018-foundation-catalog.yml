@@ -6,6 +6,8 @@ on:
       - "feature/c10-a018-*"
     paths:
       - "core10-capability-registry.js"
+      - "core10-business-template-planner.js"
+      - "tests/core10-business-template-planner.test.js"
       - "core10-enterprise-client.js"
       - "core10-enterprise-workflows.js"
       - "core10-offline-drafts.js"
@@ -23,6 +25,8 @@ on:
   pull_request:
     paths:
       - "core10-capability-registry.js"
+      - "core10-business-template-planner.js"
+      - "tests/core10-business-template-planner.test.js"
       - "core10-enterprise-client.js"
       - "core10-enterprise-workflows.js"
       - "core10-offline-drafts.js"
@@ -58,6 +62,8 @@ jobs:
           node-version: "22"
       - name: Validate 10 primary templates and false-ready protections
         run: node tests/core10-foundation-catalog-smoke.js
+      - name: Validate ten-template setup planning and 301-site preview
+        run: node tests/core10-business-template-planner.test.js
       - name: Validate legacy entity ancestry and stable location IDs
         run: node tests/core10-entity-compatibility-smoke.js
       - name: Validate read-only live-derived SG structural snapshot
