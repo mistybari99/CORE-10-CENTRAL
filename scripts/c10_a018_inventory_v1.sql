@@ -90,7 +90,7 @@ BEGIN
  IF NOT EXISTS(SELECT 1 FROM c10_demo.items
     WHERE id=p_item AND tenant_id=v_loc.tenant_id
       AND business_id=v_loc.business_id) THEN
-  RAISE EXCEPTION 'stock_item_business_mismatch';
+  RAISE EXCEPTION 'stock_item_business_mismatch' USING ERRCODE='23503';
  END IF;
 
  -- Unique balance key serializes concurrent requests on this location/item.
@@ -156,7 +156,7 @@ BEGIN
  END IF;
  IF NOT EXISTS(SELECT 1 FROM c10_demo.items WHERE id=p_item
        AND tenant_id=v_source.tenant_id AND business_id=v_source.business_id) THEN
-  RAISE EXCEPTION 'stock_item_business_mismatch';
+  RAISE EXCEPTION 'stock_item_business_mismatch' USING ERRCODE='23503';
  END IF;
 
  -- Unique request key serializes exact retries; a failed transfer rolls
