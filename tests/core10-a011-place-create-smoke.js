@@ -215,6 +215,15 @@ async function run(){
    assert.equal(f.elements.c10_place_error.hidden,true);
   }
  });
+ await check("SG idempotent replay without kind/status cannot certify new creation",async()=>{
+  let f=fixture();site.install(f.w);f.open();
+  f.w.BOS_APP.sb.rpc=async()=>({data:{dup:true,id:41,business_id:3,code:"old_site",org_unit_id:3}});
+  await f.w.BOS_APP.H.c10_place_create();
+  assert.equal(f.closeCount(),0);
+  assert.equal(f.w.location.hash,"#/home");
+  assert.equal(f.toast.length,0);
+  assert.match(f.elements.c10_place_error.textContent,/already processed/i);
+ });
  await check("never issues direct table writes from creation UI",()=>{
   const s=fs.readFileSync("core10-place-setup.js","utf8");
   assert.doesNotMatch(s,/\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(/);
