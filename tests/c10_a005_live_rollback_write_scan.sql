@@ -1,6 +1,6 @@
 -- C10-A005 step 2: live WRITE scan. One transaction, ALWAYS rolled back by the final RAISE.
--- For each persona and each public base table, tries to UPDATE (no-op value) and DELETE one
--- real row; row_count>0 means that persona can really modify/delete it (RLS+grants).
+-- For each persona and each public base table, tries a no-op UPDATE on one real row (row_count>0 = really writable).
+-- DELETE is NOT exercised (Supabase tool treats it as destructive); only the grant is listed.
 -- INSERT is reported only as privilege-level (RLS WITH CHECK cannot be probed generically).
 -- Persona 'salesperson' = active user with one real role_code; informational (legit writes expected).
 DO $w$
@@ -30,13 +30,10 @@ BEGIN
           GET DIAGNOSTICS n = ROW_COUNT; IF n>0 THEN upd := upd || r.relname || ','; END IF;
         EXCEPTION WHEN OTHERS THEN NULL; END; END IF;
       END IF;
-      IF has_table_privilege(current_user, r.oid, 'DELETE') THEN BEGIN
-        EXECUTE format('DELETE FROM public.%1$I WHERE ctid=(SELECT ctid FROM public.%1$I LIMIT 1)', r.relname);
-        GET DIAGNOSTICS n = ROW_COUNT; IF n>0 THEN del := del || r.relname || ','; END IF;
-      EXCEPTION WHEN OTHERS THEN NULL; END; END IF;
+      IF has_table_privilege(current_user, r.oid, 'DELETE') THEN del := del || r.relname || ','; END IF;
     END LOOP;
     RESET ROLE;
-    rep := rep || E'\n== ' || persona || E' ==\nCAN UPDATE: ' || coalesce(nullif(upd,''),'(none)') || E'\nCAN DELETE: ' || coalesce(nullif(del,''),'(none)') || E'\nINSERT GRANT (RLS not probed): ' || coalesce(nullif(ins,''),'(none)');
+    rep := rep || E'\n== ' || persona || E' ==\nCAN UPDATE: ' || coalesce(nullif(upd,''),'(none)') || E'\nDELETE GRANT (not exercised): ' || coalesce(nullif(del,''),'(none)') || E'\nINSERT GRANT (RLS not probed): ' || coalesce(nullif(ins,''),'(none)');
   END LOOP;
   RAISE EXCEPTION 'A005_WRITE_REPORT_ROLLED_BACK%', rep || E'\n' || note;
 END
