@@ -19,7 +19,8 @@ VALUES
  (5014,1,101,1014,'MAIN'),
  (5015,1,101,1015,'MAIN'),
  (5016,1,101,1016,'MAIN'),
- (5020,1,101,1002,'SECOND');
+ (5020,1,101,1002,'SECOND'),
+ (5021,1,101,1001,'SECOND');
 
 INSERT INTO c10_demo.legacy_source_locations_v1
  (source_system,legacy_location_id,legacy_business_id,legacy_kind)
@@ -108,7 +109,7 @@ BEGIN
  END;
  BEGIN
   INSERT INTO c10_demo.legacy_location_links_v1
-   VALUES('IMG-ERP-SG',998,9,'showroom',1,101,1001,5001);
+   VALUES('IMG-ERP-SG',998,9,'showroom',1,101,1001,5021);
   RAISE EXCEPTION 'INVENTED_SOURCE_BUSINESS_ACCEPTED';
  EXCEPTION WHEN foreign_key_violation THEN NULL;
  END;
