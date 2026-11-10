@@ -1,0 +1,41 @@
+name: CORE10 A020 Owner Business Builder - Safe Frontend
+on:
+  push:
+    branches: ["feature/c10-a020-owner-builder-ui-*"]
+  pull_request:
+    paths:
+      - "core10-business-builder*"
+      - "core10-industry-client.js"
+      - "core10-owner-business-entry.js"
+      - "owner.html"
+      - "data/core10_capability_catalog_v1.json"
+      - "tests/core10-business-builder*"
+      - "tests/core10-industry-client.test.js"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owner-builder-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node tests/core10-business-builder.test.js
+      - run: node tests/core10-business-builder-ui-smoke.js
+      - run: node tests/core10-industry-client.test.js
+      - run: node tests/core10-business-builder-staging-smoke.js
+      - run: node tests/e2e/forbidden_files.js
+      - name: Install pinned Chromium runtime outside tracked repository
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-playwright" && cd "$RUNNER_TEMP/core10-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Validate responsive ten-template flow in Chromium
+        run: node tests/e2e/core10-builder-browser.js
