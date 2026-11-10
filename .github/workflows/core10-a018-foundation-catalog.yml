@@ -8,6 +8,8 @@ on:
       - "core10-capability-registry.js"
       - "core10-business-template-planner.js"
       - "core10-business-builder.js"
+      - "core10-industry-client.js"
+      - "tests/core10-industry-client.test.js"
       - "core10-business-builder.html"
       - "core10-business-builder-ui.js"
       - "tests/core10-business-builder.test.js"
@@ -32,6 +34,8 @@ on:
       - "core10-capability-registry.js"
       - "core10-business-template-planner.js"
       - "core10-business-builder.js"
+      - "core10-industry-client.js"
+      - "tests/core10-industry-client.test.js"
       - "core10-business-builder.html"
       - "core10-business-builder-ui.js"
       - "tests/core10-business-builder.test.js"
@@ -78,6 +82,8 @@ jobs:
         run: node tests/core10-business-builder.test.js
       - name: Validate business wizard source and browser script syntax
         run: node tests/core10-business-builder-ui-smoke.js
+      - name: Validate signed-user industry RPC integration and release isolation
+        run: node tests/core10-industry-client.test.js
       - name: Validate legacy entity ancestry and stable location IDs
         run: node tests/core10-entity-compatibility-smoke.js
       - name: Validate read-only live-derived SG structural snapshot
