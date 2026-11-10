@@ -4,7 +4,6 @@
 // before enabling the release workflow; green artifact CI is not proof of that switch.
 const fs = require("node:fs");
 const path = require("node:path");
-const os = require("node:os");
 const ROOT_EXT = new Set([".html",".js",".css",".json",".webmanifest",".svg",".png",".jpg",".jpeg",".webp",".ico",".gif",".woff",".woff2",".txt"]);
 const DIR_EXT = new Map([
   ["data",new Set([".json",".svg",".png",".webp"])],
@@ -19,6 +18,7 @@ function safeRelative(rel) {
   return !DENY.test(rel);
 }
 function isAllowed(rel) {
+  if (rel === ".build-id" || rel === "v2/.build-id") return true;
   if (!safeRelative(rel)) return false;
   const parts=rel.split("/");
   if(parts.length===1) return ROOT_EXT.has(path.extname(rel).toLowerCase()) || ["robots.txt"].includes(rel);
@@ -60,7 +60,9 @@ function collect(root) {
   return out;
 }
 function verify(destination) {
-  const files=listFiles(destination);
+  const allFiles=listFiles(destination);
+  if (!allFiles.includes(".nojekyll")) throw new Error("PAGES_NOJEKYLL_MISSING");
+  const files=allFiles.filter(name=>name!==".nojekyll");
   for(const name of files) if(!isAllowed(name)) throw new Error("FORBIDDEN_PUBLISHED_ASSET:"+name);
   for(const name of REQUIRED) if(!files.includes(name)) throw new Error("PUBLISHED_ASSET_MISSING:"+name);
   return files.sort();
