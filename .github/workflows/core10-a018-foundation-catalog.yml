@@ -7,6 +7,11 @@ on:
     paths:
       - "core10-capability-registry.js"
       - "core10-business-template-planner.js"
+      - "core10-business-builder.js"
+      - "core10-business-builder.html"
+      - "core10-business-builder-ui.js"
+      - "tests/core10-business-builder.test.js"
+      - "tests/core10-business-builder-ui-smoke.js"
       - "tests/core10-business-template-planner.test.js"
       - "core10-enterprise-client.js"
       - "core10-enterprise-workflows.js"
@@ -26,6 +31,11 @@ on:
     paths:
       - "core10-capability-registry.js"
       - "core10-business-template-planner.js"
+      - "core10-business-builder.js"
+      - "core10-business-builder.html"
+      - "core10-business-builder-ui.js"
+      - "tests/core10-business-builder.test.js"
+      - "tests/core10-business-builder-ui-smoke.js"
       - "tests/core10-business-template-planner.test.js"
       - "core10-enterprise-client.js"
       - "core10-enterprise-workflows.js"
@@ -64,6 +74,10 @@ jobs:
         run: node tests/core10-foundation-catalog-smoke.js
       - name: Validate ten-template setup planning and 301-site preview
         run: node tests/core10-business-template-planner.test.js
+      - name: Validate business setup logic, scale and release locks
+        run: node tests/core10-business-builder.test.js
+      - name: Validate business wizard source and browser script syntax
+        run: node tests/core10-business-builder-ui-smoke.js
       - name: Validate legacy entity ancestry and stable location IDs
         run: node tests/core10-entity-compatibility-smoke.js
       - name: Validate read-only live-derived SG structural snapshot
