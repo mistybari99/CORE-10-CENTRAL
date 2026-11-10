@@ -51,7 +51,7 @@ function message(s,info,tone){
 }
 function safeRows(data,s){
  if(!data||data.certified!==true||data.scope!=="owner"||!Array.isArray(data.items)||data.items.length>40)return null;
- if(s.kind==="business"&&Number(data.business_id)!==s.id)return null;
+ if(s.kind==="business"&&(typeof data.business_id!=="number"||!Number.isSafeInteger(data.business_id)||data.business_id!==s.id))return null;
  if(s.kind==="master"&&data.business_id!==null)return null;
  var allowed=new Set((B.biz.list()||[]).map(function(x){return Number(x.id)})),seen=new Set;
  var list=[];
