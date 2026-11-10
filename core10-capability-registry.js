@@ -53,7 +53,9 @@
       if(!has(VALID_SOURCE,t.source_status))errors.push(prefix+":invalid_source_status");
       if(!has(VALID_STATUS,t.readiness))errors.push(prefix+":invalid_readiness");
       if(t.source_status==="unregistered"&&t.source_code!==null)errors.push(prefix+":unregistered_has_live_code");
-      if(t.source_status!=="unregistered"&&!txt(t.source_code))errors.push(prefix+":registered_missing_live_code");
+      if(t.source_status==="available"&&!txt(t.source_code))errors.push(prefix+":available_without_backend_code");
+      if(t.source_status!=="unregistered"&&t.source_code!==null&&!txt(t.source_code))errors.push(prefix+":invalid_backend_code");
+      if(t.id==="sweets_bakery"&&t.source_code==="food_manufacturing")errors.push(prefix+":legacy_food_backend_must_remain_private");
       if(txt(t.source_code)){if(src.has(t.source_code))errors.push(prefix+":duplicate_live_code");src.add(t.source_code)}
       if(!Array.isArray(t.modules))errors.push(prefix+":modules_not_array");
       var mods=new Set();
