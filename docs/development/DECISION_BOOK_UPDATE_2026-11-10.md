@@ -11,3 +11,15 @@ Claude could NOT verify write access to the private Google Sheet (Drive connecto
 - Anon exposure scan: 0 tables visible to anon. Escalation probe: no self-grant of owner/management/salesperson. Advisors: no ERROR; WARN: leaked-password protection off, mutable search_path, SECURITY DEFINER exec. Limits: SQL role+claims, not signed JWT.
 ## NEW RISK to record
 Pages appears to publish `main` root (`.nojekyll`, root index.html, no Pages workflow). Do NOT merge PR #8 wholesale to main: `security/`, `tests/`, `docs/development/` would become publicly downloadable on the site. Release frontend by cherry-picking only app files, or restructure publishing to a `dist` folder first.
+
+## DEFERRED BY OWNER (record now, do later) — 2026-11-10
+| ID | Item | Why deferred | When |
+|---|---|---|---|
+| DEF-01 | GitHub account 2-factor authentication (Settings > Password and authentication) | Owner action; protects the repo/Pages/deploy path | after current big builds |
+| DEF-02 | `main` branch protection (Settings > Branches: require pull request, block force-push) | Prevents accidental direct changes | after current big builds |
+| DEF-03 | Move app hosting from GitHub Pages to Cloudflare Pages (free, works with a PRIVATE repo) so the repo can be private. Agent-built allowlist `dist` + migration guide in a draft PR. Note: making the repo private on GitHub Free DISABLED Pages and broke the live app for ~30 min on 2026-11-10; reverted by making the repo public and re-enabling Pages (main / root). | Needs Cloudflare account + Supabase allowed-URL changes + staff re-login | later, tested first |
+| DEF-04 | Move security notes / handoff out of the PUBLIC repo into private Drive (repo is public) | Information exposure | with DEF-03 |
+| DEF-05 | Enable Supabase "Leaked password protection" (Auth settings) | Plan/dashboard setting | later |
+## BIG BUILDS (Decision Book NEXT ACTIONS order) — status 2026-11-10
+A010 hierarchy (design PR #12, not applied) -> A011 add Showroom/Factory/Godown -> A012 per-business theme/name/logo -> A013 scoped owner metrics -> A018/A019/A020 enterprise foundation (PR #7, isolated only) -> A021 dual Owner boards -> A022 investor/partner finance -> A023 KPIs & enterprise readiness. A006/A007 owner inbox (PR #4/#5 + mirror-live tests PR) -> A008/A009 approve/reject. A024 SaaS and A025 Simulation remain deferred.
+BLOCKER for UI builds: the bundled `core.js` (84 files) cannot be rebuilt exactly from this repo (78/84 pieces verbatim, 6 modified); the original build tool is not in this repo (likely in archived private repo `My-tools`; Claude's access request to it was denied by the session safety classifier). Lazy-loaded screens (e.g. costgap.js, partners.js) are separate files and CAN be edited directly.
