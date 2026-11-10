@@ -8,13 +8,15 @@ t("purchase supplier draft",()=>a.equal(E.purchase({business_id:1,supplier_id:2,
 t("POS stock reservation",()=>a.equal(E.sale({business_id:1,location_id:2,lines:[{item_id:3,quantity:5,unit_price:10,unit_cost:6,available:7,reserved:3}]}).reason,"insufficient_stock"));
 t("POS tax and discount",()=>a.equal(E.sale({business_id:1,location_id:2,lines:[{item_id:3,quantity:2,unit_price:10,unit_cost:6,available:5,reserved:0}],tax:2,discount:3}).total,19));
 t("approval requires privileged role",()=>a.equal(E.approval({business_id:1,request_id:2,action:"approve",actor_role:"counter",current_status:"pending"}).reason,"server_rpc_required"));
-t("report refuses cross-business totals",()=>a.equal(E.report({business_id:1,sales:[{business_id:2,total:10}],purchases:[]}).reason,"invalid_sales_scope"));
-t("report labels cash difference not profit",()=>a.match(E.report({business_id:1,sales:[{business_id:1,total:20,status:"posted"}],purchases:[{business_id:1,total:5,status:"posted"}]}).note,/not accounting profit/));
 
 t("P0: forged owner role never authorizes client approval",()=>a.equal(E.approval({business_id:1,request_id:2,action:"approve",actor_role:"owner",current_status:"pending"}).reason,"server_rpc_required"));
 t("P0: forged approver role never authorizes client approval",()=>a.equal(E.approval({business_id:1,request_id:2,action:"approve",actor_role:"approver",current_status:"pending"}).reason,"server_rpc_required"));
 
-t("P0: draft sale must not enter posted financial totals",()=>a.equal(E.report({business_id:1,sales:[{business_id:1,total:100,status:"draft"}],purchases:[]}).reason,"unposted_sale"));
-t("P0: draft purchase must not enter posted financial totals",()=>a.equal(E.report({business_id:1,sales:[],purchases:[{business_id:1,total:100,status:"draft"}]}).reason,"unposted_purchase"));
-t("P0: simulated posted flag must not enter financial totals",()=>a.equal(E.report({business_id:1,sales:[{business_id:1,total:100,status:"posted",simulation_only:true}],purchases:[]}).reason,"unposted_sale"));
-t("P0: posted-only scoped totals still work",()=>{const r=E.report({business_id:1,sales:[{business_id:1,total:100,status:"posted"}],purchases:[{business_id:1,total:30,status:"posted"}]});a.equal(r.ok,true);a.equal(r.net_cash_difference,70)});
+
+t("P0: forged posted financial rows cannot bypass authenticated reporting",()=>{
+ const r=E.report({business_id:1,sales:[{business_id:1,total:100,status:"posted"}],purchases:[]});
+ a.deepEqual(r,{ok:false,reason:"server_rpc_required"});
+});
+t("P0: even empty financial totals require server authorization",()=>a.equal(E.report({business_id:1,sales:[],purchases:[]}).reason,"server_rpc_required"));
+t("P0: foreign business report must not expose data",()=>a.equal(E.report({business_id:1,sales:[{business_id:2,total:10,status:"posted"}],purchases:[]}).reason,"server_rpc_required"));
+t("P0: simulated posted rows cannot become certified financial data",()=>a.equal(E.report({business_id:1,sales:[{business_id:1,total:100,status:"posted",simulation_only:true}],purchases:[]}).reason,"server_rpc_required"));
