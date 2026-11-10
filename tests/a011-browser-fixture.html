@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CORE10 A011 isolated UI browser contract</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:18px;background:var(--bg);color:var(--text);font-family:system-ui,sans-serif}
+body{--ruby:#a1111e;--ruby-deep:#6f0a14;--gold:#bb8b30;--gold-pale:#f7e8bd;--line:#e8d8ae;--bg:#fffbf4;--card:#fff;--text:#2a0f12;--ink:#2a0f12;--muted:#7d6a64;--warn:#7a4b00;--warn-bg:#fbeabf;--bad:#9c1220;--bad-bg:#fbe0dd;--ruby-grad:linear-gradient(135deg,#c3182a,#7d0c17)}
+body[data-business-tenant]{--ruby:#087f8c;--gold:#087f8c;--gold-pale:#ddf3f1;--line:#d9e5ed;--bg:#f2f6f8;--card:#fff;--text:#172d3f;--ink:#172d3f;--muted:#677e8d;--ruby-grad:linear-gradient(135deg,#0a8997,#086c79)}
+#sheet{width:min(100%,840px);padding:12px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px}
+</style></head><body><main id="sheet"></main><aside id="notice" role="status"></aside>
+<script>
+window.__rpcCalls=[];
+window.__lastToast=[];
+window.BOS={biz:{cur(){return 3},list(){return [{id:3,kind:"business",status:"active",name_bn:"ইসলামিয়া",name_en:"Islamia Misty Ghar"}]}}};
+window.BOS_APP={
+ S:{ctx:{is_owner:true,profile:{id:"owner-fixture"}}},
+ H:{},
+ sb:{rpc:async function(name,payload){
+  window.__rpcCalls.push({name,payload});
+  if(window.__rpcError)return {error:{message:"permission denied"}};
+  return {data:{id:61,code:"s_showroom",business_id:3,status:"setting_up",kind:payload.p_kind}};
+ }},
+ openSheet(s){document.getElementById("sheet").innerHTML=s},
+ closeSheet(){document.getElementById("sheet").innerHTML="" },
+ toast(s){window.__lastToast.push(s)}
+};
+document.addEventListener("click",function(event){
+ let btn=event.target.closest("[data-act]");if(!btn)return;
+ let act=btn.dataset.act;
+ if(act==="closesheet")window.BOS_APP.closeSheet();
+ else if(typeof window.BOS_APP.H[act]==="function")window.BOS_APP.H[act](btn);
+});
+</script></body></html>

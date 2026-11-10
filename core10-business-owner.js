@@ -26,8 +26,8 @@
   if(!Number.isSafeInteger(id)||!Array.isArray(list))return null;
   return list.find(function(x){return Number(x.id)===id})||null
  }
- function card(label,detail,route,icon){
-  return '<button type="button" class="bo-card" data-act="go" data-v="'+esc(route)+'">'+
+ function card(label,detail,route,icon,action){
+  return '<button type="button" class="bo-card" data-act="'+esc(action||"go")+'" data-v="'+esc(route)+'">'+
     '<span class="bo-symbol" aria-hidden="true">'+icon+'</span>'+
     '<span class="bo-card-copy"><b>'+esc(label)+'</b><small>'+esc(detail)+'</small></span>'+
     '<span class="bo-arr" aria-hidden="true">›</span></button>'
@@ -59,6 +59,7 @@
    '</div></section>'+
    '<section class="bo-section"><h3>'+esc(tr("ব্যবসার পরিচালনা","Manage this business"))+'</h3><div class="bo-actions">'+
    card(tr("শোরুম, ব্রাঞ্চ ও লোকেশন","Branches & Locations"),tr("শোরুম, কারখানা, গোডাউন ও অন্যান্য লোকেশন","Showrooms, factories, stores and other places"),"locations","⌂")+
+   card(tr("নতুন শোরুম / কারখানা / গোডাউন","Add Business Site"),tr("বিদ্যমান ERP-এর যাচাইকৃত সেটআপ সার্ভিস","Existing ERP authorized setup service"),"new-site","＋","c10_place_open")+
    card(tr("স্টাফ ও অনুমতি","Staff & Access"),tr("ব্যবসার কর্মী ও দায়িত্ব","Employees and assignments"),"staff","♙")+
    card(tr("স্টক ও ইনভেন্টরি","Stock & Inventory"),tr("পরিচালনাগত স্টক","Operational stock"),"stock","▣")+
    card(tr("বিজনেস রিপোর্ট","Business Reports"),tr("রিপোর্ট ও বিশ্লেষণ","Reports & analysis"),"reports/hub","▥")+
