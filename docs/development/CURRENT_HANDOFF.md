@@ -99,6 +99,14 @@ Run on IMG-ERP-SG in one always-rolled-back transaction (residue re-checked = 0)
 - **Residual risk:** safety depends solely on RLS; a future permissive policy or `ALTER TABLE ... DISABLE RLS` would immediately expose them. Proposed later hardening (Class H, per-table review + Git SQL + rollback + Owner go/no-go): REVOKE INSERT/UPDATE/DELETE from `anon` on tables the public website/login do not need. Do NOT bulk-revoke.
 - **Not yet probed:** authenticated INSERT policies on sensitive tables (e.g. `user_roles`, `role_form_perms`, `settings` — a no-role active user holds INSERT grants), via rollback-only INSERT tests with minimal valid rows; per-RPC matrix.
 
+## A005 step 3 — live rollback-only privilege-escalation probe (Claude, 2026-11-10)
+`tests/c10_a005_live_rollback_escalation_probe.sql` (+ an equivalent run with a `cash_controller` persona). Residue = 0 (always rolled back).
+- Self-grant `owner` / `management` / `salesperson` / `cash_controller`-set role via INSERT into `user_roles`: **denied (42501, RLS)** for pending, active-no-role and cash_controller users. PASS.
+- Self-grant location via `user_locations`: **denied (42501)**. PASS.
+- Self-activate pending profile: **rows_updated=0, status stayed `pending`** (an earlier "ALLOWED" line was a false positive — UPDATE under RLS filters silently). PASS.
+- `settings` INSERT probe was invalid (value is json) — NOT probed. `role_form_perms`, `roles`, `forms` INSERT policies also NOT probed.
+- Still open: per-RPC call matrix; authenticated INSERT policy review for `settings`, `role_form_perms`, `roles`, `forms`, `locations`; anon grant tightening proposal (Class H). Limits unchanged: SQL role/claims switch, not signed JWT; single business so no cross-business test.
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
