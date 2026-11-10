@@ -9,6 +9,10 @@ on:
       - "core10-business-template-planner.js"
       - "core10-business-builder.js"
       - "core10-industry-client.js"
+      - "core10-owner-business-entry.js"
+      - "core10-business-builder-staging.js"
+      - "owner.html"
+      - "tests/core10-business-builder-staging-smoke.js"
       - "tests/core10-industry-client.test.js"
       - "core10-business-builder.html"
       - "core10-business-builder-ui.js"
@@ -35,6 +39,10 @@ on:
       - "core10-business-template-planner.js"
       - "core10-business-builder.js"
       - "core10-industry-client.js"
+      - "core10-owner-business-entry.js"
+      - "core10-business-builder-staging.js"
+      - "owner.html"
+      - "tests/core10-business-builder-staging-smoke.js"
       - "tests/core10-industry-client.test.js"
       - "core10-business-builder.html"
       - "core10-business-builder-ui.js"
@@ -84,6 +92,8 @@ jobs:
         run: node tests/core10-business-builder-ui-smoke.js
       - name: Validate signed-user industry RPC integration and release isolation
         run: node tests/core10-industry-client.test.js
+      - name: Validate owner workspace signed staging integration
+        run: node tests/core10-business-builder-staging-smoke.js
       - name: Validate legacy entity ancestry and stable location IDs
         run: node tests/core10-entity-compatibility-smoke.js
       - name: Validate read-only live-derived SG structural snapshot
