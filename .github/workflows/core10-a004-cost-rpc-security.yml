@@ -8,6 +8,8 @@ on:
       - "security/c10_a004_cost_rpc_acl_candidate.sql"
       - "security/c10_a004b_costx_pct_acl_candidate.sql"
       - "tests/c10_a004b_costx_pct_*.sql"
+      - "security/c10_a005_anon_write_grants_candidate.sql"
+      - "tests/c10_a005_anon_write_grants_*.sql"
       - "tests/c10_a004_cost_rpc_fixture.sql"
       - "tests/c10_a004_cost_rpc_before.sql"
       - "tests/c10_a004_cost_rpc_after.sql"
@@ -71,3 +73,8 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f tests/c10_a004b_costx_pct_fixture.sql
           psql -v ON_ERROR_STOP=1 -f security/c10_a004b_costx_pct_acl_candidate.sql
           psql -v ON_ERROR_STOP=1 -f tests/c10_a004b_costx_pct_after.sql
+      - name: A005 anon write-grant candidate (isolated)
+        run: |
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a005_anon_write_grants_fixture.sql
+          psql -v ON_ERROR_STOP=1 -f security/c10_a005_anon_write_grants_candidate.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a005_anon_write_grants_after.sql
