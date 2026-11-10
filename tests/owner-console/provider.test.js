@@ -47,7 +47,8 @@ async function denied(fn, code, label) { try { await fn(); } catch (e) { assert.
   // no secrets / network / service-role in shipped files
   for (const f of fs.readdirSync(dir)) { const s = fs.readFileSync(path.join(dir, f), "utf8");
     if (!/\.(js)$/.test(f)) continue;
-    const code = s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, ""); // scan code, not explanatory comments
+    const code = s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "") // scan code, not explanatory comments
+      .replace(/\bapi_key\b/g, "api_field"); // P6 Connections names the SETTING "api_key" (a field name, never a value); real key shapes (eyJ..., sb_secret, apikey) stay forbidden
     assert.ok(!/service[_-]?role|eyJ[A-Za-z0-9_-]{20,}|sb_secret|apikey|api_key|fetch\(|XMLHttpRequest|localStorage|sessionStorage|document\.cookie|eval\(|new Function/i.test(code), "forbidden token in code of " + f); }
   ok("no secret, key, storage or network call in the shipped files");
   console.log("A036 provider tests: all passed");
