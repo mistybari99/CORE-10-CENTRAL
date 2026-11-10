@@ -1,0 +1,46 @@
+# INACTIVE BY DESIGN: extension .disabled prevents Actions execution.
+# D043/D044 / REV-009 / C10-A018 — candidate Pages release pipeline only.
+# NEVER activate while Pages is configured to publish a GitHub branch/root folder.
+# Operator release gate: verify Pages Source=GitHub Actions, compare root + v2
+# routes, run signed app smoke and rollback check before renaming to .yml.
+# Artifact is assembled from the audited allowlist builder, not repo root.
+name: C10 Pages allowlist release candidate (activation gated)
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fail-closed Pages package regression
+        run: node tests/core10-pages-package.test.js
+      - name: Build isolated Pages artifact (never repository root)
+        run: node internal/core10-pages-package.js "$RUNNER_TEMP/core10-pages-release"
+      - name: HTTP parity and SQL denial against isolated release artifact
+        run: node tests/core10-pages-artifact-http.test.js "$RUNNER_TEMP/core10-pages-release"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/core10-pages-release
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
