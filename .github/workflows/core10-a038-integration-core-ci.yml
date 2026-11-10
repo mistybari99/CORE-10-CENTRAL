@@ -44,6 +44,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Create disposable API roles
+        run: |
+          psql -d core10_integration_ci -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -d core10_integration_ci -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
       - name: Build demo backend, seed, and the A038 integration core
         run: |
           for f in scripts/c10_a018_demo_backend.sql tests/c10_a018_demo_seed.sql scripts/c10_a038_integration_core_v1.sql; do
