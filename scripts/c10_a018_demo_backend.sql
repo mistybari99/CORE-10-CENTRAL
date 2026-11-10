@@ -215,7 +215,7 @@ BEGIN
 END $$;
 
 CREATE FUNCTION c10_demo.provision_site(p_business bigint,p_kind text,p_label text,p_request text)
-RETURNS bigint LANGUAGE plpgsql SECURITY INVOKER SET search_path=c10_demo,pg_catalog AS $$
+RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
 DECLARE v_tenant bigint;v_id bigint;v_prev record;
 BEGIN
  IF p_kind NOT IN ('showroom','factory','godown','warehouse','project') OR
