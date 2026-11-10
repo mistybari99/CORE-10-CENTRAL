@@ -65,10 +65,9 @@ function sale(input){
  return {ok:true,lines:lines,subtotal:money(subtotal),discount:discount,tax:tax,total:money(subtotal-discount+tax),estimated_gross_profit:money(subtotal-discount-cost),status:"draft",simulation_only:true};
 }
 function approval(input){
- if(!input||!id(input.business_id)||!id(input.request_id)||!["approve","reject","defer"].includes(input.action))return bad("invalid_approval");
- if(input.actor_role!=="owner"&&input.actor_role!=="approver")return bad("role_not_permitted");
- if(input.current_status!=="pending")return bad("not_pending");
- return {ok:true,command:{business_id:id(input.business_id),request_id:id(input.request_id),action:input.action,expected_status:"pending",requires_server_authorization:true}};
+ // P0: caller-supplied role/status cannot authorize an approval.
+ // The canonical server RPC must authenticate actor, scope, state and perform atomic posting.
+ return bad("server_rpc_required");
 }
 function report(input){
  if(!input||!id(input.business_id)||!Array.isArray(input.sales)||!Array.isArray(input.purchases))return bad("invalid_report");
