@@ -7,6 +7,8 @@ on:
     paths:
       - "core10-capability-registry.js"
       - "core10-enterprise-client.js"
+      - "core10-enterprise-workflows.js"
+      - "tests/core10-enterprise-workflows-smoke.js"
       - "tests/core10-enterprise-client-smoke.js"
       - "core10-entity-compatibility.js"
       - "data/core10_capability_catalog_v1.json"
@@ -20,6 +22,8 @@ on:
     paths:
       - "core10-capability-registry.js"
       - "core10-enterprise-client.js"
+      - "core10-enterprise-workflows.js"
+      - "tests/core10-enterprise-workflows-smoke.js"
       - "tests/core10-enterprise-client-smoke.js"
       - "core10-entity-compatibility.js"
       - "data/core10_capability_catalog_v1.json"
@@ -56,3 +60,5 @@ jobs:
         run: node tests/core10-a018-live-snapshot-contract.js
       - name: Validate session-bound enterprise client bridge and safe release gates
         run: node tests/core10-enterprise-client-smoke.js
+      - name: Validate session-bound multi-engine RPC bridge, draft vs post vs finance gates
+        run: node tests/core10-enterprise-workflows-smoke.js
