@@ -78,7 +78,7 @@ jobs:
             postgrest/postgrest:v12.2.12
           for i in $(seq 1 30); do
             code=$(curl -s --max-time 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ || true)
-            if [ "$code" != 000 ]; then exit 0; fi
+            if [ "$code" != "000" ] && [ "$code" != "503" ]; then exit 0; fi
             sleep 1
           done
           docker logs core10-enterprise-ci-pgrst
