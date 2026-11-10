@@ -1,0 +1,103 @@
+# CORE10 A037: Production costing, COGS and inventory valuation. DISPOSABLE PostgreSQL 17 ONLY.
+# Never runs against IMG-ERP-SG. Synthetic signed JWTs are NOT real Supabase Auth proof.
+name: CORE10 - A037 Costing COGS Valuation E2E
+on:
+  push:
+    branches:
+      - "feature/c10-claude-production-costing-*"
+    paths:
+      - "scripts/c10_a037_*.sql"
+      - "tests/c10_a037_*.sql"
+      - "tests/api/c10-a037-*.js"
+      - ".github/workflows/core10-a037-costing-ci.yml"
+  pull_request:
+    paths:
+      - "scripts/c10_a037_*.sql"
+      - "tests/c10_a037_*.sql"
+      - "tests/api/c10-a037-*.js"
+      - ".github/workflows/core10-a037-costing-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  costing:
+    name: Weighted-average costing, BLOCK rule, immutability, owner-only RLS, signed JWT HTTP races
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_costing_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_costing_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+      CORE10_CI_JWT_SECRET: core10_ci_disposable_enterprise_hmac_2026_only_not_production
+      CORE10_CI_REST_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Initialize disposable PostgREST roles
+        run: |
+          psql -d core10_costing_ci -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -d core10_costing_ci -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
+          psql -d core10_costing_ci -v ON_ERROR_STOP=1 -c "CREATE DATABASE core10_costing_rest"
+      - name: Build existing A018-A030 schemas plus the A037 engine (SQL database)
+        run: |
+          for f in scripts/c10_a018_demo_backend.sql tests/c10_a018_demo_seed.sql scripts/c10_a018_inventory_v1.sql \
+                   scripts/c10_a020_business_setup_v1.sql scripts/c10_a021_owner_controls_v1.sql \
+                   scripts/c10_a022_profit_finance_v1.sql scripts/c10_a023_reporting_v1.sql \
+                   scripts/c10_a026_operational_docs_v1.sql scripts/c10_a027_bom_production_v1.sql \
+                   scripts/c10_a027_operational_returns_v1.sql scripts/c10_a030_cost_tax_preview_v1.sql \
+                   scripts/c10_a037_costing_engine_v1.sql; do
+            echo ">> $f"; psql -X -d core10_costing_ci -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+      - name: Accounting math, BLOCK rule, idempotency, immutability, owner-only security
+        run: psql -X -d core10_costing_ci -v ON_ERROR_STOP=1 -f tests/c10_a037_costing_e2e.sql
+      - name: Build the same schemas plus HTTP seed (REST database)
+        run: |
+          for f in scripts/c10_a018_demo_backend.sql tests/c10_a018_demo_seed.sql scripts/c10_a018_inventory_v1.sql \
+                   scripts/c10_a020_business_setup_v1.sql scripts/c10_a021_owner_controls_v1.sql \
+                   scripts/c10_a022_profit_finance_v1.sql scripts/c10_a023_reporting_v1.sql \
+                   scripts/c10_a026_operational_docs_v1.sql scripts/c10_a027_bom_production_v1.sql \
+                   scripts/c10_a027_operational_returns_v1.sql scripts/c10_a030_cost_tax_preview_v1.sql \
+                   scripts/c10_a037_costing_engine_v1.sql tests/c10_a037_costing_rest_seed.sql; do
+            psql -X -d core10_costing_rest -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+      - name: Start isolated PostgREST HTTP gateway
+        run: |
+          docker run --rm -d --name core10-costing-pgrst --network host \
+            -e PGRST_DB_URI="postgres://postgres:demo_only@127.0.0.1:5432/core10_costing_rest" \
+            -e PGRST_DB_SCHEMAS=c10_demo \
+            -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET="$CORE10_CI_JWT_SECRET" \
+            -e PGRST_JWT_AUD=authenticated \
+            -e PGRST_SERVER_PORT=3000 \
+            postgrest/postgrest:v12.2.12
+          for i in $(seq 1 45); do
+            code=$(curl -s --max-time 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ || true)
+            if [ "$code" != "000" ] && [ "$code" != "503" ]; then exit 0; fi
+            sleep 1
+          done
+          docker logs core10-costing-pgrst
+          exit 1
+      - name: Real HTTP JWT roles, direct-DML denial, 12 parallel races
+        run: node tests/api/c10-a037-costing-rest-e2e.js
+      - name: PostgREST debug if failed
+        if: failure()
+        run: docker logs core10-costing-pgrst || true
