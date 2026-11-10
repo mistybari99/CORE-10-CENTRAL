@@ -1,0 +1,300 @@
+{
+  "rls": [
+    {
+      "table": "business_profiles",
+      "forced": false,
+      "enabled": true
+    },
+    {
+      "table": "business_templates",
+      "forced": false,
+      "enabled": true
+    },
+    {
+      "table": "items",
+      "forced": false,
+      "enabled": true
+    },
+    {
+      "table": "locations",
+      "forced": false,
+      "enabled": true
+    },
+    {
+      "table": "org_units",
+      "forced": false,
+      "enabled": true
+    },
+    {
+      "table": "user_locations",
+      "forced": false,
+      "enabled": true
+    }
+  ],
+  "source": "IMG-ERP-SG",
+  "columns": [
+    {
+      "type": "text",
+      "table": "locations",
+      "column": "code"
+    },
+    {
+      "type": "int4",
+      "table": "locations",
+      "column": "id"
+    },
+    {
+      "type": "text",
+      "table": "locations",
+      "column": "kind"
+    },
+    {
+      "type": "int8",
+      "table": "locations",
+      "column": "org_unit_id"
+    },
+    {
+      "type": "uuid",
+      "table": "org_units",
+      "column": "client_id"
+    },
+    {
+      "type": "int8",
+      "table": "org_units",
+      "column": "id"
+    },
+    {
+      "type": "text",
+      "table": "org_units",
+      "column": "kind"
+    },
+    {
+      "type": "int8",
+      "table": "org_units",
+      "column": "parent_id"
+    },
+    {
+      "type": "text",
+      "table": "org_units",
+      "column": "template_code"
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "name": "bp134_read",
+      "roles": "{authenticated}",
+      "table": "business_profiles",
+      "permissive": "PERMISSIVE",
+      "active_only": false,
+      "loc_scope_helper": false,
+      "org_disabled_bypass": false
+    },
+    {
+      "cmd": "SELECT",
+      "name": "bt122_read",
+      "roles": "{authenticated}",
+      "table": "business_templates",
+      "permissive": "PERMISSIVE",
+      "active_only": true,
+      "loc_scope_helper": false,
+      "org_disabled_bypass": false
+    },
+    {
+      "cmd": "SELECT",
+      "name": "items_m132",
+      "roles": "{authenticated}",
+      "table": "items",
+      "permissive": "RESTRICTIVE",
+      "active_only": false,
+      "loc_scope_helper": false,
+      "org_disabled_bypass": true
+    },
+    {
+      "cmd": "SELECT",
+      "name": "items_read",
+      "roles": "{authenticated}",
+      "table": "items",
+      "permissive": "PERMISSIVE",
+      "active_only": false,
+      "loc_scope_helper": false,
+      "org_disabled_bypass": false
+    },
+    {
+      "cmd": "ALL",
+      "name": "locations_owner_write",
+      "roles": "{authenticated}",
+      "table": "locations",
+      "permissive": "PERMISSIVE",
+      "active_only": false,
+      "loc_scope_helper": false,
+      "org_disabled_bypass": false
+    },
+    {
+      "cmd": "SELECT",
+      "name": "locations_read",
+      "roles": "{authenticated}",
+      "table": "locations",
+      "permissive": "PERMISSIVE",
+      "active_only": true,
+      "loc_scope_helper": false,
+      "org_disabled_bypass": false
+    },
+    {
+      "cmd": "SELECT",
+      "name": "locations_scope123",
+      "roles": "{authenticated}",
+      "table": "locations",
+      "permissive": "RESTRICTIVE",
+      "active_only": false,
+      "loc_scope_helper": true,
+      "org_disabled_bypass": false
+    },
+    {
+      "cmd": "SELECT",
+      "name": "ou122_read",
+      "roles": "{authenticated}",
+      "table": "org_units",
+      "permissive": "PERMISSIVE",
+      "active_only": false,
+      "loc_scope_helper": false,
+      "org_disabled_bypass": false
+    },
+    {
+      "cmd": "ALL",
+      "name": "user_locations_owner_write",
+      "roles": "{authenticated}",
+      "table": "user_locations",
+      "permissive": "PERMISSIVE",
+      "active_only": false,
+      "loc_scope_helper": false,
+      "org_disabled_bypass": false
+    },
+    {
+      "cmd": "SELECT",
+      "name": "user_locations_read",
+      "roles": "{authenticated}",
+      "table": "user_locations",
+      "permissive": "PERMISSIVE",
+      "active_only": false,
+      "loc_scope_helper": false,
+      "org_disabled_bypass": false
+    }
+  ],
+  "functions": [
+    {
+      "name": "_loc_vis123",
+      "arguments": "p_loc integer",
+      "security_definer": true,
+      "authenticated_execute": true
+    },
+    {
+      "name": "_my_biz125",
+      "arguments": "",
+      "security_definer": true,
+      "authenticated_execute": true
+    },
+    {
+      "name": "_org_on123",
+      "arguments": "",
+      "security_definer": true,
+      "authenticated_execute": true
+    },
+    {
+      "name": "_vis_biz134",
+      "arguments": "",
+      "security_definer": true,
+      "authenticated_execute": true
+    },
+    {
+      "name": "business_place_create135",
+      "arguments": "p_business bigint, p_kind text, p_code text, p_name_bn text, p_name_en text, p_org_branch bigint, p_client uuid",
+      "security_definer": true,
+      "authenticated_execute": true
+    }
+  ],
+  "locations": [
+    {
+      "id": 1,
+      "kind": "showroom",
+      "org_unit_id": "3",
+      "code_present": true
+    },
+    {
+      "id": 2,
+      "kind": "showroom",
+      "org_unit_id": "3",
+      "code_present": true
+    },
+    {
+      "id": 3,
+      "kind": "showroom",
+      "org_unit_id": "3",
+      "code_present": true
+    },
+    {
+      "id": 4,
+      "kind": "showroom",
+      "org_unit_id": "3",
+      "code_present": true
+    },
+    {
+      "id": 5,
+      "kind": "factory",
+      "org_unit_id": "3",
+      "code_present": true
+    },
+    {
+      "id": 6,
+      "kind": "factory",
+      "org_unit_id": "3",
+      "code_present": true
+    },
+    {
+      "id": 7,
+      "kind": "godown",
+      "org_unit_id": "3",
+      "code_present": true
+    },
+    {
+      "id": 9,
+      "kind": "factory",
+      "org_unit_id": "3",
+      "code_present": true
+    }
+  ],
+  "org_units": [
+    {
+      "id": "1",
+      "kind": "group",
+      "parent_id": null,
+      "template_code": null
+    },
+    {
+      "id": "2",
+      "kind": "legal_entity",
+      "parent_id": "1",
+      "template_code": null
+    },
+    {
+      "id": "3",
+      "kind": "business",
+      "parent_id": "2",
+      "template_code": "food_manufacturing"
+    },
+    {
+      "id": "4",
+      "kind": "legal_entity",
+      "parent_id": "1",
+      "template_code": null
+    }
+  ],
+  "read_only": true,
+  "schema_version": 1,
+  "captured_at_utc": "2026-11-10T22:26:01Z",
+  "foreign_key_refs": {
+    "locations": 136,
+    "org_units": 72
+  },
+  "contains_personal_data": false
+}
