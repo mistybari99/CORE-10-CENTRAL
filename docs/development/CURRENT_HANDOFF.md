@@ -128,6 +128,11 @@ Synthetic active user with role `owner` (`is_owner()=true`): `cost_gap_items`, `
 ## Release-hygiene decision (Claude, 2026-11-10)
 If GitHub Pages serves `main` root (strongly suggested: `.nojekyll`, root `index.html`, no Pages workflow), merging PR #8 as-is would expose `security/*.sql`, rollback scripts, `tests/` and `docs/development/` on the public website. **Do not merge PR #8 wholesale to `main`.** For Class L releases cherry-pick only app files, or first publish through a `dist/` artifact. Staged Decision Book text: `docs/development/DECISION_BOOK_UPDATE_2026-11-10.md` (Sheet write access unverified).
 
+## PR hygiene (Claude, 2026-11-10)
+- The harness auto-opened **PR #9** from session branch `ccr-c98d690d-y76c57` (same commits as PR #8) targeting `main`, non-draft. Claude set it to **draft**. It duplicates PR #8: Owner/ChatGPT should close one (suggest keeping #8, closing #9) and must NOT merge either wholesale (see Release-hygiene decision above).
+- Open frontend candidate worth reviewing separately: **PR #1** (`sw.js` keeps previous offline cache when a worker update fails). Class M (service worker/offline) — needs real-phone offline update test before release; not touched by Claude.
+- Other open drafts untouched: #2 (offline cache variant), #3/#5/#4 (owner inbox/mapping, A006/A007), #6 (docs), #7 (A018 foundation).
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
