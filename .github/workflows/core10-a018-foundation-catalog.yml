@@ -6,6 +6,8 @@ on:
       - "feature/c10-a018-*"
     paths:
       - "core10-capability-registry.js"
+      - "core10-enterprise-client.js"
+      - "tests/core10-enterprise-client-smoke.js"
       - "core10-entity-compatibility.js"
       - "data/core10_capability_catalog_v1.json"
       - "tests/core10-foundation-catalog-smoke.js"
@@ -17,6 +19,8 @@ on:
   pull_request:
     paths:
       - "core10-capability-registry.js"
+      - "core10-enterprise-client.js"
+      - "tests/core10-enterprise-client-smoke.js"
       - "core10-entity-compatibility.js"
       - "data/core10_capability_catalog_v1.json"
       - "tests/core10-foundation-catalog-smoke.js"
@@ -50,3 +54,5 @@ jobs:
         run: node tests/core10-entity-compatibility-smoke.js
       - name: Validate read-only live-derived SG structural snapshot
         run: node tests/core10-a018-live-snapshot-contract.js
+      - name: Validate session-bound enterprise client bridge and safe release gates
+        run: node tests/core10-enterprise-client-smoke.js
