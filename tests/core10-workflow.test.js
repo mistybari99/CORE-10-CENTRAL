@@ -9,3 +9,8 @@ t("reject duplicate reference",()=>a.equal(W.plan({business_id:1,steps:[{ref:"sa
 
 t("P0: client transfer planner cannot represent one-sided stock posting",()=>a.equal(W.plan({business_id:1,steps:[{ref:"x",type:"transfer",payload:receive}]}).reason,"server_rpc_required"));
 t("P0: caller-supplied approver role cannot authorize client approval",()=>a.equal(W.plan({business_id:1,steps:[{ref:"a",type:"approve",payload:{business_id:1,request_id:2,action:"approve",actor_role:"owner",current_status:"pending"}}]}).reason,"server_rpc_required"));
+
+t("P0: reject invalid business scope before planning",()=>{for(const business_id of ["0","abc",-1,0,1.5,null])a.equal(W.plan({business_id,steps:[{ref:"po1",type:"purchase",payload:purchase}]}).reason,"invalid_workflow")});
+t("P0: reject oversized plans before allocating work",()=>a.equal(W.plan({business_id:1,steps:Array.from({length:101},(_,i)=>({ref:"po"+i,type:"purchase",payload:purchase}))}).reason,"invalid_workflow"));
+t("P0: normalized numeric business IDs remain scoped",()=>a.equal(W.plan({business_id:"1",steps:[{ref:"po1",type:"purchase",payload:purchase}]}).ok,true));
+t("P0: invalid payload scope is rejected",()=>a.equal(W.plan({business_id:1,steps:[{ref:"po1",type:"purchase",payload:{...purchase,business_id:"not-a-business"}}]}).reason,"cross_business_step"));
