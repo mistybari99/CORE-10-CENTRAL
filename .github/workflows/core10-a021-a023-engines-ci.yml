@@ -1,0 +1,110 @@
+name: CORE 10 - Owner Finance Enterprise Reporting SQL and Signed JWT CI
+
+on:
+  push:
+    branches:
+      - "feature/c10-a018-*"
+    paths:
+      - "scripts/c10_a021_owner_controls_v1.sql"
+      - "scripts/c10_a022_profit_finance_v1.sql"
+      - "scripts/c10_a023_reporting_v1.sql"
+      - "scripts/c10_a018_demo_backend.sql"
+      - "scripts/c10_a018_inventory_v1.sql"
+      - "scripts/c10_a020_business_setup_v1.sql"
+      - "tests/c10_a018_demo_seed.sql"
+      - "tests/c10_a021_a023_seed.sql"
+      - "tests/c10_a021_a023_e2e.sql"
+      - "tests/api/core10-owner-finance-rest-e2e.js"
+      - ".github/workflows/core10-a021-a023-engines-ci.yml"
+  pull_request:
+    paths:
+      - "scripts/c10_a021_owner_controls_v1.sql"
+      - "scripts/c10_a022_profit_finance_v1.sql"
+      - "scripts/c10_a023_reporting_v1.sql"
+      - "scripts/c10_a018_demo_backend.sql"
+      - "scripts/c10_a018_inventory_v1.sql"
+      - "scripts/c10_a020_business_setup_v1.sql"
+      - "tests/c10_a018_demo_seed.sql"
+      - "tests/c10_a021_a023_seed.sql"
+      - "tests/c10_a021_a023_e2e.sql"
+      - "tests/api/core10-owner-finance-rest-e2e.js"
+      - ".github/workflows/core10-a021-a023-engines-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  owner-finance-reporting:
+    name: Atomic owner decisions, profit participation & scoped KPI + signed-JWT HTTP
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_enterprise_engines
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_enterprise_engines"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: core10_enterprise_engines
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+      CORE10_CI_JWT_SECRET: core10_ci_disposable_enterprise_hmac_2026_only_not_production
+      CORE10_CI_REST_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Create disposable PostgREST roles
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
+      - name: Install original verified enterprise foundation, inventory and provisioning
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a018_inventory_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a020_business_setup_v1.sql
+      - name: Install owner control, investor profit ledger, scoped reporting engine
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a021_owner_controls_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a022_profit_finance_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a023_reporting_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a021_a023_seed.sql
+      - name: Execute SQL E2E owner / roles / finance / transfer reconciliation
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a021_a023_e2e.sql
+      - name: Start disposable signed JWT PostgREST HTTP API
+        run: |
+          docker run --rm -d --name core10-owner-finance-pgrst --network host \
+            -e PGRST_DB_URI="postgres://postgres:demo_only@127.0.0.1:5432/core10_enterprise_engines" \
+            -e PGRST_DB_SCHEMAS=c10_demo \
+            -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET="$CORE10_CI_JWT_SECRET" \
+            -e PGRST_JWT_AUD=authenticated \
+            -e PGRST_SERVER_PORT=3000 \
+            postgrest/postgrest:v12.2.12
+          for i in $(seq 1 30); do
+            code=$(curl -s --max-time 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ || true)
+            if [ "$code" != 000 ]; then exit 0; fi
+            sleep 1
+          done
+          docker logs core10-owner-finance-pgrst
+          exit 1
+      - name: Signed JWT HTTP owner / manager / investor / independent-tenant checks
+        run: node tests/api/core10-owner-finance-rest-e2e.js
+      - name: PostgREST diagnostics on failure
+        if: failure()
+        run: docker logs core10-owner-finance-pgrst || true
