@@ -54,7 +54,7 @@ const rpc=(name,token,payload)=>http("/rpc/"+name,token,"POST",payload);
  const boms=await rows("/bom_recipes_v1?select=id,business_id,recipe_code,status&order=id.asc",
   tok.owner,2,"owner BOM catalog");
  assert.equal(boms[0].status,"approved");
- const b1=await rows("/production_cost_estimate_v1?select=batch_id,expected_output,estimated_total_cost,estimated_cost_per_unit,actual_cogs_certified",
+ const b1=await rows("/production_cost_estimate_v1?select=batch_id,expected_output,estimated_total_cost,estimated_cost_per_unit,actual_cogs_certified&order=batch_id.asc",
   tok.owner,2,"owner batch estimated cost");
  assert.equal(Number(b1[0].expected_output),10);
  assert.equal(Number(b1[0].estimated_total_cost),220);
