@@ -92,9 +92,9 @@ END $$;
 COMMIT;
 
 -- Revocation: even original device actor with prior receipts cannot read/replay.
+-- Administrator-only fixture simulates a server-side access revocation; never
+-- grant authenticated clients direct UPDATE on memberships or site_grants.
 BEGIN;
-SET LOCAL ROLE authenticated;
-SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 UPDATE c10_demo.site_grants SET active=false
  WHERE site_id=1001 AND user_id='44444444-4444-4444-8444-444444444444';
 COMMIT;
