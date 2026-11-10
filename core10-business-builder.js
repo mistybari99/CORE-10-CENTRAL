@@ -55,7 +55,7 @@ function toBackendInput(catalog,model,context){
 function create(config){
  config=config||{};
  const catalog=config.catalog;
- let model={name:"",slug:"",templateId:"sweets_bakery",brandHex:"#7C263A",mode:"quick",sites:[],modules:[]};
+ let model={name:"",slug:"",templateId:"sweets_bakery",brandHex:"#315B76",mode:"quick",sites:[],modules:[]};
  const subscribers=new Set();
  function emit(){subscribers.forEach(fn=>fn(snapshot()))}
  function snapshot(){return JSON.parse(JSON.stringify(model))}
@@ -65,7 +65,7 @@ function create(config){
   if(Object.keys(patch).some(k=>!allowed.includes(k)))throw Error("UNKNOWN_FIELD");
   model={...model,...JSON.parse(JSON.stringify(patch))};emit();return snapshot();
  }
- function reset(){model={name:"",slug:"",templateId:"sweets_bakery",brandHex:"#7C263A",mode:"quick",sites:[],modules:[]};emit()}
+ function reset(){model={name:"",slug:"",templateId:"sweets_bakery",brandHex:"#315B76",mode:"quick",sites:[],modules:[]};emit()}
  function onChange(fn){subscribers.add(fn);return()=>subscribers.delete(fn)}
  function preview(){return{schema_version:1,kind:"core10_business_setup_preview",production_ready:false,model:snapshot(),validation:validate(catalog,model)}}
  async function provision(context){
