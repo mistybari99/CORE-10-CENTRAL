@@ -18,7 +18,7 @@ window.BOS_APP={
  sb:{rpc:async function(name,payload){
   window.__rpcCalls.push({name,payload});
   if(window.__rpcError)return {error:{message:"permission denied"}};
-  return {data:{id:61,code:"s_showroom",business_id:3,status:"setting_up",kind:"showroom"}};
+  return {data:{id:61,code:"s_showroom",business_id:3,status:"setting_up",kind:payload.p_kind}};
  }},
  openSheet(s){document.getElementById("sheet").innerHTML=s},
  closeSheet(){document.getElementById("sheet").innerHTML="" },
