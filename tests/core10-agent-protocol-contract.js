@@ -5,7 +5,7 @@ const read = path => fs.readFileSync(path,"utf8");
 const targets = {
   "CLAUDE.md": ["CORE-10-CENTRAL","CORE10_GITHUB_FIRST_AI_PROTOCOL.md","CURRENT_HANDOFF.md","C10-A004","Draft PR #8"],
   "AGENTS.md": ["CORE-10-CENTRAL","CORE10_GITHUB_FIRST_AI_PROTOCOL.md","CURRENT_HANDOFF.md","GitHub-first"],
-  "docs/development/CORE10_GITHUB_FIRST_AI_PROTOCOL.md": ["GitHub-first","C10-A004","Decision Book","Islamia","READ","GitHub","Supabase","CURRENT_HANDOFF.md","A024","A025"],
+  "docs/development/CORE10_GITHUB_FIRST_AI_PROTOCOL.md": ["GitHub-first","C10-A004","Decision Book","Islamia","read-only","GitHub","Supabase","CURRENT_HANDOFF.md","A024","A025"],
   "docs/development/GITHUB_SUPABASE_MIGRATION_RUNBOOK.md": ["GitHub","Supabase","schema-only","staging","migration","drift","approval","db reset --remote"],
   "docs/development/CURRENT_HANDOFF.md": ["C10-A004","pull/8","security/c10-a004-islamia-cost-rpc-hardening","08a6b1a5","42729359046","NEXT","Claude","ChatGPT"]
 };
