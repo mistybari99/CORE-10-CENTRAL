@@ -1,0 +1,26 @@
+/* CORE 10 ERP · cross-module workflow orchestrator (simulation-only).
+ * Commands must be committed by server-authorized transactional RPC, never here.
+ */
+(function(root,factory){"use strict";var x=factory(typeof module==="object"&&module.exports?require("./core10-erp-engines.js"):root.CORE10_ERP_ENGINES);if(typeof module==="object"&&module.exports)module.exports=x;if(root)root.CORE10_WORKFLOW=x;})(typeof globalThis!=="undefined"?globalThis:null,function(E){
+"use strict";
+function fail(reason,step){return {ok:false,reason:reason,step:step}}
+function plan(input){
+ if(!input||!Array.isArray(input.steps)||!input.steps.length||!input.business_id)return fail("invalid_workflow",0);
+ var allowed={purchase:"purchase",receive:"inventory",produce:"production",transfer:"inventory",sale:"sale",approve:"approval",report:"report"};
+ var stages=[],ids=new Set(),previous=null;
+ for(var i=0;i<input.steps.length;i++){
+  var step=input.steps[i],type=step&&step.type,ref=step&&step.ref,payload=step&&step.payload;
+  if(!Object.prototype.hasOwnProperty.call(allowed,type)||typeof ref!=="string"||!/^[a-zA-Z0-9_-]{1,64}$/.test(ref)||ids.has(ref)||!payload)return fail("invalid_step",i);
+  if(String(payload.business_id)!==String(input.business_id))return fail("cross_business_step",i);
+  if(type==="receive"&&previous!=="purchase")return fail("receive_requires_purchase",i);
+  if(type==="produce"&&previous!=="receive"&&previous!=="transfer")return fail("production_requires_material_flow",i);
+  if(type==="sale"&&previous!=="produce"&&previous!=="transfer"&&previous!=="receive")return fail("sale_requires_stock_flow",i);
+  if(type==="transfer"&&previous!=="receive"&&previous!=="produce")return fail("transfer_requires_stock_flow",i);
+  var method=E[allowed[type]],out=method(payload);
+  if(!out||out.ok!==true)return fail(out&&out.reason||"validation_failed",i);
+  ids.add(ref);stages.push(Object.freeze({ref:ref,type:type,preview:out}));previous=type;
+ }
+ return {ok:true,business_id:String(input.business_id),steps:Object.freeze(stages),simulation_only:true,requires_server_authorization:true};
+}
+return Object.freeze({plan:plan});
+});
