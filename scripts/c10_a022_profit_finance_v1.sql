@@ -107,14 +107,18 @@ CREATE POLICY funding_agreements_owner_investor_read_v1 ON c10_demo.funding_agre
 CREATE POLICY funding_entitlements_owner_investor_read_v1 ON c10_demo.funding_entitlements_v1
  FOR SELECT TO authenticated USING(EXISTS(
   SELECT 1 FROM c10_demo.funding_agreements_v1 a
-   WHERE a.id=agreement_id AND a.business_id=business_id AND a.tenant_id=tenant_id
+   WHERE a.id=c10_demo.funding_entitlements_v1.agreement_id
+    AND a.business_id=c10_demo.funding_entitlements_v1.business_id
+    AND a.tenant_id=c10_demo.funding_entitlements_v1.tenant_id
     AND c10_demo.can_read_funding_v1(a.tenant_id,a.business_id,a.investor_id)
  ));
 CREATE POLICY funding_payments_owner_investor_read_v1 ON c10_demo.funding_payments_v1
  FOR SELECT TO authenticated USING(EXISTS(
   SELECT 1 FROM c10_demo.funding_entitlements_v1 e
    JOIN c10_demo.funding_agreements_v1 a ON a.id=e.agreement_id
-   WHERE e.id=entitlement_id AND e.tenant_id=tenant_id AND e.business_id=business_id
+   WHERE e.id=c10_demo.funding_payments_v1.entitlement_id
+    AND e.tenant_id=c10_demo.funding_payments_v1.tenant_id
+    AND e.business_id=c10_demo.funding_payments_v1.business_id
      AND c10_demo.can_read_funding_v1(a.tenant_id,a.business_id,a.investor_id)
  ));
 REVOKE ALL ON c10_demo.finance_months_v1,c10_demo.funding_agreements_v1,
