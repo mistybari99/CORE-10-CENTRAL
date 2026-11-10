@@ -139,7 +139,7 @@
    if(!w.crypto||typeof w.crypto.randomUUID!=="function"){notify(w,"Secure request ID unavailable.");return}
    var signature=requestSignature(ctx,check.fields);
    if(state.signature!==signature){state.signature=signature;state.key=w.crypto.randomUUID()}
-   var button=w.document.getElementById("c10_place_submit"),serial=state.formSerial,session=ctx.identity,route=string(w.location.hash);
+   var form=w.document.getElementById("c10_place_form"),button=w.document.getElementById("c10_place_submit"),serial=state.formSerial,session=ctx.identity,route=string(w.location.hash);
    state.busy=true;if(button){button.disabled=true;button.setAttribute&&button.setAttribute("aria-busy","true");button.textContent=tr(w,"তৈরি হচ্ছে…","Creating…")}
    clearError(w);
    try{
@@ -158,20 +158,20 @@
     state.key=null;state.signature=null;
     // Do not display a success message from an old/closed form or changed route.
     var liveForm=w.document.getElementById("c10_place_form");
-    if(!liveForm||state.formSerial!==serial||string(w.location.hash)!==route)return;
+    if(!liveForm||liveForm!==form||state.formSerial!==serial||string(w.location.hash)!==route)return;
     if(typeof A.toast==="function")A.toast(tr(w,"লোকেশন তৈরি হয়েছে; এখন সেটআপ সম্পূর্ণ করুন।","Location created; finish setup next."));
     if(typeof A.closeSheet==="function")A.closeSheet();
     w.location.hash="#/locations";
    }catch(e){
     var current=context(w);
-    if(current&&current.identity===session&&current.business_id===ctx.business_id&&state.formSerial===serial&&string(w.location.hash)===route&&w.document.getElementById("c10_place_form"))notify(w,errorMessage(e));
+    if(current&&current.identity===session&&current.business_id===ctx.business_id&&state.formSerial===serial&&string(w.location.hash)===route&&w.document.getElementById("c10_place_form")===form)notify(w,errorMessage(e));
    }
    finally{
     state.busy=false;
     // Reset the original button even when closeSheet has removed it from the DOM.
     // Never touch a replacement sheet's submit control.
     var live=w.document.getElementById("c10_place_submit");
-    if(button&&state.formSerial===serial&&(!live||live===button)){
+    if(button&&state.formSerial===serial&&w.document.getElementById("c10_place_form")===form&&(!live||live===button)){
      button.disabled=false;
      button.removeAttribute&&button.removeAttribute("aria-busy");
      button.textContent=tr(w,"লোকেশন তৈরি করুন","Create location");
