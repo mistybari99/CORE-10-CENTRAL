@@ -219,7 +219,7 @@ BEGIN
    RAISE EXCEPTION 'independent customer read owner production/returns'; END IF;
  BEGIN
   PERFORM c10_demo.create_production_batch_v1(
-    (SELECT id FROM c10_demo.bom_recipes_v1 LIMIT 1),6001,1,'customer-cross-bom');
+    1,6001,1,'customer-cross-bom');
   RAISE EXCEPTION 'customer cross-tenant production permitted';
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM<>'production_batch_scope_denied' THEN RAISE; END IF;
