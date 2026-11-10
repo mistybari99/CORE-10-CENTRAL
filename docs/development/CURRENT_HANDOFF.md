@@ -118,6 +118,12 @@ Run on IMG-ERP-SG in one always-rolled-back transaction (residue re-checked = 0)
 ### Owner non-regression check (Claude, 2026-11-10, rollback-only; after A004 + A004b applied)
 Synthetic active user with role `owner` (`is_owner()=true`): `cost_gap_items`, `cost_extra_item_set` (write, rolled back), `partner_overview`, `staff_directory`, `mkt_spend_lines`, `rpt131_cash_close` all returned OK. Owner full access is intact; no residue. Owner policy model: Owner can do everything (is_owner() policies); other roles are limited by their own rules. The pending anon write-grant candidate only touches the `anon` role and cannot affect the Owner (authenticated role).
 
+## APPLIED TO PRODUCTION — A005 anon write-class grants revoked (Claude, 2026-11-10)
+- Delegated decision (Owner: "make the best decision"): ACL-only on role `anon`; functionally a no-op (RLS already denied anon writes); CI PG17 PASS on 78c4706; exact rollback committed. Applied via Supabase `execute_sql`, SQL identical to `security/c10_a005_anon_write_grants_candidate.sql`. No migration-history row (drift to reconcile).
+- Pre-state: exactly 14 tables (matched ROLLBACK script). In-transaction verify block passed (no anon INSERT/UPDATE/DELETE/TRUNCATE remains on RLS tables without anon write policy).
+- **Post-apply behavioural check NOT completed:** the follow-up query included a TRUNCATE probe, which makes the Supabase tool request an interactive confirmation the Owner's device does not show (timed out). Next agent: re-run WITHOUT any TRUNCATE/DELETE text — check `has_table_privilege('anon', ...)` only, and anon calls to `web_site_config()`, `web_catalog_v2()`, `login_precheck(...)` still succeed.
+- ROLLBACK: `security/c10_a005_anon_write_grants_ROLLBACK.sql`. Do NOT re-apply. Owner check: public website pages and login screen still load.
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
