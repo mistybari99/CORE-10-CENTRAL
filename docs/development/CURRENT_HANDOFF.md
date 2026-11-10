@@ -58,6 +58,10 @@ IMG-ERP-SG: 20 public SECURITY DEFINER non-trigger functions are anon-executable
 - **Review first:** `staff_directory` (possible staff PII exposure to anon) and `_costx_pct` (internal costing helper, same family as the A004 pair; check whether it leaks cost %).
 - Next increment: read bodies + callers (JS grep + pg_proc), run role-switch negative tests, then propose a narrow ACL/guard patch in Git with rollback and ask Owner for a specific go/no-go. Do not bulk-revoke.
 
+### A004b findings (Claude, 2026-11-10, SELECT-only)
+- `staff_directory()`: SAFE — guarded by `is_active()`, anon receives `[]`. No change needed.
+- `_costx_pct(uuid)`: unguarded, anon/authenticated executable; all 5 callers are SECURITY DEFINER; no views/policies. Candidate `security/c10_a004b_costx_pct_acl_candidate.sql` + `..._ROLLBACK.sql` committed, **NOT applied, NOT yet isolation-tested** (add to fixture + CI paths first), then ask Owner for a specific go/no-go.
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
