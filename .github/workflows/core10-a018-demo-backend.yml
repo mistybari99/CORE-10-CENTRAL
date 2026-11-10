@@ -8,6 +8,8 @@ on:
       - "scripts/c10_a018_demo_backend.sql"
       - "scripts/c10_a018_inventory_v1.sql"
       - "scripts/c10_a020_business_setup_v1.sql"
+      - "scripts/c10_a020_industry_draft_v2.sql"
+      - "tests/c10_a020_industry_draft_v2_e2e.sql"
       - "tests/c10_a018_demo_seed.sql"
       - "tests/c10_a018_demo_e2e.sql"
       - "tests/c10_a018_inventory_e2e.sql"
@@ -18,6 +20,8 @@ on:
       - "scripts/c10_a018_demo_backend.sql"
       - "scripts/c10_a018_inventory_v1.sql"
       - "scripts/c10_a020_business_setup_v1.sql"
+      - "scripts/c10_a020_industry_draft_v2.sql"
+      - "tests/c10_a020_industry_draft_v2_e2e.sql"
       - "tests/c10_a018_demo_seed.sql"
       - "tests/c10_a018_demo_e2e.sql"
       - "tests/c10_a018_inventory_e2e.sql"
@@ -75,3 +79,7 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a018_inventory_e2e.sql
       - name: Run Quick and Advanced setup and 303-site E2E
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a020_business_setup_e2e.sql
+      - name: Install ten-industry draft provisioning extension
+        run: psql -v ON_ERROR_STOP=1 -f scripts/c10_a020_industry_draft_v2.sql
+      - name: Run ten-industry tenant-isolation and idempotency E2E
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a020_industry_draft_v2_e2e.sql
