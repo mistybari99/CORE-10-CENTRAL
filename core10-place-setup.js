@@ -150,7 +150,9 @@
     });
     if(response.error)throw response.error;
     var created=response.data;
-    if(!created||number(created.id)===null||number(created.business_id)!==ctx.business_id)throw Error("response_scope_unverified");
+    if(!created||number(created.id)===null||number(created.business_id)!==ctx.business_id||
+       (created.kind!=null&&string(created.kind)!==p.kind)||
+       (created.status!=null&&string(created.status)!=="setting_up"))throw Error("response_scope_unverified");
     var latest=context(w);
     if(!latest||latest.business_id!==ctx.business_id||latest.identity!==session)return;
     state.key=null;state.signature=null;
