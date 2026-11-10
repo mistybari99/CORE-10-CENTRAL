@@ -94,10 +94,7 @@ BEGIN
  END IF;
 
  IF p_command LIKE 'business_member.%' THEN
-  SELECT role,active INTO v_subject_role,v_previous
-   FROM c10_demo.business_members
-   WHERE business_id=p_business AND user_id=p_subject;
-  -- Re-select the row using fixed output columns; not caller-supplied roles.
+  -- Read existing membership state from the database, never a claimed role.
   SELECT role,active INTO v_previous
    FROM c10_demo.business_members
    WHERE business_id=p_business AND user_id=p_subject;
