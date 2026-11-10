@@ -25,7 +25,9 @@ permissions:
   contents: read
 jobs:
   authenticated-read-only-negative-matrix:
-    if: ${{ inputs.staging_ack == 'I_CONFIRM_DISPOSABLE_STAGING' }}
+    # Never expose staging credentials to an unreviewed feature-branch workflow.
+    # Owner must approve promoting this workflow to trusted main first.
+    if: ${{ inputs.staging_ack == 'I_CONFIRM_DISPOSABLE_STAGING' && github.ref == 'refs/heads/main' }}
     environment: core10-staging
     runs-on: ubuntu-latest
     timeout-minutes: 6
