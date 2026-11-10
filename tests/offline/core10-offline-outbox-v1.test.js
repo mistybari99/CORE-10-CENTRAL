@@ -16,14 +16,15 @@ test("offline draft stays queued until explicit flush, then exactly once receipt
  const store=mem();let n=0, sent=0;
  const q=api.create({storage:store,getSubject:async()=> "user-one",
   randomUUID:()=>("00000000-0000-4000-8000-"+String(++n).padStart(12,"0")),
-  send:async p=>{sent++;return{id:30,request_key:p.p_request,status:"applied"}}});
+  send:async p=>{sent++;return{id:30,request_key:p.p_request,status:"staged"}}});
  const draft=await q.enqueue(base);
  assert.equal(draft.status,"queued");assert.equal(sent,0);
  assert.equal((await q.list()).length,1);
- assert.deepEqual(await q.flush(),{applied:1,conflicts:0,retryable:0});
- assert.equal((await q.list())[0].status,"applied");
+ assert.deepEqual(await q.flush(),{staged:1,conflicts:0,retryable:0});
+ assert.equal((await q.list())[0].status,"staged");
  await q.flush();assert.equal(sent,1);
  assert.equal(q.status().automaticReplay,false);
+ assert.equal(q.status().stockPostingEnabled,false);
 });
 test("stale ledger conflict is quarantined and requires new explicit event",async()=>{
  let n=0,sendCount=0;const q=api.create({
@@ -33,7 +34,7 @@ test("stale ledger conflict is quarantined and requires new explicit event",asyn
   status:"conflict",conflict_reason:"stale_ledger_version"}}
  });
  await q.enqueue(base);
- assert.deepEqual(await q.flush(),{applied:0,conflicts:1,retryable:0});
+ assert.deepEqual(await q.flush(),{staged:0,conflicts:1,retryable:0});
  assert.equal((await q.list())[0].lastError,"stale_ledger_version");
  await q.flush();assert.equal(sendCount,1);
 });
@@ -42,20 +43,20 @@ test("network outage keeps same request key for authenticated retry",async()=>{
  const q=api.create({storage:mem(),getSubject:async()=> "user-three",
  randomUUID:()=>("00000000-0000-4000-8000-"+String(++n).padStart(12,"0")),
  send:async p=>{last=p.p_request;if(fail)throw Error("offline");return{id:999,
-  status:"applied",request_key:p.p_request}}
+  status:"staged",request_key:p.p_request}}
  });
  const before=await q.enqueue(base);
- assert.deepEqual(await q.flush(),{applied:0,conflicts:0,retryable:1});
+ assert.deepEqual(await q.flush(),{staged:0,conflicts:0,retryable:1});
  assert.equal((await q.list())[0].status,"queued");
  fail=false;
- assert.deepEqual(await q.flush(),{applied:1,conflicts:0,retryable:0});
+ assert.deepEqual(await q.flush(),{staged:1,conflicts:0,retryable:0});
  assert.equal(before.requestKey,last);
 });
 test("rejects fake server reply instead of treating it as applied",async()=>{
  let n=0;
  const q=api.create({storage:mem(),getSubject:async()=> "user-four",
  randomUUID:()=>("00000000-0000-4000-8000-"+String(++n).padStart(12,"0")),
- send:async()=>({id:8,status:"applied",request_key:"different-key"})
+ send:async()=>({id:8,status:"staged",request_key:"different-key"})
  });
  await q.enqueue(base);
  await assert.rejects(q.flush(),{code:"UNVERIFIED_SERVER_RECEIPT"});
