@@ -156,6 +156,9 @@ If GitHub Pages serves `main` root (strongly suggested: `.nojekyll`, root `index
 - Menu drill-down (Cost Board screen) NOT covered by the automated run (selector could not enumerate menu tiles; management role may not see a cost screen). Owner should open Cost Board as owner.
 - **Account `qaclaude1` is now BANNED (`banned_until` +100 years)**; profile row still `active` and role `management` remain (deletion blocked by triggers). To reuse for tests, unban deliberately; to retire permanently, leave banned. One `login_failures` row exists for `qaclaude1` (harmless).
 
+## OWNER-CONFIRMED: Cost Board works after A004/A004b (2026-11-10, ~09:20 Asia/Dhaka)
+Owner opened the live app on phone (Chrome, mistybari99.github.io) signed in as Owner and sent a screenshot of **Menu -> Report -> "খরচ ও গ্যাপ" (Cost & gap)**: tabs Item cost / Extra % / Gap report render; item list loads with Sell / Entered / Given / Actual cost / Gap / Margin (e.g. I-056 অরেঞ্জ স্লাইস ৳80/৳50, I-014 ইলিশপেটি-কেজি ৳500/৳470); no permission error. The blue banner "ধরা খরচে লাভ হিসাব বন্ধ" is the app's own `cost_extra_on=false` switch (live API `{"on":false}`), not a regression. **A004 + A004b = RELEASED and OWNER-VERIFIED for the Cost Board read path.** Not yet owner-verified: saving an Extra % (write path, only meaningful when the switch is on), factory production cost, sale snapshot.
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
