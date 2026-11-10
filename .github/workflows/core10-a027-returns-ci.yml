@@ -1,0 +1,54 @@
+name: CORE 10 - Returns Atomicity and Tenant Isolation CI
+on:
+  push:
+    branches: ["feature/c10-a018-*"]
+    paths:
+      - "scripts/c10_a027_operational_returns_v1.sql"
+      - "tests/c10_a027_returns_e2e.sql"
+      - ".github/workflows/core10-a027-returns-ci.yml"
+  pull_request:
+    paths:
+      - "scripts/c10_a027_operational_returns_v1.sql"
+      - "tests/c10_a027_returns_e2e.sql"
+      - ".github/workflows/core10-a027-returns-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  return-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_return_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_return_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: core10_return_ci
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build foundation and stock/operational modules in disposable DB
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a018_inventory_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a020_business_setup_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a021_owner_controls_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a022_profit_finance_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a023_reporting_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a026_operational_docs_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a027_operational_returns_v1.sql
+      - name: Verify sale return, supplier return, atomic over-return rollback and RLS
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a027_returns_e2e.sql
