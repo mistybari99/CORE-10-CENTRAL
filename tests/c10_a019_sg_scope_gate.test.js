@@ -1,0 +1,64 @@
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs"),path=require("node:path");
+const {inspect}=require("../internal/core10-sg-scope-gate.js");
+const snapshot=require("../data/c10_sg_scope_preflight_2026-11-11.json");
+const legacy=require("../data/core10_sg_readonly_structure_2026-11-10.json");
+const clone=v=>JSON.parse(JSON.stringify(v));
+const original=JSON.stringify(snapshot);
+const result=inspect(snapshot,legacy);
+assert.equal(result.ok,true,result.errors.join("; "));
+assert.equal(result.release_ready,false);
+assert.equal(result.certification,"STATIC_COMPATIBILITY_ONLY");
+assert.equal(result.observed.legacy_ids_preserved,true);
+assert.equal(result.observed.legacy_location_count,8);
+assert.equal(result.observed.fk_locations,136);
+assert.equal(result.observed.fk_org_units,72);
+assert.equal(result.observed.locations_active_only_permissive,true);
+assert.equal(result.observed.locations_restrictive_scope_policy_present,true);
+assert.equal(result.observed.items_org_disabled_fallback_seen,true);
+assert.equal(result.observed.operating_site_layer_present,false);
+assert.equal(result.observed.tenant_layer_present,false);
+assert.ok(result.blockers.includes("AUTHENTICATED_CROSS_BUSINESS_RLS_E2E_REQUIRED"));
+assert.ok(result.blockers.includes("ITEMS_ORG_DISABLED_FALLBACK_REVIEW_REQUIRED"));
+assert.ok(result.blockers.includes("PRIVILEGED_PROVISIONING_RPC_AUTH_REVIEW_REQUIRED"));
+assert.ok(result.blockers.includes("CANONICAL_SITE_LAYER_MISSING"));
+assert.ok(result.blockers.includes("CANONICAL_TENANT_LAYER_MISSING"));
+assert.equal(original,JSON.stringify(snapshot),"No live snapshot mutation");
+const locPolicy=snapshot.policies.find(p=>p.name==="locations_scope123");
+assert.equal(locPolicy.permissive,"RESTRICTIVE","Do not infer leaks from is_active alone");
+function fail(label,mutate,prefix){
+  const s=clone(snapshot);mutate(s);const r=inspect(s,legacy);
+  assert.equal(r.ok,false,label+" unexpectedly accepted");
+  assert.ok(r.errors.some(e=>e.startsWith(prefix)),label+" wrong fail: "+r.errors.join("; "));
+  assert.equal(r.release_ready,false);
+}
+function block(label,mutate,prefix){
+  const s=clone(snapshot);mutate(s);const r=inspect(s,legacy);
+  assert.equal(r.release_ready,false,label+" release must not become ready");
+  assert.ok(r.blockers.some(e=>e.startsWith(prefix)),label+" blocker absent");
+}
+fail("removed location",s=>s.locations=s.locations.filter(x=>x.id!==9),"LEGACY_LOCATION_ID_LOST:");
+fail("duplicate location",s=>s.locations.push(clone(s.locations[0])),"DUPLICATE_LOCATION_ID:");
+fail("orphan location",s=>s.locations[0].org_unit_id="999","ORPHAN_LOCATION:");
+fail("missing location code",s=>s.locations[0].code_present=false,"MISSING_LOCATION_CODE:");
+fail("missing original business",s=>s.org_units=s.org_units.filter(x=>x.id!=="3"),"LEGACY_ORG_ID_LOST:");
+fail("lost FK refs",s=>s.foreign_key_refs.locations=135,"FK_DEPENDENCY_COUNT_REGRESSION:");
+fail("lost org FK refs",s=>s.foreign_key_refs.org_units=71,"FK_DEPENDENCY_COUNT_REGRESSION:");
+fail("location RLS off",s=>s.rls.find(x=>x.table==="locations").enabled=false,"MISSING_ENABLED_RLS:");
+fail("items RLS off",s=>s.rls.find(x=>x.table==="items").enabled=false,"MISSING_ENABLED_RLS:");
+fail("location restrictive removed",s=>s.policies=s.policies.filter(x=>x.name!=="locations_scope123"),"LOCATION_RESTRICTIVE_SCOPE_POLICY_MISSING");
+fail("location restrictive changed to permissive",s=>s.policies.find(x=>x.name==="locations_scope123").permissive="PERMISSIVE","LOCATION_RESTRICTIVE_SCOPE_POLICY_MISSING");
+fail("bad column type",s=>s.columns.find(x=>x.table==="locations"&&x.column==="org_unit_id").type="uuid","SG_COLUMN_INCOMPATIBLE:");
+fail("missing RPC",s=>s.functions=s.functions.filter(x=>x.name!=="business_place_create135"),"REQUIRED_SG_HELPER_MISSING:");
+fail("raw auth metadata",s=>s.auth={user_metadata:{role:"owner"}},"UNSANITIZED_SNAPSHOT");
+fail("invalid source",s=>s.source="OTHER","INVALID_READONLY_SG_SNAPSHOT");
+block("unsafe reparent without proof",s=>s.locations[0].org_unit_id="4","LOCATION_REPARENT_STAGING_PROOF_REQUIRED:");
+block("live release cannot be fabricated",s=>{s.release_ready=true;s.signed_auth_pass=true;s.staging_ready=true},"REAL_SUPABASE_AUTH_SIGNED_ROLE_MATRIX_REQUIRED");
+const sql=fs.readFileSync(path.join(__dirname,"../scripts/c10_a019_sg_scope_preflight_readonly.sql"),"utf8");
+const statements=sql.replace(/--[^\n]*/g,"");
+assert.match(statements,/^\s*WITH\s/i);
+assert.doesNotMatch(statements,/\b(?:INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|TRUNCATE|GRANT|REVOKE|CALL|EXECUTE|COPY)\b/i,
+  "Live SG extractor must stay read-only SQL");
+assert.ok(!/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i.test(JSON.stringify(snapshot)),"No raw client UUIDs");
+console.log("PASS C10-A019 SG schema+RLS STATIC gate: current observed 8 legacy IDs, 136/72 FK refs, 6 RLS table flags, restrictive policy composition, definer-RPC review and 16 negative mutations. Release remains BLOCKED pending real Supabase Auth staging.");
