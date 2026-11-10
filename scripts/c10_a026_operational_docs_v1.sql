@@ -13,7 +13,8 @@ CREATE TABLE c10_demo.operational_documents_v1(
  subtotal numeric(20,2) NOT NULL CHECK(subtotal>0),
  discount numeric(20,2) NOT NULL DEFAULT 0 CHECK(discount>=0 AND discount<=subtotal),
  net_amount numeric(20,2) GENERATED ALWAYS AS (subtotal-discount) STORED,
- lines_payload jsonb NOT NULL CHECK(jsonb_typeof(lines_payload)='array'),
+ lines_payload jsonb NOT NULL CHECK(jsonb_typeof(lines_payload)='object'
+  AND jsonb_typeof(lines_payload->'lines')='array'),
  request_key text NOT NULL CHECK(length(btrim(request_key)) BETWEEN 1 AND 120),
  status text NOT NULL DEFAULT 'draft' CHECK(status IN('draft','confirmed','posted')),
  created_by uuid NOT NULL,
