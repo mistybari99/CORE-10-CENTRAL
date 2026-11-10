@@ -30,3 +30,12 @@ jobs:
       - run: node tests/core10-industry-client.test.js
       - run: node tests/core10-business-builder-staging-smoke.js
       - run: node tests/e2e/forbidden_files.js
+      - name: Install pinned Chromium runtime outside tracked repository
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-playwright" && cd "$RUNNER_TEMP/core10-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Validate responsive ten-template flow in Chromium
+        run: node tests/e2e/core10-builder-browser.js
