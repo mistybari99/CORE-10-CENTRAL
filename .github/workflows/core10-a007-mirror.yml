@@ -1,0 +1,61 @@
+name: CORE 10 - A007 Mirror-Live Edge Tests
+on:
+  pull_request:
+    paths:
+      - "CORE10_OWNER_INBOX_RPC_CANDIDATE.sql"
+      - "supabase_candidate/c10_a007_*.sql"
+      - "tests/c10_a007_*.sql"
+      - ".github/workflows/core10-a007-mirror.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  a007-mirror-live:
+    name: Mirror-live helpers, edge tests, migration and rollback (disposable PG17)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_a007_mirror_ci
+          POSTGRES_USER: core10
+          POSTGRES_PASSWORD: ci_disposable_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U core10 -d core10_a007_mirror_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: core10_a007_mirror_ci
+      PGUSER: core10
+      PGPASSWORD: ci_disposable_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PostgreSQL client if absent
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+      - name: Migration function body must equal the reviewed candidate byte for byte
+        run: |
+          extract() { sed -n '/^CREATE OR REPLACE FUNCTION public.core10_owner_inbox_v1/,/^\$rpc\$;/p' "$1"; }
+          diff <(extract CORE10_OWNER_INBOX_RPC_CANDIDATE.sql) <(extract supabase_candidate/c10_a007_migration.sql)
+      - name: Build mirror-live schema, verbatim helpers, live ACLs and live org tree
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a007_mirror_live_fixture.sql
+      - name: Install migration candidate (disposable DB only)
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase_candidate/c10_a007_migration.sql
+      - name: Edge tests (limits, ids, NULLs, statuses, ACLs, hijack, load)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a007_edge_after.sql
+      - name: Rollback removes the function and is idempotent
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f supabase_candidate/c10_a007_rollback.sql
+          psql -X -v ON_ERROR_STOP=1 -f supabase_candidate/c10_a007_rollback.sql
+          test "$(psql -X -At -c "select count(*) from pg_proc where proname='core10_owner_inbox_v1'")" = "0"
+      - name: Migration re-applies cleanly after rollback
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f supabase_candidate/c10_a007_migration.sql
+          test "$(psql -X -At -c "select count(*) from pg_proc where proname='core10_owner_inbox_v1'")" = "1"
