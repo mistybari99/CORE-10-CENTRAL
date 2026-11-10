@@ -1,0 +1,35 @@
+name: CORE10 A011 Chromium UI
+on:
+  pull_request:
+    paths:
+      - 'core10-place-setup.js'
+      - 'core10-place-setup.css'
+      - 'tests/core10-a011-browser.mjs'
+      - 'tests/a011-browser-fixture.html'
+      - '.github/workflows/core10-a011-chromium.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned browser test dependency
+        run: npm install --no-save --no-package-lock playwright@1.56.1
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Responsive UI and interaction checks (isolated RPC)
+        run: node tests/core10-a011-browser.mjs
+      - name: Attach screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c10-a011-responsive-ui
+          path: a011-artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
