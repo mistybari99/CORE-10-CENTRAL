@@ -144,6 +144,28 @@ async function run(){
   f.closeForm();complete({data:{id:99,business_id:3,code:"new"}});
   await inflight;assert.equal(f.closeCount(),0);assert.equal(f.w.location.hash,"#/home");
  });
+ await check("stale session RPC failure never leaks an error into the next owner session",async()=>{
+  let f=fixture();site.install(f.w);f.open();let finish;
+  f.w.BOS_APP.sb.rpc=()=>new Promise(resolve=>{finish=resolve});
+  let request=f.w.BOS_APP.H.c10_place_create();
+  f.w.BOS_APP.S.ctx.profile.id="other-owner";
+  finish({error:{message:"permission denied"}});
+  await request;
+  assert.equal(f.elements.c10_place_error.hidden,true);
+  assert.equal(f.toast.length,0);
+ });
+ await check("closed sheet or changed route suppresses stale success toast",async()=>{
+  for(const change of ["close","route"]){
+   let f=fixture();site.install(f.w);f.open();let finish;
+   f.w.BOS_APP.sb.rpc=()=>new Promise(resolve=>{finish=resolve});
+   let request=f.w.BOS_APP.H.c10_place_create();
+   if(change==="close")f.closeForm();else f.w.location.hash="#/inventory";
+   finish({data:{id:85,business_id:3,code:"factory"}});
+   await request;
+   assert.equal(f.toast.length,0);
+   assert.equal(f.closeCount(),0);
+  }
+ });
  await check("never issues direct table writes from creation UI",()=>{
   const s=fs.readFileSync("core10-place-setup.js","utf8");
   assert.doesNotMatch(s,/\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(/);
