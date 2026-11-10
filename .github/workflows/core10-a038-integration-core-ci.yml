@@ -5,13 +5,21 @@ on:
     branches:
       - "feature/c10-claude-integration-ports-*"
     paths:
-      - "scripts/c10_a038_*.sql"
-      - "tests/c10_a038_*.sql"
+      - "scripts/c10_a03[89]_*.sql"
+      - "scripts/c10_a040_*.sql"
+      - "tests/c10_a03[89]_*.sql"
+      - "tests/c10_a040_*.sql"
+      - "server/integrations/**"
+      - "tests/server-integrations/**"
       - ".github/workflows/core10-a038-integration-core-ci.yml"
   pull_request:
     paths:
-      - "scripts/c10_a038_*.sql"
-      - "tests/c10_a038_*.sql"
+      - "scripts/c10_a03[89]_*.sql"
+      - "scripts/c10_a040_*.sql"
+      - "tests/c10_a03[89]_*.sql"
+      - "tests/c10_a040_*.sql"
+      - "server/integrations/**"
+      - "tests/server-integrations/**"
       - ".github/workflows/core10-a038-integration-core-ci.yml"
   workflow_dispatch:
 permissions:
@@ -48,10 +56,21 @@ jobs:
         run: |
           psql -d core10_integration_ci -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
           psql -d core10_integration_ci -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
-      - name: Build demo backend, seed, and the A038 integration core
+      - name: Core + payments + delivery/AI engines, each tested on a fresh disposable database
         run: |
-          for f in scripts/c10_a018_demo_backend.sql tests/c10_a018_demo_seed.sql scripts/c10_a038_integration_core_v1.sql; do
-            echo ">> $f"; psql -X -d core10_integration_ci -v ON_ERROR_STOP=1 -q -f "$f"
-          done
-      - name: Integration core end-to-end (SQL, RLS, gates)
-        run: psql -X -d core10_integration_ci -v ON_ERROR_STOP=1 -f tests/c10_a038_integration_core_e2e.sql
+          run_one() {  # $1 = db name, $2 = test file
+            psql -d core10_integration_ci -v ON_ERROR_STOP=1 -q -c "CREATE DATABASE $1"
+            for f in scripts/c10_a018_demo_backend.sql tests/c10_a018_demo_seed.sql scripts/c10_a038_integration_core_v1.sql \
+                     scripts/c10_a039_payments_v1.sql scripts/c10_a040_delivery_ai_v1.sql; do
+              psql -X -d "$1" -v ON_ERROR_STOP=1 -q -f "$f"
+            done
+            echo ">> $2"; psql -X -d "$1" -v ON_ERROR_STOP=1 -f "$2"
+          }
+          run_one a038 tests/c10_a038_integration_core_e2e.sql
+          run_one a039 tests/c10_a039_payments_e2e.sql
+          run_one a040 tests/c10_a040_delivery_ai_e2e.sql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Server adapter layer (signature, secrets, dry-run isolation, worker) - no network
+        run: node tests/server-integrations/adapters.test.js
