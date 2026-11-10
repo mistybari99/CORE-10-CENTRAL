@@ -1,0 +1,57 @@
+# C10-A019 / REV-009: this workflow is MANUAL ONLY, staging only.
+# No branch/push/pull_request trigger. No service role/admin key. GET-only data.
+# Before dispatch, use a disposable Supabase staging PROJECT with schema that
+# contains two independent businesses, two scoped owners, one scoped staff user,
+# and one revoked membership (still Auth-sign-in capable).
+# Required protected Actions Environment: core10-staging; restrict approvers.
+# Environment vars: C10_STAGE_REF, C10_STAGE_URL (optional),
+#   C10_STAGE_BUSINESS_A_ID, C10_STAGE_BUSINESS_B_ID,
+#   C10_STAGE_LOCATION_A_ID, C10_STAGE_LOCATION_B_ID,
+#   C10_STAGE_OWNER_A_EMAIL, C10_STAGE_OWNER_B_EMAIL,
+#   C10_STAGE_STAFF_A_EMAIL, C10_STAGE_REVOKED_A_EMAIL.
+# Environment secrets: C10_STAGE_ANON_KEY (publishable/anon, NO secret/service_role),
+#   C10_STAGE_OWNER_A_PASSWORD, C10_STAGE_OWNER_B_PASSWORD,
+#   C10_STAGE_STAFF_A_PASSWORD, C10_STAGE_REVOKED_A_PASSWORD.
+# Never put passwords or actual personal emails in workflow logs/PR comments.
+name: C10-A019 REAL Supabase Auth staged RLS negative matrix (MANUAL ONLY)
+on:
+  workflow_dispatch:
+    inputs:
+      staging_ack:
+        description: 'Type I_CONFIRM_DISPOSABLE_STAGING (never run on production)'
+        type: string
+        required: true
+permissions:
+  contents: read
+jobs:
+  authenticated-read-only-negative-matrix:
+    if: ${{ inputs.staging_ack == 'I_CONFIRM_DISPOSABLE_STAGING' }}
+    environment: core10-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      C10_STAGE_CONFIRM: ${{ inputs.staging_ack }}
+      C10_STAGE_REF: ${{ vars.C10_STAGE_REF }}
+      C10_STAGE_URL: ${{ vars.C10_STAGE_URL }}
+      C10_STAGE_ANON_KEY: ${{ secrets.C10_STAGE_ANON_KEY }}
+      C10_STAGE_BUSINESS_A_ID: ${{ vars.C10_STAGE_BUSINESS_A_ID }}
+      C10_STAGE_BUSINESS_B_ID: ${{ vars.C10_STAGE_BUSINESS_B_ID }}
+      C10_STAGE_LOCATION_A_ID: ${{ vars.C10_STAGE_LOCATION_A_ID }}
+      C10_STAGE_LOCATION_B_ID: ${{ vars.C10_STAGE_LOCATION_B_ID }}
+      C10_STAGE_OWNER_A_EMAIL: ${{ vars.C10_STAGE_OWNER_A_EMAIL }}
+      C10_STAGE_OWNER_B_EMAIL: ${{ vars.C10_STAGE_OWNER_B_EMAIL }}
+      C10_STAGE_STAFF_A_EMAIL: ${{ vars.C10_STAGE_STAFF_A_EMAIL }}
+      C10_STAGE_REVOKED_A_EMAIL: ${{ vars.C10_STAGE_REVOKED_A_EMAIL }}
+      C10_STAGE_OWNER_A_PASSWORD: ${{ secrets.C10_STAGE_OWNER_A_PASSWORD }}
+      C10_STAGE_OWNER_B_PASSWORD: ${{ secrets.C10_STAGE_OWNER_B_PASSWORD }}
+      C10_STAGE_STAFF_A_PASSWORD: ${{ secrets.C10_STAGE_STAFF_A_PASSWORD }}
+      C10_STAGE_REVOKED_A_PASSWORD: ${{ secrets.C10_STAGE_REVOKED_A_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run protected staging-only Supabase Auth issued-token cross-business RLS probe
+        run: node tests/api/core10-supabase-auth-staging-probe.js
