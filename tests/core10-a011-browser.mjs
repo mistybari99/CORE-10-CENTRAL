@@ -33,6 +33,8 @@ try{
    await page.locator("#c10_place_code").fill("depot_1");
    assert.equal(await page.locator("#c10_place_preview_name").textContent(),"নতুন গোডাউন");
    assert.match(await page.locator("#c10_place_preview_detail").textContent(),/depot_1/);
+   fs.mkdirSync("a011-artifacts",{recursive:true});
+   await page.screenshot({path:"a011-artifacts/"+theme+"-"+width+".png",fullPage:true});
    sizes=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));
    assert.ok(sizes.scroll<=sizes.width+1,"no edited overflow "+width+" "+theme);
    // Failure + retry exercise visual state without touching a real server.
