@@ -189,7 +189,7 @@ CREATE POLICY movement_scope_post ON c10_demo.stock_movements FOR INSERT TO auth
 -- Atomic inside the caller transaction; a repeated request key reuses the existing identity.
 -- Business remains DRAFT until full feature readiness and operational security gates pass.
 CREATE FUNCTION c10_demo.provision_business(p_legal bigint,p_slug text,p_template text,p_request text)
-RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $
+RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
 DECLARE v_tenant bigint; v_id bigint; v_existing record;
 BEGIN
  IF p_slug IS NULL OR btrim(p_slug)='' OR p_request IS NULL OR btrim(p_request)='' THEN
