@@ -66,13 +66,12 @@ BEGIN
  IF NOT EXISTS(SELECT 1 FROM c10_demo.items
   WHERE id=p_item AND tenant_id=v_loc.tenant_id AND business_id=v_loc.business_id)
  THEN RAISE EXCEPTION 'offline_item_scope_mismatch'; END IF;
- -- Lock observed stock to record a coherent snapshot, not to apply changes.
- INSERT INTO c10_demo.stock_balances_v1(
-  tenant_id,business_id,site_id,location_id,item_id,on_hand)
- VALUES(v_loc.tenant_id,v_loc.business_id,v_loc.site_id,p_location,p_item,0)
- ON CONFLICT(location_id,item_id) DO NOTHING;
- SELECT on_hand INTO v_before FROM c10_demo.stock_balances_v1
-  WHERE location_id=p_location AND item_id=p_item FOR UPDATE;
+ -- Strict read-only snapshot of physical inventory. DO NOT create even a
+ -- zero-valued stock balance when merely recording an offline proposal.
+ -- For absent row treat it as zero; final online posting MUST recheck.
+ SELECT COALESCE((SELECT on_hand FROM c10_demo.stock_balances_v1
+  WHERE location_id=p_location AND item_id=p_item FOR UPDATE),0)
+ INTO v_before;
  -- Once authorized, exact repeats always reuse their historical receipt, even
  -- if current inventory changed. Different request body or actor is rejected.
  SELECT * INTO v_existing FROM c10_demo.offline_stock_receipts_v1
@@ -84,7 +83,9 @@ BEGIN
   THEN RAISE EXCEPTION 'offline_replay_payload_conflict'; END IF;
   RETURN v_existing.id;
  END IF;
- -- Ledger event count is ABA resistant, unlike comparing on_hand alone.
+ -- Ledger event count is ABA-resistant for draft classification. A concurrent
+ -- writer can still supersede the observed draft snapshot, which is why no
+ -- stock posting ever follows and later online approval revalidates.
  SELECT count(*) INTO v_version FROM c10_demo.stock_movements
   WHERE location_id=p_location AND item_id=p_item;
  v_reason:=CASE
