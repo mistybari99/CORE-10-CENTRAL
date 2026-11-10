@@ -62,4 +62,4 @@ assert.match(statements,/^\s*WITH\s/i);
 assert.doesNotMatch(outsideSqlStringLiterals,/\b(?:INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|TRUNCATE|GRANT|REVOKE|CALL|EXECUTE|COPY)\b/i,
   "Live SG extractor must stay read-only SQL");
 assert.ok(!/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i.test(JSON.stringify(snapshot)),"No raw client UUIDs");
-console.log("PASS C10-A019 SG schema+RLS STATIC gate: current observed 8 legacy IDs, 136/72 FK refs, 6 RLS table flags, restrictive policy composition, definer-RPC review and 16 negative mutations. Release remains BLOCKED pending real Supabase Auth staging.");
+console.log("PASS C10-A019 SG schema+RLS STATIC gate: current observed 8 legacy IDs, 136/72 FK refs, 6 RLS table flags, restrictive policy composition, definer-RPC review and 17 negative mutations. Release remains BLOCKED pending real Supabase Auth staging.");
