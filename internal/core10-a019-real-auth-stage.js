@@ -88,6 +88,16 @@ async function read(config,token,path,http) {
       "Accept-Profile":"c10_demo","Accept":"application/json"}
   },http);
 }
+function corruptSignature(token) {
+  // Changing the last base64url character may change only unused padding bits
+  // and leave the decoded HMAC untouched. Flip a FIRST signature character.
+  const pieces=String(token).split(".");
+  if(pieces.length===3&&pieces[2].length>0) {
+    pieces[2]=(pieces[2][0]==="A"?"B":"A")+pieces[2].slice(1);
+    return pieces.join(".");
+  }
+  return "invalid-non-jwt:"+String(token);
+}
 async function run(config,http=fetch) {
   if(!config||!config.users||!config.key||!config.url)rejected("VALIDATED_STAGING_CONFIG_REQUIRED");
   const ids=new Set(),sessions={};
@@ -111,8 +121,8 @@ async function run(config,http=fetch) {
   expectRows(await read(config,sessions.tenantOwnerB,
     "businesses?select=id&id=eq."+a,http),[],"B_forbidden_A");
   // Bad bearer must be rejected by GoTrue/PostgREST, never accepted as anon.
-  const valid=sessions.tenantOwnerA,token=valid.slice(0,-1)+(valid.endsWith("a")?"b":"a");
-  const invalid=await read(config,token,"businesses?select=id",http);
+  const invalid=await read(config,corruptSignature(sessions.tenantOwnerA),
+    "businesses?select=id",http);
   if(invalid.status!==401&&invalid.status!==403)rejected("UNVERIFIED_TOKEN_ACCEPTED");
   const anon=await read(config,"","businesses?select=id",http);
   if(!([200,401,403].includes(anon.status) &&
@@ -129,4 +139,4 @@ if(require.main===module) {
       .catch(e=>{console.error("FAIL C10-A019 "+(e.code||"STAGING_TEST_FAILED"));process.exitCode=1});
   }catch(e){console.error("BLOCKED C10-A019 "+(e.code||"STAGING_CONFIG_INVALID"));process.exitCode=1}
 }
-module.exports={parseConfig,run,expectRows,PRODUCTION_REF,AGREEMENT,SEED,ROLES};
+module.exports={parseConfig,run,expectRows,corruptSignature,PRODUCTION_REF,AGREEMENT,SEED,ROLES};
