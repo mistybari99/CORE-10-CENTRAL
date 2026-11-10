@@ -14,12 +14,12 @@
  function fail(code){var e=new Error(code);e.code=code;throw e}
  function obj(x){return x!==null&&typeof x==="object"&&!Array.isArray(x)}
  function positive(x){return Number.isSafeInteger(x)&&x>0}
- function qty(x){return typeof x==="number"&&Number.isFinite(x)&&x>0&&x<=100000&&Math.round(x*1000)===x*1000}
- function money(x){return typeof x==="number"&&Number.isFinite(x)&&x>=0&&x<=100000000000&&Math.round(x*100)===x*100}
+ function qty(x){return typeof x==="number"&&Number.isFinite(x)&&x>0&&x<=100000&&Math.abs(Math.round(x*1000)-x*1000)<1e-7}
+ function money(x){return typeof x==="number"&&Number.isFinite(x)&&x>=0&&x<=100000000000&&Math.abs(Math.round(x*100)-x*100)<1e-7}
  function request(x){return typeof x==="string"&&x.trim()===x&&x.length>=1&&x.length<=120}
  function clean(x,max){return typeof x==="string"&&x.trim().length>0&&x.trim().length<=max}
- function ymd(x){return typeof x==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x)&&
-  new Date(x+"T00:00:00Z").toISOString().slice(0,10)===x}
+ function ymd(x){if(typeof x!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(x))return false;
+  var d=new Date(x+"T00:00:00Z");return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===x}
  function month(x){return ymd(x)&&x.slice(-2)==="01"}
  function mapping(o,fields){if(!obj(o))fail("INVALID_WORKFLOW_INPUT");var r={};for(var p of fields){r[p]=o[p]}return r}
  function lines(xs,type){
@@ -154,7 +154,7 @@
   }
   function contractDraft(p){
    if(!obj(p)||!positive(p.businessId)||!clean(p.investorId,128)||
-    !/^[0-9a-f]{8}-[0-9a-f-]{27,}$/.test(p.investorId)||!clean(p.code,80)||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(p.investorId)||!clean(p.code,80)||
     p.code.trim().length<2||!money(p.principal)||p.principal<=0||
     !Number.isSafeInteger(p.shareBps)||p.shareBps<1||p.shareBps>10000||
     ![1,3,6].includes(p.everyMonths)||!month(p.validFrom)||!month(p.validUntil)||
