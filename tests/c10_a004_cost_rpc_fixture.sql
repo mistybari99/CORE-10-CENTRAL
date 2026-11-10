@@ -52,3 +52,45 @@ GRANT EXECUTE ON FUNCTION public._cost_actual(uuid)
  TO PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public._costx_recompute()
  TO PUBLIC, anon, authenticated, service_role;
+
+-- ---------------------------------------------------------------------------
+-- Trigger-path fixture (mirrors the REAL live shape found by read-only catalog
+-- trace on 2026-11-10): the only DB-side callers of the two helpers are
+-- SECURITY DEFINER functions owned by the DB owner:
+--   _costx_rules()  trigger fn (settings row change) -> _costx_recompute()
+--   _costx_snap()   trigger fn (sale insert)         -> _cost_actual()
+--   cost_extra_*_set / cost_gap_items public wrappers (guarded by _costx_ok)
+-- No view, policy or pg_cron job references either helper.
+-- An authenticated user fires these triggers by writing ordinary rows; the
+-- definer chain must keep working after authenticated loses direct EXECUTE.
+-- ---------------------------------------------------------------------------
+CREATE TABLE public._a004_settings(key text PRIMARY KEY, value text);
+CREATE TABLE public._a004_sales(id int PRIMARY KEY, item_id uuid, snap_cost numeric);
+GRANT SELECT, INSERT, UPDATE ON public._a004_settings TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON public._a004_sales TO authenticated;
+
+CREATE OR REPLACE FUNCTION public._a004_rules_trg()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+ IF NEW.key='cost_extra_on' AND (TG_OP='INSERT' OR NEW.value IS DISTINCT FROM OLD.value) THEN
+   PERFORM public._costx_recompute();
+ END IF;
+ RETURN NEW;
+END
+$function$;
+CREATE TRIGGER a004_rules AFTER INSERT OR UPDATE ON public._a004_settings
+ FOR EACH ROW EXECUTE FUNCTION public._a004_rules_trg();
+
+CREATE OR REPLACE FUNCTION public._a004_snap_trg()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+ UPDATE public._a004_sales s
+    SET snap_cost=(SELECT a.cost FROM public._cost_actual(NEW.item_id) a)
+  WHERE s.id=NEW.id;
+ RETURN NULL;
+END
+$function$;
+CREATE TRIGGER a004_snap AFTER INSERT ON public._a004_sales
+ FOR EACH ROW EXECUTE FUNCTION public._a004_snap_trg();

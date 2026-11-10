@@ -81,6 +81,32 @@ SELECT (public._a004_owner_cost_reprice() = 1) AS authorized_wrapper_ok \gset
 \endif
 ROLLBACK;
 
+-- Trigger-path compatibility: ordinary authenticated writes must still drive the
+-- SECURITY DEFINER trigger chain into the (now direct-EXECUTE-restricted) helpers.
+BEGIN;
+SET LOCAL ROLE authenticated;
+INSERT INTO public._a004_settings(key,value) VALUES('cost_extra_on','true');
+INSERT INTO public._a004_sales(id,item_id)
+  VALUES(1,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+DO $test$
+BEGIN
+ IF (SELECT snap_cost FROM public._a004_sales WHERE id=1) IS DISTINCT FROM 25 THEN
+   RAISE EXCEPTION 'TRIGGER_PATH_COST_ACTUAL_BROKEN';
+ END IF;
+END
+$test$;
+RESET ROLE;
+DO $test$
+BEGIN
+ IF (SELECT recomputes FROM public._a004_cost_fixture
+      WHERE item_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')<>1 THEN
+   RAISE EXCEPTION 'TRIGGER_PATH_RECOMPUTE_BROKEN';
+ END IF;
+END
+$test$;
+ROLLBACK;
+\echo PASS: authenticated trigger-driven definer chain still reaches restricted helpers
+
 BEGIN;
 SET LOCAL ROLE service_role;
 DO $test$
