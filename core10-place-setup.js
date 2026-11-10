@@ -171,7 +171,7 @@
     // Reset the original button even when closeSheet has removed it from the DOM.
     // Never touch a replacement sheet's submit control.
     var live=w.document.getElementById("c10_place_submit");
-    if(button&&state.formSerial===serial&&w.document.getElementById("c10_place_form")===form&&(!live||live===button)){
+    if(button&&state.formSerial===serial&&(!w.document.getElementById("c10_place_form")||w.document.getElementById("c10_place_form")===form)&&(!live||live===button)){
      button.disabled=false;
      button.removeAttribute&&button.removeAttribute("aria-busy");
      button.textContent=tr(w,"লোকেশন তৈরি করুন","Create location");
