@@ -43,6 +43,7 @@
  function requestSignature(ctx,fields){return JSON.stringify([ctx.business_id,ctx.identity,fields.kind,fields.name_bn,fields.name_en,fields.code])}
  function errorMessage(err){
   var m=string(err&&err.message||err);
+  if(/unverified_replay/i.test(m))return"Request already processed. Check Locations before creating or retrying; the server did not confirm the replay details.";
   if(/not allowed|permission denied|unauthorized/i.test(m))return"Permission denied. Verify the signed-in Owner account.";
   if(/code_in_use|duplicate key/i.test(m))return"Site code already exists. Choose another code.";
   if(/bad_code|name_required|too_long/i.test(m))return"Invalid site details. Check the names and code.";
@@ -150,6 +151,9 @@
     });
     if(response.error)throw response.error;
     var created=response.data;
+    // SG RPC duplicate replay returns no kind/status and does not re-check payload.
+    // Never certify an unverified replay as a fresh site creation.
+    if(created&&created.dup===true)throw Error("unverified_replay");
     if(!created||number(created.id)===null||number(created.business_id)!==ctx.business_id||
        (created.kind!=null&&string(created.kind)!==p.kind)||
        (created.status!=null&&string(created.status)!=="setting_up"))throw Error("response_scope_unverified");
