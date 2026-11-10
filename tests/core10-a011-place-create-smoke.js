@@ -166,6 +166,31 @@ async function run(){
    assert.equal(f.closeCount(),0);
   }
  });
+ await check("business context switch during RPC cannot close sheet, navigate or show a success",async()=>{
+  let f=fixture();site.install(f.w);f.open();let finish;
+  f.w.BOS_APP.sb.rpc=()=>new Promise(resolve=>{finish=resolve});
+  let request=f.w.BOS_APP.H.c10_place_create();
+  f.w.BOS.biz.cur=()=>4;
+  f.w.location.href="https://example.test/business.html?workspace=business&biz=4";
+  f.w.BOS.biz.list=()=>[{id:4,kind:"business",status:"active",name_en:"Paint"}];
+  finish({data:{id:86,business_id:3,code:"old_business"}});
+  await request;
+  assert.equal(f.closeCount(),0);
+  assert.equal(f.w.location.hash,"#/home");
+  assert.equal(f.toast.length,0);
+ });
+ await check("business context switch during RPC suppresses old business permission error",async()=>{
+  let f=fixture();site.install(f.w);f.open();let finish;
+  f.w.BOS_APP.sb.rpc=()=>new Promise(resolve=>{finish=resolve});
+  let request=f.w.BOS_APP.H.c10_place_create();
+  f.w.BOS.biz.cur=()=>4;
+  f.w.location.href="https://example.test/business.html?workspace=business&biz=4";
+  f.w.BOS.biz.list=()=>[{id:4,kind:"business",status:"active",name_en:"Paint"}];
+  finish({error:{message:"permission denied for business 3"}});
+  await request;
+  assert.equal(f.elements.c10_place_error.hidden,true);
+  assert.equal(f.toast.length,0);
+ });
  await check("never issues direct table writes from creation UI",()=>{
   const s=fs.readFileSync("core10-place-setup.js","utf8");
   assert.doesNotMatch(s,/\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(/);
