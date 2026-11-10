@@ -105,6 +105,17 @@ BEGIN
  RETURN v_new_id;
 END $$;
 
+-- Explicit version endpoint for a device to capture before disconnecting.
+-- Value is a read-only snapshot, never proof that an offline write will be accepted.
+CREATE VIEW c10_demo.offline_stock_snapshot_v1 WITH(security_invoker=true) AS
+ SELECT b.tenant_id,b.business_id,b.site_id,b.location_id,b.item_id,b.on_hand,
+  (SELECT count(*) FROM c10_demo.stock_movements m
+   WHERE m.location_id=b.location_id AND m.item_id=b.item_id)::bigint AS ledger_version
+ FROM c10_demo.stock_balances_v1 b
+ WHERE c10_demo.can_site(b.tenant_id,b.business_id,b.site_id,'stock.read');
+REVOKE ALL ON c10_demo.offline_stock_snapshot_v1 FROM PUBLIC;
+GRANT SELECT ON c10_demo.offline_stock_snapshot_v1 TO authenticated;
+
 CREATE VIEW c10_demo.offline_stock_inbox_v1 WITH(security_invoker=true) AS
  SELECT r.tenant_id,r.business_id,r.site_id,r.location_id,
   count(*)::bigint AS total_replays,
