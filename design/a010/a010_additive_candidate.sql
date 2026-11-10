@@ -1,6 +1,6 @@
 -- C10-A010 CANDIDATE (NOT APPLIED). Additive Business -> Operating Site -> Location layer.
 -- Touches NO existing table/column/policy/grant/function. Idempotent. Single transaction.
--- ASSUMED live shape (verify read-only before any apply): public.org_units(id bigint PK, parent_id, kind text, name, ...),
+-- ASSUMED live shape (verify read-only before any apply): public.org_units(id bigint PK, parent_id, kind text, name_bn text, ...),
 -- public.locations(id bigint PK, org_unit_id -> org_units.id). Class H: requires Owner go/no-go + staging proof.
 BEGIN;
 
@@ -91,7 +91,7 @@ REVOKE ALL ON FUNCTION public.c10_business_of_unit(bigint), public.c10_site_guar
 -- 6) Legacy seed: one default site per business that has locations; map every legacy location.
 --    Ids of locations are never touched. Owner may later split sites (e.g. showroom/factory).
 INSERT INTO public.c10_operating_sites (business_id, code, name, is_legacy_default)
-SELECT DISTINCT b.id, 'legacy-default', coalesce(b.name, 'business ' || b.id) || ' (legacy default site)', true
+SELECT DISTINCT b.id, 'legacy-default', coalesce(b.name_bn, 'business ' || b.id) || ' (legacy default site)', true
   FROM public.locations l
   JOIN public.org_units b ON b.id = public.c10_business_of_unit(l.org_unit_id)
 ON CONFLICT (business_id, code) DO NOTHING;
