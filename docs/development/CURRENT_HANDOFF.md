@@ -1,6 +1,6 @@
 # CORE-10-CENTRAL — Cross-Agent Current Handoff
 
-**Checkpoint prepared:** 2026-11-10 (Asia/Dhaka)
+**Checkpoint prepared:** 2026-11-10 (Asia/Dhaka); release-policy revision pending in this same PR (Owner has authorized incremental safe live UI publishing).
 **Checkpoint source:** ChatGPT; intended next implementer: Claude; ChatGPT resumes from Git after Claude's checkpoint or abrupt cutoff.
 **This is a working snapshot, NOT a competing Decision Book or a claim that the remote cannot change.**
 
@@ -19,7 +19,7 @@
   - `public._cost_actual(uuid)` — costs disclosure risk.
   - `public._costx_recompute()` — cost table write risk.
 - Live SG catalog read-only inspection confirmed both currently granted direct PUBLIC/anon/authenticated execute and neither body self-checks caller permission. No claim of live external exploitation.
-- Candidate SQL not applied to production; no changes to Islamia items, sales, factory recipes, stock, customer data or live database at this checkpoint.
+- Candidate SQL not applied to production; no changes to Islamia items, sales, factory recipes, stock, customer data or live database at this checkpoint. **The Owner now wants tested low-risk app/UI increments progressively published live**, not held indefinitely until all ERP modules are built. Higher-risk DB/security/stock/finance changes still need specific go/no-go after full release safeguards.
 - Repo `main` had NO `supabase/migrations/` or full schema baseline. Do not guess migration history or assume GitHub push auto-deploys.
 - This PR is now adding shared AI agent instructions, migration runbook and a resumable Git handoff. Those **documentation files do not themselves deploy the A004 fix**.
 
@@ -27,13 +27,13 @@
 1. Re-fetch PR #8 current head, open diff, latest CI. Read `CLAUDE.md`, the protocol, this checkpoint, and the Decision Book A004/R118-R121. Check for concurrent writers.
 2. **Verify direct and indirect callers** of `_cost_actual(uuid)` and `_costx_recompute()` in the existing Islamia JS and SQL graph: browser `.rpc(...)` calls, SECURITY DEFINER/INVOKER dependencies, triggers, scheduled jobs, any API/Edge Functions. Avoid exposing production financial data.
 3. Make the candidate patch safer if verified callers require direct authenticated execution; prefer explicit authorization checks or audited wrapper rather than breaking a legitimate workflow. Prove with real disposable role tests and negative JWT HTTP/PostgREST fixtures when possible. Keep A004 unmerged.
-4. Verify the original Islamia cost board, production/recipe preview, item pricing, stock valuation and staff/owner paths **in safe test environment** before any release. If no staging Auth is available, record the blocker truthfully; do not improvise credentials or use production records as demo data.
-5. Advance Git commit+CI, update THIS checkpoint and the SAME Decision Book's A004/AUDIT EVIDENCE/CHANGE LOG with exact evidence. Do NOT write to live IMG-ERP-SG.
+4. Verify the original Islamia cost board, production/recipe preview, item pricing, stock valuation and staff/owner paths **in safe test environment** before releasing this A004 database permission change. If no staging Auth is available, record the blocker truthfully; do not improvise credentials or use production records as demo data. For unrelated safe UI-only fixes with sufficient tests, verify the real GitHub Pages publishing route and perform **small live releases plus smoke tests** so the Owner can inspect incrementally.
+5. Advance Git commit+CI, update THIS checkpoint and the SAME Decision Book's A004/AUDIT EVIDENCE/CHANGE LOG with exact evidence. The A004 privileged costing ACL remains a **candidate** until real compatibility/auth test and specific approval; do not execute it prematurely on IMG-ERP-SG. For actually released UI increments record the deployed SHA, verified live URL, live smoke result, rollback reference and Owner feedback.
 
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
-- DB and deployed environment: READ ONLY / STAGING / PRODUCTION (with approval receipts if applicable);
+- environment and deployment: READ ONLY / STAGING / PRODUCTION; distinguish frontend live site SHA from actual applied Supabase DB migration (include approval receipts where needed);
 - which Islamia modules were checked, which remain unchecked and any dangerous regression;
 - test status & rollback blockers and next ONE implementable step;
 - known uncommitted/unpushed files (these are NOT recoverable by the next agent without being shared).
