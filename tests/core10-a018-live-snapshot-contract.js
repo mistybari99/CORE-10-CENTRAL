@@ -26,6 +26,17 @@ assert.ok(verdict.warnings.includes("TENANT_BOUNDARY_NOT_PROVEN"));
 assert.ok(verdict.warnings.includes("RLS_RPC_AUTHORIZATION_NOT_TESTED"));
 assert.deepEqual(verdict.certifications,{tenant_isolation_verified:false,operating_site_security_verified:false,live_authenticated_tests_passed:false,scale_measured:false,release_ready:false});
 for(const t of snapshot.business_templates){
+  if(t.code==="food_manufacturing"){
+    // REV-009: historical Islamia source remains valid in the live SG snapshot,
+    // but it MUST NOT be advertised as a neutral Sweets & Bakery template.
+    assert.equal(t.status,"available","Legacy business status must remain historical");
+    assert.equal(registry.findTemplateByLiveCode(catalog,t.code),null);
+    const neutral=registry.findTemplate(catalog,"sweets_bakery");
+    assert.equal(neutral.source_code,null);
+    assert.equal(neutral.source_status,"needs_setup");
+    assert.ok(verdict.warnings.includes("LEGACY_FOOD_SOURCE_ISOLATED:3"));
+    continue;
+  }
   const primary=registry.findTemplateByLiveCode(catalog,t.code);
   const optional=catalog.optional_packs.find(p=>p.source_code===t.code);
   assert.ok(primary||optional,"Unregistered source code: "+t.code);
