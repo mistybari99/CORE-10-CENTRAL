@@ -18,6 +18,6 @@ For Supabase work, also read `docs/development/GITHUB_SUPABASE_MIGRATION_RUNBOOK
 - A passing isolated SQL fixture or frontend test does **not** prove actual Islamia workflows, signed-JWT tenant isolation, or production readiness. Record work honestly as BUILT / TESTED IN ISOLATION / INTEGRATED / STAGING VERIFIED / RELEASED.
 - A024 SaaS and A025 Enterprise Simulation remain deferred by the existing Owner decisions.
 
-**Immediate task:** Follow `CURRENT_HANDOFF.md` and implement the next *verified, safe A004 security increment*, NOT another Decision Book-only audit. The current A004 SQL is a candidate in Draft PR #8; it has NOT been applied to live IMG-ERP-SG. For any truly release-ready low-risk frontend increment, publish it through the verified live GitHub Pages path and let the Owner test; do not deploy the still-untested A004 database ACL candidate.
+**Immediate task:** Follow `CURRENT_HANDOFF.md` and implement the next *verified, safe A004 security increment*, NOT another Decision Book-only audit. The A004 cost-RPC ACL (two helper functions only) WAS applied to live IMG-ERP-SG on 2026-11-10 after specific Owner go/no-go; do NOT re-apply (receipt + rollback in `CURRENT_HANDOFF.md`). Signed-in app regression is still unverified. For any truly release-ready low-risk frontend increment, publish it through the verified live GitHub Pages path and let the Owner test; do not mix database changes into frontend releases.
 
 Do not run `/init` to regenerate/overwrite this file; improve the canonical protocol through a reviewed PR when required.
