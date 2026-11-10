@@ -6,6 +6,8 @@ on:
       - "security/c10-a004-*"
     paths:
       - "security/c10_a004_cost_rpc_acl_candidate.sql"
+      - "security/c10_a004b_costx_pct_acl_candidate.sql"
+      - "tests/c10_a004b_costx_pct_*.sql"
       - "tests/c10_a004_cost_rpc_fixture.sql"
       - "tests/c10_a004_cost_rpc_before.sql"
       - "tests/c10_a004_cost_rpc_after.sql"
@@ -13,6 +15,8 @@ on:
   pull_request:
     paths:
       - "security/c10_a004_cost_rpc_acl_candidate.sql"
+      - "security/c10_a004b_costx_pct_acl_candidate.sql"
+      - "tests/c10_a004b_costx_pct_*.sql"
       - "tests/c10_a004_cost_rpc_fixture.sql"
       - "tests/c10_a004_cost_rpc_before.sql"
       - "tests/c10_a004_cost_rpc_after.sql"
@@ -62,3 +66,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f security/c10_a004_cost_rpc_acl_candidate.sql
       - name: Negative-test anon/staff direct calls and prove owner/service chain remains usable
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a004_cost_rpc_after.sql
+      - name: A004b _costx_pct candidate (isolated)
+        run: |
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a004b_costx_pct_fixture.sql
+          psql -v ON_ERROR_STOP=1 -f security/c10_a004b_costx_pct_acl_candidate.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a004b_costx_pct_after.sql
