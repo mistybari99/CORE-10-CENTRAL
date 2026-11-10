@@ -118,6 +118,17 @@ function isClientDenied(r,label){
  assert.ok(conflict.status>=400&&String(conflict.data?.message||"").includes("idempotency_key_payload_conflict"));
  console.log("PASS conflicting retries rejected");
 
+ // Idempotency is also tested under simultaneous signed HTTP requests, not only retries.
+ const parallelSetups=await Promise.all(Array.from({length:12},()=>rpc(
+   "setup_business_v1",tok.owner,setup("http-parallel","http-parallel-001"))));
+ const parallelIds=parallelSetups.map((response,i)=>ok(response,"parallel setup attempt "+(i+1)));
+ assert.equal(new Set(parallelIds).size,1,"concurrent requests created multiple business IDs");
+ const createdParallel=rows(await req(
+   "/business_setup_overview_v1?business_id=eq."+parallelIds[0]+"&select=business_id,visible_sites",{token:tok.owner}),
+   "parallel setup exactly one draft business",1);
+ assert.equal(createdParallel[0].visible_sites,1);
+ console.log("PASS 12 simultaneous same-request setup calls converged to one business");
+ 
  // Two-role inventory: stock entry, atomic transfer, reconciliation and isolation.
  const initial=ok(await rpc("post_stock_event",tok.owner,{
   p_location:5001,p_item:8001,p_delta:25,p_request:"http-stock-01"}),"signed owner stock receive");
@@ -151,6 +162,24 @@ function isClientDenied(r,label){
  assert.ok(unauthorized.status>=400&&String(unauthorized.data?.message||"").includes("transfer_not_authorized"));
  console.log("PASS insufficient stock and staff foreign-site transfers blocked");
 
+ // Competing stock decrements must never oversell even with many HTTP clients.
+ // Owner source currently contains 17 units after the 8-unit transfer.
+ const contested=await Promise.all(Array.from({length:20},(_,i)=>rpc(
+   "post_stock_event",tok.owner,{
+    p_location:5001,p_item:8001,p_delta:-1,p_request:"contended-debit-"+i
+   })));
+ const successes=contested.filter(r=>r.status>=200&&r.status<300);
+ const rejected=contested.filter(r=>r.status>=400&&
+   String(r.data?.message||"").includes("insufficient_stock"));
+ assert.equal(successes.length,17,"concurrency did not serialize positive stock");
+ assert.equal(rejected.length,3,"concurrency accepted more than available stock");
+ const afterContention=rows(await req(
+  "/inventory_reconciliation_v1?select=location_id,on_hand,reconciled&order=location_id.asc",
+  {token:tok.owner}),"reconcile after parallel debit",2);
+ assert.deepEqual(afterContention.map(x=>Number(x.on_hand)),[0,8]);
+ assert.ok(afterContention.every(x=>x.reconciled));
+ console.log("PASS 20 simultaneous HTTP stock debits: 17 applied, 3 rejected, ledger reconciled");
+
  // JWT signature/authentication failures: authentication must be verified by HTTP gateway.
  const t=jwt(ids.owner),bits=t.split(".");
  bits[2]=(bits[2][0]==="A"?"B":"A")+bits[2].slice(1);
@@ -160,6 +189,6 @@ function isClientDenied(r,label){
  denied(await rpc("setup_business_v1",jwt(ids.owner,{nbf:Math.floor(Date.now()/1000)+3600}),setup("not-yet-valid","nbf-001")),"future nbf JWT");
  deniedByPolicy(await rpc("setup_business_v1",jwt(ids.manager,{user_metadata:{is_owner:true,role:"tenant_owner"},app_metadata:{is_owner:true}}),setup("forged-metadata","forged-001")),"metadata does not escalate manager","setup_not_authorized");
  deniedByPolicy(await rpc("setup_business_v1",jwt(ids.customer,{tenant_id:1,role:"authenticated",user_metadata:{tenant_id:1}}),setup("forged-tenant","forged-tenant-001")),"forged tenant does not escalate","setup_not_authorized");
- rows(await req("/businesses?select=id",{token:tok.owner,headers:{"X-Requested-Role":"service_role","X-User-Id":ids.customer}}),"spoofed headers do not alter DB tenant identity",4);
+ rows(await req("/businesses?select=id",{token:tok.owner,headers:{"X-Requested-Role":"service_role","X-User-Id":ids.customer}}),"spoofed headers do not alter DB tenant identity",5);
  console.log("SUCCESS: signed JWT HTTP proves CRUD/RPC grant restrictions, real scope filtering, atomic setup/inventory, negative cases (CI synthetic tokens only).");
 })().catch(e=>{console.error(e);process.exitCode=1});
