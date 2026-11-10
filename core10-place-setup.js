@@ -151,19 +151,26 @@
     });
     if(response.error)throw response.error;
     var created=response.data;
-    // SG RPC duplicate replay returns no kind/status and does not re-check payload.
-    // Never certify an unverified replay as a fresh site creation.
-    if(created&&created.dup===true)throw Error("unverified_replay");
+    // The old production RPC returns an unsigned duplicate. Reject it.
+    // The reviewed A011 backend upgrade can certify a replay only with
+    // request_matched=true, original kind and the current location status.
+    var verifiedReplay=!!(created&&created.dup===true&&created.request_matched===true);
+    if(created&&created.dup===true&&!verifiedReplay)throw Error("unverified_replay");
     if(!created||number(created.id)===null||number(created.business_id)!==ctx.business_id||
        (created.kind!=null&&string(created.kind)!==p.kind)||
-       (created.status!=null&&string(created.status)!=="setting_up"))throw Error("response_scope_unverified");
+       (!verifiedReplay&&created.status!=null&&string(created.status)!=="setting_up")||
+       (verifiedReplay&&(!created.kind||!created.status||
+         ["planned","setting_up","live","paused","closed"].indexOf(string(created.status))===-1))
+      )throw Error("response_scope_unverified");
     var latest=context(w);
     if(!latest||latest.business_id!==ctx.business_id||latest.identity!==session)return;
     state.key=null;state.signature=null;
     // Do not display a success message from an old/closed form or changed route.
     var liveForm=w.document.getElementById("c10_place_form");
     if(!liveForm||liveForm!==form||state.formSerial!==serial||string(w.location.hash)!==route)return;
-    if(typeof A.toast==="function")A.toast(tr(w,"লোকেশন তৈরি হয়েছে; এখন সেটআপ সম্পূর্ণ করুন।","Location created; finish setup next."));
+    if(typeof A.toast==="function")A.toast(verifiedReplay?
+     tr(w,"লোকেশনটি আগেই তৈরি হয়েছে। Locations থেকে দেখুন।","Location was already created. Open it in Locations."):
+     tr(w,"লোকেশন তৈরি হয়েছে; এখন সেটআপ সম্পূর্ণ করুন।","Location created; finish setup next."));
     if(typeof A.closeSheet==="function")A.closeSheet();
     w.location.hash="#/locations";
    }catch(e){
