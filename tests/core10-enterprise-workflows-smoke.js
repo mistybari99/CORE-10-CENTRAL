@@ -107,7 +107,7 @@ const b={businessId:101,finishedItemId:8004,code:"Cake Recipe",
  "INVALID_WORKFLOW_LINES");
  await rejectCode(()=>all.productionDraft({bomId:1,locationId:2,multiplier:0,
   requestKey:"batch-invalid"}),"INVALID_PRODUCTION_DRAFT");
- await rejectCode(()=>all.returnDraft({originalDocumentId:1,reason:"short",
+ await rejectCode(()=>all.returnDraft({originalDocumentId:1,reason:"tiny",
   lines:[{line:1,quantity:1}],requestKey:"ret"}),"INVALID_RETURN_DRAFT");
  await rejectCode(()=>all.taxPreviewDraft({businessId:1,label:"Tax",
   rateBps:15000,mode:"inclusive",requestKey:"tax"}),"INVALID_TAX_PREVIEW_DRAFT");
