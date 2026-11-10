@@ -2,6 +2,20 @@
 /* Contract-only test: mocks GoTrue and PostgREST responses. It is NOT live
  * signed Supabase Auth E2E; the real harness is deliberately stage-gated. */
 const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const path=require("node:path");
+// Secret-bearing staging jobs must be inaccessible from draft feature branches.
+for(const [workflow,environment] of [
+  ["core10-a019-auth-stage-manual.yml","core10-staging"],
+  ["core10-a019-real-auth-stage.yml.disabled","core10-staging-auth"]
+]){
+  const body=fs.readFileSync(path.resolve(__dirname,"../.github/workflows",workflow),"utf8");
+  assert.match(body,/github\.ref == 'refs\/heads\/main'/,
+    workflow+" must not release environment credentials to feature branch code");
+  assert.ok(body.includes("environment: "+environment),"Protected stage environment missing");
+  assert.doesNotMatch(body,/^\s*pull_request\s*:/m,
+    "Never run real staging secrets on untrusted pull_request");
+}
 const {parseConfig,run,expectRows,PRODUCTION_REF,AGREEMENT,SEED,ROLES}=
   require("../internal/core10-a019-real-auth-stage.js");
 function user(role,businessIds,siteIds){
