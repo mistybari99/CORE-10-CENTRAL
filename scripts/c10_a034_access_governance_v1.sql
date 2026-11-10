@@ -155,18 +155,48 @@ BEGIN
  RETURN v_event;
 END $$;
 
+-- SECURITY INVOKER views cannot count OTHER users through self-only membership
+-- RLS. Guarded SECURITY DEFINER aggregate exposes ONLY counts to verified owners,
+-- never the raw membership table or another tenant's identity.
+CREATE FUNCTION c10_demo.owner_access_metric_v1(p_business bigint,p_metric text)
+RETURNS bigint LANGUAGE plpgsql STABLE SECURITY DEFINER
+SET search_path=c10_demo,pg_catalog AS $$
+DECLARE v_tenant bigint;v_count bigint;
+BEGIN
+ SELECT tenant_id INTO v_tenant FROM c10_demo.businesses WHERE id=p_business;
+ IF v_tenant IS NULL OR NOT c10_demo.can_manage(v_tenant,p_business)
+ THEN RAISE EXCEPTION 'access_summary_not_authorized'; END IF;
+ CASE p_metric
+  WHEN 'business_owner' THEN
+   SELECT count(*) INTO v_count FROM c10_demo.business_members
+    WHERE business_id=p_business AND active AND role='business_owner';
+  WHEN 'manager' THEN
+   SELECT count(*) INTO v_count FROM c10_demo.business_members
+    WHERE business_id=p_business AND active AND role='manager';
+  WHEN 'investor' THEN
+   SELECT count(*) INTO v_count FROM c10_demo.business_members
+    WHERE business_id=p_business AND active AND role='investor';
+  WHEN 'site_grant' THEN
+   SELECT count(*) INTO v_count FROM c10_demo.site_grants
+    WHERE business_id=p_business AND active;
+  WHEN 'access_change' THEN
+   SELECT count(*) INTO v_count FROM c10_demo.access_change_events_v1
+    WHERE business_id=p_business;
+  ELSE RAISE EXCEPTION 'invalid_access_metric';
+ END CASE;
+ RETURN v_count;
+END $$;
+REVOKE EXECUTE ON FUNCTION c10_demo.owner_access_metric_v1(bigint,text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION c10_demo.owner_access_metric_v1(bigint,text) TO authenticated;
+
 CREATE VIEW c10_demo.access_governance_overview_v1 WITH(security_invoker=true) AS
  SELECT b.tenant_id,b.id AS business_id,b.slug,
- (SELECT count(*) FROM c10_demo.business_members m
-   WHERE m.business_id=b.id AND m.active AND m.role='business_owner') AS active_business_owners,
- (SELECT count(*) FROM c10_demo.business_members m
-   WHERE m.business_id=b.id AND m.active AND m.role='manager') AS active_managers,
- (SELECT count(*) FROM c10_demo.business_members m
-   WHERE m.business_id=b.id AND m.active AND m.role='investor') AS active_investors,
- (SELECT count(*) FROM c10_demo.site_grants g WHERE g.business_id=b.id AND g.active) AS active_site_grants,
- (SELECT count(*) FROM c10_demo.access_change_events_v1 a
-   WHERE a.business_id=b.id) AS audited_access_changes,
- false::boolean AS real_auth_account_verified
+  c10_demo.owner_access_metric_v1(b.id,'business_owner') AS active_business_owners,
+  c10_demo.owner_access_metric_v1(b.id,'manager') AS active_managers,
+  c10_demo.owner_access_metric_v1(b.id,'investor') AS active_investors,
+  c10_demo.owner_access_metric_v1(b.id,'site_grant') AS active_site_grants,
+  c10_demo.owner_access_metric_v1(b.id,'access_change') AS audited_access_changes,
+  false::boolean AS real_auth_account_verified
  FROM c10_demo.businesses b WHERE c10_demo.can_manage(b.tenant_id,b.id);
 REVOKE ALL ON c10_demo.access_governance_overview_v1 FROM PUBLIC;
 GRANT SELECT ON c10_demo.access_governance_overview_v1 TO authenticated;
