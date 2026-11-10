@@ -31,7 +31,7 @@ on:
       - "tests/core10-entity-compatibility-smoke.js"
       - "tests/core10-a018-live-snapshot-contract.js"
       - "data/core10_sg_readonly_structure_2026-11-10.json"
-      - "scripts/c10_a018_readonly_structure_snapshot.sql"
+      - "internal/enterprise-sql/c10_a018_readonly_structure_snapshot.sql"
       - ".github/workflows/core10-a018-foundation-catalog.yml"
   pull_request:
     paths:
@@ -61,7 +61,7 @@ on:
       - "tests/core10-entity-compatibility-smoke.js"
       - "tests/core10-a018-live-snapshot-contract.js"
       - "data/core10_sg_readonly_structure_2026-11-10.json"
-      - "scripts/c10_a018_readonly_structure_snapshot.sql"
+      - "internal/enterprise-sql/c10_a018_readonly_structure_snapshot.sql"
       - ".github/workflows/core10-a018-foundation-catalog.yml"
   workflow_dispatch:
 

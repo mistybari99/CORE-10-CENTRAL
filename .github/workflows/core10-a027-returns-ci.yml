@@ -3,12 +3,12 @@ on:
   push:
     branches: ["feature/c10-a018-*"]
     paths:
-      - "scripts/c10_a027_operational_returns_v1.sql"
+      - "internal/enterprise-sql/c10_a027_operational_returns_v1.sql"
       - "tests/c10_a027_returns_e2e.sql"
       - ".github/workflows/core10-a027-returns-ci.yml"
   pull_request:
     paths:
-      - "scripts/c10_a027_operational_returns_v1.sql"
+      - "internal/enterprise-sql/c10_a027_operational_returns_v1.sql"
       - "tests/c10_a027_returns_e2e.sql"
       - ".github/workflows/core10-a027-returns-ci.yml"
   workflow_dispatch:
@@ -45,14 +45,14 @@ jobs:
           psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
       - name: Build foundation and stock/operational modules in disposable DB
         run: |
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
           psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a018_inventory_v1.sql
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a020_business_setup_v1.sql
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a021_owner_controls_v1.sql
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a022_profit_finance_v1.sql
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a023_reporting_v1.sql
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a026_operational_docs_v1.sql
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a027_operational_returns_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a020_business_setup_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a021_owner_controls_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a022_profit_finance_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a023_reporting_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a026_operational_docs_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a027_operational_returns_v1.sql
       - name: Verify sale return, supplier return, atomic over-return rollback and RLS
         run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a027_returns_e2e.sql

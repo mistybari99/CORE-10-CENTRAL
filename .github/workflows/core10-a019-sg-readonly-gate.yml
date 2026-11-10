@@ -2,7 +2,7 @@ name: C10-A019 SG canonical scope + RLS read-only compatibility gate
 on:
   pull_request:
     paths:
-      - 'scripts/c10_a019_sg_scope_preflight_readonly.sql'
+      - 'internal/enterprise-sql/c10_a019_sg_scope_preflight_readonly.sql'
       - 'internal/core10-sg-scope-gate.js'
       - 'tests/c10_a019_sg_scope_gate.test.js'
       - 'data/c10_sg_scope_preflight_2026-11-11.json'
@@ -10,7 +10,7 @@ on:
   push:
     branches: ['feature/c10-a018-foundation-catalog-v1']
     paths:
-      - 'scripts/c10_a019_sg_scope_preflight_readonly.sql'
+      - 'internal/enterprise-sql/c10_a019_sg_scope_preflight_readonly.sql'
       - 'internal/core10-sg-scope-gate.js'
       - 'tests/c10_a019_sg_scope_gate.test.js'
       - 'data/c10_sg_scope_preflight_2026-11-11.json'

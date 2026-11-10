@@ -6,17 +6,17 @@ on:
     branches:
       - "feature/c10-a018-*"
     paths:
-      - "scripts/c10_a030_cost_tax_preview_v1.sql"
-      - "scripts/c10_a018_demo_backend.sql"
-      - "scripts/c10_a018_inventory_v1.sql"
-      - "scripts/c10_a020_business_setup_v1.sql"
-      - "scripts/c10_a026_operational_docs_v1.sql"
+      - "internal/enterprise-sql/c10_a030_cost_tax_preview_v1.sql"
+      - "internal/enterprise-sql/c10_a018_demo_backend.sql"
+      - "internal/enterprise-sql/c10_a018_inventory_v1.sql"
+      - "internal/enterprise-sql/c10_a020_business_setup_v1.sql"
+      - "internal/enterprise-sql/c10_a026_operational_docs_v1.sql"
       - "tests/c10_a030_cost_tax_e2e.sql"
       - "tests/api/core10-cost-tax-rest-e2e.js"
       - ".github/workflows/core10-a030-cost-tax-ci.yml"
   pull_request:
     paths:
-      - "scripts/c10_a030_cost_tax_preview_v1.sql"
+      - "internal/enterprise-sql/c10_a030_cost_tax_preview_v1.sql"
       - "tests/c10_a030_cost_tax_e2e.sql"
       - "tests/api/core10-cost-tax-rest-e2e.js"
       - ".github/workflows/core10-a030-cost-tax-ci.yml"
@@ -63,12 +63,12 @@ jobs:
           psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
       - name: Build standalone core enterprise inventory operational and cost/tax schemas
         run: |
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
           psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a018_inventory_v1.sql
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a020_business_setup_v1.sql
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a026_operational_docs_v1.sql
-          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a030_cost_tax_preview_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a020_business_setup_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a026_operational_docs_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a030_cost_tax_preview_v1.sql
       - name: Test calculations, missing-cost false-ready, owner/tenant security
         run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a030_cost_tax_e2e.sql
       - name: Start isolated PostgREST HTTP gateway

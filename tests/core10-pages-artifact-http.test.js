@@ -24,6 +24,8 @@ async function main(){
   const blocked=[
     "scripts/c10_a018_demo_backend.sql",
     "scripts/c10_a018_readonly_structure_snapshot.sql",
+    "internal/enterprise-sql/c10_a018_demo_backend.sql",
+    "internal/enterprise-sql/c10_a019_sg_scope_preflight_readonly.sql",
     "tests/e2e/forbidden_files.js",
     "internal/core10-pages-package.js",
     "docs/development/CURRENT_HANDOFF.md",

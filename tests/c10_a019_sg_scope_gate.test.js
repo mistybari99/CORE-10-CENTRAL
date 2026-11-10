@@ -55,7 +55,7 @@ fail("raw auth metadata",s=>s.auth={user_metadata:{role:"owner"}},"UNSANITIZED_S
 fail("invalid source",s=>s.source="OTHER","INVALID_READONLY_SG_SNAPSHOT");
 block("unsafe reparent without proof",s=>s.locations[0].org_unit_id="4","LOCATION_REPARENT_STAGING_PROOF_REQUIRED:");
 block("live release cannot be fabricated",s=>{s.release_ready=true;s.signed_auth_pass=true;s.staging_ready=true},"REAL_SUPABASE_AUTH_SIGNED_ROLE_MATRIX_REQUIRED");
-const sql=fs.readFileSync(path.join(__dirname,"../scripts/c10_a019_sg_scope_preflight_readonly.sql"),"utf8");
+const sql=fs.readFileSync(path.join(__dirname,"../internal/enterprise-sql/c10_a019_sg_scope_preflight_readonly.sql"),"utf8");
 const statements=sql.replace(/--[^\n]*/g,"");
 const outsideSqlStringLiterals=statements.replace(/\'(?:\'\'|[^\'])*\'/g,"\'\'");
 assert.match(statements,/^\s*WITH\s/i);

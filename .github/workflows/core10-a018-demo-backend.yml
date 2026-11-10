@@ -5,10 +5,10 @@ on:
     branches:
       - "feature/c10-a018-*"
     paths:
-      - "scripts/c10_a018_demo_backend.sql"
-      - "scripts/c10_a018_inventory_v1.sql"
-      - "scripts/c10_a020_business_setup_v1.sql"
-      - "scripts/c10_a020_industry_draft_v2.sql"
+      - "internal/enterprise-sql/c10_a018_demo_backend.sql"
+      - "internal/enterprise-sql/c10_a018_inventory_v1.sql"
+      - "internal/enterprise-sql/c10_a020_business_setup_v1.sql"
+      - "internal/enterprise-sql/c10_a020_industry_draft_v2.sql"
       - "tests/c10_a020_industry_draft_v2_e2e.sql"
       - "tests/c10_a018_demo_seed.sql"
       - "tests/c10_a018_demo_e2e.sql"
@@ -17,10 +17,10 @@ on:
       - ".github/workflows/core10-a018-demo-backend.yml"
   pull_request:
     paths:
-      - "scripts/c10_a018_demo_backend.sql"
-      - "scripts/c10_a018_inventory_v1.sql"
-      - "scripts/c10_a020_business_setup_v1.sql"
-      - "scripts/c10_a020_industry_draft_v2.sql"
+      - "internal/enterprise-sql/c10_a018_demo_backend.sql"
+      - "internal/enterprise-sql/c10_a018_inventory_v1.sql"
+      - "internal/enterprise-sql/c10_a020_business_setup_v1.sql"
+      - "internal/enterprise-sql/c10_a020_industry_draft_v2.sql"
       - "tests/c10_a020_industry_draft_v2_e2e.sql"
       - "tests/c10_a018_demo_seed.sql"
       - "tests/c10_a018_demo_e2e.sql"
@@ -66,20 +66,20 @@ jobs:
           psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
           psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
       - name: Build real relational demo backend and RLS
-        run: psql -v ON_ERROR_STOP=1 -f scripts/c10_a018_demo_backend.sql
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
       - name: Seed two independent tenants and nine demo identities
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
       - name: Install isolated inventory balance and transfer integrity engine
-        run: psql -v ON_ERROR_STOP=1 -f scripts/c10_a018_inventory_v1.sql
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
       - name: Run transactional provisioning, permission, stock and reporting E2E
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_e2e.sql
       - name: Install tenant-scoped Quick and Advanced setup prototype
-        run: psql -v ON_ERROR_STOP=1 -f scripts/c10_a020_business_setup_v1.sql
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a020_business_setup_v1.sql
       - name: Run atomic inventory and tenant isolation E2E
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a018_inventory_e2e.sql
       - name: Run Quick and Advanced setup and 303-site E2E
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a020_business_setup_e2e.sql
       - name: Install ten-industry draft provisioning extension
-        run: psql -v ON_ERROR_STOP=1 -f scripts/c10_a020_industry_draft_v2.sql
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a020_industry_draft_v2.sql
       - name: Run ten-industry tenant-isolation and idempotency E2E
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a020_industry_draft_v2_e2e.sql
