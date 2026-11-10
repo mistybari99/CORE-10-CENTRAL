@@ -229,6 +229,36 @@ async function run(){
   assert.doesNotMatch(s,/\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(/);
   assert.equal((s.match(/\.rpc\("business_place_create135"/g)||[]).length,1);
  });
+ await check("verified replay from patched server safely opens existing Locations",async()=>{
+  for(const status of ["setting_up","live"]){
+   let f=fixture();site.install(f.w);f.open();
+   f.w.BOS_APP.sb.rpc=async()=>({data:{dup:true,request_matched:true,id:51,business_id:3,code:"sw_factory",kind:"factory",status}});
+   await f.w.BOS_APP.H.c10_place_create();
+   assert.equal(f.closeCount(),1);
+   assert.equal(f.w.location.hash,"#/locations");
+   assert.match(f.toast[0],/আগেই তৈরি/);
+  }
+ });
+ await check("legacy unverified duplicate must remain fail-closed before DB upgrade",async()=>{
+  let f=fixture();site.install(f.w);f.open();
+  f.w.BOS_APP.sb.rpc=async()=>({data:{dup:true,id:51,business_id:3,code:"sw_factory"}});
+  await f.w.BOS_APP.H.c10_place_create();
+  assert.equal(f.closeCount(),0);
+  assert.equal(f.w.location.hash,"#/home");
+  assert.equal(f.toast.length,0);
+  assert.match(f.elements.c10_place_error.textContent,/already processed/);
+ });
+ await check("forged signed replay cannot bypass kind or current-status validation",async()=>{
+  for(const extra of [{kind:"godown",status:"setting_up"},{kind:"factory",status:"not_a_status"}]){
+   let f=fixture();site.install(f.w);f.open();
+   f.w.BOS_APP.sb.rpc=async()=>({data:Object.assign({dup:true,request_matched:true,id:52,business_id:3,code:"sw_factory"},extra)});
+   await f.w.BOS_APP.H.c10_place_create();
+   assert.equal(f.closeCount(),0);
+   assert.equal(f.w.location.hash,"#/home");
+   assert.equal(f.toast.length,0);
+   assert.match(f.elements.c10_place_error.textContent,/not confirmed/);
+  }
+ });
  console.log("RESULT:",passed,"PASS, 0 FAIL");
 }
 run().catch(e=>{console.error("FAIL",e);process.exitCode=1});
