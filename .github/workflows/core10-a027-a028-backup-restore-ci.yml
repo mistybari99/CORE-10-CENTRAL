@@ -1,0 +1,141 @@
+# CORE10 A027/A028/A029: synthetic PG17 E2E and disposable restore proof.
+# NEVER point at live IMG-ERP-SG. Synthetic auth tokens, no secrets from repository.
+name: CORE10 - BOM Production Returns and Restore CI
+on:
+  push:
+    branches:
+      - "feature/c10-a018-*"
+    paths:
+      - "scripts/c10_a027_bom_production_v1.sql"
+      - "scripts/c10_a028_returns_v1.sql"
+      - "scripts/c10_a018_demo_backend.sql"
+      - "scripts/c10_a018_inventory_v1.sql"
+      - "scripts/c10_a020_business_setup_v1.sql"
+      - "scripts/c10_a026_operational_docs_v1.sql"
+      - "tests/c10_a027_a028_e2e.sql"
+      - "tests/api/core10-production-returns-rest-e2e.js"
+      - ".github/workflows/core10-a027-a028-backup-restore-ci.yml"
+  pull_request:
+    paths:
+      - "scripts/c10_a027_bom_production_v1.sql"
+      - "scripts/c10_a028_returns_v1.sql"
+      - "tests/c10_a027_a028_e2e.sql"
+      - "tests/api/core10-production-returns-rest-e2e.js"
+      - ".github/workflows/core10-a027-a028-backup-restore-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  production-returns-recovery:
+    name: Recipe/BOM, batch stock, returns, tenant JWT and restore certification in disposable CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_production_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_production_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: core10_production_ci
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+      CORE10_CI_JWT_SECRET: core10_ci_disposable_enterprise_hmac_2026_only_not_production
+      CORE10_CI_REST_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Provision disposable anonymous and authenticated DB roles
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
+      - name: Install inherited enterprise, inventory, operation and recipe/returns SQL
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a018_inventory_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a020_business_setup_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a026_operational_docs_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a027_bom_production_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f scripts/c10_a028_returns_v1.sql
+      - name: Owner approved BOM, ingredient stock, sale/purchase return, cross-tenant SQL E2E
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a027_a028_e2e.sql
+      - name: Boot temporary PostgREST signed JWT gateway
+        run: |
+          docker run --rm -d --name core10-bom-return-pgrst --network host \
+            -e PGRST_DB_URI="postgres://postgres:demo_only@127.0.0.1:5432/core10_production_ci" \
+            -e PGRST_DB_SCHEMAS=c10_demo \
+            -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET="$CORE10_CI_JWT_SECRET" \
+            -e PGRST_JWT_AUD=authenticated \
+            -e PGRST_SERVER_PORT=3000 \
+            postgrest/postgrest:v12.2.12
+          for i in $(seq 1 45); do
+            code=$(curl -s --max-time 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ || true)
+            if [ "$code" != "000" ] && [ "$code" != "503" ]; then exit 0; fi
+            sleep 1
+          done
+          docker logs core10-bom-return-pgrst
+          exit 1
+      - name: Signed JWT HTTP recipe/return permissions and parallel batch posting
+        run: node tests/api/core10-production-returns-rest-e2e.js
+      - name: Dump -> restore full isolated schema and data and compare manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          query="
+          SELECT 'bom',count(*)::text FROM c10_demo.bom_recipes_v1
+          UNION ALL SELECT 'batches',count(*)::text FROM c10_demo.production_batches_v1
+          UNION ALL SELECT 'returns',count(*)::text FROM c10_demo.return_documents_v1
+          UNION ALL SELECT 'return_lines',count(*)::text FROM c10_demo.return_lines_v1
+          UNION ALL SELECT 'stock_movements',count(*)::text FROM c10_demo.stock_movements
+          UNION ALL SELECT 'stock_balances',COALESCE(sum(on_hand),0)::text FROM c10_demo.stock_balances_v1
+          UNION ALL SELECT 'stock_differences',count(*)::text FROM c10_demo.inventory_reconciliation_v1 WHERE NOT reconciled
+          UNION ALL SELECT 'documents',count(*)::text FROM c10_demo.operational_documents_v1
+          ORDER BY 1"
+          psql -X -At -v ON_ERROR_STOP=1 -c "$query" > /tmp/core10_before.tsv
+          docker run --rm --network host -e PGPASSWORD=demo_only \
+            -v "$PWD:/work" postgres:17 pg_dump \
+            -h 127.0.0.1 -U postgres -d core10_production_ci -n c10_demo \
+            --format=custom --no-owner -f /work/core10_disposable_restore_ci.backup
+          psql -X -v ON_ERROR_STOP=1 -c "CREATE DATABASE core10_restored_ci"
+          docker run --rm --network host -e PGPASSWORD=demo_only \
+            -v "$PWD:/work" postgres:17 pg_restore \
+            -h 127.0.0.1 -U postgres -d core10_restored_ci --no-owner \
+            /work/core10_disposable_restore_ci.backup
+          PGDATABASE=core10_restored_ci psql -X -At -v ON_ERROR_STOP=1 -c "$query" > /tmp/core10_after.tsv
+          diff -u /tmp/core10_before.tsv /tmp/core10_after.tsv
+          cat /tmp/core10_after.tsv
+          PGDATABASE=core10_restored_ci psql -X -v ON_ERROR_STOP=1 <<'SQL'
+          BEGIN;
+          SET LOCAL ROLE authenticated;
+          SELECT set_config('request.jwt.claim.sub','77777777-7777-4777-8777-777777777777',true);
+          DO $$
+          BEGIN
+           IF EXISTS(SELECT 1 FROM c10_demo.bom_recipes_v1)
+            OR EXISTS(SELECT 1 FROM c10_demo.return_documents_v1)
+            OR EXISTS(SELECT 1 FROM c10_demo.production_batches_v1) THEN
+             RAISE EXCEPTION 'restore leaked owner data across tenant';
+           END IF;
+          END $$;
+          ROLLBACK;
+          SQL
+          rm -f core10_disposable_restore_ci.backup
+          echo "SUCCESS: isolated backup/restore rowcounts, balances and restored RLS verified."
+      - name: PostgREST diagnostics if failed
+        if: failure()
+        run: docker logs core10-bom-return-pgrst || true
