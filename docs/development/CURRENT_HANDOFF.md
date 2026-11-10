@@ -49,6 +49,9 @@
 - **ROLLBACK:** run `security/c10_a004_cost_rpc_acl_ROLLBACK.sql` (restores exact pre-ACL).
 - **NOT verified:** signed-in Cost Board / item pricing / factory production / sale-snapshot flows in the real app. **Owner to check:** Cost Board (cost-gap list), Item cost % settings (group + item), create one test sale with cost-extra on, factory production cost. Any "permission denied for function _cost_actual/_costx_recompute" → run rollback and report.
 
+### Live post-apply negative test (Claude, 2026-11-10, read-only, no writes)
+Ran on IMG-ERP-SG via SQL role switch (`SET LOCAL ROLE anon/authenticated`, not signed JWT): direct `_cost_actual` and `_costx_recompute` -> `insufficient_privilege` for both roles (PASS); `cost_gap_items()` as authenticated without owner context -> `not allowed` from its own `_costx_ok()` guard, proving the definer wrapper still reaches the helper chain (PASS). Still NOT a signed-in app test.
+
 ## Ending / passing the baton
 When approaching a Claude context/usage limit, **commit and push safe work first** and replace this checkpoint with:
 - Date, agent, action ID, active PR+branch, actual current git commit after fetch, changed files and exact commands/results/CI links;
