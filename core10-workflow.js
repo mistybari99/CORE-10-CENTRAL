@@ -4,8 +4,9 @@
 (function(root,factory){"use strict";var x=factory(typeof module==="object"&&module.exports?require("./core10-erp-engines.js"):root.CORE10_ERP_ENGINES);if(typeof module==="object"&&module.exports)module.exports=x;if(root)root.CORE10_WORKFLOW=x;})(typeof globalThis!=="undefined"?globalThis:null,function(E){
 "use strict";
 function fail(reason,step){return {ok:false,reason:reason,step:step}}
+function validBusinessId(x){return (typeof x==="number"&&Number.isSafeInteger(x)&&x>0)||(typeof x==="string"&&/^[1-9][0-9]*$/.test(x)&&Number.isSafeInteger(Number(x)))}
 function plan(input){
- if(!input||!Array.isArray(input.steps)||!input.steps.length||!input.business_id)return fail("invalid_workflow",0);
+ if(!input||!Array.isArray(input.steps)||!input.steps.length||input.steps.length>100||!validBusinessId(input.business_id))return fail("invalid_workflow",0);
  var allowed={purchase:"purchase",receive:"inventory",produce:"production",sale:"sale",report:"report"};
  // P0: never model stock transfers as one-sided inventory movements or trust a caller-supplied approval role.
  // Both operations require verified, atomic server RPCs and remain blocked in this client planner.
@@ -14,7 +15,7 @@ function plan(input){
   var step=input.steps[i],type=step&&step.type,ref=step&&step.ref,payload=step&&step.payload;
   if(type==="transfer"||type==="approve")return fail("server_rpc_required",i);
   if(!Object.prototype.hasOwnProperty.call(allowed,type)||typeof ref!=="string"||!/^[a-zA-Z0-9_-]{1,64}$/.test(ref)||ids.has(ref)||!payload)return fail("invalid_step",i);
-  if(String(payload.business_id)!==String(input.business_id))return fail("cross_business_step",i);
+  if(!validBusinessId(payload.business_id)||Number(payload.business_id)!==Number(input.business_id))return fail("cross_business_step",i);
   if(type==="receive"&&previous!=="purchase")return fail("receive_requires_purchase",i);
   if(type==="produce"&&previous!=="receive"&&previous!=="transfer")return fail("production_requires_material_flow",i);
   if(type==="sale"&&previous!=="produce"&&previous!=="transfer"&&previous!=="receive")return fail("sale_requires_stock_flow",i);
