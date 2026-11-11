@@ -44,3 +44,17 @@ test('P0 planner output is explicitly simulation-only, never a write authorizati
  assert.equal(Object.isFrozen(output.command),true);
  assert.equal(Object.hasOwn(output,'authorized'),false);
 });
+
+for(const [name,change,reason] of [
+ ['string false active flag',x=>x.actor.active='false','approver_not_authorized'],
+ ['numeric active flag',x=>x.actor.active=1,'approver_not_authorized'],
+ ['string false revoked flag',x=>x.actor.revoked='false','approver_not_authorized'],
+ ['missing revoked flag',x=>delete x.actor.revoked,'approver_not_authorized'],
+ ['blank actor identity',x=>x.actor.user_id='   ','approver_not_authorized'],
+ ['blank maker identity',x=>x.request.created_by='   ','invalid_identity'],
+ ['missing maker identity',x=>delete x.request.created_by,'invalid_identity'],
+ ['blank request identity',x=>x.request.id='   ','invalid_identity']
+]) test('P0 strict authorization input: '+name,()=>{
+ const input=base();change(input);
+ assert.deepEqual(planApproval(input),{ok:false,reason});
+});
