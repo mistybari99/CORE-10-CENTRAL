@@ -236,3 +236,23 @@ GRANT EXECUTE ON FUNCTION c10_demo.read_control_settings_v1(bigint) TO authentic
 GRANT EXECUTE ON FUNCTION c10_demo.write_control_setting_v1(bigint,text,text,text,boolean,bigint,text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION c10_demo.decide_control_setting_v1(bigint,text) TO authenticated;
 -- NO GRANT for catalog/config/requests/receipts/audit direct DML. No stock/accounting operational effect.
+
+-- A044 Owner approval queue READ; never grant direct request-table access.
+CREATE FUNCTION c10_demo.read_control_pending_v1(p_business bigint)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE t bigint; data jsonb;
+BEGIN
+ SELECT tenant_id INTO t FROM c10_demo.businesses WHERE id=p_business;
+ IF c10_demo.actor_uid() IS NULL OR t IS NULL OR NOT c10_demo.can_tenant(t)
+ THEN RAISE EXCEPTION 'control_pending_read_denied'; END IF;
+ SELECT jsonb_build_object('business_id',p_business,'items',
+   COALESCE(jsonb_agg(jsonb_build_object('request_id',id,'control_id',control_id,
+    'target_enabled',target_enabled,'expected_version',expected_version,
+    'reason',reason,'created_at',created_at) ORDER BY id),'[]'::jsonb))
+ INTO data FROM (SELECT * FROM c10_demo.control_setting_requests_v1
+   WHERE business_id=p_business AND tenant_id=t AND status='pending'
+   ORDER BY id LIMIT 100) x;
+ RETURN data;
+END$$;
+REVOKE ALL ON FUNCTION c10_demo.read_control_pending_v1(bigint) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION c10_demo.read_control_pending_v1(bigint) TO authenticated;
