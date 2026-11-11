@@ -58,3 +58,12 @@ for(const [name,change,reason] of [
  const input=base();change(input);
  assert.deepEqual(planApproval(input),{ok:false,reason});
 });
+
+for(const [name,change,reason] of [
+ ['padded actor identity',x=>x.actor.user_id=' maker ','approver_not_authorized'],
+ ['padded maker identity',x=>x.request.created_by=' maker ','invalid_identity'],
+ ['padded request identity',x=>x.request.id=' req-1 ','invalid_identity']
+]) test('P0 identity canonicalization: '+name,()=>{
+ const input=base();change(input);
+ assert.deepEqual(planApproval(input),{ok:false,reason});
+});
