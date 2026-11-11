@@ -58,6 +58,7 @@ CREATE FUNCTION c10_demo.a056_known_actions() RETURNS text[] LANGUAGE sql IMMUTA
 SELECT ARRAY(SELECT jsonb_object_keys(c10_demo.a056_default_config()->'permissions') ORDER BY 1) $f$;
 
 CREATE FUNCTION c10_demo.a056_validate_config(c jsonb) RETURNS void LANGUAGE plpgsql STABLE AS $f$
+#variable_conflict use_column
 DECLARE s jsonb; codes text[]:=ARRAY[]::text[]; k text; v text; won int:=0; lost int:=0; n int; x numeric;
 BEGIN
  IF c IS NULL OR jsonb_typeof(c)<>'object' THEN RAISE EXCEPTION 'A056_CONFIG_INVALID'; END IF;
@@ -109,6 +110,7 @@ SELECT COALESCE(c10_demo.a056_cfg(p_business)->'permissions'->>p_action,
 -- p_site NULL = business-wide record (site-tier users are NOT allowed to write those); p_any=true for list/read gates
 CREATE FUNCTION c10_demo.a056_authz(p_tenant bigint,p_business bigint,p_site bigint,p_action text,p_any boolean DEFAULT false)
 RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE tier text:=c10_demo.a056_tier(p_business,p_action);
 BEGIN
  IF c10_demo.actor_uid() IS NULL THEN RETURN false; END IF;
@@ -128,6 +130,7 @@ SELECT c10_demo.actor_uid() IS NOT NULL AND c10_demo.a056_enabled(p_business) AN
 -- returns tenant_id or raises
 CREATE FUNCTION c10_demo.a056_require(p_business bigint,p_site bigint,p_action text,p_any boolean DEFAULT false,p_hide boolean DEFAULT false)
 RETURNS bigint LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint;
 BEGIN
  IF c10_demo.actor_uid() IS NULL THEN RAISE EXCEPTION 'A056_SIGNED_USER_REQUIRED'; END IF;
@@ -137,13 +140,16 @@ BEGIN
  IF NOT c10_demo.a056_enabled(p_business) AND p_action NOT IN('settings.write') THEN RAISE EXCEPTION 'A056_MODULE_DISABLED'; END IF;
  IF p_site IS NOT NULL AND NOT EXISTS(SELECT 1 FROM c10_demo.sites WHERE id=p_site AND business_id=p_business AND tenant_id=t)
  THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
- IF NOT c10_demo.a056_authz(t,p_business,p_site,p_action,p_any) THEN RAISE EXCEPTION 'A056_DENIED'; END IF;
+ IF NOT c10_demo.a056_authz(t,p_business,p_site,p_action,p_any) THEN
+  IF p_hide AND NOT c10_demo.a056_row_ok(t,p_business,p_site) THEN RAISE EXCEPTION 'A056_NOT_FOUND'; END IF;
+  RAISE EXCEPTION 'A056_DENIED'; END IF;
  RETURN t;
 END $f$;
 
 CREATE FUNCTION c10_demo.a056_h(VARIADIC p text[]) RETURNS text LANGUAGE sql IMMUTABLE AS $f$ SELECT md5(array_to_json(p)::text) $f$;
 CREATE FUNCTION c10_demo.a056_idem_check(p_business bigint,p_key text,p_action text,p_hash text) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE r c10_demo.a056_idem%ROWTYPE;
 BEGIN
  IF p_key IS NULL OR p_key !~ '^[A-Za-z0-9_-]{8,100}$' THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
@@ -167,6 +173,7 @@ VALUES(p_tenant,p_business,c10_demo.actor_uid(),p_action,p_entity,p_id,p_key,COA
 
 -- input sanitation: no NUL/control chars, bounded length. HTML is stored inert and MUST be escaped by renderers.
 CREATE FUNCTION c10_demo.a056_txt(p text,p_max int,p_required boolean DEFAULT false) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $f$
+#variable_conflict use_column
 DECLARE v text:=btrim(p);
 BEGIN
  IF v IS NULL OR v='' THEN IF p_required THEN RAISE EXCEPTION 'A056_INVALID'; END IF; RETURN NULL; END IF;
@@ -174,10 +181,12 @@ BEGIN
  RETURN v;
 END $f$;
 CREATE FUNCTION c10_demo.a056_email_norm(p text) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $f$
+#variable_conflict use_column
 DECLARE v text:=lower(c10_demo.a056_txt(p,254));
 BEGIN IF v IS NULL THEN RETURN NULL; END IF;
  IF v !~ '^[^@\s<>"]+@[^@\s<>"]+\.[^@\s<>"]+$' THEN RAISE EXCEPTION 'A056_INVALID'; END IF; RETURN v; END $f$;
 CREATE FUNCTION c10_demo.a056_phone_norm(p text) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $f$
+#variable_conflict use_column
 DECLARE v text:=c10_demo.a056_txt(p,32); d text;
 BEGIN IF v IS NULL THEN RETURN NULL; END IF;
  IF v !~ '^[0-9 +()-]+$' THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
@@ -249,6 +258,7 @@ VALUES(p_t,p_b,p_site,p_customer,p_lead,p_opp,p_kind,p_dir,p_summary,p_at,c10_de
 
 -- ---------- settings RPCs ----------
 CREATE FUNCTION c10_demo.a056_read_settings_v1(p_business bigint) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint; s c10_demo.a056_settings%ROWTYPE;
 BEGIN
  IF c10_demo.actor_uid() IS NULL THEN RAISE EXCEPTION 'A056_SIGNED_USER_REQUIRED'; END IF;
@@ -260,6 +270,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_set_settings_v1(p_business bigint,p_enabled boolean,p_config jsonb,p_expected bigint,p_request text,p_reason text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint; prev jsonb; h text; cur c10_demo.a056_settings%ROWTYPE; nv bigint; resp jsonb; bad text;
 BEGIN
  t:=c10_demo.a056_require(p_business,NULL,'settings.write');
@@ -290,6 +301,7 @@ BEGIN
   FROM (SELECT * FROM c10_demo.a056_settings_history WHERE business_id=p_business ORDER BY version DESC LIMIT LEAST(GREATEST(COALESCE(p_limit,50),1),200)) q),'[]'));
 END $f$;
 CREATE FUNCTION c10_demo.a056_read_my_access_v1(p_business bigint) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint; a text; r jsonb:='{}';
 BEGIN
  IF c10_demo.actor_uid() IS NULL THEN RAISE EXCEPTION 'A056_SIGNED_USER_REQUIRED'; END IF;
@@ -302,6 +314,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_list_audit_v1(p_business bigint,p_entity text DEFAULT NULL,p_limit int DEFAULT 50) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint;
 BEGIN
  t:=c10_demo.a056_require(p_business,NULL,'customer.merge');
@@ -315,6 +328,7 @@ SELECT jsonb_build_object('id',c.id,'business_id',c.business_id,'tenant_id',c.te
  'legal_name',c.legal_name,'email',c.email,'phone',c.phone,'tags',to_jsonb(c.tags),'status',c.status,'merged_into',c.merged_into,'version',c.version,'created_at',c.created_at) $f$;
 CREATE FUNCTION c10_demo.a056_create_customer_v1(p_business bigint,p_site bigint,p_kind text,p_display_name text,p_legal_name text,p_email text,p_phone text,p_tags text[],p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint; h text; prev jsonb; id bigint; tg text[]:=COALESCE(p_tags,'{}'); x text; resp jsonb;
 BEGIN
  t:=c10_demo.a056_require(p_business,p_site,'customer.write');
@@ -331,6 +345,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_update_customer_v1(p_customer bigint,p_patch jsonb,p_expected bigint,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE c c10_demo.a056_customers%ROWTYPE; t bigint; h text; prev jsonb; nv bigint; k text; tg text[]; newsite bigint; x text;
 BEGIN
  SELECT * INTO c FROM c10_demo.a056_customers WHERE id=p_customer FOR UPDATE;
@@ -354,11 +369,12 @@ BEGIN
   phone=CASE WHEN p_patch ? 'phone' THEN c10_demo.a056_txt(p_patch->>'phone',32) ELSE phone END,
   phone_norm=CASE WHEN p_patch ? 'phone' THEN c10_demo.a056_phone_norm(p_patch->>'phone') ELSE phone_norm END,
   tags=tg,site_id=newsite,version=version+1,updated_at=now() WHERE id=p_customer RETURNING version INTO nv;
- PERFORM c10_demo.a056_log(c.tenant_id,c.business_id,'customer.update','customer',p_customer,p_request,jsonb_build_object('fields',(SELECT jsonb_agg(k) FROM jsonb_object_keys(p_patch) k)));
+ PERFORM c10_demo.a056_log(c.tenant_id,c.business_id,'customer.update','customer',p_customer,p_request,jsonb_build_object('fields',(SELECT jsonb_agg(pk.key) FROM jsonb_each(p_patch) pk)));
  RETURN c10_demo.a056_done(c.business_id,p_request,'update_customer',h,jsonb_build_object('customer_id',p_customer,'version',nv));
 END $f$;
 CREATE FUNCTION c10_demo.a056_list_customers_v1(p_business bigint,p_search text DEFAULT NULL,p_status text DEFAULT 'active',p_limit int DEFAULT 50,p_offset int DEFAULT 0)
 RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint; lim int:=LEAST(GREATEST(COALESCE(p_limit,50),1),200); off int:=GREATEST(COALESCE(p_offset,0),0); s text:=c10_demo.a056_txt(p_search,100); tot int; items jsonb;
 BEGIN
  t:=c10_demo.a056_require(p_business,NULL,'customer.read',true);
@@ -374,6 +390,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_add_contact_v1(p_customer bigint,p_name text,p_role text,p_email text,p_phone text,p_primary boolean,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE c c10_demo.a056_customers%ROWTYPE; h text; prev jsonb; id bigint;
 BEGIN
  SELECT * INTO c FROM c10_demo.a056_customers WHERE id=p_customer;
@@ -391,6 +408,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_deactivate_contact_v1(p_contact bigint,p_expected bigint,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE k c10_demo.a056_contacts%ROWTYPE; h text; prev jsonb; nv bigint;
 BEGIN
  SELECT * INTO k FROM c10_demo.a056_contacts WHERE id=p_contact FOR UPDATE;
@@ -405,6 +423,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_log_contact_v1(p_customer bigint,p_lead bigint,p_opportunity bigint,p_type text,p_direction text,p_summary text,p_occurred_at timestamptz,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE c c10_demo.a056_customers%ROWTYPE; h text; prev jsonb; id bigint;
 BEGIN
  SELECT * INTO c FROM c10_demo.a056_customers WHERE id=p_customer;
@@ -424,6 +443,7 @@ END $f$;
 -- ---------- consent ----------
 CREATE FUNCTION c10_demo.a056_consent_state(p_customer bigint,p_channel text,p_purpose text) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE c c10_demo.a056_customers%ROWTYPE; e c10_demo.a056_consent_events%ROWTYPE; blocked boolean; hashes text[];
 BEGIN
  SELECT * INTO c FROM c10_demo.a056_customers WHERE id=p_customer;
@@ -442,6 +462,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_check_consent_v1(p_customer bigint,p_channel text,p_purpose text) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE c c10_demo.a056_customers%ROWTYPE;
 BEGIN
  SELECT * INTO c FROM c10_demo.a056_customers WHERE id=p_customer;
@@ -452,6 +473,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_record_consent_v1(p_customer bigint,p_channel text,p_purpose text,p_status text,p_source text,p_valid_until timestamptz,p_lift_suppression boolean,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE c c10_demo.a056_customers%ROWTYPE; h text; prev jsonb; id bigint; hashes text[]; active_supp int; ah text;
 BEGIN
  SELECT * INTO c FROM c10_demo.a056_customers WHERE id=p_customer FOR UPDATE;
@@ -484,6 +506,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_set_comm_prefs_v1(p_customer bigint,p_preferred_channel text,p_language text,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE c c10_demo.a056_customers%ROWTYPE; h text; prev jsonb;
 BEGIN
  SELECT * INTO c FROM c10_demo.a056_customers WHERE id=p_customer FOR UPDATE;

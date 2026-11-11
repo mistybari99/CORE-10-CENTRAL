@@ -109,6 +109,7 @@ SELECT EXISTS(SELECT 1 FROM c10_demo.tenant_members WHERE tenant_id=p_tenant AND
 -- ---------- leads ----------
 CREATE FUNCTION c10_demo.a056_create_lead_v1(p_business bigint,p_site bigint,p_source text,p_name text,p_email text,p_phone text,p_note text,p_customer bigint,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint; h text; prev jsonb; id bigint;
 BEGIN
  t:=c10_demo.a056_require(p_business,p_site,'lead.write');
@@ -124,6 +125,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_qualify_lead_v1(p_lead bigint,p_decision text,p_reason text,p_expected bigint,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE l c10_demo.a056_leads%ROWTYPE; h text; prev jsonb; nv bigint;
 BEGIN
  SELECT * INTO l FROM c10_demo.a056_leads WHERE id=p_lead FOR UPDATE;
@@ -141,6 +143,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_list_leads_v1(p_business bigint,p_status text DEFAULT NULL,p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE lim int; off int; tot int; items jsonb;
 BEGIN
  PERFORM c10_demo.a056_require(p_business,NULL,'lead.write',true); SELECT * INTO lim,off FROM c10_demo.a056_page(p_limit,p_offset);
@@ -153,6 +156,7 @@ END $f$;
 -- ---------- enquiries ----------
 CREATE FUNCTION c10_demo.a056_create_enquiry_v1(p_business bigint,p_site bigint,p_channel text,p_subject text,p_body text,p_customer bigint,p_lead bigint,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint; h text; prev jsonb; id bigint; ref text; cn text;
 BEGIN
  t:=c10_demo.a056_require(p_business,p_site,'lead.write');
@@ -171,6 +175,7 @@ END $f$;
 -- consent claims captured at intake become real consent events only after staff triage links a customer; opt-out suppression wins
 CREATE FUNCTION c10_demo.a056_apply_consent_claims(p_enq c10_demo.a056_enquiries,p_customer bigint,p_key text) RETURNS int
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE c10_demo_ok boolean; k text; ch text; n int:=0; st jsonb;
 BEGIN
  FOR k IN SELECT jsonb_object_keys(COALESCE(p_enq.payload->'consent','{}')) LOOP
@@ -186,6 +191,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_triage_enquiry_v1(p_enquiry bigint,p_action text,p_customer bigint,p_expected bigint,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE e c10_demo.a056_enquiries%ROWTYPE; h text; prev jsonb; nv bigint; lid bigint; ns text; resp jsonb; claims int:=0; cid bigint;
 BEGIN
  SELECT * INTO e FROM c10_demo.a056_enquiries WHERE id=p_enquiry FOR UPDATE;
@@ -213,6 +219,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_list_enquiries_v1(p_business bigint,p_status text DEFAULT NULL,p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE lim int; off int; tot int; items jsonb;
 BEGIN
  PERFORM c10_demo.a056_require(p_business,NULL,'enquiry.triage',true); SELECT * INTO lim,off FROM c10_demo.a056_page(p_limit,p_offset);
@@ -225,6 +232,7 @@ END $f$;
 -- ---------- opportunities ----------
 CREATE FUNCTION c10_demo.a056_create_opportunity_v1(p_business bigint,p_site bigint,p_customer bigint,p_lead bigint,p_enquiry bigint,p_title text,p_expected_value numeric,p_expected_close date,p_owner uuid,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint; h text; prev jsonb; id bigint; st text; cs bigint;
 BEGIN
  t:=c10_demo.a056_require(p_business,p_site,'opportunity.write');
@@ -248,6 +256,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_move_opportunity_stage_v1(p_opp bigint,p_stage text,p_expected bigint,p_reason text,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE o c10_demo.a056_opportunities%ROWTYPE; h text; prev jsonb; nv bigint; kind text; appr boolean; ns text;
 BEGIN
  SELECT * INTO o FROM c10_demo.a056_opportunities WHERE id=p_opp FOR UPDATE;
@@ -273,6 +282,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_list_opportunities_v1(p_business bigint,p_stage text DEFAULT NULL,p_status text DEFAULT NULL,p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE lim int; off int; tot int; items jsonb;
 BEGIN
  PERFORM c10_demo.a056_require(p_business,NULL,'opportunity.write',true); SELECT * INTO lim,off FROM c10_demo.a056_page(p_limit,p_offset);
@@ -294,6 +304,7 @@ END $f$;
 -- ---------- quotations ----------
 CREATE FUNCTION c10_demo.a056_write_quote_lines(p_t bigint,p_b bigint,p_version bigint,p_lines jsonb,OUT total numeric,OUT maxdisc numeric)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE l jsonb; n int:=0; q numeric; u numeric; d numeric; lt numeric; it bigint;
 BEGIN
  IF p_lines IS NULL OR jsonb_typeof(p_lines)<>'array' OR jsonb_array_length(p_lines) NOT BETWEEN 1 AND 100 THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
@@ -316,6 +327,7 @@ CREATE FUNCTION c10_demo.a056_needs_approval(p_business bigint,p_total numeric,p
 SELECT COALESCE(p_maxdisc>(c.a->>'discount_pct_over')::numeric,false) OR COALESCE(p_total>(c.a->>'total_over')::numeric,false) FROM (SELECT c10_demo.a056_cfg(p_business)->'approval' a) c $f$;
 CREATE FUNCTION c10_demo.a056_create_quotation_v1(p_opp bigint,p_lines jsonb,p_valid_until date,p_notes text,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE o c10_demo.a056_opportunities%ROWTYPE; h text; prev jsonb; qid bigint; vid bigint; tot numeric; md numeric; ra boolean; qn text;
 BEGIN
  SELECT * INTO o FROM c10_demo.a056_opportunities WHERE id=p_opp FOR UPDATE;
@@ -337,6 +349,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_revise_quotation_v1(p_quotation bigint,p_lines jsonb,p_valid_until date,p_notes text,p_expected_version int,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE q c10_demo.a056_quotations%ROWTYPE; cv c10_demo.a056_quote_versions%ROWTYPE; h text; prev jsonb; vid bigint; tot numeric; md numeric; ra boolean; nv int;
 BEGIN
  SELECT * INTO q FROM c10_demo.a056_quotations WHERE id=p_quotation FOR UPDATE;
@@ -361,6 +374,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_decide_quotation_v1(p_quotation bigint,p_version_no int,p_decision text,p_note text,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE q c10_demo.a056_quotations%ROWTYPE; v c10_demo.a056_quote_versions%ROWTYPE; h text; prev jsonb; ns text; act text;
 BEGIN
  SELECT * INTO q FROM c10_demo.a056_quotations WHERE id=p_quotation FOR UPDATE;
@@ -400,6 +414,7 @@ SELECT jsonb_build_object('id',q.id,'quote_no',q.quote_no,'opportunity_id',q.opp
    'lines',(SELECT COALESCE(jsonb_agg(jsonb_build_object('line_no',l.line_no,'description',l.description,'item_id',l.item_id,'quantity',l.quantity,'unit_price',l.unit_price,'discount_pct',l.discount_pct,'line_total',l.line_total) ORDER BY l.line_no),'[]')
      FROM c10_demo.a056_quote_lines l WHERE l.version_id=v.id)) ORDER BY v.version_no) FROM c10_demo.a056_quote_versions v WHERE v.quotation_id=q.id),'[]')) ELSE '{}'::jsonb END $f$;
 CREATE FUNCTION c10_demo.a056_read_quotation_v1(p_quotation bigint) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE q c10_demo.a056_quotations%ROWTYPE;
 BEGIN
  SELECT * INTO q FROM c10_demo.a056_quotations WHERE id=p_quotation;
@@ -410,6 +425,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_list_quotations_v1(p_business bigint,p_status text DEFAULT NULL,p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE lim int; off int; tot int; items jsonb;
 BEGIN
  PERFORM c10_demo.a056_require(p_business,NULL,'quote.write',true); SELECT * INTO lim,off FROM c10_demo.a056_page(p_limit,p_offset);
@@ -422,6 +438,7 @@ END $f$;
 -- ---------- sales/order integration: ONLY through A049 contracts ----------
 CREATE FUNCTION c10_demo.a056_convert_core(p_quotation bigint,p_version_no int,p_location bigint,p_request text,p_test boolean) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE q c10_demo.a056_quotations%ROWTYPE; v c10_demo.a056_quote_versions%ROWTYPE; loc c10_demo.stock_locations%ROWTYPE; h text; prev jsonb; l c10_demo.a056_quote_lines%ROWTYPE;
  net numeric; r jsonb; oid bigint; lid bigint; links jsonb:='[]'; act text:=CASE WHEN p_test THEN 'create_order_test' ELSE 'convert_quote' END;
 BEGIN
@@ -473,6 +490,7 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN RETURN NULL;
 END $f$;
 CREATE FUNCTION c10_demo.a056_read_order_links_v1(p_business bigint,p_customer bigint DEFAULT NULL) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE ov jsonb; items jsonb;
 BEGIN
  PERFORM c10_demo.a056_require(p_business,NULL,'customer.read',true);
@@ -485,6 +503,7 @@ BEGIN
  RETURN jsonb_build_object('items',items,'a049_overview_available',ov IS NOT NULL,'note','fulfilment is read through A049 read_operation_overview_v1; unavailable when not readable');
 END $f$;
 CREATE FUNCTION c10_demo.a056_read_purchase_history_v1(p_customer bigint) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE c c10_demo.a056_customers%ROWTYPE; r jsonb; posted jsonb;
 BEGIN
  SELECT * INTO c FROM c10_demo.a056_customers WHERE id=p_customer;
@@ -502,6 +521,7 @@ END $f$;
 -- ---------- finance boundary: certified read models only ----------
 CREATE FUNCTION c10_demo.a056_register_finance_source_v1(p_business bigint,p_read_fn text,p_certification_ref text,p_certified boolean,p_expected bigint,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint; h text; prev jsonb; nv bigint; proc regprocedure; nm text;
 BEGIN
  t:=c10_demo.a056_require(p_business,NULL,'finance.register');
@@ -519,6 +539,7 @@ BEGIN
  RETURN c10_demo.a056_done(p_business,p_request,'register_finance',h,jsonb_build_object('business_id',p_business,'version',nv,'certified',p_certified));
 END $f$;
 CREATE FUNCTION c10_demo.a056_read_customer_finance_v1(p_customer bigint) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE c c10_demo.a056_customers%ROWTYPE; s c10_demo.a056_finance_sources%ROWTYPE; r jsonb; base jsonb;
 BEGIN
  SELECT * INTO c FROM c10_demo.a056_customers WHERE id=p_customer;
@@ -541,6 +562,7 @@ END $f$;
 -- ---------- follow-ups ----------
 CREATE FUNCTION c10_demo.a056_create_followup_v1(p_business bigint,p_site bigint,p_customer bigint,p_opportunity bigint,p_ticket bigint,p_due_at timestamptz,p_note text,p_assignee uuid,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint; h text; prev jsonb; id bigint; cid bigint:=p_customer;
 BEGIN
  t:=c10_demo.a056_require(p_business,p_site,'followup.write');
@@ -558,6 +580,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_complete_followup_v1(p_followup bigint,p_outcome text,p_note text,p_expected bigint,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE f c10_demo.a056_followups%ROWTYPE; h text; prev jsonb; nv bigint;
 BEGIN
  SELECT * INTO f FROM c10_demo.a056_followups WHERE id=p_followup FOR UPDATE;
@@ -574,6 +597,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_list_followups_v1(p_business bigint,p_status text DEFAULT 'open',p_due_before timestamptz DEFAULT NULL,p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE lim int; off int; tot int; items jsonb;
 BEGIN
  PERFORM c10_demo.a056_require(p_business,NULL,'followup.write',true); SELECT * INTO lim,off FROM c10_demo.a056_page(p_limit,p_offset);
@@ -586,6 +610,7 @@ END $f$;
 -- ---------- support / SLA ----------
 CREATE FUNCTION c10_demo.a056_create_ticket_v1(p_business bigint,p_site bigint,p_customer bigint,p_kind text,p_priority text,p_subject text,p_description text,p_order_link bigint,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE t bigint; h text; prev jsonb; id bigint; hrs int; due timestamptz;
 BEGIN
  t:=c10_demo.a056_require(p_business,p_site,'ticket.write');
@@ -604,6 +629,7 @@ BEGIN
 END $f$;
 CREATE FUNCTION c10_demo.a056_update_ticket_v1(p_ticket bigint,p_action text,p_assignee uuid,p_note text,p_evidence text,p_expected bigint,p_request text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE k c10_demo.a056_tickets%ROWTYPE; h text; prev jsonb; nv bigint; ns text; act text; br boolean;
 BEGIN
  SELECT * INTO k FROM c10_demo.a056_tickets WHERE id=p_ticket FOR UPDATE;
@@ -643,6 +669,7 @@ SELECT CASE WHEN k.resolved_at IS NOT NULL AND k.status IN('resolved','closed') 
  WHEN now()>k.sla_due_at THEN 'breached' WHEN k.sla_due_at-now() < make_interval(hours=>k.sla_hours)*0.2 THEN 'at_risk' ELSE 'ok' END $f$;
 CREATE FUNCTION c10_demo.a056_list_tickets_v1(p_business bigint,p_status text DEFAULT NULL,p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
+#variable_conflict use_column
 DECLARE lim int; off int; tot int; items jsonb;
 BEGIN
  PERFORM c10_demo.a056_require(p_business,NULL,'ticket.write',true); SELECT * INTO lim,off FROM c10_demo.a056_page(p_limit,p_offset);
