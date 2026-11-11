@@ -42,6 +42,17 @@ The complete source wording/acceptance for these 34 requirements is preserved at
 
 Current GitHub staging includes PR #75 (docs-only mandate), PR #7 (demo foundation), PR #60 (integrated visual preview), PR #73 (isolated QC), PR #59 (Claude assets), PR #67 (Codex research), plus Claude-owned operational/CRM modules. These are dependencies/peer work, not blanket proof of real signed production operations. Never rebase or overwrite their branches. New engine files must be contained in one uniquely Claude-owned implementation branch; use the approved dedicated path only if it does not already exist.
 
+### Actual source-code reuse check (A021–A023, verified on PR #7 foundation HEAD 1c55625)
+
+Before writing Simulation code, implementers must explicitly adapt to these **confirmed** existing source facts:
+- internal/enterprise-sql/c10_a021_owner_controls_v1.sql: disposable Owner module visibility request/decision APIs, server checked but NOT a universal scenario-approval service or signed production authorization. Do NOT route simulated scenario approvals into generic module-visibility mutations.
+- internal/enterprise-sql/c10_a022_profit_finance_v1.sql: finance_months_v1 uses **manual_unverified** revenue/cost inputs; funding_agreements_v1 allows **profit_participation**, where profit_share_bps=1400 means 14% **of approved positive period profit**, NOT 14% annual interest/contractual payment on principal. Investor entitlements and payments are not actual bank settlements or an equity registry. M14 scenario models MUST explicitly distinguish contractual fixed principal-based obligations, loans, equity and true-profit-share; never silently reuse the A022 profit share rate as debt interest or guaranteed payout.
+- internal/enterprise-sql/c10_a023_reporting_v1.sql: business_finance_report_v1 labels source as manual_unverified and reconciled_to_live_pos=false. tenant_consolidated_kpi_v1 and inventory reports are disposable PG17 read models; they do not certify real period close, actual POS accounting, COGS or liquidity.
+- tests/c10_a021_a023_e2e.sql provides synthetic PostgreSQL checks, **not** signed GoTrue operational integration.
+- Actual existing finance2.js / reports.js in the legacy app must be *audited* before reuse. Do not import brand-specific cost or cash calculations as canonical business-wide models. Old R081–R114 scope does not override D042/REV-009 preservation.
+
+**Non-negotiable trust labels for inputs originating from these objects:** A022/A023 values = MANUAL_UNVERIFIED / scenario seed unless independently reconciled to authorized real transaction source; owner approval of a manual finance month does not itself convert that month to "Actual POS net profit." No arbitrary conversion of a total cash receipt to revenue, bank payout to profit sharing, or loan principal to expense.
+
 ## 3. Complete one-engine contract to actually implement
 
 Every component below requires **real tested source**, not a placeholder screen, generic future proposal or second ERP:
