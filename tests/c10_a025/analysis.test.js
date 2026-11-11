@@ -1,0 +1,43 @@
+"use strict";
+const assert = require("node:assert/strict"); const E = require("../../modules/simulation/index.js"); const { D } = E; const A = require("../../modules/simulation/lib/analysis"); const g = require("./golden.json"); const fx = id => JSON.parse(JSON.stringify(g.find(x => x.id === id).inputs));
+const code = fn => { try { fn(); } catch (e) { return e.code || e.message; } return null; };
+const base = { unit_cost: "60", selling_price: "100", discount_pct: "10", waste_pct: "5" };
+/* U09 sensitivity: one-way, ranked, bounded */
+const s = A.sensitivity({ modelId: "M01", inputs: base, outputKey: "contribution_per_unit", drivers: ["unit_cost", "selling_price", "discount_pct", "waste_pct"] });
+assert.deepEqual(s.drivers.map(d => d.driver), ["selling_price", "unit_cost", "discount_pct", "waste_pct"]); assert.equal(s.drivers[0].swing, "36.0000"); assert.equal(s.runs, 17);
+assert.equal(s.drivers[1].points.find(p => p.deltaPct === "10").output, "20.5263", "cost +10% => 66/0.95=69.47; 90-69.47=20.5263");
+assert.equal(code(() => A.sensitivity({ modelId: "M01", inputs: base, outputKey: "net_price", drivers: ["nope"] })), "BAD_DRIVER");
+/* nested driver path into lists */
+const ms = A.sensitivity({ modelId: "M17", inputs: fx("M17-mix"), outputKey: "total_contribution", drivers: ["products.0.price", "products.1.units"], deltasPct: [-10, 10] }); assert.equal(ms.drivers.length, 2);
+/* U10 stress: combined shocks, abs/%/pp deltas */
+const st = A.stress({ modelId: "M01", inputs: base, shocks: [{ path: "unit_cost", pct: "25" }, { path: "discount_pct", abs: "5" }] }); const row = k => st.rows.find(r => r.output === k);
+assert.equal(row("contribution_per_unit").absoluteChange, "-20.7895"); assert.equal(row("contribution_per_unit").percentChange, "-77.45"); assert.ok(row("margin_on_revenue_pct").percentagePointChange !== null && row("margin_on_revenue_pct").percentChange === null, "percent outputs report percentage POINTS");
+const stCash = A.stress({ modelId: "M16", inputs: fx("M16-branch-funded-loan"), shocks: [{ path: "avg_daily_sales_at_maturity", pct: "-40" }], outputKeys: ["lowest_cash", "cumulative_net_profit"] }); assert.ok(D(stCash.rows[0].absoluteChange).isNeg());
+/* U11 reverse goal: solves, refuses infeasible, refuses non-monotonic */
+const rg = A.reverseGoal({ modelId: "M01", inputs: base, driver: "selling_price", outputKey: "margin_on_revenue_pct", target: "40", lo: "50", hi: "400" }); assert.equal(rg.status, "SOLVED"); assert.ok(D(rg.achievedOutput).sub("40").abs().lt("0.001")); assert.equal(rg.driverValue, "116.959143");
+assert.equal(A.reverseGoal({ modelId: "M01", inputs: base, driver: "selling_price", outputKey: "margin_on_revenue_pct", target: "99.9", lo: "50", hi: "200" }).status, "INFEASIBLE_IN_BOUNDS");
+const nm = A.reverseGoal({ modelId: "M12", inputs: { cashflows: ["-100", "230", "-132"], period: "year", discount_rate_pct: "10" }, driver: "discount_rate_pct", outputKey: "npv", target: "5", lo: "0", hi: "40" }); assert.ok(["NON_MONOTONIC_REFUSED", "INFEASIBLE_IN_BOUNDS", "SOLVED"].includes(nm.status));
+const rgc = A.reverseGoal({ modelId: "M16", inputs: fx("M16-branch-funded-loan"), driver: "avg_daily_sales_at_maturity", outputKey: "lowest_cash", target: "100000", lo: "10000", hi: "80000" }); assert.equal(rgc.status, "SOLVED", "reverse: sales needed to hold 100k cash"); 
+/* U12 optimisation: bounded, constraints, infeasible reported, deterministic */
+const op = A.optimize({ modelId: "M01", inputs: Object.assign({ units: "100" }, base), variables: [{ path: "discount_pct", lo: "0", hi: "30", steps: 7 }], objective: { outputKey: "total_contribution", sense: "max" }, constraints: [{ outputKey: "margin_on_revenue_pct", op: ">=", value: "20" }] }); assert.equal(op.status, "FEASIBLE_OPTIMUM_FOUND"); assert.equal(op.best.at.discount_pct, "0.000000"); assert.equal(op.runs, 7);
+const inf = A.optimize({ modelId: "M01", inputs: Object.assign({ units: "100" }, base), variables: [{ path: "discount_pct", lo: "0", hi: "30", steps: 7 }], objective: { outputKey: "total_contribution", sense: "max" }, constraints: [{ outputKey: "margin_on_revenue_pct", op: ">=", value: "90" }] }); assert.equal(inf.status, "INFEASIBLE"); assert.equal(inf.best, null); assert.ok(Object.keys(inf.violatedConstraintCounts).length);
+assert.deepEqual(op, A.optimize({ modelId: "M01", inputs: Object.assign({ units: "100" }, base), variables: [{ path: "discount_pct", lo: "0", hi: "30", steps: 7 }], objective: { outputKey: "total_contribution", sense: "max" }, constraints: [{ outputKey: "margin_on_revenue_pct", op: ">=", value: "20" }] }), "deterministic");
+assert.equal(code(() => A.optimize({ modelId: "M01", inputs: base, variables: [1, 2, 3, 4].map(() => ({ path: "unit_cost", lo: "1", hi: "2" })), objective: { outputKey: "net_price", sense: "max" } })), "BOUND_EXCEEDED"); assert.equal(code(() => A.optimize({ modelId: "M01", inputs: base, variables: [{ path: "unit_cost", lo: "1", hi: "2", steps: 99 }], objective: { outputKey: "net_price", sense: "max" } })), "BOUND_EXCEEDED");
+assert.ok(op.disclaimer.includes("Not a global optimum"));
+/* U06/U07 feasibility graph: unknown != ok; double counting flagged */
+const br = E.runModel("M16", null, fx("M16-branch-infeasible")), cash = E.runModel("M04", null, fx("M04-profit-negative-cash")), cap = E.runModel("M08", null, fx("M08-bottleneck")), unk = E.runModel("M02", null, { fixed_costs: "1", unit_price: { kind: "unknown" }, variable_cost_per_unit: "1" });
+const fe = A.feasibility({ branch: br, cashflow: cash, capacity: cap, breakeven: unk }, { minCashBuffer: "20000", financingFlags: [{ name: "loan", principalInPnl: true }] }); assert.equal(fe.overall, "INFEASIBLE"); assert.ok(fe.findings.some(f => f.code === "OVER_CAPACITY")); assert.ok(fe.findings.some(f => f.code === "PRINCIPAL_IN_PNL")); assert.ok(fe.findings.some(f => f.severity === "unknown" && f.node === "breakeven"), "missing inputs are UNKNOWN, not OK"); assert.ok(fe.dependencies.length >= 3); assert.deepEqual(fe.sideEffects, []);
+assert.equal(A.feasibility({ ok: E.runModel("M01", null, base) }).overall, "FEASIBLE_ON_STATED_ASSUMPTIONS");
+/* insights deterministic, bilingual */
+const ins = A.insights(E.runModel("M01", null, { unit_cost: "95", selling_price: "100" })); assert.ok(ins.some(i => i.ruleId === "INS-LOW-MARGIN") && ins.every(i => i.en && i.bn)); assert.ok(A.insights({ outputs: null }).some(i => i.ruleId === "INS-NEEDS-INPUT")); assert.deepEqual(A.insights(E.runModel("M01", null, base)), A.insights(E.runModel("M01", null, base)));
+/* U17 actual vs plan: immutable plan, only ACTUAL kind measured */
+const plan = A.planSnapshot(E.runModel("M01", null, base)); assert.ok(Object.isFrozen(plan)); const avp = A.actualVsPlan(plan, { currency: "BDT", values: { contribution_per_unit: { kind: "actual", value: "20" }, margin_on_revenue_pct: { kind: "estimate", value: "25" } } });
+assert.equal(avp.rows[0].variance, "-6.84"); assert.equal(avp.rows[1].status, "SKIPPED_NOT_ACTUAL"); assert.equal(code(() => A.actualVsPlan(Object.assign({}, plan, { outputs: { contribution_per_unit: "99.00" } }), { values: {} })), "PLAN_TAMPERED"); assert.equal(code(() => A.actualVsPlan(plan, { currency: "USD", values: {} })), "CURRENCY_MISMATCH");
+/* U19 forecast accuracy: needs comparable actuals */
+assert.equal(A.forecastAccuracy([{ kind: "actual", actual: "100", forecast: "110" }]).status, "INSUFFICIENT_COMPARABLE_ACTUALS"); const fa = A.forecastAccuracy([{ kind: "actual", actual: "100", forecast: "110" }, { kind: "actual", actual: "200", forecast: "190" }, { kind: "actual", actual: "50", forecast: "60" }, { kind: "estimate", actual: "1", forecast: "100" }]);
+assert.equal(fa.comparable, 3); assert.equal(fa.bias, "3.3333"); assert.equal(fa.biasDirection, "over_forecast"); assert.equal(fa.mapePct, "11.67"); assert.equal(A.forecastAccuracy([1, 2, 3].map(() => ({ kind: "actual", actual: "0", forecast: "5" }))).mapePct, null, "zero actuals excluded from MAPE");
+/* U20 early warning */
+const ew = A.earlyWarnings(plan, { values: { contribution_per_unit: { kind: "actual", value: "20" } } }, [{ output: "contribution_per_unit", metric: "pct", direction: "below", threshold: "15" }]); assert.equal(ew.replan, "RECOMMENDED"); assert.equal(A.earlyWarnings(plan, { values: { contribution_per_unit: { kind: "actual", value: "26" } } }, [{ output: "contribution_per_unit", metric: "pct", direction: "below", threshold: "15" }]).replan, "NOT_TRIGGERED");
+/* U14 gate */
+assert.equal(code(() => E.runModel("X01", null, {})), "MODEL_NOT_IMPLEMENTED");
+console.log("PASS analysis: sensitivity, stress, reverse goal, bounded optimisation, feasibility graph, insights, actual-vs-plan, forecast accuracy, early warning");
