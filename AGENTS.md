@@ -27,3 +27,8 @@ This file provides a **minimal Codex/Claude/GPT engineering entrypoint** for the
 
 ## Report in concise Bangla
 Action+Decision ID / committed file paths & SHA / tests and CI PASS-FAIL-NOT-RUN / Draft PR / preview URL / what is working vs synthetic / Decision Book exact row updated or NOT WRITTEN / blocker + next executable step. No endless research loop.
+
+
+## Claude 3-package parallel build reservation (2026-11-11; coordination only)
+The Owner reserved THREE Draft-only Claude packages in [the exact three-build instructions](docs/development/CLAUDE_THREE_BUILD_ASSIGNMENTS_2026-11-11.md): **A055** finish existing assets/maintenance PR #59 (CI currently failed); **A052** Owner Intent-to-Capability/Explainability Engine (Issue #53); **A053+A054** A046/A050/A051 workforce/portfolio + configurable payroll governance (Issues #56/#57). No shared-source edits or blind merges; each owns separate namespaced files and tests.
+**Codex's next new task is NOT specified yet.** Codex should be aware of these reserved Claude namespaces but should not automatically start these packages, change Claude-owned branches, or merge pending PRs. The Owner will issue new Codex directions later. Existing preview-first source and production gates remain.
