@@ -341,3 +341,154 @@ BEGIN
  END IF;
  RETURN w;
 END$$;
+
+-- ===================== create / update / assign =====================
+CREATE FUNCTION c10_demo.am_create_work_order_v1(p_business bigint,p_request text,p_data jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; a am_assets; w am_work_orders; wid bigint; v_kind text; v_title text; v_desc text; v_prio text; v_due date;
+ v_chk text; v_svc text; v_asg uuid; v_aref text; v_team text; v_elh numeric; v_elc numeric; v_esc numeric; v_submit boolean; v_asset bigint;
+ mgr boolean; safety boolean;
+BEGIN
+ PERFORM ami_wk_keys(p_data,ARRAY['asset_id','kind','title','description','priority','due_on','checklist_code','service_category',
+   'assigned_to','assignee_ref','team_ref','est_labor_hours','est_labor_cost','est_spares_cost','submit']);
+ v_asset:=ami_wk_num(p_data,'asset_id',1,9e18,true)::bigint;
+ v_kind:=COALESCE(ami_wk_txt(p_data,'kind',1,20,false),'corrective');
+ IF v_kind='breakdown' THEN RAISE EXCEPTION 'am_use_breakdown_report'; END IF;
+ IF v_kind NOT IN('preventive','corrective','inspection','calibration') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_title:=ami_wk_txt(p_data,'title',3,160,true); v_desc:=ami_wk_txt(p_data,'description',1,2000,false);
+ v_prio:=COALESCE(ami_wk_txt(p_data,'priority',1,10,false),'medium');
+ IF v_prio NOT IN('low','medium','high','critical') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_due:=ami_wk_date(p_data,'due_on',false); v_chk:=ami_wk_re(p_data,'checklist_code','^[A-Z0-9][A-Z0-9_-]{0,31}$',false);
+ v_svc:=ami_wk_re(p_data,'service_category','^[A-Z0-9][A-Z0-9_-]{0,23}$',false);
+ v_aref:=ami_wk_re(p_data,'assignee_ref','^[A-Za-z0-9][A-Za-z0-9._/-]{0,39}$',false);
+ v_team:=ami_wk_re(p_data,'team_ref','^[A-Za-z0-9][A-Za-z0-9._/ -]{0,39}$',false);
+ IF p_data->'assigned_to' IS NOT NULL AND jsonb_typeof(p_data->'assigned_to')='string' THEN
+  BEGIN v_asg:=(p_data->>'assigned_to')::uuid; EXCEPTION WHEN others THEN RAISE EXCEPTION 'am_invalid_input'; END;
+ ELSIF p_data->'assigned_to' IS NOT NULL AND jsonb_typeof(p_data->'assigned_to')<>'null' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_elh:=ami_wk_num(p_data,'est_labor_hours',0,100000,false); v_elc:=ami_wk_num(p_data,'est_labor_cost',0,1e12,false);
+ v_esc:=ami_wk_num(p_data,'est_spares_cost',0,1e12,false); v_submit:=ami_wk_bool(p_data,'submit',false);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'wo_create',p_data);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO a FROM am_assets WHERE id=v_asset AND business_id=p_business AND tenant_id=c.tenant_id;
+ IF NOT FOUND THEN RAISE EXCEPTION 'am_denied'; END IF;
+ PERFORM ami_wk_gate(c,a.site_id,'report');
+ IF NOT ami_has(c,a.site_id,'assign') THEN
+  IF ami_has(c,a.site_id,'execute') THEN
+   IF NOT ami_cfg_bool(p_business,a.site_id,a.category_id,'wo.technician_can_create') THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+   IF (v_asg IS NOT NULL AND v_asg<>c.user_id) OR v_aref IS NOT NULL OR v_team IS NOT NULL THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+  ELSE -- reporter: corrective requests only, no assignment / estimates
+   IF v_kind<>'corrective' OR v_asg IS NOT NULL OR v_aref IS NOT NULL OR v_team IS NOT NULL OR v_elh IS NOT NULL OR v_elc IS NOT NULL OR v_esc IS NOT NULL THEN
+    RAISE EXCEPTION 'am_not_permitted'; END IF;
+  END IF;
+ END IF;
+ IF v_asg IS NOT NULL AND NOT ami_wk_assignee_ok(p_business,a.site_id,v_asg) THEN RAISE EXCEPTION 'am_assignee_not_authorized'; END IF;
+ IF v_svc IS NOT NULL AND NOT EXISTS(SELECT 1 FROM am_codes WHERE business_id=p_business AND kind='service_category' AND code=v_svc AND active) THEN
+  RAISE EXCEPTION 'am_invalid_code'; END IF;
+ IF a.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_asset_retired'; END IF;
+ wid:=ami_create_wo(c,p_request,a.id,v_kind,v_title,v_desc,v_prio,'manual',NULL,v_due,v_chk,
+   jsonb_strip_nulls(jsonb_build_object('service_category',v_svc,'team_ref',v_team,'est_labor_hours',v_elh,'est_labor_cost',v_elc,'est_spares_cost',v_esc)));
+ SELECT safety_critical INTO safety FROM am_categories WHERE id=a.category_id;
+ UPDATE am_work_orders SET assigned_to=v_asg,assignee_ref=v_aref,team_ref=COALESCE(team_ref,v_team),due_on=COALESCE(due_on,v_due),
+   safety_critical=(safety_critical OR COALESCE(safety,false)) WHERE id=wid RETURNING * INTO w;
+ IF v_submit THEN w:=ami_wk_do_submit(w,p_request,false); END IF;
+ PERFORM ami_log(c.tenant_id,p_business,'work_order',w.id::text,'wo.create',NULL,ami_wk_state(w)||jsonb_build_object('wo_no',w.wo_no,'kind',w.kind,'asset_id',w.asset_id),NULL,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_create',p_data,jsonb_build_object('status','applied','id',w.id,'wo_no',w.wo_no,
+   'wo_status',w.status,'version',w.version,'auto_approved',(w.approved_at IS NOT NULL AND w.approved_by IS NULL)));
+END$$;
+
+CREATE FUNCTION c10_demo.am_update_work_order_v1(p_business bigint,p_request text,p_wo bigint,p_expected_version bigint,p_changes jsonb,p_reason text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; w am_work_orders; n am_work_orders; pay jsonb; rsn text; k text; full_keys text[]:=ARRAY['title','description','priority','due_on','service_category','team_ref','assignee_ref'];
+ est_keys text[]:=ARRAY['est_labor_hours','est_labor_cost','est_spares_cost','actual_labor_hours','actual_labor_cost','actual_spares_cost'];
+ touched_full boolean:=false; touched_act boolean:=false;
+ v_title text; v_desc text; v_prio text; v_due date; v_svc text; v_team text; v_aref text; v_elh numeric; v_elc numeric; v_esc numeric; v_alh numeric; v_alc numeric; v_asc numeric;
+BEGIN
+ IF p_wo IS NULL OR p_expected_version IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ PERFORM ami_wk_keys(p_changes,full_keys||est_keys);
+ IF p_changes='{}'::jsonb THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ rsn:=ami_wk_reason(p_reason,true);
+ IF p_changes ? 'title' THEN v_title:=ami_wk_txt(p_changes,'title',3,160,true); END IF;
+ IF p_changes ? 'description' THEN v_desc:=ami_wk_txt(p_changes,'description',1,2000,false); END IF;
+ IF p_changes ? 'priority' THEN v_prio:=ami_wk_txt(p_changes,'priority',1,10,true);
+  IF v_prio NOT IN('low','medium','high','critical') THEN RAISE EXCEPTION 'am_invalid_input'; END IF; END IF;
+ IF p_changes ? 'due_on' THEN v_due:=ami_wk_date(p_changes,'due_on',false); END IF;
+ IF p_changes ? 'service_category' THEN v_svc:=ami_wk_re(p_changes,'service_category','^[A-Z0-9][A-Z0-9_-]{0,23}$',false); END IF;
+ IF p_changes ? 'team_ref' THEN v_team:=ami_wk_re(p_changes,'team_ref','^[A-Za-z0-9][A-Za-z0-9._/ -]{0,39}$',false); END IF;
+ IF p_changes ? 'assignee_ref' THEN v_aref:=ami_wk_re(p_changes,'assignee_ref','^[A-Za-z0-9][A-Za-z0-9._/-]{0,39}$',false); END IF;
+ v_elh:=ami_wk_num(p_changes,'est_labor_hours',0,100000,false); v_elc:=ami_wk_num(p_changes,'est_labor_cost',0,1e12,false);
+ v_esc:=ami_wk_num(p_changes,'est_spares_cost',0,1e12,false); v_alh:=ami_wk_num(p_changes,'actual_labor_hours',0,100000,false);
+ v_alc:=ami_wk_num(p_changes,'actual_labor_cost',0,1e12,false); v_asc:=ami_wk_num(p_changes,'actual_spares_cost',0,1e12,false);
+ FOR k IN SELECT jsonb_object_keys(p_changes) LOOP
+  IF k=ANY(full_keys) THEN touched_full:=true; END IF;
+  IF k LIKE 'actual\_%' THEN touched_act:=true; END IF;
+ END LOOP;
+ pay:=jsonb_build_object('wo',p_wo,'v',p_expected_version,'c',p_changes,'r',rsn);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'wo_update',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO w FROM am_work_orders WHERE id=p_wo AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND OR NOT ami_wk_visible(c,w) THEN RAISE EXCEPTION 'am_denied'; END IF;
+ IF w.status='CANCELLED' THEN RAISE EXCEPTION 'am_wo_cancelled_is_final'; END IF;
+ IF touched_full THEN
+  IF ami_wk_auth(c,w,'edit') IS NOT NULL THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ ELSIF NOT (ami_wk_auth(c,w,'edit') IS NULL OR ami_wk_auth(c,w,'work') IS NULL) THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ IF w.version<>p_expected_version THEN RAISE EXCEPTION 'am_stale_version'; END IF;
+ IF w.status IN('DRAFT','SUBMITTED','APPROVED') THEN
+  IF touched_act THEN RAISE EXCEPTION 'am_wo_not_editable'; END IF;
+ ELSIF w.status='IN_PROGRESS' THEN
+  IF touched_full THEN RAISE EXCEPTION 'am_wo_not_editable'; END IF;
+ ELSE RAISE EXCEPTION 'am_wo_not_editable'; END IF;
+ UPDATE am_work_orders SET
+  title=CASE WHEN p_changes ? 'title' THEN v_title ELSE title END,
+  description=CASE WHEN p_changes ? 'description' THEN v_desc ELSE description END,
+  priority=CASE WHEN p_changes ? 'priority' THEN v_prio ELSE priority END,
+  due_on=CASE WHEN p_changes ? 'due_on' THEN v_due ELSE due_on END,
+  service_category=CASE WHEN p_changes ? 'service_category' THEN v_svc ELSE service_category END,
+  team_ref=CASE WHEN p_changes ? 'team_ref' THEN v_team ELSE team_ref END,
+  assignee_ref=CASE WHEN p_changes ? 'assignee_ref' THEN v_aref ELSE assignee_ref END,
+  est_labor_hours=CASE WHEN p_changes ? 'est_labor_hours' THEN v_elh ELSE est_labor_hours END,
+  est_labor_cost=CASE WHEN p_changes ? 'est_labor_cost' THEN v_elc ELSE est_labor_cost END,
+  est_spares_cost=CASE WHEN p_changes ? 'est_spares_cost' THEN v_esc ELSE est_spares_cost END,
+  actual_labor_hours=CASE WHEN p_changes ? 'actual_labor_hours' THEN v_alh ELSE actual_labor_hours END,
+  actual_labor_cost=CASE WHEN p_changes ? 'actual_labor_cost' THEN v_alc ELSE actual_labor_cost END,
+  actual_spares_cost=CASE WHEN p_changes ? 'actual_spares_cost' THEN v_asc ELSE actual_spares_cost END,
+  last_reason=rsn,version=version+1,updated_at=now() WHERE id=w.id RETURNING * INTO n;
+ IF v_svc IS NOT NULL AND NOT EXISTS(SELECT 1 FROM am_codes WHERE business_id=p_business AND kind='service_category' AND code=v_svc AND active) THEN
+  RAISE EXCEPTION 'am_invalid_code'; END IF;
+ IF n.priority<>w.priority THEN n:=ami_wk_resla(n); END IF;
+ PERFORM ami_wk_hist(n,w.status,n.status,'update',rsn,p_request);
+ PERFORM ami_log(c.tenant_id,p_business,'work_order',w.id::text,'wo.update',to_jsonb(w)-'updated_at',to_jsonb(n)-'updated_at',rsn,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_update',pay,jsonb_build_object('status','applied','id',n.id,'wo_status',n.status,'version',n.version));
+END$$;
+
+CREATE FUNCTION c10_demo.am_assign_work_order_v1(p_business bigint,p_request text,p_wo bigint,p_expected_version bigint,p_assigned_to uuid,
+ p_assignee_ref text,p_team_ref text,p_reason text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; w am_work_orders; n am_work_orders; pay jsonb; rsn text; v_aref text:=NULLIF(btrim(COALESCE(p_assignee_ref,'')),''); v_team text:=NULLIF(btrim(COALESCE(p_team_ref,'')),'');
+BEGIN
+ IF p_wo IS NULL OR p_expected_version IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ rsn:=ami_wk_reason(p_reason,true);
+ IF v_aref IS NOT NULL AND v_aref !~ '^[A-Za-z0-9][A-Za-z0-9._/-]{0,39}$' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF v_team IS NOT NULL AND v_team !~ '^[A-Za-z0-9][A-Za-z0-9._/ -]{0,39}$' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ pay:=jsonb_build_object('wo',p_wo,'v',p_expected_version,'u',p_assigned_to,'ar',v_aref,'t',v_team,'r',rsn);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'wo_assign',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO w FROM am_work_orders WHERE id=p_wo AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND OR NOT ami_wk_visible(c,w) THEN RAISE EXCEPTION 'am_denied'; END IF;
+ IF ami_wk_auth(c,w,'assign') IS NOT NULL THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ IF w.version<>p_expected_version THEN RAISE EXCEPTION 'am_stale_version'; END IF;
+ IF w.status='CANCELLED' THEN RAISE EXCEPTION 'am_wo_cancelled_is_final'; END IF;
+ IF w.status NOT IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS') THEN RAISE EXCEPTION 'am_wo_not_editable'; END IF;
+ IF p_assigned_to IS NOT NULL AND NOT ami_wk_assignee_ok(p_business,w.site_id,p_assigned_to) THEN RAISE EXCEPTION 'am_assignee_not_authorized'; END IF;
+ UPDATE am_work_orders SET assigned_to=p_assigned_to,assignee_ref=v_aref,team_ref=v_team,needs_reassignment=false,
+   safety_ack_by=CASE WHEN assigned_to IS DISTINCT FROM p_assigned_to THEN NULL ELSE safety_ack_by END,
+   safety_ack_at=CASE WHEN assigned_to IS DISTINCT FROM p_assigned_to THEN NULL ELSE safety_ack_at END,
+   last_reason=rsn,version=version+1,updated_at=now() WHERE id=w.id RETURNING * INTO n;
+ PERFORM ami_wk_hist(n,w.status,n.status,'assign',rsn,p_request);
+ PERFORM ami_log(c.tenant_id,p_business,'work_order',w.id::text,'wo.assign',
+   jsonb_build_object('assigned_to',w.assigned_to,'assignee_ref',w.assignee_ref,'team_ref',w.team_ref,'version',w.version),
+   jsonb_build_object('assigned_to',n.assigned_to,'assignee_ref',n.assignee_ref,'team_ref',n.team_ref,'version',n.version),rsn,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_assign',pay,jsonb_build_object('status','applied','id',n.id,'wo_status',n.status,'version',n.version,'assigned_to',n.assigned_to));
+END$$;
