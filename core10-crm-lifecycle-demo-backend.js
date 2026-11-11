@@ -248,6 +248,8 @@
       f[1](); ev(t, o.customer_id, "order", "Adapter (SYNTHETIC) step '" + s + "' on " + o.id); audit(t, a, "order.adapter." + s, o.id); save(); return o;
     },
 
+    quotes_list: function (a) { var t = T(a); return t.quotes.map(function (q) { var v = q.versions[q.versions.length - 1]; return { id: q.id, opp_id: q.opp_id, customer_name: cust(t, q.customer_id).name, status: q.status, version: v.v, total: v.total, discount_pct: v.discount_pct }; }); },
+    orders_list: function (a) { var t = T(a); return t.orders.map(function (o) { return Object.assign({ customer_name: cust(t, o.customer_id).name }, o); }); },
     followups_list: function (a) { var t = T(a); return t.followups.map(function (f) { var c = cust(t, f.customer_id); return Object.assign({ customer_name: c.name, overdue: f.status === "open" && new Date(f.due).getTime() < Date.now() }, f); }); },
     followup_create: function (a) {
       need(a, "customer_edit"); var t = T(a), c = cust(t, a.customer_id), days = Number(a.due_days);
@@ -346,8 +348,20 @@
     }
   };
 
-  /* Frontend-defined name -> intended backend RPC name (to be reconciled with C10_A056_RPC_CONTRACT.md). */
-  var RPC_MAP = {}; Object.keys(H).forEach(function (k) { RPC_MAP[k] = "crm_" + k + "_v1"; });
+  /* Frontend UI call -> intended signed RPC in docs/architecture/C10_A056_RPC_CONTRACT.md (names align; argument/return shapes are
+   * simplified in this synthetic adapter and a real client wrapper must translate p_* args, p_request idempotency keys and
+   * p_expected versions). Calls with null have no 1:1 contract RPC yet (reconcile). */
+  var RPC_MAP = {
+    dashboard: "a056_report_dashboard_v1", customers_list: "a056_list_customers_v1", customer_get: "a056_read_customer360_v1", customer_create: "a056_create_customer_v1",
+    consent_set: "a056_record_consent_v1", prefs_set: "a056_set_comm_prefs_v1", loyalty_adjust: null, intake_submit: "a056_create_lead_v1", leads_list: "a056_list_leads_v1",
+    lead_to_enquiry: "a056_create_enquiry_v1", lead_disqualify: "a056_qualify_lead_v1", enquiry_to_opportunity: "a056_create_opportunity_v1", pipeline: "a056_read_pipeline_v1",
+    opp_get: "a056_list_opportunities_v1", opp_move: "a056_move_opportunity_stage_v1", quote_save: "a056_create_quotation_v1/a056_revise_quotation_v1", quote_submit: "a056_decide_quotation_v1(submit)",
+    quote_approve: "a056_decide_quotation_v1(approve)", quote_accept: "a056_decide_quotation_v1(accept)", order_request: "a056_convert_quote_to_order_v1", order_adapter_step: "a056_TEST_ADAPTER_create_order_v1 (synthetic only)",
+    quotes_list: "a056_list_quotations_v1", orders_list: "a056_read_order_links_v1", followups_list: "a056_list_followups_v1", followup_create: "a056_create_followup_v1", followup_done: "a056_complete_followup_v1", tickets_list: "a056_list_tickets_v1", ticket_create: "a056_create_ticket_v1",
+    ticket_update: "a056_update_ticket_v1", segments_list: "a056_list_segments_v1", segment_create: "a056_save_segment_v1", segment_members: "a056_evaluate_segment_v1", campaigns_list: "a056_list_campaigns_v1",
+    campaign_create: "a056_create_campaign_v1", campaign_send: "a056_dispatch_campaign_v1", reports: "a056_report_*_v1", settings_get: "a056_read_settings_v1", stage_save: "a056_set_settings_v1",
+    stage_delete: "a056_set_settings_v1", perm_set: "a056_set_settings_v1", approval_set: "a056_set_settings_v1", sla_set: "a056_set_settings_v1"
+  };
 
   window.CORE10_CRM_BACKEND = {
     synthetic: true, label: "SYNTHETIC TEST ADAPTER (in-memory, not a real backend)", RPC_MAP: RPC_MAP,
