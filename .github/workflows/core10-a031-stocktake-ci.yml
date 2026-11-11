@@ -1,0 +1,67 @@
+# C10-A031 — enterprise physical stocktake backend, isolated PostgreSQL 17 only.
+# No Supabase staging or production access; no customer data; no service keys.
+name: CORE10 A031 Physical Stocktake, Approval and Stale-safe Adjustment CI
+on:
+  push:
+    branches: ['feature/c10-a018-*']
+    paths:
+      - 'internal/enterprise-sql/c10_a018_demo_backend.sql'
+      - 'internal/enterprise-sql/c10_a018_inventory_v1.sql'
+      - 'internal/enterprise-sql/c10_a031_stocktake_v1.sql'
+      - 'tests/c10_a018_demo_seed.sql'
+      - 'tests/c10_a031_stocktake_e2e.sql'
+      - '.github/workflows/core10-a031-stocktake-ci.yml'
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a018_demo_backend.sql'
+      - 'internal/enterprise-sql/c10_a018_inventory_v1.sql'
+      - 'internal/enterprise-sql/c10_a031_stocktake_v1.sql'
+      - 'tests/c10_a018_demo_seed.sql'
+      - 'tests/c10_a031_stocktake_e2e.sql'
+      - '.github/workflows/core10-a031-stocktake-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  stocktake-transaction-and-scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_stocktake_disposable
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_only_disposable
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_stocktake_disposable"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGDATABASE: core10_stocktake_disposable
+      PGUSER: postgres
+      PGPASSWORD: ci_only_disposable
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up disposable PostgreSQL authenticated/anon roles
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+      - name: Install existing CORE 10 neutral tenant and stock engine
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
+      - name: Install physical stocktake, owner approval, audit and stale-safe posting
+        run: psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a031_stocktake_v1.sql
+      - name: Execute stocktake end-to-end test against isolated database
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a031_stocktake_e2e.sql
+      - name: Print certification boundary
+        run: echo 'PASS ONLY isolated PostgreSQL17 with synthetic claim identity. No real GoTrue staging or production access, stock valuation, or live activation.'
