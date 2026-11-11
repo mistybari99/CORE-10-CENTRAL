@@ -2,9 +2,9 @@ name: CORE10 A049 purchase sale workflow PG17
 on:
   push:
     branches: ['claude/c10-a049-*']
-    paths: ['internal/enterprise-sql/c10_a049_*','tests/c10_a049_*','.github/workflows/core10-a049-operations-ci.yml']
+    paths: ['internal/enterprise-sql/c10_a049_*','tests/c10_a049_*','core10-operational-flow*','.github/workflows/core10-a049-operations-ci.yml']
   pull_request:
-    paths: ['internal/enterprise-sql/c10_a049_*','tests/c10_a049_*','.github/workflows/core10-a049-operations-ci.yml']
+    paths: ['internal/enterprise-sql/c10_a049_*','tests/c10_a049_*','core10-operational-flow*','.github/workflows/core10-a049-operations-ci.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -40,5 +40,7 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a049_operation_workflow_v1.sql
       - name: Verify 2-business purchase to stock to sales & denied production/accounting paths
         run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a049_operation_workflow_e2e.sql
+      - name: Validate signed operations UI client
+        run: node tests/c10_a049_operation_client.test.js
       - name: Integrity boundary
         run: echo "A049 real isolated purchase/sale stock; production plan only, BOM/COGS/financial posting NOT certified."
