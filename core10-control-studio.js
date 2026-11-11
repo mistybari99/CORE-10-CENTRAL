@@ -131,9 +131,10 @@ async function save(){
   const r=await state.api.write(biz,{controlId:key,placement,localEditMode:mode,
    enabled,version:x.version,requestKey:window.crypto.randomUUID(),reason});
   if(state.businessId!==biz)return;
-  showStatus(r.status==="pending"?"Approval request submitted; configuration unchanged.":"Versioned configuration saved in canonical service.");
+  const confirmation=r.status==="pending"?"Approval request submitted; configuration unchanged.":"Versioned configuration saved in canonical service.";
   await loadBusiness();
   state.selected=key;drawList();drawDetail();
+  showStatus(confirmation);
  }catch(e){
   showStatus("Server rejected change: "+String(e.code||"CONTROL_WRITE_FAILED")+
    ". No local setting was stored.",true);
@@ -143,7 +144,7 @@ async function decide(button){
  if(!window.confirm("Submit "+button.dataset.decision+" to the server for request #"+button.dataset.requestId+"?"))return;
  button.disabled=true;
  try{const r=await state.api.decide(Number(button.dataset.requestId),button.dataset.decision);
-  showStatus("Request "+r.status+" by server authority.");await loadBusiness();
+  await loadBusiness();showStatus("Request "+r.status+" by server authority.");
  }catch(e){showStatus("Approval denied or stale: "+String(e.code||"CONTROL_DECISION_FAILED"),true)}
  finally{button.disabled=false}
 }
