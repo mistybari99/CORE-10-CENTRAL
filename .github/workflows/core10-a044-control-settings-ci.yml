@@ -7,6 +7,8 @@ on:
       - 'tests/c10_a044_control_settings_e2e.sql'
       - 'core10-control-*.js'
       - 'core10-control-*.html'
+      - 'core10-control-*.css'
+      - 'tests/e2e/core10-a044-control-studio-browser.js'
       - 'tests/c10_a044_control_ui.test.js'
       - '.github/workflows/core10-a044-control-settings-ci.yml'
   pull_request:
@@ -70,3 +72,12 @@ jobs:
           node tests/c10_a043_business_control_placement.test.js
       - name: UI/client signed RPC contract unit suite
         run: node tests/c10_a044_control_ui.test.js
+      - name: Install pinned Chromium for actual browser UI checks
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-playwright" && cd "$RUNNER_TEMP/core10-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Responsive Central and Business browser UI, isolated signed fixture
+        run: node tests/e2e/core10-a044-control-studio-browser.js
