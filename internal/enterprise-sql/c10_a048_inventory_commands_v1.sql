@@ -6,7 +6,7 @@ BEGIN
  IF to_regclass('c10_demo.stock_balances_v1') IS NULL OR to_regprocedure('c10_demo.transfer_stock_v1(bigint,bigint,bigint,numeric,text)') IS NULL
  THEN RAISE EXCEPTION 'A048_REQUIRES_A018_INVENTORY_V1'; END IF;
  IF current_database() !~ '^core10_a048_(ci|local)' THEN RAISE EXCEPTION 'A048_DISPOSABLE_DB_REQUIRED'; END IF;
-END $$;
+END; $;
 REVOKE EXECUTE ON FUNCTION c10_demo.post_stock_event(bigint,bigint,numeric,text) FROM authenticated;
 REVOKE EXECUTE ON FUNCTION c10_demo.transfer_stock_v1(bigint,bigint,bigint,numeric,text) FROM authenticated;
 
@@ -97,7 +97,7 @@ BEGIN
  WHERE business_id=p_business AND version=p_version+1 RETURNING version INTO v;
  IF v IS NULL THEN RAISE EXCEPTION 'A048_POLICY_STALE'; END IF;
  RETURN jsonb_build_object('business_id',p_business,'version',v);
-END $$;
+END; $;
 
 CREATE FUNCTION c10_demo.create_inventory_command_v1(
  p_business bigint,p_kind text,p_source bigint,p_destination bigint,
@@ -148,7 +148,7 @@ BEGIN
  VALUES(t,p_business,c.id,'created','create-'||p_request,c10_demo.actor_uid())
  ON CONFLICT(business_id,request_key) DO NOTHING;
  RETURN jsonb_build_object('command_id',c.id,'business_id',p_business,'status',c.status,'version',c.version);
-END $$;
+END; $;
 
 CREATE FUNCTION c10_demo.advance_inventory_command_v1(
  p_command bigint,p_action text,p_version bigint,p_request text)
@@ -201,7 +201,7 @@ BEGIN
  jsonb_build_object('expected_version',p_version,'stock_ref',posted_id));
  RETURN jsonb_build_object('command_id',c.id,'status',CASE WHEN p_action='confirm' THEN 'confirmed' ELSE 'posted' END,
   'version',c.version+1,'stock_ref',posted_id,'replayed',false);
-END $$;
+END; $;
 
 CREATE FUNCTION c10_demo.read_inventory_commands_v1(p_business bigint)
 RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
@@ -217,7 +217,7 @@ BEGIN
  (c.destination_location IS NULL OR EXISTS(SELECT 1 FROM c10_demo.stock_locations l
  WHERE l.id=c.destination_location AND c10_demo.can_site(t,p_business,l.site_id,'stock.read')))));
  RETURN jsonb_build_object('business_id',p_business,'server_authorized',true,'items',items,'operationally_certified',false);
-END $$;
+END; $;
 
 REVOKE EXECUTE ON FUNCTION c10_demo.inventory_action_authorized_v1(bigint,bigint,bigint,text),
 c10_demo.configure_inventory_flow_v1(bigint,boolean,boolean,numeric,bigint),
