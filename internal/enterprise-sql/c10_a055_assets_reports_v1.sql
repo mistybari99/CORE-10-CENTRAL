@@ -194,3 +194,181 @@ END$$;
 CREATE FUNCTION c10_demo.ami_csv_line(VARIADIC p text[]) RETURNS text LANGUAGE sql IMMUTABLE AS
 $$ SELECT string_agg(c10_demo.ami_csv_cell(x),',' ORDER BY o) FROM unnest(p) WITH ORDINALITY u(x,o) $$;
 
+-- ===================== am_overview_v1 =====================
+CREATE FUNCTION c10_demo.am_overview_v1(p_business bigint,p_site bigint DEFAULT NULL) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c c10_demo.am_ctx_t; v_sites bigint[]; v_today date;
+ a_status jsonb; a_site jsonb; wo_status jsonb; wo_prio jsonb; od jsonb; sla jsonb; tg jsonb; dt jsonb; cap jsonb;
+BEGIN
+ c:=c10_demo.ami_read_ctx(p_business);
+ v_sites:=c10_demo.ami_rpt_scope(c,p_site,'reports');
+ v_today:=c10_demo.ami_today(p_business);
+ SELECT COALESCE(jsonb_object_agg(q.status,q.n),'{}'::jsonb) INTO a_status FROM
+  (SELECT status,count(*) AS n FROM c10_demo.am_assets WHERE business_id=p_business AND site_id=ANY(v_sites) GROUP BY status) q;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('site_id',s.id,'label',s.label,'kind',s.kind,'total',COALESCE(x.total,0),
+   'by_status',COALESCE(x.bs,'{}'::jsonb)) ORDER BY s.id),'[]'::jsonb) INTO a_site
+  FROM c10_demo.sites s LEFT JOIN (SELECT q.site_id,sum(q.n) AS total,jsonb_object_agg(q.status,q.n) AS bs FROM
+    (SELECT site_id,status,count(*) AS n FROM c10_demo.am_assets WHERE business_id=p_business AND site_id=ANY(v_sites) GROUP BY 1,2) q
+    GROUP BY q.site_id) x ON x.site_id=s.id
+  WHERE s.business_id=p_business AND s.id=ANY(v_sites);
+ SELECT jsonb_build_object('DRAFT',count(*) FILTER (WHERE status='DRAFT'),'SUBMITTED',count(*) FILTER (WHERE status='SUBMITTED'),
+   'APPROVED',count(*) FILTER (WHERE status='APPROVED'),'IN_PROGRESS',count(*) FILTER (WHERE status='IN_PROGRESS')),
+  jsonb_build_object('low',count(*) FILTER (WHERE priority='low'),'medium',count(*) FILTER (WHERE priority='medium'),
+   'high',count(*) FILTER (WHERE priority='high'),'critical',count(*) FILTER (WHERE priority='critical')),
+  jsonb_build_object('count',count(*) FILTER (WHERE due_on<v_today),
+   'sample_ids',to_jsonb(COALESCE((array_agg(id ORDER BY due_on,id) FILTER (WHERE due_on<v_today))[1:20],ARRAY[]::bigint[]))),
+  jsonb_build_object(
+   'resolve_breached',count(*) FILTER (WHERE sla_resolve_due_at<now()),
+   'resolve_at_risk',count(*) FILTER (WHERE sla_resolve_due_at>=now() AND sla_resolve_due_at-now()<=(sla_resolve_due_at-requested_at)*0.25::float8),
+   'response_breached',count(*) FILTER (WHERE sla_response_due_at<now() AND responded_at IS NULL AND started_at IS NULL),
+   'resolve_breached_ids',to_jsonb(COALESCE((array_agg(id ORDER BY sla_resolve_due_at,id) FILTER (WHERE sla_resolve_due_at<now()))[1:20],ARRAY[]::bigint[])),
+   'rule','open work orders; at_risk = remaining resolve time <= 25% of the resolve window')
+  INTO wo_status,wo_prio,od,sla
+  FROM c10_demo.am_work_orders WHERE business_id=p_business AND site_id=ANY(v_sites) AND status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS');
+ SELECT jsonb_build_object('total',count(*),
+   'by_state',jsonb_build_object('upcoming',count(*) FILTER (WHERE state='upcoming'),'due',count(*) FILTER (WHERE state='due'),
+     'overdue',count(*) FILTER (WHERE state='overdue'),'meter_missing',count(*) FILTER (WHERE state='meter_missing'),
+     'has_open_wo',count(*) FILTER (WHERE state='has_open_wo'),'deferred',count(*) FILTER (WHERE state='deferred')),
+   'escalation',jsonb_build_object('level1',count(*) FILTER (WHERE escalation_level=1),'level2',count(*) FILTER (WHERE escalation_level=2)),
+   'overdue_target_ids',to_jsonb(COALESCE((array_agg(target_id ORDER BY days_late DESC NULLS LAST,target_id) FILTER (WHERE overdue))[1:20],ARRAY[]::bigint[])),
+   'rules','due: within lead days or inside grace; overdue: past due_on + grace; escalation 2: past grace + escalation_days')
+  INTO tg FROM c10_demo.ami_rpt_targets(p_business,v_sites,v_today);
+ SELECT jsonb_build_object('count',count(*),'items',COALESCE(jsonb_agg(jsonb_build_object('downtime_id',q.id,'asset_id',q.asset_id,
+   'asset_no',q.asset_no,'site_id',q.site_id,'kind',q.kind,'work_order_id',q.work_order_id,'started_at',q.started_at,
+   'open_hours',round(extract(epoch FROM now()-q.started_at)/3600.0,2),
+   'exceeds_max_open',now()>q.started_at+make_interval(hours=>q.maxh)) ORDER BY q.started_at) FILTER (WHERE q.rn<=20),'[]'::jsonb))
+  INTO dt FROM (SELECT d.id,d.asset_id,a.asset_no,a.site_id,d.kind,d.work_order_id,d.started_at,
+    c10_demo.ami_cfg_int(p_business,a.site_id,a.category_id,'downtime.max_open_hours') AS maxh,
+    row_number() OVER (ORDER BY d.started_at,d.id) AS rn
+   FROM c10_demo.am_downtime d JOIN c10_demo.am_assets a ON a.id=d.asset_id
+   WHERE d.business_id=p_business AND d.ended_at IS NULL AND a.site_id=ANY(v_sites)) q;
+ cap:=jsonb_build_object('is_tenant_owner',c.is_tenant_owner,'is_business_owner',c.is_business_owner,
+  'roles',(SELECT COALESCE(jsonb_agg(DISTINCT g->>'role'),'[]'::jsonb) FROM jsonb_array_elements(c.grants) g),
+  'business_wide',to_jsonb(c10_demo.ami_caps(c,NULL)),
+  'by_site',(SELECT COALESCE(jsonb_object_agg(s.id::text,to_jsonb(c10_demo.ami_caps(c,s.id))),'{}'::jsonb)
+             FROM c10_demo.sites s WHERE s.business_id=p_business),
+  'reports_sites',to_jsonb(v_sites));
+ RETURN jsonb_build_object('business_id',p_business,'site_id',p_site,'sites',to_jsonb(v_sites),'as_of_date',v_today,
+  'generated_at',now(),'assets_by_status',a_status,'assets_by_site',a_site,
+  'open_work_orders',jsonb_build_object('by_status',wo_status,'by_priority',wo_prio,'total',
+    (SELECT sum(v::int) FROM jsonb_each_text(wo_status) e(k,v))),
+  'overdue_work_orders',od,'sla',sla,'plan_targets',tg,'open_downtime',dt,'capabilities',cap);
+END$$;
+
+-- ===================== am_downtime_report_v1 =====================
+CREATE FUNCTION c10_demo.am_downtime_report_v1(p_business bigint,p_from date DEFAULT NULL,p_to date DEFAULT NULL,p_site bigint DEFAULT NULL)
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c c10_demo.am_ctx_t; v_sites bigint[]; pe record; per_asset jsonb; per_site jsonb; top jsonb; tot jsonb; opn jsonb;
+BEGIN
+ c:=c10_demo.ami_read_ctx(p_business);
+ v_sites:=c10_demo.ami_rpt_scope(c,p_site,'reports');
+ SELECT * INTO pe FROM c10_demo.ami_rpt_period(p_business,p_from,p_to);
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('asset_id',x.asset_id,'asset_no',a.asset_no,'name',a.name,'site_id',x.site_id,
+   'downtime_minutes',round(x.downtime_min,2),'windows',x.window_count,'merged_windows',x.island_count,
+   'period_minutes',round(x.period_min,2),'availability_pct',round(100*(1-x.downtime_min/x.period_min),2),
+   'exceeds_max_open',x.exceeds_max_open) ORDER BY x.downtime_min DESC,x.asset_id),'[]'::jsonb) INTO per_asset
+  FROM (SELECT av.* FROM c10_demo.ami_rpt_avail(p_business,v_sites,pe.o_from_ts,pe.o_to_ts) av WHERE av.downtime_min>0
+        ORDER BY av.downtime_min DESC,av.asset_id LIMIT 200) x JOIN c10_demo.am_assets a ON a.id=x.asset_id;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('site_id',q.site_id,'label',s.label,'assets',q.n,'downtime_minutes',round(q.dm,2),
+   'windows',q.w,'period_minutes',round(q.pm,2),'availability_pct',round(100*(1-q.dm/q.pm),2)) ORDER BY q.site_id),'[]'::jsonb) INTO per_site
+  FROM (SELECT av.site_id,count(*) AS n,sum(av.downtime_min) AS dm,sum(av.period_min) AS pm,sum(av.window_count) AS w
+        FROM c10_demo.ami_rpt_avail(p_business,v_sites,pe.o_from_ts,pe.o_to_ts) av GROUP BY av.site_id) q
+  JOIN c10_demo.sites s ON s.id=q.site_id;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('asset_id',x.asset_id,'asset_no',a.asset_no,'name',a.name,'site_id',x.site_id,
+   'downtime_minutes',round(x.downtime_min,2),'share_pct',round(100*x.downtime_min/NULLIF(x.tot,0),2)) ORDER BY x.downtime_min DESC,x.asset_id),'[]'::jsonb)
+  INTO top FROM (SELECT av.*,sum(av.downtime_min) OVER () AS tot FROM c10_demo.ami_rpt_avail(p_business,v_sites,pe.o_from_ts,pe.o_to_ts) av
+        WHERE av.downtime_min>0 ORDER BY av.downtime_min DESC,av.asset_id LIMIT 5) x JOIN c10_demo.am_assets a ON a.id=x.asset_id;
+ SELECT jsonb_build_object('downtime_minutes',round(COALESCE(sum(av.downtime_min),0),2),'period_minutes',round(COALESCE(sum(av.period_min),0),2),
+   'assets_considered',count(*),'assets_with_downtime',count(*) FILTER (WHERE av.downtime_min>0),
+   'counted_windows',COALESCE(sum(av.window_count),0),'merged_windows',COALESCE(sum(av.island_count),0),
+   'fleet_availability_pct',CASE WHEN sum(av.period_min)>0 THEN round(100*(1-sum(av.downtime_min)/sum(av.period_min)),2) END)
+  INTO tot FROM c10_demo.ami_rpt_avail(p_business,v_sites,pe.o_from_ts,pe.o_to_ts) av;
+ SELECT tot||jsonb_build_object(
+   'excluded_planned',count(*) FILTER (WHERE t.exclude_reason='planned_not_counted'),
+   'excluded_below_min',count(*) FILTER (WHERE t.exclude_reason='below_min_minutes'),
+   'open_windows',count(*) FILTER (WHERE t.is_open AND t.counted),
+   'exceeds_max_open',count(*) FILTER (WHERE t.exceeds_max_open AND t.counted)),
+  COALESCE(jsonb_agg(jsonb_build_object('downtime_id',t.downtime_id,'asset_id',t.asset_id,'started_at',t.started_at,
+    'effective_end',t.eff_end,'exceeds_max_open',t.exceeds_max_open,
+    'minutes_in_period',round(extract(epoch FROM t.seg_end-t.seg_start)/60.0,2)) ORDER BY t.started_at,t.downtime_id)
+    FILTER (WHERE t.is_open),'[]'::jsonb)
+  INTO tot,opn FROM c10_demo.ami_rpt_dt(p_business,v_sites,pe.o_from_ts,pe.o_to_ts) t;
+ RETURN jsonb_build_object('business_id',p_business,'site_id',p_site,'sites',to_jsonb(v_sites),
+  'period',jsonb_build_object('from',pe.o_from,'to',pe.o_to,'timezone',pe.o_tz),'generated_at',now(),
+  'rules','windows clipped to the period; open windows end at LEAST(now, started+max_open_hours) and are flagged exceeds_max_open; planned downtime counted only when downtime.planned_counts; windows shorter than downtime.min_counted_minutes excluded; overlapping windows merged per asset; availability period clipped to commission/created date',
+  'totals',tot,'per_asset',per_asset,'per_site',per_site,'top_offenders',top,'open_windows',opn);
+END$$;
+
+-- ===================== am_kpi_report_v1 =====================
+CREATE FUNCTION c10_demo.am_kpi_report_v1(p_business bigint,p_from date DEFAULT NULL,p_to date DEFAULT NULL,p_site bigint DEFAULT NULL)
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c c10_demo.am_ctx_t; v_sites bigint[]; pe record; v_today date;
+ min_mttr int; min_mtbf int; win int; minrec int; hi int; cr int; md int;
+ mttr_n int; mttr_h numeric; fail_n int; op_h numeric; per_asset jsonb; pm record; pm_j jsonb; od jsonb; sla jsonb; rec jsonb; risk jsonb; cost jsonb;
+ win_end timestamptz;
+BEGIN
+ c:=c10_demo.ami_read_ctx(p_business);
+ v_sites:=c10_demo.ami_rpt_scope(c,p_site,'reports');
+ SELECT * INTO pe FROM c10_demo.ami_rpt_period(p_business,p_from,p_to);
+ v_today:=c10_demo.ami_today(p_business);
+ min_mttr:=c10_demo.ami_cfg_int(p_business,NULL,NULL,'analytics.min_sample_mttr');
+ min_mtbf:=c10_demo.ami_cfg_int(p_business,NULL,NULL,'analytics.min_sample_mtbf');
+ win:=c10_demo.ami_cfg_int(p_business,NULL,NULL,'analytics.recurring_window_days');
+ minrec:=c10_demo.ami_cfg_int(p_business,NULL,NULL,'analytics.recurring_min_count');
+ hi:=c10_demo.ami_cfg_int(p_business,NULL,NULL,'risk.high_threshold');
+ cr:=c10_demo.ami_cfg_int(p_business,NULL,NULL,'risk.critical_threshold');
+ md:=ceil(hi/2.0)::int;
+ SELECT count(*),avg(r.repair_hours) INTO mttr_n,mttr_h FROM c10_demo.ami_rpt_repairs(p_business,v_sites,pe.o_from_ts,pe.o_to_ts) r;
+ SELECT count(*) INTO fail_n FROM c10_demo.ami_rpt_failures(p_business,v_sites,pe.o_from_ts,pe.o_to_ts);
+ SELECT COALESCE(sum(av.period_min-av.downtime_min),0)/60.0 INTO op_h FROM c10_demo.ami_rpt_avail(p_business,v_sites,pe.o_from_ts,pe.o_to_ts) av;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('asset_id',x.asset_id,'asset_no',x.asset_no,'name',x.name,'failures',x.failures,
+   'repairs_sampled',x.repairs,
+   'mttr_hours',CASE WHEN x.repairs>=min_mttr THEN round(x.rh,2) END,'mttr_insufficient_sample',x.repairs<min_mttr,
+   'operating_hours',round(COALESCE(x.op,0),2),
+   'mtbf_hours',CASE WHEN x.failures>=min_mtbf AND x.failures>0 THEN round(x.op/x.failures,2) END,'mtbf_insufficient_sample',x.failures<min_mtbf)
+   ORDER BY x.failures DESC,x.asset_id),'[]'::jsonb) INTO per_asset
+  FROM (SELECT a.id AS asset_id,a.asset_no,a.name,COALESCE(f.n,0)::int AS failures,COALESCE(r.n,0)::int AS repairs,r.h AS rh,av.op
+        FROM c10_demo.am_assets a
+        LEFT JOIN (SELECT ff.asset_id,count(*) AS n FROM c10_demo.ami_rpt_failures(p_business,v_sites,pe.o_from_ts,pe.o_to_ts) ff GROUP BY 1) f ON f.asset_id=a.id
+        LEFT JOIN (SELECT rr.asset_id,count(*) AS n,avg(rr.repair_hours) AS h FROM c10_demo.ami_rpt_repairs(p_business,v_sites,pe.o_from_ts,pe.o_to_ts) rr GROUP BY 1) r ON r.asset_id=a.id
+        LEFT JOIN (SELECT v.asset_id,(v.period_min-v.downtime_min)/60.0 AS op FROM c10_demo.ami_rpt_avail(p_business,v_sites,pe.o_from_ts,pe.o_to_ts) v) av ON av.asset_id=a.id
+        WHERE a.business_id=p_business AND (f.n IS NOT NULL OR r.n IS NOT NULL) ORDER BY COALESCE(f.n,0) DESC,a.id LIMIT 200) x;
+ SELECT * INTO pm FROM c10_demo.ami_rpt_pm(p_business,v_sites,pe.o_from,pe.o_to);
+ pm_j:=jsonb_build_object('due',pm.due,'on_time',pm.on_time,'late',pm.late,'not_done',pm.not_done,
+   'compliance_pct',CASE WHEN pm.due>0 THEN round(100.0*pm.on_time/pm.due,2) END,'insufficient_sample',pm.due=0,
+   'rule','PM = preventive/inspection/calibration WOs due in period; compliant when completed on/before due_on + schedule.grace_days');
+ SELECT jsonb_build_object('count',count(*),'as_of_date',v_today,
+   'buckets',jsonb_build_object('1_7',count(*) FILTER (WHERE v_today-due_on BETWEEN 1 AND 7),'8_30',count(*) FILTER (WHERE v_today-due_on BETWEEN 8 AND 30),
+     '31_90',count(*) FILTER (WHERE v_today-due_on BETWEEN 31 AND 90),'over_90',count(*) FILTER (WHERE v_today-due_on>90)),
+   'oldest_days',max(v_today-due_on),
+   'sample_ids',to_jsonb(COALESCE((array_agg(id ORDER BY due_on,id))[1:20],ARRAY[]::bigint[])))
+  INTO od FROM c10_demo.am_work_orders WHERE business_id=p_business AND site_id=ANY(v_sites)
+   AND status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS') AND due_on<v_today;
+ SELECT jsonb_build_object(
+   'resolve',jsonb_build_object('met',count(*) FILTER (WHERE q.rs='met'),'breached',count(*) FILTER (WHERE q.rs='breached'),
+     'pending',count(*) FILTER (WHERE q.rs='pending'),
+     'compliance_pct',CASE WHEN count(*) FILTER (WHERE q.rs IN('met','breached'))>0
+       THEN round(100.0*count(*) FILTER (WHERE q.rs='met')/count(*) FILTER (WHERE q.rs IN('met','breached')),2) END),
+   'response',jsonb_build_object('met',count(*) FILTER (WHERE q.ps='met'),'breached',count(*) FILTER (WHERE q.ps='breached'),
+     'pending',count(*) FILTER (WHERE q.ps='pending'),
+     'compliance_pct',CASE WHEN count(*) FILTER (WHERE q.ps IN('met','breached'))>0
+       THEN round(100.0*count(*) FILTER (WHERE q.ps='met')/count(*) FILTER (WHERE q.ps IN('met','breached')),2) END),
+   'population','non-cancelled work orders requested in the period')
+  INTO sla FROM (SELECT
+    CASE WHEN w.sla_resolve_due_at IS NULL THEN 'na'
+         WHEN w.status IN('COMPLETED','VERIFIED','CLOSED') AND w.completed_at IS NOT NULL THEN CASE WHEN w.completed_at<=w.sla_resolve_due_at THEN 'met' ELSE 'breached' END
+         WHEN w.sla_resolve_due_at<now() THEN 'breached' ELSE 'pending' END AS rs,
+    CASE WHEN w.sla_response_due_at IS NULL THEN 'na'
+         WHEN COALESCE(w.responded_at,w.started_at) IS NOT NULL THEN CASE WHEN COALESCE(w.responded_at,w.started_at)<=w.sla_response_due_at THEN 'met' ELSE 'breached' END
+         WHEN w.sla_response_due_at<now() THEN 'breached' ELSE 'pending' END AS ps
+   FROM c10_demo.am_work_orders w WHERE w.business_id=p_business AND w.site_id=ANY(v_sites) AND w.status<>'CANCELLED'
+    AND w.merged_into_id IS NULL AND w.requested_at>=pe.o_from_ts AND w.requested_at<pe.o_to_ts) q;
+ win_end:=LEAST(pe.o_to_ts,now());
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('asset_id',q.asset_id,'asset_no',q.asset_no,'failure_code',q.failure_code,'count',q.n,
+   'first_at',q.f,'last_at',q.l,'wo_ids',to_jsonb(q.ids[1:20])) ORDER BY q.n DESC,q.asset_id,q.failure_code),'[]'::jsonb) INTO rec
+  FROM (SELECT w.asset_id,a.asset_no,w.failure_code,count(*) AS n,min(w.requested_at) AS f,max(w.requested_at) AS l,array_agg(w.id ORDER BY w.id) AS ids
+        FROM c10_demo.am_work_orders w JOIN c10_demo.am_assets a ON a.id=w.asset_id
+        WHERE w.business_id=p_business AND a.site_id=ANY(v_sites) AND w.kind IN('breakdown','corrective') AND w.status<>'CANCELLED'
+         AND w.merged_into_id IS NULL AND w.failure_code IS NOT NULL
+         AND w.requested_at>win_end-make_interval(days=>win) AND w.requested_at<=win_end
+        GROUP BY w.asset_id,a.asset_no,w.failure_code HAVING count(*)>=minrec) q;
