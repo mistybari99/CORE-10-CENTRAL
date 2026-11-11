@@ -97,13 +97,13 @@ const HOSTILE = "<img src=x onerror=window.__xss=1>";
       await noOverflow("campaigns"); await shot("campaigns");
       // consent change flips eligibility
       await go("customers"); await page.locator("a", { hasText: "Karim Uddin" }).click(); await ready("customer");
-      await page.click("#cons-C-1002-sms-granted"); await page.waitForSelector("#toast.okm");
+      await page.click("#cons-C-1002-sms-granted"); await page.waitForSelector("#toast.okm:has-text('Consent updated')");
       assert.match(await page.locator("main").innerText(), /yes/); await noOverflow("customer"); await shot("customer");
       // loyalty
-      await page.fill('form[data-form="loy"] [name="points"]', "25"); await page.fill('form[data-form="loy"] [name="reason"]', "goodwill"); await page.click('form[data-form="loy"] button'); await page.waitForSelector("#toast.okm");
+      await page.fill('form[data-form="loy"] [name="points"]', "25"); await page.fill('form[data-form="loy"] [name="reason"]', "goodwill"); await page.click('form[data-form="loy"] button'); await page.waitForSelector("#toast.okm:has-text('Points adjusted')");
       assert.match(await page.locator("#loy-points").innerText(), /^\d+/);
       // follow-up
-      await page.fill('form[data-form="fu_create"] [name="note"]', "Call back"); await page.click('form[data-form="fu_create"] button'); await page.waitForSelector("#toast.okm");
+      await page.fill('form[data-form="fu_create"] [name="note"]', "Call back"); await page.click('form[data-form="fu_create"] button'); await page.waitForSelector("#toast.okm:has-text('Follow-up scheduled')");
       await go("followups"); await page.locator("tr", { hasText: "Call back" }).locator("button", { hasText: "Done" }).click(); await page.waitForSelector("tr:has-text('Call back'):has-text('done')");
       // ---- Reports
       await go("reports"); assert.match(await page.locator("#rep-profit").innerText(), /NOT CERTIFIED/); assert.match(await page.locator("#rep-tickets").innerText(), /resolved/);
