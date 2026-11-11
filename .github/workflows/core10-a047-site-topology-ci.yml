@@ -58,4 +58,5 @@ jobs:
           [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.sites WHERE id IN(1001,1002,1003,2001)')" = 4 ]
           [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.stock_locations WHERE id IN(5001,5002,5003,6001)')" = 4 ]
       - name: Honest release boundary
-        run: echo 'A047 PASS: isolated PG17 signed-claim SIMULATION only; no real GoTrue, no production Supabase SQL, no stock/finance activation.'
+        run: |
+          echo 'A047 PASS: isolated PG17 signed-claim SIMULATION only; no real GoTrue, no production Supabase SQL, no stock/finance activation.'
