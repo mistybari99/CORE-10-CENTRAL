@@ -43,6 +43,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Create disposable application roles
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
       - name: Build canonical disposable tenant and business foundation
         run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
       - name: Load fictitious tenants, sites, roles and item fixtures
