@@ -39,3 +39,4 @@ details>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;f
 .field{margin:0 0 12px}
 .quickpanel .sheet{display:flex;flex-direction:column;overflow:hidden}.qbody{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}.actions{flex:0 0 auto;padding:10px 0 2px;margin-top:8px;border-top:1px solid var(--line)}
 #quick-form{margin-bottom:8px}
+button{max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:center}.row>*{min-width:0;max-width:100%}.model{text-align:left}
