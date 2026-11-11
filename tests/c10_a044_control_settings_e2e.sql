@@ -127,11 +127,11 @@ BEGIN
 END $$;
 COMMIT;
 -- Neither the app role nor anon receives direct DML grants.
-DO $
+DO $$
 BEGIN
  IF has_table_privilege('authenticated','c10_demo.control_settings_v1','UPDATE') THEN
   RAISE EXCEPTION 'DIRECT_CLIENT_UPDATE_GRANT_LEAK'; END IF;
  IF has_function_privilege('anon','c10_demo.write_control_setting_v1(bigint,text,text,text,boolean,bigint,text,text)','EXECUTE') THEN
   RAISE EXCEPTION 'ANON_RPC_EXECUTION_GRANT_LEAK'; END IF;
-END $;
+END $$;
 SELECT 'C10-A044 scoped placement/config/approval and negative role SQL PASS' AS result;
