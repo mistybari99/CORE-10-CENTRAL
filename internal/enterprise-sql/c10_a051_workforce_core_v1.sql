@@ -240,6 +240,8 @@ DECLARE r c10_demo.wf_receipts;
 BEGIN
  IF p_request IS NULL OR p_request !~ '^[A-Za-z0-9_-]{8,100}$' THEN RAISE EXCEPTION 'wf_invalid_request_key'; END IF;
  IF c10_demo.actor_uid() IS NULL THEN RAISE EXCEPTION 'wf_denied'; END IF;
+ -- Authorise BEFORE taking the per-business lock so outsiders cannot contend for it; re-derive after the lock (revocation race).
+ PERFORM c10_demo.wfi_ctx(p_business);
  PERFORM 1 FROM c10_demo.businesses WHERE id=p_business FOR NO KEY UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'wf_denied'; END IF;
  o_ctx:=c10_demo.wfi_ctx(p_business);
@@ -386,7 +388,7 @@ BEGIN
    res:=jsonb_build_object('status','updated','employee_id',v_id,'version',p_expected_version+1);
    PERFORM wfi_log(c.tenant_id,p_business,'employee',v_id::text,'updated',
     jsonb_build_object('full_name',e.full_name,'user_linked',e.user_id IS NOT NULL),
-    jsonb_build_object('changed_keys',(SELECT jsonb_agg(k) FROM jsonb_object_keys(p_data) k)),p_reason,p_request);
+    jsonb_build_object('changed_keys',(SELECT jsonb_agg(k) FROM jsonb_object_keys(p_data) k),'login_link_changed',p_data ? 'user_id'),p_reason,p_request);
   END IF;
  EXCEPTION
   WHEN unique_violation THEN
