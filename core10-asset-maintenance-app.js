@@ -617,10 +617,16 @@ SCREENS.workorders=async function(body){
    const r=await act("am_assign_work_order_v1",{p_wo:wo.id,p_expected_version:wo.version,p_assigned_to:v.assigned_to,p_assignee_ref:v.assignee_ref,p_team_ref:v.team_ref,p_reason:v.reason},"Assigned","দায়িত্ব দেওয়া হয়েছে",err);
    if(r)await reload();return !!r},T("Assign","দায়িত্ব দিন"),"assign-form");
  }
- function editForm(wo,reload){
-  modalForm(T("Edit work order","কাজের আদেশ সম্পাদনা")+" · "+(wo.wo_no||""),[{n:"title",l:["Title","শিরোনাম"],t:"text",req:true,val:wo.title,max:160},{n:"description",l:["Description","বিবরণ"],t:"textarea",val:wo.description,max:2000},
-   {n:"priority",l:["Priority","অগ্রাধিকার"],t:"select",opts:enumOpts("priority",PRIORITIES),val:wo.priority},{n:"due_on",l:["Due on","শেষ তারিখ"],t:"date",val:wo.due_on?dd(wo.due_on):""},REASON()],async(v,err)=>{
-   const ch={};for(const k of ["title","description","priority","due_on"]){const ov=wo[k]==null?null:(k==="due_on"?String(wo[k]).slice(0,10):wo[k]);if((v[k]==null?null:v[k])!==ov)ch[k]=v[k]}
+ function editForm(wo,reload,estOnly){
+  const est=[{n:"est_labor_hours",l:["Estimated labour hours","আনুমানিক শ্রমঘণ্টা"],t:"num",val:wo.est_labor_hours},{n:"est_labor_cost",l:["Estimated labour cost (advisory)","আনুমানিক শ্রম খরচ (পরামর্শমূলক)"],t:"num",val:wo.est_labor_cost},
+   {n:"est_spares_cost",l:["Estimated spares cost (advisory)","আনুমানিক যন্ত্রাংশ খরচ (পরামর্শমূলক)"],t:"num",val:wo.est_spares_cost}];
+  const main=[{n:"title",l:["Title","শিরোনাম"],t:"text",req:true,val:wo.title,max:160},{n:"description",l:["Description","বিবরণ"],t:"textarea",val:wo.description,max:2000},
+   {n:"priority",l:["Priority","অগ্রাধিকার"],t:"select",opts:enumOpts("priority",PRIORITIES),val:wo.priority},{n:"due_on",l:["Due on","শেষ তারিখ"],t:"date",val:wo.due_on?dd(wo.due_on):""},
+   {n:"team_ref",l:["Team ref.","টিম রেফ."],t:"text",max:40,val:wo.team_ref}];
+  const fields=estOnly?est:[...main,...est];
+  modalForm(T("Edit work order","কাজের আদেশ সম্পাদনা")+" · "+(wo.wo_no||""),[...fields,REASON()],async(v,err)=>{
+   const ch={};for(const f of fields){const k=f.n,ov=wo[k]==null?null:(k==="due_on"?String(wo[k]).slice(0,10):wo[k]);
+    const same=typeof v[k]==="number"||typeof ov==="number"?(v[k]==null&&ov==null)||Number(v[k])===Number(ov):(v[k]==null?null:v[k])===ov;if(!same)ch[k]=v[k]}
    if(!Object.keys(ch).length){err.textContent=T("No changes to save.","সংরক্ষণের মতো কোনো পরিবর্তন নেই।");err.hidden=false;return false}
    const r=await act("am_update_work_order_v1",{p_wo:wo.id,p_expected_version:wo.version,p_changes:ch,p_reason:v.reason},"Work order updated","কাজের আদেশ হালনাগাদ",err);if(r)await reload();return !!r},T("Save","সংরক্ষণ"),"wo-edit-form");
  }
