@@ -22,6 +22,19 @@ BEGIN
   'settings',CASE WHEN mgr THEN to_jsonb(cfg)-'updated_by' ELSE NULL END);
 END$$;
 
+-- Businesses where the caller has ANY workforce authority (owner/manager/active employee link). Derived server-side.
+CREATE FUNCTION c10_demo.wf_my_businesses_v1() RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE uid uuid:=actor_uid();
+BEGIN
+ IF uid IS NULL THEN RAISE EXCEPTION 'wf_denied'; END IF;
+ RETURN jsonb_build_object('server_authorized',true,'items',(SELECT COALESCE(jsonb_agg(jsonb_build_object('id',b.id,'tenant_id',b.tenant_id,
+  'slug',b.slug) ORDER BY b.id),'[]') FROM businesses b WHERE
+   can_tenant(b.tenant_id)
+   OR EXISTS(SELECT 1 FROM business_members m WHERE m.user_id=uid AND m.business_id=b.id AND m.tenant_id=b.tenant_id AND m.active AND m.role IN('business_owner','manager'))
+   OR EXISTS(SELECT 1 FROM wf_employees e WHERE e.user_id=uid AND e.business_id=b.id AND e.status='active')));
+END$$;
+
 CREATE FUNCTION c10_demo.wf_list_employees_v1(p_business bigint,p_search text,p_status text,p_site bigint,p_limit int,p_offset int)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
 DECLARE c wf_ctx_t; own boolean; mgr boolean; v_total int; items jsonb; v_lim int:=LEAST(GREATEST(COALESCE(p_limit,50),1),200);

@@ -573,6 +573,12 @@ DO $$ BEGIN
  PERFORM c10_test.denied($q$SELECT c10_demo.wf_save_employee_v1(201,'emp-req-90002',NULL,NULL,'{"employee_no":"EVIL","full_name":"Evil Person","joined_on":"2026-01-01","contract_type":"permanent","site_id":1001}'::jsonb,'cross tenant site')$q$,'wf_site_not_in_business');
  PERFORM c10_test.denied($q$SELECT c10_demo.wf_payroll_preview_v1(101,'2026-10-01')$q$,'wf_denied');
  PERFORM c10_test.as_user('emp201'); PERFORM c10_test.eq(c10_demo.wf_read_overview_v1(201)->>'level','employee','tenant-2 employee');
+ PERFORM c10_test.eq(c10_demo.wf_my_businesses_v1()->'items'->0->>'id','201','employee lists only own business');
+ PERFORM c10_test.eq(jsonb_array_length(c10_demo.wf_my_businesses_v1()->'items')::text,'1','one business for tenant-2 employee');
+ PERFORM c10_test.as_user('owner'); PERFORM c10_test.eq(jsonb_array_length(c10_demo.wf_my_businesses_v1()->'items')::text,'2','tenant owner lists both tenant-1 businesses');
+ PERFORM c10_test.as_user('e4'); PERFORM c10_test.eq(jsonb_array_length(c10_demo.wf_my_businesses_v1()->'items')::text,'1','linked employee with stock grant lists workforce business');
+ PERFORM c10_test.as_user('investor'); PERFORM c10_test.eq(jsonb_array_length(c10_demo.wf_my_businesses_v1()->'items')::text,'0','investor has no workforce business');
+ PERFORM c10_test.as_user('emp201');
  PERFORM c10_test.denied('SELECT c10_demo.wf_read_overview_v1(101)','wf_denied');
  PERFORM c10_test.as_user('owner');
  PERFORM c10_test.denied('SELECT c10_demo.wf_list_employees_v1(201,NULL,NULL,NULL,50,0)','wf_denied');
