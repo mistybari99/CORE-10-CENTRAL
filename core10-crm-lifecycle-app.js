@@ -234,9 +234,11 @@
   V.settings = async function () {
     var d = await api("settings_get"), s = d.settings, own = can("settings_edit");
     var stg = table([T("Key", "কী"), T("English", "ইংরেজি"), T("বাংলা", "বাংলা"), T("Kind", "ধরন"), ""], s.stages.map(function (x) {
-      return [esc(x.key), own ? '<form class="row" data-form="stage_save" data-key="' + esc(x.key) + '"><input name="en" aria-label="en" value="' + esc(x.en) + '"></td><td><input name="bn" aria-label="bn" value="' + esc(x.bn) + '"></td><td>' + esc(x.kind) + '</td><td><button id="stg-' + esc(x.key) + '-save" type="submit">' + esc(T("Save", "সংরক্ষণ")) + '</button> <button type="button" class="bad" id="stg-' + esc(x.key) + '-del" data-act="stagedel" data-key="' + esc(x.key) + '">' + esc(T("Delete", "মুছুন")) + "</button></form>" : esc(x.en) + "</td><td>" + esc(x.bn) + "</td><td>" + esc(x.kind) + "</td><td>"];
+      var fid = "sf-" + esc(x.key);
+      return [esc(x.key) + (own ? '<form id="' + fid + '" data-form="stage_save" data-key="' + esc(x.key) + '"></form>' : ""),
+        own ? '<input form="' + fid + '" name="en" aria-label="en" value="' + esc(x.en) + '">' : esc(x.en), own ? '<input form="' + fid + '" name="bn" aria-label="bn" value="' + esc(x.bn) + '">' : esc(x.bn), esc(x.kind),
+        own ? '<button form="' + fid + '" id="stg-' + esc(x.key) + '-save" type="submit">' + esc(T("Save", "সংরক্ষণ")) + '</button> <button type="button" class="bad" id="stg-' + esc(x.key) + '-del" data-act="stagedel" data-key="' + esc(x.key) + '">' + esc(T("Delete", "মুছুন")) + "</button>" : ""];
     }));
-    stg = stg.replace(/<form class="row"([^>]*)><input name="en"/g, '<form class="row"$1><input name="en"');
     var matrix = '<div class="tbl-wrap"><table id="perm-matrix"><thead><tr><th>' + esc(T("Capability", "সক্ষমতা")) + "</th>" + d.roles.map(function (r) { return "<th>" + r + "</th>"; }).join("") + "</tr></thead><tbody>" + d.caps.map(function (c) {
       return "<tr><td>" + esc(c) + "</td>" + d.roles.map(function (r) { var on = s.perms[r].indexOf(c) >= 0; return '<td><input type="checkbox" aria-label="' + esc(r + " " + c) + '" data-chg="perm" data-role="' + r + '" data-cap="' + esc(c) + '"' + (on ? " checked" : "") + (r === "owner" || !own ? " disabled" : "") + "></td>"; }).join("") + "</tr>";
     }).join("") + "</tbody></table></div>";
