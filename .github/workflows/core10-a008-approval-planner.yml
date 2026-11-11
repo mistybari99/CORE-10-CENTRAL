@@ -1,0 +1,24 @@
+name: C10-A008 Approval Planner Contract (DRAFT ONLY)
+on:
+  pull_request:
+    paths:
+      - 'internal/core10-approval-transition.js'
+      - 'tests/core10-approval-transition.test.js'
+      - '.github/workflows/core10-a008-approval-planner.yml'
+  push:
+    branches:
+      - 'feature/c10-a008-approval-planner-contract-20261111'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  approval-planner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run isolated non-posting approval regression
+        run: node --test tests/core10-approval-transition.test.js

@@ -1,0 +1,90 @@
+# Disposable signed-JWT HTTP proof for the Enterprise prototype, never production.
+name: CORE 10 - Enterprise Signed JWT REST E2E
+on:
+  push:
+    branches:
+      - "feature/c10-a018-*"
+    paths:
+      - "internal/enterprise-sql/c10_a018_demo_backend.sql"
+      - "internal/enterprise-sql/c10_a018_inventory_v1.sql"
+      - "internal/enterprise-sql/c10_a020_business_setup_v1.sql"
+      - "tests/c10_a018_demo_seed.sql"
+      - "tests/api/core10-enterprise-rest-e2e.js"
+      - ".github/workflows/core10-enterprise-rest-ci.yml"
+  pull_request:
+    paths:
+      - "internal/enterprise-sql/c10_a018_demo_backend.sql"
+      - "internal/enterprise-sql/c10_a018_inventory_v1.sql"
+      - "internal/enterprise-sql/c10_a020_business_setup_v1.sql"
+      - "tests/c10_a018_demo_seed.sql"
+      - "tests/api/core10-enterprise-rest-e2e.js"
+      - ".github/workflows/core10-enterprise-rest-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  enterprise-signed-rest:
+    name: Signed-JWT tenant/setup/stock authorization over HTTP
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_rest_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_rest_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: core10_rest_ci
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+      CORE10_CI_JWT_SECRET: core10_ci_disposable_enterprise_hmac_2026_only_not_production
+      CORE10_CI_REST_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Create disposable PostgREST roles
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
+      - name: Build schema, seed test tenants, install business and inventory engines
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a020_business_setup_v1.sql
+      - name: Start disposable PostgREST with HMAC verified JWTs
+        run: |
+          docker run --rm -d --name core10-enterprise-ci-pgrst --network host \
+            -e PGRST_DB_URI="postgres://postgres:demo_only@127.0.0.1:5432/core10_rest_ci" \
+            -e PGRST_DB_SCHEMAS=c10_demo \
+            -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET="$CORE10_CI_JWT_SECRET" \
+            -e PGRST_JWT_AUD=authenticated \
+            -e PGRST_SERVER_PORT=3000 \
+            postgrest/postgrest:v12.2.12
+          for i in $(seq 1 30); do
+            code=$(curl -s --max-time 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ || true)
+            if [ "$code" != "000" ] && [ "$code" != "503" ]; then exit 0; fi
+            sleep 1
+          done
+          docker logs core10-enterprise-ci-pgrst
+          exit 1
+      - name: Run real signed JWT HTTP E2E and negative matrix
+        run: node tests/api/core10-enterprise-rest-e2e.js
+      - name: PostgREST diagnostics on failure
+        if: failure()
+        run: docker logs core10-enterprise-ci-pgrst || true
