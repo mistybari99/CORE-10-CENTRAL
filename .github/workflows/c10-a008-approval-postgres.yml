@@ -4,6 +4,7 @@ on:
     paths:
       - 'internal/enterprise-sql/c10_a008_atomic_approval_draft.sql'
       - 'tests/c10_a008_atomic_approval_e2e.sql'
+      - 'tests/c10_a008_concurrent_approval_e2e.sh'
       - '.github/workflows/c10-a008-approval-postgres.yml'
   push:
     branches:
@@ -65,3 +66,5 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_atomic_approval_draft.sql
       - name: Execute approval authorization and audit E2E
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_atomic_approval_e2e.sql
+      - name: Execute concurrent approval replay regression
+        run: bash tests/c10_a008_concurrent_approval_e2e.sh
