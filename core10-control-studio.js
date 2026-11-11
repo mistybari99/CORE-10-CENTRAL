@@ -17,7 +17,7 @@ function shell(){
  root.innerHTML='<div class="studio-layout"><aside class="studio-rail"><div class="brand">CORE <b>10</b><small> CENTRAL · ENTERPRISE</small></div>'+
  '<nav aria-label="Control navigation"><a href="./owner.html#/organization">Portfolio overview</a>'+
  '<a class="active" href="./core10-control-studio.html">Universal Control Studio</a>'+
- '<a href="./index.html">Business workspace</a></nav><div class="rail-note">D045 · R123 · A042/A043<br>One canonical service. No independent local permissions.</div></aside>'+
+ '<a href="./core10-engine-workshop.html">Micro-Engine Workshop</a><a href="./index.html">Business workspace</a></nav><div class="rail-note">D045 · R123 · A042/A043<br>One canonical service. No independent local permissions.</div></aside>'+
  '<main><div class="topline"><span>OWNER GOVERNANCE / CONFIGURATION</span><span class="version">SERVICE V1 · UNRELEASED</span></div>'+
  '<div class="headline"><div><h1>'+ (isBusiness?"Business Controls":"Universal Control Studio")+'</h1>'+
  '<p>'+(isBusiness?"Business App / Settings / Business Controls":"Central registry · business-specific placement · delegated preferences")+'</p></div>'+
@@ -32,6 +32,8 @@ function shell(){
  '<div id="studio-detail"><p class="empty">Choose an authorized business and a control.</p></div></section></div>'+
  '<section class="approval-panel"><div class="panel-title"><h2>Pending change requests</h2><button id="studio-requests-refresh" type="button" class="outline">Refresh</button></div>'+
  '<div id="studio-requests"><p class="muted">Only the authorized tenant owner can review requests.</p></div></section>'+
+ '<section class="approval-panel"><div class="panel-title"><h2>Micro-Engines (C10-A045)</h2><a class="return-link" id="studio-engine-link" href="./core10-engine-workshop.html">Open Workshop</a></div>'+
+ '<div id="studio-engines"><p class="muted">Engines published to this business appear here from the same canonical service. Advisory only.</p></div></section>'+
  '<footer>CORE 10 CENTRAL · Shared canonical settings / A021 Owner Controls and A034 Governance remain authoritative · No live migration or stock release</footer></main></div>';
 }
 function visibleItems(){
@@ -93,11 +95,26 @@ async function loadBusiness(){
   if(state.businessId!==wanted)return;
   state.items=response.items;state.selected=visibleItems()[0]?.control_id||null;
   drawList();drawDetail();showStatus("Server-authorized configuration loaded · business #"+wanted);
-  loadPending();
+  loadPending();loadEngines();
  }catch(err){
   if(state.businessId!==wanted)return;
   showStatus("Settings unavailable or server authorization denied: "+String(err.code||"RPC_UNAVAILABLE"),true);
   $$("studio-requests").innerHTML='<p class="muted">Approval queue unavailable.</p>';
+ }
+}
+async function loadEngines(){
+ const host=$$("studio-engines"),target=state.businessId;
+ if(!host||!state.engines||!target)return;
+ const link=$$("studio-engine-link");if(link&&isBusiness)link.href="./core10-engine-workshop.html?biz="+encodeURIComponent(target);
+ try{
+  const d=await state.engines.readBusiness(target);
+  if(state.businessId!==target)return;
+  host.innerHTML=d.items.length?d.items.map(x=>'<div class="control-row" role="group"><span class="control-icon">ME</span><span class="control-label"><b>'+html(x.control_id)+'</b>'+
+   '<small>'+html(x.state)+" \u00b7 "+html(labels[x.placement]||x.placement)+(x.effective?" \u00b7 "+html(x.effective.field+" "+x.effective.op+" "+x.effective.threshold+" \u2192 "+x.effective.outcome):"")+'</small></span>'+
+   '<span class="dot '+(x.state==="PUBLISHED"?"on":"")+'" aria-label="'+html(x.state)+'"></span></div>').join(""):
+   '<p class="muted">No micro-engine is published to this business.</p>';
+ }catch(err){
+  if(state.businessId===target)host.innerHTML='<p class="muted">Micro-engine projection unavailable: '+html(String(err.code||"RPC_UNAVAILABLE"))+'</p>';
  }
 }
 async function loadPending(){
@@ -162,7 +179,9 @@ async function init(){
   const cfg=window.BOS_CONFIG,lib=window.supabase;
   if(!cfg||!cfg.url||!cfg.key||!lib||typeof lib.createClient!=="function")
    throw Error("SIGNED_CLIENT_CONFIGURATION_MISSING");
-  state.api=window.CORE10_CONTROL_SETTINGS_API.create({client:lib.createClient(cfg.url,cfg.key)});
+  const rawClient=lib.createClient(cfg.url,cfg.key);
+  state.api=window.CORE10_CONTROL_SETTINGS_API.create({client:rawClient});
+  state.engines=window.CORE10_ENGINE_WORKSHOP_API?window.CORE10_ENGINE_WORKSHOP_API.create({client:rawClient}):null;
   state.businesses=await state.api.listBusinesses();
   if(isBusiness){
    if(!/^[1-9][0-9]*$/.test(businessParam||""))throw Error("BUSINESS_ID_REQUIRED");

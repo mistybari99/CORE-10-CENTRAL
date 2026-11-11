@@ -1,0 +1,90 @@
+name: CORE10 A056 CRM Lifecycle PG17
+on:
+  push:
+    branches: ['claude/c10-a056-*']
+    paths:
+      - 'internal/enterprise-sql/c10_a056_*'
+      - 'tests/c10_a056_*'
+      - 'core10-crm-lifecycle*'
+      - 'tests/e2e/core10-a056-*'
+      - 'docs/architecture/C10_A056_*'
+      - '.github/workflows/core10-a056-crm-lifecycle-ci.yml'
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a056_*'
+      - 'tests/c10_a056_*'
+      - 'core10-crm-lifecycle*'
+      - 'tests/e2e/core10-a056-*'
+      - 'docs/architecture/C10_A056_*'
+      - '.github/workflows/core10-a056-crm-lifecycle-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  crm-sql-pg17:
+    name: CRM SQL authz/RLS/journey/concurrency (PG17) + Node units
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_DB: core10_a048_ci_a056, POSTGRES_USER: postgres, POSTGRES_PASSWORD: demo_a056 }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_a048_ci_a056"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: core10_a048_ci_a056
+      PGUSER: postgres
+      PGPASSWORD: demo_a056
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Isolated canonical SQL stack (A018 -> A049 -> A050)
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a020_business_setup_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a048_inventory_commands_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a049_operation_workflow_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a050_owner_portfolio_v1.sql
+      - name: Install A056 CRM lifecycle SQL
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a056_core_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a056_pipeline_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a056_growth_v1.sql
+      - name: Authz/RLS positive+negative, journey, consent precedence, merge, intake, privacy
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a056_crm_lifecycle_e2e.sql
+      - name: Concurrent merge / quote revision / idempotent create
+        run: bash tests/c10_a056_concurrency.sh
+      - name: Engine and signed client unit tests
+        run: |
+          node tests/c10_a056_engine.test.js
+          node tests/c10_a056_client.test.js
+      - name: Release boundary
+        run: echo "A056 isolated PG17 only; real Supabase GoTrue/production, real messaging providers and certified finance read models are NOT tested or enabled."
+  crm-browser:
+    name: CRM UI browser 390px/1440px (synthetic test adapter)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Install pinned Chromium
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-playwright" && cd "$RUNNER_TEMP/core10-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: A056 browser journey, consent blocking, injection safety, responsive layout
+        run: node tests/e2e/core10-a056-crm-browser.js
