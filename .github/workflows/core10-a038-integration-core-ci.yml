@@ -1,0 +1,76 @@
+# CORE10 A038: Integration Ports core. DISPOSABLE PostgreSQL 17 ONLY. Never runs against IMG-ERP-SG.
+name: CORE10 - A038 Integration Ports Core
+on:
+  push:
+    branches:
+      - "feature/c10-claude-integration-ports-*"
+    paths:
+      - "scripts/c10_a03[89]_*.sql"
+      - "scripts/c10_a040_*.sql"
+      - "tests/c10_a03[89]_*.sql"
+      - "tests/c10_a040_*.sql"
+      - "server/integrations/**"
+      - "tests/server-integrations/**"
+      - ".github/workflows/core10-a038-integration-core-ci.yml"
+  pull_request:
+    paths:
+      - "scripts/c10_a03[89]_*.sql"
+      - "scripts/c10_a040_*.sql"
+      - "tests/c10_a03[89]_*.sql"
+      - "tests/c10_a040_*.sql"
+      - "server/integrations/**"
+      - "tests/server-integrations/**"
+      - ".github/workflows/core10-a038-integration-core-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration-core:
+    name: Ports OFF by default, consent/quiet/cap gates, idempotency, retry lease, webhooks, owner-only RLS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_integration_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_integration_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Create disposable API roles
+        run: |
+          psql -d core10_integration_ci -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -d core10_integration_ci -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
+      - name: Core + payments + delivery/AI engines, each tested on a fresh disposable database
+        run: |
+          run_one() {  # $1 = db name, $2 = test file
+            psql -d core10_integration_ci -v ON_ERROR_STOP=1 -q -c "CREATE DATABASE $1"
+            for f in scripts/c10_a018_demo_backend.sql tests/c10_a018_demo_seed.sql scripts/c10_a038_integration_core_v1.sql \
+                     scripts/c10_a039_payments_v1.sql scripts/c10_a040_delivery_ai_v1.sql; do
+              psql -X -d "$1" -v ON_ERROR_STOP=1 -q -f "$f"
+            done
+            echo ">> $2"; psql -X -d "$1" -v ON_ERROR_STOP=1 -f "$2"
+          }
+          run_one a038 tests/c10_a038_integration_core_e2e.sql
+          run_one a039 tests/c10_a039_payments_e2e.sql
+          run_one a040 tests/c10_a040_delivery_ai_e2e.sql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Server adapter layer (signature, secrets, dry-run isolation, worker) - no network
+        run: node tests/server-integrations/adapters.test.js
