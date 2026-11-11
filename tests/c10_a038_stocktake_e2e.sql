@@ -1,5 +1,5 @@
 \set ON_ERROR_STOP on
-\echo C10-A031 DISPOSABLE STOCKTAKE: count -> submit -> owner approve -> atomic adjustment
+\echo C10-A038 DISPOSABLE STOCKTAKE: count -> submit -> owner approve -> atomic adjustment
 -- Fake actor identities from tests/c10_a018_demo_seed.sql; NOT real GoTrue/Auth.
 BEGIN;
 SET LOCAL ROLE authenticated;
@@ -270,4 +270,4 @@ BEGIN
     (SELECT count(*) FROM c10_demo.stock_movements)<>4 THEN
   RAISE EXCEPTION 'stocktake_final_audit_or_journal_count_wrong'; END IF;
 END $final$;
-\echo PASS A031 physical count/approval/variance adjust, stale/recount, six negative cases, exact journal and audit. DISPOSABLE PG17 only.
+\echo PASS A038 physical count/approval/variance adjust, stale/recount, six negative cases, exact journal and audit. DISPOSABLE PG17 only.

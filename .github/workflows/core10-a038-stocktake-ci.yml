@@ -1,25 +1,25 @@
-# C10-A031 — enterprise physical stocktake backend, isolated PostgreSQL 17 only.
+# C10-A038 — enterprise physical stocktake backend, isolated PostgreSQL 17 only.
 # No Supabase staging or production access; no customer data; no service keys.
-name: CORE10 A031 Physical Stocktake, Approval and Stale-safe Adjustment CI
+name: CORE10 A038 Physical Stocktake, Approval and Stale-safe Adjustment CI
 on:
   push:
     branches: ['feature/c10-a018-*']
     paths:
       - 'internal/enterprise-sql/c10_a018_demo_backend.sql'
       - 'internal/enterprise-sql/c10_a018_inventory_v1.sql'
-      - 'internal/enterprise-sql/c10_a031_stocktake_v1.sql'
+      - 'internal/enterprise-sql/c10_a038_stocktake_v1.sql'
       - 'tests/c10_a018_demo_seed.sql'
-      - 'tests/c10_a031_stocktake_e2e.sql'
-      - 'tests/api/core10-stocktake-rest-e2e.js'
+      - 'tests/c10_a038_stocktake_e2e.sql'
+      - 'tests/api/core10-a038-stocktake-rest-e2e.js'
       - '.github/workflows/core10-a031-stocktake-ci.yml'
   pull_request:
     paths:
       - 'internal/enterprise-sql/c10_a018_demo_backend.sql'
       - 'internal/enterprise-sql/c10_a018_inventory_v1.sql'
-      - 'internal/enterprise-sql/c10_a031_stocktake_v1.sql'
+      - 'internal/enterprise-sql/c10_a038_stocktake_v1.sql'
       - 'tests/c10_a018_demo_seed.sql'
-      - 'tests/c10_a031_stocktake_e2e.sql'
-      - 'tests/api/core10-stocktake-rest-e2e.js'
+      - 'tests/c10_a038_stocktake_e2e.sql'
+      - 'tests/api/core10-a038-stocktake-rest-e2e.js'
       - '.github/workflows/core10-a031-stocktake-ci.yml'
   workflow_dispatch:
 permissions:
@@ -65,9 +65,9 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
           psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
       - name: Install physical stocktake, owner approval, audit and stale-safe posting
-        run: psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a031_stocktake_v1.sql
+        run: psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a038_stocktake_v1.sql
       - name: Execute stocktake end-to-end test against isolated database
-        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a031_stocktake_e2e.sql
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a038_stocktake_e2e.sql
       - name: Reset only ephemeral CI demo schema between SQL and signed HTTP suites
         run: |
           # This server is the isolated PostgreSQL 17 service initialized in this job.
@@ -78,7 +78,7 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
           psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
           psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
-          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a031_stocktake_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a038_stocktake_v1.sql
       - name: Start disposable signed-HMAC PostgREST HTTP API (never real Supabase)
         env:
           CORE10_CI_JWT_SECRET: core10_disposable_stocktake_ci_signer_only_2026_not_production
@@ -102,7 +102,7 @@ jobs:
         env:
           CORE10_CI_JWT_SECRET: core10_disposable_stocktake_ci_signer_only_2026_not_production
           CORE10_CI_REST_URL: http://127.0.0.1:3000
-        run: node tests/api/core10-stocktake-rest-e2e.js
+        run: node tests/api/core10-a038-stocktake-rest-e2e.js
       - name: PostgREST diagnostics on failure
         if: failure()
         run: docker logs core10-stocktake-pgrst || true

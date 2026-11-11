@@ -1,4 +1,4 @@
--- C10-A031 / CORE 10 CENTRAL: Physical Stocktake -> Approval -> Adjustment.
+-- C10-A038 / CORE 10 CENTRAL: Physical Stocktake -> Approval -> Adjustment.
 -- DISPOSABLE PostgreSQL 17 CI ONLY, AFTER A018 demo backend + inventory_v1.
 -- NEVER execute this file on live IMG-ERP-SG. No customer data, sales or valuation.
 -- Counted quantity is user-entered; expected quantity is server-snapshotted at submit.

@@ -1,4 +1,4 @@
-// C10-A031: Signed HMAC JWT HTTP E2E, disposable PostgreSQL17/PostgREST ONLY.
+// C10-A038: Signed HMAC JWT HTTP E2E, disposable PostgreSQL17/PostgREST ONLY.
 // NOT a Supabase-issued GoTrue token, and NEVER a production release test.
 "use strict";
 const assert=require("node:assert/strict"),crypto=require("node:crypto");
@@ -136,5 +136,5 @@ function denied(r,msg,reason){
  assert.equal(summary.filter(x=>x.status==="voided").length,1);
  const final=rows(await request("/inventory_reconciliation_v1?select=reconciled",tokens.owner),2,"final ledger invariant");
  assert.ok(final.every(x=>x.reconciled));
- console.log("PASS C10-A031 signed HMAC HTTP: concurrent create+post, owner approval, count separation, stale/void, tenant/staff/investor/revoked/anon guards, exact journal. SIMULATED JWT, NOT Supabase GoTrue.");
-})().catch(error=>{console.error("FAILED C10-A031 "+error.stack);process.exitCode=1});
+ console.log("PASS C10-A038 signed HMAC HTTP: concurrent create+post, owner approval, count separation, stale/void, tenant/staff/investor/revoked/anon guards, exact journal. SIMULATED JWT, NOT Supabase GoTrue.");
+})().catch(error=>{console.error("FAILED C10-A038 "+error.stack);process.exitCode=1});
