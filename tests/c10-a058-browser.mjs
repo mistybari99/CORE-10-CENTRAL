@@ -22,7 +22,7 @@ try {
   // The repo's legacy static test server serves unknown .mjs as octet-stream.
   // Supply correct JavaScript MIME for this isolated module test without editing it.
   await page.route("**/*.mjs",async route=>{
-   const pathname=decodeURIComponent(new URL(route.request().url).pathname);
+   const pathname=decodeURIComponent(new URL(route.request().url()).pathname);
    const file=path.resolve(process.cwd(),"."+pathname);
    if(!file.startsWith(process.cwd()+path.sep) || !file.endsWith(".mjs")) {
     await route.abort();return;
