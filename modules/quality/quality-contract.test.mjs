@@ -39,14 +39,14 @@ test("invalid lot date, id, source and request rejected before transport",async(
   {...lot,key:""},
   {...lot,code:" "},
   {...lot,itemId:NaN},
- ])await assert.rejects(api.registerLot(arg),TypeError);
+ ])assert.throws(()=>api.registerLot(arg),TypeError);
  assert.equal(calls.length,0);
 });
 test("inspection fail-closed on checkbox, duplicates, fake passes",async()=>{
  const {api,calls}=fake();
- await assert.rejects(api.inspect({lotId:1,result:"pass",checks:[{code:"temp",ok:false}],key:"i-1"}),/false_pass/);
- await assert.rejects(api.inspect({lotId:1,result:"fail",checks:[],key:"i-2"}),/checks/);
- await assert.rejects(api.inspect({lotId:1,result:"fail",checks:[{code:"dup",ok:false},{code:"dup",ok:true}],key:"i-3"}),/duplicate/);
+ assert.throws(()=>api.inspect({lotId:1,result:"pass",checks:[{code:"temp",ok:false}],key:"i-1"}),/false_pass/);
+ assert.throws(()=>api.inspect({lotId:1,result:"fail",checks:[],key:"i-2"}),/checks/);
+ assert.throws(()=>api.inspect({lotId:1,result:"fail",checks:[{code:"dup",ok:false},{code:"dup",ok:true}],key:"i-3"}),/duplicate/);
  await api.inspect({lotId:8,result:"pass",checks:[{code:"temp",ok:true}],notes:"pass",key:"i-4"});
  assert.deepEqual(calls[0].params.p_checks,[{code:"temp",ok:true}]);
 });
@@ -74,10 +74,10 @@ test("reject floating numeric, unsupported movement, self transfer and malformed
  const {api,calls}=fake();
  const stock={lotId:7,locationId:5001,reason:"Valid reason",key:"stock-req-001"};
  for(const q of [1.1,"1.2345","0","-3","NaN","Infinity","1000001","1e4","00.1"])
- await assert.rejects(api.issue({...stock,quantity:q}),TypeError);
- await assert.rejects(api.transfer({lotId:7,fromLocationId:5001,toLocationId:5001,quantity:"1",key:"t-001"}),/same_location/);
- await assert.rejects(api.link({parentLotId:1,childLotId:1,key:"link"}),/self_genealogy/);
- await assert.rejects(api.recall({rootLotId:1,severity:"extreme",reason:"valid reason",key:"r-key"}),TypeError);
+ assert.throws(()=>api.issue({...stock,quantity:q}),TypeError);
+ assert.throws(()=>api.transfer({lotId:7,fromLocationId:5001,toLocationId:5001,quantity:"1",key:"t-001"}),/same_location/);
+ assert.throws(()=>api.link({parentLotId:1,childLotId:1,key:"link"}),/self_genealogy/);
+ assert.throws(()=>api.recall({rootLotId:1,severity:"extreme",reason:"valid reason",key:"r-key"}),TypeError);
  assert.equal(calls.length,0);
 });
 test("read-only views are scoped to selected business filter, never trust client to return rows",async()=>{
