@@ -25,5 +25,5 @@ E.registerModel({ id: "MZ1", version: "0.1.0", family: "test_ext", title: { en: 
 assert.equal(E.runModel("MZ1", null, { a: "21" }).outputs.double, "42.00"); assert.equal(E.getModel("M01").version, "2.0.0");
 /* coverage honesty: nothing above 'tested'; evidence files exist */
 for (const u of cov.U) { assert.ok(["proposed", "implemented", "tested", "partial_tested"].includes(u.status), u.id + " status " + u.status); for (const f of u.evidence) assert.ok(fs.existsSync(path.join(__dirname, "../../", f)) || fs.existsSync(path.join(__dirname, "..", "..", f)), u.id + " evidence file missing: " + f); }
-assert.equal(cov.U.length, 26); assert.deepEqual(cov.U.map(u => u.req), Array.from({ length: 26 }, (_, i) => "R" + (89 + i)));
+assert.equal(cov.U.length, 26); assert.deepEqual(cov.U.map(u => u.req), Array.from({ length: 26 }, (_, i) => "R" + String(89 + i).padStart(3, "0")));
 console.log("PASS registry: lock, immutability, 20 families (19 tested + M18 partial), bilingual R128 text, versioning, extension, honest coverage ladder");

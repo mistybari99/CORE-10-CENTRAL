@@ -60,5 +60,10 @@ class ScenarioService {
   applyToLive(session, id) { this._get(session, id, "sim.propose"); this._audit(this.auth.userOf(session).id, "apply.refused", this.scenarios.get(id)); return decisions.applyToLive(); }
   export(session, id, format) { const sc = this._get(session, id, null); const u = this.auth.userOf(session); if (!this.auth.can(session, "sim.export", this._target(sc)) && !this.auth.can(session, "sim.export_full", this._target(sc))) throw new SimError("FORBIDDEN", "Export not permitted", { cap: "sim.export" }); if (!sc.runIds.length) throw new SimError("NO_RUN", "Nothing to export"); const run = this.runs.get(sc.runIds[sc.runIds.length - 1]); const full = this.auth.can(session, "sim.export_full", this._target(sc)); const rep = reports.buildReport(sc, run, { full, actorId: u.id }); this._audit(u.id, "scenario.export", sc, { format, redacted: !full }); return format === "csv" ? reports.reportCsv(rep) : rep; }
   snapshot() { return JSON.stringify({ seq: this.seq, scenarios: [...this.scenarios.values()], runs: [...this.runs.values()], audit: this.auditLog }); }
+  /* restore a saved snapshot (browser localStorage demo). Integrity: audit chain must verify, otherwise the snapshot is rejected. */
+  restore(text) { const d = JSON.parse(text); const keep = { scenarios: this.scenarios, runs: this.runs, byKey: this.byKey, audit: this.auditLog, seq: this.seq };
+    this.scenarios = new Map(); this.byKey = new Map(); this.runs = new Map(); this.auditLog = []; this.seq = d.seq || 0;
+    for (const sc of d.scenarios) { this.scenarios.set(sc.id, sc); this.byKey.set(sc.tenantId + "|" + sc.businessId + "|" + sc.requestKey, sc.id); } for (const r of d.runs) this.runs.set(r.runId, deepFreeze(r)); for (const e of d.audit) this.auditLog.push(Object.freeze(e));
+    if (!this.verifyAudit()) { this.scenarios = keep.scenarios; this.runs = keep.runs; this.byKey = keep.byKey; this.auditLog = keep.audit; this.seq = keep.seq; throw new SimError("SNAPSHOT_TAMPERED", "Saved data failed its integrity check and was ignored"); } return this; }
 }
 module.exports = { ScenarioService, KINDS };

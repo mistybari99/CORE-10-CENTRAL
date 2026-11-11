@@ -1,0 +1,141 @@
+{
+ "source": "PR #75 live snapshot 2026-11-12 (titles only; full text in docs/development/c10-a025 on PR #75)",
+ "requirements": [
+  {
+   "id": "R081",
+   "title": "Simulation / Architecture"
+  },
+  {
+   "id": "R082",
+   "title": "Simulation / Context"
+  },
+  {
+   "id": "R083",
+   "title": "Simulation / Financial integrity"
+  },
+  {
+   "id": "R084",
+   "title": "Simulation / Safety"
+  },
+  {
+   "id": "R085",
+   "title": "Simulation / Security"
+  },
+  {
+   "id": "R086",
+   "title": "Simulation / Commercial"
+  },
+  {
+   "id": "R087",
+   "title": "Simulation / Sequencing"
+  },
+  {
+   "id": "R088",
+   "title": "Simulation / Enterprise UX"
+  },
+  {
+   "id": "R089",
+   "title": "Trusted Baseline Engine"
+  },
+  {
+   "id": "R090",
+   "title": "Data Quality & Readiness"
+  },
+  {
+   "id": "R091",
+   "title": "Certified Model Registry"
+  },
+  {
+   "id": "R092",
+   "title": "Financial Definition Engine"
+  },
+  {
+   "id": "R093",
+   "title": "Scenario Provenance"
+  },
+  {
+   "id": "R094",
+   "title": "Cross-Module Impact Engine"
+  },
+  {
+   "id": "R095",
+   "title": "Feasibility & Constraint Engine"
+  },
+  {
+   "id": "R096",
+   "title": "Integrated Financial Modeling"
+  },
+  {
+   "id": "R097",
+   "title": "Sensitivity & Driver Analysis"
+  },
+  {
+   "id": "R098",
+   "title": "Risk & Stress Testing"
+  },
+  {
+   "id": "R099",
+   "title": "Reverse Goal Planning"
+  },
+  {
+   "id": "R100",
+   "title": "Constraint-Based Optimization"
+  },
+  {
+   "id": "R101",
+   "title": "Multi-Scenario Portfolio"
+  },
+  {
+   "id": "R102",
+   "title": "Advanced Uncertainty Models"
+  },
+  {
+   "id": "R103",
+   "title": "Decision Lifecycle Register"
+  },
+  {
+   "id": "R104",
+   "title": "Approval Workflow Integration"
+  },
+  {
+   "id": "R105",
+   "title": "Actual vs Plan Tracking"
+  },
+  {
+   "id": "R106",
+   "title": "Decision Performance Review"
+  },
+  {
+   "id": "R107",
+   "title": "Forecast Accuracy & Bias"
+  },
+  {
+   "id": "R108",
+   "title": "Early Warning & Replanning"
+  },
+  {
+   "id": "R109",
+   "title": "Collaborative Scenario Review"
+  },
+  {
+   "id": "R110",
+   "title": "Multi-Business Consolidation"
+  },
+  {
+   "id": "R111",
+   "title": "Investment & Financing Integration"
+  },
+  {
+   "id": "R112",
+   "title": "Secure Scenario Application"
+  },
+  {
+   "id": "R113",
+   "title": "Enterprise UX & Reporting"
+  },
+  {
+   "id": "R114",
+   "title": "Security, Licensing & Scale"
+  }
+ ]
+}

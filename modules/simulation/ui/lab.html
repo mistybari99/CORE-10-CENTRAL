@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>C10-A025 Simulation Lab — isolated draft</title>
+<link rel="stylesheet" href="ui.css">
+</head>
+<body>
+<div class="wrap">
+  <h1 id="app-title">Business Simulation Lab</h1>
+  <div class="banner" id="banner-draft" role="note"></div>
+  <div class="banner info" id="banner-offline" role="status" hidden></div>
+  <div class="banner err" id="error-banner" role="alert" hidden><strong id="error-title"></strong> <span id="error-text"></span> <button type="button" id="btn-retry"></button></div>
+  <div class="bar" id="context-bar">
+    <div><label for="lang" id="lbl-lang">Language</label><select id="lang"><option value="en">English</option><option value="bn">বাংলা</option></select></div>
+    <div><label for="persona" id="lbl-persona">Signed in as</label><select id="persona"></select></div>
+    <div><label for="business" id="lbl-business">Business</label><select id="business"></select></div>
+    <div><label for="site" id="lbl-site">Site</label><select id="site"></select></div>
+  </div>
+  <p id="no-access" class="banner err" hidden role="alert"></p>
+  <main id="main">
+    <section class="card" aria-labelledby="h-model"><h2 id="h-model"></h2><div class="models" id="models"></div></section>
+    <section class="card" aria-labelledby="h-inputs" id="inputs-card" hidden>
+      <h2 id="h-inputs"></h2>
+      <div id="explain-host"></div>
+      <div class="row"><button type="button" id="btn-example"></button><span class="help" id="example-help"></span></div>
+      <form id="model-form" novalidate onsubmit="return false"></form>
+      <div class="grid two">
+        <div><label for="scenario-name" id="lbl-sname"></label><input type="text" id="scenario-name" maxlength="120"></div>
+        <div><label for="scenario-kind" id="lbl-skind"></label><select id="scenario-kind"></select></div>
+      </div>
+      <div class="row"><label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="use-source"> <span id="lbl-source"></span></label></div>
+      <div class="row"><button type="button" class="primary" id="btn-calc"></button><button type="button" id="btn-save"></button></div>
+    </section>
+    <section class="card" aria-labelledby="h-results" aria-live="polite"><h2 id="h-results"></h2><div id="results"><p id="empty-result"></p></div></section>
+    <section class="card" id="scenario-card" hidden aria-labelledby="h-selected">
+      <h2 id="h-selected">Selected scenario</h2><p id="scenario-summary"></p>
+      <div class="row" id="decision-buttons">
+        <button type="button" id="btn-review"></button><button type="button" id="btn-approve"></button><button type="button" id="btn-reject"></button><button type="button" id="btn-propose"></button>
+        <button type="button" id="btn-apply-live" disabled aria-describedby="apply-why"></button>
+      </div>
+      <p class="help" id="apply-why"></p>
+      <div class="row"><button type="button" id="btn-share"></button><label class="sr" for="comment-text">Comment</label><input type="text" id="comment-text" style="max-width:320px" maxlength="1000"><button type="button" id="btn-comment"></button></div>
+      <div class="row"><button type="button" id="btn-export-json"></button><button type="button" id="btn-export-csv"></button></div>
+      <p class="help" id="export-note"></p><pre id="export-preview" tabindex="0" style="overflow:auto;max-height:200px;border:1px solid var(--line);padding:6px" hidden></pre>
+      <ul class="clean" id="comments"></ul>
+    </section>
+    <section class="card" aria-labelledby="h-saved"><h2 id="h-saved"></h2><ul class="clean" id="saved-list" style="list-style:none;padding:0"></ul><div class="row"><button type="button" id="btn-compare"></button></div><div id="compare-result"></div></section>
+    <section class="card" aria-labelledby="h-analysis" id="analysis-card" hidden>
+      <h2 id="h-analysis"></h2>
+      <div class="grid three">
+        <div><h3 id="h-sens"></h3><label for="sens-driver" id="lbl-sd"></label><select id="sens-driver"></select><label for="sens-output" id="lbl-so"></label><select id="sens-output"></select><button type="button" id="btn-sens" class="primary"></button></div>
+        <div><h3 id="h-stress"></h3><label for="stress-preset">Preset</label><select id="stress-preset"><option value="demand">Sales/price −20%</option><option value="cost">Costs +15%</option><option value="both">Both</option></select><button type="button" id="btn-stress" class="primary"></button></div>
+        <div><h3 id="h-goal"></h3><label for="goal-driver" id="lbl-gd"></label><select id="goal-driver"></select><label for="goal-output" id="lbl-go"></label><select id="goal-output"></select><label for="goal-target" id="lbl-gt"></label><input type="text" id="goal-target" inputmode="decimal"><div class="grid" style="grid-template-columns:1fr 1fr"><div><label for="goal-lo" id="lbl-gl"></label><input type="text" id="goal-lo" inputmode="decimal"></div><div><label for="goal-hi" id="lbl-gh"></label><input type="text" id="goal-hi" inputmode="decimal"></div></div><button type="button" id="btn-goal" class="primary"></button></div>
+      </div>
+      <div id="analysis-result" aria-live="polite"></div>
+    </section>
+  </main>
+</div>
+<script src="../dist/c10-sim.bundle.js"></script>
+<script src="../dist/c10-sim-examples.js"></script>
+<script src="ui.js"></script>
+<script src="lab.js"></script>
+</body>
+</html>
