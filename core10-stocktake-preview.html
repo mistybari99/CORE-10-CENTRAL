@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d2133">
+<meta name="description" content="CORE 10 CENTRAL C10-A038 physical stocktake Owner/Staff preview — synthetic demonstration, no live stock posting">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://*.supabase.co; img-src 'self' data:; object-src 'none'; form-action 'none'; frame-ancestors 'none'">
+<title>CORE 10 CENTRAL · Physical Stocktake Preview</title>
+<link rel="icon" href="core10-owner-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="core10-stocktake-preview.css">
+<script defer src="core10-enterprise-client.js"></script>
+<script defer src="core10-stocktake-preview.js"></script>
+</head>
+<body>
+<div class="c10-app">
+ <aside class="c10-rail" aria-label="Stocktake navigation">
+  <div class="c10-identity"><span class="c10-mark">C<span>10</span></span><div><strong>CORE 10</strong><small>CENTRAL / ENTERPRISE</small></div></div>
+  <div class="c10-context"><span>WORKSPACE</span><strong>Inventory control</strong><small>Physical stocktake · C10-A038</small></div>
+  <nav class="c10-side-nav" aria-label="Stocktake screens">
+   <button data-screen="overview" aria-current="page" type="button"><span class="c10-nav-icon" aria-hidden="true">▦</span> Overview</button>
+   <button data-screen="count" type="button"><span class="c10-nav-icon" aria-hidden="true">≡</span> Physical count</button>
+   <button data-screen="review" type="button"><span class="c10-nav-icon" aria-hidden="true">✓</span> Owner approvals</button>
+   <button data-screen="audit" type="button"><span class="c10-nav-icon" aria-hidden="true">◷</span> Audit history</button>
+  </nav>
+  <div class="c10-rail-note"><span class="c10-led"></span><strong>SIMULATION ONLY</strong><small>Not connected to live inventory. No production stock can change here.</small></div>
+  <a class="c10-return" href="owner.html">← Owner Workspace</a>
+ </aside>
+ <main class="c10-main" id="workspace">
+  <header class="c10-top">
+   <div class="c10-breadcrumb">Enterprise <span>/</span> Inventory <span>/</span> <b>Stocktake</b></div>
+   <div class="c10-header-actions"><span class="c10-guard">● Backend posting locked</span><span class="c10-user-dot" aria-label="Synthetic demo profile">D</span></div>
+  </header>
+  <div class="c10-page">
+   <div class="c10-heading">
+    <div><div class="c10-eyebrow">STOCK INTEGRITY · C10-A038</div><h1>Physical Stocktake</h1><p>Count at the site. Review variance. Approve before any adjustment.</p></div>
+    <div class="c10-role-card"><small>Preview perspective</small><div class="c10-role-switch" role="group" aria-label="Choose demo role"><button type="button" data-role="staff" aria-pressed="true">Staff</button><button type="button" data-role="owner" aria-pressed="false">Owner</button></div></div>
+   </div>
+   <section class="c10-notice" aria-label="Preview safety">
+    <div><strong>DEMO DATA — NO ERP CHANGES</strong><p>This is a working interface prototype. Count, approve and post actions affect only temporary browser memory. There is no live Supabase write, payment or inventory update.</p></div>
+    <div class="c10-notice-actions"><button type="button" id="stage-read" disabled title="Requires a separate approved staging configuration">Staging read unavailable</button><span id="data-source">Source: synthetic demo</span></div>
+   </section>
+   <div id="feedback" class="c10-feedback" role="status" aria-live="polite"></div>
+   <div class="c10-metrics" id="metrics" aria-label="Stocktake summary"></div>
+   <div id="screen-content" tabindex="-1"></div>
+   <footer class="c10-foot"><span>CORE 10 CENTRAL · Enterprise Stock Control</span><span>Preview only · No live posting · Requires Owner release gate</span></footer>
+  </div>
+ </main>
+</div>
+</body>
+</html>

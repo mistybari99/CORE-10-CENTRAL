@@ -1,0 +1,106 @@
+name: CORE 10 - A018 Foundation Catalog Contract
+
+on:
+  push:
+    branches:
+      - "feature/c10-a018-*"
+    paths:
+      - "core10-capability-registry.js"
+      - "core10-business-template-planner.js"
+      - "core10-business-builder.js"
+      - "core10-industry-client.js"
+      - "core10-owner-business-entry.js"
+      - "core10-business-builder-staging.js"
+      - "owner.html"
+      - "tests/core10-business-builder-staging-smoke.js"
+      - "tests/core10-industry-client.test.js"
+      - "core10-business-builder.html"
+      - "core10-business-builder-ui.js"
+      - "tests/core10-business-builder.test.js"
+      - "tests/core10-business-builder-ui-smoke.js"
+      - "tests/core10-business-template-planner.test.js"
+      - "core10-enterprise-client.js"
+      - "core10-enterprise-workflows.js"
+      - "core10-offline-drafts.js"
+      - "tests/core10-offline-drafts-smoke.js"
+      - "tests/core10-enterprise-workflows-smoke.js"
+      - "tests/core10-enterprise-client-smoke.js"
+      - "core10-entity-compatibility.js"
+      - "data/core10_capability_catalog_v1.json"
+      - "tests/core10-foundation-catalog-smoke.js"
+      - "tests/core10-entity-compatibility-smoke.js"
+      - "tests/core10-a018-live-snapshot-contract.js"
+      - "data/core10_sg_readonly_structure_2026-11-10.json"
+      - "internal/enterprise-sql/c10_a018_readonly_structure_snapshot.sql"
+      - ".github/workflows/core10-a018-foundation-catalog.yml"
+  pull_request:
+    paths:
+      - "core10-capability-registry.js"
+      - "core10-business-template-planner.js"
+      - "core10-business-builder.js"
+      - "core10-industry-client.js"
+      - "core10-owner-business-entry.js"
+      - "core10-business-builder-staging.js"
+      - "owner.html"
+      - "tests/core10-business-builder-staging-smoke.js"
+      - "tests/core10-industry-client.test.js"
+      - "core10-business-builder.html"
+      - "core10-business-builder-ui.js"
+      - "tests/core10-business-builder.test.js"
+      - "tests/core10-business-builder-ui-smoke.js"
+      - "tests/core10-business-template-planner.test.js"
+      - "core10-enterprise-client.js"
+      - "core10-enterprise-workflows.js"
+      - "core10-offline-drafts.js"
+      - "tests/core10-offline-drafts-smoke.js"
+      - "tests/core10-enterprise-workflows-smoke.js"
+      - "tests/core10-enterprise-client-smoke.js"
+      - "core10-entity-compatibility.js"
+      - "data/core10_capability_catalog_v1.json"
+      - "tests/core10-foundation-catalog-smoke.js"
+      - "tests/core10-entity-compatibility-smoke.js"
+      - "tests/core10-a018-live-snapshot-contract.js"
+      - "data/core10_sg_readonly_structure_2026-11-10.json"
+      - "internal/enterprise-sql/c10_a018_readonly_structure_snapshot.sql"
+      - ".github/workflows/core10-a018-foundation-catalog.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  foundation-catalog:
+    name: Read-only enterprise capability and entity compatibility contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout proposed foundation code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate 10 primary templates and false-ready protections
+        run: node tests/core10-foundation-catalog-smoke.js
+      - name: Validate ten-template setup planning and 301-site preview
+        run: node tests/core10-business-template-planner.test.js
+      - name: Validate business setup logic, scale and release locks
+        run: node tests/core10-business-builder.test.js
+      - name: Validate business wizard source and browser script syntax
+        run: node tests/core10-business-builder-ui-smoke.js
+      - name: Validate signed-user industry RPC integration and release isolation
+        run: node tests/core10-industry-client.test.js
+      - name: Validate owner workspace signed staging integration
+        run: node tests/core10-business-builder-staging-smoke.js
+      - name: Validate legacy entity ancestry and stable location IDs
+        run: node tests/core10-entity-compatibility-smoke.js
+      - name: Validate read-only live-derived SG structural snapshot
+        run: node tests/core10-a018-live-snapshot-contract.js
+      - name: Validate session-bound enterprise client bridge and safe release gates
+        run: node tests/core10-enterprise-client-smoke.js
+      - name: Validate session-bound multi-engine RPC bridge, draft vs post vs finance gates
+        run: node tests/core10-enterprise-workflows-smoke.js
+      - name: Validate explicit offline draft sync, user binding, idempotency and no financial/stock posting
+        run: node tests/core10-offline-drafts-smoke.js

@@ -1,0 +1,20 @@
+// CORE10 A018 preview contract regression. Run: node tests/core10-enterprise-preview-smoke.js
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const vm=require("node:vm");
+const html=fs.readFileSync("core10-enterprise-preview.html","utf8");
+const catalog=JSON.parse(fs.readFileSync("data/core10_capability_catalog_v1.json","utf8"));
+const script=html.match(/<script>([\s\S]*?)<\/script>/);
+assert.ok(script,"preview inline script exists");
+new vm.Script(script[1],{filename:"core10-enterprise-preview.html"});
+const ids=["overview","businesses","sites","modules","businessGrid","moduleList","siteList","siteName","siteBusiness","siteType","siteError","addSite","exportSites","businessSearch","businessStatus","moduleSearch","templatesCount","moduleCount","readyCount","workstreams","heading"];
+for(const id of ids)assert.ok(html.includes('id="'+id+'"'),"missing element: "+id);
+assert.equal(catalog.schema_version,1);
+assert.ok(catalog.templates.length>=10);
+assert.match(script[1],/state\.sites\.some\(s=>s\.business===business&&s\.name/);
+assert.match(script[1],/state\.sites\.some\(s=>s\.business===business&&s\.code/);
+assert.match(script[1],/production_ready:false/);
+assert.doesNotMatch(script[1],/supabase\.from\(|\.rpc\(|fetch\([^)]*,\s*\{[^}]*method:\s*["'](?:POST|PUT|DELETE)/i);
+assert.match(html,/@media\(max-width:560px\)/);
+console.log("PASS: preview JS syntax, "+ids.length+" DOM IDs, catalog, scoped duplicate guards, export safety, no DB writes, responsive layout");
