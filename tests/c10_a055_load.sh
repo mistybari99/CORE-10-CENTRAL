@@ -16,7 +16,9 @@ else
 fi
 RUN internal/enterprise-sql/c10_a018_demo_backend.sql
 RUN tests/c10_a018_demo_seed.sql
-for f in core policy registry planning workorders reports lockdown; do
+# AM_FILES="core registry lockdown" loads only those (agents work on partial sets); default = every existing file in order.
+FILES=${AM_FILES:-"core policy registry planning workorders reports lockdown"}
+for f in $FILES; do
   F=internal/enterprise-sql/c10_a055_assets_${f}_v1.sql
   [ -f "$F" ] && RUN "$F"
   [ "$LAST" = "$f" ] && break
