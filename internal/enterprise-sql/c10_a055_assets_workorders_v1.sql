@@ -864,3 +864,242 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_merge',pay,jsonb_build_object('status','applied','keep_id',k.id,'merged_id',m.id,'keep_version',nk.version,
    'merged_version',nm.version,'downtime_windows_relinked',moved));
 END$$;
+
+-- ===================== breakdown reporting & downtime windows =====================
+CREATE FUNCTION c10_demo.am_report_breakdown_v1(p_business bigint,p_request text,p_asset bigint,p_data jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; a am_assets; w am_work_orders; dw am_downtime; d jsonb:=COALESCE(p_data,'{}'::jsonb); pay jsonb; wid bigint; ex bigint; ex_st text;
+ v_title text; v_desc text; v_prio text; v_occ timestamptz; v_impact text; v_fail text; v_rc text; v_chk text; adopt boolean:=false; did bigint; safety boolean;
+BEGIN
+ IF p_asset IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ PERFORM ami_wk_keys(d,ARRAY['title','description','priority','occurred_at','impact','failure_code','reason_code','checklist_code']);
+ v_title:=ami_wk_txt(d,'title',3,160,false); v_desc:=ami_wk_txt(d,'description',1,2000,false);
+ v_prio:=COALESCE(ami_wk_txt(d,'priority',1,10,false),'high');
+ IF v_prio NOT IN('low','medium','high','critical') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_occ:=ami_wk_ts(d,'occurred_at',false); v_impact:=ami_wk_txt(d,'impact',1,500,false);
+ v_fail:=ami_wk_re(d,'failure_code','^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$',false); v_rc:=ami_wk_re(d,'reason_code','^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$',false);
+ v_chk:=ami_wk_re(d,'checklist_code','^[A-Z0-9][A-Z0-9_-]{0,31}$',false);
+ pay:=jsonb_build_object('asset',p_asset,'d',d);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'breakdown',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO a FROM am_assets WHERE id=p_asset AND business_id=p_business AND tenant_id=c.tenant_id FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'am_denied'; END IF;
+ PERFORM ami_wk_gate(c,a.site_id,'report');
+ IF a.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_asset_retired'; END IF;
+ v_occ:=ami_wk_clamp(v_occ,'am_invalid_input');
+ v_fail:=ami_wk_code(p_business,'failure',v_fail);
+ v_rc:=COALESCE(ami_wk_dt_code(p_business,v_rc),(SELECT code FROM am_codes WHERE business_id=p_business AND kind='downtime_reason' AND code='BREAKDOWN' AND active));
+ -- one OPEN breakdown per asset (serialised by the per-business lock + asset row lock + unique open-window index)
+ SELECT x.id INTO ex FROM am_work_orders x WHERE x.asset_id=a.id AND x.kind='breakdown' AND x.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS') ORDER BY x.id LIMIT 1;
+ IF ex IS NOT NULL THEN RAISE EXCEPTION 'am_breakdown_already_open' USING DETAIL=jsonb_build_object('work_order_id',ex)::text; END IF;
+ SELECT * INTO dw FROM am_downtime WHERE asset_id=a.id AND ended_at IS NULL;
+ IF FOUND THEN
+  IF dw.kind<>'breakdown' THEN RAISE EXCEPTION 'am_downtime_open_exists'; END IF;
+  SELECT x.status INTO ex_st FROM am_work_orders x WHERE x.id=dw.work_order_id;
+  IF ex_st IN('COMPLETED','VERIFIED') THEN RAISE EXCEPTION 'am_breakdown_already_open' USING DETAIL=jsonb_build_object('work_order_id',dw.work_order_id)::text; END IF;
+  adopt:=true;   -- orphan outage (its WO was cancelled / closed): the new report adopts the still-open window
+ ELSIF ami_wk_dt_overlap(a.id,v_occ,NULL,NULL) THEN RAISE EXCEPTION 'am_downtime_overlap'; END IF;
+ wid:=ami_create_wo(c,p_request,a.id,'breakdown',COALESCE(v_title,'Breakdown: '||left(a.name,120)),v_desc,v_prio,'breakdown_report',NULL,NULL,v_chk,'{}'::jsonb);
+ SELECT safety_critical INTO safety FROM am_categories WHERE id=a.category_id;
+ UPDATE am_work_orders SET failure_code=v_fail,safety_critical=(safety_critical OR COALESCE(safety,false)) WHERE id=wid RETURNING * INTO w;
+ IF adopt THEN UPDATE am_downtime SET work_order_id=wid WHERE id=dw.id; did:=dw.id;
+ ELSE
+  BEGIN
+   INSERT INTO am_downtime(tenant_id,business_id,asset_id,site_id,work_order_id,kind,reason_code,impact,started_at,started_by)
+   VALUES(a.tenant_id,p_business,a.id,a.site_id,wid,'breakdown',v_rc,v_impact,v_occ,c.user_id) RETURNING id INTO did;
+  EXCEPTION WHEN unique_violation THEN RAISE EXCEPTION 'am_breakdown_already_open'; END;
+ END IF;
+ PERFORM ami_wk_set_asset(a.id,'breakdown',ARRAY['active','idle','planned','under_maintenance'],p_request);
+ w:=ami_wk_do_submit(w,p_request,true);
+ PERFORM ami_log(c.tenant_id,p_business,'downtime',did::text,CASE WHEN adopt THEN 'downtime.adopt' ELSE 'downtime.start' END,NULL,
+   jsonb_build_object('kind','breakdown','work_order_id',wid,'started_at',v_occ,'asset_id',a.id),'breakdown reported',p_request);
+ PERFORM ami_log(c.tenant_id,p_business,'work_order',w.id::text,'wo.breakdown_reported',NULL,ami_wk_state(w)||jsonb_build_object('wo_no',w.wo_no,'asset_id',a.id,'downtime_id',did),NULL,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'breakdown',pay,jsonb_build_object('status','applied','id',w.id,'wo_no',w.wo_no,'wo_status',w.status,'version',w.version,
+   'downtime_id',did,'auto_approved',(w.approved_at IS NOT NULL AND w.approved_by IS NULL),'adopted_open_window',adopt));
+END$$;
+
+CREATE FUNCTION c10_demo.am_start_downtime_v1(p_business bigint,p_request text,p_asset bigint,p_data jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; a am_assets; d jsonb:=COALESCE(p_data,'{}'::jsonb); pay jsonb; v_kind text; v_rc text; v_impact text; v_start timestamptz; v_wo bigint; did bigint; w am_work_orders;
+BEGIN
+ IF p_asset IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ PERFORM ami_wk_keys(d,ARRAY['kind','reason_code','impact','started_at','work_order_id']);
+ v_kind:=COALESCE(ami_wk_txt(d,'kind',1,10,false),'planned');
+ IF v_kind NOT IN('planned','other') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_rc:=ami_wk_re(d,'reason_code','^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$',false); v_impact:=ami_wk_txt(d,'impact',1,500,false);
+ v_start:=ami_wk_ts(d,'started_at',false); v_wo:=ami_wk_num(d,'work_order_id',1,9e18,false)::bigint;
+ pay:=jsonb_build_object('asset',p_asset,'d',d);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'dt_start',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO a FROM am_assets WHERE id=p_asset AND business_id=p_business AND tenant_id=c.tenant_id FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'am_denied'; END IF;
+ PERFORM ami_wk_gate(c,a.site_id,'downtime_write');
+ IF a.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_asset_retired'; END IF;
+ v_start:=ami_wk_clamp(v_start,'am_invalid_input'); v_rc:=ami_wk_dt_code(p_business,v_rc);
+ IF v_wo IS NOT NULL THEN
+  SELECT * INTO w FROM am_work_orders WHERE id=v_wo AND business_id=p_business AND asset_id=a.id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  IF w.status='CANCELLED' THEN RAISE EXCEPTION 'am_wo_cancelled_is_final'; END IF;
+ END IF;
+ IF EXISTS(SELECT 1 FROM am_downtime x WHERE x.asset_id=a.id AND x.ended_at IS NULL) THEN RAISE EXCEPTION 'am_downtime_open_exists'; END IF;
+ IF ami_wk_dt_overlap(a.id,v_start,NULL,NULL) THEN RAISE EXCEPTION 'am_downtime_overlap'; END IF;
+ BEGIN
+  INSERT INTO am_downtime(tenant_id,business_id,asset_id,site_id,work_order_id,kind,reason_code,impact,started_at,started_by)
+  VALUES(a.tenant_id,p_business,a.id,a.site_id,v_wo,v_kind,v_rc,v_impact,v_start,c.user_id) RETURNING id INTO did;
+ EXCEPTION WHEN unique_violation THEN RAISE EXCEPTION 'am_downtime_open_exists'; END;
+ PERFORM ami_log(c.tenant_id,p_business,'downtime',did::text,'downtime.start',NULL,jsonb_build_object('kind',v_kind,'started_at',v_start,'asset_id',a.id,'work_order_id',v_wo),NULL,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'dt_start',pay,jsonb_build_object('status','applied','id',did,'started_at',v_start,'kind',v_kind));
+END$$;
+
+CREATE FUNCTION c10_demo.am_end_downtime_v1(p_business bigint,p_request text,p_downtime bigint,p_ended_at timestamptz,p_note text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; d am_downtime; pay jsonb; v_note text:=NULLIF(btrim(COALESCE(p_note,'')),''); e timestamptz;
+BEGIN
+ IF p_downtime IS NULL OR (v_note IS NOT NULL AND length(v_note)>300) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ pay:=jsonb_build_object('dt',p_downtime,'e',p_ended_at,'n',v_note);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'dt_end',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO d FROM am_downtime WHERE id=p_downtime AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'am_denied'; END IF;
+ PERFORM ami_wk_gate(c,d.site_id,'downtime_write');
+ IF d.ended_at IS NOT NULL THEN RAISE EXCEPTION 'am_downtime_already_ended'; END IF;
+ e:=ami_wk_clamp(p_ended_at,'am_downtime_end_invalid');
+ IF e<d.started_at THEN RAISE EXCEPTION 'am_downtime_end_invalid'; END IF;
+ PERFORM 1 FROM am_assets WHERE id=d.asset_id FOR UPDATE;
+ IF ami_wk_dt_overlap(d.asset_id,d.started_at,e,d.id) THEN RAISE EXCEPTION 'am_downtime_overlap'; END IF;
+ UPDATE am_downtime SET ended_at=e,ended_by=c.user_id WHERE id=d.id;
+ PERFORM ami_wk_restore_asset(d.asset_id,p_request);
+ PERFORM ami_log(c.tenant_id,p_business,'downtime',d.id::text,'downtime.end',jsonb_build_object('ended_at',NULL),
+   jsonb_build_object('ended_at',e,'kind',d.kind,'work_order_id',d.work_order_id,'note',v_note),v_note,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'dt_end',pay,jsonb_build_object('status','applied','id',d.id,'ended_at',e,
+   'duration_minutes',round(extract(epoch FROM (e-d.started_at))/60.0,2)));
+END$$;
+
+-- ===================== reads =====================
+CREATE FUNCTION c10_demo.am_list_work_orders_v1(p_business bigint,p_filters jsonb DEFAULT '{}',p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c am_ctx_t; f jsonb:=COALESCE(p_filters,'{}'::jsonb); vs bigint[]; fs bigint[]; es bigint[]; ids bigint[]; page bigint[]; items jsonb:='[]'::jsonb; w am_work_orders; id bigint;
+ v_status text[]; v_kind text; v_site bigint; v_asset bigint; v_prio text; v_mine boolean:=false; v_req boolean:=false; v_over boolean; v_re boolean; v_search text; lim int:=COALESCE(p_limit,50); off int:=COALESCE(p_offset,0);
+BEGIN
+ c:=ami_read_ctx(p_business);
+ IF lim NOT BETWEEN 1 AND 200 OR off<0 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ PERFORM ami_wk_keys(f,ARRAY['status','kind','site_id','asset_id','priority','assigned_to','requested_by','overdue','search','needs_reassignment']);
+ IF f ? 'status' THEN
+  IF jsonb_typeof(f->'status')<>'array' OR jsonb_array_length(f->'status')>8 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  SELECT array_agg(x) INTO v_status FROM jsonb_array_elements_text(f->'status') x;
+  IF EXISTS(SELECT 1 FROM unnest(v_status) s WHERE s NOT IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS','COMPLETED','VERIFIED','CLOSED','CANCELLED')) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ END IF;
+ v_kind:=ami_wk_txt(f,'kind',1,20,false);
+ IF v_kind IS NOT NULL AND v_kind NOT IN('preventive','corrective','breakdown','inspection','calibration') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_site:=ami_wk_num(f,'site_id',1,9e18,false)::bigint; v_asset:=ami_wk_num(f,'asset_id',1,9e18,false)::bigint;
+ v_prio:=ami_wk_txt(f,'priority',1,10,false);
+ IF v_prio IS NOT NULL AND v_prio NOT IN('low','medium','high','critical') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF ami_wk_txt(f,'assigned_to',1,10,false) IS NOT NULL THEN IF f->>'assigned_to'<>'me' THEN RAISE EXCEPTION 'am_invalid_input'; END IF; v_mine:=true; END IF;
+ IF ami_wk_txt(f,'requested_by',1,10,false) IS NOT NULL THEN IF f->>'requested_by'<>'me' THEN RAISE EXCEPTION 'am_invalid_input'; END IF; v_req:=true; END IF;
+ IF f ? 'overdue' THEN v_over:=ami_wk_bool(f,'overdue',NULL); END IF;
+ IF f ? 'needs_reassignment' THEN v_re:=ami_wk_bool(f,'needs_reassignment',NULL); END IF;
+ v_search:=lower(ami_wk_txt(f,'search',1,100,false));
+ vs:=ami_sites_with(c,'view'); fs:=ami_sites_with(c,'assign')||ami_sites_with(c,'reports'); es:=ami_sites_with(c,'execute');
+ ids:=ARRAY(SELECT x.id FROM am_work_orders x JOIN am_assets a ON a.id=x.asset_id
+  WHERE x.business_id=p_business AND x.site_id=ANY(vs)
+   AND (x.site_id=ANY(fs) OR x.requested_by=c.user_id OR (x.site_id=ANY(es) AND (x.assigned_to=c.user_id OR x.assigned_to IS NULL)))
+   AND (v_status IS NULL OR x.status=ANY(v_status)) AND (v_kind IS NULL OR x.kind=v_kind) AND (v_site IS NULL OR x.site_id=v_site)
+   AND (v_asset IS NULL OR x.asset_id=v_asset) AND (v_prio IS NULL OR x.priority=v_prio)
+   AND (NOT v_mine OR x.assigned_to=c.user_id) AND (NOT v_req OR x.requested_by=c.user_id)
+   AND (v_over IS NULL OR v_over=(x.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS') AND ((x.due_on IS NOT NULL AND x.due_on<ami_today(p_business)) OR (x.sla_resolve_due_at IS NOT NULL AND x.sla_resolve_due_at<now()))))
+   AND (v_re IS NULL OR v_re=ami_wk_needs_re(x))
+   AND (v_search IS NULL OR strpos(lower(x.wo_no),v_search)>0 OR strpos(lower(x.title),v_search)>0 OR strpos(lower(a.asset_no),v_search)>0 OR strpos(lower(a.name),v_search)>0)
+  ORDER BY x.id DESC);
+ page:=ids[off+1:off+lim];
+ IF page IS NOT NULL THEN
+  FOREACH id IN ARRAY page LOOP
+   SELECT * INTO w FROM am_work_orders WHERE am_work_orders.id=id;
+   items:=items||jsonb_build_array(ami_wk_json(c,w));
+  END LOOP;
+ END IF;
+ RETURN jsonb_build_object('items',items,'total',COALESCE(cardinality(ids),0),'limit',lim,'offset',off);
+END$$;
+
+CREATE FUNCTION c10_demo.am_get_work_order_v1(p_business bigint,p_wo bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c am_ctx_t; w am_work_orders; res jsonb; ev text; need_safety boolean; vr boolean;
+BEGIN
+ c:=ami_read_ctx(p_business);
+ IF p_wo IS NULL THEN RAISE EXCEPTION 'am_denied'; END IF;
+ SELECT * INTO w FROM am_work_orders WHERE id=p_wo AND business_id=p_business;
+ IF NOT FOUND OR NOT ami_wk_visible(c,w) THEN RAISE EXCEPTION 'am_denied'; END IF;
+ ev:=ami_wk_pt(w,'wo.evidence_required_for'); vr:=ami_wk_pb(w,'wo.verify_required');
+ need_safety:=(w.safety_critical OR COALESCE((SELECT k.safety_critical FROM am_assets a JOIN am_categories k ON k.id=a.category_id WHERE a.id=w.asset_id),false))
+   AND ami_wk_pb(w,'wo.require_safety_ack');
+ res:=ami_wk_json(c,w) || jsonb_build_object(
+  'checklist',COALESCE((SELECT jsonb_agg(to_jsonb(x)-'tenant_id'-'business_id' ORDER BY x.seq) FROM am_wo_checklist x WHERE x.work_order_id=w.id),'[]'::jsonb),
+  'labor',COALESCE((SELECT jsonb_agg(to_jsonb(x)-'tenant_id'-'business_id' ORDER BY x.id) FROM am_wo_labor x WHERE x.work_order_id=w.id),'[]'::jsonb),
+  'spares',COALESCE((SELECT jsonb_agg(to_jsonb(x)-'tenant_id'-'business_id' ORDER BY x.id) FROM am_wo_spares x WHERE x.work_order_id=w.id),'[]'::jsonb),
+  'attachments',COALESCE((SELECT jsonb_agg(to_jsonb(x)-'tenant_id'-'business_id' ORDER BY x.id) FROM am_wo_attachments x WHERE x.work_order_id=w.id),'[]'::jsonb),
+  'history',COALESCE((SELECT jsonb_agg(to_jsonb(x)-'tenant_id'-'business_id' ORDER BY x.id) FROM am_wo_history x WHERE x.work_order_id=w.id),'[]'::jsonb),
+  'downtime',COALESCE((SELECT jsonb_agg(ami_wk_dt_json(x) ORDER BY x.id) FROM am_downtime x WHERE x.work_order_id=w.id),'[]'::jsonb),
+  'cal_records',COALESCE((SELECT jsonb_agg(to_jsonb(x)-'tenant_id'-'business_id' ORDER BY x.id) FROM am_cal_records x WHERE x.work_order_id=w.id),'[]'::jsonb),
+  'merged_from',COALESCE((SELECT jsonb_agg(jsonb_build_object('id',x.id,'wo_no',x.wo_no) ORDER BY x.id) FROM am_work_orders x WHERE x.merged_into_id=w.id),'[]'::jsonb),
+  'available_actions',to_jsonb(ami_wk_actions(c,w)),
+  'completion_requirements',jsonb_build_object(
+    'checklist_pending',(SELECT count(*) FROM am_wo_checklist x WHERE x.work_order_id=w.id AND x.required AND x.result NOT IN('pass','fail')),
+    'checklist_required',ami_wk_pb(w,'wo.require_checklist_complete'),
+    'evidence_required',(ev='all' OR (ev='breakdown' AND w.kind='breakdown')),
+    'evidence_count',(SELECT count(*) FROM am_wo_attachments x WHERE x.work_order_id=w.id),
+    'cause_required',(w.kind IN('breakdown','corrective') AND ami_wk_pb(w,'wo.require_cause_code')),
+    'labor_required',ami_wk_pb(w,'wo.require_actual_labor'),
+    'calibration_required',(w.kind='calibration'),
+    'safety_ack_required',need_safety,'safety_ack_done',(w.safety_ack_at IS NOT NULL),
+    'verify_required',vr,'maker_checker',ami_wk_maker_checker(w.business_id)));
+ RETURN res;
+END$$;
+
+CREATE FUNCTION c10_demo.am_my_work_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c am_ctx_t; w am_work_orders; vs bigint[]; es bigint[]; aps bigint[]; vfs bigint[]; fs bigint[];
+ j_asg jsonb:='[]'; j_un jsonb:='[]'; j_apr jsonb:='[]'; j_ver jsonb:='[]'; j_req jsonb:='[]';
+BEGIN
+ c:=ami_read_ctx(p_business);
+ vs:=ami_sites_with(c,'view'); es:=ami_sites_with(c,'execute'); aps:=ami_sites_with(c,'approve'); vfs:=ami_sites_with(c,'verify'); fs:=ami_sites_with(c,'assign')||ami_sites_with(c,'reports');
+ FOR w IN SELECT * FROM am_work_orders x WHERE x.business_id=p_business AND x.site_id=ANY(vs) AND x.assigned_to=c.user_id
+   AND x.status IN('APPROVED','IN_PROGRESS') ORDER BY x.id DESC LIMIT 100 LOOP j_asg:=j_asg||jsonb_build_array(ami_wk_json(c,w)); END LOOP;
+ FOR w IN SELECT * FROM am_work_orders x WHERE x.business_id=p_business AND x.site_id=ANY(es) AND x.assigned_to IS NULL AND x.status='APPROVED'
+    AND ami_wk_auth(c,x,'start') IS NULL ORDER BY x.id DESC LIMIT 100 LOOP j_un:=j_un||jsonb_build_array(ami_wk_json(c,w)); END LOOP;
+ FOR w IN SELECT * FROM am_work_orders x WHERE x.business_id=p_business AND x.site_id=ANY(aps) AND x.status='SUBMITTED'
+   AND NOT (ami_wk_maker_checker(p_business) AND x.requested_by=c.user_id) ORDER BY x.id DESC LIMIT 100 LOOP j_apr:=j_apr||jsonb_build_array(ami_wk_json(c,w)); END LOOP;
+ FOR w IN SELECT * FROM am_work_orders x WHERE x.business_id=p_business AND x.site_id=ANY(vfs) AND x.status='COMPLETED'
+   AND NOT (ami_wk_maker_checker(p_business) AND x.completed_by=c.user_id) ORDER BY x.id DESC LIMIT 100 LOOP j_ver:=j_ver||jsonb_build_array(ami_wk_json(c,w)); END LOOP;
+ FOR w IN SELECT * FROM am_work_orders x WHERE x.business_id=p_business AND x.site_id=ANY(vs) AND x.requested_by=c.user_id
+   AND x.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS','COMPLETED') ORDER BY x.id DESC LIMIT 100 LOOP j_req:=j_req||jsonb_build_array(ami_wk_json(c,w)); END LOOP;
+ RETURN jsonb_build_object('assigned',j_asg,'claimable',j_un,'to_approve',j_apr,'to_verify',j_ver,'my_requests',j_req,
+  'counts',jsonb_build_object('assigned',jsonb_array_length(j_asg),'claimable',jsonb_array_length(j_un),'to_approve',jsonb_array_length(j_apr),
+    'to_verify',jsonb_array_length(j_ver),'my_requests',jsonb_array_length(j_req)));
+END$$;
+
+CREATE FUNCTION c10_demo.am_list_downtime_v1(p_business bigint,p_filters jsonb DEFAULT '{}',p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c am_ctx_t; f jsonb:=COALESCE(p_filters,'{}'::jsonb); vs bigint[]; ids bigint[]; page bigint[]; items jsonb:='[]'; d am_downtime; id bigint;
+ v_asset bigint; v_site bigint; v_kind text; v_open boolean; v_wo bigint; v_from date; v_to date; lim int:=COALESCE(p_limit,50); off int:=COALESCE(p_offset,0);
+BEGIN
+ c:=ami_read_ctx(p_business);
+ IF lim NOT BETWEEN 1 AND 200 OR off<0 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ PERFORM ami_wk_keys(f,ARRAY['asset_id','site_id','kind','open','work_order_id','from','to']);
+ v_asset:=ami_wk_num(f,'asset_id',1,9e18,false)::bigint; v_site:=ami_wk_num(f,'site_id',1,9e18,false)::bigint; v_wo:=ami_wk_num(f,'work_order_id',1,9e18,false)::bigint;
+ v_kind:=ami_wk_txt(f,'kind',1,10,false); IF v_kind IS NOT NULL AND v_kind NOT IN('breakdown','planned','other') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF f ? 'open' THEN v_open:=ami_wk_bool(f,'open',NULL); END IF;
+ v_from:=ami_wk_date(f,'from',false); v_to:=ami_wk_date(f,'to',false);
+ vs:=ami_sites_with(c,'view');
+ ids:=ARRAY(SELECT x.id FROM am_downtime x WHERE x.business_id=p_business AND x.site_id=ANY(vs)
+   AND (v_asset IS NULL OR x.asset_id=v_asset) AND (v_site IS NULL OR x.site_id=v_site) AND (v_kind IS NULL OR x.kind=v_kind)
+   AND (v_wo IS NULL OR x.work_order_id=v_wo) AND (v_open IS NULL OR v_open=(x.ended_at IS NULL))
+   AND (v_from IS NULL OR COALESCE(x.ended_at,'infinity'::timestamptz)>=v_from::timestamptz) AND (v_to IS NULL OR x.started_at<(v_to+1)::timestamptz)
+   ORDER BY x.started_at DESC,x.id DESC);
+ page:=ids[off+1:off+lim];
+ IF page IS NOT NULL THEN
+  FOREACH id IN ARRAY page LOOP SELECT * INTO d FROM am_downtime WHERE am_downtime.id=id; items:=items||jsonb_build_array(ami_wk_dt_json(d)); END LOOP;
+ END IF;
+ RETURN jsonb_build_object('items',items,'total',COALESCE(cardinality(ids),0),'limit',lim,'offset',off);
+END$$;
