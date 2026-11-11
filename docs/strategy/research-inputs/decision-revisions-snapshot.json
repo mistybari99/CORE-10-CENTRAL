@@ -1,0 +1,139 @@
+{
+  "source_range": "'DECISION REVISIONS'!A1:L35",
+  "rows": [
+    [
+      "CORE 10 | DECISION REVISION HISTORY"
+    ],
+    [
+      "Never overwrite a prior decision without previous wording, new wording and rationale"
+    ],
+    [],
+    [
+      "Revision ID",
+      "Decision ID(s)",
+      "Version / Move",
+      "Date",
+      "Previous Rule / Wording",
+      "New Rule / Wording",
+      "Reason",
+      "Approved By",
+      "Outcome",
+      "Source URL"
+    ],
+    [
+      "REV-001",
+      "C10-D016;C10-D017;C10-D018;C10-D019;C10-D020;C10-D026",
+      "v1 → Archived",
+      "2026-11-09",
+      "Migration audit and old-DB retirement tracked in combined sheet",
+      "Keep only in separate Migration Audit Archive; no change to underlying policy",
+      "Separate completed migration review from ongoing CORE 10 development",
+      "Owner",
+      "Scope relocation",
+      "https://docs.google.com/spreadsheets/d/1ZLhtTojdfMpJfVAkT4ylmtGXZznSrMVFUGvsCqfNam8/edit"
+    ],
+    [
+      "REV-002",
+      "C10-D028",
+      "v1 → v1.1",
+      "2026-11-09",
+      "Decisions tracked in a combined audit/development hub",
+      "Track development decisions in dedicated CORE 10 folder and revision/discussion logs",
+      "Prevent loss of older decisions when future requirements change",
+      "Owner",
+      "Approved",
+      "https://drive.google.com/drive/folders/1E2ZcZuo5obzvnzO50jUgDP2toRuk3TKA"
+    ],
+    [
+      "REV-003",
+      "Archived C10-D016",
+      "HOLD → owner-planned retirement",
+      "2026-11-09",
+      "Keep old Sydney IMG-ERP without pausing or deleting until independent backup/restore verified",
+      "Owner intends to personally delete old Sydney project; ongoing CORE 10 work uses SG only. Deletion has NOT been performed or verified.",
+      "User chose to stop retaining old project; prior audit and caution retained as history.",
+      "Owner",
+      "Decision recorded; user action pending; irreversible deletion caution",
+      "https://drive.google.com/drive/folders/1E2ZcZuo5obzvnzO50jUgDP2toRuk3TKA"
+    ],
+    [
+      "REV-004",
+      "Archived C10-D016",
+      "Owner-planned retirement → No paid plan / no backup",
+      "2026-11-09",
+      "Previous recommendation was independent backup and restore testing before removing Sydney IMG-ERP.",
+      "Owner explicitly declines paid Supabase plan and backup for the old Sydney project; owner will handle deletion themselves. IMG-ERP-SG remains the sole intended active development database.",
+      "Avoid new spending or backup work on the legacy project; acknowledge irreversible data-loss risk. No deletion has been performed.",
+      "Owner",
+      "Approved policy change; deletion not verified",
+      "https://drive.google.com/drive/folders/1E2ZcZuo5obzvnzO50jUgDP2toRuk3TKA"
+    ],
+    [
+      "REV-005",
+      "C10-D022",
+      "v1 → v2",
+      "2026-11-09",
+      "Sole repo named mistybari99/islamia-bos-app; My-tools retirement under review",
+      "Sole repo is mistybari99/CORE-10-CENTRAL main (same repository ID 1414157853); My-tools is archived and excluded from development",
+      "Owner confirmed final development source and requested new-chat handover",
+      "Owner",
+      "Approved; GitHub access verified",
+      "https://github.com/mistybari99/CORE-10-CENTRAL"
+    ],
+    [
+      "REV-006",
+      "C10-D030;C10-D031;C10-D032;C10-D033;C10-D034;C10-D035;C10-D036;C10-D037",
+      "v1 → v1.1 detail lock",
+      "2026-11-10",
+      "Eight high-level master scope policies were approved, but small behavioral rules and latest-correction precedence were not atomized in Decision Book evidence.",
+      "Added R001–R080 owner requirements with per-item authority, parent decisions and acceptance; latest owner correction wins; owner-agreed unchallenged proposals are design baseline, not production authorization.",
+      "Full conversation reconciliation to prevent UI/role/feature/setup/investment/SaaS requirements being lost; no master policy deletion.",
+      "Owner",
+      "Approved scope clarification; software changes pending",
+      "https://github.com/mistybari99/CORE-10-CENTRAL/blob/audit/c10-central-organization-reconciliation/CORE10_OWNER_REQUIREMENTS_TRACEABILITY_2026-11-10.md"
+    ],
+    [
+      "REV-007",
+      "C10-D039; C10-D040",
+      "v1 directive + v2.0 approved extension",
+      "2026-11-10",
+      "D039 18-section Simulation Directive, R081–R088; A025 deferred and no implementation.",
+      "Owner-approved additive 26 U01–U26 capabilities mapped to R089–R114; original directive stays; A025 remains deferred, A024 separate.",
+      "Close decision-intelligence gaps including feasibility, cash/profit reconciliation, optimization, outcome monitoring and transparent model certification.",
+      "Owner",
+      "Approved scope extension; NOT BUILT",
+      "https://github.com/mistybari99/CORE-10-CENTRAL/blob/audit/c10-central-organization-reconciliation/CORE10_SIMULATION_DECISION_INTELLIGENCE_V2_EXTENSION_2026-11-10.md"
+    ],
+    [
+      "REV-008",
+      "C10-D043 → C10-D044; R120 → R122",
+      "v1 GitHub-first handoff → v1.1 incremental live release correction",
+      "2026-11-10",
+      "D043 wording could be read as forbidding every main merge and every live deployment until a separate owner authorization, even for tested safe frontend-only fixes.",
+      "Owner authorizes Claude Code to publish reviewed low-risk UI-only fixes/features progressively after CI/regression and live smoke verification, without individual repeat approval. Keep strict gates for production DB/security/finance/stock/tenant mutations.",
+      "Owner wants to personally inspect the changing live app, correct issues iteratively, and avoid a doc/PR-only development workflow while protecting Islamia data."
+    ],
+    [
+      "REV-009",
+      "C10-D024; C10-D025; C10-D031; C10-D035; C10-D042; R035; R036; R039; R118; R119",
+      "Misread Islamia reuse → neutral operational engines",
+      "2026-11-10",
+      "Prior change C031/PR32 linked the customized Islamia legacy ERP/report set from the generic Sweets Business Creation wizard. This incorrectly implied a shared engine and raised concern that other businesses inherit Islamia reports, branding or logic.",
+      "Owner correction: preserve Islamia only within its own authorized Business Workspace. Extract only independently audited reusable functions into brand-neutral, scoped Operational Core tools; attach industry-specific workflows and per-business reports through eligible packs. Never cross-link the Islamia app from common template setup or assume 193 legacy reports work for other industries.",
+      "Latest explicit Owner correction prevails. PR34 removes generic wizard link and branded defaults; retains legacy regression tests only internally. No live Supabase import, stock/finance mutation or operational-engine certification.",
+      "Owner"
+    ],
+    [
+      "REV-010",
+      "C10-D039; C10-D040; C10-A025; R087",
+      "Deferred any coding → Claude Code isolated draft exception",
+      "2026-11-12",
+      "Earlier D039/D040/A025/R087 prohibited simulation code until after 2–3 fully completed major ERP packages and P0 dependency verification.",
+      "Owner NOW authorizes Claude Code (not Codex) to build a full modular Simulation Engine as an ISOLATED DRAFT on a distinct branch in the same repository and submit its own DRAFT PR with tests, versioned extension architecture, Decision Log and Technical Handover. NO merge, deployment, live DB/auth or operational activation. All original 2–3 major-package and P0 gates remain prerequisites for future runtime integration/release; C10-A024 commercialization remains deferred.",
+      "Parallel non-conflicting development is approved to avoid idle time while preserving original customer-data/tenant safety and preventing premature production release. Docs-only PR #75 contains detailed Claude Code coding mandate, not implementation.",
+      "Owner",
+      "Approved isolated draft authorization; runtime NOT BUILT/NOT RELEASED",
+      "https://github.com/mistybari99/CORE-10-CENTRAL/pull/75"
+    ]
+  ]
+}

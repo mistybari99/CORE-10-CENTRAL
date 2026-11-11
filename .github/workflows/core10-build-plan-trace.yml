@@ -1,0 +1,21 @@
+name: CORE10 research and detailed build-plan preservation
+on:
+  pull_request:
+    paths: ['internal/build-plan/**', 'docs/strategy/**', 'tests/demo-factory/core10-detailed-build-plan.test.js', '.github/workflows/core10-build-plan-trace.yml']
+  push:
+    branches: ['codex/detailed-build-register-*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  no-loss-plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node internal/build-plan/build.js
+      - run: node tests/demo-factory/core10-detailed-build-plan.test.js
+      - run: git diff --exit-code -- docs/strategy/DETAILED_BUILD_REGISTER.json
