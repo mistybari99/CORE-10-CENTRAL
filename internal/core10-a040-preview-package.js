@@ -56,7 +56,7 @@ function build(root,dest){
  const html=contents["core10-stocktake-preview.html"].toString("utf8");
  const back='href="owner.html"';
  if(html.split(back).length!==2)throw Error("PREVIEW_BACKLINK_CHANGED");
- contents["core10-stocktake-preview.html"]=Buffer.from(html.replace(back,'href="index.html"'),"utf8");
+ contents["core10-stocktake-preview.html"]=Buffer.from(html.replace(back,'href="index.html"').replace("← Owner Workspace","← Demo Home"),"utf8");
  if(!html.includes("DEMO DATA — NO ERP CHANGES")||!html.includes('id="stage-read" disabled')||
    !contents["core10-enterprise-client.js"].toString("utf8").includes("C10_A038_REAL_AUTH_AND_OWNER_RELEASE_REQUIRED"))
   throw Error("LIVE_WRITE_LOCK_NOT_PROVEN");
