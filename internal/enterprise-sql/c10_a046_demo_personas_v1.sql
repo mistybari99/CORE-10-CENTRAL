@@ -4,7 +4,7 @@
 \if :{?c10_demo_ack}
 \else
 \echo C10_A046_DISPOSABLE_ACK_REQUIRED
-\quit 3
+SELECT 1/0 AS c10_a046_disposable_ack_required;
 \endif
 BEGIN;
 SELECT set_config('c10.demo_fixture_ack', :'c10_demo_ack', true);
