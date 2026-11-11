@@ -358,8 +358,8 @@ BEGIN
  PERFORM c10_demo.a056_require(p_business,NULL,'report.read',true);
  RETURN jsonb_build_object('source','A049_posted_orders','purchase_date_basis','crm_order_link_created_at (A049 overview exposes no posted date)','certified',false,
   'cohorts',COALESCE((SELECT jsonb_agg(jsonb_build_object('cohort_month',to_char(cm,'YYYY-MM'),'customers',n,'repeat_customers',r,'repeat_rate',CASE WHEN n=0 THEN NULL ELSE round(r::numeric/n,4) END) ORDER BY cm) FROM
-   (SELECT date_trunc('month',first_at) cm,count(*) n,count(*) FILTER (WHERE cnt>=2) r FROM (SELECT customer_id,min(created_at) first_at,count(DISTINCT order_id) cnt FROM c10_demo.a056_posted_links(p_business) p
-     JOIN c10_demo.a056_customers c ON c.id=p.customer_id WHERE c10_demo.a056_row_ok(c.tenant_id,c.business_id,c.site_id) GROUP BY customer_id) z
+   (SELECT date_trunc('month',first_at) cm,count(*) n,count(*) FILTER (WHERE cnt>=2) r FROM (SELECT p.customer_id,min(p.created_at) first_at,count(DISTINCT p.order_id) cnt FROM c10_demo.a056_posted_links(p_business) p
+     JOIN c10_demo.a056_customers c ON c.id=p.customer_id WHERE c10_demo.a056_row_ok(c.tenant_id,c.business_id,c.site_id) GROUP BY p.customer_id) z
     WHERE first_at>=date_trunc('month',now())-make_interval(months=>m-1) GROUP BY 1) q),'[]'));
 END $f$;
 CREATE FUNCTION c10_demo.a056_report_repeat_business_v1(p_business bigint) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $f$
@@ -500,6 +500,7 @@ BEGIN
   END IF;
  END LOOP;
  REVOKE ALL ON ALL SEQUENCES IN SCHEMA c10_demo FROM PUBLIC,anon,authenticated;
+ GRANT USAGE ON SCHEMA c10_demo TO anon; -- needed ONLY for the token-gated public intake RPC; every table stays closed
  FOR r IN SELECT p.oid::regprocedure::text sig,p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='c10_demo' AND p.proname LIKE 'a056\_%' LOOP
   EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated',r.sig);
   IF r.proname ~ '_v1$' AND r.proname NOT IN('a056_audit_immutable') THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',r.sig); END IF;

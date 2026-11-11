@@ -115,7 +115,7 @@ BEGIN
  t:=c10_demo.a056_require(p_business,p_site,'lead.write');
  h:=c10_demo.a056_h(p_site::text,p_source,p_name,p_email,p_phone,p_note,p_customer::text);
  prev:=c10_demo.a056_idem_check(p_business,p_request,'create_lead',h); IF prev IS NOT NULL THEN RETURN prev; END IF;
- IF p_customer IS NOT NULL AND NOT EXISTS(SELECT 1 FROM c10_demo.a056_customers WHERE id=p_customer AND business_id=p_business AND status='active') THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
+ IF p_customer IS NOT NULL AND NOT EXISTS(SELECT 1 FROM c10_demo.a056_customers WHERE id=p_customer AND business_id=p_business AND status='active' AND c10_demo.a056_row_ok(tenant_id,business_id,site_id)) THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
  IF c10_demo.a056_txt(p_name,200) IS NULL AND p_email IS NULL AND p_phone IS NULL AND p_customer IS NULL THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
  INSERT INTO c10_demo.a056_leads(tenant_id,business_id,site_id,source,name,email,phone,email_norm,phone_norm,note,customer_id,request_key,created_by)
  VALUES(t,p_business,p_site,c10_demo.a056_txt(p_source,60,true),c10_demo.a056_txt(p_name,200),c10_demo.a056_txt(p_email,254),c10_demo.a056_txt(p_phone,32),c10_demo.a056_email_norm(p_email),c10_demo.a056_phone_norm(p_phone),
@@ -163,7 +163,7 @@ BEGIN
  h:=c10_demo.a056_h(p_site::text,p_channel,p_subject,p_body,p_customer::text,p_lead::text);
  prev:=c10_demo.a056_idem_check(p_business,p_request,'create_enquiry',h); IF prev IS NOT NULL THEN RETURN prev; END IF;
  IF p_channel NOT IN('website','ecommerce','pos','offline','phone','email','staff') THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
- IF p_customer IS NOT NULL THEN SELECT display_name INTO cn FROM c10_demo.a056_customers WHERE id=p_customer AND business_id=p_business AND status='active'; IF NOT FOUND THEN RAISE EXCEPTION 'A056_INVALID'; END IF; END IF;
+ IF p_customer IS NOT NULL THEN SELECT display_name INTO cn FROM c10_demo.a056_customers WHERE id=p_customer AND business_id=p_business AND status='active' AND c10_demo.a056_row_ok(tenant_id,business_id,site_id); IF NOT FOUND THEN RAISE EXCEPTION 'A056_INVALID'; END IF; END IF;
  IF p_lead IS NOT NULL AND NOT EXISTS(SELECT 1 FROM c10_demo.a056_leads WHERE id=p_lead AND business_id=p_business) THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
  ref:='ENQ-'||upper(substr(c10_demo.a056_sha(p_business::text||p_request||clock_timestamp()::text),1,12));
  INSERT INTO c10_demo.a056_enquiries(tenant_id,business_id,site_id,channel,subject,body,customer_id,lead_id,reference,status,request_key,created_by)
@@ -203,7 +203,7 @@ BEGIN
  IF e.version<>p_expected THEN RAISE EXCEPTION 'A056_STALE_ENQUIRY'; END IF;
  IF e.status IN('converted','closed') OR (p_action='triage' AND e.status='triaged') THEN RAISE EXCEPTION 'A056_ENQUIRY_TRANSITION'; END IF;
  cid:=COALESCE(p_customer,e.customer_id);
- IF cid IS NOT NULL AND NOT EXISTS(SELECT 1 FROM c10_demo.a056_customers WHERE id=cid AND business_id=e.business_id AND status='active') THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
+ IF cid IS NOT NULL AND NOT EXISTS(SELECT 1 FROM c10_demo.a056_customers WHERE id=cid AND business_id=e.business_id AND status='active' AND c10_demo.a056_row_ok(tenant_id,business_id,site_id)) THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
  IF p_action='to_lead' THEN
   INSERT INTO c10_demo.a056_leads(tenant_id,business_id,site_id,source,name,email,phone,email_norm,phone_norm,note,customer_id,request_key,created_by)
   VALUES(e.tenant_id,e.business_id,e.site_id,'enquiry:'||e.channel,e.contact_name,e.contact_email,e.contact_phone,
@@ -238,7 +238,7 @@ BEGIN
  t:=c10_demo.a056_require(p_business,p_site,'opportunity.write');
  h:=c10_demo.a056_h(p_site::text,p_customer::text,p_lead::text,p_enquiry::text,p_title,p_expected_value::text,p_expected_close::text,p_owner::text);
  prev:=c10_demo.a056_idem_check(p_business,p_request,'create_opportunity',h); IF prev IS NOT NULL THEN RETURN prev; END IF;
- SELECT site_id INTO cs FROM c10_demo.a056_customers WHERE id=p_customer AND business_id=p_business AND status='active';
+ SELECT site_id INTO cs FROM c10_demo.a056_customers WHERE id=p_customer AND business_id=p_business AND status='active' AND c10_demo.a056_row_ok(tenant_id,business_id,site_id);
  IF NOT FOUND THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
  IF p_lead IS NOT NULL AND NOT EXISTS(SELECT 1 FROM c10_demo.a056_leads WHERE id=p_lead AND business_id=p_business AND status IN('new','qualified')) THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
  IF p_enquiry IS NOT NULL AND NOT EXISTS(SELECT 1 FROM c10_demo.a056_enquiries WHERE id=p_enquiry AND business_id=p_business) THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
@@ -571,7 +571,7 @@ BEGIN
  IF p_due_at IS NULL OR p_due_at>now()+interval '5 years' THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
  IF p_opportunity IS NOT NULL THEN SELECT customer_id INTO cid FROM c10_demo.a056_opportunities WHERE id=p_opportunity AND business_id=p_business; IF NOT FOUND OR (p_customer IS NOT NULL AND p_customer<>cid) THEN RAISE EXCEPTION 'A056_INVALID'; END IF; END IF;
  IF p_ticket IS NOT NULL THEN SELECT customer_id INTO cid FROM c10_demo.a056_tickets WHERE id=p_ticket AND business_id=p_business; IF NOT FOUND OR (p_customer IS NOT NULL AND p_customer<>cid) THEN RAISE EXCEPTION 'A056_INVALID'; END IF; END IF;
- IF cid IS NULL OR NOT EXISTS(SELECT 1 FROM c10_demo.a056_customers WHERE id=cid AND business_id=p_business AND status='active') THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
+ IF cid IS NULL OR NOT EXISTS(SELECT 1 FROM c10_demo.a056_customers WHERE id=cid AND business_id=p_business AND status='active' AND c10_demo.a056_row_ok(tenant_id,business_id,site_id)) THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
  IF p_assignee IS NOT NULL AND NOT c10_demo.a056_user_in_business(t,p_business,p_assignee) THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
  INSERT INTO c10_demo.a056_followups(tenant_id,business_id,site_id,customer_id,opportunity_id,ticket_id,due_at,note,assignee,request_key,created_by)
  VALUES(t,p_business,p_site,cid,p_opportunity,p_ticket,p_due_at,c10_demo.a056_txt(p_note,1000),p_assignee,p_request,c10_demo.actor_uid()) RETURNING a056_followups.id INTO id;
@@ -617,7 +617,7 @@ BEGIN
  h:=c10_demo.a056_h(p_site::text,p_customer::text,p_kind,p_priority,p_subject,p_description,p_order_link::text);
  prev:=c10_demo.a056_idem_check(p_business,p_request,'create_ticket',h); IF prev IS NOT NULL THEN RETURN prev; END IF;
  IF p_kind NOT IN('complaint','service','warranty','return_request') OR p_priority NOT IN('urgent','standard','low') THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
- IF NOT EXISTS(SELECT 1 FROM c10_demo.a056_customers WHERE id=p_customer AND business_id=p_business AND status='active') THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM c10_demo.a056_customers WHERE id=p_customer AND business_id=p_business AND status='active' AND c10_demo.a056_row_ok(tenant_id,business_id,site_id)) THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
  IF p_order_link IS NOT NULL AND NOT EXISTS(SELECT 1 FROM c10_demo.a056_order_links WHERE id=p_order_link AND business_id=p_business AND customer_id=p_customer) THEN RAISE EXCEPTION 'A056_INVALID'; END IF;
  hrs:=(c10_demo.a056_cfg(p_business)->'sla'->>p_priority)::int; due:=now()+make_interval(hours=>hrs);
  INSERT INTO c10_demo.a056_tickets(tenant_id,business_id,site_id,customer_id,order_link_id,kind,priority,subject,description,sla_hours,sla_due_at,request_key,created_by)
