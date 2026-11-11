@@ -585,6 +585,7 @@ DO $$ BEGIN
  PERFORM c10_test.eq(c10_demo.wf_list_employees_v1(102,NULL,NULL,NULL,50,0)->>'total','1','business 102 separate directory');
  PERFORM c10_test.eq(c10_demo.wf_list_employees_v1(101,NULL,NULL,NULL,50,0)->>'total','9','business 101 directory unaffected');
  PERFORM c10_test.as_user('mgr102'); PERFORM c10_test.eq(c10_demo.wf_list_employees_v1(102,NULL,NULL,NULL,50,0)->>'total','1','manager 102 sees only 102');
+ PERFORM c10_test.eq(jsonb_array_length(c10_demo.wf_list_attendance_v1(102,'2026-10-01','2026-10-03',NULL,NULL)->'items')::text,'3','read-first attendance on a business with default settings');
  PERFORM c10_test.denied($q$SELECT c10_demo.wf_import_punches_v1(101,'imp-req-90001',1001,'manual','[{"employee_no":"EMP-001","at":"2026-10-06T09:00:00+06:00","direction":"in"}]'::jsonb)$q$,'wf_denied');
  PERFORM c10_test.denied($q$SELECT c10_demo.wf_import_punches_v1(102,'imp-req-90002',1001,'manual','[{"employee_no":"EMP-001","at":"2026-10-06T09:00:00+06:00","direction":"in"}]'::jsonb)$q$,'wf_site_not_in_business');
 END $$; COMMIT;

@@ -99,7 +99,7 @@ LANGUAGE sql STABLE AS $$
  SELECT s.* FROM c10_demo.wf_shift_assignments a JOIN c10_demo.wf_shifts s ON s.id=a.shift_id
  WHERE a.employee_id=p_employee AND a.effective_from<=p_date ORDER BY a.effective_from DESC,a.id DESC LIMIT 1 $$;
 CREATE FUNCTION c10_demo.wfi_is_off_day(p_business bigint,p_employee bigint,p_date date) RETURNS boolean
-LANGUAGE plpgsql STABLE AS $$
+LANGUAGE plpgsql AS $$
 DECLARE sh c10_demo.wf_shifts; cfg c10_demo.wf_business_settings; off smallint[];
 BEGIN
  sh:=c10_demo.wfi_shift_on(p_employee,p_date); cfg:=c10_demo.wfi_cfg(p_business);
@@ -397,7 +397,7 @@ BEGIN
 END$$;
 
 CREATE FUNCTION c10_demo.wfi_leave_days(p_business bigint,p_employee bigint,p_from date,p_to date) RETURNS numeric
-LANGUAGE plpgsql STABLE AS $$
+LANGUAGE plpgsql AS $$
 DECLARE d date; n numeric:=0;
 BEGIN
  FOR d IN SELECT generate_series(p_from,p_to,interval '1 day')::date LOOP
