@@ -210,7 +210,7 @@ BEGIN
 END$$;
 
 -- ===================== categories & codes =====================
-CREATE FUNCTION c10_demo.ami_r_cat_parent(c c10_demo.am_ctx_t,p_cat bigint,p_parent bigint) RETURNS void LANGUAGE plpgsql AS $$
+CREATE FUNCTION c10_demo.ami_r_cat_parent(c c10_demo.am_ctx_t,p_cat bigint,p_parent bigint) RETURNS void LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
 DECLARE par am_categories; cur bigint; d int:=0;
 BEGIN
  SELECT * INTO par FROM am_categories WHERE id=p_parent AND business_id=c.business_id;
