@@ -64,3 +64,9 @@
 - User wants short practical Bengali checkpoints and substantial real builds rather than repeatedly asking for already supplied decisions.
 
 **Current State summary:** A042/A043 original pure contracts preserved. A044 actual Universal/Business UI, shared signed-client RPC adapter and scoped durable settings/approvals/audit backend SOURCE are **BUILT and isolated CI-verified at 6211fed (25/25)**, but not applied to SG, not real GoTrue-tested, not published, not operationally certified. No production stock/finance changes or staff rollout. D045/R123 approved requirements and decision/revision history preserved; next release and server readiness are separate from product-scope approval.
+
+
+---
+
+## Codex entrypoint — Owner CEO universal ERP charter + Preview V1 execution (2026-11-11)
+For the latest Codex handover and detailed owner-intent-to-engineering mandate, see [CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md](CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md), repo-root [AGENTS.md](../../AGENTS.md), [Preview Draft PR #60](https://github.com/mistybari99/CORE-10-CENTRAL/pull/60), and [Codex work issue #61](https://github.com/mistybari99/CORE-10-CENTRAL/issues/61). These records add no new competing decision book; all existing D001–D050, R001–R129 and REV-009 remain subject to the actual latest Master Decision Book. Preview is synthetic/read-only for existing business data; source assembly is not operational backend certification. No merge to main / production Supabase application authorized.
