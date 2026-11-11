@@ -1,0 +1,12 @@
+/* C10-A053/A054 additions. Colour is never the only signal: every state chip carries a text label. */
+.lang{display:flex;gap:6px;align-items:center}.lang button{min-height:44px;min-width:56px}.lang button[aria-pressed=true]{background:var(--hi);color:#1b1408;border-color:var(--hi);font-weight:700}
+.banner{border:1px solid var(--sea);border-left:4px solid var(--sea);background:#12302d;border-radius:10px;padding:11px 14px;font-size:13.5px;margin:0 0 14px}
+.banner.warn{border-color:var(--warn);background:#33291a}.banner b{color:var(--hi)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.card{background:var(--panel2);border:1px solid var(--edge);border-radius:12px;padding:12px 14px;min-width:0}
+.card h3{margin:0 0 6px;font-size:15px;overflow-wrap:anywhere}.kv{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed #2a3b4d;font-size:13.5px}.kv span{color:var(--muted)}.kv b{text-align:right;overflow-wrap:anywhere}
+.st{display:inline-block;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:650;border:1px solid var(--edge);white-space:normal}
+.st.approved{border-color:var(--warn);color:var(--warn)}.st.paidrec{border-color:var(--sea);color:var(--sea)}.st.part{border-color:var(--hi);color:var(--hi)}.st.bad{border-color:var(--err);color:var(--err)}.st.dim{color:var(--muted)}
+.st.approved::before{content:"\25D0  "}.st.paidrec::before{content:"\2714  "}.st.part::before{content:"\25D1  "}.st.bad::before{content:"\2716  "}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.tabs button[aria-selected=true]{background:var(--hi);color:#1b1408;border-color:var(--hi);font-weight:700}
+.trace{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.mono{font-family:ui-monospace,monospace}
+@media (max-width:860px){.cards{grid-template-columns:minmax(0,1fr)}.lang{flex:1 1 100%}}
