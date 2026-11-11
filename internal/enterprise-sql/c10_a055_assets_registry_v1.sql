@@ -913,3 +913,173 @@ BEGIN
  PERFORM ami_log(c.tenant_id,p_business,'claim',cl.id::text,v_new,v_before,to_jsonb(cl),v_note,p_request);
  RETURN ami_finish(p_business,c.tenant_id,p_request,'claim_transition',pay,res);
 END$$;
+
+-- ===================== READS (STABLE, never write; filtered by sites where the caller holds 'view') =====================
+CREATE FUNCTION c10_demo.am_list_grants_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c am_ctx_t; items jsonb;
+BEGIN
+ c:=ami_read_ctx(p_business); PERFORM ami_need_owner(c);
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',g.id,'user_id',g.user_id,'role',g.role,'site_id',g.site_id,'active',g.active,'note',g.note,
+   'granted_by',g.granted_by,'granted_at',g.granted_at,'revoked_by',g.revoked_by,'revoked_at',g.revoked_at) ORDER BY g.id),'[]'::jsonb) INTO items
+ FROM am_grants g WHERE g.business_id=p_business;
+ RETURN jsonb_build_object('items',items,'total',jsonb_array_length(items));
+END$$;
+
+CREATE FUNCTION c10_demo.am_list_catalog_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c am_ctx_t; sites bigint[]; cats jsonb; cds jsonb; ss jsonb; ab jsonb;
+BEGIN
+ c:=ami_read_ctx(p_business); sites:=ami_sites_with(c,'view');
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',k.id,'code',k.code,'name',k.name,'name_bn',k.name_bn,'parent_id',k.parent_id,'asset_kind',k.asset_kind,
+   'default_criticality',k.default_criticality,'default_meter_unit',k.default_meter_unit,'safety_critical',k.safety_critical,
+   'useful_life_months',k.useful_life_months,'salvage_pct',k.salvage_pct,'active',k.active,'is_system',k.is_system,'version',k.version) ORDER BY k.code),'[]'::jsonb)
+  INTO cats FROM am_categories k WHERE k.business_id=p_business;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',x.id,'kind',x.kind,'code',x.code,'label',x.label,'label_bn',x.label_bn,'active',x.active,'is_system',x.is_system)
+   ORDER BY x.kind,x.code),'[]'::jsonb) INTO cds FROM am_codes x WHERE x.business_id=p_business;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',s.id,'label',s.label,'kind',s.kind,'capabilities',to_jsonb(ami_caps(c,s.id))) ORDER BY s.id),'[]'::jsonb)
+  INTO ss FROM sites s WHERE s.business_id=p_business AND s.id=ANY(sites);
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',a.id,'asset_no',a.asset_no,'name',a.name,'site_id',a.site_id,'status',a.status,
+   'category_id',a.category_id,'parent_asset_id',a.parent_asset_id) ORDER BY a.asset_no),'[]'::jsonb) INTO ab
+  FROM (SELECT * FROM am_assets WHERE business_id=p_business AND site_id=ANY(sites) ORDER BY asset_no LIMIT 500) a;
+ RETURN jsonb_build_object('categories',cats,'codes',cds,'sites',ss,'assets_brief',ab);
+END$$;
+
+CREATE FUNCTION c10_demo.am_list_assets_v1(p_business bigint,p_filters jsonb,p_limit int,p_offset int) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c am_ctx_t; f jsonb:=COALESCE(p_filters,'{}'::jsonb); sites bigint[]; msites bigint[]; v_search text; v_like text; v_status text; v_cat bigint; v_site bigint;
+ v_parent bigint; v_own text; ids bigint[]; v_lim int; v_off int; page bigint[]; items jsonb;
+BEGIN
+ c:=ami_read_ctx(p_business);
+ sites:=ami_sites_with(c,'view'); msites:=ami_r_money_sites(c);
+ PERFORM ami_r_keys(f,ARRAY['search','status','category_id','site_id','parent_asset_id','ownership']);
+ v_search:=ami_r_text(f,'search',1,100,false);
+ v_status:=ami_r_enum(f,'status',ARRAY['planned','active','under_maintenance','breakdown','idle','retired','disposed'],false);
+ v_cat:=ami_r_int(f,'category_id',1,9007199254740991,false); v_site:=ami_r_int(f,'site_id',1,9007199254740991,false);
+ v_parent:=ami_r_int(f,'parent_asset_id',0,9007199254740991,false);
+ v_own:=ami_r_enum(f,'ownership',ARRAY['owned','leased','rented','client_owned','consignment'],false);
+ v_lim:=LEAST(GREATEST(COALESCE(p_limit,50),1),200); v_off:=GREATEST(COALESCE(p_offset,0),0);
+ IF v_search IS NOT NULL THEN v_like:='%'||regexp_replace(v_search,'([\\%_])','\\\1','g')||'%'; END IF;
+ SELECT COALESCE(array_agg(a.id ORDER BY a.asset_no,a.id),ARRAY[]::bigint[]) INTO ids FROM am_assets a
+  WHERE a.business_id=p_business AND a.site_id=ANY(sites) AND (v_status IS NULL OR a.status=v_status) AND (v_cat IS NULL OR a.category_id=v_cat)
+   AND (v_site IS NULL OR a.site_id=v_site) AND (v_own IS NULL OR a.ownership=v_own)
+   AND (v_parent IS NULL OR (v_parent=0 AND a.parent_asset_id IS NULL) OR a.parent_asset_id=v_parent)
+   AND (v_search IS NULL OR a.name ILIKE v_like OR a.asset_no ILIKE v_like OR a.serial_no ILIKE v_like OR a.model ILIKE v_like OR a.manufacturer ILIKE v_like);
+ page:=ids[v_off+1:v_off+v_lim];
+ SELECT COALESCE(jsonb_agg(q.item ORDER BY q.ord),'[]'::jsonb) INTO items FROM (
+  SELECT x.ord,jsonb_build_object('id',a.id,'asset_no',a.asset_no,'name',a.name,'category_id',a.category_id,'category_code',k.code,'category_name',k.name,
+    'status',a.status,'criticality',a.criticality,'site_id',a.site_id,'site_label',s.label,'location_note',a.location_note,'serial_no',a.serial_no,
+    'model',a.model,'manufacturer',a.manufacturer,'ownership',a.ownership,'parent_asset_id',a.parent_asset_id,'quantity',a.quantity,
+    'commission_date',a.commission_date,'version',a.version,
+    'open_work_orders',(SELECT count(*) FROM am_work_orders w WHERE w.asset_id=a.id AND w.status NOT IN('CLOSED','CANCELLED')),
+    'open_downtime',EXISTS(SELECT 1 FROM am_downtime d WHERE d.asset_id=a.id AND d.ended_at IS NULL))
+   || CASE WHEN a.site_id=ANY(msites) THEN jsonb_build_object('acquisition_cost',a.acquisition_cost) ELSE '{}'::jsonb END AS item
+  FROM unnest(page) WITH ORDINALITY x(id,ord) JOIN am_assets a ON a.id=x.id JOIN am_categories k ON k.id=a.category_id JOIN sites s ON s.id=a.site_id) q;
+ RETURN jsonb_build_object('items',items,'total',cardinality(ids),'limit',v_lim,'offset',v_off);
+END$$;
+
+CREATE FUNCTION c10_demo.am_get_asset_v1(p_business bigint,p_asset bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c am_ctx_t; a am_assets; k am_categories; money boolean; today date; warn int; stale int; j_asset jsonb; j_children jsonb; j_meters jsonb; j_war jsonb;
+ j_mov jsonb; j_wo jsonb; j_pt jsonb; j_dt jsonb; j_cal jsonb; j_claims jsonb; j_tr jsonb; j_parent jsonb; j_site jsonb;
+BEGIN
+ c:=ami_read_ctx(p_business);
+ a:=ami_r_asset_ro(c,p_asset);
+ money:=ami_r_money(c,a.site_id); today:=ami_today(p_business);
+ warn:=ami_cfg_int(p_business,a.site_id,a.category_id,'asset.warranty_warn_days');
+ stale:=ami_cfg_int(p_business,a.site_id,a.category_id,'meter.stale_days');
+ SELECT * INTO k FROM am_categories WHERE id=a.category_id;
+ j_asset:=to_jsonb(a)-'tenant_id'-'created_by';
+ IF NOT money THEN j_asset:=j_asset-'acquisition_cost'; END IF;
+ SELECT jsonb_build_object('id',id,'label',label,'kind',kind) INTO j_site FROM sites WHERE id=a.site_id;
+ SELECT jsonb_build_object('id',id,'asset_no',asset_no,'name',name,'status',status) INTO j_parent FROM am_assets WHERE id=a.parent_asset_id;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',x.id,'asset_no',x.asset_no,'name',x.name,'status',x.status,'site_id',x.site_id,'quantity',x.quantity,'version',x.version) ORDER BY x.asset_no),'[]'::jsonb)
+  INTO j_children FROM (SELECT * FROM am_assets WHERE parent_asset_id=a.id ORDER BY asset_no LIMIT 200) x;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',m.id,'code',m.code,'unit',m.unit,'current_reading',m.current_reading,'last_reading_at',m.last_reading_at,
+   'active',m.active,'version',m.version,'stale_days',stale,
+   'stale',(m.last_reading_at IS NULL OR m.last_reading_at<now()-make_interval(days=>stale))) ORDER BY m.code),'[]'::jsonb) INTO j_meters FROM am_meters m WHERE m.asset_id=a.id;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',w.id,'supplier_name',w.supplier_name,'supplier_ref',w.supplier_ref,'coverage',w.coverage,'starts_on',w.starts_on,
+   'expires_on',w.expires_on,'status',w.status,'state',ami_r_wstate(w.status,w.expires_on,today,warn),'days_left',w.expires_on-today,'version',w.version) ORDER BY w.expires_on DESC,w.id),'[]'::jsonb)
+  INTO j_war FROM am_warranties w WHERE w.asset_id=a.id;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',x.id,'from_site_id',x.from_site_id,'to_site_id',x.to_site_id,'kind',x.kind,'transfer_id',x.transfer_id,
+   'reason',x.reason,'moved_by',x.moved_by,'moved_at',x.moved_at) ORDER BY x.id DESC),'[]'::jsonb)
+  INTO j_mov FROM (SELECT * FROM am_asset_movements WHERE asset_id=a.id ORDER BY id DESC LIMIT 50) x;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',w.id,'wo_no',w.wo_no,'kind',w.kind,'status',w.status,'priority',w.priority,'title',w.title,'due_on',w.due_on,
+   'site_id',w.site_id,'assigned_to',w.assigned_to) ORDER BY w.id DESC),'[]'::jsonb)
+  INTO j_wo FROM am_work_orders w WHERE w.asset_id=a.id AND w.status NOT IN('CLOSED','CANCELLED');
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',t.id,'plan_id',t.plan_id,'plan_name',p.name,'plan_type',p.plan_type,'frequency_kind',p.frequency_kind,
+   'next_due_on',t.next_due_on,'next_due_reading',t.next_due_reading,'last_done_on',t.last_done_on,'last_done_reading',t.last_done_reading,
+   'deferred_until',t.deferred_until,'status',t.status) ORDER BY t.id),'[]'::jsonb)
+  INTO j_pt FROM am_plan_targets t JOIN am_plans p ON p.id=t.plan_id WHERE t.asset_id=a.id;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',d.id,'kind',d.kind,'reason_code',d.reason_code,'impact',d.impact,'started_at',d.started_at,
+   'work_order_id',d.work_order_id,'site_id',d.site_id) ORDER BY d.id),'[]'::jsonb)
+  INTO j_dt FROM am_downtime d WHERE d.asset_id=a.id AND d.ended_at IS NULL;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',x.id,'plan_kind',x.plan_kind,'performed_on',x.performed_on,'next_due_on',x.next_due_on,'result',x.result,
+   'certificate_ref',x.certificate_ref,'standard_ref',x.standard_ref,'vendor',x.vendor,'note',x.note,'work_order_id',x.work_order_id) ORDER BY x.performed_on DESC,x.id DESC),'[]'::jsonb)
+  INTO j_cal FROM (SELECT * FROM am_cal_records WHERE asset_id=a.id ORDER BY performed_on DESC,id DESC LIMIT 20) x;
+ SELECT COALESCE(jsonb_agg((jsonb_build_object('id',x.id,'claim_no',x.claim_no,'warranty_id',x.warranty_id,'work_order_id',x.work_order_id,'failure_on',x.failure_on,
+   'description',x.description,'status',x.status,'supplier_claim_ref',x.supplier_claim_ref,'decision_note',x.decision_note,'version',x.version)
+   || CASE WHEN money THEN jsonb_build_object('amount_claimed',x.amount_claimed,'amount_settled',x.amount_settled) ELSE '{}'::jsonb END) ORDER BY x.id DESC),'[]'::jsonb)
+  INTO j_claims FROM (SELECT * FROM am_warranty_claims WHERE asset_id=a.id ORDER BY id DESC LIMIT 50) x;
+ SELECT jsonb_build_object('id',t.id,'to_site_id',t.to_site_id,'include_children',t.include_children,'reason',t.reason,'requested_by',t.requested_by,
+   'requested_at',t.requested_at,'version',t.version) INTO j_tr FROM am_transfers t WHERE t.asset_id=a.id AND t.status='pending';
+ RETURN jsonb_build_object('asset',j_asset,'category',jsonb_build_object('id',k.id,'code',k.code,'name',k.name,'safety_critical',k.safety_critical),
+  'site',j_site,'parent',j_parent,'children',j_children,'meters',j_meters,'warranties',j_war,'movements',j_mov,'open_work_orders',j_wo,
+  'plan_targets',j_pt,'open_downtime',j_dt,'cal_records',j_cal,'claims',j_claims,'pending_transfer',j_tr,
+  'capabilities',jsonb_build_object('asset_write',ami_has(c,a.site_id,'asset_write'),'transfer',ami_has(c,a.site_id,'transfer'),
+    'meter_write',ami_has(c,a.site_id,'meter_write'),'warranty_write',ami_has(c,a.site_id,'warranty_write'),'claim_write',ami_has(c,a.site_id,'claim_write'),
+    'money',money));
+END$$;
+
+CREATE FUNCTION c10_demo.am_list_transfers_v1(p_business bigint,p_status text) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c am_ctx_t; sites bigint[]; items jsonb; n int;
+BEGIN
+ c:=ami_read_ctx(p_business); sites:=ami_sites_with(c,'view');
+ IF p_status IS NOT NULL AND p_status NOT IN('pending','applied','rejected','cancelled') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ SELECT count(*) INTO n FROM am_transfers t WHERE t.business_id=p_business AND (t.from_site_id=ANY(sites) OR t.to_site_id=ANY(sites)) AND (p_status IS NULL OR t.status=p_status);
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',x.id,'asset_id',x.asset_id,'asset_no',a.asset_no,'asset_name',a.name,'from_site_id',x.from_site_id,'to_site_id',x.to_site_id,
+   'include_children',x.include_children,'status',x.status,'reason',x.reason,'requested_by',x.requested_by,'requested_at',x.requested_at,'decided_by',x.decided_by,
+   'decided_at',x.decided_at,'decision_note',x.decision_note,'version',x.version,
+   'can_decide',(x.status='pending' AND ami_has(c,x.from_site_id,'transfer') AND ami_has(c,x.to_site_id,'transfer') AND (x.requested_by<>c.user_id OR ami_is_owner(c))),
+   'can_cancel',(x.status='pending' AND (x.requested_by=c.user_id OR ami_is_owner(c) OR ami_has(c,x.from_site_id,'transfer')))) ORDER BY x.id DESC),'[]'::jsonb) INTO items
+ FROM (SELECT * FROM am_transfers t WHERE t.business_id=p_business AND (t.from_site_id=ANY(sites) OR t.to_site_id=ANY(sites)) AND (p_status IS NULL OR t.status=p_status)
+       ORDER BY t.id DESC LIMIT 200) x JOIN am_assets a ON a.id=x.asset_id;
+ RETURN jsonb_build_object('items',items,'total',n);
+END$$;
+
+CREATE FUNCTION c10_demo.am_list_claims_v1(p_business bigint,p_status text,p_limit int,p_offset int) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c am_ctx_t; sites bigint[]; msites bigint[]; items jsonb; n int; v_lim int; v_off int;
+BEGIN
+ c:=ami_read_ctx(p_business); sites:=ami_sites_with(c,'view'); msites:=ami_r_money_sites(c);
+ IF p_status IS NOT NULL AND p_status NOT IN('draft','submitted','accepted','rejected','settled','closed') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_lim:=LEAST(GREATEST(COALESCE(p_limit,50),1),200); v_off:=GREATEST(COALESCE(p_offset,0),0);
+ SELECT count(*) INTO n FROM am_warranty_claims x JOIN am_assets a ON a.id=x.asset_id
+  WHERE x.business_id=p_business AND a.site_id=ANY(sites) AND (p_status IS NULL OR x.status=p_status);
+ SELECT COALESCE(jsonb_agg((jsonb_build_object('id',q.id,'claim_no',q.claim_no,'warranty_id',q.warranty_id,'asset_id',q.asset_id,'asset_no',q.asset_no,'asset_name',q.asset_name,
+   'work_order_id',q.work_order_id,'failure_on',q.failure_on,'description',q.description,'status',q.status,'supplier_claim_ref',q.supplier_claim_ref,
+   'decision_note',q.decision_note,'created_by',q.created_by,'created_at',q.created_at,'submitted_by',q.submitted_by,'submitted_at',q.submitted_at,
+   'decided_by',q.decided_by,'decided_at',q.decided_at,'version',q.version)
+   || CASE WHEN q.site_id=ANY(msites) THEN jsonb_build_object('amount_claimed',q.amount_claimed,'amount_settled',q.amount_settled) ELSE '{}'::jsonb END) ORDER BY q.id DESC),'[]'::jsonb) INTO items
+ FROM (SELECT x.*,a.asset_no,a.name AS asset_name,a.site_id FROM am_warranty_claims x JOIN am_assets a ON a.id=x.asset_id
+       WHERE x.business_id=p_business AND a.site_id=ANY(sites) AND (p_status IS NULL OR x.status=p_status) ORDER BY x.id DESC LIMIT v_lim OFFSET v_off) q;
+ RETURN jsonb_build_object('items',items,'total',n,'limit',v_lim,'offset',v_off);
+END$$;
+
+CREATE FUNCTION c10_demo.am_list_warranties_v1(p_business bigint,p_asset bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c am_ctx_t; sites bigint[]; items jsonb; n int; today date; a0 am_assets;
+BEGIN
+ c:=ami_read_ctx(p_business); sites:=ami_sites_with(c,'view'); today:=ami_today(p_business);
+ IF p_asset IS NOT NULL THEN a0:=ami_r_asset_ro(c,p_asset); END IF;
+ SELECT count(*) INTO n FROM am_warranties w JOIN am_assets a ON a.id=w.asset_id
+  WHERE w.business_id=p_business AND a.site_id=ANY(sites) AND (p_asset IS NULL OR w.asset_id=p_asset);
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',q.id,'asset_id',q.asset_id,'asset_no',q.asset_no,'asset_name',q.asset_name,'supplier_name',q.supplier_name,
+   'supplier_ref',q.supplier_ref,'coverage',q.coverage,'starts_on',q.starts_on,'expires_on',q.expires_on,'status',q.status,
+   'state',ami_r_wstate(q.status,q.expires_on,today,ami_cfg_int(p_business,q.site_id,q.category_id,'asset.warranty_warn_days')),
+   'days_left',q.expires_on-today,'version',q.version) ORDER BY q.expires_on,q.id),'[]'::jsonb) INTO items
+ FROM (SELECT w.*,a.asset_no,a.name AS asset_name,a.site_id,a.category_id FROM am_warranties w JOIN am_assets a ON a.id=w.asset_id
+       WHERE w.business_id=p_business AND a.site_id=ANY(sites) AND (p_asset IS NULL OR w.asset_id=p_asset) ORDER BY w.expires_on,w.id LIMIT 200) q;
+ RETURN jsonb_build_object('items',items,'total',n);
+END$$;

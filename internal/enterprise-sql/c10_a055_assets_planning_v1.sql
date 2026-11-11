@@ -550,6 +550,7 @@ LANGUAGE sql STABLE SET search_path=c10_demo,pg_catalog AS $$
   d.tver,d.ui
  FROM d WHERE d.st IS NOT NULL $$;
 
+-- On-demand suggestions (no background job). Items: in the lead/horizon window, plus deferred, meter_missing and usage progress rows.
 CREATE FUNCTION c10_demo.am_due_suggestions_v1(p_business bigint,p_site bigint DEFAULT NULL,p_horizon_days int DEFAULT NULL) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
 DECLARE c c10_demo.am_ctx_t; vs bigint[]; asg bigint[]; r jsonb; cn jsonb;
@@ -562,6 +563,20 @@ BEGIN
   IF NOT (p_site=ANY(vs)) THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
  END IF;
  IF p_horizon_days IS NOT NULL AND p_horizon_days NOT BETWEEN 0 AND 366 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
- CREATE TEMP TABLE IF NOT EXISTS ami_x(i int) ON COMMIT DROP;
- RETURN NULL;
+ WITH q AS (
+  SELECT * FROM c10_demo.ami_due_rows(p_business,vs,p_site,p_horizon_days,NULL) x
+  WHERE (x.in_window AND x.state<>'upcoming' OR x.in_window AND x.frequency_kind<>'usage') OR x.state IN('meter_missing','deferred')
+   OR (x.frequency_kind='usage' AND x.state='upcoming'))
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('target_id',q.target_id,'plan_id',q.plan_id,'plan_name',q.plan_name,'plan_type',q.plan_type,
+   'frequency_kind',q.frequency_kind,'interval_n',q.interval_n,'priority',q.priority,'asset_id',q.asset_id,'asset_no',q.asset_no,
+   'asset_name',q.asset_name,'site_id',q.site_id,'category_id',q.category_id,'next_due_on',q.next_due_on,'next_due_reading',q.next_due_reading,
+   'effective_due_on',q.effective_due_on,'last_done_on',q.last_done_on,'deferred_until',q.deferred_until,'defer_reason',q.defer_reason,
+   'meter_code',q.meter_code,'current_reading',q.current_reading,'meter_stale',q.meter_stale,'usage_interval',q.usage_interval,
+   'remaining_usage',CASE WHEN q.next_due_reading IS NOT NULL AND q.current_reading IS NOT NULL THEN q.next_due_reading-q.current_reading END,
+   'days_until_due',q.days_until_due,'days_overdue',q.days_overdue,'state',q.state,'escalation_level',q.escalation_level,'reason',q.reason,
+   'open_wo_id',q.open_wo_id,'open_wo_no',q.open_wo_no,'can_generate',q.site_id=ANY(asg),'version',q.target_version)
+   ORDER BY q.escalation_level DESC,q.days_overdue DESC,q.effective_due_on NULLS LAST,q.target_id),'[]'::jsonb),
+  COALESCE(jsonb_object_agg(s.st,s.n),'{}'::jsonb) INTO r,cn
+ FROM q LEFT JOIN LATERAL (SELECT NULL::text st,NULL::int n WHERE false) s ON true;
+ RETURN jsonb_build_object('items',r,'total',jsonb_array_length(r),'as_of',c10_demo.ami_today(p_business),'horizon_days',p_horizon_days);
 END$$;
