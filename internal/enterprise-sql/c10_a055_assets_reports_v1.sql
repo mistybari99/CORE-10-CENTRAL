@@ -372,3 +372,141 @@ BEGIN
          AND w.merged_into_id IS NULL AND w.failure_code IS NOT NULL
          AND w.requested_at>win_end-make_interval(days=>win) AND w.requested_at<=win_end
         GROUP BY w.asset_id,a.asset_no,w.failure_code HAVING count(*)>=minrec) q;
+ WITH f AS (SELECT ff.asset_id,count(*)::int AS n FROM c10_demo.ami_rpt_failures(p_business,v_sites,pe.o_from_ts,pe.o_to_ts) ff GROUP BY 1),
+  r AS (SELECT a.id,a.asset_no,a.name,a.site_id,a.criticality::int AS crit,COALESCE(f.n,0) AS n,
+         CASE WHEN COALESCE(f.n,0)=0 THEN 1 WHEN f.n=1 THEN 2 WHEN f.n=2 THEN 3 WHEN f.n<=4 THEN 4 ELSE 5 END AS lik
+        FROM c10_demo.am_assets a LEFT JOIN f ON f.asset_id=a.id
+        WHERE a.business_id=p_business AND a.site_id=ANY(v_sites) AND a.status NOT IN('retired','disposed','planned')),
+  s AS (SELECT r.*,r.lik*r.crit AS score,
+         CASE WHEN r.lik*r.crit>=cr THEN 'critical' WHEN r.lik*r.crit>=hi THEN 'high' WHEN r.lik*r.crit>=md THEN 'medium' ELSE 'low' END AS band,
+         row_number() OVER (ORDER BY r.lik*r.crit DESC,r.id) AS rn FROM r)
+ SELECT jsonb_build_object('thresholds',jsonb_build_object('medium',md,'high',hi,'critical',cr),
+   'likelihood_rule','failure count in report period: 0->1, 1->2, 2->3, 3-4->4, 5+->5; score = likelihood x criticality',
+   'bands',jsonb_build_object('low',count(*) FILTER (WHERE band='low'),'medium',count(*) FILTER (WHERE band='medium'),
+     'high',count(*) FILTER (WHERE band='high'),'critical',count(*) FILTER (WHERE band='critical')),
+   'matrix',(SELECT COALESCE(jsonb_agg(jsonb_build_object('likelihood',m.lik,'criticality',m.crit,'assets',m.n) ORDER BY m.lik,m.crit),'[]'::jsonb)
+             FROM (SELECT s2.lik,s2.crit,count(*) AS n FROM s s2 GROUP BY s2.lik,s2.crit) m),
+   'items',COALESCE(jsonb_agg(jsonb_build_object('asset_id',s.id,'asset_no',s.asset_no,'name',s.name,'site_id',s.site_id,'failures',s.n,
+     'likelihood',s.lik,'criticality',s.crit,'score',s.score,'band',s.band) ORDER BY s.score DESC,s.id) FILTER (WHERE s.rn<=50),'[]'::jsonb))
+  INTO risk FROM s;
+ WITH w AS (SELECT * FROM c10_demo.am_work_orders w WHERE w.business_id=p_business AND w.site_id=ANY(v_sites)
+            AND w.status IN('COMPLETED','VERIFIED','CLOSED') AND w.completed_at>=pe.o_from_ts AND w.completed_at<pe.o_to_ts)
+ SELECT jsonb_build_object('advisory',true,'posted',false,'label','ADVISORY estimates from work-order lines; never posted to any ledger',
+   'currency',c10_demo.ami_cfg_text(p_business,NULL,NULL,'general.currency'),'work_orders',count(*),
+   'totals',jsonb_build_object('est_labor_cost',COALESCE(sum(est_labor_cost),0),'est_spares_cost',COALESCE(sum(est_spares_cost),0),
+     'actual_labor_cost',COALESCE(sum(actual_labor_cost),0),'actual_spares_cost',COALESCE(sum(actual_spares_cost),0),
+     'est_total',COALESCE(sum(est_labor_cost),0)+COALESCE(sum(est_spares_cost),0),
+     'actual_total',COALESCE(sum(actual_labor_cost),0)+COALESCE(sum(actual_spares_cost),0)),
+   'by_kind',(SELECT COALESCE(jsonb_object_agg(k.kind,jsonb_build_object('work_orders',k.n,'est_total',k.e,'actual_total',k.a)),'{}'::jsonb)
+              FROM (SELECT kind,count(*) AS n,COALESCE(sum(est_labor_cost),0)+COALESCE(sum(est_spares_cost),0) AS e,
+                    COALESCE(sum(actual_labor_cost),0)+COALESCE(sum(actual_spares_cost),0) AS a FROM w GROUP BY kind) k),
+   'by_site',(SELECT COALESCE(jsonb_object_agg(k.site_id::text,jsonb_build_object('work_orders',k.n,'est_total',k.e,'actual_total',k.a)),'{}'::jsonb)
+              FROM (SELECT site_id,count(*) AS n,COALESCE(sum(est_labor_cost),0)+COALESCE(sum(est_spares_cost),0) AS e,
+                    COALESCE(sum(actual_labor_cost),0)+COALESCE(sum(actual_spares_cost),0) AS a FROM w GROUP BY site_id) k))
+  INTO cost FROM w;
+ RETURN jsonb_build_object('business_id',p_business,'site_id',p_site,'sites',to_jsonb(v_sites),
+  'period',jsonb_build_object('from',pe.o_from,'to',pe.o_to,'timezone',pe.o_tz),'generated_at',now(),
+  'mttr',jsonb_build_object('hours',CASE WHEN mttr_n>=min_mttr THEN round(mttr_h,2) END,'sample_size',mttr_n,'min_sample',min_mttr,
+    'insufficient_sample',mttr_n<min_mttr),
+  'mtbf',jsonb_build_object('hours',CASE WHEN fail_n>=min_mtbf AND fail_n>0 THEN round(op_h/fail_n,2) END,'operating_hours',round(op_h,2),
+    'failures',fail_n,'min_sample',min_mtbf,'insufficient_sample',fail_n<min_mtbf),
+  'per_asset',per_asset,'pm_compliance',pm_j,'overdue_backlog',od,'sla_compliance',sla,
+  'recurring_failures',jsonb_build_object('window_days',win,'min_count',minrec,'items',rec),
+  'risk_matrix',risk,'cost_rollup',cost);
+END$$;
+
+-- ===================== am_asset_health_report_v1 =====================
+CREATE FUNCTION c10_demo.am_asset_health_report_v1(p_business bigint,p_site bigint DEFAULT NULL) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c c10_demo.am_ctx_t; v_sites bigint[]; v_today date; v_win int; v_tz text; res jsonb;
+BEGIN
+ c:=c10_demo.ami_read_ctx(p_business);
+ v_sites:=c10_demo.ami_rpt_scope(c,p_site,'reports');
+ v_today:=c10_demo.ami_today(p_business);
+ v_win:=c10_demo.ami_cfg_int(p_business,NULL,NULL,'analytics.recurring_window_days');
+ v_tz:=c10_demo.ami_cfg_text(p_business,NULL,NULL,'general.timezone');
+ WITH a AS (
+   SELECT a.id,a.asset_no,a.name,a.site_id,a.status,a.criticality,a.category_id,a.acquisition_cost,
+    cat.useful_life_months AS cul,cat.salvage_pct AS csal,
+    COALESCE(a.commission_date,a.acquisition_date,(a.created_at AT TIME ZONE v_tz)::date) AS sd
+   FROM c10_demo.am_assets a JOIN c10_demo.am_categories cat ON cat.id=a.category_id
+   WHERE a.business_id=p_business AND a.site_id=ANY(v_sites) AND a.status NOT IN('retired','disposed','planned')),
+  tg AS (SELECT t.asset_id,count(*) FILTER (WHERE t.overdue)::int AS n FROM c10_demo.ami_rpt_targets(p_business,v_sites,v_today) t GROUP BY t.asset_id),
+  fl AS (SELECT f.asset_id,count(*)::int AS n FROM c10_demo.ami_rpt_failures(p_business,v_sites,now()-make_interval(days=>v_win),now()+interval '1 minute') f GROUP BY f.asset_id),
+  mt AS (SELECT m.asset_id,count(*)::int AS n,
+          count(*) FILTER (WHERE m.last_reading_at IS NULL OR m.last_reading_at<now()-make_interval(days=>c10_demo.ami_cfg_int(p_business,aa.site_id,aa.category_id,'meter.stale_days')))::int AS stale
+         FROM c10_demo.am_meters m JOIN c10_demo.am_assets aa ON aa.id=m.asset_id
+         WHERE m.business_id=p_business AND m.active AND aa.site_id=ANY(v_sites) GROUP BY m.asset_id),
+  wr AS (SELECT w.asset_id,bool_or(w.expires_on>=v_today) AS act,bool_or(w.expires_on<v_today) AS expd
+         FROM c10_demo.am_warranties w WHERE w.business_id=p_business AND w.status='active' GROUP BY w.asset_id),
+  h AS (SELECT a.*,COALESCE(tg.n,0) AS n_od,COALESCE(fl.n,0) AS n_fl,COALESCE(mt.n,0) AS n_mt,COALESCE(mt.stale,0) AS n_stale,
+         CASE WHEN COALESCE(wr.act,false) THEN 'active' WHEN COALESCE(wr.expd,false) THEN 'expired' ELSE 'none' END AS wstat,
+         COALESCE(a.cul,c10_demo.ami_cfg_int(p_business,NULL,a.category_id,'finance.default_useful_life_months')) AS life,
+         GREATEST(0,(v_today-a.sd))/30.4375 AS age_m,
+         GREATEST(0,(extract(year FROM age(v_today::timestamp,a.sd::timestamp))*12+extract(month FROM age(v_today::timestamp,a.sd::timestamp)))::int) AS m_el,
+         c10_demo.ami_cfg_text(p_business,NULL,a.category_id,'finance.depreciation_method') AS dm,
+         COALESCE(a.csal,c10_demo.ami_cfg_num(p_business,NULL,a.category_id,'finance.default_salvage_pct')) AS salv_pct,
+         c10_demo.ami_cfg_num(p_business,NULL,a.category_id,'finance.declining_rate_pct') AS rate
+        FROM a LEFT JOIN tg ON tg.asset_id=a.id LEFT JOIN fl ON fl.asset_id=a.id LEFT JOIN mt ON mt.asset_id=a.id LEFT JOIN wr ON wr.asset_id=a.id),
+  p AS (SELECT h.*,LEAST(30,10*h.n_od) AS p1,LEAST(30,8*h.n_fl) AS p2,
+         LEAST(20,round(GREATEST(0,h.age_m/h.life-0.5)*40)::int) AS p3,
+         CASE WHEN h.wstat='expired' THEN 5 ELSE 0 END AS p4,CASE WHEN h.n_stale>0 THEN 10 ELSE 0 END AS p5,
+         round(h.acquisition_cost*h.salv_pct/100,2) AS salv_val FROM h),
+  d AS (SELECT p.*,GREATEST(0,100-(p.p1+p.p2+p.p3+p.p4+p.p5)) AS score,
+         CASE WHEN p.acquisition_cost IS NULL OR p.dm='none' THEN 0
+              WHEN p.dm='declining_balance' THEN round(p.acquisition_cost-GREATEST(p.salv_val,p.acquisition_cost*power(1-p.rate/100,p.m_el/12.0)),2)
+              ELSE round((p.acquisition_cost-p.salv_val)*LEAST(p.m_el,p.life)::numeric/p.life,2) END AS accum FROM p),
+  z AS (SELECT d.*,CASE WHEN d.score>=80 THEN 'good' WHEN d.score>=60 THEN 'fair' WHEN d.score>=40 THEN 'poor' ELSE 'critical' END AS band,
+         row_number() OVER (ORDER BY d.score,d.id) AS rn FROM d)
+ SELECT jsonb_build_object('business_id',p_business,'site_id',p_site,'sites',to_jsonb(v_sites),'generated_at',now(),'as_of_date',v_today,
+   'advisory',true,'total',count(*),'truncated',count(*)>200,
+   'rules','score = 100 - penalties: overdue schedules (10 each, max 30), failures in recurring window (8 each, max 30), age vs useful life (0 until 50% of life, up to 20), expired warranty (5), stale meter (10)',
+   'summary',jsonb_build_object('average_score',round(avg(score),1),
+     'bands',jsonb_build_object('good',count(*) FILTER (WHERE band='good'),'fair',count(*) FILTER (WHERE band='fair'),
+       'poor',count(*) FILTER (WHERE band='poor'),'critical',count(*) FILTER (WHERE band='critical')),
+     'depreciation_advisory',jsonb_build_object('advisory',true,'posted',false,
+       'total_accumulated',COALESCE(sum(accum),0),'total_book_value',COALESCE(sum(acquisition_cost-accum),0))),
+   'items',COALESCE(jsonb_agg(jsonb_build_object('asset_id',id,'asset_no',asset_no,'name',name,'site_id',site_id,'status',status,
+     'criticality',criticality,'health_score',score,'band',band,
+     'components',jsonb_build_array(
+       jsonb_build_object('key','overdue_schedules','label','Overdue schedules','value',n_od,'max_penalty',30,'penalty',p1),
+       jsonb_build_object('key','recent_failures','label','Failures in recent window','value',n_fl,'window_days',v_win,'max_penalty',30,'penalty',p2),
+       jsonb_build_object('key','age_vs_life','label','Age vs useful life','value',round(age_m/life,2),'age_months',round(age_m,1),'useful_life_months',life,'max_penalty',20,'penalty',p3),
+       jsonb_build_object('key','warranty','label','Warranty status','value',wstat,'max_penalty',5,'penalty',p4),
+       jsonb_build_object('key','meter_staleness','label','Meter staleness','value',n_stale,'meters',n_mt,'max_penalty',10,'penalty',p5)),
+     'depreciation',jsonb_build_object('advisory',true,'posted',false,'method',dm,'useful_life_months',life,'salvage_pct',salv_pct,
+       'acquisition_cost',acquisition_cost,'salvage_value',salv_val,'months_elapsed',m_el,'accumulated',CASE WHEN acquisition_cost IS NULL THEN NULL ELSE accum END,
+       'book_value',CASE WHEN acquisition_cost IS NULL THEN NULL ELSE acquisition_cost-accum END,
+       'reason',CASE WHEN acquisition_cost IS NULL THEN 'no_acquisition_cost' WHEN dm='none' THEN 'method_none' END))
+     ORDER BY score,id) FILTER (WHERE rn<=200),'[]'::jsonb))
+  INTO res FROM z;
+ RETURN res;
+END$$;
+
+-- ===================== am_warranty_report_v1 =====================
+CREATE FUNCTION c10_demo.am_warranty_report_v1(p_business bigint,p_horizon_days int DEFAULT NULL) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c c10_demo.am_ctx_t; v_sites bigint[]; v_today date; v_tz text; minrec int; res jsonb; claims jsonb; rec jsonb;
+BEGIN
+ c:=c10_demo.ami_read_ctx(p_business);
+ v_sites:=c10_demo.ami_rpt_scope(c,NULL,'reports');
+ IF p_horizon_days IS NOT NULL AND (p_horizon_days<0 OR p_horizon_days>3650) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_today:=c10_demo.ami_today(p_business);
+ v_tz:=c10_demo.ami_cfg_text(p_business,NULL,NULL,'general.timezone');
+ minrec:=c10_demo.ami_cfg_int(p_business,NULL,NULL,'analytics.recurring_min_count');
+ WITH w AS (
+  SELECT x.*,CASE WHEN x.wstatus='void' THEN 'void' WHEN x.expires_on<v_today THEN 'expired'
+              WHEN x.expires_on-v_today<=x.horizon THEN 'expiring' ELSE 'active' END AS dstate,
+         row_number() OVER (PARTITION BY (CASE WHEN x.wstatus='void' THEN 'void' WHEN x.expires_on<v_today THEN 'expired'
+              WHEN x.expires_on-v_today<=x.horizon THEN 'expiring' ELSE 'active' END) ORDER BY x.expires_on,x.wid) AS rn
+  FROM (SELECT w.id AS wid,w.asset_id,a.asset_no,a.name,a.site_id,w.supplier_name,w.starts_on,w.expires_on,w.status AS wstatus,
+         COALESCE(p_horizon_days,c10_demo.ami_cfg_int(p_business,a.site_id,a.category_id,'asset.warranty_warn_days')) AS horizon,
+         (SELECT count(*) FROM c10_demo.am_warranty_claims cl WHERE cl.warranty_id=w.id) AS claims
+        FROM c10_demo.am_warranties w JOIN c10_demo.am_assets a ON a.id=w.asset_id
+        WHERE w.business_id=p_business AND a.site_id=ANY(v_sites)) x)
+ SELECT jsonb_build_object('counts',jsonb_build_object('active',count(*) FILTER (WHERE dstate='active'),'expiring',count(*) FILTER (WHERE dstate='expiring'),
+   'expired',count(*) FILTER (WHERE dstate='expired'),'void',count(*) FILTER (WHERE dstate='void')),
+   'active',COALESCE(jsonb_agg(to_jsonb_item) FILTER (WHERE false),'[]'::jsonb))
+ INTO res FROM (SELECT dstate,NULL::jsonb AS to_jsonb_item FROM w) q WHERE false;
+ RETURN NULL;
+END$$;
