@@ -65,8 +65,9 @@ Persistence (`c10_sim`): drafts, immutable runs, append-only decision events/ann
 | Property tests (seeded) | 60 iterations: scale invariance, monotone break-even, loan principal conservation & zero closing balance, cash conservation |
 | Scenario/security (JS) | 13-actor matrix, SoD, revision conflict, idempotent retry, immutable runs, audit tamper detection, CSV formula-injection, redaction, no-side-effects hash on 7 canonical sentinels |
 | PostgreSQL 16.15 | 15-actor RLS/RPC matrix, direct DML denied, concurrency (exactly one of two same-revision writers wins), immutability, advisory constraints, audit chain, sentinel hashes unchanged, rollback leaves stand-ins intact; 4 mutation checks all killed |
-| Chromium | 303 checks × 390/768/1440: a11y names, keyboard, BN/EN, offline, XSS-inert names, empty/unauthorized/error states, no horizontal overflow, Quick == Lab for 5 contexts, no non-local network |
+| Chromium | 318 checks × 390/768/1440: a11y names, keyboard, BN/EN, offline, XSS-inert names, empty/unauthorized/error states, no horizontal overflow, Quick == Lab for 5 contexts, no non-local network |
 | Bench (measured) | 320-site consolidation 9.7 ms; 12 scenarios 6.5 ms; 99-run optimisation 32.7 ms; 25 DB RPC creates 867 ms incl. process spawn. **300+ site DB scale NOT measured** |
+CI (GitHub Actions run #8 on `28ed047`, all 3 jobs green: engine, **PostgreSQL 17.x service**, Chromium 141): https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/43116718339 . Earlier red runs (#1–#7) were a real defect found only on CI Chromium 141: a long Quick button label widened the 390 px layout and pushed the Run button off-screen; fixed (buttons wrap, Run footer outside scroll area) and guarded by a layout-overflow assertion.
 Screenshots: CI artifact `c10-a025-screenshots`; locally `tests/c10_a025/artifacts/` (git-ignored).
 
 ## 7. Known defects / limitations (honest)
