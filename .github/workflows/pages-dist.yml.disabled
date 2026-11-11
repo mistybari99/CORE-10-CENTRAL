@@ -1,22 +1,21 @@
-# NOT ACTIVE: GitHub only runs *.yml/*.yaml, so this file does nothing as named.
-# To activate (Owner only): see the PR description. Rename to pages-dist.yml AFTER
-# setting Settings > Pages > Source = "GitHub Actions".
-# Publishes ONLY an allowlist of app files; internal docs/SQL/tests are not copied.
-name: Pages dist (allowlist publish)
+# INACTIVE BY DESIGN: extension .disabled prevents Actions execution.
+# D043/D044 / REV-009 / C10-A018 — candidate Pages release pipeline only.
+# NEVER activate while Pages is configured to publish a GitHub branch/root folder.
+# Operator release gate: verify Pages Source=GitHub Actions, compare root + v2
+# routes, run signed app smoke and rollback check before renaming to .yml.
+# Artifact is assembled from the audited allowlist builder, not repo root.
+name: C10 Pages allowlist release candidate (activation gated)
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
 permissions:
   contents: read
   pages: write
   id-token: write
-
 concurrency:
   group: pages
   cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,23 +23,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Assemble dist/ (allowlist)
-        run: |
-          set -euo pipefail
-          mkdir dist
-          # Root app files only. Excludes internal/, tests/, v2/, *.md, *.sql, setup-*.html, audit-*.html
-          for f in *.js *.css *.svg *.webp *.webmanifest *.json index.html owner.html business.html robots.txt .nojekyll; do
-            if [ -e "$f" ]; then cp "$f" dist/; fi
-          done
-          cp -r data vendor dist/
-          # v2/ is a legacy copy of the app; add `cp -r v2 dist/` only if it is still linked.
-          # Safety net: fail the build if anything internal leaked into dist/
-          if find dist -type f \( -name '*.sql' -o -name '*.md' -o -name 'setup-*.html' -o -name 'audit-*.html' \) | grep -q .; then
-            echo "internal file found in dist"; exit 1
-          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fail-closed Pages package regression
+        run: node tests/core10-pages-package.test.js
+      - name: Build isolated Pages artifact (never repository root)
+        run: node internal/core10-pages-package.js "$RUNNER_TEMP/core10-pages-release"
+      - name: HTTP parity and SQL denial against isolated release artifact
+        run: node tests/core10-pages-artifact-http.test.js "$RUNNER_TEMP/core10-pages-release"
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: ${{ runner.temp }}/core10-pages-release
   deploy:
     needs: build
     runs-on: ubuntu-latest

@@ -1,0 +1,19 @@
+name: CORE10 A018 Enterprise Preview
+on:
+  pull_request:
+    paths:
+      - 'core10-enterprise-preview.html'
+      - 'data/core10_capability_catalog_v1.json'
+      - 'tests/core10-enterprise-preview-smoke.js'
+      - '.github/workflows/core10-a018-preview.yml'
+  workflow_dispatch:
+jobs:
+  preview-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enterprise preview contract
+        run: node tests/core10-enterprise-preview-smoke.js

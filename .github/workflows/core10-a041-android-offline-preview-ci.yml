@@ -1,0 +1,51 @@
+# C10-A041: Android content:// local HTML navigation workaround.
+# Standalone, zero dependencies. No Github Pages or production deployment.
+name: CORE10 A041 Single-File Android Offline Stocktake Preview
+on:
+  push:
+    branches: ['feature/c10-a018-*']
+    paths:
+      - 'core10-stocktake-offline.html'
+      - 'tests/core10-a041-offline-html.test.js'
+      - 'tests/e2e/core10-a041-offline-file-browser.js'
+      - '.github/workflows/core10-a041-android-offline-preview-ci.yml'
+  pull_request:
+    paths:
+      - 'core10-stocktake-offline.html'
+      - 'tests/core10-a041-offline-html.test.js'
+      - 'tests/e2e/core10-a041-offline-file-browser.js'
+      - '.github/workflows/core10-a041-android-offline-preview-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  single-html-no-network:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prove no separate CSS/JS files or online fetch
+        run: node tests/core10-a041-offline-html.test.js
+      - name: Install pinned Chromium outside repository
+        run: |
+          mkdir -p "$RUNNER_TEMP/c10-a041-playwright" && cd "$RUNNER_TEMP/c10-a041-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/c10-a041-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Execute self-contained HTML from file URL on 390px and 1440px
+        run: node tests/e2e/core10-a041-offline-file-browser.js
+      - name: Upload offline HTML as downloadable single-file artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: core10-a041-offline-stocktake-html
+          path: core10-stocktake-offline.html
+          if-no-files-found: error
+          retention-days: 7
+      - name: No release boundary
+        run: echo 'PASS C10-A041 local offline HTML only; no Supabase, no production stock, no public GitHub Pages deploy.'

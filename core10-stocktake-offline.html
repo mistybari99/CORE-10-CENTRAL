@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d2133">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="CORE 10 CENTRAL C10-A038 physical stocktake Owner/Staff preview — synthetic demonstration, no live stock posting">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; object-src 'none'; form-action 'none'; frame-ancestors 'none'">
+<title>CORE 10 CENTRAL · Stocktake Offline Preview</title>
+
+<style>
+/* CORE 10 CENTRAL / A038 — standalone, branded safe preview. No existing ERP CSS touched. */
+:root{font:15px/1.48 system-ui,-apple-system,"Noto Sans Bengali","Segoe UI",sans-serif;color:#172d3f;background:#f2f6fa;--navy:#0d2133;--navy2:#183950;--teal:#087f8c;--cyan:#59d5d0;--ink:#172d3f;--muted:#647989;--line:#dce6ec;--card:#fff;--bg:#f2f6fa;--mint:#e1f5f1;--shadow:0 8px 25px rgba(9,31,47,.055)}
+*,*:before,*:after{box-sizing:border-box}body{margin:0;min-width:280px}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.55}a{color:inherit}h1,h2,h3,p{margin-top:0}h2{letter-spacing:-.015em}:focus-visible{outline:3px solid #24a8b1;outline-offset:3px}::selection{background:#a4e6df;color:#0d2133}
+.c10-app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100dvh}
+.c10-rail{background:linear-gradient(175deg,#0b2033,#102d40 76%,#0b2637);color:#ebf7fc;display:flex;flex-direction:column;padding:27px 17px 21px;gap:26px;min-height:100vh;position:sticky;top:0;height:100dvh}
+.c10-identity{display:flex;align-items:center;gap:12px;padding:3px 11px}.c10-mark{display:flex;align-items:center;justify-content:center;letter-spacing:-.05em;border-radius:12px;width:47px;height:47px;background:#d3f8f0;color:#075d69;font-weight:900;font-size:1.12rem}.c10-mark span{font-size:.65rem;letter-spacing:0;margin-top:7px}.c10-identity strong{font-size:1.1rem;letter-spacing:.1em;display:block}.c10-identity small{display:block;color:#86b8c5;font-size:.67rem;letter-spacing:.13em;font-weight:700}
+.c10-context{margin:5px 10px 0;padding:14px 12px 13px;background:rgba(103,189,202,.075);border:1px solid rgba(138,204,218,.15);border-radius:13px}.c10-context span{display:block;color:#81b9c6;font-size:.66rem;letter-spacing:.12em;font-weight:750;margin-bottom:7px}.c10-context strong{display:block;font-size:.92rem}.c10-context small{font-size:.72rem;color:#9cc6d2;display:block;margin-top:3px}
+.c10-side-nav{display:grid;gap:6px}.c10-side-nav button{border:1px solid transparent;background:transparent;color:#bad3df;min-height:46px;text-align:left;display:flex;align-items:center;gap:12px;border-radius:10px;padding:11px 13px;font-weight:600}.c10-side-nav button[aria-current=page]{background:#173f50;color:#fff;border-color:#2a6370}.c10-side-nav button:hover{background:rgba(90,183,187,.12)}.c10-nav-icon{color:#77b9bd;font-size:1.25rem;width:23px;text-align:center}
+.c10-rail-note{margin:auto 10px 0;position:relative;border-top:1px solid rgba(196,226,234,.15);padding:17px 0 0 20px}.c10-rail-note strong{color:#ffdc9c;font-size:.71rem;letter-spacing:.075em;display:block}.c10-rail-note small{display:block;color:#a4c5d2;font-size:.73rem;line-height:1.55;margin-top:5px}.c10-led{position:absolute;left:0;top:21px;width:9px;height:9px;background:#ffce80;border-radius:100%;box-shadow:0 0 0 4px rgba(255,206,128,.1)}.c10-return{font-size:.78rem;color:#9cdad9;text-decoration:none;padding:0 11px;margin-bottom:3px}.c10-return:hover{text-decoration:underline}
+.c10-main{min-width:0}.c10-top{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:72px;padding:13px clamp(17px,3.1vw,46px);background:var(--card);border-bottom:1px solid var(--line)}.c10-breadcrumb{font-size:.76rem;color:var(--muted);font-weight:650}.c10-breadcrumb span{padding:0 8px;color:#a8b6bd}.c10-breadcrumb b{color:var(--ink)}.c10-header-actions{display:flex;align-items:center;gap:16px}.c10-guard{font-size:.73rem;color:#805911;font-weight:750;background:#fff5e0;border-radius:50px;padding:6px 10px}.c10-user-dot{background:#d5f3ec;color:#03626f;display:grid;place-items:center;width:31px;height:31px;border-radius:100%;font-size:.84rem;font-weight:850}
+.c10-page{max-width:1440px;padding:32px clamp(17px,3.1vw,46px) 19px;margin:auto}.c10-heading{display:flex;justify-content:space-between;align-items:end;gap:22px;flex-wrap:wrap;margin-bottom:24px}.c10-eyebrow{font-size:.68rem;letter-spacing:.145em;color:var(--teal);font-weight:850}.c10-heading h1{font-size:clamp(1.65rem,2.7vw,2.3rem);line-height:1.17;letter-spacing:-.03em;margin:8px 0}.c10-heading p{color:var(--muted);font-size:.88rem;margin:0}.c10-role-card{background:#fff;padding:11px 13px;border-radius:13px;border:1px solid var(--line);display:grid;gap:7px}.c10-role-card small{color:var(--muted);font-weight:700;font-size:.69rem}.c10-role-switch{display:flex;gap:4px;padding:3px;background:#eef4f6;border-radius:9px}.c10-role-switch button{padding:7px 17px;background:transparent;border:0;color:#587080;font-weight:750;border-radius:7px;min-height:33px}.c10-role-switch button[aria-pressed=true]{color:#0d4d56;background:#d2f0ea;box-shadow:0 1px 3px #aacac770}
+.c10-notice{border:1px solid #f0d6a0;border-left:4px solid #dc9b2e;background:linear-gradient(110deg,#fff8e9,#fffdf8);border-radius:13px;padding:17px 21px;display:flex;gap:24px;align-items:center;justify-content:space-between}.c10-notice strong{letter-spacing:.045em;font-size:.78rem;color:#79500a}.c10-notice p{margin:5px 0 0;color:#705c33;font-size:.78rem;line-height:1.6;max-width:750px}.c10-notice-actions{display:grid;justify-items:end;gap:7px;white-space:nowrap}.c10-notice-actions button{font-size:.73rem;border:1px solid #ddc895;border-radius:8px;color:#6e612e;background:#fffaf0;padding:9px 12px}.c10-notice-actions span{font-size:.69rem;color:#87764d}
+.c10-feedback{min-height:30px;font-size:.78rem;padding:7px 0;color:#216d65}.c10-feedback[data-error=true]{color:#9d3e40}
+.c10-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin:0 0 26px}.c10-metric{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 17px;box-shadow:var(--shadow);min-width:0}.c10-metric-label{display:block;font-size:.73rem;color:var(--muted);font-weight:700}.c10-metric-amount{display:block;font-size:clamp(1.5rem,2.4vw,2.06rem);font-weight:850;line-height:1.15;margin:10px 0 4px;letter-spacing:-.035em;color:#123548}.c10-metric-caption{font-size:.68rem;color:var(--muted)}.c10-metric[data-accent=teal]{border-top:3px solid #087f8c}.c10-metric[data-accent=amber]{border-top:3px solid #ddb35a}.c10-metric[data-accent=navy]{border-top:3px solid #193e56}
+.c10-section-head{display:flex;align-items:start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:4px 0 16px}.c10-section-head h2{margin:0;font-size:1.12rem;color:var(--ink)}.c10-section-head p{color:var(--muted);font-size:.78rem;margin:5px 0 0}.c10-card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);min-width:0;overflow:hidden}.c10-card.pad{padding:21px}.c10-card + .c10-card{margin-top:16px}.c10-pane-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(265px,1fr);gap:18px;align-items:start}
+.c10-toolbar{display:flex;gap:10px;flex-wrap:wrap}.c10-toolbar select,.c10-field select,.c10-field input,.c10-field textarea{border:1px solid #c7d5de;border-radius:9px;background:#fff;color:var(--ink);padding:10px 11px;min-height:42px;max-width:100%}.c10-toolbar select{min-width:145px}.c10-field{display:grid;gap:6px;font-size:.77rem;color:#395465;font-weight:750;margin:0 0 17px}.c10-field input{width:100%}
+.c10-table-wrap{width:100%;overflow-x:auto}table.c10-table{width:100%;border-collapse:collapse;text-align:left;font-size:.78rem}table.c10-table thead{background:#f7fafb}table.c10-table th{font-size:.69rem;text-transform:uppercase;letter-spacing:.065em;color:#6e8391;font-weight:850;padding:14px 17px;white-space:nowrap}table.c10-table td{padding:14px 17px;border-top:1px solid #edf1f4;vertical-align:middle;color:#263d4e}table.c10-table td strong{color:#102f40;font-size:.81rem;display:block}table.c10-table td small{color:#708693;display:block;margin-top:3px}.c10-qty{font-variant-numeric:tabular-nums}.c10-right{text-align:right}
+.c10-pill{font-size:.68rem;font-weight:800;white-space:nowrap;display:inline-flex;padding:5px 9px;border-radius:99px;color:#315868;background:#e9f3f6}.c10-pill.submitted{background:#fff1d7;color:#87611b}.c10-pill.approved{background:#e0f4ef;color:#0a7667}.c10-pill.posted{background:#d8f0e9;color:#0f6952}.c10-pill.voided{background:#f4e9e9;color:#945260}
+.c10-button{border:1px solid #c7d7de;background:white;border-radius:9px;color:#1d4859;padding:9px 14px;min-height:42px;font-weight:750;font-size:.78rem}.c10-button.primary{background:#0d7582;border-color:#0d7582;color:white}.c10-button.ghost{background:#eff6f7;border-color:#daebed}.c10-button.danger{background:#fff8f8;color:#af3548;border-color:#ebd4d9}.c10-button:focus-visible{outline-offset:2px}.c10-actions{display:flex;gap:8px;flex-wrap:wrap}.c10-compact{min-height:34px;padding:6px 10px;font-size:.72rem}
+.c10-empty{padding:28px;color:var(--muted);text-align:center}.c10-empty strong{display:block;color:var(--ink);margin-bottom:6px}.c10-form-help{color:var(--muted);font-size:.76rem;margin-bottom:13px}.c10-total{display:flex;align-items:center;justify-content:space-between;gap:9px;background:#edf7f6;padding:12px 14px;border-radius:10px;margin:16px 0;color:#0d5b66;font-size:.78rem}.c10-total strong{font-size:1rem}
+.c10-line-input{width:100px!important;text-align:right;min-height:38px!important}.c10-mini{color:var(--muted);font-size:.7rem}.c10-steps{list-style:none;padding:0;margin:0;display:grid;gap:16px}.c10-steps li{position:relative;padding-left:29px;color:#345165;font-size:.77rem}.c10-steps li:before{content:attr(data-n);position:absolute;left:0;top:0;width:20px;height:20px;border-radius:50%;background:#dff4f0;color:#08737d;display:grid;place-items:center;font-weight:850;font-size:.68rem}.c10-steps strong{display:block;color:#17394a;margin-bottom:3px}.c10-small-note{margin-top:14px;border-top:1px solid #e7edf1;padding-top:13px;font-size:.74rem;color:var(--muted)}
+.c10-review-list{display:grid;gap:15px}.c10-review-card{padding:18px 19px;border:1px solid var(--line);border-radius:13px;background:#fff}.c10-review-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.c10-review-card h3{font-size:.93rem;margin:0}.c10-review-sub{font-size:.74rem;color:var(--muted);margin:6px 0 11px}.c10-review-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.c10-review-values{font-size:.8rem;color:#2c4b5e}.c10-review-values strong{color:#0c6c74}.c10-activity{display:grid;gap:0;padding:5px 23px}.c10-audit-row{padding:17px 0 17px 23px;border-left:2px solid #d0e6ea;position:relative;display:flex;align-items:start;justify-content:space-between;gap:12px}.c10-audit-row:before{content:"";position:absolute;left:-6px;top:22px;width:10px;height:10px;border-radius:50%;background:#0a8893;border:2px solid #fff;box-shadow:0 0 0 2px #d0e6ea}.c10-audit-row strong{font-size:.8rem}.c10-audit-row small{display:block;color:var(--muted);margin-top:4px;font-size:.69rem}
+.c10-foot{border-top:1px solid var(--line);margin-top:33px;padding:18px 0 0;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#8496a0;font-size:.68rem}
+@media(max-width:1130px){.c10-app{grid-template-columns:206px minmax(0,1fr)}.c10-rail{padding-inline:11px}.c10-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.c10-pane-grid{grid-template-columns:1fr}}
+@media(max-width:730px){.c10-app{grid-template-columns:1fr}.c10-rail{position:static;min-height:0;height:auto;gap:10px;padding:12px 16px 10px}.c10-identity{padding:0}.c10-identity .c10-mark{height:37px;width:37px;font-size:.94rem}.c10-identity strong{font-size:.9rem}.c10-identity small{font-size:.61rem}.c10-context,.c10-rail-note{display:none}.c10-return{display:inline-flex;align-self:flex-end;padding:3px 7px;font-size:.73rem;min-height:30px}.c10-side-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;overflow-x:auto}.c10-side-nav button{min-width:0;min-height:43px;padding:7px 5px;display:grid;justify-items:center;align-content:center;gap:2px;text-align:center;font-size:.64rem}.c10-nav-icon{font-size:1.04rem}.c10-top{min-height:46px;padding:9px 16px}.c10-guard{font-size:.63rem}.c10-user-dot{display:none}.c10-page{padding-top:22px}.c10-heading{align-items:start;gap:16px}.c10-heading h1{margin:5px 0}.c10-role-card{width:100%;display:flex;align-items:center;justify-content:space-between}.c10-notice{display:grid;gap:10px;padding:14px}.c10-notice-actions{justify-items:start;display:flex;flex-wrap:wrap}.c10-metrics{gap:9px;margin-bottom:21px}.c10-metric{padding:13px}.c10-metric-amount{margin:5px 0}.c10-card.pad{padding:15px}table.c10-table td,table.c10-table th{padding:12px 11px}.c10-table-wrap{overflow-x:auto}.c10-pane-grid{gap:11px}.c10-toolbar select{min-width:120px}}
+@media(max-width:420px){.c10-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.c10-top{gap:5px}.c10-breadcrumb{font-size:.67rem}.c10-guard{padding:5px 7px}.c10-review-card{padding:13px}.c10-line-input{width:72px!important}}
+@media(prefers-reduced-motion:no-preference){.c10-button,.c10-side-nav button,.c10-role-switch button{transition:background-color .16s,box-shadow .16s,transform .16s}.c10-button:not(:disabled):active{transform:translateY(1px)}}
+
+</style>
+
+<script>
+/* CORE 10 CENTRAL · C10-A038 Owner + Staff physical stocktake PREVIEW.
+ * ALL actions are in-memory synthetic demonstrations, NOT ERP mutations.
+ * Optional explicit staging mode supports signed SUPABASE READS only; no posting.
+ * Local demo inventory is not stored, persisted or sent to any external service.
+ */
+(function(root,factory){
+ "use strict";
+ var api=factory();
+ if(typeof module==="object"&&module.exports)module.exports=api;
+ if(root&&root.document){
+  root.CORE10_STOCKTAKE_PREVIEW=api;
+  var begin=function(){api.mount(root.document,root)};
+  if(root.document.readyState==="loading")root.document.addEventListener("DOMContentLoaded",begin,{once:true});
+  else begin();
+ }
+})(typeof window!=="undefined"?window:(typeof globalThis!=="undefined"?globalThis:null),function(){
+"use strict";
+var SCREENS=["overview","count","review","audit"],STATUSES=["draft","submitted","approved","posted","voided"];
+var SITES=[
+ {id:5001,code:"SM-01",label:"Main Showroom",kind:"showroom"},
+ {id:5002,code:"CF-01",label:"Cake Factory",kind:"factory"},
+ {id:5003,code:"GD-01",label:"Central Godown",kind:"godown"}
+];
+var ITEMS=[
+ {id:8001,name:"Rasgolla",sku:"FOOD-001",unit:"pcs"},
+ {id:8002,name:"Cake",sku:"BAKE-002",unit:"lb"},
+ {id:8003,name:"Packaging Box",sku:"PACK-003",unit:"pcs"}
+];
+var BASE_STOCK={
+ 5001:{8001:240,8002:28,8003:60},
+ 5002:{8001:110,8002:42,8003:72},
+ 5003:{8001:500,8002:5,8003:190}
+};
+function copy(x){return JSON.parse(JSON.stringify(x))}
+function fail(code){var e=new Error(code);e.code=code;throw e}
+function qty(value){
+ if(typeof value!=="number"&&typeof value!=="string")fail("INVALID_COUNT_QUANTITY");
+ if(typeof value==="string"&&!/^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,3})?$/.test(value))
+  fail("INVALID_COUNT_QUANTITY");
+ var n=Number(value);
+ if(!Number.isFinite(n)||n<0||n>999999999999.999||Math.round(n*1000)!==n*1000)
+  fail("INVALID_COUNT_QUANTITY");
+ return n;
+}
+function positiveId(value){
+ var n=Number(value);
+ if((typeof value==="string"&&!/^[1-9][0-9]*$/.test(value))||
+  (typeof value!=="string"&&typeof value!=="number")||
+  !Number.isSafeInteger(n)||n<1)fail("INVALID_DEMO_ID");
+ return n;
+}
+function validateCounts(siteId,counts){
+ var id=positiveId(siteId);
+ if(!SITES.some(function(site){return site.id===id}))fail("UNKNOWN_DEMO_SITE");
+ if(!Array.isArray(counts)||counts.length<1||counts.length>ITEMS.length)fail("INVALID_COUNT_MANIFEST");
+ var seen=new Set();
+ var result=counts.map(function(line){
+  if(!line||typeof line!=="object"||Array.isArray(line)||
+   Object.keys(line).sort().join(",")!=="counted,itemId")fail("INVALID_COUNT_MANIFEST");
+  var item=positiveId(line.itemId);
+  if(!ITEMS.some(function(x){return x.id===item})||seen.has(item))
+   fail("INVALID_COUNT_MANIFEST");
+  seen.add(item);
+  return {itemId:item,counted:qty(line.counted)};
+ });
+ return {siteId:id,lines:result};
+}
+function makeDemo(){
+ var state={role:"staff",screen:"overview",filter:"all",siteId:5001,docs:[
+  {id:4101,siteId:5001,actor:"staff",status:"submitted",lines:[
+   {itemId:8001,expected:240,counted:237},
+   {itemId:8002,expected:28,counted:28},
+   {itemId:8003,expected:60,counted:59}],reviewedBy:null},
+  {id:4102,siteId:5002,actor:"staff",status:"approved",lines:[
+   {itemId:8001,expected:110,counted:110},
+   {itemId:8002,expected:42,counted:40},
+   {itemId:8003,expected:72,counted:72}],reviewedBy:"owner"},
+  {id:4103,siteId:5003,actor:"staff",status:"posted",lines:[
+   {itemId:8003,expected:193,counted:190}],reviewedBy:"owner"}
+ ],stock:copy(BASE_STOCK),audit:[],next:4104,seq:0};
+ function event(doc,kind,who){
+  state.seq+=1;
+  state.audit.push({seq:state.seq,docId:doc.id,siteId:doc.siteId,kind:kind,actor:who});
+ }
+ state.docs.forEach(function(d){
+  event(d,"draft",d.actor);event(d,"submitted",d.actor);
+  if(d.status==="approved"||d.status==="posted")event(d,"approved","owner");
+  if(d.status==="posted")event(d,"posted","owner");
+ });
+ function find(id){
+  var n=positiveId(id),d=state.docs.find(function(doc){return doc.id===n});
+  if(!d)fail("DEMO_STOCKTAKE_NOT_FOUND");
+  return d;
+ }
+ function owner(){if(state.role!=="owner")fail("OWNER_REVIEW_REQUIRED")}
+ function snapshot(){return copy(state)}
+ function role(value){if(value!=="staff"&&value!=="owner")fail("INVALID_DEMO_ROLE");state.role=value;return snapshot()}
+ function screen(value){if(!SCREENS.includes(value))fail("INVALID_DEMO_SCREEN");state.screen=value;return snapshot()}
+ function filter(value){if(value!=="all"&&!STATUSES.includes(value))fail("INVALID_DEMO_FILTER");state.filter=value;return snapshot()}
+ function site(value){var id=positiveId(value);if(!SITES.some(function(x){return x.id===id}))fail("UNKNOWN_DEMO_SITE");state.siteId=id;return snapshot()}
+ function submit(siteId,counts){
+  if(state.role!=="staff")fail("STAFF_COUNT_REQUIRED");
+  var validated=validateCounts(siteId,counts),doc={
+   id:state.next++,siteId:validated.siteId,actor:state.role,status:"submitted",
+   lines:validated.lines.map(function(line){return{
+    itemId:line.itemId,expected:state.stock[validated.siteId][line.itemId],
+    counted:line.counted};}),reviewedBy:null
+  };
+  state.docs.unshift(doc);event(doc,"draft",state.role);event(doc,"submitted",state.role);
+  return doc.id;
+ }
+ function approve(id){
+  owner();var doc=find(id);
+  if(doc.status!=="submitted")fail("COUNT_NOT_SUBMITTED");
+  if(doc.actor===state.role)fail("OWN_COUNT_APPROVAL_DENIED");
+  doc.status="approved";doc.reviewedBy=state.role;event(doc,"approved",state.role);
+  return snapshot();
+ }
+ function post(id){
+  owner();var doc=find(id);
+  if(doc.status!=="approved")fail("COUNT_NOT_APPROVED");
+  if(doc.lines.some(function(line){return state.stock[doc.siteId][line.itemId]!==line.expected}))
+   fail("STALE_COUNT_RECOUNT_REQUIRED");
+  doc.lines.forEach(function(line){state.stock[doc.siteId][line.itemId]=line.counted});
+  doc.status="posted";event(doc,"posted",state.role);
+  return snapshot();
+ }
+ function voidCount(id,reason){
+  owner();var doc=find(id);
+  if(doc.status==="posted")fail("POSTED_STOCKTAKE_IMMUTABLE");
+  if(doc.status==="voided")fail("ALREADY_VOIDED");
+  if(typeof reason!=="string"||reason.trim().length<5)fail("VOID_REASON_REQUIRED");
+  doc.status="voided";doc.reason=reason.trim();event(doc,"voided",state.role);
+  return snapshot();
+ }
+ function simulateMovement(siteId,itemId,delta){
+  // Only to test stale-count handling inside synthetic memory; no remote writes.
+  owner();var site=positiveId(siteId),item=positiveId(itemId),n=Number(delta);
+  if(!state.stock[site]||!Object.prototype.hasOwnProperty.call(state.stock[site],item)||
+   !Number.isFinite(n)||n===0||Math.round(n*1000)!==n*1000||
+   state.stock[site][item]+n<0)fail("INVALID_DEMO_MOVEMENT");
+  state.stock[site][item]+=n;
+  return snapshot();
+ }
+ return Object.freeze({snapshot:snapshot,setRole:role,setScreen:screen,setFilter:filter,
+  setSite:site,submit:submit,approve:approve,post:post,voidCount:voidCount,
+  simulateMovement:simulateMovement,locations:copy(SITES),items:copy(ITEMS)});
+}
+function htmlEscape(v){return String(v==null?"":v).replace(/[&<>"']/g,function(ch){
+ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];
+});}
+function itemLabel(id){var v=ITEMS.find(function(x){return x.id===id});return v?v.name:"Item "+id}
+function siteLabel(id){var v=SITES.find(function(x){return x.id===id});return v?v.label:"Site "+id}
+function fmt(n){return Number(n).toLocaleString("en-US",{maximumFractionDigits:3})}
+function diff(doc){return doc.lines.reduce(function(s,l){return s+(l.counted-l.expected)},0)}
+function niceStatus(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function badge(status){return '<span class="c10-pill '+htmlEscape(status)+'">'+htmlEscape(niceStatus(status))+'</span>'}
+function metric(label,number,caption,accent){
+ return '<div class="c10-metric" data-accent="'+(accent||"navy")+'"><span class="c10-metric-label">'+htmlEscape(label)+
+  '</span><strong class="c10-metric-amount">'+htmlEscape(number)+'</strong><span class="c10-metric-caption">'+htmlEscape(caption)+'</span></div>';
+}
+function mount(doc,root){
+ var panel=doc.getElementById("screen-content"),feedback=doc.getElementById("feedback");
+ if(!panel||!feedback)return null;
+ var demo=makeDemo(),mode="demo",remote=[],stageAPI=null,selected=null;
+ function message(text,isError){feedback.textContent=text||"";feedback.dataset.error=isError?"true":"false"}
+ function renderMetrics(){
+  var docs=mode==="demo"?demo.snapshot().docs:remote;
+  var open=docs.filter(function(x){return x.status==="submitted"||x.status==="approved"}).length;
+  var approved=docs.filter(function(x){return x.status==="approved"}).length;
+  var posted=docs.filter(function(x){return x.status==="posted"}).length;
+  var variance=mode==="demo"?docs.filter(function(x){return x.status!=="voided"}).reduce(function(n,d){
+   return n+Math.abs(diff(d));},0):"—";
+  doc.getElementById("metrics").innerHTML=
+   metric("Open stocktakes",fmt(open),"Submitted and approved","navy")+
+   metric("Awaiting posting",fmt(approved),"Owner-reviewed counts","amber")+
+   metric("Completed",fmt(posted),"Posted stocktakes","teal")+
+   metric("Count variance",variance==="—"?variance:fmt(variance),"Demo units, not financial value","navy");
+ }
+ function renderOverview(s){
+  var entries=(mode==="demo"?s.docs:remote).filter(function(d){
+   return s.filter==="all"||d.status===s.filter;
+  });
+  var menu=['<option value="all">All statuses</option>'].concat(STATUSES.map(function(status){
+   return '<option value="'+status+'" '+(s.filter===status?'selected':'')+'>'+niceStatus(status)+'</option>';
+  })).join("");
+  var rows=entries.map(function(d){
+   var id=d.id,loc=d.siteId==null?d.location_id:d.siteId,lines=Array.isArray(d.lines)?d.lines.length:"—";
+   return '<tr><td><strong>#'+htmlEscape(id)+'</strong><small>'+htmlEscape(mode==="demo"?"Sample count":"Staging · read-only")+'</small></td>'+
+    '<td><strong>'+htmlEscape(siteLabel(loc))+'</strong><small>'+htmlEscape(loc)+'</small></td>'+
+    '<td>'+htmlEscape(lines)+'</td><td>'+badge(d.status)+'</td>'+
+    '<td class="c10-right"><button class="c10-button c10-compact" type="button" data-act="inspect" data-id="'+htmlEscape(id)+'">Details</button></td></tr>';
+  }).join("");
+  return '<div class="c10-section-head"><div><h2>Stocktake register</h2>'+
+   '<p>Every physical count stays separate from book stock until approved and posted.</p></div>'+
+   '<div class="c10-toolbar"><select id="status-filter" aria-label="Filter stocktake status">'+menu+'</select></div></div>'+
+   '<section class="c10-card"><div class="c10-table-wrap"><table class="c10-table"><thead><tr>'+
+   '<th>Reference</th><th>Site / location</th><th>Lines</th><th>Status</th><th class="c10-right">Details</th>'+
+   '</tr></thead><tbody>'+ (rows||'<tr><td colspan="5" class="c10-empty">No matching counts in this view.</td></tr>')+
+   '</tbody></table></div></section>'+
+   '<div class="c10-small-note">Simulation statuses are local to this browser tab. No real ERP document or journal was created.</div>';
+ }
+ function renderCount(s){
+  if(mode!=="demo")return '<div class="c10-card pad"><h2>Staging is read-only</h2><p class="c10-form-help">Counting and posting are locked until real Auth, stock RLS and Owner release gates are approved.</p></div>';
+  var options=SITES.map(function(x){return '<option value="'+x.id+'" '+(s.siteId===x.id?'selected':'')+'>'+htmlEscape(x.label)+" · "+htmlEscape(x.code)+'</option>';}).join("");
+  var lines=ITEMS.map(function(x){
+   var expected=s.stock[s.siteId][x.id];
+   return '<tr><td><strong>'+htmlEscape(x.name)+'</strong><small>'+htmlEscape(x.sku)+'</small></td>'+
+    '<td>'+htmlEscape(x.unit)+'</td><td class="c10-qty">'+fmt(expected)+'</td><td>'+
+    '<input class="c10-line-input" type="number" min="0" step=".001" required inputmode="decimal" name="item-'+x.id+
+    '" data-item="'+x.id+'" value="'+htmlEscape(expected)+'" aria-label="'+htmlEscape(x.name)+' counted amount"></td></tr>';
+  }).join("");
+  return '<div class="c10-section-head"><div><h2>New physical count</h2><p>Record observed quantity. The demo captures book balance as an expected snapshot.</p></div></div>'+
+   '<div class="c10-pane-grid"><section class="c10-card pad"><form id="physical-count-form"><label class="c10-field">Site / physical location'+
+   '<select id="count-site" name="site" required>'+options+'</select></label>'+
+   '<div class="c10-table-wrap"><table class="c10-table"><thead><tr><th>Item</th><th>Unit</th><th>Book qty</th><th>Counted qty</th></tr></thead><tbody>'+
+   lines+'</tbody></table></div>'+
+   '<div class="c10-total"><span>Preview only · submitted count needs separate owner approval</span><strong>No ERP write</strong></div>'+
+   '<button type="submit" class="c10-button primary" '+(s.role!=="staff"?'disabled':'')+'>Submit demo count</button>'+
+   '</form></section><aside class="c10-card pad"><h2>Control sequence</h2><ol class="c10-steps">'+
+   '<li data-n="1"><strong>Staff counts</strong>Measure each item at the selected site.</li>'+
+   '<li data-n="2"><strong>Snapshot recorded</strong>The backend will check actual stock when live integration is certified.</li>'+
+   '<li data-n="3"><strong>Owner approves</strong>The person who counted cannot self-approve.</li>'+
+   '<li data-n="4"><strong>Adjustment posted</strong>Stale counts cannot overwrite later sales or transfers.</li>'+
+   '</ol><p class="c10-small-note">Current control: '+(s.role==="staff"?"Staff demo count enabled.":"Switch to Staff role to enter a demo count.")+'</p></aside></div>';
+ }
+ function renderReview(s){
+  if(mode!=="demo")return '<div class="c10-card pad"><h2>Owner review is release-locked</h2><p class="c10-form-help">Real approval and posting RPCs are intentionally unavailable in this preview.</p></div>';
+  var pending=s.docs.filter(function(x){return x.status==="submitted"||x.status==="approved"});
+  var parts=pending.map(function(d){
+   var delta=diff(d),kind=d.status,actions=kind==="submitted"?
+    '<button type="button" class="c10-button primary c10-compact" data-act="approve" data-id="'+d.id+'" '+(s.role!=="owner"?'disabled':'')+'>Approve demo</button>':
+    '<button type="button" class="c10-button primary c10-compact" data-act="post" data-id="'+d.id+'" '+(s.role!=="owner"?'disabled':'')+'>Post demo</button>';
+   return '<article class="c10-review-card"><div class="c10-review-head"><h3>Count #'+d.id+' · '+htmlEscape(siteLabel(d.siteId))+'</h3>'+badge(kind)+'</div>'+
+    '<p class="c10-review-sub">'+d.lines.length+' counted items · Submitted by demo '+htmlEscape(d.actor)+'</p>'+
+    '<div class="c10-review-bottom"><span class="c10-review-values">Net quantity difference <strong>'+htmlEscape(delta>0?("+"+fmt(delta)):fmt(delta))+'</strong></span>'+
+    '<div class="c10-actions">'+actions+
+    '<button type="button" class="c10-button danger c10-compact" data-act="void" data-id="'+d.id+'" '+(s.role!=="owner"?'disabled':'')+'>Void demo</button></div></div></article>';
+  }).join("");
+  return '<div class="c10-section-head"><div><h2>Owner review queue</h2><p>Approval and posting are separate actions; only simulated local changes occur.</p></div></div>'+
+   '<div class="c10-review-list">'+(parts||'<div class="c10-card pad c10-empty"><strong>All clear</strong>No counts are awaiting approval or posting.</div>')+'</div>'+
+   '<p class="c10-small-note">'+(s.role==="owner"?"Demo Owner can approve and post these synthetic records.":"Staff perspective: review buttons are intentionally disabled.")+'</p>';
+ }
+ function renderAudit(s){
+  if(mode!=="demo")return '<div class="c10-card pad"><h2>Audit preview</h2><p class="c10-form-help">Live audit history requires a specific stocktake ID and signed staging read permission.</p></div>';
+  var logs=s.audit.slice().reverse().map(function(e){
+   return '<div class="c10-audit-row"><div><strong>'+htmlEscape(niceStatus(e.kind))+' · Count #'+e.docId+'</strong>'+
+    '<small>'+htmlEscape(siteLabel(e.siteId))+' · '+htmlEscape(e.actor)+' (synthetic)</small></div><small>Event '+e.seq+'</small></div>';
+  }).join("");
+  return '<div class="c10-section-head"><div><h2>Audit history</h2><p>Every simulated transition is recorded in this page session only.</p></div></div>'+
+   '<section class="c10-card"><div class="c10-activity">'+(logs||'<p class="c10-empty">No activity.</p>')+'</div></section>';
+ }
+ function render(){
+  var s=demo.snapshot();
+  doc.querySelectorAll("[data-role]").forEach(function(btn){
+   btn.setAttribute("aria-pressed",String(btn.dataset.role===s.role));
+  });
+  doc.querySelectorAll("[data-screen]").forEach(function(btn){
+   if(btn.dataset.screen===s.screen)btn.setAttribute("aria-current","page");
+   else btn.removeAttribute("aria-current");
+  });
+  renderMetrics();
+  if(s.screen==="overview")panel.innerHTML=renderOverview(s);
+  else if(s.screen==="count")panel.innerHTML=renderCount(s);
+  else if(s.screen==="review")panel.innerHTML=renderReview(s);
+  else panel.innerHTML=renderAudit(s);
+ }
+ function inspect(id){
+  var s=demo.snapshot();
+  if(mode==="demo"){
+   var d=s.docs.find(function(x){return x.id===Number(id)});
+   if(!d){message("Count not found",true);return}
+   var detail=d.lines.map(function(l){return itemLabel(l.itemId)+": "+fmt(l.expected)+" → "+fmt(l.counted)}).join(" · ");
+   message("Demo #"+d.id+" ("+d.status+"): "+detail);return;
+  }
+  message("Staging source is read-only; use the signed adapter to request individual discrepancy details.");
+ }
+ async function stagedRead(){
+  // Only explicitly approved separate STAGING refs may be used. No public config,
+  // no automatic remote attempt, no writes, and production SG is rejected.
+  var cfg=root.CORE10_STOCKTAKE_STAGE_READ;
+  if(!cfg||cfg.enabled!==true||cfg.approved!==true||
+    !/^[a-z0-9]{20}$/.test(String(cfg.projectRef||""))||
+    cfg.projectRef==="kbuhnpqooycqbzrfejcs"||
+    !Number.isSafeInteger(cfg.businessId)||cfg.businessId<1||!cfg.client||
+    !root.CORE10_ENTERPRISE_CLIENT) {
+   fail("READ_ONLY_STAGING_NOT_APPROVED");
+  }
+  var api=root.CORE10_ENTERPRISE_CLIENT.create({
+   client:cfg.client,experimentalRead:true,experimentalWrite:false});
+  var list=await api.listStocktakes(cfg.businessId);
+  if(!Array.isArray(list))fail("INVALID_STAGE_READ_RESPONSE");
+  stageAPI=api;remote=list;mode="stage";selected=cfg.businessId;
+  doc.getElementById("data-source").textContent="Source: authorized staging READ ONLY";
+  demo.setScreen("overview");message("Signed staging read completed. No writes are available.");render();
+ }
+ var stageButton=doc.getElementById("stage-read"),config=root.CORE10_STOCKTAKE_STAGE_READ;
+ if(stageButton&&config&&config.enabled===true&&config.approved===true&&
+  config.projectRef!=="kbuhnpqooycqbzrfejcs"&&/^[a-z0-9]{20}$/.test(String(config.projectRef||""))){
+  stageButton.disabled=false;stageButton.textContent="Load signed staging READ";
+  stageButton.addEventListener("click",function(){
+   stagedRead().catch(function(e){message(e.code||"STAGING_READ_UNAVAILABLE",true)});
+  });
+ }
+ doc.addEventListener("click",function(e){
+  var role=e.target.closest("[data-role]"),nav=e.target.closest("[data-screen]"),
+   action=e.target.closest("[data-act]");
+  try{
+   if(role){demo.setRole(role.dataset.role);message("");render();return}
+   if(nav){demo.setScreen(nav.dataset.screen);message("");render();return}
+   if(!action)return;
+   var which=action.dataset.act,id=action.dataset.id;
+   if(which==="inspect"){inspect(id);return}
+   if(mode!=="demo")fail("STAGING_WRITES_LOCKED");
+   if(which==="approve"){demo.approve(id);message("Demo approval recorded in browser memory.");}
+   else if(which==="post"){demo.post(id);message("Demo adjustment posted in browser memory only.");}
+   else if(which==="void"){demo.voidCount(id,"Synthetic owner void; recount required");message("Demo count voided without changing real ERP.");}
+   else return;
+   render();
+  }catch(err){message(err.code||"DEMO_ACTION_FAILED",true)}
+ });
+ panel.addEventListener("change",function(e){
+  if(e.target.id==="status-filter"){try{demo.setFilter(e.target.value);render()}catch(err){message(err.code,true)}}
+  if(e.target.id==="count-site"){try{demo.setSite(e.target.value);render()}catch(err){message(err.code,true)}}
+ });
+ panel.addEventListener("submit",function(e){
+  if(e.target.id!=="physical-count-form")return;
+  e.preventDefault();
+  try{
+   if(mode!=="demo")fail("STAGING_WRITES_LOCKED");
+   var site=demo.snapshot().siteId,lines=[];
+   e.target.querySelectorAll("[data-item]").forEach(function(field){
+    lines.push({itemId:Number(field.dataset.item),counted:field.value});
+   });
+   var id=demo.submit(site,lines);
+   demo.setScreen("overview");
+   message("Demo count #"+id+" submitted locally. Switch to Owner to approve.");
+   render();
+  }catch(err){message(err.code||"DEMO_COUNT_FAILED",true)}
+ });
+ render();
+ return Object.freeze({demo:demo,render:render,stageRead:stagedRead,
+  releaseStatus:function(){return Object.freeze({liveWritesEnabled:false,mode:mode,stageBusinessId:selected})}});
+}
+return Object.freeze({createDemo:makeDemo,validateCounts:validateCounts,mount:mount,
+ sites:copy(SITES),items:copy(ITEMS),escape:htmlEscape});
+});
+
+</script>
+</head>
+<body>
+<div class="c10-app">
+ <aside class="c10-rail" aria-label="Stocktake navigation">
+  <div class="c10-identity"><span class="c10-mark">C<span>10</span></span><div><strong>CORE 10</strong><small>CENTRAL / ENTERPRISE</small></div></div>
+  <div class="c10-context"><span>WORKSPACE</span><strong>Inventory control</strong><small>Physical stocktake · C10-A038</small></div>
+  <nav class="c10-side-nav" aria-label="Stocktake screens">
+   <button data-screen="overview" aria-current="page" type="button"><span class="c10-nav-icon" aria-hidden="true">▦</span> Overview</button>
+   <button data-screen="count" type="button"><span class="c10-nav-icon" aria-hidden="true">≡</span> Physical count</button>
+   <button data-screen="review" type="button"><span class="c10-nav-icon" aria-hidden="true">✓</span> Owner approvals</button>
+   <button data-screen="audit" type="button"><span class="c10-nav-icon" aria-hidden="true">◷</span> Audit history</button>
+  </nav>
+  <div class="c10-rail-note"><span class="c10-led"></span><strong>SIMULATION ONLY</strong><small>Not connected to live inventory. No production stock can change here.</small></div>
+  <button class="c10-return" type="button" data-screen="overview" style="border:0;background:transparent;text-align:left;cursor:pointer">← Overview</button>
+ </aside>
+ <main class="c10-main" id="workspace">
+  <header class="c10-top">
+   <div class="c10-breadcrumb">Enterprise <span>/</span> Inventory <span>/</span> <b>Stocktake</b></div>
+   <div class="c10-header-actions"><span class="c10-guard">● Backend posting locked</span><span class="c10-user-dot" aria-label="Synthetic demo profile">D</span></div>
+  </header>
+  <div class="c10-page">
+   <div class="c10-heading">
+    <div><div class="c10-eyebrow">STOCK INTEGRITY · C10-A038</div><h1>Physical Stocktake</h1><p>Count at the site. Review variance. Approve before any adjustment.</p></div>
+    <div class="c10-role-card"><small>Preview perspective</small><div class="c10-role-switch" role="group" aria-label="Choose demo role"><button type="button" data-role="staff" aria-pressed="true">Staff</button><button type="button" data-role="owner" aria-pressed="false">Owner</button></div></div>
+   </div>
+   <section class="c10-notice" aria-label="Preview safety">
+    <div><strong>OFFLINE DEMO · DEMO DATA — NO ERP CHANGES</strong><p>This is a working interface prototype. Count, approve and post actions affect only temporary browser memory. There is no live Supabase write, payment or inventory update.</p></div>
+    <div class="c10-notice-actions"><button type="button" id="stage-read" disabled title="Requires a separate approved staging configuration">Staging read unavailable</button><span id="data-source">Source: synthetic demo</span></div>
+   </section>
+   <div id="feedback" class="c10-feedback" role="status" aria-live="polite"></div>
+   <div class="c10-metrics" id="metrics" aria-label="Stocktake summary"></div>
+   <div id="screen-content" tabindex="-1"></div>
+   <footer class="c10-foot"><span>CORE 10 CENTRAL · Enterprise Stock Control</span><span>Preview only · No live posting · Requires Owner release gate</span></footer>
+  </div>
+ </main>
+</div>
+</body>
+</html>

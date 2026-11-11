@@ -1,0 +1,40 @@
+# INACTIVE — .disabled extension. This is a REVIEW CANDIDATE, not a runnable
+# workflow until Owner authorizes staging clone, Auth identities and test dataset,
+# verifies Pages/REV-009 compatibility, then activates on trusted default branch.
+# ENVIRONMENT core10-staging-auth should require Owner approval for secret access.
+# Never run a secret-bearing workflow on untrusted pull_request code.
+name: CORE10 A019 REAL Supabase Auth staging RLS test (OWNER GATED)
+on:
+  workflow_dispatch:
+    inputs:
+      approve_nonproduction_readonly:
+        description: "I have verified this is a disposable, separate non-production Supabase project"
+        type: boolean
+        required: true
+        default: false
+permissions:
+  contents: read
+jobs:
+  real-auth-stage:
+    # Disabled candidate: if ever enabled, restrict secret-bearing jobs to main.
+    if: ${{ inputs.approve_nonproduction_readonly == true && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: core10-staging-auth
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate GoTrue test contract without credentials first
+        run: node tests/c10_a019_real_auth_stage_contract.test.js
+      - name: Explicit signed GoTrue + RLS E2E, no database writes
+        env:
+          C10_STAGING_READONLY_APPROVAL: CORE10_STAGING_AUTH_READ_ONLY_APPROVED
+          C10_STAGING_SEED_PROOF: ${{ vars.C10_STAGING_SEED_PROOF }}
+          C10_STAGING_URL: ${{ vars.C10_STAGING_URL }}
+          C10_STAGING_PROJECT_REF: ${{ vars.C10_STAGING_PROJECT_REF }}
+          C10_STAGING_ANON_KEY: ${{ secrets.C10_STAGING_ANON_KEY }}
+          C10_STAGING_TEST_USERS_JSON: ${{ secrets.C10_STAGING_TEST_USERS_JSON }}
+        run: node internal/core10-a019-real-auth-stage.js

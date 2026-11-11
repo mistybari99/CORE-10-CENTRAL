@@ -1,0 +1,83 @@
+name: CORE10 A044 Canonical Control Studio Settings SQL CI
+on:
+  push:
+    branches: ['feature/c10-a018-*']
+    paths:
+      - 'internal/enterprise-sql/c10_a044_control_settings_v1.sql'
+      - 'tests/c10_a044_control_settings_e2e.sql'
+      - 'core10-control-*.js'
+      - 'core10-control-*.html'
+      - 'core10-control-*.css'
+      - 'tests/e2e/core10-a044-control-studio-browser.js'
+      - 'tests/c10_a044_control_ui.test.js'
+      - '.github/workflows/core10-a044-control-settings-ci.yml'
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a044_control_settings_v1.sql'
+      - 'tests/c10_a044_control_settings_e2e.sql'
+      - 'core10-control-*.js'
+      - 'core10-control-*.html'
+      - 'tests/c10_a044_control_ui.test.js'
+      - '.github/workflows/core10-a044-control-settings-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  control-settings-sql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+          POSTGRES_DB: core10_demo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_demo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: core10_demo
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Create disposable role fixtures
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
+      - name: A018 baseline & roles
+        run: |
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+      - name: A020 / A021 existing authoritative owner controls
+        run: |
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a020_business_setup_v1.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a021_owner_controls_v1.sql
+      - name: A044 canonical configuration/approval storage (disposable)
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a044_control_settings_v1.sql
+      - name: Positive / cross-scope / role negative and audit E2E
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a044_control_settings_e2e.sql
+      - name: A042 and A043 contract regressions
+        run: |
+          node tests/c10_a042_universal_control_studio.test.js
+          node tests/c10_a043_business_control_placement.test.js
+      - name: UI/client signed RPC contract unit suite
+        run: node tests/c10_a044_control_ui.test.js
+      - name: Install pinned Chromium for actual browser UI checks
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-playwright" && cd "$RUNNER_TEMP/core10-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Responsive Central and Business browser UI, isolated signed fixture
+        run: node tests/e2e/core10-a044-control-studio-browser.js
