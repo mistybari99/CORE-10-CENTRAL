@@ -19,6 +19,16 @@ try {
   const page=await context.newPage();
   const errors=[];
   page.on("pageerror",error=>errors.push(String(error)));
+  // The repo's legacy static test server serves unknown .mjs as octet-stream.
+  // Supply correct JavaScript MIME for this isolated module test without editing it.
+  await page.route("**/*.mjs",async route=>{
+   const pathname=decodeURIComponent(new URL(route.request().url).pathname);
+   const file=path.resolve(process.cwd(),"."+pathname);
+   if(!file.startsWith(process.cwd()+path.sep) || !file.endsWith(".mjs")) {
+    await route.abort();return;
+   }
+   await route.fulfill({status:200,contentType:"text/javascript; charset=utf-8",body:fs.readFileSync(file)});
+  });
   const response=await page.goto(url,{waitUntil:"load"});
   assert.equal(response.status(),200,"quality page returns 200");
   await page.waitForSelector("#lot-results",{state:"detached"}).catch(()=>{});
