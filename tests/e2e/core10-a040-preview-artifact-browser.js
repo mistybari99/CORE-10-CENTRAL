@@ -48,6 +48,9 @@ const {chromium}=require("playwright"),{verify}=require("../../internal/core10-a
    await page.locator('[data-act="post"][data-id="4104"]').click();
    await page.locator('[data-screen="audit"]').click();
    assert.match(await page.locator("#screen-content").innerText(),/Count #4104/);
+   assert.equal(await page.locator(".c10-return").isVisible(),true,
+    "Demo Home link must be visible at "+width+"px");
+   assert.match(await page.locator(".c10-return").innerText(),/Demo Home/);
    await page.locator(".c10-return").click();
    assert.match(page.url(),/\/index\.html$/);
    const scroll=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
