@@ -23,6 +23,7 @@ CREATE TABLE c10_demo.quality_lots_v1 (
  created_by uuid NOT NULL, created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
  released_inspection_id bigint,
  updated_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+ UNIQUE(id,tenant_id,business_id),
  UNIQUE(id,tenant_id,business_id,item_id),
  UNIQUE(business_id,item_id,lot_code),
  FOREIGN KEY(item_id,tenant_id,business_id) REFERENCES c10_demo.items(id,tenant_id,business_id),
