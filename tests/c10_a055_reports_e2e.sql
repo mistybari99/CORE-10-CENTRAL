@@ -524,7 +524,7 @@ BEGIN
  PERFORM c10_test.eqn(c10_test.comp(h,'overdue_schedules','penalty'),10,'overdue penalty (deferred target ignored)'); PERFORM c10_test.eqn(c10_test.comp(h,'recent_failures','value'),4,'failures');
  PERFORM c10_test.eqn(c10_test.comp(h,'recent_failures','penalty'),30,'failures capped'); PERFORM c10_test.eqn(c10_test.comp(h,'age_vs_life','penalty'),0,'age ok');
  PERFORM c10_test.eqn(c10_test.comp(h,'warranty','penalty'),0,'active warranty'); PERFORM c10_test.eqn(c10_test.comp(h,'meter_staleness','penalty'),10,'stale meter');
- PERFORM c10_test.eq(h->>'band','poor','crane band'); PERFORM c10_test.eqn(jsonb_array_length(h->'components'),5,'5 components');
+ PERFORM c10_test.eq(h->>'band','poor','crane band'); PERFORM c10_test.eqn(jsonb_array_length(h->'components')::text,5,'5 components');
  h:=c10_test.hi(r,'CNV-1'); PERFORM c10_test.eqn(h->>'health_score',85,'conveyor score'); PERFORM c10_test.eq(c10_test.comp(h,'warranty','value'),'expired','expired warranty');
  PERFORM c10_test.eqn(c10_test.comp(h,'warranty','penalty'),5,'expired penalty'); PERFORM c10_test.eqn(c10_test.comp(h,'overdue_schedules','penalty'),10,'overdue 1');
  h:=c10_test.hi(r,'CHL-1'); PERFORM c10_test.eqn(h->>'health_score',92,'chiller score'); PERFORM c10_test.eq(h->>'band','good','chiller band');
@@ -568,7 +568,7 @@ BEGIN
  PERFORM c10_test.eq(r#>>'{warranties,expired,0,asset_no}','CNV-1','expired asset');
  PERFORM c10_test.eq(r#>>'{claims,by_status}','{"draft": 1, "closed": 0, "settled": 1, "accepted": 0, "rejected": 1, "submitted": 1}','claims by state');
  PERFORM c10_test.eqn(r#>>'{claims,total}',4,'claims total'); PERFORM c10_test.eqn(r#>>'{claims,amount_settled}',500,'settled'); PERFORM c10_test.eq(r#>>'{claims,advisory}','true','claims advisory');
- PERFORM c10_test.eqn(jsonb_array_length(r#>'{recurring_failures_in_warranty,items}'),1,'recurring in warranty');
+ PERFORM c10_test.eqn(jsonb_array_length(r#>'{recurring_failures_in_warranty,items}')::text,1,'recurring in warranty');
  PERFORM c10_test.eq(r#>>'{recurring_failures_in_warranty,items,0,failure_code}','MECH','recurring code'); PERFORM c10_test.eqn(r#>>'{recurring_failures_in_warranty,items,0,count}',3,'recurring count');
  -- explicit horizon overrides policy
  PERFORM c10_test.eq((c10_demo.am_warranty_report_v1(101,10))#>>'{warranties,counts}','{"void": 1, "active": 3, "expired": 1, "expiring": 0}','horizon 10');
@@ -576,7 +576,7 @@ BEGIN
  -- per-site and isolation
  PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_warranty_report_v1(101);
  PERFORM c10_test.eq(r#>>'{warranties,counts}','{"void": 1, "active": 1, "expired": 0, "expiring": 1}','1001 counts'); PERFORM c10_test.eqn(r#>>'{claims,total}',1,'1001 claims');
- PERFORM c10_test.eqn(jsonb_array_length(r#>'{recurring_failures_in_warranty,items}'),0,'1001 no recurring');
+ PERFORM c10_test.eqn(jsonb_array_length(r#>'{recurring_failures_in_warranty,items}')::text,0,'1001 no recurring');
  PERFORM c10_test.as_user('bo102'); r:=c10_demo.am_warranty_report_v1(102); PERFORM c10_test.eq(r#>>'{warranties,counts}','{"void": 0, "active": 1, "expired": 0, "expiring": 0}','102 counts');
  PERFORM c10_test.eqn(r#>>'{claims,total}',0,'102 claims');
  PERFORM c10_test.as_user('owner2'); PERFORM c10_test.eq((c10_demo.am_warranty_report_v1(201))#>>'{warranties,counts}','{"void": 0, "active": 0, "expired": 0, "expiring": 0}','201 counts');
@@ -599,7 +599,7 @@ DO $$
 DECLARE r jsonb;
 BEGIN
  PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_reconciliation_v1(101);
- PERFORM c10_test.eq(r->>'ok','false','101 is inconsistent'); PERFORM c10_test.eqn(r->>'total_mismatches',9,'9 seeded mismatches'); PERFORM c10_test.eqn(jsonb_array_length(r->'classes'),9,'9 classes');
+ PERFORM c10_test.eq(r->>'ok','false','101 is inconsistent'); PERFORM c10_test.eqn(r->>'total_mismatches',9,'9 seeded mismatches'); PERFORM c10_test.eqn(jsonb_array_length(r->'classes')::text,9,'9 classes');
  PERFORM c10_test.eq(c10_test.cls_ids(r,'completed_breakdown_wo_without_ended_downtime'),'['||c10_test.k('BD4')||']','class1');
  PERFORM c10_test.eq(c10_test.cls_ids(r,'breakdown_downtime_without_wo'),'['||c10_test.k('DT-POS')||']','class2');
  PERFORM c10_test.eq(c10_test.cls_ids(r,'asset_breakdown_without_open_downtime'),'['||c10_test.k('MIX-1')||']','class3');
