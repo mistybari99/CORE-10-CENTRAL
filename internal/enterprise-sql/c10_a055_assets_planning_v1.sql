@@ -366,6 +366,7 @@ BEGIN
  SELECT * INTO b FROM c10_demo.ami_begin(p_business,p_request,'save_plan',pl);
  c:=b.o_ctx;
  IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ IF cardinality(c10_demo.ami_sites_with(c,'plan_write'))=0 THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
  PERFORM c10_demo.ami_pln_keys(p_data,ARRAY['name','plan_type','asset_id','category_id','site_id','frequency_kind','interval_n','meter_code',
   'usage_interval','checklist_code','priority','est_labor_hours','est_cost','anchor','start_on','end_on','lead_days','team_ref','active']);
  IF p_reason IS NOT NULL AND length(btrim(p_reason))>500 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
