@@ -1,0 +1,13 @@
+"use strict";
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const { buildArtifacts } = require("../../internal/demo-factory/build-registry.js");
+const built = buildArtifacts();
+const root = path.resolve(__dirname, "../..");
+assert.equal(fs.readFileSync(path.join(root, "docs/strategy/UNIVERSAL_CAPABILITY_REGISTER.json"), "utf8"), built.json);
+assert.equal(fs.readFileSync(path.join(root, "docs/strategy/UNIVERSAL_CAPABILITY_REGISTER.csv"), "utf8"), built.csv);
+const parsed = JSON.parse(built.json);
+assert.equal(parsed.unexplained_omission_count, 0);
+assert.equal(parsed.registry_count, built.features.length);
+console.log(`PASS capability registry artifacts: ${parsed.registry_count} unified features, ${parsed.source_candidate_count} source candidates, zero unexplained omissions`);
