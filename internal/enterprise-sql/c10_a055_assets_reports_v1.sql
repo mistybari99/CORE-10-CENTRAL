@@ -40,7 +40,7 @@ $$ SELECT to_char(p AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS"Z"') $$;
 CREATE FUNCTION c10_demo.ami_rpt_cls(p_code text,p_label text,p_entity text,p_ids bigint[],p_note text DEFAULT NULL) RETURNS jsonb
 LANGUAGE sql IMMUTABLE AS $$
  SELECT jsonb_build_object('code',p_code,'label',p_label,'entity',p_entity,'count',cardinality(COALESCE(p_ids,ARRAY[]::bigint[])),
-  'sample_ids',to_jsonb(COALESCE(p_ids,ARRAY[]::bigint[])[1:20]),'note',p_note) $$;
+  'sample_ids',to_jsonb((COALESCE(p_ids,ARRAY[]::bigint[]))[1:20]),'note',p_note) $$;
 
 -- Downtime windows after policy (planned_counts, min_counted_minutes, max_open_hours) and clipping to [p_from,p_to).
 CREATE FUNCTION c10_demo.ami_rpt_dt(p_business bigint,p_sites bigint[],p_from timestamptz,p_to timestamptz)
@@ -608,4 +608,232 @@ BEGIN
   'period',CASE WHEN v_lo IS NULL THEN NULL ELSE jsonb_build_object('from',pe.o_from,'to',pe.o_to) END,
   'time_scoped_classes',jsonb_build_array('completed_breakdown_wo_without_ended_downtime','breakdown_downtime_without_wo','meter_decrease_without_reset'),
   'ok',tot=0,'total_mismatches',tot,'classes',cls);
+END$$;
+
+-- ===================== am_export_csv_v1 (write-ish: idempotent receipt + audit row 'export', contents never audited) =====================
+CREATE FUNCTION c10_demo.am_export_csv_v1(p_business bigint,p_request text,p_kind text,p_params jsonb DEFAULT '{}'::jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c c10_demo.am_ctx_t; rp jsonb; v_payload jsonb; v_p jsonb; k text; allowed text[]; v_sites bigint[]; v_site bigint;
+ v_from date; v_to date; v_lo timestamptz; v_hi timestamptz; v_status text; v_entity text; v_eid text; v_max int; v_n int; v_body text;
+ v_hdr text; v_trunc boolean; v_csv text; v_fn text; v_res jsonb; v_today date; v_tz text; v_sha text; v_pmax int; bg record;
+BEGIN
+ v_payload:=jsonb_build_object('kind',p_kind,'params',COALESCE(p_params,'{}'::jsonb));
+ SELECT * INTO bg FROM c10_demo.ami_begin(p_business,p_request,'export_csv',v_payload);
+ c:=bg.o_ctx; rp:=bg.o_replay;
+ -- kind / params validation
+ IF p_kind IS NULL OR p_kind NOT IN('assets','work_orders','downtime','schedule','warranty','audit') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_p:=COALESCE(p_params,'{}'::jsonb);
+ IF jsonb_typeof(v_p)<>'object' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ allowed:=CASE p_kind WHEN 'assets' THEN ARRAY['site_id','status','max_rows'] WHEN 'work_orders' THEN ARRAY['site_id','status','from','to','max_rows']
+   WHEN 'downtime' THEN ARRAY['site_id','from','to','max_rows'] WHEN 'schedule' THEN ARRAY['site_id','max_rows']
+   WHEN 'warranty' THEN ARRAY['site_id','max_rows'] ELSE ARRAY['entity','entity_id','from','to','max_rows'] END;
+ FOR k IN SELECT jsonb_object_keys(v_p) LOOP
+  IF NOT (k=ANY(allowed)) THEN RAISE EXCEPTION 'am_invalid_input'; END IF; END LOOP;
+ IF v_p?'site_id' THEN
+  IF jsonb_typeof(v_p->'site_id')<>'number' OR (v_p->>'site_id') !~ '^[0-9]{1,12}$' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  v_site:=(v_p->>'site_id')::bigint; END IF;
+ IF v_p?'max_rows' THEN
+  IF jsonb_typeof(v_p->'max_rows')<>'number' OR (v_p->>'max_rows') !~ '^[0-9]{1,9}$' OR (v_p->>'max_rows')::bigint<1 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  v_pmax:=LEAST((v_p->>'max_rows')::bigint,1000000000)::int; END IF;
+ IF v_p?'from' THEN
+  IF jsonb_typeof(v_p->'from')<>'string' OR (v_p->>'from') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  BEGIN v_from:=(v_p->>'from')::date; EXCEPTION WHEN others THEN RAISE EXCEPTION 'am_invalid_input'; END; END IF;
+ IF v_p?'to' THEN
+  IF jsonb_typeof(v_p->'to')<>'string' OR (v_p->>'to') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  BEGIN v_to:=(v_p->>'to')::date; EXCEPTION WHEN others THEN RAISE EXCEPTION 'am_invalid_input'; END; END IF;
+ IF v_from IS NOT NULL AND v_to IS NOT NULL AND v_from>v_to THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF v_p?'status' THEN
+  IF jsonb_typeof(v_p->'status')<>'string' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  v_status:=v_p->>'status';
+  IF p_kind='assets' AND v_status NOT IN('planned','active','under_maintenance','breakdown','idle','retired','disposed') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  IF p_kind='work_orders' AND v_status NOT IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS','COMPLETED','VERIFIED','CLOSED','CANCELLED') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ END IF;
+ IF v_p?'entity' THEN
+  IF jsonb_typeof(v_p->'entity')<>'string' OR length(v_p->>'entity') NOT BETWEEN 1 AND 60 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  v_entity:=v_p->>'entity'; END IF;
+ IF v_p?'entity_id' THEN
+  IF jsonb_typeof(v_p->'entity_id')<>'string' OR length(v_p->>'entity_id') NOT BETWEEN 1 AND 100 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  v_eid:=v_p->>'entity_id'; END IF;
+ -- authority (before replay / policy so a lost capability also blocks replays)
+ IF p_kind='audit' THEN
+  IF NOT c10_demo.ami_has(c,NULL,'audit_read') OR NOT c10_demo.ami_has(c,NULL,'export') THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+  v_sites:=ARRAY[]::bigint[];
+ ELSE
+  v_sites:=c10_demo.ami_rpt_scope(c,v_site,'export');
+ END IF;
+ IF NOT c10_demo.ami_cfg_bool(p_business,NULL,NULL,'export.csv_enabled') THEN RAISE EXCEPTION 'am_export_disabled'; END IF;
+ IF rp IS NOT NULL THEN RETURN rp; END IF;
+ v_max:=c10_demo.ami_cfg_int(p_business,NULL,NULL,'export.max_rows');
+ IF v_pmax IS NOT NULL THEN v_max:=LEAST(v_max,v_pmax); END IF;
+ v_tz:=c10_demo.ami_cfg_text(p_business,NULL,NULL,'general.timezone');
+ v_today:=c10_demo.ami_today(p_business);
+ IF v_from IS NOT NULL THEN v_lo:=v_from::timestamp AT TIME ZONE v_tz; END IF;
+ IF v_to IS NOT NULL THEN v_hi:=(v_to+1)::timestamp AT TIME ZONE v_tz; END IF;
+
+ IF p_kind='assets' THEN
+  v_hdr:='asset_no,name,category_code,status,criticality,site_id,serial_no,model,manufacturer,ownership,acquisition_date,commission_date,acquisition_cost,parent_asset_no,quantity,version';
+  SELECT count(*),COALESCE(string_agg(z.l,E'\r\n' ORDER BY z.id) FILTER (WHERE z.rn<=v_max),'') INTO v_n,v_body
+  FROM (SELECT q.id,q.l,row_number() OVER (ORDER BY q.id) AS rn FROM
+   (SELECT a.id,c10_demo.ami_csv_line(a.asset_no,a.name,ct.code,a.status,a.criticality::text,a.site_id::text,a.serial_no,a.model,a.manufacturer,
+      a.ownership,a.acquisition_date::text,a.commission_date::text,a.acquisition_cost::text,pa.asset_no,a.quantity::text,a.version::text) AS l
+    FROM c10_demo.am_assets a JOIN c10_demo.am_categories ct ON ct.id=a.category_id LEFT JOIN c10_demo.am_assets pa ON pa.id=a.parent_asset_id
+    WHERE a.business_id=p_business AND a.site_id=ANY(v_sites) AND (v_status IS NULL OR a.status=v_status) ORDER BY a.id LIMIT v_max+1) q) z;
+ ELSIF p_kind='work_orders' THEN
+  v_hdr:='wo_no,kind,status,source,priority,asset_no,site_id,title,requested_at,due_on,started_at,completed_at,closed_at,failure_code,cause_code,action_code,est_labor_cost,est_spares_cost,actual_labor_cost,actual_spares_cost,sla_resolve_due_at,version';
+  SELECT count(*),COALESCE(string_agg(z.l,E'\r\n' ORDER BY z.id) FILTER (WHERE z.rn<=v_max),'') INTO v_n,v_body
+  FROM (SELECT q.id,q.l,row_number() OVER (ORDER BY q.id) AS rn FROM
+   (SELECT w.id,c10_demo.ami_csv_line(w.wo_no,w.kind,w.status,w.source,w.priority,a.asset_no,w.site_id::text,w.title,c10_demo.ami_iso(w.requested_at),
+      w.due_on::text,c10_demo.ami_iso(w.started_at),c10_demo.ami_iso(w.completed_at),c10_demo.ami_iso(w.closed_at),w.failure_code,w.cause_code,w.action_code,
+      w.est_labor_cost::text,w.est_spares_cost::text,w.actual_labor_cost::text,w.actual_spares_cost::text,c10_demo.ami_iso(w.sla_resolve_due_at),w.version::text) AS l
+    FROM c10_demo.am_work_orders w JOIN c10_demo.am_assets a ON a.id=w.asset_id
+    WHERE w.business_id=p_business AND w.site_id=ANY(v_sites) AND (v_status IS NULL OR w.status=v_status)
+     AND (v_lo IS NULL OR w.requested_at>=v_lo) AND (v_hi IS NULL OR w.requested_at<v_hi) ORDER BY w.id LIMIT v_max+1) q) z;
+ ELSIF p_kind='downtime' THEN
+  v_hdr:='downtime_id,asset_no,site_id,kind,reason_code,work_order_no,started_at,ended_at,minutes,open';
+  SELECT count(*),COALESCE(string_agg(z.l,E'\r\n' ORDER BY z.id) FILTER (WHERE z.rn<=v_max),'') INTO v_n,v_body
+  FROM (SELECT q.id,q.l,row_number() OVER (ORDER BY q.id) AS rn FROM
+   (SELECT d.id,c10_demo.ami_csv_line(d.id::text,a.asset_no,a.site_id::text,d.kind,d.reason_code,w.wo_no,c10_demo.ami_iso(d.started_at),c10_demo.ami_iso(d.ended_at),
+      CASE WHEN d.ended_at IS NOT NULL THEN round(extract(epoch FROM d.ended_at-d.started_at)/60.0)::text END,
+      CASE WHEN d.ended_at IS NULL THEN 'true' ELSE 'false' END) AS l
+    FROM c10_demo.am_downtime d JOIN c10_demo.am_assets a ON a.id=d.asset_id LEFT JOIN c10_demo.am_work_orders w ON w.id=d.work_order_id
+    WHERE d.business_id=p_business AND a.site_id=ANY(v_sites) AND (v_lo IS NULL OR d.started_at>=v_lo) AND (v_hi IS NULL OR d.started_at<v_hi)
+    ORDER BY d.id LIMIT v_max+1) q) z;
+ ELSIF p_kind='schedule' THEN
+  v_hdr:='target_id,plan_name,plan_type,asset_no,site_id,state,next_due_on,next_due_reading,last_done_on,days_late,escalation_level,deferred_until';
+  SELECT count(*),COALESCE(string_agg(z.l,E'\r\n' ORDER BY z.id) FILTER (WHERE z.rn<=v_max),'') INTO v_n,v_body
+  FROM (SELECT q.id,q.l,row_number() OVER (ORDER BY q.id) AS rn FROM
+   (SELECT t.target_id AS id,c10_demo.ami_csv_line(t.target_id::text,t.plan_name,t.plan_type,a.asset_no,t.site_id::text,t.state,t.next_due_on::text,
+      t.next_due_reading::text,pt.last_done_on::text,t.days_late::text,t.escalation_level::text,t.deferred_until::text) AS l
+    FROM c10_demo.ami_rpt_targets(p_business,v_sites,v_today) t JOIN c10_demo.am_assets a ON a.id=t.asset_id
+    JOIN c10_demo.am_plan_targets pt ON pt.id=t.target_id ORDER BY t.target_id LIMIT v_max+1) q) z;
+ ELSIF p_kind='warranty' THEN
+  v_hdr:='warranty_id,asset_no,site_id,supplier_name,supplier_ref,starts_on,expires_on,status,state,claims';
+  SELECT count(*),COALESCE(string_agg(z.l,E'\r\n' ORDER BY z.id) FILTER (WHERE z.rn<=v_max),'') INTO v_n,v_body
+  FROM (SELECT q.id,q.l,row_number() OVER (ORDER BY q.id) AS rn FROM
+   (SELECT w.id,c10_demo.ami_csv_line(w.id::text,a.asset_no,a.site_id::text,w.supplier_name,w.supplier_ref,w.starts_on::text,w.expires_on::text,w.status,
+      CASE WHEN w.status='void' THEN 'void' WHEN w.expires_on<v_today THEN 'expired'
+           WHEN w.expires_on-v_today<=c10_demo.ami_cfg_int(p_business,a.site_id,a.category_id,'asset.warranty_warn_days') THEN 'expiring' ELSE 'active' END,
+      (SELECT count(*) FROM c10_demo.am_warranty_claims cl WHERE cl.warranty_id=w.id)::text) AS l
+    FROM c10_demo.am_warranties w JOIN c10_demo.am_assets a ON a.id=w.asset_id
+    WHERE w.business_id=p_business AND a.site_id=ANY(v_sites) ORDER BY w.id LIMIT v_max+1) q) z;
+ ELSE
+  v_hdr:='audit_id,created_at,entity,entity_id,event,reason,actor_uid,request_key,before_state,after_state,row_hash';
+  SELECT count(*),COALESCE(string_agg(z.l,E'\r\n' ORDER BY z.id) FILTER (WHERE z.rn<=v_max),'') INTO v_n,v_body
+  FROM (SELECT q.id,q.l,row_number() OVER (ORDER BY q.id) AS rn FROM
+   (SELECT x.id,c10_demo.ami_csv_line(x.id::text,c10_demo.ami_iso(x.created_at),x.entity,x.entity_id,x.event,x.reason,x.actor_uid::text,x.request_key,
+      x.before_state::text,x.after_state::text,x.row_hash) AS l
+    FROM c10_demo.am_audit x WHERE x.business_id=p_business AND (v_entity IS NULL OR x.entity=v_entity) AND (v_eid IS NULL OR x.entity_id=v_eid)
+     AND (v_lo IS NULL OR x.created_at>=v_lo) AND (v_hi IS NULL OR x.created_at<v_hi) ORDER BY x.id LIMIT v_max+1) q) z;
+ END IF;
+ v_trunc:=v_n>v_max; v_n:=LEAST(v_n,v_max);
+ v_csv:=v_hdr||E'\r\n'||CASE WHEN v_n>0 THEN v_body||E'\r\n' ELSE '' END;
+ v_sha:=encode(sha256(convert_to(v_csv,'UTF8')),'hex');
+ v_fn:=format('a055_%s_b%s_%s.csv',p_kind,p_business,to_char(now() AT TIME ZONE 'UTC','YYYYMMDD'));
+ PERFORM c10_demo.ami_log(c.tenant_id,p_business,'export',p_request,'export',NULL,
+   jsonb_build_object('kind',p_kind,'params',v_p,'rows',v_n,'truncated',v_trunc,'filename',v_fn,'sha256',v_sha),NULL,p_request);
+ v_res:=jsonb_build_object('status','applied','kind',p_kind,'rows',v_n,'truncated',v_trunc,'max_rows',v_max,'filename',v_fn,'sha256',v_sha,
+   'generated_at',now(),'csv',v_csv);
+ RETURN c10_demo.ami_finish(p_business,c.tenant_id,p_request,'export_csv',v_payload,v_res);
+END$$;
+
+-- ===================== am_integrity_report_v1 (owner/auditor) =====================
+-- TimeZone is pinned because ami_audit_hash hashes created_at::text, which depends on the session TimeZone.
+CREATE FUNCTION c10_demo.am_integrity_report_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog SET timezone='UTC' AS $$
+DECLARE c c10_demo.am_ctx_t; r c10_demo.am_audit; prev text; v_ok boolean:=true; v_first bigint; v_reason text; n bigint:=0;
+ o1 bigint; o2 bigint; o3 bigint; o4 bigint; o5 bigint; o6 bigint; rc bigint;
+BEGIN
+ c:=c10_demo.ami_read_ctx(p_business);
+ IF NOT c10_demo.ami_has(c,NULL,'audit_read') THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ FOR r IN SELECT * FROM c10_demo.am_audit WHERE business_id=p_business ORDER BY id LOOP
+  n:=n+1;
+  IF v_ok THEN
+   IF r.tenant_id<>c.tenant_id THEN v_ok:=false; v_first:=r.id; v_reason:='tenant_mismatch';
+   ELSIF r.prev_hash IS DISTINCT FROM prev THEN v_ok:=false; v_first:=r.id; v_reason:='prev_hash_mismatch';
+   ELSIF r.row_hash IS DISTINCT FROM c10_demo.ami_audit_hash(prev,r) THEN v_ok:=false; v_first:=r.id; v_reason:='row_hash_mismatch'; END IF;
+  END IF;
+  prev:=r.row_hash;
+ END LOOP;
+ SELECT count(*) INTO rc FROM c10_demo.am_receipts WHERE business_id=p_business;
+ SELECT count(*) INTO o1 FROM c10_demo.am_work_orders w WHERE w.business_id=p_business AND w.failure_code IS NOT NULL
+   AND NOT EXISTS(SELECT 1 FROM c10_demo.am_codes k WHERE k.business_id=p_business AND k.kind='failure' AND k.code=w.failure_code);
+ SELECT count(*) INTO o2 FROM c10_demo.am_work_orders w WHERE w.business_id=p_business AND w.cause_code IS NOT NULL
+   AND NOT EXISTS(SELECT 1 FROM c10_demo.am_codes k WHERE k.business_id=p_business AND k.kind='cause' AND k.code=w.cause_code);
+ SELECT count(*) INTO o3 FROM c10_demo.am_work_orders w WHERE w.business_id=p_business AND w.action_code IS NOT NULL
+   AND NOT EXISTS(SELECT 1 FROM c10_demo.am_codes k WHERE k.business_id=p_business AND k.kind='action' AND k.code=w.action_code);
+ SELECT count(*) INTO o4 FROM c10_demo.am_work_orders w WHERE w.business_id=p_business AND w.service_category IS NOT NULL
+   AND NOT EXISTS(SELECT 1 FROM c10_demo.am_codes k WHERE k.business_id=p_business AND k.kind='service_category' AND k.code=w.service_category);
+ SELECT count(*) INTO o5 FROM c10_demo.am_downtime d WHERE d.business_id=p_business AND d.reason_code IS NOT NULL
+   AND NOT EXISTS(SELECT 1 FROM c10_demo.am_codes k WHERE k.business_id=p_business AND k.kind='downtime_reason' AND k.code=d.reason_code);
+ SELECT count(*) INTO o6 FROM c10_demo.am_plans p WHERE p.business_id=p_business AND p.checklist_code IS NOT NULL
+   AND NOT EXISTS(SELECT 1 FROM c10_demo.am_checklist_templates k WHERE k.business_id=p_business AND k.code=p.checklist_code);
+ RETURN jsonb_build_object('business_id',p_business,'checked_at',now(),'ok',v_ok,'first_broken_audit_id',v_first,'reason',v_reason,
+  'audit_rows',n,'receipts',rc,
+  'orphans',jsonb_build_object('wo_failure_code',o1,'wo_cause_code',o2,'wo_action_code',o3,'wo_service_category',o4,
+    'downtime_reason_code',o5,'plan_checklist_code',o6,'total',o1+o2+o3+o4+o5+o6),
+  'orphans_ok',(o1+o2+o3+o4+o5+o6)=0);
+END$$;
+
+-- ===================== am_audit_log_v1 (owner/auditor) =====================
+CREATE FUNCTION c10_demo.am_audit_log_v1(p_business bigint,p_entity text DEFAULT NULL,p_entity_id text DEFAULT NULL,
+ p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c c10_demo.am_ctx_t; v_lim int:=COALESCE(p_limit,50); v_off int:=COALESCE(p_offset,0); items jsonb; tot bigint;
+BEGIN
+ c:=c10_demo.ami_read_ctx(p_business);
+ IF NOT c10_demo.ami_has(c,NULL,'audit_read') THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ IF v_lim<1 OR v_lim>200 OR v_off<0 OR v_off>10000000 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF (p_entity IS NOT NULL AND length(p_entity) NOT BETWEEN 1 AND 60) OR (p_entity_id IS NOT NULL AND length(p_entity_id) NOT BETWEEN 1 AND 100) THEN
+  RAISE EXCEPTION 'am_invalid_input'; END IF;
+ SELECT count(*) INTO tot FROM c10_demo.am_audit x WHERE x.business_id=p_business
+  AND (p_entity IS NULL OR x.entity=p_entity) AND (p_entity_id IS NULL OR x.entity_id=p_entity_id);
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('id',q.id,'entity',q.entity,'entity_id',q.entity_id,'event',q.event,'before_state',q.before_state,
+   'after_state',q.after_state,'reason',q.reason,'actor_uid',q.actor_uid,'request_key',q.request_key,'created_at',q.created_at,
+   'prev_hash',q.prev_hash,'row_hash',q.row_hash) ORDER BY q.id DESC),'[]'::jsonb) INTO items
+  FROM (SELECT * FROM c10_demo.am_audit x WHERE x.business_id=p_business
+        AND (p_entity IS NULL OR x.entity=p_entity) AND (p_entity_id IS NULL OR x.entity_id=p_entity_id)
+        ORDER BY x.id DESC LIMIT v_lim OFFSET v_off) q;
+ RETURN jsonb_build_object('items',items,'total',tot,'limit',v_lim,'offset',v_off);
+END$$;
+
+-- ===================== read_asset_maintenance_business_summary_v1 (A050 adapter) =====================
+CREATE FUNCTION c10_demo.read_asset_maintenance_business_summary_v1(p_business bigint,p_period date DEFAULT NULL) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c c10_demo.am_ctx_t; v_sites bigint[]; v_today date; v_tz text; v_first date; v_last date; v_lo timestamptz; v_hi timestamptz;
+ a_total bigint; a_status jsonb; wo jsonb; dt jsonb; pm record; cost jsonb; fleet numeric;
+BEGIN
+ c:=c10_demo.ami_read_ctx(p_business);
+ PERFORM c10_demo.ami_need_owner(c);
+ v_today:=c10_demo.ami_today(p_business);
+ v_tz:=c10_demo.ami_cfg_text(p_business,NULL,NULL,'general.timezone');
+ v_first:=date_trunc('month',COALESCE(p_period,v_today)::timestamp)::date;
+ v_last:=(v_first+interval '1 month')::date-1;
+ v_lo:=v_first::timestamp AT TIME ZONE v_tz; v_hi:=(v_last+1)::timestamp AT TIME ZONE v_tz;
+ SELECT COALESCE(array_agg(s.id),ARRAY[]::bigint[]) INTO v_sites FROM c10_demo.sites s WHERE s.business_id=p_business;
+ SELECT COALESCE(jsonb_object_agg(q.status,q.n),'{}'::jsonb),COALESCE(sum(q.n),0) INTO a_status,a_total
+  FROM (SELECT status,count(*) AS n FROM c10_demo.am_assets WHERE business_id=p_business GROUP BY status) q;
+ SELECT jsonb_build_object('created_in_period',count(*) FILTER (WHERE w.requested_at>=v_lo AND w.requested_at<v_hi),
+   'completed_in_period',count(*) FILTER (WHERE w.completed_at>=v_lo AND w.completed_at<v_hi AND w.status IN('COMPLETED','VERIFIED','CLOSED')),
+   'open_total',count(*) FILTER (WHERE w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS')),
+   'overdue',count(*) FILTER (WHERE w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS') AND w.due_on<LEAST(v_last+1,v_today)),
+   'open_breakdowns',count(*) FILTER (WHERE w.kind='breakdown' AND w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS')))
+  INTO wo FROM c10_demo.am_work_orders w WHERE w.business_id=p_business AND w.status<>'CANCELLED';
+ SELECT jsonb_build_object('downtime_minutes',round(COALESCE(sum(av.downtime_min),0),2),'period_minutes',round(COALESCE(sum(av.period_min),0),2),
+   'availability_pct',CASE WHEN sum(av.period_min)>0 THEN round(100*(1-sum(av.downtime_min)/sum(av.period_min)),2) END,
+   'assets_considered',count(*))
+  INTO dt FROM c10_demo.ami_rpt_avail(p_business,v_sites,v_lo,v_hi) av;
+ SELECT * INTO pm FROM c10_demo.ami_rpt_pm(p_business,v_sites,v_first,v_last);
+ SELECT jsonb_build_object('advisory',true,'currency',c10_demo.ami_cfg_text(p_business,NULL,NULL,'general.currency'),
+   'est_labor_cost',COALESCE(sum(est_labor_cost),0),'est_spares_cost',COALESCE(sum(est_spares_cost),0),
+   'actual_labor_cost',COALESCE(sum(actual_labor_cost),0),'actual_spares_cost',COALESCE(sum(actual_spares_cost),0),
+   'actual_total',COALESCE(sum(actual_labor_cost),0)+COALESCE(sum(actual_spares_cost),0))
+  INTO cost FROM c10_demo.am_work_orders w WHERE w.business_id=p_business AND w.status IN('COMPLETED','VERIFIED','CLOSED')
+   AND w.completed_at>=v_lo AND w.completed_at<v_hi;
+ RETURN jsonb_build_object('contract','asset_maintenance.business_summary','contract_version','v1','business_id',p_business,
+  'period',jsonb_build_object('month',to_char(v_first,'YYYY-MM'),'from',v_first,'to',v_last,'timezone',v_tz),'generated_at',now(),
+  'advisory',true,'ledger_posted',false,'money_movement',false,
+  'assets',jsonb_build_object('total',a_total,'by_status',a_status),'work_orders',wo,'downtime',dt,
+  'pm_compliance',jsonb_build_object('due',pm.due,'on_time',pm.on_time,'late',pm.late,'not_done',pm.not_done,
+    'compliance_pct',CASE WHEN pm.due>0 THEN round(100.0*pm.on_time/pm.due,2) END),
+  'advisory_cost',cost);
 END$$;
