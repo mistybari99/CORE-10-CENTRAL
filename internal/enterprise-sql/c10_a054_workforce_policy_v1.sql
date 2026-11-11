@@ -134,6 +134,7 @@ DECLARE cp text;
 BEGIN
  IF wfi_is_owner(c) THEN RETURN; END IF;
  IF p_action='void' THEN RAISE EXCEPTION 'a054_owner_required'; END IF;
+ IF c.employee_id IS NOT NULL AND EXISTS(SELECT 1 FROM wf_payroll_lines l WHERE l.run_id=r.id AND l.employee_id=c.employee_id) THEN RAISE EXCEPTION 'a054_self_in_run_denied'; END IF;
  cp:=CASE p_action WHEN 'review' THEN 'review' WHEN 'approve' THEN 'approve' WHEN 'freeze' THEN 'approve' ELSE 'return' END;
  PERFORM a054i_pay_period_gate(c,p_business,cp,r.period_start);
  IF cfg.require_maker_checker THEN
