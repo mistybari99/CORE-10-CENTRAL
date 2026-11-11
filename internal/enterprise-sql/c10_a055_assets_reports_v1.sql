@@ -536,14 +536,14 @@ END$$;
 -- ===================== am_reconciliation_v1 =====================
 CREATE FUNCTION c10_demo.am_reconciliation_v1(p_business bigint,p_from date DEFAULT NULL,p_to date DEFAULT NULL) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
-DECLARE c c10_demo.am_ctx_t; v_sites bigint[]; v_today date; pe record; v_lo timestamptz; v_hi timestamptz;
+DECLARE c c10_demo.am_ctx_t; v_sites bigint[]; v_today date; pe record; v_lo timestamptz; v_hi timestamptz; v_f date; v_t date;
  i1 bigint[]; i2 bigint[]; i3 bigint[]; i4 bigint[]; i5 bigint[]; i6 bigint[]; i7 bigint[]; i8 bigint[]; i9 bigint[]; cls jsonb; tot int;
 BEGIN
  c:=c10_demo.ami_read_ctx(p_business);
  v_sites:=c10_demo.ami_rpt_scope(c,NULL,'reports');
  v_today:=c10_demo.ami_today(p_business);
  IF p_from IS NOT NULL OR p_to IS NOT NULL THEN
-  SELECT * INTO pe FROM c10_demo.ami_rpt_period(p_business,p_from,p_to); v_lo:=pe.o_from_ts; v_hi:=pe.o_to_ts; END IF;
+  SELECT * INTO pe FROM c10_demo.ami_rpt_period(p_business,p_from,p_to); v_lo:=pe.o_from_ts; v_hi:=pe.o_to_ts; v_f:=pe.o_from; v_t:=pe.o_to; END IF;
  -- 1 completed breakdown WO without an ended downtime window (policy downtime.end_on: 'verified' waits for VERIFIED)
  SELECT COALESCE(array_agg(w.id ORDER BY w.id),ARRAY[]::bigint[]) INTO i1
   FROM c10_demo.am_work_orders w JOIN c10_demo.am_assets a ON a.id=w.asset_id
@@ -605,7 +605,7 @@ BEGIN
   c10_demo.ami_rpt_cls('child_site_differs_from_parent','Child asset site differs from parent asset site','asset',i9));
  tot:=cardinality(i1)+cardinality(i2)+cardinality(i3)+cardinality(i4)+cardinality(i5)+cardinality(i6)+cardinality(i7)+cardinality(i8)+cardinality(i9);
  RETURN jsonb_build_object('business_id',p_business,'sites',to_jsonb(v_sites),'generated_at',now(),
-  'period',CASE WHEN v_lo IS NULL THEN NULL ELSE jsonb_build_object('from',pe.o_from,'to',pe.o_to) END,
+  'period',CASE WHEN v_lo IS NULL THEN NULL ELSE jsonb_build_object('from',v_f,'to',v_t) END,
   'time_scoped_classes',jsonb_build_array('completed_breakdown_wo_without_ended_downtime','breakdown_downtime_without_wo','meter_decrease_without_reset'),
   'ok',tot=0,'total_mismatches',tot,'classes',cls);
 END$$;

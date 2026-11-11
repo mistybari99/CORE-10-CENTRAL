@@ -249,7 +249,7 @@ async function shell(){
  const lang=btn(state.lang==="bn"?"English":"বাংলা",()=>{state.lang=state.lang==="bn"?"en":"bn";store("set",LANG_KEY,state.lang);rebuild()},"outline","am-lang",{"aria-label":T("Switch language","ভাষা বদলান")});
  root.append(h("div",{class:"am-layout"},
   h("aside",{class:"rail"},h("div",{class:"brand"},"CORE ",h("b",{text:"10"}),h("small",{text:"ASSETS & MAINTENANCE · A055"})),nav,
-   h("div",{class:"rail-note",text:T("Authority comes from the server. Money fields are advisory; nothing here posts to stock, ledger or payroll.","ক্ষমতা সার্ভার থেকে আসে। অর্থের ঘর পরামর্শমূলক; এখান থেকে স্টক, লেজার বা বেতনে কিছু পোস্ট হয় না।"))),
+   h("div",{class:"rail-note",text:T("Authority comes from the server. Money fields are advisory; nothing here posts to stock, ledger or payroll.","ক্ষমতা সার্ভার থেকে আসে। অর্থের ঘর পরামর্শমূলক; এখান থেকে স্টক, লেজার বা বেতনে কিছু পোস্ট হয় না।")})),
   h("main",{id:"am-main"},h("div",{class:"topline"},h("span",{text:"ASSETS / WORK ORDERS / SCHEDULE / DOWNTIME"}),h("span",{id:"am-level",class:"badge",text:"…"})),
    h("div",{class:"headline"},h("h1",{id:"am-title"}),h("div",{class:"controls"},bizForm,labeled(T("Site","সাইট"),siteSel),lang)),
    h("div",{id:"am-status",role:"status","aria-live":"polite","data-tone":"info",text:T("Verifying signed session…","সাইন-ইন সেশন যাচাই হচ্ছে…")}),h("div",{id:"am-body"}))));
@@ -791,7 +791,7 @@ SCREENS.schedule=async function(body){
  }
  const nav=h("div",{class:"actions"},btn("‹",()=>{mon.m--;if(mon.m<1){mon.m=12;mon.y--}loadCal()},"outline","sc-prev",{"aria-label":T("Previous month","আগের মাস")}),monthLabel,
   btn("›",()=>{mon.m++;if(mon.m>12){mon.m=1;mon.y++}loadCal()},"outline","sc-next",{"aria-label":T("Next month","পরের মাস")}));
- body.append(h("p",{class:"safety",id:"sc-notice",text:T("This creates work orders; nothing runs automatically. Suggestions are computed when you open this page and work orders are created only when you press the button.","এটি কাজের আদেশ তৈরি করে; কিছুই স্বয়ংক্রিয়ভাবে চলে না। পরামর্শ পেজ খোলার সময় হিসাব হয় এবং বোতাম চাপলেই কাজের আদেশ তৈরি হয়।")),
+ body.append(h("p",{class:"safety",id:"sc-notice",text:T("This creates work orders; nothing runs automatically. Suggestions are computed when you open this page and work orders are created only when you press the button.","এটি কাজের আদেশ তৈরি করে; কিছুই স্বয়ংক্রিয়ভাবে চলে না। পরামর্শ পেজ খোলার সময় হিসাব হয় এবং বোতাম চাপলেই কাজের আদেশ তৈরি হয়।")}),
   panel(T("Calendar","ক্যালেন্ডার"),[nav,h("div",{class:"cal-wrap"},h("div",{class:"cal-only"},calBox),h("div",{class:"agenda-only"},agBox))],null,"sc-cal-panel"),
   panel(T("Due suggestions","দেয় পরামর্শ"),[filterRow([labeled(T("Look ahead (days)","সামনের দিন"),horizon),btn(T("Refresh","রিফ্রেশ"),loadSugg,"outline","sg-refresh"),
     btn(T("Tick all due & overdue","সব দেয় ও বিলম্বিত বাছুন"),()=>{for(const x of suggItems)if(["due","overdue"].includes(x.state)){checked.add(tid(x));const c=$("sg-check-"+tid(x));if(c)c.checked=true}},"outline","sg-tick"),
@@ -849,4 +849,172 @@ SCREENS.reports=async function(body){
  body.append(panel(T("Range","সীমা"),filterRow([labeled(T("From","থেকে"),from),labeled(T("To","পর্যন্ত"),to),labeled(T("Warranty horizon (days)","ওয়ারেন্টি সময়সীমা (দিন)"),hz)])),tabs,out);
  await show(tabs.children[0].dataset.tab);
 };
-/*@@CONT@@*/
+/* =====================================================================  SETTINGS  ===================================================================== */
+const PRESETS=["recommended","showroom","factory","godown","project","office"];
+const recText=(v)=>typeof v==="boolean"?(v?T("ON","চালু"):T("OFF","বন্ধ")):String(v);
+function impactText(o){return o&&typeof o==="object"?Object.entries(o).map(([k,v])=>k.replace(/_/g," ")+": "+(typeof v==="object"?JSON.stringify(v):v)).join("; "):val(o)}
+SCREENS.settings=async function(body){
+ $("am-title").textContent=T("Settings & rules","সেটিংস ও নিয়ম");
+ const scope={type:"business",id:0},draft={};let pol=null,catalog=null;
+ const editor=h("div",{id:"pol-editor"}),pv=h("div",{id:"pv-out"}),dirtyNote=h("span",{id:"pol-dirty",class:"muted",text:""});
+ const stype=sel("pol-scope-type",[["business",lab("scope","business")],["site",lab("scope","site")],["category",lab("scope","category")]],"business");
+ const sid=sel("pol-scope-id",[]);sid.hidden=true;
+ const preset=sel("pol-preset",enumOpts("preset",PRESETS),"recommended");
+ const editable=()=>isOwner();
+ const keyId=(k)=>"pol-"+k.replace(/[^a-z0-9]+/gi,"-");
+ function fillScopeIds(){sid.textContent="";const opts=stype.value==="site"?siteOptsFor(null):categories().map(c=>[String(c.id),c.code+" · "+catName(c)]);
+  for(const [v,t] of opts)sid.append(h("option",{value:v,text:t}));sid.hidden=stype.value==="business";scope.type=stype.value;scope.id=stype.value==="business"?0:Number(sid.value||0)}
+ async function loadPolicy(){
+  Object.keys(draft).forEach(k=>delete draft[k]);
+  catalog=catalog||await rd("am_policy_catalog_v1");
+  pol=await rd("am_get_policy_v1",{p_site:scope.type==="site"?scope.id:null,p_category:scope.type==="category"?scope.id:null});
+  renderEditor();
+ }
+ const current=(k)=>pol&&pol.values&&pol.values[k]?pol.values[k].value:undefined;
+ function updateDirty(){const n=Object.keys(draft).length;dirtyNote.textContent=n?n+T(" unsaved change(s)"," টি অসংরক্ষিত পরিবর্তন"):"";
+  for(const b of ["pol-save","pol-preview","pol-discard"]){const e=$(b);if(e)e.disabled=!n}}
+ function renderEditor(){
+  editor.textContent="";const items=arr(catalog,"items"),groups=[];
+  for(const it of items){if(!groups.includes(it.group))groups.push(it.group)}
+  for(const g of groups){
+   const det=h("details",{class:"grp",open:g==="work_order"?true:null},h("summary",{text:CAT.groupLabel(g,state.lang)}));
+   for(const it of items.filter(x=>x.group===g)){
+    const help=CAT.POLICY_HELP[it.key],pv0=pol&&pol.values?pol.values[it.key]:null,cur=pv0?pv0.value:it.default;
+    const scopeOk=arr(it,"scopes").includes(scope.type),levelOk=it.level!=="tenant_owner"||isTenantOwner();
+    const can_edit=editable()&&scopeOk&&levelOk,id=keyId(it.key);
+    let input;
+    if(it.vtype==="bool"){input=h("input",{id,type:"checkbox",class:"cb"});input.checked=cur===true}
+    else if(it.vtype==="enum"){input=sel(id,arr(it,"enum").map(x=>[x,x]),cur)}
+    else if(it.vtype==="text"){input=h("input",{id,type:"text",maxlength:64,value:cur==null?"":cur})}
+    else input=h("input",{id,type:"number",step:it.vtype==="int"?"1":"any",min:it.min==null?null:it.min,max:it.max==null?null:it.max,value:cur==null?"":cur});
+    input.setAttribute("aria-label",help?T(help.label[0],help.label[1]):it.key);
+    if(!can_edit)input.disabled=true;
+    const badge=h("span",{class:"chip "+(eq(cur,help?help.rec:it.default)?"good":"warn"),id:id+"-badge",text:eq(cur,help?help.rec:it.default)?T("Recommended","সুপারিশকৃত"):T("Custom","কাস্টম")});
+    const srcChip=pv0?chip(T("source: ","উৎস: ")+pv0.source,pv0.source==="default"?"dim":""):null;
+    const helpBox=h("div",{class:"help",id:id+"-help",hidden:true});
+    if(help){
+     const rows=[[T("What it does","কী করে"),help.what],[T("Why it matters","কেন গুরুত্বপূর্ণ"),help.why],[T("When to change it","কখন বদলাবেন"),help.when],[T("Example","উদাহরণ"),help.example],[T("Risk","ঝুঁকি"),help.risk]];
+     helpBox.append(kv([...rows.map(([k,v])=>[k,T(v[0],v[1])]),[T("Recommended value","সুপারিশকৃত মান"),recText(help.rec)],[T("Allowed","অনুমোদিত"),it.vtype==="enum"?arr(it,"enum").join(" | "):(it.min!=null?it.min+" … "+it.max:it.vtype)],
+      [T("Can be set at","যেখানে সেট করা যায়"),arr(it,"scopes").map(s=>lab("scope",s)).join(", ")+(it.level==="tenant_owner"?" · "+T("tenant owner only","শুধু টেন্যান্ট মালিক"):"")]]));
+    }
+    const onChange=()=>{
+     let nv;if(it.vtype==="bool")nv=input.checked;else if(it.vtype==="int"||it.vtype==="num"){if(input.value===""){nv=cur}else nv=Number(input.value)}else nv=input.value;
+     if(eq(nv,cur))delete draft[it.key];else draft[it.key]=nv;row.classList.toggle("dirty",it.key in draft);updateDirty()};
+    input.addEventListener("change",onChange);
+    const row=h("div",{class:"pol-row",id:id+"-row"},h("div",{class:"pol-main"},h("label",{class:"pol-label",for:id},h("b",{text:help?T(help.label[0],help.label[1]):it.key}),h("small",{text:it.key})),input),
+     h("div",{class:"pol-meta"},badge,srcChip,!scopeOk?chip(T("not settable here","এখানে সেট করা যায় না"),"dim"):null,
+      btn("?",()=>{helpBox.hidden=!helpBox.hidden;hb.setAttribute("aria-expanded",String(!helpBox.hidden))},"outline help-btn",id+"-helpbtn",{"aria-label":T("Explain this setting","এই সেটিং ব্যাখ্যা")}),
+      can_edit&&pv0&&pv0.source===scope.type?btn(T("Reset","রিসেট"),()=>resetKey(it.key),"outline",id+"-reset"):null),helpBox);
+    const hb=row.querySelector(".help-btn");hb.setAttribute("aria-expanded","false");hb.setAttribute("aria-controls",id+"-help");
+    det.append(row);
+   }
+   editor.append(det);
+  }
+  updateDirty();
+ }
+ async function resetKey(k){
+  modalForm(T("Reset to inherited value","উত্তরাধিকারী মানে ফেরান")+" · "+k,[REASON()],async(v,err)=>{
+   const r=await act("am_reset_policy_v1",{p_expected_rev:pol.policy_rev,p_scope_type:scope.type,p_scope_id:scope.id,p_keys:[k],p_reason:v.reason},"Setting reset","সেটিং রিসেট",err);if(r){await loadPolicy();await refreshHistory()}return !!r},T("Reset","রিসেট"),"reset-form");
+ }
+ function saveForm(){
+  const n=Object.keys(draft).length;if(!n)return;
+  modalForm(T("Save "+n+" setting(s)","সেটিং সংরক্ষণ ("+n+")"),[h("div"),REASON()].slice(1),async(v,err)=>{
+   const r=await act("am_save_policy_v1",{p_expected_rev:pol.policy_rev,p_scope_type:scope.type,p_scope_id:scope.id,p_changes:Object.assign({},draft),p_reason:v.reason},"Settings saved","সেটিং সংরক্ষিত",err);
+   if(r){await loadPolicy();await refreshHistory()}return !!r},T("Save settings","সেটিং সংরক্ষণ"),"save-policy-form");
+ }
+ async function previewImpact(){
+  const n=Object.keys(draft).length;if(!n)return;
+  pv.textContent="";
+  const r=await safe(()=>rd("am_preview_policy_v1",{p_scope_type:scope.type,p_scope_id:scope.id,p_changes:Object.assign({},draft)}));if(!r)return;
+  pv.append(h("div",{class:"safety sim",id:"pv-banner",role:"note"},h("b",{text:T("SIMULATION — no real asset is changed","সিমুলেশন — কোনো প্রকৃত সম্পদ বদলায় না")}),r.message?h("div",{text:r.message}):null),
+   r.requires_tenant_owner?note(T("Some of these settings can only be saved by a tenant owner.","এর কিছু সেটিং শুধু টেন্যান্ট মালিক সংরক্ষণ করতে পারেন।"),"warn"):null,
+   table([[T("Setting","সেটিং"),x=>CAT.POLICY_HELP[x.key]?T(CAT.POLICY_HELP[x.key].label[0],CAT.POLICY_HELP[x.key].label[1]):x.key],[T("Now","এখন"),x=>recText(x.old)],[T("Would become","হবে"),x=>recText(x.new)],
+    [T("Changed","বদলায়"),x=>chip(x.changed?T("yes","হ্যাঁ"):T("no","না"),x.changed?"warn":"dim")],[T("Expected impact","সম্ভাব্য প্রভাব"),x=>impactText(x.impact)]],arr(r,"items"),T("No effect.","কোনো প্রভাব নেই।")));
+ }
+ function applyPresetForm(){
+  modalForm(T("Apply preset","প্রিসেট প্রয়োগ")+" · "+lab("preset",preset.value),[h("div"),REASON()].slice(1),async(v,err)=>{
+   const r=await act("am_apply_preset_v1",{p_expected_rev:pol.policy_rev,p_preset:preset.value,p_scope_type:scope.type,p_scope_id:scope.id,p_reason:v.reason},"Preset applied","প্রিসেট প্রয়োগ হয়েছে",err);
+   if(r){await loadPolicy();await refreshHistory()}return !!r},T("Apply preset","প্রিসেট প্রয়োগ"),"preset-form");
+ }
+ /* schedule simulator */
+ const simOut=h("div",{id:"sim-out"});
+ const sim=buildForm([{n:"frequency_kind",l:["Frequency","ফ্রিকোয়েন্সি"],t:"select",opts:enumOpts("frequency",FREQS),val:"monthly"},{n:"interval_n",l:["Every N","প্রতি N"],t:"num",step:"1",val:1},
+  {n:"start_on",l:["Starts on","শুরু"],t:"date",val:today()},{n:"count",l:["How many occurrences (max 24)","কতবার (সর্বোচ্চ ২৪)"],t:"num",step:"1",val:6},
+  {n:"typical_delay_days",l:["Typical delay (days)","সাধারণ দেরি (দিন)"],t:"num",step:"1",val:0},{n:"anchor",l:["Anchor","ভিত্তি"],t:"select",opts:[["",T("— policy —","— নীতি —")],...enumOpts("anchor",["from_completion","from_due_date"])]},
+  {n:"usage_interval",l:["Usage interval (usage plans)","ব্যবহারের ব্যবধান"],t:"num"},{n:"avg_daily_usage",l:["Average daily usage","গড় দৈনিক ব্যবহার"],t:"num"},{n:"current_reading",l:["Current reading","বর্তমান রিডিং"],t:"num"}],
+  {prefix:"sim-",id:"sim-form",submitText:T("Simulate schedule","সূচি সিমুলেট"),cancel:false,onSubmit:async(v,err)=>{
+   const p=clean(v);const r=await safe(()=>rd("am_simulate_schedule_v1",{p_params:p}));if(!r)return;simOut.textContent="";
+   simOut.append(h("div",{class:"safety sim",id:"sim-banner"},h("b",{text:T("SIMULATION — no real asset is changed","সিমুলেশন — কোনো প্রকৃত সম্পদ বদলায় না")}),r.message?h("div",{text:r.message}):null),renderData({items:arr(r,"items")}))}});
+ /* grants */
+ const grantBox=h("div",{id:"gr-list"}),catBox=h("div",{id:"cat-list"}),codeBox=h("div",{id:"code-list"}),histBox=h("div",{id:"hist-list"});
+ const codeKind=sel("code-kind",enumOpts("code_kind",["failure","cause","action","downtime_reason","service_category"]),"failure");
+ async function refreshGrants(){
+  if(!isOwner()){grantBox.append(note(T("Only owners manage role grants.","শুধু মালিক ভূমিকা বরাদ্দ করতে পারেন।")));return}
+  const r=await safe(()=>rd("am_list_grants_v1"));if(!r)return;grantBox.textContent="";
+  grantBox.append(table([[T("User","ব্যবহারকারী"),x=>x.user_id],[T("Role","ভূমিকা"),x=>lab("role",x.role)],[T("Site","সাইট"),x=>x.site_id==null?T("All sites","সব সাইট"):siteName(x.site_id)],[T("Active","সক্রিয়"),x=>chip(x.active?T("active","সক্রিয়"):T("revoked","প্রত্যাহৃত"),x.active?"good":"dim")],[T("Note","নোট"),x=>x.note],
+   ["",x=>x.active?btn(T("Revoke","প্রত্যাহার"),()=>revokeForm(x),"outline","gr-revoke-"+x.id):null]],arr(r,"items"),T("No maintenance roles granted yet.","এখনো কোনো ভূমিকা দেওয়া হয়নি।")));
+ }
+ function grantForm(){
+  modalForm(T("Grant maintenance role","রক্ষণাবেক্ষণ ভূমিকা দিন"),[{n:"user",l:["User id (UUID)","ব্যবহারকারী আইডি (UUID)"],t:"uuid",req:true,max:36},{n:"role",l:["Role","ভূমিকা"],t:"select",opts:enumOpts("role",["supervisor","technician","reporter","auditor"]),val:"technician"},
+   {n:"site",l:["Site","সাইট"],t:"select",int:true,opts:siteOptsFor(null,T("All sites of this business","এই ব্যবসার সব সাইট"))},{n:"note",l:["Note","নোট"],t:"text",max:200},REASON()],async(v,err)=>{
+   if(!UUID_RX.test(v.user)){err.textContent=T("User id must be a valid UUID.","ব্যবহারকারী আইডি সঠিক UUID হতে হবে।");err.hidden=false;return false}
+   const r=await act("am_grant_role_v1",{p_user:v.user,p_role:v.role,p_site:v.site,p_note:v.note,p_reason:v.reason},"Role granted","ভূমিকা দেওয়া হয়েছে",err);if(r)await refreshGrants();return !!r},T("Grant","দিন"),"grant-form");
+ }
+ function revokeForm(g){
+  modalForm(T("Revoke role","ভূমিকা প্রত্যাহার")+" · "+lab("role",g.role),[REASON()],async(v,err)=>{
+   const r=await act("am_revoke_role_v1",{p_grant:g.id,p_reason:v.reason},"Role revoked","ভূমিকা প্রত্যাহৃত",err);if(r)await refreshGrants();return !!r},T("Revoke","প্রত্যাহার"),"revoke-form");
+ }
+ /* categories & codes */
+ function renderCats(){
+  catBox.textContent="";catBox.append(table([[T("Code","কোড"),x=>x.code],[T("Name","নাম"),x=>catName(x)],[T("Kind","ধরন"),x=>lab("asset_kind",x.asset_kind)],[T("Crit.","গুরুত্ব"),x=>x.default_criticality],[T("Safety","নিরাপত্তা"),x=>val(x.safety_critical)],[T("Active","সক্রিয়"),x=>val(x.active)],
+   ["",x=>isOwner()?btn(T("Edit","সম্পাদনা"),()=>categoryForm(x),"outline","cat-edit-"+x.code):null]],categories(),T("No categories.","কোনো ক্যাটাগরি নেই।")));
+ }
+ function categoryForm(c){
+  modalForm(c?T("Edit category","ক্যাটাগরি সম্পাদনা"):T("New category","নতুন ক্যাটাগরি"),[{n:"code",l:["Code (A-Z, 0-9, _ -)","কোড"],t:"text",req:true,max:24,val:c&&c.code},{n:"name",l:["Name (English)","নাম (ইংরেজি)"],t:"text",req:true,max:80,val:c&&c.name},{n:"name_bn",l:["Name (Bangla)","নাম (বাংলা)"],t:"text",max:80,val:c&&c.name_bn},
+   {n:"parent_id",l:["Parent category","প্যারেন্ট ক্যাটাগরি"],t:"select",int:true,opts:[["",T("— none —","— নেই —")],...categories().filter(x=>!c||x.id!==c.id).map(x=>[String(x.id),catName(x)])],val:c&&c.parent_id!=null?c.parent_id:""},
+   {n:"asset_kind",l:["Asset kind","সম্পদের ধরন"],t:"select",opts:enumOpts("asset_kind",["fixed_asset","equipment","tool","vehicle","it","facility","other"]),val:c&&c.asset_kind||"equipment"},
+   {n:"default_criticality",l:["Default criticality (1-5)","ডিফল্ট গুরুত্ব (১-৫)"],t:"select",int:true,opts:[1,2,3,4,5].map(x=>[String(x),String(x)]),val:c?c.default_criticality:3},
+   {n:"default_meter_unit",l:["Default meter unit","ডিফল্ট মিটার একক"],t:"select",opts:[["",T("— none —","— নেই —")],...enumOpts("meter_unit",["hours","km","cycles","units"])],val:c&&c.default_meter_unit||""},
+   {n:"useful_life_months",l:["Useful life (months, advisory)","আয়ু (মাস, পরামর্শমূলক)"],t:"num",step:"1",val:c&&c.useful_life_months},{n:"salvage_pct",l:["Salvage % (advisory)","উদ্ধার % (পরামর্শমূলক)"],t:"num",val:c&&c.salvage_pct},
+   {n:"safety_critical",l:["Safety-critical","নিরাপত্তা-সংবেদনশীল"],t:"bool",val:c&&c.safety_critical},{n:"active",l:["Active","সক্রিয়"],t:"bool",val:c?c.active!==false:true},REASON()],async(v,err)=>{
+   const d=clean(Object.assign({},v,{reason:undefined}));d.code=d.code.toUpperCase();d.safety_critical=!!v.safety_critical;d.active=!!v.active;
+   const r=await act("am_save_category_v1",{p_id:c?c.id:null,p_expected_version:c?c.version:null,p_data:d,p_reason:v.reason},"Category saved","ক্যাটাগরি সংরক্ষিত",err);if(r){state.cat=await rd("am_list_catalog_v1");renderCats()}return !!r},T("Save category","ক্যাটাগরি সংরক্ষণ"),"category-form");
+ }
+ function renderCodes(){
+  codeBox.textContent="";codeBox.append(table([[T("Code","কোড"),x=>x.code],[T("Label","লেবেল"),x=>x.label],[T("Label (Bangla)","লেবেল (বাংলা)"),x=>x.label_bn],[T("Active","সক্রিয়"),x=>val(x.active)],
+   ["",x=>isOwner()?btn(T("Edit","সম্পাদনা"),()=>codeForm(x),"outline","code-edit-"+x.code):null]],codesOf(codeKind.value,true),T("No codes of this kind.","এই ধরনের কোনো কোড নেই।")));
+ }
+ function codeForm(c){
+  modalForm(c?T("Edit code","কোড সম্পাদনা"):T("New code","নতুন কোড"),[{n:"kind",l:["Kind","ধরন"],t:"select",opts:enumOpts("code_kind",["failure","cause","action","downtime_reason","service_category"]),val:c?c.kind:codeKind.value},
+   {n:"code",l:["Code (A-Z, 0-9, _ -)","কোড"],t:"text",req:true,max:24,val:c&&c.code},{n:"label",l:["Label (English)","লেবেল (ইংরেজি)"],t:"text",req:true,max:80,val:c&&c.label},{n:"label_bn",l:["Label (Bangla)","লেবেল (বাংলা)"],t:"text",max:80,val:c&&c.label_bn},
+   {n:"active",l:["Active","সক্রিয়"],t:"bool",val:c?c.active!==false:true},REASON()],async(v,err)=>{
+   const r=await act("am_save_code_v1",{p_kind:v.kind,p_code:v.code.toUpperCase(),p_label:v.label,p_label_bn:v.label_bn,p_active:!!v.active,p_reason:v.reason},"Code saved","কোড সংরক্ষিত",err);if(r){state.cat=await rd("am_list_catalog_v1");renderCodes()}return !!r},T("Save code","কোড সংরক্ষণ"),"code-form");
+ }
+ async function refreshHistory(){
+  if(!(isOwner()||can("audit_read"))){histBox.textContent="";histBox.append(note(T("History is visible to owners and auditors.","ইতিহাস মালিক ও অডিটর দেখতে পারেন।")));return}
+  const r=await safe(()=>rd("am_policy_history_v1",{p_limit:50}));if(!r)return;histBox.textContent="";
+  histBox.append(table([[T("When","কখন"),x=>dt(x.created_at)],[T("Setting","সেটিং"),x=>x.key],[T("Scope","পরিধি"),x=>x.scope_type+(x.scope_id?" #"+x.scope_id:"")],[T("From","থেকে"),x=>x.old_value==null?dash:JSON.stringify(x.old_value)],[T("To","হয়েছে"),x=>JSON.stringify(x.new_value)],[T("Rev","রিভ"),x=>x.rev],[T("Reason","কারণ"),x=>x.reason]],arr(r,"items"),T("No changes recorded yet.","এখনো কোনো পরিবর্তন রেকর্ড হয়নি।")));
+ }
+ stype.addEventListener("change",async()=>{fillScopeIds();await safe(loadPolicy)});
+ sid.addEventListener("change",async()=>{scope.id=Number(sid.value||0);await safe(loadPolicy)});
+ codeKind.addEventListener("change",renderCodes);
+ fillScopeIds();
+ body.append(
+  panel(T("Rules (policy)","নিয়ম (পলিসি)"),[note(T("Every business rule below is a setting with a safe default. Press ? on any row to see what it does, why, when to change it, an example and the risk. Your role and the server decide who may save.","নিচের প্রতিটি ব্যবসায়িক নিয়ম নিরাপদ ডিফল্টসহ একটি সেটিং। যেকোনো সারিতে ? চাপলে কী করে, কেন, কখন বদলাবেন, উদাহরণ ও ঝুঁকি দেখা যাবে। কে সংরক্ষণ করতে পারবেন তা আপনার ভূমিকা ও সার্ভার ঠিক করে।")),
+    filterRow([labeled(T("Applies to","প্রযোজ্য"),stype),h("label",{class:"fld",hidden:null},h("span",{text:T("Which one","কোনটি")}),sid),
+     labeled(T("Preset","প্রিসেট"),preset),editable()?btn(T("Apply preset…","প্রিসেট প্রয়োগ…"),applyPresetForm,"outline","pol-preset-apply"):null]),
+    editable()?h("div",{class:"actions sticky"},btn(T("Preview impact","প্রভাব দেখুন"),previewImpact,"outline","pol-preview",{disabled:true}),btn(T("Save changes…","পরিবর্তন সংরক্ষণ…"),saveForm,"primary","pol-save",{disabled:true}),
+     btn(T("Discard","বাতিল"),()=>renderEditor()||Object.keys(draft).forEach(k=>delete draft[k])||loadPolicy(),"outline","pol-discard",{disabled:true}),dirtyNote):note(T("You can read these settings but only owners can change them.","আপনি সেটিং দেখতে পারেন, বদলাতে পারেন শুধু মালিক।")),
+    pv,editor],null,"pol-panel"),
+  panel(T("Schedule simulator","সূচি সিমুলেটর"),[note(T("Try a recurrence pattern and see when it would fall due. Nothing is created.","একটি পুনরাবৃত্তির ধরন চেষ্টা করে দেখুন কবে দেয় হবে। কিছু তৈরি হয় না।")),sim.form,simOut],null,"sim-panel"),
+  panel(T("Maintenance roles","রক্ষণাবেক্ষণ ভূমিকা"),grantBox,isOwner()?btn(T("+ Grant role","+ ভূমিকা দিন"),grantForm,"primary","gr-new"):null,"gr-panel"),
+  panel(T("Asset categories","সম্পদ ক্যাটাগরি"),catBox,isOwner()?btn(T("+ New category","+ নতুন ক্যাটাগরি"),()=>categoryForm(null),"primary","cat-new"):null,"cat-panel"),
+  panel(T("Reason & status codes","কারণ ও অবস্থার কোড"),[filterRow([labeled(T("Kind","ধরন"),codeKind),isOwner()?btn(T("+ New code","+ নতুন কোড"),()=>codeForm(null),"primary","code-new"):null]),codeBox],null,"code-panel"),
+  panel(T("Settings history","সেটিংয়ের ইতিহাস"),histBox,null,"hist-panel"));
+ renderCats();renderCodes();
+ await loadPolicy();await refreshGrants();await refreshHistory();
+};
+
+boot().catch((e)=>{try{fail(e)}catch(x){}});
+})();
+

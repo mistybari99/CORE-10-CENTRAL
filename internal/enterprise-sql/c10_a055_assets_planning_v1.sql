@@ -615,7 +615,7 @@ CREATE FUNCTION c10_demo.am_generate_work_orders_v1(p_business bigint,p_request 
  p_site bigint DEFAULT NULL,p_horizon_days int DEFAULT NULL) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
 DECLARE b record; c c10_demo.am_ctx_t; pl jsonb; vs bigint[]; asg bigint[]; r record; p c10_demo.am_plans; wid bigint; wno text; created jsonb:='[]'::jsonb;
- skipped jsonb:='[]'::jsonb; seen bigint[]:=ARRAY[]::bigint[]; kind text; svc text; extra jsonb; tid bigint; why text; tr record; res jsonb; today date; due date;
+ skipped jsonb:='[]'::jsonb; seen bigint[]:=ARRAY[]::bigint[]; wkind text; svc text; extra jsonb; tid bigint; why text; tr record; res jsonb; today date; due date;
 BEGIN
  pl:=jsonb_build_object('target_ids',to_jsonb(p_target_ids),'site',p_site,'horizon_days',p_horizon_days);
  SELECT * INTO b FROM c10_demo.ami_begin(p_business,p_request,'generate_wo',pl);
@@ -642,14 +642,14 @@ BEGIN
    skipped:=skipped||jsonb_build_array(jsonb_build_object('target_id',r.target_id,'reason',why,'detail',r.reason,'asset_id',r.asset_id,'open_wo_id',r.open_wo_id));
    CONTINUE; END IF;
   SELECT * INTO p FROM c10_demo.am_plans WHERE id=r.plan_id;
-  kind:=CASE p.plan_type WHEN 'preventive' THEN 'preventive' WHEN 'calibration' THEN 'calibration' ELSE 'inspection' END;
+  wkind:=CASE p.plan_type WHEN 'preventive' THEN 'preventive' WHEN 'calibration' THEN 'calibration' ELSE 'inspection' END;
   svc:=CASE p.plan_type WHEN 'preventive' THEN 'ROUTINE' WHEN 'inspection' THEN 'INSPECT' WHEN 'calibration' THEN 'CALIB' ELSE 'SAFETY' END;
   IF NOT EXISTS(SELECT 1 FROM c10_demo.am_codes WHERE business_id=p_business AND kind='service_category' AND code=svc AND active) THEN svc:=NULL; END IF;
   extra:=jsonb_build_object('submit',c10_demo.ami_cfg_bool(p_business,r.site_id,r.category_id,'schedule.auto_submit_generated'),
    'service_category',svc,'est_labor_hours',p.est_labor_hours,'team_ref',p.team_ref);
   due:=CASE WHEN r.frequency_kind='usage' THEN today ELSE r.effective_due_on END;
   BEGIN
-   wid:=c10_demo.ami_create_wo(c,p_request,r.asset_id,kind,left(p.name||' - '||r.asset_name,160),
+   wid:=c10_demo.ami_create_wo(c,p_request,r.asset_id,wkind,left(p.name||' - '||r.asset_name,160),
     'Generated from maintenance plan "'||p.name||'" ('||CASE WHEN r.frequency_kind='usage' THEN 'usage-based' ELSE 'due '||r.effective_due_on::text END||')',
     p.priority,'plan',r.target_id,due,p.checklist_code,extra);
    UPDATE c10_demo.am_plan_targets SET last_wo_id=wid,version=version+1 WHERE id=r.target_id;

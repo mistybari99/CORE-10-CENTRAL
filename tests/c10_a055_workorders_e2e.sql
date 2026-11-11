@@ -21,6 +21,7 @@ CREATE FUNCTION c10_test.u(p text) RETURNS uuid LANGUAGE sql IMMUTABLE AS $$ SEL
 CREATE FUNCTION c10_test.as_user(p text) RETURNS void LANGUAGE sql AS $$ SELECT set_config('request.jwt.claim.sub',c10_test.u(p)::text,true); SELECT 1 $$;
 CREATE FUNCTION c10_test.eq(a text,b text,msg text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN IF a IS DISTINCT FROM b THEN RAISE EXCEPTION 'ASSERT % : got [%] want [%]',msg,a,b; END IF; END$$;
+CREATE FUNCTION c10_test.eq(a boolean,b text,msg text) RETURNS void LANGUAGE sql AS $$ SELECT c10_test.eq(a::text,b,msg) $$;
 CREATE FUNCTION c10_test.denied(p_sql text,p_expect text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
  BEGIN EXECUTE p_sql; EXCEPTION WHEN OTHERS THEN
@@ -145,4 +146,91 @@ DO $$ DECLARE r jsonb; r2 jsonb; w1 bigint; oven bigint:=c10_test.id('a_T-OVEN')
  PERFORM c10_test.put('wo_rep',c10_test.cr(c10_test.id('a_T-ONE'),'Laptop screen flickers'));
  PERFORM c10_test.eq(c10_test.g(c10_test.id('wo_rep'))->>'status','DRAFT','reporter draft');
  PERFORM c10_test.eq(c10_test.g(c10_test.id('wo_rep'))->>'requested_by',c10_test.u('rep')::text,'requester recorded');
+END $$; COMMIT;
+
+-- ===== S3 main lifecycle (corrective WO by technician) with maker-checker, checklist, policy gates =====
+BEGIN; SET LOCAL ROLE authenticated;
+DO $$ DECLARE w1 bigint:=c10_test.id('wo1'); oven bigint:=c10_test.id('a_T-OVEN'); r jsonb; g jsonb; n int; BEGIN
+ PERFORM c10_test.as_user('t1');
+ r:=c10_test.t(w1,'submit'); PERFORM c10_test.eq(r->>'wo_status','SUBMITTED','submitted (approval required by default)');
+ PERFORM c10_test.td(w1,'approve','am_not_permitted');
+ PERFORM c10_test.as_user('aud'); PERFORM c10_test.td(w1,'approve','am_not_permitted');
+ PERFORM c10_test.as_user('rep'); PERFORM c10_test.td(w1,'approve','am_denied');         -- hidden WO: existence not revealed
+ PERFORM c10_test.as_user('t2');  PERFORM c10_test.td(w1,'approve','am_denied');
+ PERFORM c10_test.as_user('stock'); PERFORM c10_test.td(w1,'approve','am_denied');
+ PERFORM c10_test.as_user('sup1');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_transition_v1(101,%L,%s,%s,''approve'')',c10_test.k(),w1,c10_test.v(w1)-1),'am_stale_version');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_transition_v1(101,%L,%s,%s,''explode'')',c10_test.k(),w1,c10_test.v(w1)),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_transition_v1(101,%L,%s,%s,''return'')',c10_test.k(),w1,c10_test.v(w1)),'am_invalid_input'); -- reason required
+ PERFORM c10_test.td(w1,'start','am_wo_illegal_transition');
+ PERFORM c10_test.eq(jsonb_array_length(c10_test.g(w1)->'available_actions')>0,'true','sup1 has actions');
+ PERFORM c10_test.eq(c10_test.has(c10_test.g(w1)->'available_actions','approve'),'true','approve offered to supervisor');
+ PERFORM c10_test.as_user('t1'); PERFORM c10_test.eq(c10_test.has(c10_test.g(w1)->'available_actions','approve'),'false','approve not offered to requester-technician');
+ PERFORM c10_test.as_user('sup1');
+ r:=c10_test.t(w1,'return','needs more detail'); PERFORM c10_test.eq(r->>'wo_status','DRAFT','returned to draft');
+ PERFORM c10_test.as_user('t1'); r:=c10_test.t(w1,'submit'); PERFORM c10_test.as_user('sup1');
+ r:=c10_test.t(w1,'approve','ok'); PERFORM c10_test.eq(r->>'wo_status','APPROVED','approved');
+ PERFORM c10_test.eq(c10_test.val('SELECT responded_at IS NOT NULL FROM c10_demo.am_work_orders WHERE id='||w1),'true','responded_at set');
+ -- assignment authority
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_assign_work_order_v1(101,%L,%s,%s,%L,NULL,NULL,''assign'')',c10_test.k(),w1,c10_test.v(w1),c10_test.u('t2')),'am_assignee_not_authorized');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_assign_work_order_v1(101,%L,%s,%s,%L,NULL,NULL,''assign'')',c10_test.k(),w1,c10_test.v(w1),c10_test.u('revt')),'am_assignee_not_authorized');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_assign_work_order_v1(101,%L,%s,%s,%L,NULL,NULL,''assign'')',c10_test.k(),w1,c10_test.v(w1),c10_test.u('stock')),'am_assignee_not_authorized');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_assign_work_order_v1(101,%L,%s,%s,%L,NULL,NULL,''assign'')',c10_test.k(),w1,c10_test.v(w1),c10_test.u('sup2')),'am_assignee_not_authorized');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_assign_work_order_v1(101,%L,%s,%s,%L,''bad ref!'',NULL,''assign'')',c10_test.k(),w1,c10_test.v(w1),c10_test.u('t1')),'am_invalid_input');
+ r:=c10_demo.am_assign_work_order_v1(101,c10_test.k(),w1,c10_test.v(w1),c10_test.u('t1'),'EMP-T1','Team-A','assign tech');
+ PERFORM c10_test.eq(r->>'assigned_to',c10_test.u('t1')::text,'assigned');
+ PERFORM c10_test.as_user('t1');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_assign_work_order_v1(101,%L,%s,%s,%L,NULL,NULL,''self'')',c10_test.k(),w1,c10_test.v(w1),c10_test.u('t1')),'am_not_permitted');
+ -- who may start
+ PERFORM c10_test.as_user('rep'); PERFORM c10_test.td(w1,'start','am_denied');
+ PERFORM c10_test.as_user('t2');  PERFORM c10_test.td(w1,'start','am_denied');
+ PERFORM c10_test.as_user('aud'); PERFORM c10_test.td(w1,'start','am_not_permitted');
+ PERFORM c10_test.as_user('t1');
+ r:=c10_test.t(w1,'start'); PERFORM c10_test.eq(r->>'wo_status','IN_PROGRESS','started');
+ g:=c10_test.g(w1); PERFORM c10_test.eq(g->>'started_by',c10_test.u('t1')::text,'started_by'); PERFORM c10_test.eq((g->>'meter_reading_at_start')::numeric::text,'100.000','meter at start');
+ PERFORM c10_test.eq(c10_test.ast(oven),'under_maintenance','asset under maintenance');
+ PERFORM c10_test.eq(g->>'assignee_authorized','true','assignee authorized');
+ -- completion gates
+ PERFORM c10_test.td(w1,'complete','am_cause_required');
+ PERFORM c10_test.td(w1,'complete','am_checklist_incomplete',NULL,'{"cause_code":"AGE"}');
+ PERFORM c10_test.td(w1,'complete','am_invalid_code',NULL,'{"cause_code":"NOPE"}');
+ PERFORM c10_test.td(w1,'complete','am_invalid_input',NULL,'{"bogus":1}');
+ PERFORM c10_test.td(w1,'complete','am_invalid_input',NULL,'{"cause_code":"AGE","restored_at":"2026-01-01T00:00:00Z"}'); -- restored_at only for breakdown
+ PERFORM c10_test.as_user('aud');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_checklist_result_v1(101,%L,%s,1,''pass'',NULL,NULL)',c10_test.k(),w1),'am_not_permitted');
+ PERFORM c10_test.as_user('t1');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_checklist_result_v1(101,%L,%s,2,''pass'',25,NULL)',c10_test.k(),w1),'am_measure_out_of_range');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_checklist_result_v1(101,%L,%s,2,''pass'',NULL,NULL)',c10_test.k(),w1),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_checklist_result_v1(101,%L,%s,1,''na'',NULL,NULL)',c10_test.k(),w1),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_checklist_result_v1(101,%L,%s,1,''pass'',5,NULL)',c10_test.k(),w1),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_checklist_result_v1(101,%L,%s,9,''pass'',NULL,NULL)',c10_test.k(),w1),'am_invalid_input');
+ PERFORM c10_demo.am_wo_checklist_result_v1(101,c10_test.k(),w1,1,'pass',NULL,NULL);
+ PERFORM c10_demo.am_wo_checklist_result_v1(101,c10_test.k(),w1,2,'pass',15,'in range');
+ PERFORM c10_demo.am_wo_checklist_result_v1(101,c10_test.k(),w1,3,'na',NULL,NULL);
+ PERFORM c10_demo.am_wo_checklist_result_v1(101,c10_test.k(),w1,2,'fail',25,NULL);
+ PERFORM c10_test.td(w1,'complete','am_checklist_incomplete',NULL,'{"cause_code":"AGE"}');         -- failed required item without note
+ PERFORM c10_demo.am_wo_checklist_result_v1(101,c10_test.k(),w1,2,'fail',25,'pressure too high, escalated');
+ PERFORM c10_test.eq(c10_test.g(w1)->'completion_requirements'->>'checklist_pending','0','no pending required items');
+ r:=c10_test.t(w1,'complete',NULL,'{"failure_code":"mech","cause_code":"age","action_code":"REPAIR","corrective_action":"Replaced fan belt"}');
+ PERFORM c10_test.eq(r->>'wo_status','COMPLETED','completed');
+ g:=c10_test.g(w1); PERFORM c10_test.eq(g->>'cause_code','AGE','cause stored'); PERFORM c10_test.eq(g->>'failure_code','MECH','failure stored upper');
+ PERFORM c10_test.eq(c10_test.ast(oven),'active','asset restored to active after completion');
+ PERFORM c10_test.eq((g->>'meter_reading_at_end')::numeric::text,'100.000','meter at end');
+ -- checklist cannot change after completion
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_checklist_result_v1(101,%L,%s,1,''fail'',NULL,''x'')',c10_test.k(),w1),'am_wo_not_editable');
+ -- verify / close
+ PERFORM c10_test.td(w1,'verify','am_not_permitted');
+ PERFORM c10_test.as_user('sup1'); PERFORM c10_test.td(w1,'close','am_verification_required');
+ r:=c10_test.t(w1,'verify'); PERFORM c10_test.eq(r->>'wo_status','VERIFIED','verified');
+ r:=c10_test.t(w1,'close'); PERFORM c10_test.eq(r->>'wo_status','CLOSED','closed');
+ PERFORM c10_test.td(w1,'start','am_wo_illegal_transition'); PERFORM c10_test.td(w1,'complete','am_wo_illegal_transition');
+ PERFORM c10_test.td(w1,'cancel','am_wo_illegal_transition','no longer needed');
+ -- history and audit
+ g:=c10_test.g(w1);
+ PERFORM c10_test.eq(jsonb_array_length(g->'history')::text,'10','history: create,submit,return,submit,approve,assign,start,complete,verify,close');
+ PERFORM c10_test.eq((SELECT string_agg(h->>'action',',' ORDER BY (h->>'id')::bigint) FROM jsonb_array_elements(g->'history') h),'create,submit,return,submit,approve,assign,start,complete,verify,close','history order');
+ PERFORM c10_test.eq(c10_test.val('SELECT count(*) FROM c10_demo.am_audit WHERE entity=''work_order'' AND entity_id='''||w1||''' AND event IN (''wo.create'',''wo.submit'',''wo.return'',''wo.approve'',''wo.assign'',''wo.start'',''wo.complete'',''wo.verify'',''wo.close'')'),'10','audit row for every transition');
+ PERFORM c10_test.eq(c10_test.val('SELECT count(*) FROM c10_demo.am_audit WHERE entity=''work_order'' AND entity_id='''||w1||''' AND event=''wo.checklist'''),'5','checklist audit rows');
+ PERFORM c10_test.eq(c10_test.val('SELECT count(*) FROM c10_demo.am_audit WHERE entity=''asset'' AND entity_id='''||oven||''' AND event=''asset.status_auto'''),'2','asset status changes audited');
+ PERFORM c10_test.eq(c10_test.val('SELECT bool_and(actor_uid IS NOT NULL AND row_hash IS NOT NULL) FROM c10_demo.am_audit WHERE entity=''work_order'' AND entity_id='''||w1||''''),'true','audit rows hashed');
 END $$; COMMIT;

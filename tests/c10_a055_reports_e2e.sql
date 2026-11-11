@@ -144,4 +144,211 @@ SELECT c10_test.wo('P3','preventive','VERIFIED','POS-1',1001,jsonb_build_object(
 SELECT c10_test.wo('P4','preventive','IN_PROGRESS','CRN-1',1002,jsonb_build_object('requested_at',c10_test.ts(18),'due_on',c10_test.dt(6),'started_at',c10_test.ts(6)));
 SELECT c10_test.wo('P5','preventive','CANCELLED','POS-1',1001,jsonb_build_object('requested_at',c10_test.ts(18),'due_on',c10_test.dt(4)));
 -- plans + targets (due rules: lead 7, grace 3, escalation 3)
-SELECT c10_test.plan('T1','CHL-1','Chiller monthly','monthly',true,current_date+3-current_date+c10_test.today()+0-c10_test.today()+c10_test.today()-current_date+0);
+SELECT c10_test.plan('T1','CHL-1','Chiller monthly','monthly',true,c10_test.today()+3);
+SELECT c10_test.plan('T2','POS-1','POS check','monthly',true,c10_test.today()+30);
+SELECT c10_test.plan('T3','CRN-1','Crane service','monthly',true,c10_test.today()-5);
+SELECT c10_test.plan('T4','CNV-1','Conveyor service','monthly',true,c10_test.today()-10);
+SELECT c10_test.plan('T5','CHL-1','Chiller quarterly','monthly',true,c10_test.today()-2);
+SELECT c10_test.plan('T6','POS-1','Closed plan','monthly',false,c10_test.today()+1);
+SELECT c10_test.plan('T7','CHL-1','Chiller by hours','usage',true,NULL,jsonb_build_object('meter_code','HRS','usage_interval',100),jsonb_build_object('next_due_reading',25));
+SELECT c10_test.plan('T8','CNV-1','Conveyor by hours','usage',true,NULL,jsonb_build_object('meter_code','HRS','usage_interval',100),jsonb_build_object('next_due_reading',100));
+SELECT c10_test.plan('T9','POS-1','POS weekly','weekly',true,c10_test.today()+1);
+SELECT c10_test.plan('T10','CRN-1','Crane deferred','monthly',true,c10_test.today()-20,'{}',jsonb_build_object('deferred_until',c10_test.dt(-5)));
+-- open WOs
+SELECT c10_test.wo('O1','corrective','DRAFT','CHL-1',1001,jsonb_build_object('priority','low','due_on',c10_test.dt(5),'requested_at',c10_test.ts(10)));
+SELECT c10_test.wo('O2','corrective','SUBMITTED','POS-1',1001,jsonb_build_object('priority','medium','due_on',c10_test.dt(-3),'plan_target_id',c10_test.k('T9')));
+SELECT c10_test.wo('O4','breakdown','IN_PROGRESS','OVN-1',1001,jsonb_build_object('priority','critical','requested_at',c10_test.ts(0),'started_at',c10_test.ts(0),
+  'responded_at',c10_test.ts(0),'sla_resolve_due_at',(now()-interval '1 hour')::text,'sla_response_due_at',(now()-interval '4 hours')::text));
+SELECT c10_test.wo('O5','corrective','IN_PROGRESS','CRN-1',1002,jsonb_build_object('priority','high','due_on',c10_test.dt(0),'requested_at',(now()-interval '23 hours')::text,
+  'started_at',(now()-interval '22 hours')::text,'sla_resolve_due_at',(now()+interval '1 hour')::text));
+SELECT c10_test.wo('O6','corrective','SUBMITTED','CRN-1',1002,jsonb_build_object('priority','high','due_on',c10_test.dt(40),'requested_at',(now()-interval '45 days')::text,
+  'sla_resolve_due_at',(now()-interval '30 days')::text,'sla_response_due_at',(now()-interval '44 days')::text));
+SELECT c10_test.wo('O7','corrective','SUBMITTED','PRJ-1',1004,jsonb_build_object('priority','medium','requested_at',c10_test.ts(10)));
+SELECT c10_test.wo('O8','corrective','APPROVED','CNV-1',1005,jsonb_build_object('priority','medium','due_on',c10_test.dt(-10)));
+SELECT c10_test.wo('O10','breakdown','IN_PROGRESS','OLD-1',1004,jsonb_build_object('priority','critical','requested_at',c10_test.ts(40),'started_at',c10_test.ts(40,1)));
+-- downtime
+SELECT c10_test.dtw('CNV-1',1002,'other',c10_test.ts(10,2),c10_test.ts(10,6),NULL,'DW1');
+SELECT c10_test.dtw('CNV-1',1002,'other',c10_test.ts(10,4),c10_test.ts(10,8),NULL,'DW2');
+SELECT c10_test.dtw('CNV-1',1002,'other',c10_test.ts(5),c10_test.ts(5,1),NULL,'DW3');
+SELECT c10_test.dtw('CNV-1',1002,'other',c10_test.ts(3),(c10_test.t0()-interval '3 days'+interval '3 minutes')::text,NULL,'DW4');
+SELECT c10_test.dtw('CNV-1',1002,'planned',c10_test.ts(7),c10_test.ts(7,10),NULL,'DW5');
+SELECT c10_test.dtw('CNV-1',1002,'other',c10_test.ts(21,20),c10_test.ts(20,4),NULL,'DW6');
+SELECT c10_test.dtw('CRN-1',1002,'breakdown',c10_test.ts(15),c10_test.ts(15,2),'BD1');
+SELECT c10_test.dtw('CRN-1',1002,'breakdown',c10_test.ts(12),c10_test.ts(12,4),'BD2');
+SELECT c10_test.dtw('CRN-1',1002,'breakdown',c10_test.ts(9),c10_test.ts(9,6),'BD3');
+SELECT c10_test.dtw('CHL-1',1001,'breakdown',c10_test.ts(8),c10_test.ts(8,3),'BD5');
+SELECT c10_test.dtw('POS-1',1001,'breakdown',c10_test.ts(5),c10_test.ts(5,1),NULL,'DT-POS');
+SELECT c10_test.dtw('OLD-1',1004,'breakdown',c10_test.ts(40),NULL,'O10',NULL);
+SELECT c10_test.dtw('OVN-1',1001,'breakdown',c10_test.ts(0),NULL,'O4',NULL);
+SELECT c10_test.dtw('GEN-X',1001,'planned',c10_test.ts(0),NULL,NULL,'DT-GEN');
+-- warranties + claims
+SELECT c10_test.ins('am_warranties',jsonb_build_object('tenant_id',1,'business_id',101,'asset_id',c10_test.k('CHL-1'),'supplier_name','Chill Co','starts_on',c10_test.dt(345),'expires_on',c10_test.dt(-20),'created_by',c10_test.u('bo101')))
+ \gset
+INSERT INTO c10_test.ids VALUES('W1',:ins);
+SELECT c10_test.ins('am_warranties',jsonb_build_object('tenant_id',1,'business_id',101,'asset_id',c10_test.k('POS-1'),'supplier_name','Pos Co','starts_on',c10_test.dt(10),'expires_on',c10_test.dt(-200),'created_by',c10_test.u('bo101'))) \gset
+INSERT INTO c10_test.ids VALUES('W2',:ins);
+SELECT c10_test.ins('am_warranties',jsonb_build_object('tenant_id',1,'business_id',101,'asset_id',c10_test.k('CNV-1'),'supplier_name','Belt Co','starts_on',c10_test.dt(395),'expires_on',c10_test.dt(30),'created_by',c10_test.u('bo101'))) \gset
+INSERT INTO c10_test.ids VALUES('W3',:ins);
+SELECT c10_test.ins('am_warranties',jsonb_build_object('tenant_id',1,'business_id',101,'asset_id',c10_test.k('CRN-1'),'supplier_name','Crane Co','starts_on',c10_test.dt(25),'expires_on',c10_test.dt(-100),'created_by',c10_test.u('bo101'))) \gset
+INSERT INTO c10_test.ids VALUES('W4',:ins);
+SELECT c10_test.ins('am_warranties',jsonb_build_object('tenant_id',1,'business_id',101,'asset_id',c10_test.k('OVN-1'),'supplier_name','Oven Co','starts_on',c10_test.dt(100),'expires_on',c10_test.dt(-100),'status','void','created_by',c10_test.u('bo101'))) \gset
+INSERT INTO c10_test.ids VALUES('W5',:ins);
+SELECT c10_test.ins('am_warranty_claims',jsonb_build_object('tenant_id',1,'business_id',101,'claim_no','CLM-T1','warranty_id',c10_test.k('W4'),'asset_id',c10_test.k('CRN-1'),'failure_on',c10_test.dt(15),'description','Claim one','status','draft','created_by',c10_test.u('bo101')));
+SELECT c10_test.ins('am_warranty_claims',jsonb_build_object('tenant_id',1,'business_id',101,'claim_no','CLM-T2','warranty_id',c10_test.k('W4'),'asset_id',c10_test.k('CRN-1'),'failure_on',c10_test.dt(12),'description','Claim two','status','submitted','created_by',c10_test.u('bo101')));
+SELECT c10_test.ins('am_warranty_claims',jsonb_build_object('tenant_id',1,'business_id',101,'claim_no','CLM-T3','warranty_id',c10_test.k('W4'),'asset_id',c10_test.k('CRN-1'),'failure_on',c10_test.dt(9),'description','Claim three','status','settled','amount_claimed',1000,'amount_settled',500,'created_by',c10_test.u('bo101')));
+SELECT c10_test.ins('am_warranty_claims',jsonb_build_object('tenant_id',1,'business_id',101,'claim_no','CLM-T4','warranty_id',c10_test.k('W1'),'asset_id',c10_test.k('CHL-1'),'failure_on',c10_test.dt(8),'description','Claim four','status','rejected','amount_claimed',200,'created_by',c10_test.u('bo101')));
+-- business 102: CLEAN
+SELECT c10_test.asset(102,'GEN-102','Generator 102','GENERAL',1003,'active',3);
+SELECT c10_test.asset(102,'PMP-102','Pump 102','COLD',1003,'active',4);
+SELECT c10_test.ins('am_meters',jsonb_build_object('tenant_id',1,'business_id',102,'asset_id',c10_test.k('GEN-102'),'code','HRS','unit','hours','current_reading',30,'last_reading_at',c10_test.ts(1))) \gset
+INSERT INTO c10_test.ids VALUES('M-102',:ins);
+SELECT c10_test.ins('am_meter_readings',jsonb_build_object('tenant_id',1,'business_id',102,'meter_id',c10_test.k('M-102'),'asset_id',c10_test.k('GEN-102'),'reading',v.r,'kind','reading',
+  'read_at',c10_test.ts(v.d),'recorded_by',c10_test.u('bo102'),'request_key','seed102-'||v.d)) FROM (VALUES(10,9),(20,5),(30,1)) v(r,d);
+SELECT c10_test.wo('CB1','breakdown','COMPLETED','GEN-102',1003,jsonb_build_object('requested_at',c10_test.ts(6),'started_at',c10_test.ts(6,0.5),'completed_at',c10_test.ts(6,2),'failure_code','MECH'));
+SELECT c10_test.dtw('GEN-102',1003,'breakdown',c10_test.ts(6),c10_test.ts(6,2),'CB1');
+SELECT c10_test.wo('CP1','preventive','CLOSED','PMP-102',1003,jsonb_build_object('requested_at',c10_test.ts(12),'due_on',c10_test.dt(8),'completed_at',c10_test.ts(8,5)));
+SELECT c10_test.wo('O102','corrective','SUBMITTED','PMP-102',1003,jsonb_build_object('due_on',c10_test.dt(-5)));
+SELECT c10_test.plan('T102','GEN-102','Gen monthly','monthly',true,c10_test.today()+10);
+SELECT c10_test.ins('am_warranties',jsonb_build_object('tenant_id',1,'business_id',102,'asset_id',c10_test.k('PMP-102'),'supplier_name','Pump Co','starts_on',c10_test.dt(30),'expires_on',c10_test.dt(-300),'created_by',c10_test.u('bo102')));
+-- tenant 2 / business 201 (injection-heavy names, not bootstrapped)
+SELECT c10_test.asset(201,'INJ-1','=cmd|calc','T2-CAT',2001,'active',3);
+SELECT c10_test.asset(201,'INJ-2','+1','T2-CAT',2001,'active',3);
+SELECT c10_test.asset(201,'INJ-3','-2','T2-CAT',2001,'active',3);
+SELECT c10_test.asset(201,'INJ-4','@x','T2-CAT',2001,'active',3);
+SELECT c10_test.asset(201,'INJ-5','  =SUM(A1)','T2-CAT',2001,'active',3);
+SELECT c10_test.asset(201,'INJ-6','He said "hi", ok','T2-CAT',2001,'active',3);
+SELECT c10_test.asset(201,'INJ-7',E'line1\nline2','T2-CAT',2001,'active',3);
+SELECT c10_test.asset(201,'INJ-8',E'\tTab','T2-CAT',2001,'active',3);
+SELECT c10_test.asset(201,'OK-201','Plain asset','T2-CAT',2001,'active',3);
+SELECT c10_test.wo('O201','corrective','SUBMITTED','OK-201',2001);
+-- audit seed (hash chained through the real trigger)
+SELECT c10_demo.ami_log(1,101,'asset',c10_test.k('CHL-1')::text,'create',NULL,'{"name":"Chiller 1"}','seed','seed-audit-101-a');
+SELECT c10_demo.ami_log(1,101,'asset',c10_test.k('CHL-1')::text,'update','{"name":"Chiller 1"}','{"name":"Chiller One"}','rename','seed-audit-101-b');
+SELECT c10_demo.ami_log(1,101,'work_order',c10_test.k('BD1')::text,'complete',NULL,'{"status":"COMPLETED"}','done','seed-audit-101-c');
+SELECT c10_demo.ami_log(1,101,'asset',c10_test.k('CRN-1')::text,'create',NULL,'{"name":"Crane 1"}','seed','seed-audit-101-d');
+SELECT c10_demo.ami_log(1,101,'work_order',c10_test.k('O4')::text,'create',NULL,'{"status":"IN_PROGRESS"}','seed','seed-audit-101-e');
+SELECT set_config('request.jwt.claim.sub',c10_test.u('bo102')::text,true);
+SELECT c10_demo.ami_log(1,102,'asset',c10_test.k('GEN-102')::text,'create',NULL,'{"name":"Generator 102"}','seed','seed-audit-102-a');
+SELECT c10_demo.ami_log(1,102,'asset',c10_test.k('PMP-102')::text,'create',NULL,'{"name":"Pump 102"}','seed','seed-audit-102-b');
+SELECT set_config('request.jwt.claim.sub',c10_test.u('owner2')::text,true);
+SELECT c10_demo.ami_log(2,201,'asset',c10_test.k('OK-201')::text,'create',NULL,'{"name":"Plain asset"}','seed','seed-audit-201-a');
+CREATE TEMP TABLE c10_cnt AS SELECT (SELECT count(*) FROM c10_demo.am_audit) AS aud,(SELECT count(*) FROM c10_demo.am_receipts) AS rec,
+ (SELECT count(*) FROM c10_demo.am_settings) AS setn,(SELECT count(*) FROM c10_demo.am_codes) AS cod;
+GRANT SELECT ON c10_cnt TO PUBLIC;
+
+-- ===================================================== S1 authority matrix =====================================================
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE rp text[]:=ARRAY[
+  'SELECT c10_demo.am_overview_v1(101)','SELECT c10_demo.am_downtime_report_v1(101)','SELECT c10_demo.am_kpi_report_v1(101)',
+  'SELECT c10_demo.am_asset_health_report_v1(101)','SELECT c10_demo.am_warranty_report_v1(101)','SELECT c10_demo.am_reconciliation_v1(101)',
+  $q$SELECT c10_demo.am_export_csv_v1(101,'rq-authz-0001','assets','{}')$q$];
+ own text[]:=ARRAY['SELECT c10_demo.am_integrity_report_v1(101)','SELECT c10_demo.am_audit_log_v1(101)'];
+ s text; p text;
+BEGIN
+ -- outsiders / revoked / other tenant / other business / stock-only / manager without grant / platform operator => am_denied on EVERYTHING
+ FOREACH p IN ARRAY ARRAY['stock','investor','revoked','revtech','owner2','staff2','operator','mgr','bo102','sup201'] LOOP
+  PERFORM c10_test.as_user(p);
+  FOREACH s IN ARRAY rp||own||ARRAY['SELECT c10_demo.read_asset_maintenance_business_summary_v1(101,NULL)'] LOOP
+   PERFORM c10_test.denied(s,'am_denied'); END LOOP;
+ END LOOP;
+ -- unauthenticated claim fails closed; NULL business denied
+ PERFORM set_config('request.jwt.claim.sub','',true);
+ FOREACH s IN ARRAY rp||own LOOP PERFORM c10_test.denied(s,'am_denied'); END LOOP;
+ PERFORM c10_test.as_user('bo101');
+ PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(NULL)','am_denied');
+ PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(102)','am_denied');
+ PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(201)','am_denied');
+ PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(999999)','am_denied');
+ PERFORM c10_test.as_user('owner');   -- tenant 1 owner cannot see tenant 2
+ PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(201)','am_denied');
+ PERFORM c10_test.denied('SELECT c10_demo.am_kpi_report_v1(201)','am_denied');
+ PERFORM c10_test.as_user('owner2');
+ PERFORM c10_test.denied('SELECT c10_demo.am_downtime_report_v1(101)','am_denied');
+ PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(102)','am_denied');
+ -- member without the 'reports' capability: technician / reporter => am_not_permitted (also audit/integrity), summary needs owner
+ FOREACH p IN ARRAY ARRAY['tech1001','tech1002','reporter'] LOOP
+  PERFORM c10_test.as_user(p);
+  FOREACH s IN ARRAY rp||own LOOP PERFORM c10_test.denied(s,'am_not_permitted'); END LOOP;
+  PERFORM c10_test.denied('SELECT c10_demo.read_asset_maintenance_business_summary_v1(101,NULL)','am_owner_required');
+ END LOOP;
+ -- supervisors: reports yes, audit/integrity no, A050 adapter owner-only
+ FOREACH p IN ARRAY ARRAY['sup','sup1001','auditor'] LOOP
+  PERFORM c10_test.as_user(p);
+  PERFORM c10_demo.am_overview_v1(101); PERFORM c10_demo.am_kpi_report_v1(101); PERFORM c10_demo.am_reconciliation_v1(101);
+  PERFORM c10_test.denied('SELECT c10_demo.read_asset_maintenance_business_summary_v1(101,NULL)','am_owner_required');
+ END LOOP;
+ FOREACH p IN ARRAY ARRAY['sup','sup1001'] LOOP
+  PERFORM c10_test.as_user(p);
+  FOREACH s IN ARRAY own LOOP PERFORM c10_test.denied(s,'am_not_permitted'); END LOOP;
+  PERFORM c10_test.denied($q$SELECT c10_demo.am_export_csv_v1(101,'rq-authz-0002','audit','{}')$q$,'am_not_permitted');
+ END LOOP;
+ PERFORM c10_test.as_user('auditor');
+ PERFORM c10_demo.am_integrity_report_v1(101); PERFORM c10_demo.am_audit_log_v1(101);
+ -- site filter arguments
+ PERFORM c10_test.as_user('sup1001');
+ PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(101,1002)','am_not_permitted');
+ PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(101,1003)','am_denied');       -- site of another business
+ PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(101,987654)','am_denied');
+ PERFORM c10_test.denied('SELECT c10_demo.am_kpi_report_v1(101,NULL,NULL,1002)','am_not_permitted');
+ PERFORM c10_test.denied('SELECT c10_demo.am_downtime_report_v1(101,NULL,NULL,1002)','am_not_permitted');
+ PERFORM c10_test.denied('SELECT c10_demo.am_asset_health_report_v1(101,1002)','am_not_permitted');
+ PERFORM c10_demo.am_overview_v1(101,1001);
+ -- input validation
+ PERFORM c10_test.as_user('bo101');
+ PERFORM c10_test.denied('SELECT c10_demo.am_downtime_report_v1(101,current_date,current_date-3)','am_invalid_input');
+ PERFORM c10_test.denied('SELECT c10_demo.am_kpi_report_v1(101,DATE ''2000-01-01'',current_date)','am_invalid_input');
+ PERFORM c10_test.denied('SELECT c10_demo.am_warranty_report_v1(101,-1)','am_invalid_input');
+ PERFORM c10_test.denied('SELECT c10_demo.am_warranty_report_v1(101,4000)','am_invalid_input');
+ PERFORM c10_test.denied('SELECT c10_demo.am_reconciliation_v1(101,current_date,current_date-1)','am_invalid_input');
+END $$;
+RESET ROLE;
+
+-- ===================================================== S2 overview =====================================================
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE r jsonb;
+BEGIN
+ PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_overview_v1(101);
+ PERFORM c10_test.eq(r->'assets_by_status'->>'active','6','ov active'); PERFORM c10_test.eq(r->'assets_by_status'->>'breakdown','3','ov breakdown');
+ PERFORM c10_test.eq(r->'assets_by_status'->>'retired','1','ov retired');
+ PERFORM c10_test.eq((SELECT e->>'total' FROM jsonb_array_elements(r->'assets_by_site') e WHERE e->>'site_id'='1001'),'5','site 1001 assets');
+ PERFORM c10_test.eq((SELECT e->>'total' FROM jsonb_array_elements(r->'assets_by_site') e WHERE e->>'site_id'='1005'),'1','site 1005 assets');
+ PERFORM c10_test.eq(r#>>'{open_work_orders,total}','9','open total');
+ PERFORM c10_test.eq(r#>>'{open_work_orders,by_status}','{"DRAFT": 1, "APPROVED": 1, "SUBMITTED": 3, "IN_PROGRESS": 4}','open by status');
+ PERFORM c10_test.eq(r#>>'{open_work_orders,by_priority}','{"low": 1, "high": 2, "medium": 4, "critical": 2}','open by priority');
+ PERFORM c10_test.eq(r#>>'{overdue_work_orders,count}','3','overdue');
+ PERFORM c10_test.eq(r#>>'{sla,resolve_breached}','2','sla breached'); PERFORM c10_test.eq(r#>>'{sla,resolve_at_risk}','1','sla at risk');
+ PERFORM c10_test.eq(r#>>'{sla,response_breached}','1','sla response');
+ PERFORM c10_test.eq(r#>>'{plan_targets,total}','9','targets');
+ PERFORM c10_test.eq(r#>>'{plan_targets,by_state}','{"due": 3, "overdue": 2, "deferred": 1, "upcoming": 1, "has_open_wo": 1, "meter_missing": 1}','target states');
+ PERFORM c10_test.eq(r#>>'{plan_targets,escalation}','{"level1": 1, "level2": 1}','escalation');
+ PERFORM c10_test.eq(r#>>'{open_downtime,count}','3','open downtime');
+ PERFORM c10_test.eq(r#>>'{capabilities,is_business_owner}','true','caps bo');
+ PERFORM c10_test.chk(r#>'{capabilities,business_wide}' ? 'reports','caps list');
+ -- tenant owner sees the same; owner of business 102 sees only 102 data (isolation)
+ PERFORM c10_test.as_user('owner'); PERFORM c10_test.eq((c10_demo.am_overview_v1(101))#>>'{open_work_orders,total}','9','tenant owner 101');
+ r:=c10_demo.am_overview_v1(102);
+ PERFORM c10_test.eq(r->'assets_by_status'->>'active','2','102 assets'); PERFORM c10_test.eq(r#>>'{open_work_orders,total}','1','102 open wo');
+ PERFORM c10_test.eq(r#>>'{open_downtime,count}','0','102 open dt'); PERFORM c10_test.eq(r#>>'{plan_targets,total}','1','102 targets');
+ PERFORM c10_test.as_user('bo102'); PERFORM c10_test.eq((c10_demo.am_overview_v1(102))#>>'{open_work_orders,total}','1','bo102');
+ PERFORM c10_test.as_user('owner2'); r:=c10_demo.am_overview_v1(201);
+ PERFORM c10_test.eq(r->'assets_by_status'->>'active','9','201 assets'); PERFORM c10_test.eq(r#>>'{open_work_orders,total}','1','201 open wo');
+ PERFORM c10_test.as_user('sup201'); PERFORM c10_test.eq((c10_demo.am_overview_v1(201))#>>'{open_work_orders,total}','1','sup201');
+ -- supervisor for all sites == owner view; supervisor(1001) sees only site 1001
+ PERFORM c10_test.as_user('sup'); PERFORM c10_test.eq((c10_demo.am_overview_v1(101))#>>'{open_work_orders,total}','9','sup all');
+ PERFORM c10_test.as_user('auditor'); PERFORM c10_test.eq((c10_demo.am_overview_v1(101))#>>'{open_work_orders,total}','9','auditor all');
+ PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_overview_v1(101);
+ PERFORM c10_test.eq(r->'assets_by_status'->>'active','3','1001 active'); PERFORM c10_test.eq(r->'assets_by_status'->>'breakdown','2','1001 breakdown');
+ PERFORM c10_test.eq(r->'assets_by_status'->>'retired',NULL,'1001 no retired');
+ PERFORM c10_test.eq(r#>>'{open_work_orders,total}','3','1001 open'); PERFORM c10_test.eq(r#>>'{open_work_orders,by_status}','{"DRAFT": 1, "APPROVED": 0, "SUBMITTED": 1, "IN_PROGRESS": 1}','1001 by status');
+ PERFORM c10_test.eq(r#>>'{overdue_work_orders,count}','1','1001 overdue'); PERFORM c10_test.eq(r#>>'{sla,resolve_breached}','1','1001 sla');
+ PERFORM c10_test.eq(r#>>'{sla,resolve_at_risk}','0','1001 risk'); PERFORM c10_test.eq(r#>>'{open_downtime,count}','2','1001 open dt');
+ PERFORM c10_test.eq(r#>>'{plan_targets,by_state}','{"due": 3, "overdue": 0, "deferred": 0, "upcoming": 1, "has_open_wo": 1, "meter_missing": 0}','1001 targets');
+ PERFORM c10_test.eq(jsonb_array_length(r->'assets_by_site')::text,'1','1001 only site');
+ PERFORM c10_test.eq((r->'sites')::text,'[1001]','1001 scope'); PERFORM c10_test.chk(NOT (r#>'{capabilities,by_site,1002}' ? 'reports'),'no reports cap at 1002');
+ r:=c10_demo.am_overview_v1(101,1001); PERFORM c10_test.eq(r#>>'{open_work_orders,total}','3','explicit site');
+ PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_overview_v1(101,1002);
+ PERFORM c10_test.eq(r->'assets_by_status'->>'active','2','1002 filter'); PERFORM c10_test.eq(r#>>'{open_work_orders,total}','3','1002 open');  -- O5,O6,P4
+END $$;
+RESET ROLE;
