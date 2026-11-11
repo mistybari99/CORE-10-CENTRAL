@@ -51,7 +51,8 @@ function sqlMatrix(data){
   s+=" THEN RAISE EXCEPTION 'C10_A046_SCOPE_FAIL "+p.key+" businesses % sites % post %',bb,ss,pp; END IF;\n";
   s+="END $check$;\nROLLBACK;\n";
  }
- s+="BEGIN;\nSET LOCAL ROLE anon;\nDO $check$ BEGIN IF has_schema_privilege('anon','c10_demo','USAGE') OR has_table_privilege('anon','c10_demo.businesses','SELECT') THEN RAISE EXCEPTION 'C10_A046_ANON_PRIVILEGE_LEAK'; END IF; END $check$;\nROLLBACK;\n";
+ s+="BEGIN;\nDO $check$ BEGIN IF has_schema_privilege('anon','c10_demo','USAGE') THEN RAISE EXCEPTION 'C10_A046_ANON_PRIVILEGE_LEAK'; END IF; END $check$;\n";
+ s+="SET LOCAL ROLE anon;\nDO $check$ BEGIN BEGIN EXECUTE 'SELECT count(*) FROM c10_demo.businesses'; RAISE EXCEPTION 'C10_A046_ANON_PRIVILEGE_LEAK'; EXCEPTION WHEN insufficient_privilege THEN NULL; END; END $check$;\nROLLBACK;\n";
  s+="\\echo PASS: 16 synthetic persona scopes plus anon. REAL_GOTRUE_STAGE_NOT_TESTED\n";
  return s;
 }
