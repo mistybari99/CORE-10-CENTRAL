@@ -6,7 +6,7 @@
 (function(){"use strict";
 const SCREEN=document.body.dataset.screen||"integration";
 const state={api:null,biz:null,businesses:[],busy:false,lang:"en",access:null};
-try{const l=window.localStorage.getItem("c10_wf_lang");if(l==="bn"||l==="en")state.lang=l}catch(e){}
+{const l=new URLSearchParams(location.search).get("lang");if(l==="bn"||l==="en")state.lang=l}
 const L=(en,bn)=>state.lang==="bn"&&bn?bn:en;
 const NAV=[["integration","core10-workforce-integration.html",["Portfolio & Staff","পোর্টফোলিও ও কর্মী"]],["delegation","core10-workforce-delegation.html",["Delegation","দায়িত্ব অর্পণ"]],
  ["policy","core10-workforce-policy.html",["Policies & Leave","নীতি ও ছুটি"]],["liability","core10-workforce-liability.html",["Payroll & Liability","বেতন ও দায়"]]];
@@ -59,7 +59,7 @@ const APPROVAL_NOTE=()=>h("div",{class:"banner",role:"note"},h("b",{text:L("Appr
 
 async function shell(){
  const root=$("wf-root");root.textContent="";
- const nav=h("nav",{class:"rail-nav","aria-label":"Workforce governance navigation"},NAV.map(n=>h("a",{href:"./"+n[1],class:n[0]===SCREEN?"active":null,"data-nav":n[0]},h("b",{text:n[2][0]}),h("small",{text:n[2][1]}))));
+ const nav=h("nav",{class:"rail-nav","aria-label":"Workforce governance navigation"},NAV.map(n=>h("a",{href:"./"+n[1]+(state.lang==="bn"?"?lang=bn":""),class:n[0]===SCREEN?"active":null,"data-nav":n[0]},h("b",{text:n[2][0]}),h("small",{text:n[2][1]}))));
  const lang=h("div",{class:"lang",role:"group","aria-label":"Language"},
   h("button",{type:"button",id:"lang-en","aria-pressed":String(state.lang==="en"),onclick:()=>setLang("en"),text:"English"}),
   h("button",{type:"button",id:"lang-bn","aria-pressed":String(state.lang==="bn"),onclick:()=>setLang("bn"),text:"বাংলা"}));
@@ -71,7 +71,7 @@ async function shell(){
    h("div",{id:"wf-status",role:"status","aria-live":"polite",text:L("Verifying signed session…","সেশন যাচাই হচ্ছে…")}),h("div",{id:"wf-body"}))));
  $("wf-biz").addEventListener("change",async(e)=>{state.biz=Number(e.target.value);await load()});
 }
-async function setLang(l){state.lang=l;try{window.localStorage.setItem("c10_wf_lang",l)}catch(e){}document.documentElement.lang=l==="bn"?"bn":"en";
+async function setLang(l){state.lang=l;try{const u=new URL(location.href);u.searchParams.set("lang",l);history.replaceState(null,"",u)}catch(e){}document.documentElement.lang=l==="bn"?"bn":"en";
  const keep=state.biz;await shell();fillBiz(keep);await load()}
 function fillBiz(want){const sb=$("wf-biz");sb.textContent="";
  for(const b of state.businesses)sb.append(h("option",{value:b.id,text:"#"+b.id+" · "+b.slug}));
