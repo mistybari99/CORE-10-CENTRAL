@@ -1,0 +1,11 @@
+-- CI ONLY: pretend auth.users exists for isolated PostgreSQL 17 structural tests.
+-- NOT GoTrue, NOT a signed JWT, NOT real Supabase Auth certification.
+CREATE SCHEMA auth;
+CREATE TABLE auth.users(id uuid PRIMARY KEY);
+INSERT INTO auth.users(id) VALUES
+ ('a1111111-1111-4111-8111-111111111111'),
+ ('b2222222-2222-4222-8222-222222222222'),
+ ('c3333333-3333-4333-8333-333333333333'),
+ ('d4444444-4444-4444-8444-444444444444'),
+ ('e5555555-5555-4555-8555-555555555555'),
+ ('f6666666-6666-4666-8666-666666666666');
