@@ -480,4 +480,215 @@ SCREENS.assets=async function(body){
  await refresh();await refreshSide();
  const qa=parseQuery().asset;if(qa)await openAsset(qa);
 };
+/* =====================================================================  WORK ORDERS  ===================================================================== */
+const WO_STATUSES=["DRAFT","SUBMITTED","APPROVED","IN_PROGRESS","COMPLETED","VERIFIED","CLOSED","CANCELLED"];
+const WO_KINDS=["preventive","corrective","breakdown","inspection","calibration"];
+const PRIORITIES=["low","medium","high","critical"];
+const TRANSITIONS=["submit","approve","return","start","complete","verify","close","cancel","reopen"];
+const REASON_REQ=["return","cancel","reopen"];
+const ALIASES={update:"edit",record_checklist:"checklist",checklist_result:"checklist",labor:"add_labor",add_labour:"add_labor",spares:"add_spares",attachment:"add_attachment",safety_ack:"acknowledge_safety",ack_safety:"acknowledge_safety"};
+const UUID_RX=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const FINAL_WO=["COMPLETED","VERIFIED","CLOSED","CANCELLED"];
+/* The server decides which actions exist for the caller; the client never infers them from status or role. */
+function actionsOf(d){const wo=d.work_order||d.wo||d;const raw=d.available_actions||wo.available_actions||[];
+ return raw.map(x=>typeof x==="string"?x:(x&&(x.action||x.name||x.code))).filter(Boolean).map(x=>ALIASES[x]||x)}
+function slaChips(wo){
+ const out=[],s=wo.sla||{},r=wo.sla_response_state||s.response||s.response_state,z=wo.sla_resolve_state||s.resolve||s.resolve_state||wo.sla_state;
+ if(r)out.push(chip(T("Response: ","সাড়া: ")+lab("sla",r),toneOf(r)));
+ if(z)out.push(chip(T("Resolve: ","সমাধান: ")+lab("sla",z),toneOf(z)));
+ if(!out.length&&wo.sla_resolve_due_at&&!FINAL_WO.includes(wo.status)){const late=Date.parse(wo.sla_resolve_due_at)<Date.now();out.push(chip(T("Resolve due ","সমাধানের সময় ")+dt(wo.sla_resolve_due_at)+(late?T(" (past)"," (অতিক্রান্ত)"):""),late?"bad":"dim"))}
+ return out;
+}
+async function woCreateForm(after,presetAsset){
+ const assets=await assetPicker(T("— choose asset —","— সম্পদ বাছুন —"),a=>!["retired","disposed"].includes(a.status));
+ const cls=await safe(()=>rd("am_list_checklists_v1",{p_include_inactive:false}));
+ const clOpts=[["",T("— none —","— নেই —")],...arr(cls,"items").map(c=>[c.code,c.code+" · "+c.name])];
+ modalForm(T("New work order","নতুন কাজের আদেশ"),[
+  {n:"kind",l:["Kind","ধরন"],t:"select",opts:enumOpts("wo_kind",["corrective","preventive","inspection","calibration"]),val:"corrective"},
+  {n:"asset_id",l:["Asset","সম্পদ"],t:"select",int:true,req:true,opts:assets,val:presetAsset||""},
+  {n:"title",l:["Title","শিরোনাম"],t:"text",req:true,min:3,max:160},{n:"description",l:["Description","বিবরণ"],t:"textarea",max:2000},
+  {n:"priority",l:["Priority","অগ্রাধিকার"],t:"select",opts:enumOpts("priority",PRIORITIES),val:"medium"},{n:"due_on",l:["Due on","শেষ তারিখ"],t:"date"},
+  {n:"checklist_code",l:["Checklist template","চেকলিস্ট টেমপ্লেট"],t:"select",opts:clOpts},
+  {n:"service_category",l:["Service category","সার্ভিস ধরন"],t:"select",opts:codeOpts("service_category",T("— none —","— নেই —"))},
+  {n:"est_labor_hours",l:["Estimated labour hours","আনুমানিক শ্রমঘণ্টা"],t:"num"},{n:"team_ref",l:["Team ref.","টিম রেফ."],t:"text",max:40},
+  {n:"submit",l:["Submit for approval now","এখনই অনুমোদনের জন্য জমা"],t:"bool",val:false}],async(v,err)=>{
+  const r=await act("am_create_work_order_v1",{p_data:clean(v)},"Work order created","কাজের আদেশ তৈরি হয়েছে",err);
+  if(r)await after(r);return !!r},T("Create","তৈরি"),"wo-form");
+}
+SCREENS.workorders=async function(body){
+ $("am-title").textContent=T("Work orders","কাজের আদেশ");
+ const page={offset:0,limit:25,total:0};
+ const q=h("input",{id:"wo-q",type:"search",autocomplete:"off",placeholder:T("Number, title","নম্বর, শিরোনাম"),"aria-label":T("Search","খুঁজুন")});
+ const st=sel("wo-status",[["",T("All statuses","সব অবস্থা")],...WO_STATUSES.map(s=>[s,lab("wo_status",s)])]);
+ const kd=sel("wo-kind",[["",T("All kinds","সব ধরন")],...enumOpts("wo_kind",WO_KINDS)]);
+ const pr=sel("wo-prio",[["",T("All priorities","সব অগ্রাধিকার")],...enumOpts("priority",PRIORITIES)]);
+ const mine=h("input",{id:"wo-mine",type:"checkbox",class:"cb"}),over=h("input",{id:"wo-overdue",type:"checkbox",class:"cb"});
+ const list=h("div",{id:"wo-list"}),detail=h("div",{id:"wo-detail"});
+ async function refresh(){
+  const f=clean({search:q.value.trim()||null,status:st.value?[st.value]:null,kind:kd.value||null,priority:pr.value||null,site_id:state.site,assigned_to:mine.checked?"me":null,overdue:over.checked?true:null});
+  const r=await safe(()=>rd("am_list_work_orders_v1",{p_filters:Object.keys(f).length?f:null,p_limit:page.limit,p_offset:page.offset}));if(!r)return;
+  const items=arr(r,"items");page.total=r.total==null?items.length:r.total;list.textContent="";
+  list.append(h("p",{class:"muted",id:"wo-count",text:page.total+T(" work order(s)"," টি কাজের আদেশ")}),
+   table([[T("No.","নং"),x=>x.wo_no],[T("Title","শিরোনাম"),x=>x.title],[T("Kind","ধরন"),x=>lab("wo_kind",x.kind)],[T("Status","অবস্থা"),x=>chip(lab("wo_status",x.status),toneOf(x.status))],
+    [T("Priority","অগ্রাধিকার"),x=>chip(lab("priority",x.priority),toneOf(x.priority))],[T("Asset","সম্পদ"),x=>x.asset_no||x.asset_name||("#"+x.asset_id)],[T("Site","সাইট"),x=>x.site_label||siteName(x.site_id)],
+    [T("Due","দেয়"),x=>dd(x.due_on)],["SLA",x=>h("span",null,...slaChips(x))],["",x=>btn(T("Open","খুলুন"),()=>openWo(x.id),"outline","wo-open-"+x.id)]],items,T("No work orders match.","কোনো কাজের আদেশ মেলেনি।")),
+   h("div",{class:"actions"},btn(T("Previous","আগের"),()=>{page.offset=Math.max(0,page.offset-page.limit);refresh()},"outline","wo-prev",{disabled:page.offset===0}),
+    h("span",{class:"muted",text:(page.total?page.offset+1:0)+"–"+Math.min(page.total,page.offset+page.limit)+" / "+page.total}),
+    btn(T("Next","পরের"),()=>{page.offset+=page.limit;refresh()},"outline","wo-next",{disabled:page.offset+page.limit>=page.total})));
+ }
+ async function openWo(id){
+  const d=await safe(()=>rd("am_get_work_order_v1",{p_wo:id}));if(!d)return;
+  const wo=d.work_order||d.wo||d,acts=actionsOf(d),reload=async()=>{await refresh();await openWo(id)};
+  detail.textContent="";
+  const has=(a)=>acts.includes(a);
+  const bar=h("div",{class:"actions",id:"wo-actions"});
+  for(const a of acts){
+   if(TRANSITIONS.includes(a))bar.append(btn(lab("wo_action",a),()=>transitionForm(wo,a,reload),["approve","start","complete","verify","close","submit"].includes(a)?"primary":"outline","act-"+a));
+   else if(a==="assign")bar.append(btn(lab("wo_action","assign"),()=>assignForm(wo,reload),"outline","act-assign"));
+   else if(a==="edit")bar.append(btn(lab("wo_action","edit"),()=>editForm(wo,reload),"outline","act-edit"));
+   else if(a==="add_labor")bar.append(btn(lab("wo_action",a),()=>laborForm(wo,reload),"outline","act-add_labor"));
+   else if(a==="add_spares")bar.append(btn(lab("wo_action",a),()=>sparesForm(wo,reload),"outline","act-add_spares"));
+   else if(a==="add_attachment")bar.append(btn(lab("wo_action",a),()=>attachForm(wo,reload),"outline","act-add_attachment"));
+   else if(a==="acknowledge_safety")bar.append(btn(lab("wo_action",a),async()=>{const r=await act("am_acknowledge_safety_v1",{p_wo:wo.id},"Safety acknowledged","নিরাপত্তা স্বীকৃত");if(r)await reload()},"outline","act-acknowledge_safety"));
+   else if(a==="merge")bar.append(btn(lab("wo_action",a),()=>mergeForm(wo,reload),"outline","act-merge"));
+  }
+  const cl=arr(d,"checklist"),labor=arr(d,"labor","labour"),spares=arr(d,"spares"),atts=arr(d,"attachments"),hist=arr(d,"history");
+  const canCheck=has("checklist");
+  const checklist=table([["#",x=>x.seq],[T("Item","বিষয়"),x=>h("span",null,x.text,x.required?chip(T("required","আবশ্যক"),"warn"):null,x.kind!=="check"?chip(lab("check_kind",x.kind),""):null)],
+    [T("Range","সীমা"),x=>x.min_value!=null||x.max_value!=null?num(x.min_value,4)+" … "+num(x.max_value,4)+(x.unit?" "+x.unit:""):dash],
+    [T("Result","ফলাফল"),x=>canCheck?checkRow(wo,x,reload):h("span",null,chip(lab("check_result",x.result),toneOf(x.result)),x.value!=null?" "+num(x.value,4):"",x.note?" · "+x.note:"")]],cl,T("No checklist on this work order.","এই কাজে কোনো চেকলিস্ট নেই।"));
+  detail.append(h("section",{class:"panel",id:"wo-panel"},h("div",{class:"panel-title"},h("h2",{text:(wo.wo_no||"#"+wo.id)+" · "+wo.title}),chip(lab("wo_status",wo.status),toneOf(wo.status)),
+   btn("×",()=>{detail.textContent=""},"outline close","wo-detail-close",{"aria-label":T("Close","বন্ধ")})),
+   h("div",{class:"panel-body"},h("div",{class:"chips"},chip(lab("wo_kind",wo.kind),""),chip(lab("priority",wo.priority),toneOf(wo.priority)),chip(lab("wo_source",wo.source),"dim"),wo.safety_critical?chip(T("Safety-critical","নিরাপত্তা-সংবেদনশীল"),"bad"):null,
+     wo.needs_reassignment?chip(T("Needs reassignment","পুনঃবরাদ্দ দরকার"),"warn"):null,...slaChips(wo)),
+    h("p",{class:"muted",id:"wo-actions-note",text:acts.length?T("Available to you now:","এখন আপনার জন্য উপলব্ধ:"):T("No actions are available to you on this work order.","এই কাজে আপনার জন্য কোনো কাজ উপলব্ধ নেই।")}),bar,
+    kv([[T("Asset","সম্পদ"),(wo.asset_no||"")+" "+(wo.asset_name||"")||("#"+wo.asset_id)],[T("Site","সাইট"),wo.site_label||siteName(wo.site_id)],[T("Description","বিবরণ"),wo.description],
+     [T("Due","দেয়"),dd(wo.due_on)],[T("Assigned to","দায়িত্বে"),wo.assigned_to||wo.assignee_ref],[T("Team","টিম"),wo.team_ref],[T("Requested","অনুরোধ"),dt(wo.requested_at)],
+     [T("Response SLA due","সাড়ার সময়সীমা"),dt(wo.sla_response_due_at)],[T("Resolve SLA due","সমাধানের সময়সীমা"),dt(wo.sla_resolve_due_at)],[T("Started","শুরু"),dt(wo.started_at)],[T("Completed","সম্পন্ন"),dt(wo.completed_at)],
+     [T("Failure / cause / action","ত্রুটি / কারণ / পদক্ষেপ"),[wo.failure_code,wo.cause_code,wo.action_code].filter(Boolean).join(" / ")||null],[T("Corrective action","সংশোধনী পদক্ষেপ"),wo.corrective_action],
+     [T("Safety acknowledged","নিরাপত্তা স্বীকৃত"),wo.safety_ack_at?dt(wo.safety_ack_at):null],
+     [T("Labour h / cost (advisory)","শ্রম ঘণ্টা / খরচ (পরামর্শমূলক)"),num(wo.actual_labor_hours)+" / "+num(wo.actual_labor_cost)],[T("Spares cost (advisory)","যন্ত্রাংশ খরচ (পরামর্শমূলক)"),num(wo.actual_spares_cost)],[T("Version","সংস্করণ"),wo.version]]),
+    h("h3",{text:T("Checklist","চেকলিস্ট")}),checklist,
+    h("h3",{text:T("Labour","শ্রম")}),table([[T("Kind","ধরন"),x=>lab("labor_kind",x.labor_kind)],[T("Worker","কর্মী"),x=>x.worker_ref],[T("Hours","ঘণ্টা"),x=>num(x.hours)],[T("Rate (advisory)","হার (পরামর্শমূলক)"),x=>num(x.rate)],[T("Phase","ধাপ"),x=>lab("phase",x.phase)],[T("Note","নোট"),x=>x.note]],labor,T("No labour lines.","কোনো শ্রম লাইন নেই।")),
+    h("h3",{text:T("Spares (informational — no stock is moved)","যন্ত্রাংশ (তথ্যমূলক — স্টক নড়ে না)")}),table([[T("Item","আইটেম"),x=>x.item_ref],[T("Description","বিবরণ"),x=>x.description],[T("Qty","পরিমাণ"),x=>num(x.qty,3)],[T("Unit cost (advisory)","একক মূল্য (পরামর্শমূলক)"),x=>num(x.unit_cost)],[T("Phase","ধাপ"),x=>lab("phase",x.phase)]],spares,T("No spares lines.","কোনো যন্ত্রাংশ লাইন নেই।")),
+    h("h3",{text:T("Attachment records (metadata only)","সংযুক্তি রেকর্ড (শুধু মেটাডেটা)")}),table([[T("File","ফাইল"),x=>x.file_name],[T("Kind","ধরন"),x=>lab("attach_kind",x.kind)],[T("Type","টাইপ"),x=>x.mime],[T("Size","আকার"),x=>num(x.size_bytes,0)],[T("Caption","ক্যাপশন"),x=>x.caption]],atts,T("No attachment records.","কোনো সংযুক্তি রেকর্ড নেই।")),
+    h("h3",{text:T("History","ইতিহাস")}),hist.length?h("ol",{class:"timeline",id:"wo-history"},hist.map(x=>h("li",null,h("b",{text:dt(x.created_at)+" · "+x.action}),h("span",{text:" "+(x.from_status?lab("wo_status",x.from_status)+" → ":"")+lab("wo_status",x.to_status)+(x.reason?" · "+x.reason:"")})))):h("p",{class:"muted",text:T("No history.","কোনো ইতিহাস নেই।")}))));
+  detail.scrollIntoView&&detail.scrollIntoView({block:"nearest"});
+ }
+ function checkRow(wo,x,reload){
+  const rs=sel("chk-result-"+x.seq,enumOpts("check_result",["pending","pass","fail","na"]),x.result,{"aria-label":T("Result","ফলাফল")});
+  const vi=x.kind==="measure"?h("input",{id:"chk-value-"+x.seq,type:"number",step:"any",value:x.value==null?"":x.value,"aria-label":T("Measured value","মাপা মান")}):null;
+  const ni=h("input",{id:"chk-note-"+x.seq,type:"text",maxlength:500,value:x.note||"",placeholder:T("Note","নোট"),"aria-label":T("Note","নোট")});
+  return h("div",{class:"chk-row"},rs,vi,ni,btn(T("Save","সংরক্ষণ"),async()=>{
+   const v=vi&&vi.value!==""?Number(vi.value):null;if(v!==null&&!Number.isFinite(v)){status(T("Invalid number.","অবৈধ সংখ্যা।"),"error");return}
+   const r=await act("am_wo_checklist_result_v1",{p_wo:wo.id,p_seq:x.seq,p_result:rs.value,p_value:v,p_note:ni.value.trim()||null},"Checklist saved","চেকলিস্ট সংরক্ষিত");if(r)await reload()},"outline","chk-save-"+x.seq));
+ }
+ function transitionForm(wo,a,reload){
+  const fields=[];
+  if(a==="start")fields.push({n:"meter_reading_at_start",l:["Meter reading at start","শুরুতে মিটার রিডিং"],t:"num"});
+  if(a==="complete"){
+   fields.push({n:"failure_code",l:["Failure code","ত্রুটি কোড"],t:"select",opts:codeOpts("failure",T("— none —","— নেই —"))},{n:"cause_code",l:["Cause code","কারণ কোড"],t:"select",opts:codeOpts("cause",T("— none —","— নেই —"))},
+    {n:"action_code",l:["Action code","পদক্ষেপ কোড"],t:"select",opts:codeOpts("action",T("— none —","— নেই —"))},{n:"corrective_action",l:["What was done","কী করা হয়েছে"],t:"textarea",max:2000},
+    {n:"meter_reading_at_end",l:["Meter reading at end","শেষে মিটার রিডিং"],t:"num"});
+   if(wo.kind==="calibration")fields.push({n:"cal_performed_on",l:["Calibrated on","ক্যালিব্রেশনের তারিখ"],t:"date",req:true,val:today()},{n:"cal_next_due_on",l:["Next due","পরবর্তী তারিখ"],t:"date"},
+    {n:"cal_result",l:["Calibration result","ক্যালিব্রেশন ফল"],t:"select",opts:enumOpts("cal_result",["pass","fail","adjusted"])},{n:"cal_certificate_ref",l:["Certificate ref.","সনদ রেফ."],t:"text",max:80},
+    {n:"cal_standard_ref",l:["Standard ref.","স্ট্যান্ডার্ড রেফ."],t:"text",max:80},{n:"cal_vendor",l:["Vendor","ভেন্ডর"],t:"text",max:120},{n:"cal_note",l:["Calibration note","ক্যালিব্রেশন নোট"],t:"text",max:500});
+  }
+  fields.push(REASON({n:"reason",req:REASON_REQ.includes(a),min:REASON_REQ.includes(a)?5:0}));
+  modalForm(lab("wo_action",a)+" · "+(wo.wo_no||""),fields,async(v,err)=>{
+   const data={};
+   for(const k of ["meter_reading_at_start","failure_code","cause_code","action_code","corrective_action","meter_reading_at_end"])if(v[k]!=null&&v[k]!=="")data[k]=v[k];
+   if(wo.kind==="calibration"&&a==="complete"){data.calibration=clean({performed_on:v.cal_performed_on,next_due_on:v.cal_next_due_on,result:v.cal_result,certificate_ref:v.cal_certificate_ref,standard_ref:v.cal_standard_ref,vendor:v.cal_vendor,note:v.cal_note})}
+   const r=await act("am_wo_transition_v1",{p_wo:wo.id,p_expected_version:wo.version,p_action:a,p_reason:v.reason,p_data:Object.keys(data).length?data:null},lab("wo_action",a)+" done",lab("wo_action",a)+" সম্পন্ন",err);
+   if(r)await reload();return !!r},lab("wo_action",a),"wo-transition-form");
+ }
+ function assignForm(wo,reload){
+  modalForm(T("Assign","দায়িত্ব দিন")+" · "+(wo.wo_no||""),[{n:"assigned_to",l:["Assignee user id (UUID)","দায়িত্বপ্রাপ্ত ব্যবহারকারী (UUID)"],t:"uuid",max:36,val:wo.assigned_to},
+   {n:"assignee_ref",l:["Assignee ref.","দায়িত্বপ্রাপ্ত রেফ."],t:"text",max:40,val:wo.assignee_ref},{n:"team_ref",l:["Team ref.","টিম রেফ."],t:"text",max:40,val:wo.team_ref},REASON()],async(v,err)=>{
+   if(v.assigned_to&&!UUID_RX.test(v.assigned_to)){err.textContent=T("Assignee must be a valid UUID.","দায়িত্বপ্রাপ্ত ব্যক্তির UUID সঠিক নয়।");err.hidden=false;return false}
+   const r=await act("am_assign_work_order_v1",{p_wo:wo.id,p_expected_version:wo.version,p_assigned_to:v.assigned_to,p_assignee_ref:v.assignee_ref,p_team_ref:v.team_ref,p_reason:v.reason},"Assigned","দায়িত্ব দেওয়া হয়েছে",err);
+   if(r)await reload();return !!r},T("Assign","দায়িত্ব দিন"),"assign-form");
+ }
+ function editForm(wo,reload){
+  modalForm(T("Edit work order","কাজের আদেশ সম্পাদনা")+" · "+(wo.wo_no||""),[{n:"title",l:["Title","শিরোনাম"],t:"text",req:true,val:wo.title,max:160},{n:"description",l:["Description","বিবরণ"],t:"textarea",val:wo.description,max:2000},
+   {n:"priority",l:["Priority","অগ্রাধিকার"],t:"select",opts:enumOpts("priority",PRIORITIES),val:wo.priority},{n:"due_on",l:["Due on","শেষ তারিখ"],t:"date",val:wo.due_on?dd(wo.due_on):""},REASON()],async(v,err)=>{
+   const ch={};for(const k of ["title","description","priority","due_on"]){const ov=wo[k]==null?null:(k==="due_on"?String(wo[k]).slice(0,10):wo[k]);if((v[k]==null?null:v[k])!==ov)ch[k]=v[k]}
+   if(!Object.keys(ch).length){err.textContent=T("No changes to save.","সংরক্ষণের মতো কোনো পরিবর্তন নেই।");err.hidden=false;return false}
+   const r=await act("am_update_work_order_v1",{p_wo:wo.id,p_expected_version:wo.version,p_changes:ch,p_reason:v.reason},"Work order updated","কাজের আদেশ হালনাগাদ",err);if(r)await reload();return !!r},T("Save","সংরক্ষণ"),"wo-edit-form");
+ }
+ function laborForm(wo,reload){
+  modalForm(T("Add labour","শ্রম যোগ")+" · "+(wo.wo_no||""),[{n:"labor_kind",l:["Kind","ধরন"],t:"select",opts:enumOpts("labor_kind",["internal","contractor"])},{n:"worker_ref",l:["Worker ref.","কর্মী রেফ."],t:"text",max:40},
+   {n:"hours",l:["Hours","ঘণ্টা"],t:"num",req:true},{n:"rate",l:["Rate (advisory)","হার (পরামর্শমূলক)"],t:"num"},{n:"phase",l:["Phase","ধাপ"],t:"select",opts:enumOpts("phase",["actual","estimate"])},{n:"note",l:["Note","নোট"],t:"text",max:300}],async(v,err)=>{
+   const r=await act("am_wo_add_labor_v1",{p_wo:wo.id,p_data:clean(v)},"Labour added","শ্রম যোগ হয়েছে",err);if(r)await reload();return !!r},T("Add","যোগ"),"labor-form");
+ }
+ function sparesForm(wo,reload){
+  modalForm(T("Add spares","যন্ত্রাংশ যোগ")+" · "+(wo.wo_no||""),[{n:"item_ref",l:["Item ref.","আইটেম রেফ."],t:"text",max:40},{n:"description",l:["Description","বিবরণ"],t:"text",req:true,max:200},
+   {n:"qty",l:["Quantity","পরিমাণ"],t:"num",req:true},{n:"unit_cost",l:["Unit cost (advisory)","একক মূল্য (পরামর্শমূলক)"],t:"num"},{n:"phase",l:["Phase","ধাপ"],t:"select",opts:enumOpts("phase",["actual","estimate"])}],async(v,err)=>{
+   const r=await act("am_wo_add_spares_v1",{p_wo:wo.id,p_data:clean(v)},"Spares added","যন্ত্রাংশ যোগ হয়েছে",err);if(r)await reload();return !!r},T("Add","যোগ"),"spares-form");
+ }
+ function attachForm(wo,reload){
+  const MIMES=["image/jpeg","image/png","image/webp","application/pdf","text/plain"];
+  const fl=buildForm([{n:"file_name",l:["File name","ফাইলের নাম"],t:"text",req:true,max:100},{n:"mime",l:["Type","টাইপ"],t:"select",opts:MIMES.map(m=>[m,m])},{n:"size_bytes",l:["Size (bytes)","আকার (বাইট)"],t:"num",req:true,step:"1"},
+   {n:"sha256",l:["SHA-256 (hex)","SHA-256 (হেক্স)"],t:"text",req:true,max:64},{n:"storage_ref",l:["Storage reference","স্টোরেজ রেফারেন্স"],t:"text",req:true,max:200,hint:["Where the file is kept (path/id). Nothing is uploaded here.","ফাইল যেখানে রাখা (পাথ/আইডি)। এখানে কিছু আপলোড হয় না।"]},
+   {n:"kind",l:["Kind","ধরন"],t:"select",opts:enumOpts("attach_kind",["photo","document","certificate","report"])},{n:"caption",l:["Caption","ক্যাপশন"],t:"text",max:200}],{prefix:"f-",id:"am-form",submitText:T("Record","রেকর্ড"),onSubmit:async(v,err)=>{
+   const r=await act("am_wo_add_attachment_v1",{p_wo:wo.id,p_data:clean(v)},"Attachment recorded","সংযুক্তি রেকর্ড হয়েছে",err);if(r){closeModal();await reload()}}});
+  const fi=h("input",{type:"file",id:"att-file",accept:MIMES.join(",")});
+  fi.addEventListener("change",async()=>{const f=fi.files&&fi.files[0];if(!f)return;
+   $("f-file_name").value=f.name.replace(/[^A-Za-z0-9._ -]/g,"_").replace(/^[^A-Za-z0-9]+/,"").slice(0,100);$("f-size_bytes").value=String(f.size);
+   if(MIMES.includes(f.type))$("f-mime").value=f.type;
+   try{const hash=await crypto.subtle.digest("SHA-256",await f.arrayBuffer());$("f-sha256").value=Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,"0")).join("")}catch(e){}
+   if(!$("f-storage_ref").value)$("f-storage_ref").value="wo-"+wo.id+"/"+$("f-file_name").value.replace(/ /g,"_")});
+  openModal(T("Attachment record","সংযুক্তি রেকর্ড")+" · "+(wo.wo_no||""),[note(T("Only the file's details are recorded; the file is not uploaded.","শুধু ফাইলের তথ্য রেকর্ড হয়; ফাইল আপলোড হয় না।")),labeled(T("Pick a file to fill the details","বিবরণ পূরণে ফাইল বাছুন"),fi),fl.form],"attach-form");
+ }
+ async function mergeForm(wo,reload){
+  const r=await safe(()=>rd("am_list_work_orders_v1",{p_filters:{asset_id:wo.asset_id,status:["DRAFT","SUBMITTED","APPROVED","IN_PROGRESS"]},p_limit:100,p_offset:0}));
+  const opts=arr(r,"items").filter(x=>x.id!==wo.id).map(x=>[String(x.id),(x.wo_no||"#"+x.id)+" · "+x.title]);
+  if(!opts.length){status(T("No other open work order on this asset to merge.","এই সম্পদে মার্জ করার মতো অন্য খোলা কাজ নেই।"),"info");return}
+  modalForm(T("Merge into ","একীভূত করুন ")+(wo.wo_no||""),[{n:"merge",l:["Work order to merge in (it will be closed)","যে কাজ মার্জ হবে (এটি বন্ধ হবে)"],t:"select",int:true,req:true,opts},REASON()],async(v,err)=>{
+   const x=await act("am_merge_work_orders_v1",{p_keep:wo.id,p_merge:v.merge,p_reason:v.reason},"Work orders merged","কাজের আদেশ একীভূত",err);if(x)await reload();return !!x},T("Merge","একীভূত"),"merge-form");
+ }
+ const doFilter=()=>{page.offset=0;refresh()};
+ [st,kd,pr,mine,over].forEach(x=>x.addEventListener("change",doFilter));q.addEventListener("keydown",(e)=>{if(e.key==="Enter"){e.preventDefault();doFilter()}});
+ body.append(panel(T("Work orders","কাজের আদেশ"),[filterRow([labeled(T("Search","খুঁজুন"),q),labeled(T("Status","অবস্থা"),st),labeled(T("Kind","ধরন"),kd),labeled(T("Priority","অগ্রাধিকার"),pr),
+   h("label",{class:"fld bool"},h("span",{text:T("Assigned to me","আমার কাজ")}),mine),h("label",{class:"fld bool"},h("span",{text:T("Overdue only","শুধু বিলম্বিত")}),over),btn(T("Search","খুঁজুন"),doFilter,"primary","wo-search")]),
+  h("div",{class:"actions"},can("report")||can("execute")?btn(T("+ New work order","+ নতুন কাজের আদেশ"),()=>woCreateForm(async()=>{await refresh()}),"primary","wo-new"):null),list],null,"wo-dir"),detail);
+ await refresh();
+ const qw=parseQuery().wo;if(qw)await openWo(qw);
+};
+
+/* =====================================================================  BREAKDOWN / DOWNTIME  ===================================================================== */
+SCREENS.breakdown=async function(body){
+ $("am-title").textContent=T("Breakdown & downtime","বিকল ও ডাউনটাইম");
+ const assets=await assetPicker(T("— choose the asset that stopped —","— যে সম্পদ বন্ধ হয়েছে তা বাছুন —"),a=>!["retired","disposed"].includes(a.status)&&(state.site==null||a.site_id===state.site));
+ const openBox=h("div",{id:"bd-open"}),histBox=h("div",{id:"bd-history"});
+ async function refresh(){
+  const o=await safe(()=>rd("am_list_downtime_v1",{p_filters:clean({open:true,site_id:state.site}),p_limit:100,p_offset:0}));
+  if(o){openBox.textContent="";openBox.append(table([[T("Asset","সম্পদ"),x=>x.asset_no||x.asset_name||("#"+x.asset_id)],[T("Kind","ধরন"),x=>chip(lab("downtime_kind",x.kind),x.kind==="breakdown"?"bad":"warn")],
+   [T("Since","থেকে"),x=>dt(x.started_at)],[T("Reason","কারণ"),x=>x.reason_code],[T("Impact","প্রভাব"),x=>x.impact],
+   [T("Work order","কাজের আদেশ"),x=>x.work_order_id?h("a",{href:"./core10-asset-maintenance-workorders.html?biz="+state.biz+"&wo="+x.work_order_id,text:x.wo_no||("#"+x.work_order_id)}):dash],
+   ["",x=>can("downtime_write",x.site_id)?btn(T("End downtime","ডাউনটাইম শেষ"),()=>endForm(x),"primary","dt-end-"+x.id):null]],arr(o,"items"),T("No open downtime. Everything is running.","কোনো খোলা ডাউনটাইম নেই। সব চলছে।")))}
+  const c=await safe(()=>rd("am_list_downtime_v1",{p_filters:clean({open:false,site_id:state.site}),p_limit:20,p_offset:0}));
+  if(c){histBox.textContent="";histBox.append(table([[T("Asset","সম্পদ"),x=>x.asset_no||("#"+x.asset_id)],[T("Kind","ধরন"),x=>lab("downtime_kind",x.kind)],[T("From","থেকে"),x=>dt(x.started_at)],[T("To","পর্যন্ত"),x=>dt(x.ended_at)],[T("Minutes","মিনিট"),x=>num(x.minutes==null?x.duration_minutes:x.minutes,0)]],arr(c,"items"),T("No closed downtime yet.","এখনো কোনো শেষ হওয়া ডাউনটাইম নেই।")))}
+ }
+ function endForm(x){
+  modalForm(T("End downtime","ডাউনটাইম শেষ")+" · "+(x.asset_no||x.asset_id),[{n:"ended_at",l:["Ended at","শেষের সময়"],t:"dt",val:nowLocalInput()},{n:"note",l:["Note","নোট"],t:"text",max:300}],async(v,err)=>{
+   const r=await act("am_end_downtime_v1",{p_downtime:x.id,p_ended_at:v.ended_at,p_note:v.note},"Downtime ended","ডাউনটাইম শেষ",err);if(r)await refresh();return !!r},T("End downtime","ডাউনটাইম শেষ"),"dt-end-form");
+ }
+ function startForm(){
+  modalForm(T("Start downtime","ডাউনটাইম শুরু"),[{n:"asset",l:["Asset","সম্পদ"],t:"select",int:true,req:true,opts:assets},{n:"kind",l:["Kind","ধরন"],t:"select",opts:enumOpts("downtime_kind",["planned","breakdown","other"]),val:"planned"},
+   {n:"reason_code",l:["Reason","কারণ"],t:"select",opts:codeOpts("downtime_reason",T("— none —","— নেই —"))},{n:"impact",l:["Impact","প্রভাব"],t:"textarea",rows:2,max:500},{n:"started_at",l:["Started at","শুরুর সময়"],t:"dt",val:nowLocalInput()}],async(v,err)=>{
+   const r=await act("am_start_downtime_v1",{p_asset:v.asset,p_data:clean({kind:v.kind,reason_code:v.reason_code,impact:v.impact,started_at:v.started_at})},"Downtime started","ডাউনটাইম শুরু",err);if(r){state.assetOpts=null;await refresh()}return !!r},T("Start","শুরু"),"dt-start-form");
+ }
+ const bd=buildForm([{n:"asset",l:["Which asset stopped?","কোন সম্পদ বন্ধ হয়েছে?"],t:"select",int:true,req:true,opts:assets},
+  {n:"title",l:["What is wrong? (short)","সমস্যা কী? (সংক্ষেপে)"],t:"text",req:true,min:3,max:160},{n:"description",l:["Details (what you saw, heard, smelled)","বিস্তারিত (কী দেখলেন, শুনলেন)"],t:"textarea",max:2000},
+  {n:"priority",l:["How urgent?","কতটা জরুরি?"],t:"select",opts:enumOpts("priority",PRIORITIES),val:"high"},{n:"failure_code",l:["Type of failure","ত্রুটির ধরন"],t:"select",opts:codeOpts("failure",T("— not sure —","— নিশ্চিত নই —"))},
+  {n:"impact",l:["Impact on work","কাজে প্রভাব"],t:"textarea",rows:2,max:500},{n:"started_at",l:["Stopped at","বন্ধ হয়েছে"],t:"dt",val:nowLocalInput()}],
+  {prefix:"bd-",id:"bd-form",submitText:T("REPORT BREAKDOWN","বিকল জানান"),cancel:false,onSubmit:async(v,err)=>{
+   const r=await act("am_report_breakdown_v1",{p_asset:v.asset,p_data:clean({title:v.title,description:v.description,priority:v.priority,failure_code:v.failure_code,impact:v.impact,started_at:v.started_at})},"Breakdown reported","বিকল জানানো হয়েছে",err);
+   if(r){state.assetOpts=null;await refresh();$("bd-title").value="";$("bd-description").value="";$("bd-impact").value=""}}});
+ bd.form.classList.add("big");
+ body.append(...(can("report")?[panel(T("Report a breakdown","বিকল জানান"),[note(T("One tap to tell the maintenance team. A work order and a downtime window are opened for you.","রক্ষণাবেক্ষণ দলকে জানাতে একটি চাপ। আপনার জন্য কাজের আদেশ ও ডাউনটাইম খোলা হবে।")),bd.form],null,"bd-panel")]:[note(T("Your role cannot report breakdowns.","আপনার ভূমিকায় বিকল জানানো যায় না।"),"warn")]),
+  panel(T("Open downtime","খোলা ডাউনটাইম"),openBox,can("downtime_write")?btn(T("+ Start downtime","+ ডাউনটাইম শুরু"),startForm,"outline","dt-start"):null,"bd-open-panel"),panel(T("Recently closed","সম্প্রতি শেষ"),histBox));
+ await refresh();
+};
 /*@@CONT@@*/
