@@ -295,4 +295,189 @@ async function load(first){
  }catch(e){fail(e);body.textContent="";body.append(h("div",{class:"error-state",role:"alert",id:"am-error-state"},h("h2",{text:T("Could not load data","ডেটা লোড করা যায়নি")}),h("p",{text:errMsg(e)}),btn(T("Retry","আবার চেষ্টা"),()=>load(),"primary","am-retry")))}
 }
 const SCREENS={};
+/* =====================================================================  ASSETS  ===================================================================== */
+const ASSET_STATUSES=["planned","active","under_maintenance","breakdown","idle","retired","disposed"];
+const OWNERSHIPS=["owned","leased","rented","client_owned","consignment"];
+const TEXT_FIELDS=["location_note","serial_no","model","manufacturer","provenance","supplier_name","supplier_ref","purchase_order_ref","custodian_ref","acquisition_date","commission_date"];
+function assetFormFields(a,parents){
+ const c=!a,B=(en,bn)=>[en,bn];
+ const f=[
+  {n:"name",l:B("Name","নাম"),t:"text",req:true,val:a&&a.name,max:120},
+  {n:"category_id",l:B("Category","ক্যাটাগরি"),t:"select",int:true,req:true,opts:categories().filter(x=>x.active!==false).map(x=>[String(x.id),x.code+" · "+catName(x)]),val:a&&a.category_id}];
+ if(c)f.push({n:"site_id",l:B("Site","সাইট"),t:"select",int:true,req:true,opts:siteOptsFor("asset_write"),val:state.site},
+  {n:"status",l:B("Initial status","প্রাথমিক অবস্থা"),t:"select",opts:[["active",lab("asset_status","active")],["planned",lab("asset_status","planned")]],val:"active"});
+ f.push({n:"criticality",l:B("Criticality (1-5)","গুরুত্ব (১-৫)"),t:"select",int:true,opts:[1,2,3,4,5].map(x=>[String(x),String(x)]),val:a?a.criticality:3},
+  {n:"serial_no",l:B("Serial no.","সিরিয়াল নং"),t:"text",val:a&&a.serial_no,max:64},
+  {n:"manufacturer",l:B("Manufacturer","নির্মাতা"),t:"text",val:a&&a.manufacturer,max:80},
+  {n:"model",l:B("Model","মডেল"),t:"text",val:a&&a.model,max:80},
+  {n:"ownership",l:B("Ownership","মালিকানা"),t:"select",opts:enumOpts("ownership",OWNERSHIPS),val:a&&a.ownership||"owned"},
+  {n:"location_note",l:B("Location note","অবস্থানের নোট"),t:"text",val:a&&a.location_note,max:200},
+  {n:"parent_asset_id",l:B("Parent assembly","প্যারেন্ট অ্যাসেম্বলি"),t:"select",int:true,opts:parents,val:a&&a.parent_asset_id!=null?a.parent_asset_id:""},
+  {n:"quantity",l:B("Quantity","পরিমাণ"),t:"num",val:a&&a.quantity,hint:B("Default 1","ডিফল্ট ১")},
+  {n:"acquisition_date",l:B("Acquired on","অর্জনের তারিখ"),t:"date",val:a&&dd(a.acquisition_date)===dash?"":a&&dd(a.acquisition_date)},
+  {n:"commission_date",l:B("Commissioned on","চালুর তারিখ"),t:"date",val:a&&dd(a.commission_date)===dash?"":a&&dd(a.commission_date)},
+  {n:"acquisition_cost",l:B("Acquisition cost (advisory)","অর্জন মূল্য (পরামর্শমূলক)"),t:"num",val:a&&a.acquisition_cost},
+  {n:"supplier_name",l:B("Supplier","সরবরাহকারী"),t:"text",val:a&&a.supplier_name,max:120},
+  {n:"supplier_ref",l:B("Supplier ref.","সরবরাহকারী রেফ."),t:"text",val:a&&a.supplier_ref,max:60},
+  {n:"purchase_order_ref",l:B("Purchase order ref. (read-only link)","ক্রয় আদেশ রেফ. (শুধু রেফারেন্স)"),t:"text",val:a&&a.purchase_order_ref,max:40},
+  {n:"custodian_ref",l:B("Custodian ref.","দায়িত্বপ্রাপ্ত রেফ."),t:"text",val:a&&a.custodian_ref,max:40},
+  {n:"provenance",l:B("Provenance / notes","উৎস / নোট"),t:"text",val:a&&a.provenance,max:300},
+  {n:"custom_attrs",l:B("Custom attributes (JSON object)","কাস্টম অ্যাট্রিবিউট (JSON)"),t:"json",rows:2,val:a&&a.custom_attrs&&Object.keys(a.custom_attrs).length?JSON.stringify(a.custom_attrs):""});
+ if(c){
+  f.push({n:"meters",l:B("Meters","মিটার"),t:"rows",val:[],cols:[{n:"code",l:B("Code","কোড"),t:"text",max:16},{n:"unit",l:B("Unit","একক"),t:"select",keep:true,opts:enumOpts("meter_unit",["hours","km","cycles","units"])},{n:"reading",l:B("Initial reading","প্রাথমিক রিডিং"),t:"num"}]},
+   {n:"w_supplier_name",l:B("Warranty supplier","ওয়ারেন্টি সরবরাহকারী"),t:"text",max:120},{n:"w_supplier_ref",l:B("Warranty ref.","ওয়ারেন্টি রেফ."),t:"text",max:60},
+   {n:"w_starts_on",l:B("Warranty starts","ওয়ারেন্টি শুরু"),t:"date"},{n:"w_expires_on",l:B("Warranty expires","ওয়ারেন্টি শেষ"),t:"date"},
+   {n:"w_coverage",l:B("Warranty coverage","ওয়ারেন্টির আওতা"),t:"text",max:500});
+  f.push(REASON({val:T("Registered via asset form","সম্পদ ফর্ম থেকে নিবন্ধিত")}));
+ }else f.push(REASON());
+ return f;
+}
+function clean(o){const r={};for(const [k,v] of Object.entries(o))if(v!==null&&v!==undefined&&v!=="")r[k]=v;return r}
+async function assetForm(a,after){
+ const parents=await assetPicker(T("— none —","— নেই —"),x=>!a||x.id!==a.id);
+ modalForm(a?T("Edit asset ","সম্পদ সম্পাদনা ")+(a.asset_no||""):T("New asset","নতুন সম্পদ"),assetFormFields(a,parents),async(v,err)=>{
+  const {reason}=v;
+  if(!a){
+   const data=clean(Object.assign({},v,{reason:undefined,meters:undefined,w_supplier_name:undefined,w_supplier_ref:undefined,w_starts_on:undefined,w_expires_on:undefined,w_coverage:undefined}));
+   const meters=(v.meters||[]).filter(m=>m.code).map(m=>clean({code:m.code.toUpperCase(),unit:m.unit,reading:m.reading}));
+   if(meters.length)data.meters=meters;
+   if(v.w_supplier_name){if(!v.w_starts_on||!v.w_expires_on){err.textContent=T("Warranty needs start and expiry dates.","ওয়ারেন্টিতে শুরু ও শেষের তারিখ লাগবে।");err.hidden=false;return false}
+    data.warranty=clean({supplier_name:v.w_supplier_name,supplier_ref:v.w_supplier_ref,coverage:v.w_coverage,starts_on:v.w_starts_on,expires_on:v.w_expires_on})}
+   const r=await act("am_create_asset_v1",{p_data:data,p_reason:reason},"Asset created","সম্পদ তৈরি হয়েছে",err);
+   if(r){state.assetOpts=null;await after(r)}return !!r;
+  }
+  const ch={};
+  for(const k of ["name","category_id","criticality","ownership","quantity","parent_asset_id","custom_attrs","acquisition_cost",...TEXT_FIELDS]){
+   const nv=v[k],ov=a[k]==null?null:a[k];
+   const nn=(k==="acquisition_date"||k==="commission_date")?nv:nv;
+   const same=k==="custom_attrs"?eq(nv||{},ov||{}):(typeof nv==="number"||typeof ov==="number")?(nv==null&&ov==null)||Number(nv)===Number(ov):(nn==null?null:nn)===((k.endsWith("_date")&&ov)?String(ov).slice(0,10):ov);
+   if(!same)ch[k]=nv;
+  }
+  if(!Object.keys(ch).length){err.textContent=T("No changes to save.","সংরক্ষণের মতো কোনো পরিবর্তন নেই।");err.hidden=false;return false}
+  const r=await act("am_update_asset_v1",{p_asset:a.id,p_expected_version:a.version,p_changes:ch,p_reason:reason},"Asset updated","সম্পদ হালনাগাদ হয়েছে",err);
+  if(r)await after(r);return !!r;
+ },a?T("Save changes","পরিবর্তন সংরক্ষণ"):T("Create asset","সম্পদ তৈরি"),"asset-form");
+}
+SCREENS.assets=async function(body){
+ $("am-title").textContent=T("Assets","সম্পদ");
+ const page={offset:0,limit:25,total:0};
+ const q=h("input",{id:"as-q",type:"search",placeholder:T("Name, asset no., serial","নাম, সম্পদ নং, সিরিয়াল"),autocomplete:"off","aria-label":T("Search","খুঁজুন")});
+ const st=sel("as-status",[["",T("All statuses","সব অবস্থা")],...enumOpts("asset_status",ASSET_STATUSES)]);
+ const cs=sel("as-cat",[["",T("All categories","সব ক্যাটাগরি")],...categories().map(c=>[String(c.id),catName(c)])]);
+ const ow=sel("as-own",[["",T("Any ownership","যেকোনো মালিকানা")],...enumOpts("ownership",OWNERSHIPS)]);
+ const list=h("div",{id:"as-list"}),detail=h("div",{id:"as-detail"}),trBox=h("div",{id:"as-transfers"}),clBox=h("div",{id:"as-claims"});
+ async function refresh(){
+  const f=clean({search:q.value.trim()||null,status:st.value||null,category_id:cs.value?Number(cs.value):null,site_id:state.site,ownership:ow.value||null});
+  const r=await safe(()=>rd("am_list_assets_v1",{p_filters:Object.keys(f).length?f:null,p_limit:page.limit,p_offset:page.offset}));
+  if(!r)return;page.total=r.total==null?arr(r,"items").length:r.total;list.textContent="";
+  const items=arr(r,"items");
+  list.append(h("p",{class:"muted",id:"as-count",text:page.total+T(" asset(s)"," টি সম্পদ")}),
+   table([[T("No.","নং"),x=>x.asset_no],[T("Name","নাম"),x=>x.name],[T("Status","অবস্থা"),x=>chip(lab("asset_status",x.status),toneOf(x.status))],
+    [T("Category","ক্যাটাগরি"),x=>x.category_name||catName(catById(x.category_id))],[T("Site","সাইট"),x=>x.site_label||siteName(x.site_id)],[T("Crit.","গুরুত্ব"),x=>val(x.criticality)],
+    [T("Warranty","ওয়ারেন্টি"),x=>x.warranty_state?chip(lab("warranty_state",x.warranty_state),toneOf(x.warranty_state)):dash],
+    ["",x=>btn(T("Open","খুলুন"),()=>openAsset(x.id),"outline","as-open-"+x.asset_no)]],items,T("No assets match.","কোনো সম্পদ মেলেনি।")),
+   h("div",{class:"actions"},btn(T("Previous","আগের"),()=>{page.offset=Math.max(0,page.offset-page.limit);refresh()},"outline","as-prev",{disabled:page.offset===0}),
+    h("span",{class:"muted",text:(page.total?page.offset+1:0)+"–"+Math.min(page.total,page.offset+page.limit)+" / "+page.total}),
+    btn(T("Next","পরের"),()=>{page.offset+=page.limit;refresh()},"outline","as-next",{disabled:page.offset+page.limit>=page.total})));
+ }
+ async function refreshSide(){
+  const tr=await safe(()=>rd("am_list_transfers_v1",{p_status:null}));
+  if(tr){trBox.textContent="";const rows=arr(tr,"items");
+   trBox.append(table([[T("Asset","সম্পদ"),x=>x.asset_no||("#"+x.asset_id)],[T("From","থেকে"),x=>siteName(x.from_site_id)],[T("To","গন্তব্য"),x=>siteName(x.to_site_id)],
+    [T("Status","অবস্থা"),x=>chip(lab("transfer_status",x.status),toneOf(x.status))],[T("Reason","কারণ"),x=>x.reason],
+    ["",x=>x.status==="pending"&&can("transfer")?h("span",{class:"actions"},...["approve","reject","cancel"].map(d=>btn(lab("transfer_decision",d),()=>decideTransfer(x,d),d==="approve"?"primary":"outline","tr-"+d+"-"+x.id))):null]],rows,T("No transfers.","কোনো স্থানান্তর নেই।")))}
+  const cl=await safe(()=>rd("am_list_claims_v1",{p_status:null,p_limit:50,p_offset:0}));
+  if(cl){clBox.textContent="";clBox.append(table([[T("Claim","দাবি"),x=>x.claim_no],[T("Asset","সম্পদ"),x=>x.asset_no||("#"+x.asset_id)],[T("Failure on","ত্রুটির তারিখ"),x=>dd(x.failure_on)],
+    [T("Status","অবস্থা"),x=>chip(lab("claim_status",x.status),toneOf(x.status))],[T("Claimed (advisory)","দাবি (পরামর্শমূলক)"),x=>num(x.amount_claimed)],[T("Settled (advisory)","নিষ্পন্ন (পরামর্শমূলক)"),x=>num(x.amount_settled)],
+    ["",x=>can("claim_write")?h("span",{class:"actions"},...claimActions(x.status).map(a=>btn(lab("claim_action",a),()=>claimTransition(x,a),"outline","cl-"+a+"-"+x.id))):null]],arr(cl,"items"),T("No warranty claims.","কোনো ওয়ারেন্টি দাবি নেই।")))}
+ }
+ const claimActions=(s)=>({draft:["submit"],submitted:["accept","reject"],accepted:["settle"],rejected:["close"],settled:["close"]}[s]||[]);
+ function decideTransfer(x,d){
+  modalForm(lab("transfer_decision",d)+" · "+(x.asset_no||x.asset_id),[{n:"note",l:["Note","নোট"],t:"textarea",rows:2,max:300}],async(v,err)=>{
+   const r=await act("am_decide_transfer_v1",{p_transfer:x.id,p_expected_version:x.version,p_decision:d,p_note:v.note},"Transfer "+d+"d","স্থানান্তর সম্পন্ন",err);
+   if(r){await refresh();await refreshSide()}return !!r},lab("transfer_decision",d));
+ }
+ function claimTransition(x,a){
+  const fields=[{n:"decision_note",l:["Note","নোট"],t:"textarea",rows:2,max:500}];
+  if(a==="settle")fields.unshift({n:"amount_settled",l:["Amount settled (advisory)","নিষ্পন্ন পরিমাণ (পরামর্শমূলক)"],t:"num",req:true},{n:"supplier_claim_ref",l:["Supplier claim ref.","সরবরাহকারীর দাবি রেফ."],t:"text",max:60});
+  modalForm(lab("claim_action",a)+" · "+x.claim_no,fields,async(v,err)=>{
+   const r=await act("am_claim_transition_v1",{p_claim:x.id,p_expected_version:x.version,p_action:a,p_data:clean(v)},"Claim updated","দাবি হালনাগাদ",err);
+   if(r)await refreshSide();return !!r},lab("claim_action",a));
+ }
+ async function openAsset(id){
+  const d=await safe(()=>rd("am_get_asset_v1",{p_asset:id}));if(!d)return;
+  detail.textContent="";const a=d.asset||d,sid=a.site_id,reload=async()=>{await refresh();await refreshSide();await openAsset(id)};
+  const acts=h("div",{class:"actions"});
+  if(can("asset_write",sid)){acts.append(btn(T("Edit","সম্পাদনা"),()=>assetForm(a,reload),"outline","as-edit"),
+   btn(T("Change status","অবস্থা বদলান"),()=>statusForm(a,reload),"outline","as-status-btn"),btn(T("Add meter","মিটার যোগ"),()=>meterForm(a,reload),"outline","as-addmeter"))}
+  if(can("transfer",sid))acts.append(btn(T("Request transfer","স্থানান্তর অনুরোধ"),()=>transferForm(a,reload),"outline","as-transfer"));
+  if(can("warranty_write",sid))acts.append(btn(T("Add warranty","ওয়ারেন্টি যোগ"),()=>warrantyForm(a,null,reload),"outline","as-warranty"));
+  const meters=arr(d,"meters"),wars=arr(d,"warranties"),moves=arr(d,"movements"),kids=arr(d,"children"),owos=arr(d,"open_work_orders","open_wos"),tgts=arr(d,"plan_targets","targets");
+  const tree=(items)=>h("ul",{class:"tree"},items.map(c=>h("li",null,h("span",{text:assetLabel(c)+" "}),chip(lab("asset_status",c.status),toneOf(c.status)),
+    btn(T("Open","খুলুন"),()=>openAsset(c.id),"outline","ch-open-"+c.id),arr(c,"children").length?tree(arr(c,"children")):null)));
+  detail.append(h("section",{class:"panel",id:"asset-panel"},h("div",{class:"panel-title"},h("h2",{text:assetLabel(a)}),chip(lab("asset_status",a.status),toneOf(a.status)),btn("×",()=>{detail.textContent=""},"outline close","as-detail-close",{"aria-label":T("Close","বন্ধ")})),
+   h("div",{class:"panel-body"},acts,
+    kv([[T("Asset no.","সম্পদ নং"),a.asset_no],[T("Category","ক্যাটাগরি"),a.category_name||catName(catById(a.category_id))],[T("Site","সাইট"),a.site_label||siteName(a.site_id)],[T("Criticality","গুরুত্ব"),a.criticality],
+     [T("Serial no.","সিরিয়াল নং"),a.serial_no],[T("Manufacturer / model","নির্মাতা / মডেল"),[a.manufacturer,a.model].filter(Boolean).join(" / ")||null],[T("Ownership","মালিকানা"),a.ownership?lab("ownership",a.ownership):null],
+     [T("Location","অবস্থান"),a.location_note],[T("Supplier","সরবরাহকারী"),[a.supplier_name,a.supplier_ref].filter(Boolean).join(" · ")||null],[T("Purchase order ref.","ক্রয় আদেশ রেফ."),a.purchase_order_ref],
+     [T("Custodian ref.","দায়িত্বপ্রাপ্ত রেফ."),a.custodian_ref],[T("Acquired / commissioned","অর্জন / চালু"),dd(a.acquisition_date)+" / "+dd(a.commission_date)],[T("Quantity","পরিমাণ"),a.quantity],
+     [T("Acquisition cost (advisory)","অর্জন মূল্য (পরামর্শমূলক)"),a.acquisition_cost==null?null:num(a.acquisition_cost)],[T("Version","সংস্করণ"),a.version]]),
+    h("h3",{text:T("Meters","মিটার")}),table([[T("Code","কোড"),m=>m.code],[T("Unit","একক"),m=>lab("meter_unit",m.unit)],[T("Reading","রিডিং"),m=>num(m.current_reading,3)],[T("Last read","সর্বশেষ"),m=>dt(m.last_reading_at)],
+     [T("Freshness","সতেজতা"),m=>(m.stale||m.is_stale)?chip(T("Stale","পুরনো"),"bad"):chip(T("Fresh","সতেজ"),"good")],
+     ["",m=>can("meter_write",sid)?btn(T("Record reading","রিডিং দিন"),()=>readingForm(a,m,reload),"outline","meter-read-"+m.id):null]],meters,T("No meters.","কোনো মিটার নেই।")),
+    h("h3",{text:T("Warranty","ওয়ারেন্টি")}),table([[T("Supplier","সরবরাহকারী"),w=>w.supplier_name],[T("From","থেকে"),w=>dd(w.starts_on)],[T("Until","পর্যন্ত"),w=>dd(w.expires_on)],
+     [T("State","অবস্থা"),w=>chip(lab("warranty_state",w.state||w.status),toneOf(w.state||w.status))],
+     ["",w=>h("span",{class:"actions"},can("warranty_write",sid)?btn(T("Edit","সম্পাদনা"),()=>warrantyForm(a,w,reload),"outline","war-edit-"+w.id):null,
+       can("claim_write",sid)?btn(T("New claim","নতুন দাবি"),()=>claimForm(a,w,null,reload),"outline","war-claim-"+w.id):null)]],wars,T("No warranty recorded.","কোনো ওয়ারেন্টি নেই।")),
+    h("h3",{text:T("Movements","স্থানান্তর ইতিহাস")}),table([[T("When","কখন"),m=>dt(m.moved_at)],[T("Kind","ধরন"),m=>m.kind],[T("From","থেকে"),m=>m.from_site_id==null?dash:siteName(m.from_site_id)],[T("To","গন্তব্য"),m=>siteName(m.to_site_id)],[T("Reason","কারণ"),m=>m.reason]],moves,T("No movements.","কোনো স্থানান্তর নেই।")),
+    h("h3",{text:T("Assembly (child assets)","অ্যাসেম্বলি (সন্তান সম্পদ)")}),kids.length?tree(kids):h("p",{class:"muted",text:T("No child assets.","কোনো সন্তান সম্পদ নেই।")}),
+    h("h3",{text:T("Open work orders","খোলা কাজের আদেশ")}),table([[T("No.","নং"),w=>h("a",{href:"./core10-asset-maintenance-workorders.html?biz="+state.biz+"&wo="+w.id,text:w.wo_no||("#"+w.id)})],[T("Title","শিরোনাম"),w=>w.title],
+     [T("Status","অবস্থা"),w=>chip(lab("wo_status",w.status),toneOf(w.status))],[T("Priority","অগ্রাধিকার"),w=>lab("priority",w.priority)]],owos,T("No open work orders.","কোনো খোলা কাজ নেই।")),
+    h("h3",{text:T("Plan targets","পরিকল্পনার লক্ষ্য")}),table([[T("Plan","পরিকল্পনা"),x=>x.plan_name||("#"+x.plan_id)],[T("Next due","পরবর্তী দেয়"),x=>dd(x.next_due_on)],[T("Next due reading","পরবর্তী রিডিং"),x=>num(x.next_due_reading,3)],
+     [T("Deferred until","স্থগিত"),x=>dd(x.deferred_until)],[T("Status","অবস্থা"),x=>x.status]],tgts,T("No plan targets.","কোনো লক্ষ্য নেই।")))));
+  detail.scrollIntoView&&detail.scrollIntoView({block:"nearest"});
+ }
+ function statusForm(a,reload){
+  modalForm(T("Change status","অবস্থা বদলান")+" · "+a.asset_no,[{n:"status",l:["New status","নতুন অবস্থা"],t:"select",opts:enumOpts("asset_status",["active","idle","retired","disposed"]),val:a.status},REASON()],async(v,err)=>{
+   const r=await act("am_set_asset_status_v1",{p_asset:a.id,p_expected_version:a.version,p_status:v.status,p_reason:v.reason},"Status changed","অবস্থা বদলেছে",err);if(r)await reload();return !!r},T("Change","বদলান"),"status-form");
+ }
+ function transferForm(a,reload){
+  const others=siteOptsFor(null).filter(o=>o[0]!==String(a.site_id));
+  modalForm(T("Request transfer","স্থানান্তর অনুরোধ")+" · "+a.asset_no,[{n:"to_site",l:["To site","গন্তব্য সাইট"],t:"select",int:true,req:true,opts:others},
+   {n:"include_children",l:["Include child assets","সন্তান সম্পদসহ"],t:"bool",val:true},REASON()],async(v,err)=>{
+   const r=await act("am_request_transfer_v1",{p_asset:a.id,p_to_site:v.to_site,p_include_children:v.include_children,p_reason:v.reason},"Transfer requested","স্থানান্তর অনুরোধ হয়েছে",err);if(r)await reload();return !!r},T("Request","অনুরোধ"),"transfer-form");
+ }
+ function meterForm(a,reload){
+  modalForm(T("Add meter","মিটার যোগ")+" · "+a.asset_no,[{n:"code",l:["Code (A-Z, 0-9)","কোড"],t:"text",req:true,max:16},{n:"unit",l:["Unit","একক"],t:"select",opts:enumOpts("meter_unit",["hours","km","cycles","units"])},
+   {n:"initial_reading",l:["Initial reading","প্রাথমিক রিডিং"],t:"num",val:0}],async(v,err)=>{
+   const r=await act("am_add_meter_v1",{p_asset:a.id,p_code:v.code.toUpperCase(),p_unit:v.unit,p_initial_reading:v.initial_reading},"Meter added","মিটার যোগ হয়েছে",err);if(r)await reload();return !!r},T("Add","যোগ"),"meter-form");
+ }
+ function readingForm(a,m,reload){
+  modalForm(T("Record reading","রিডিং দিন")+" · "+m.code,[{n:"reading",l:["Reading","রিডিং"],t:"num",req:true,hint:["Current: "+num(m.current_reading,3),"বর্তমান: "+num(m.current_reading,3)]},
+   {n:"read_at",l:["Read at","রিডিংয়ের সময়"],t:"dt",val:nowLocalInput()},{n:"kind",l:["Kind","ধরন"],t:"select",opts:enumOpts("meter_kind",["reading","reset"]),val:"reading"},{n:"note",l:["Note","নোট"],t:"text",max:300}],async(v,err)=>{
+   const r=await act("am_record_meter_reading_v1",{p_meter:m.id,p_reading:v.reading,p_read_at:v.read_at,p_kind:v.kind,p_note:v.note},"Reading recorded","রিডিং রেকর্ড হয়েছে",err);if(r)await reload();return !!r},T("Record","রেকর্ড"),"reading-form");
+ }
+ function warrantyForm(a,w,reload){
+  modalForm((w?T("Edit warranty","ওয়ারেন্টি সম্পাদনা"):T("Add warranty","ওয়ারেন্টি যোগ"))+" · "+a.asset_no,[
+   {n:"supplier_name",l:["Supplier","সরবরাহকারী"],t:"text",req:true,val:w&&w.supplier_name,max:120},{n:"supplier_ref",l:["Reference","রেফারেন্স"],t:"text",val:w&&w.supplier_ref,max:60},
+   {n:"starts_on",l:["Starts on","শুরু"],t:"date",req:true,val:w&&dd(w.starts_on)},{n:"expires_on",l:["Expires on","শেষ"],t:"date",req:true,val:w&&dd(w.expires_on)},
+   {n:"coverage",l:["Coverage","আওতা"],t:"textarea",rows:2,val:w&&w.coverage,max:500},
+   ...(w?[{n:"status",l:["Status","অবস্থা"],t:"select",opts:[["active",lab("warranty_state","active")],["void",lab("warranty_state","void")]],val:w.status}]:[]),REASON()],async(v,err)=>{
+   const data=clean({asset_id:a.id,supplier_name:v.supplier_name,supplier_ref:v.supplier_ref,starts_on:v.starts_on,expires_on:v.expires_on,coverage:v.coverage,status:v.status});
+   const r=await act("am_save_warranty_v1",{p_id:w?w.id:null,p_expected_version:w?w.version:null,p_data:data,p_reason:v.reason},"Warranty saved","ওয়ারেন্টি সংরক্ষিত",err);if(r)await reload();return !!r},T("Save","সংরক্ষণ"),"warranty-form");
+ }
+ function claimForm(a,w,c,reload){
+  modalForm(T("Warranty claim","ওয়ারেন্টি দাবি")+" · "+a.asset_no,[{n:"failure_on",l:["Failure date","ত্রুটির তারিখ"],t:"date",req:true,val:c&&dd(c.failure_on)||today()},
+   {n:"description",l:["What failed","কী ব্যর্থ হয়েছে"],t:"textarea",req:true,min:3,val:c&&c.description,max:1000},{n:"amount_claimed",l:["Amount claimed (advisory)","দাবির পরিমাণ (পরামর্শমূলক)"],t:"num",val:c&&c.amount_claimed},
+   {n:"supplier_claim_ref",l:["Supplier claim ref.","সরবরাহকারীর দাবি রেফ."],t:"text",max:60,val:c&&c.supplier_claim_ref}],async(v,err)=>{
+   const r=await act("am_save_claim_v1",{p_id:c?c.id:null,p_expected_version:c?c.version:null,p_data:clean(Object.assign({warranty_id:w.id,asset_id:a.id},v))},"Claim saved","দাবি সংরক্ষিত",err);if(r){await reload()}return !!r},T("Save claim","দাবি সংরক্ষণ"),"claim-form");
+ }
+ const bar=h("div",{class:"actions"},can("asset_write")?btn(T("+ New asset","+ নতুন সম্পদ"),()=>assetForm(null,async()=>{await refresh()}),"primary","as-new"):null);
+ const doFilter=()=>{page.offset=0;refresh()};
+ [st,cs,ow].forEach(x=>x.addEventListener("change",doFilter));q.addEventListener("keydown",(e)=>{if(e.key==="Enter"){e.preventDefault();doFilter()}});
+ body.append(panel(T("Directory","তালিকা"),[filterRow([labeled(T("Search","খুঁজুন"),q),labeled(T("Status","অবস্থা"),st),labeled(T("Category","ক্যাটাগরি"),cs),labeled(T("Ownership","মালিকানা"),ow),btn(T("Search","খুঁজুন"),doFilter,"primary","as-search")]),bar,list],null,"as-dir"),
+  detail,panel(T("Transfers","স্থানান্তর"),trBox),panel(T("Warranty claims","ওয়ারেন্টি দাবি"),clBox));
+ await refresh();await refreshSide();
+ const qa=parseQuery().asset;if(qa)await openAsset(qa);
+};
 /*@@CONT@@*/

@@ -553,7 +553,7 @@ LANGUAGE sql STABLE SET search_path=c10_demo,pg_catalog AS $$
 -- On-demand suggestions (no background job). Items: in the lead/horizon window, plus deferred, meter_missing and usage progress rows.
 CREATE FUNCTION c10_demo.am_due_suggestions_v1(p_business bigint,p_site bigint DEFAULT NULL,p_horizon_days int DEFAULT NULL) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
-DECLARE c c10_demo.am_ctx_t; vs bigint[]; asg bigint[]; r jsonb; cn jsonb;
+DECLARE c c10_demo.am_ctx_t; vs bigint[]; asg bigint[]; r jsonb;
 BEGIN
  c:=c10_demo.ami_read_ctx(p_business);
  vs:=c10_demo.ami_sites_with(c,'view'); asg:=c10_demo.ami_sites_with(c,'assign');
@@ -565,8 +565,7 @@ BEGIN
  IF p_horizon_days IS NOT NULL AND p_horizon_days NOT BETWEEN 0 AND 366 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  WITH q AS (
   SELECT * FROM c10_demo.ami_due_rows(p_business,vs,p_site,p_horizon_days,NULL) x
-  WHERE (x.in_window AND x.state<>'upcoming' OR x.in_window AND x.frequency_kind<>'usage') OR x.state IN('meter_missing','deferred')
-   OR (x.frequency_kind='usage' AND x.state='upcoming'))
+  WHERE x.in_window OR x.state IN('meter_missing','deferred') OR (x.frequency_kind='usage' AND x.state='upcoming'))
  SELECT COALESCE(jsonb_agg(jsonb_build_object('target_id',q.target_id,'plan_id',q.plan_id,'plan_name',q.plan_name,'plan_type',q.plan_type,
    'frequency_kind',q.frequency_kind,'interval_n',q.interval_n,'priority',q.priority,'asset_id',q.asset_id,'asset_no',q.asset_no,
    'asset_name',q.asset_name,'site_id',q.site_id,'category_id',q.category_id,'next_due_on',q.next_due_on,'next_due_reading',q.next_due_reading,
@@ -575,8 +574,149 @@ BEGIN
    'remaining_usage',CASE WHEN q.next_due_reading IS NOT NULL AND q.current_reading IS NOT NULL THEN q.next_due_reading-q.current_reading END,
    'days_until_due',q.days_until_due,'days_overdue',q.days_overdue,'state',q.state,'escalation_level',q.escalation_level,'reason',q.reason,
    'open_wo_id',q.open_wo_id,'open_wo_no',q.open_wo_no,'can_generate',q.site_id=ANY(asg),'version',q.target_version)
-   ORDER BY q.escalation_level DESC,q.days_overdue DESC,q.effective_due_on NULLS LAST,q.target_id),'[]'::jsonb),
-  COALESCE(jsonb_object_agg(s.st,s.n),'{}'::jsonb) INTO r,cn
- FROM q LEFT JOIN LATERAL (SELECT NULL::text st,NULL::int n WHERE false) s ON true;
+   ORDER BY q.escalation_level DESC,q.days_overdue DESC,q.effective_due_on NULLS LAST,q.target_id),'[]'::jsonb) INTO r FROM q;
  RETURN jsonb_build_object('items',r,'total',jsonb_array_length(r),'as_of',c10_demo.ami_today(p_business),'horizon_days',p_horizon_days);
+END$$;
+
+-- Calendar: plan targets (time plans, by effective due date; targets that already have an open WO appear as that WO) + work orders by due_on.
+CREATE FUNCTION c10_demo.am_calendar_v1(p_business bigint,p_from date,p_to date,p_site bigint DEFAULT NULL) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c c10_demo.am_ctx_t; vs bigint[]; r jsonb;
+BEGIN
+ c:=c10_demo.ami_read_ctx(p_business);
+ vs:=c10_demo.ami_sites_with(c,'view');
+ IF cardinality(vs)=0 THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ IF p_from IS NULL OR p_to IS NULL OR p_to<p_from OR p_to-p_from>365 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_site IS NOT NULL THEN
+  IF NOT EXISTS(SELECT 1 FROM c10_demo.sites WHERE id=p_site AND business_id=p_business) THEN RAISE EXCEPTION 'am_denied'; END IF;
+  IF NOT (p_site=ANY(vs)) THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ END IF;
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('date',g.d,'items',g.items) ORDER BY g.d),'[]'::jsonb) INTO r FROM (
+  SELECT u.d,jsonb_agg(u.item ORDER BY u.ord,u.id) items FROM (
+   SELECT x.effective_due_on d,0 ord,x.target_id id,jsonb_build_object('type','plan_target','id',x.target_id,'target_id',x.target_id,'plan_id',x.plan_id,
+     'title',x.plan_name,'plan_type',x.plan_type,'asset_id',x.asset_id,'asset_no',x.asset_no,'asset_name',x.asset_name,'site_id',x.site_id,
+     'priority',x.priority,'state',x.state,'due_on',x.effective_due_on,'escalation_level',x.escalation_level) item
+   FROM c10_demo.ami_due_rows(p_business,vs,p_site,NULL,NULL) x
+   WHERE x.state<>'has_open_wo' AND x.effective_due_on BETWEEN p_from AND p_to
+   UNION ALL
+   SELECT w.due_on,1,w.id,jsonb_build_object('type','work_order','id',w.id,'wo_no',w.wo_no,'plan_target_id',w.plan_target_id,'title',w.title,
+     'kind',w.kind,'asset_id',w.asset_id,'asset_no',a.asset_no,'asset_name',a.name,'site_id',w.site_id,'priority',w.priority,'state',w.status,
+     'status',w.status,'due_on',w.due_on)
+   FROM c10_demo.am_work_orders w JOIN c10_demo.am_assets a ON a.id=w.asset_id
+   WHERE w.business_id=p_business AND w.site_id=ANY(vs) AND (p_site IS NULL OR w.site_id=p_site) AND w.status<>'CANCELLED'
+    AND w.due_on BETWEEN p_from AND p_to) u
+  GROUP BY u.d) g;
+ RETURN jsonb_build_object('from',p_from,'to',p_to,'days',r);
+END$$;
+
+-- ===================== generation (human-triggered, idempotent, never duplicates) =====================
+CREATE FUNCTION c10_demo.am_generate_work_orders_v1(p_business bigint,p_request text,p_target_ids bigint[] DEFAULT NULL,
+ p_site bigint DEFAULT NULL,p_horizon_days int DEFAULT NULL) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c c10_demo.am_ctx_t; pl jsonb; vs bigint[]; asg bigint[]; r record; p c10_demo.am_plans; wid bigint; wno text; created jsonb:='[]'::jsonb;
+ skipped jsonb:='[]'::jsonb; seen bigint[]:=ARRAY[]::bigint[]; kind text; svc text; extra jsonb; tid bigint; why text; tr record; res jsonb; today date; due date;
+BEGIN
+ pl:=jsonb_build_object('target_ids',to_jsonb(p_target_ids),'site',p_site,'horizon_days',p_horizon_days);
+ SELECT * INTO b FROM c10_demo.ami_begin(p_business,p_request,'generate_wo',pl);
+ c:=b.o_ctx;
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ vs:=c10_demo.ami_sites_with(c,'view'); asg:=c10_demo.ami_sites_with(c,'assign');
+ IF cardinality(asg)=0 THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ IF p_horizon_days IS NOT NULL AND p_horizon_days NOT BETWEEN 0 AND 366 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_target_ids IS NOT NULL AND (cardinality(p_target_ids)>200 OR EXISTS(SELECT 1 FROM unnest(p_target_ids) x WHERE x IS NULL)) THEN
+  RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_site IS NOT NULL THEN
+  IF NOT EXISTS(SELECT 1 FROM c10_demo.sites WHERE id=p_site AND business_id=p_business) THEN RAISE EXCEPTION 'am_denied'; END IF;
+  IF NOT (p_site=ANY(asg)) THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ END IF;
+ today:=c10_demo.ami_today(p_business);
+ FOR r IN SELECT * FROM c10_demo.ami_due_rows(p_business,vs,p_site,p_horizon_days,p_target_ids) x
+   ORDER BY x.escalation_level DESC,x.days_overdue DESC,x.effective_due_on NULLS LAST,x.target_id LOOP
+  seen:=seen||r.target_id;
+  IF p_target_ids IS NULL AND NOT r.in_window AND r.state NOT IN('meter_missing','deferred') THEN CONTINUE; END IF;
+  IF NOT (r.site_id=ANY(asg)) THEN skipped:=skipped||jsonb_build_array(jsonb_build_object('target_id',r.target_id,'reason','not_permitted')); CONTINUE; END IF;
+  why:=CASE WHEN r.state='has_open_wo' THEN 'has_open_wo' WHEN r.state='deferred' THEN 'deferred' WHEN r.state='meter_missing' THEN 'meter_missing'
+            WHEN NOT r.in_window THEN 'not_due' ELSE NULL END;
+  IF why IS NOT NULL THEN
+   skipped:=skipped||jsonb_build_array(jsonb_build_object('target_id',r.target_id,'reason',why,'detail',r.reason,'asset_id',r.asset_id,'open_wo_id',r.open_wo_id));
+   CONTINUE; END IF;
+  SELECT * INTO p FROM c10_demo.am_plans WHERE id=r.plan_id;
+  kind:=CASE p.plan_type WHEN 'preventive' THEN 'preventive' WHEN 'calibration' THEN 'calibration' ELSE 'inspection' END;
+  svc:=CASE p.plan_type WHEN 'preventive' THEN 'ROUTINE' WHEN 'inspection' THEN 'INSPECT' WHEN 'calibration' THEN 'CALIB' ELSE 'SAFETY' END;
+  IF NOT EXISTS(SELECT 1 FROM c10_demo.am_codes WHERE business_id=p_business AND kind='service_category' AND code=svc AND active) THEN svc:=NULL; END IF;
+  extra:=jsonb_build_object('submit',c10_demo.ami_cfg_bool(p_business,r.site_id,r.category_id,'schedule.auto_submit_generated'),
+   'service_category',svc,'est_labor_hours',p.est_labor_hours,'team_ref',p.team_ref);
+  due:=CASE WHEN r.frequency_kind='usage' THEN today ELSE r.effective_due_on END;
+  BEGIN
+   wid:=c10_demo.ami_create_wo(c,p_request,r.asset_id,kind,left(p.name||' - '||r.asset_name,160),
+    'Generated from maintenance plan "'||p.name||'" ('||CASE WHEN r.frequency_kind='usage' THEN 'usage-based' ELSE 'due '||r.effective_due_on::text END||')',
+    p.priority,'plan',r.target_id,due,p.checklist_code,extra);
+   UPDATE c10_demo.am_plan_targets SET last_wo_id=wid,version=version+1 WHERE id=r.target_id;
+   SELECT w.wo_no INTO wno FROM c10_demo.am_work_orders w WHERE w.id=wid;
+   PERFORM c10_demo.ami_log(c.tenant_id,p_business,'work_order',wid::text,'generate',NULL,
+    jsonb_build_object('wo_no',wno,'plan_id',r.plan_id,'plan_target_id',r.target_id,'asset_id',r.asset_id,'due_on',due),NULL,p_request);
+   created:=created||jsonb_build_array(jsonb_build_object('target_id',r.target_id,'wo_id',wid,'wo_no',wno,'asset_id',r.asset_id,'plan_id',r.plan_id,
+    'due_on',due,'status',CASE WHEN (extra->>'submit')='true' THEN 'SUBMITTED' ELSE 'DRAFT' END));
+  EXCEPTION
+   WHEN unique_violation THEN
+    skipped:=skipped||jsonb_build_array(jsonb_build_object('target_id',r.target_id,'reason','has_open_wo','asset_id',r.asset_id));
+   WHEN OTHERS THEN
+    IF SQLERRM IN('am_overlapping_work_order','am_checklist_not_found','am_asset_retired') THEN
+     skipped:=skipped||jsonb_build_array(jsonb_build_object('target_id',r.target_id,'reason',substr(SQLERRM,4),'asset_id',r.asset_id));
+    ELSE RAISE; END IF;
+  END;
+ END LOOP;
+ IF p_target_ids IS NOT NULL THEN
+  FOREACH tid IN ARRAY p_target_ids LOOP
+   IF tid=ANY(seen) THEN CONTINUE; END IF;
+   SELECT t.status tstatus,p.active pactive,a.status astatus,a.site_id sid,p.end_on,t.next_due_on INTO tr
+    FROM c10_demo.am_plan_targets t JOIN c10_demo.am_plans p ON p.id=t.plan_id JOIN c10_demo.am_assets a ON a.id=t.asset_id
+    WHERE t.id=tid AND t.business_id=p_business;
+   why:=CASE WHEN NOT FOUND OR NOT (tr.sid=ANY(vs)) THEN 'not_found'
+             WHEN p_site IS NOT NULL AND tr.sid<>p_site THEN 'out_of_scope'
+             WHEN NOT tr.pactive OR tr.tstatus<>'scheduled' OR tr.astatus IN('retired','disposed') THEN 'inactive'
+             WHEN tr.end_on IS NOT NULL AND tr.next_due_on>tr.end_on THEN 'plan_ended'
+             ELSE 'not_found' END;
+   skipped:=skipped||jsonb_build_array(jsonb_build_object('target_id',tid,'reason',why));
+  END LOOP;
+ END IF;
+ PERFORM c10_demo.ami_log(c.tenant_id,p_business,'generation',p_request,'generate',NULL,
+  jsonb_build_object('created',jsonb_array_length(created),'skipped',jsonb_array_length(skipped)),NULL,p_request);
+ res:=jsonb_build_object('status','applied','created',created,'skipped',skipped,'created_count',jsonb_array_length(created),
+  'skipped_count',jsonb_array_length(skipped),'as_of',today);
+ RETURN c10_demo.ami_finish(p_business,c.tenant_id,p_request,'generate_wo',pl,res);
+END$$;
+
+-- ===================== deferral =====================
+CREATE FUNCTION c10_demo.am_defer_target_v1(p_business bigint,p_request text,p_target bigint,p_until date,p_reason text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c c10_demo.am_ctx_t; pl jsonb; t c10_demo.am_plan_targets; p c10_demo.am_plans; a c10_demo.am_assets; maxd int; today date; res jsonb;
+ bef jsonb; ev text;
+BEGIN
+ pl:=jsonb_build_object('target',p_target,'until',p_until,'reason',p_reason);
+ SELECT * INTO b FROM c10_demo.ami_begin(p_business,p_request,'defer_target',pl);
+ c:=b.o_ctx;
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ SELECT * INTO t FROM c10_demo.am_plan_targets WHERE id=p_target AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'am_denied'; END IF;
+ SELECT * INTO a FROM c10_demo.am_assets WHERE id=t.asset_id;
+ PERFORM c10_demo.ami_need_cap(c,a.site_id,'plan_write');
+ SELECT * INTO p FROM c10_demo.am_plans WHERE id=t.plan_id;
+ IF p_reason IS NULL OR length(btrim(p_reason)) NOT BETWEEN 3 AND 500 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p.frequency_kind='usage' OR t.next_due_on IS NULL OR t.status<>'scheduled' OR NOT p.active THEN RAISE EXCEPTION 'am_target_not_deferrable'; END IF;
+ IF EXISTS(SELECT 1 FROM c10_demo.am_work_orders w WHERE w.plan_target_id=t.id AND w.status NOT IN('CLOSED','CANCELLED')) THEN
+  RAISE EXCEPTION 'am_target_has_open_wo'; END IF;
+ today:=c10_demo.ami_today(p_business);
+ maxd:=c10_demo.ami_cfg_int(p_business,a.site_id,a.category_id,'schedule.max_defer_days');
+ IF p_until IS NOT NULL THEN
+  IF p_until<=today OR p_until<=t.next_due_on THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  IF p_until>t.next_due_on+maxd THEN RAISE EXCEPTION 'am_defer_limit_exceeded'; END IF;
+ END IF;
+ bef:=jsonb_build_object('deferred_until',t.deferred_until,'defer_reason',t.defer_reason,'next_due_on',t.next_due_on);
+ UPDATE c10_demo.am_plan_targets SET deferred_until=p_until,defer_reason=CASE WHEN p_until IS NULL THEN NULL ELSE btrim(p_reason) END,version=version+1 WHERE id=t.id;
+ ev:=CASE WHEN p_until IS NULL THEN 'undefer' ELSE 'defer' END;
+ PERFORM c10_demo.ami_log(c.tenant_id,p_business,'plan_target',t.id::text,ev,bef,
+  jsonb_build_object('deferred_until',p_until,'defer_reason',CASE WHEN p_until IS NULL THEN NULL ELSE btrim(p_reason) END,'next_due_on',t.next_due_on),btrim(p_reason),p_request);
+ res:=jsonb_build_object('status','applied','target_id',t.id,'deferred_until',p_until,'next_due_on',t.next_due_on,'max_until',t.next_due_on+maxd);
+ RETURN c10_demo.ami_finish(p_business,c.tenant_id,p_request,'defer_target',pl,res);
 END$$;
