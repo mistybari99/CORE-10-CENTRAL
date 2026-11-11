@@ -690,3 +690,177 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_'||p_action,pay,jsonb_build_object('status','applied','id',n.id,'wo_no',n.wo_no,
    'wo_status',n.status,'version',n.version,'action',p_action,'auto_approved',(n.approved_at IS NOT NULL AND n.approved_by IS NULL))||extra);
 END$$;
+
+-- ===================== execution records: checklist / labour / spares / attachments / safety =====================
+CREATE FUNCTION c10_demo.am_wo_checklist_result_v1(p_business bigint,p_request text,p_wo bigint,p_seq int,p_result text,p_value numeric,p_note text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; w am_work_orders; i am_wo_checklist; n am_wo_checklist; pay jsonb; v_note text:=NULLIF(btrim(COALESCE(p_note,'')),'');
+BEGIN
+ IF p_wo IS NULL OR p_seq IS NULL OR p_seq NOT BETWEEN 1 AND 200 OR p_result IS NULL OR p_result NOT IN('pending','pass','fail','na') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF v_note IS NOT NULL AND length(v_note)>500 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_value IS NOT NULL AND abs(p_value)>1e12 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ pay:=jsonb_build_object('wo',p_wo,'seq',p_seq,'res',p_result,'val',p_value,'note',v_note);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'wo_checklist',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO w FROM am_work_orders WHERE id=p_wo AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND OR NOT ami_wk_visible(c,w) THEN RAISE EXCEPTION 'am_denied'; END IF;
+ IF ami_wk_auth(c,w,'work') IS NOT NULL THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ IF w.status='CANCELLED' THEN RAISE EXCEPTION 'am_wo_cancelled_is_final'; END IF;
+ IF w.status<>'IN_PROGRESS' THEN RAISE EXCEPTION 'am_wo_not_editable'; END IF;
+ SELECT * INTO i FROM am_wo_checklist WHERE work_order_id=w.id AND seq=p_seq FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_result='na' AND i.required THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF i.kind='measure' THEN
+  IF p_result IN('pass','fail') AND p_value IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  IF p_result='pass' AND ((i.min_value IS NOT NULL AND p_value<i.min_value) OR (i.max_value IS NOT NULL AND p_value>i.max_value)) THEN RAISE EXCEPTION 'am_measure_out_of_range'; END IF;
+ ELSIF p_value IS NOT NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ UPDATE am_wo_checklist SET result=p_result,value=p_value,note=v_note,done_by=CASE WHEN p_result='pending' THEN NULL ELSE c.user_id END,
+   done_at=CASE WHEN p_result='pending' THEN NULL ELSE now() END WHERE id=i.id RETURNING * INTO n;
+ UPDATE am_work_orders SET updated_at=now() WHERE id=w.id;
+ PERFORM ami_log(c.tenant_id,p_business,'work_order',w.id::text,'wo.checklist',jsonb_build_object('seq',i.seq,'result',i.result,'value',i.value,'note',i.note),
+   jsonb_build_object('seq',n.seq,'result',n.result,'value',n.value,'note',n.note),NULL,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_checklist',pay,jsonb_build_object('status','applied','id',w.id,'seq',n.seq,'result',n.result));
+END$$;
+
+CREATE FUNCTION c10_demo.am_wo_add_labor_v1(p_business bigint,p_request text,p_wo bigint,p_data jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; w am_work_orders; pay jsonb; v_kind text; v_ref text; v_h numeric; v_rate numeric; v_note text; v_phase text; lid bigint;
+BEGIN
+ IF p_wo IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ PERFORM ami_wk_keys(p_data,ARRAY['labor_kind','worker_ref','hours','rate','note','phase']);
+ v_kind:=COALESCE(ami_wk_txt(p_data,'labor_kind',1,12,false),'internal'); v_phase:=COALESCE(ami_wk_txt(p_data,'phase',1,10,false),'actual');
+ IF v_kind NOT IN('internal','contractor') OR v_phase NOT IN('estimate','actual') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_ref:=ami_wk_re(p_data,'worker_ref','^[A-Za-z0-9][A-Za-z0-9._/ -]{0,39}$',false);
+ v_h:=ami_wk_num(p_data,'hours',0.01,1000,true); IF v_h<>round(v_h,2) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_rate:=ami_wk_num(p_data,'rate',0,1e9,false); v_note:=ami_wk_txt(p_data,'note',1,300,false);
+ IF v_rate IS NOT NULL AND v_rate<>round(v_rate,2) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ pay:=jsonb_build_object('wo',p_wo,'d',p_data);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'wo_labor',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO w FROM am_work_orders WHERE id=p_wo AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND OR NOT ami_wk_visible(c,w) THEN RAISE EXCEPTION 'am_denied'; END IF;
+ IF NOT (ami_wk_auth(c,w,'work') IS NULL OR (v_phase='estimate' AND ami_wk_auth(c,w,'edit') IS NULL)) THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ IF w.status='CANCELLED' THEN RAISE EXCEPTION 'am_wo_cancelled_is_final'; END IF;
+ IF NOT ((v_phase='actual' AND w.status='IN_PROGRESS') OR (v_phase='estimate' AND w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS'))) THEN RAISE EXCEPTION 'am_wo_not_editable'; END IF;
+ INSERT INTO am_wo_labor(tenant_id,business_id,work_order_id,labor_kind,worker_ref,hours,rate,note,phase,recorded_by)
+ VALUES(w.tenant_id,p_business,w.id,v_kind,v_ref,v_h,v_rate,v_note,v_phase,c.user_id) RETURNING id INTO lid;
+ PERFORM ami_log(c.tenant_id,p_business,'work_order',w.id::text,'wo.labor',NULL,jsonb_build_object('labor_id',lid,'hours',v_h,'rate',v_rate,'phase',v_phase,'kind',v_kind),NULL,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_labor',pay,jsonb_build_object('status','applied','id',lid,'work_order_id',w.id));
+END$$;
+
+CREATE FUNCTION c10_demo.am_wo_add_spares_v1(p_business bigint,p_request text,p_wo bigint,p_data jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; w am_work_orders; pay jsonb; v_ref text; v_desc text; v_phase text; v_qty numeric; v_cost numeric; sid bigint;
+BEGIN
+ IF p_wo IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ PERFORM ami_wk_keys(p_data,ARRAY['item_ref','description','phase','qty','unit_cost']);   -- stock_effect is NOT accepted: lines are informational
+ v_ref:=ami_wk_re(p_data,'item_ref','^[A-Za-z0-9][A-Za-z0-9._/-]{0,39}$',false); v_desc:=ami_wk_txt(p_data,'description',2,200,true);
+ v_phase:=COALESCE(ami_wk_txt(p_data,'phase',1,10,false),'estimate');
+ IF v_phase NOT IN('estimate','actual') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_qty:=ami_wk_num(p_data,'qty',0.001,1e9,true); IF v_qty<>round(v_qty,3) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_cost:=ami_wk_num(p_data,'unit_cost',0,1e12,false); IF v_cost IS NOT NULL AND v_cost<>round(v_cost,2) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ pay:=jsonb_build_object('wo',p_wo,'d',p_data);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'wo_spares',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO w FROM am_work_orders WHERE id=p_wo AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND OR NOT ami_wk_visible(c,w) THEN RAISE EXCEPTION 'am_denied'; END IF;
+ IF NOT (ami_wk_auth(c,w,'work') IS NULL OR (v_phase='estimate' AND ami_wk_auth(c,w,'edit') IS NULL)) THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ IF w.status='CANCELLED' THEN RAISE EXCEPTION 'am_wo_cancelled_is_final'; END IF;
+ IF NOT ((v_phase='actual' AND w.status='IN_PROGRESS') OR (v_phase='estimate' AND w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS'))) THEN RAISE EXCEPTION 'am_wo_not_editable'; END IF;
+ INSERT INTO am_wo_spares(tenant_id,business_id,work_order_id,item_ref,description,phase,qty,unit_cost,stock_effect,recorded_by)
+ VALUES(w.tenant_id,p_business,w.id,v_ref,v_desc,v_phase,v_qty,v_cost,false,c.user_id) RETURNING id INTO sid;
+ PERFORM ami_log(c.tenant_id,p_business,'work_order',w.id::text,'wo.spares',NULL,jsonb_build_object('spares_id',sid,'qty',v_qty,'unit_cost',v_cost,'phase',v_phase,'stock_effect',false),NULL,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_spares',pay,jsonb_build_object('status','applied','id',sid,'work_order_id',w.id,'stock_effect',false));
+END$$;
+
+CREATE FUNCTION c10_demo.am_wo_add_attachment_v1(p_business bigint,p_request text,p_wo bigint,p_data jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; w am_work_orders; pay jsonb; v_name text; v_mime text; v_size numeric; v_sha text; v_ref text; v_kind text; v_cap text; aid bigint;
+BEGIN
+ IF p_wo IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ PERFORM ami_wk_keys(p_data,ARRAY['file_name','mime','size_bytes','sha256','storage_ref','kind','caption']);
+ v_name:=ami_wk_re(p_data,'file_name','^[A-Za-z0-9][A-Za-z0-9._ -]{0,99}$',true);
+ v_mime:=ami_wk_txt(p_data,'mime',1,40,true);
+ IF v_mime NOT IN('image/jpeg','image/png','image/webp','application/pdf','text/plain') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_size:=ami_wk_num(p_data,'size_bytes',1,26214400,true); IF v_size<>trunc(v_size) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_sha:=ami_wk_re(p_data,'sha256','^[0-9a-f]{64}$',true);
+ v_ref:=ami_wk_re(p_data,'storage_ref','^[A-Za-z0-9][A-Za-z0-9._/-]{0,199}$',true);
+ -- metadata only: no traversal, no absolute / URL-like / hidden-segment refs
+ IF v_ref ~ '(^|/)\.\.?(/|$)' OR v_ref LIKE '%//%' OR v_ref ~ '(^|/)\.' OR v_ref ~* '^[a-z][a-z0-9+.-]*:' OR v_name LIKE '%..%' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_kind:=COALESCE(ami_wk_txt(p_data,'kind',1,12,false),'photo');
+ IF v_kind NOT IN('photo','document','certificate','report') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_cap:=ami_wk_txt(p_data,'caption',1,200,false);
+ pay:=jsonb_build_object('wo',p_wo,'d',p_data);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'wo_attach',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO w FROM am_work_orders WHERE id=p_wo AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND OR NOT ami_wk_visible(c,w) THEN RAISE EXCEPTION 'am_denied'; END IF;
+ IF ami_wk_auth(c,w,'attachment') IS NOT NULL THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ IF w.status='CANCELLED' THEN RAISE EXCEPTION 'am_wo_cancelled_is_final'; END IF;
+ IF w.status NOT IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS','COMPLETED','VERIFIED') THEN RAISE EXCEPTION 'am_wo_not_editable'; END IF;
+ BEGIN
+  INSERT INTO am_wo_attachments(tenant_id,business_id,work_order_id,file_name,mime,size_bytes,sha256,storage_ref,kind,caption,recorded_by)
+  VALUES(w.tenant_id,p_business,w.id,v_name,v_mime,v_size::bigint,v_sha,v_ref,v_kind,v_cap,c.user_id) RETURNING id INTO aid;
+ EXCEPTION WHEN unique_violation THEN RAISE EXCEPTION 'am_duplicate_attachment'; END;
+ PERFORM ami_log(c.tenant_id,p_business,'work_order',w.id::text,'wo.attachment',NULL,jsonb_build_object('attachment_id',aid,'file_name',v_name,'sha256',v_sha,'kind',v_kind),NULL,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_attach',pay,jsonb_build_object('status','applied','id',aid,'work_order_id',w.id));
+END$$;
+
+CREATE FUNCTION c10_demo.am_acknowledge_safety_v1(p_business bigint,p_request text,p_wo bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; w am_work_orders; pay jsonb; fresh boolean:=false;
+BEGIN
+ IF p_wo IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ pay:=jsonb_build_object('wo',p_wo);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'wo_safety',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO w FROM am_work_orders WHERE id=p_wo AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND OR NOT ami_wk_visible(c,w) THEN RAISE EXCEPTION 'am_denied'; END IF;
+ IF ami_wk_auth(c,w,'start') IS NOT NULL AND ami_wk_auth(c,w,'work') IS NOT NULL THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ IF w.status='CANCELLED' THEN RAISE EXCEPTION 'am_wo_cancelled_is_final'; END IF;
+ IF w.status NOT IN('APPROVED','IN_PROGRESS') THEN RAISE EXCEPTION 'am_wo_illegal_transition'; END IF;
+ IF w.safety_ack_at IS NULL THEN
+  UPDATE am_work_orders SET safety_ack_by=c.user_id,safety_ack_at=now(),updated_at=now() WHERE id=w.id RETURNING * INTO w; fresh:=true;
+  PERFORM ami_wk_hist(w,w.status,w.status,'safety_ack',NULL,p_request);
+  PERFORM ami_log(c.tenant_id,p_business,'work_order',w.id::text,'wo.safety_ack',NULL,jsonb_build_object('safety_ack_by',c.user_id,'safety_ack_at',w.safety_ack_at),NULL,p_request);
+ END IF;
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_safety',pay,jsonb_build_object('status','applied','id',w.id,'safety_ack_at',w.safety_ack_at,'newly_acknowledged',fresh));
+END$$;
+
+-- ===================== merge =====================
+CREATE FUNCTION c10_demo.am_merge_work_orders_v1(p_business bigint,p_request text,p_keep bigint,p_merge bigint,p_reason text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; k am_work_orders; m am_work_orders; nm am_work_orders; nk am_work_orders; pay jsonb; rsn text; moved int;
+BEGIN
+ IF p_keep IS NULL OR p_merge IS NULL OR p_keep=p_merge THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ rsn:=ami_wk_reason(p_reason,true);
+ pay:=jsonb_build_object('k',p_keep,'m',p_merge,'r',rsn);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'wo_merge',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO k FROM am_work_orders WHERE id=LEAST(p_keep,p_merge) AND business_id=p_business FOR UPDATE;
+ SELECT * INTO m FROM am_work_orders WHERE id=GREATEST(p_keep,p_merge) AND business_id=p_business FOR UPDATE;
+ IF p_keep>p_merge THEN SELECT * INTO nk FROM am_work_orders WHERE id=p_keep; k:=nk; SELECT * INTO m FROM am_work_orders WHERE id=p_merge; END IF;
+ IF k.id IS NULL OR m.id IS NULL OR k.id<>p_keep OR m.id<>p_merge THEN RAISE EXCEPTION 'am_denied'; END IF;
+ IF NOT ami_wk_visible(c,k) OR NOT ami_wk_visible(c,m) THEN RAISE EXCEPTION 'am_denied'; END IF;
+ IF ami_wk_auth(c,k,'merge') IS NOT NULL OR ami_wk_auth(c,m,'merge') IS NOT NULL THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ IF k.status='CANCELLED' OR m.status='CANCELLED' THEN RAISE EXCEPTION 'am_wo_cancelled_is_final'; END IF;
+ IF k.asset_id<>m.asset_id THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF k.status NOT IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS') OR m.status NOT IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS') THEN RAISE EXCEPTION 'am_wo_illegal_transition'; END IF;
+ UPDATE am_work_orders SET status='CANCELLED',merged_into_id=k.id,cancel_reason='merged into '||k.wo_no||': '||rsn,last_reason=rsn,version=version+1,updated_at=now()
+  WHERE id=m.id RETURNING * INTO nm;
+ UPDATE am_work_orders SET version=version+1,updated_at=now() WHERE id=k.id RETURNING * INTO nk;
+ UPDATE am_downtime SET work_order_id=k.id WHERE work_order_id=m.id; GET DIAGNOSTICS moved=ROW_COUNT;
+ PERFORM ami_wk_hist(nm,m.status,'CANCELLED','merge',rsn,p_request);
+ PERFORM ami_wk_hist(nk,k.status,k.status,'merge_in','absorbed '||m.wo_no||': '||rsn,p_request);
+ PERFORM ami_wk_restore_asset(k.asset_id,p_request);
+ PERFORM ami_log(c.tenant_id,p_business,'work_order',m.id::text,'wo.merge',ami_wk_state(m),ami_wk_state(nm)||jsonb_build_object('merged_into_id',k.id),rsn,p_request);
+ PERFORM ami_log(c.tenant_id,p_business,'work_order',k.id::text,'wo.merge_in',ami_wk_state(k),ami_wk_state(nk)||jsonb_build_object('absorbed_id',m.id),rsn,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_merge',pay,jsonb_build_object('status','applied','keep_id',k.id,'merged_id',m.id,'keep_version',nk.version,
+   'merged_version',nm.version,'downtime_windows_relinked',moved));
+END$$;
