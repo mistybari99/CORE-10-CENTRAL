@@ -1,0 +1,475 @@
+{
+  "schema_version": 1,
+  "id": "core10.universal_control_studio",
+  "scope": "cross_industry",
+  "operational_status": "contract_only",
+  "decision_refs": [
+    "C10-D033",
+    "C10-D037",
+    "C10-D041"
+  ],
+  "requirement_refs": [
+    "R014",
+    "R015",
+    "R016",
+    "R017",
+    "R018",
+    "R019",
+    "R020",
+    "R021",
+    "R022",
+    "R023",
+    "R024",
+    "R025",
+    "R026",
+    "R035",
+    "R036",
+    "R079"
+  ],
+  "scope_levels": [
+    "platform",
+    "tenant",
+    "business",
+    "site",
+    "role",
+    "user"
+  ],
+  "protected_invariants": [
+    "identity.verified",
+    "isolation.tenant",
+    "isolation.business",
+    "isolation.site",
+    "authorization.server_side",
+    "revocation.immediate",
+    "audit.immutable",
+    "ledger.atomic",
+    "accounting.balanced",
+    "release.readiness_gate"
+  ],
+  "controls": [
+    {
+      "id": "inventory.count",
+      "group": "inventory",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "inventory.count.read",
+        "inventory.count.submit",
+        "inventory.count.approve",
+        "inventory.count.post"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "inventory.transfer",
+      "group": "inventory",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "inventory.transfer.read",
+        "inventory.transfer.post"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "sales.orders",
+      "group": "sales",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "sales.orders.create",
+        "sales.orders.post"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "purchase.receiving",
+      "group": "purchasing",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "purchase.receiving.create",
+        "purchase.receiving.post"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "production.workflows",
+      "group": "operations",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "production.workflows.create",
+        "production.workflows.post"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "projects.operations",
+      "group": "operations",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "projects.operations.manage"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "finance.reports",
+      "group": "finance",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "finance.reports.read"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "finance.payments",
+      "group": "finance",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "finance.payments.create",
+        "finance.payments.approve"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "workforce.payroll",
+      "group": "workforce",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "workforce.payroll.read",
+        "workforce.payroll.approve"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "approvals.owner_queue",
+      "group": "approvals",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "approvals.owner_queue.read",
+        "approvals.owner_queue.decide"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "approvals.delegation",
+      "group": "approvals",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [
+        "approvals.owner_queue"
+      ],
+      "actions": [
+        "approvals.delegation.request"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "data.export",
+      "group": "data",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "data.export.request"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "offline.drafts",
+      "group": "offline",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "offline.drafts.create",
+        "offline.drafts.sync"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "automation.events",
+      "group": "automation",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "automation.events.manage"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "integration.connectors",
+      "group": "integration",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "integration.connectors.manage"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "ai.agent_proposals",
+      "group": "automation",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [
+        "approvals.owner_queue"
+      ],
+      "actions": [
+        "ai.agent_proposals.submit"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "ui.favorites",
+      "group": "experience",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "ui.favorites.manage"
+      ],
+      "readiness": "contract_only"
+    },
+    {
+      "id": "alerts.notifications",
+      "group": "notifications",
+      "type": "switch",
+      "default": "off",
+      "options": [
+        "on",
+        "off"
+      ],
+      "scopes": [
+        "platform",
+        "tenant",
+        "business",
+        "site"
+      ],
+      "dependencies": [],
+      "actions": [
+        "alerts.notifications.manage"
+      ],
+      "readiness": "contract_only"
+    }
+  ],
+  "visibility_modes": [
+    "show",
+    "locked",
+    "hidden"
+  ],
+  "decision_modes": [
+    "allow",
+    "warn",
+    "block",
+    "request_approval"
+  ],
+  "micro_engine_types": [
+    "workflow",
+    "rule",
+    "calculator",
+    "report",
+    "validator",
+    "approval",
+    "notification",
+    "automation",
+    "integration"
+  ],
+  "proposal_lifecycle": [
+    "draft",
+    "proposed",
+    "reviewed",
+    "approved",
+    "rejected",
+    "applied",
+    "reverted"
+  ]
+}

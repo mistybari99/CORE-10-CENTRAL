@@ -1,0 +1,121 @@
+{
+  "locations": [
+    {
+      "id": 1,
+      "code": "loc_1",
+      "kind": "showroom",
+      "org_unit_id": "3"
+    },
+    {
+      "id": 2,
+      "code": "loc_2",
+      "kind": "showroom",
+      "org_unit_id": "3"
+    },
+    {
+      "id": 3,
+      "code": "loc_3",
+      "kind": "showroom",
+      "org_unit_id": "3"
+    },
+    {
+      "id": 4,
+      "code": "loc_4",
+      "kind": "showroom",
+      "org_unit_id": "3"
+    },
+    {
+      "id": 5,
+      "code": "loc_5",
+      "kind": "factory",
+      "org_unit_id": "3"
+    },
+    {
+      "id": 6,
+      "code": "loc_6",
+      "kind": "factory",
+      "org_unit_id": "3"
+    },
+    {
+      "id": 7,
+      "code": "loc_7",
+      "kind": "godown",
+      "org_unit_id": "3"
+    },
+    {
+      "id": 9,
+      "code": "loc_9",
+      "kind": "factory",
+      "org_unit_id": "3"
+    }
+  ],
+  "org_units": [
+    {
+      "id": "1",
+      "kind": "group",
+      "client_id": null,
+      "parent_id": null,
+      "template_code": null
+    },
+    {
+      "id": "2",
+      "kind": "legal_entity",
+      "client_id": null,
+      "parent_id": "1",
+      "template_code": null
+    },
+    {
+      "id": "3",
+      "kind": "business",
+      "client_id": null,
+      "parent_id": "2",
+      "template_code": "food_manufacturing"
+    },
+    {
+      "id": "4",
+      "kind": "legal_entity",
+      "client_id": "client_1",
+      "parent_id": "1",
+      "template_code": null
+    }
+  ],
+  "privacy_note": "No business names, account info, raw client UUIDs, or unmasked location codes; structural fixture only.",
+  "schema_version": 1,
+  "source_project": "IMG-ERP-SG",
+  "captured_at_utc": "2026-11-09T23:59:11Z",
+  "business_profiles": [
+    {
+      "org_unit_id": "3"
+    }
+  ],
+  "business_templates": [
+    {
+      "code": "construction",
+      "status": "not_implemented"
+    },
+    {
+      "code": "dealership",
+      "status": "not_implemented"
+    },
+    {
+      "code": "food_manufacturing",
+      "status": "available"
+    },
+    {
+      "code": "hardware_paint",
+      "status": "not_implemented"
+    },
+    {
+      "code": "import_export",
+      "status": "needs_setup"
+    },
+    {
+      "code": "online_store",
+      "status": "not_implemented"
+    },
+    {
+      "code": "technology",
+      "status": "not_implemented"
+    }
+  ]
+}

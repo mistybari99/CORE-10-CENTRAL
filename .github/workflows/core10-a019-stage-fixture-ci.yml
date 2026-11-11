@@ -1,0 +1,122 @@
+# C10-A019 / REV-009 — ONLY disposable PostgreSQL 17; NEVER live Supabase/SG.
+# Fake auth.users IDs prove relational setup, NOT GoTrue signature correctness.
+name: C10-A019 disposable six-Auth-identity staging fixture and RLS contract
+on:
+  push:
+    branches: ['feature/c10-a018-*']
+    paths:
+      - 'internal/enterprise-sql/c10_a019_real_auth_stage_fixture_v1.sql'
+      - 'tests/c10_a019_real_auth_fixture_fake_users.sql'
+      - 'tests/c10_a019_real_auth_stage_fixture_e2e.sql'
+      - '.github/workflows/core10-a019-stage-fixture-ci.yml'
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a019_real_auth_stage_fixture_v1.sql'
+      - 'tests/c10_a019_real_auth_fixture_fake_users.sql'
+      - 'tests/c10_a019_real_auth_stage_fixture_e2e.sql'
+      - '.github/workflows/core10-a019-stage-fixture-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  disposable-stage-fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: c10_stage_fixture_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d c10_stage_fixture_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGDATABASE: c10_stage_fixture_ci
+      PGUSER: postgres
+      PGPASSWORD: disposable_ci_only
+      C10_A: a1111111-1111-4111-8111-111111111111
+      C10_B: b2222222-2222-4222-8222-222222222222
+      C10_STAFF: c3333333-3333-4333-8333-333333333333
+      C10_INVESTOR: d4444444-4444-4444-8444-444444444444
+      C10_REVOKED: e5555555-5555-4555-8555-555555555555
+      C10_OPERATOR: f6666666-6666-4666-8666-666666666666
+      C10_STAGE_REF: bbbbbbbbbbbbbbbbbbbb
+      C10_STAGE_ACK: I_CONFIRM_DISPOSABLE_STAGING
+      C10_SQL: internal/enterprise-sql/c10_a019_real_auth_stage_fixture_v1.sql
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare entirely disposable PostgreSQL 17 neutral schema
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+      - name: Refuse stage seed without an Auth user table (must leave DB empty)
+        run: |
+          if psql -X -v ON_ERROR_STOP=1 \
+            -v stage_ref="$C10_STAGE_REF" -v stage_ack="$C10_STAGE_ACK" \
+            -v tenantOwnerA="$C10_A" -v tenantOwnerB="$C10_B" \
+            -v siteStaffA="$C10_STAFF" -v investorA="$C10_INVESTOR" \
+            -v revokedA="$C10_REVOKED" -v platformOperator="$C10_OPERATOR" \
+            -f "$C10_SQL"; then
+            echo "CRITICAL: fixture ran without Auth identities"; exit 1
+          fi
+          [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.tenants')" = 0 ]
+      - name: Create FAKE auth.users schema for offline relational tests only
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a019_real_auth_fixture_fake_users.sql
+      - name: Refuse production project ref, reject nonexistent sixth user (transactional failure)
+        run: |
+          if psql -X -v ON_ERROR_STOP=1 \
+            -v stage_ref="kbuhnpqooycqbzrfejcs" -v stage_ack="$C10_STAGE_ACK" \
+            -v tenantOwnerA="$C10_A" -v tenantOwnerB="$C10_B" \
+            -v siteStaffA="$C10_STAFF" -v investorA="$C10_INVESTOR" \
+            -v revokedA="$C10_REVOKED" -v platformOperator="$C10_OPERATOR" \
+            -f "$C10_SQL"; then
+            echo "CRITICAL: production ref allowed"; exit 1
+          fi
+          if psql -X -v ON_ERROR_STOP=1 \
+            -v stage_ref="$C10_STAGE_REF" -v stage_ack="$C10_STAGE_ACK" \
+            -v tenantOwnerA="$C10_A" -v tenantOwnerB="$C10_B" \
+            -v siteStaffA="$C10_STAFF" -v investorA="$C10_INVESTOR" \
+            -v revokedA="$C10_REVOKED" -v platformOperator="f9999999-9999-4999-8999-999999999999" \
+            -f "$C10_SQL"; then
+            echo "CRITICAL: nonexisting user accepted"; exit 1
+          fi
+          [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.tenants')" = 0 ]
+      - name: Install disposable six synthetic Auth user role bindings and sites (NO live Auth)
+        run: |
+          psql -X -v ON_ERROR_STOP=1 \
+            -v stage_ref="$C10_STAGE_REF" -v stage_ack="$C10_STAGE_ACK" \
+            -v tenantOwnerA="$C10_A" -v tenantOwnerB="$C10_B" \
+            -v siteStaffA="$C10_STAFF" -v investorA="$C10_INVESTOR" \
+            -v revokedA="$C10_REVOKED" -v platformOperator="$C10_OPERATOR" \
+            -f "$C10_SQL"
+      - name: Check six role RLS ownership, cross-tenant denies, revoked, investor and operator
+        run: |
+          psql -X -v ON_ERROR_STOP=1 \
+            -v tenantOwnerA="$C10_A" -v tenantOwnerB="$C10_B" \
+            -v siteStaffA="$C10_STAFF" -v investorA="$C10_INVESTOR" \
+            -v revokedA="$C10_REVOKED" -v platformOperator="$C10_OPERATOR" \
+            -f tests/c10_a019_real_auth_stage_fixture_e2e.sql
+      - name: Refuse rerun against nonempty staged business data
+        run: |
+          if psql -X -v ON_ERROR_STOP=1 \
+            -v stage_ref="$C10_STAGE_REF" -v stage_ack="$C10_STAGE_ACK" \
+            -v tenantOwnerA="$C10_A" -v tenantOwnerB="$C10_B" \
+            -v siteStaffA="$C10_STAFF" -v investorA="$C10_INVESTOR" \
+            -v revokedA="$C10_REVOKED" -v platformOperator="$C10_OPERATOR" \
+            -f "$C10_SQL"; then
+            echo "CRITICAL: fixture rewrote populated schema"; exit 1
+          fi
+          [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.tenants')" = 2 ]
+      - name: Print exact certification boundary
+        run: echo 'PASS DISPOSABLE PG17 ONLY. Fake auth.users IDs, no GoTrue token signatures or real staging/production accessed.'
