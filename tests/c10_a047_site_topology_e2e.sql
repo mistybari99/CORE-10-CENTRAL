@@ -21,10 +21,10 @@ BEGIN
   RAISE EXCEPTION 'A047_BOOTSTRAP_FAILED'; END IF;
  IF (c10_demo.bootstrap_site_groups_v1(101,'boot-101-001')->>'new_members')<>'0' THEN
   RAISE EXCEPTION 'A047_BOOTSTRAP_NOT_IDEMPOTENT'; END IF;
- IF (SELECT count(*) FROM c10_demo.site_group_members_v1 WHERE business_id=101)<>2 THEN
+ IF (SELECT COALESCE(sum(jsonb_array_length(g->'sites')),0) FROM jsonb_array_elements(c10_demo.read_site_topology_v1(101)->'groups') g)<>2 THEN
   RAISE EXCEPTION 'A047_ORIGINAL_SITE_MEMBERS_LOST'; END IF;
  PERFORM c10_demo.bootstrap_site_groups_v1(102,'boot-102-001');
- IF (SELECT count(*) FROM c10_demo.site_group_members_v1 WHERE business_id=102)<>1 THEN
+ IF (SELECT COALESCE(sum(jsonb_array_length(g->'sites')),0) FROM jsonb_array_elements(c10_demo.read_site_topology_v1(102)->'groups') g)<>1 THEN
   RAISE EXCEPTION 'A047_SECOND_BUSINESS_NOT_GROUPED'; END IF;
  one:=c10_demo.create_site_group_v1(101,'showroom','north_showrooms','North Showrooms','group-north-001');
  two:=c10_demo.create_site_group_v1(101,'showroom','north_showrooms','North Showrooms','group-north-001');
@@ -58,14 +58,14 @@ BEGIN
  sid:=(one->>'site_id')::bigint;
  IF (SELECT count(*) FROM c10_demo.sites WHERE id=sid AND business_id=101 AND kind='showroom')<>1 OR
   (SELECT count(*) FROM c10_demo.stock_locations WHERE site_id=sid)<>1 OR
-  (SELECT group_id FROM c10_demo.site_group_members_v1 WHERE site_id=sid)<>g THEN
+  (one->>'group_id')::bigint<>g THEN
   RAISE EXCEPTION 'A047_CANONICAL_SITE_AND_LOCATION_NOT_CREATED'; END IF;
  v:=c10_demo.read_site_topology_v1(101);
  IF v->>'server_authorized'<>'true' OR v->>'can_manage'<>'true' OR
   jsonb_array_length(v->'groups')<>6 OR jsonb_array_length(v->'ungrouped')<>0 THEN
   RAISE EXCEPTION 'A047_OWNER_GROUPED_READ_INVALID'; END IF;
  IF (c10_demo.read_site_topology_audit_v1(101,50)->'items')='[]'::jsonb OR
-  (SELECT count(*) FROM c10_demo.site_group_audit_v1 WHERE business_id=101 AND event_kind='site_moved')<>1 THEN
+  (SELECT count(*) FROM jsonb_array_elements(c10_demo.read_site_topology_audit_v1(101,50)->'items') ev WHERE ev->>'event_kind'='site_moved')<>1 THEN
   RAISE EXCEPTION 'A047_AUDIT_MISSING'; END IF;
  BEGIN
   PERFORM c10_demo.create_site_group_v1(101,'factory','north_showrooms','Kind mismatch','group-north-001');
