@@ -92,6 +92,67 @@
     .select("business_id,site_id,location_id,item_id,on_hand,ledger_units,reconciled")
     .eq("business_id",Number(businessId)).limit(200));
   }
+  // C10-A038: signed-session stocktake READ models. Authorization is always
+  // evaluated by c10_demo RLS; a browser role tab is never a permission check.
+  // Never POST stocktake, approval, adjustment or ledger from this bridge until
+  // real Supabase Auth staging + OWNER release gates have been completed.
+  function positiveId(value,code){
+   if(typeof value==="string"&&!/^[1-9][0-9]*$/.test(value))fail(code);
+   if(typeof value!=="number"&&typeof value!=="string")fail(code);
+   var n=Number(value);
+   if(!Number.isSafeInteger(n)||n<1)fail(code);
+   return n;
+  }
+  var TAKE_STATUSES={draft:true,submitted:true,approved:true,posted:true,voided:true};
+  async function listStocktakes(businessId,options){
+   var id=positiveId(businessId,"INVALID_BUSINESS_ID"),opts=options||{};
+   if(!object(opts)||Object.keys(opts).some(function(k){return k!=="status"&&k!=="locationId"}) )
+    fail("INVALID_STOCKTAKE_FILTER");
+   if(opts.status!==undefined&&!TAKE_STATUSES[opts.status])fail("INVALID_STOCKTAKE_STATUS");
+   var loc=opts.locationId===undefined?null:positiveId(opts.locationId,"INVALID_LOCATION_ID");
+   var db=await scope("read");
+   var q=db.from("stocktakes_v1")
+    .select("id,business_id,site_id,location_id,status,counted_by,created_at,submitted_at,reviewed_by,posted_at")
+    .eq("business_id",id);
+   if(loc!==null)q=q.eq("location_id",loc);
+   if(opts.status!==undefined)q=q.eq("status",opts.status);
+   return unwrap(await q.order("id",{ascending:false}).limit(100));
+  }
+  async function listStocktakeLines(businessId,stocktakeId){
+   var id=positiveId(businessId,"INVALID_BUSINESS_ID"),
+    take=positiveId(stocktakeId,"INVALID_STOCKTAKE_ID");
+   var db=await scope("read");
+   return unwrap(await db.from("stocktake_lines_v1")
+    .select("stocktake_id,business_id,location_id,item_id,counted_quantity,expected_quantity,adjustment_movement_id")
+    .eq("business_id",id).eq("stocktake_id",take)
+    .order("item_id",{ascending:true}).limit(500));
+  }
+  async function listStocktakeDiscrepancy(businessId,stocktakeId){
+   var id=positiveId(businessId,"INVALID_BUSINESS_ID"),
+    take=positiveId(stocktakeId,"INVALID_STOCKTAKE_ID");
+   var db=await scope("read");
+   return unwrap(await db.from("stocktake_discrepancy_v1")
+    .select("stocktake_id,business_id,site_id,location_id,status,item_id,expected_quantity,counted_quantity,difference,adjustment_movement_id")
+    .eq("business_id",id).eq("stocktake_id",take)
+    .order("item_id",{ascending:true}).limit(500));
+  }
+  async function listStocktakeAudit(businessId,stocktakeId){
+   var id=positiveId(businessId,"INVALID_BUSINESS_ID"),
+    take=positiveId(stocktakeId,"INVALID_STOCKTAKE_ID");
+   var db=await scope("read");
+   // Verify the document belongs to the requested business under RLS before
+   // asking for its audit events (audit row itself has no business_id column).
+   var allowed=unwrap(await db.from("stocktakes_v1").select("id")
+    .eq("business_id",id).eq("id",take).limit(1));
+   if(!Array.isArray(allowed)||allowed.length!==1||allowed[0].id!==take)
+    return [];
+   return unwrap(await db.from("stocktake_audit_v1")
+    .select("id,stocktake_id,event,actor_uid,occurred_at")
+    .eq("stocktake_id",take).order("id",{ascending:true}).limit(100));
+  }
+  async function stocktakeWriteLocked(){
+   fail("C10_A038_REAL_AUTH_AND_OWNER_RELEASE_REQUIRED");
+  }
   async function setupBusiness(input){
    var values=validateSetup(input);
    var db=await scope("write");
@@ -105,6 +166,14 @@
    listBusinesses:listBusinesses,
    listSetupOverview:listSetupOverview,
    listStockReconciliation:listStockReconciliation,
+   listStocktakes:listStocktakes,
+   listStocktakeLines:listStocktakeLines,
+   listStocktakeDiscrepancy:listStocktakeDiscrepancy,
+   listStocktakeAudit:listStocktakeAudit,
+   createStocktake:stocktakeWriteLocked,
+   approveStocktake:stocktakeWriteLocked,
+   postStocktake:stocktakeWriteLocked,
+   voidStocktake:stocktakeWriteLocked,
    setupBusiness:setupBusiness
   });
  }
