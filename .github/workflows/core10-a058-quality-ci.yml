@@ -75,6 +75,12 @@ jobs:
         run: |
           if [ -f modules/quality/quality-client.mjs ]; then node --check modules/quality/quality-client.mjs; fi
           if [ -f modules/quality/quality-demo.mjs ]; then node --check modules/quality/quality-demo.mjs; fi
+          if [ -f modules/quality/quality-workbench.mjs ]; then node --check modules/quality/quality-workbench.mjs; fi
       - name: Run mock adapter, guided workflow and report tests
         run: |
-          if [ -f modules/quality/quality-contract.test.mjs ]; then node --test modules/quality/quality-contract.test.mjs; else echo "Client pending"; fi
+          node --test modules/quality/quality-contract.test.mjs modules/quality/quality-demo.test.mjs
+      - name: Verify sandbox-only preview policy
+        run: |
+          grep -q "connect-src" modules/quality/index.html
+          grep -q "IN-MEMORY DEMO" modules/quality/index.html
+          grep -q "never connects to production" modules/quality/quality-workbench.mjs
