@@ -193,17 +193,17 @@ END$$;
 
 CREATE FUNCTION c10_demo.decide_control_setting_v1(p_request_id bigint,p_decision text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
-DECLARE r c10_demo.control_setting_requests_v1%ROWTYPE; t bigint; v_version bigint; v_out jsonb;
+DECLARE r c10_demo.control_setting_requests_v1%ROWTYPE; t bigint; v_version bigint; v_business bigint;
 BEGIN
  IF c10_demo.actor_uid() IS NULL OR p_decision NOT IN('approve','reject') OR p_decision IS NULL
  THEN RAISE EXCEPTION 'invalid_control_decision'; END IF;
- SELECT business_id INTO r.business_id FROM c10_demo.control_setting_requests_v1 WHERE id=p_request_id;
- IF r.business_id IS NULL THEN RAISE EXCEPTION 'control_request_not_found'; END IF;
- SELECT tenant_id INTO t FROM c10_demo.businesses WHERE id=r.business_id FOR UPDATE;
+ SELECT business_id INTO v_business FROM c10_demo.control_setting_requests_v1 WHERE id=p_request_id;
+ IF v_business IS NULL THEN RAISE EXCEPTION 'control_request_not_found'; END IF;
+ SELECT tenant_id INTO t FROM c10_demo.businesses WHERE id=v_business FOR UPDATE;
  IF t IS NULL OR NOT c10_demo.can_tenant(t) THEN RAISE EXCEPTION 'control_approval_denied'; END IF;
  SELECT * INTO r FROM c10_demo.control_setting_requests_v1 WHERE id=p_request_id FOR UPDATE;
  IF r.status<>'pending' THEN
-   IF r.status=CASE WHEN p_decision='approve' THEN 'approved' ELSE 'rejected' END
+   IF r.status=(CASE WHEN p_decision='approve' THEN 'approved' ELSE 'rejected' END)
    THEN RETURN jsonb_build_object('status',r.status); END IF;
    RAISE EXCEPTION 'control_decision_conflict';
  END IF;
