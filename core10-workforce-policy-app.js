@@ -117,7 +117,7 @@ SCREENS.integration=async function(body){
     ...b.workforce.headcount_by_site.map(s=>kv(L("Site ","সাইট ")+s.site_id,s.n)),
     h("h4",{text:L("Salary liability (owner only)","বেতন-দায় (শুধু মালিক)")}),
     kv(L("Approved payroll (net)","অনুমোদিত পে-রোল (নেট)"),money(b.liability.net_approved_preview)),
-    kv(L("Run state","অবস্থা"),null),h("div",{},stateChip(b.liability.state)),
+    h("div",{class:"kv"},h("span",{text:L("Run state","অবস্থা")}),stateChip(b.liability.state)),
     b.liability.approved_unpaid?[kv(L("Approved - payment NOT recorded","অনুমোদিত - পেমেন্ট নথিভুক্ত নয়"),money(b.liability.approved_unpaid.approved_unpaid_amount)),
       kv(L("Partly paid: still owed","আংশিক: এখনও বকেয়া"),money(b.liability.approved_unpaid.partially_paid_outstanding)),
       kv(L("Paid outside system (recorded)","সিস্টেমের বাইরে পরিশোধ (নথিভুক্ত)"),money(b.liability.approved_unpaid.paid_recorded_amount)),
