@@ -65,7 +65,8 @@ BEGIN
  IF (SELECT expected_quantity FROM c10_demo.stocktake_lines_v1
     WHERE stocktake_id=v_id AND item_id=8001)<>10 THEN
   RAISE EXCEPTION 'server_side_expected_snapshot_missing'; END IF;
- IF (SELECT count(*) FROM c10_demo.stock_movements)<>2 OR
+ -- Site staff can see only their granted showroom journal (not factory).
+ IF (SELECT count(*) FROM c10_demo.stock_movements WHERE location_id=5001)<>1 OR
     (SELECT on_hand FROM c10_demo.stock_balances_v1
      WHERE location_id=5001 AND item_id=8001)<>10 THEN
   RAISE EXCEPTION 'unapproved_count_changed_stock'; END IF;
