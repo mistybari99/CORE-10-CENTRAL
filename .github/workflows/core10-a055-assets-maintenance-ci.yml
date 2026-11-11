@@ -1,0 +1,109 @@
+# C10-A055 Enterprise Assets & Maintenance — isolated PostgreSQL 17 + signed-HMAC PostgREST + Node + Chromium.
+# No Supabase staging/production access, no real business data, no service keys. NOT a GoTrue verification.
+name: CORE10 A055 Enterprise Assets Maintenance CI
+on:
+  push:
+    branches: ['claude/c10-a055-*']
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a055_assets_*.sql'
+      - 'tests/c10_a055_*'
+      - 'tests/api/core10-a055-*'
+      - 'tests/e2e/core10-a055-*'
+      - 'tests/fixtures/core10-a055-*'
+      - 'core10-asset-maintenance-*'
+      - 'docs/architecture/C10_A055_*.md'
+      - '.github/workflows/core10-a055-*.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  assets-maintenance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_a055_disposable
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_only_disposable
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_a055_disposable"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGDATABASE: core10_a055_disposable
+      PGUSER: postgres
+      PGPASSWORD: ci_only_disposable
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Disposable authenticated/anon roles
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+      - name: Per-area SQL end-to-end (fresh database each; A018 baseline + all A055 SQL + synthetic personas)
+        run: |
+          set -e
+          for area in policy registry planning workorders reports; do
+            echo "=== A055 $area e2e ==="
+            tests/c10_a055_load.sh "am_${area}"
+            PGDATABASE="am_${area}" psql -X -v ON_ERROR_STOP=1 -f "tests/c10_a055_${area}_e2e.sql"
+          done
+      - name: Cross-module integrated SQL end-to-end (UI-equivalent RPC chain → audit → reports)
+        run: |
+          set -e
+          tests/c10_a055_load.sh core10_a055_disposable
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a055_integrated_e2e.sql
+      - name: Real parallel-session concurrency, idempotency and races
+        run: bash tests/c10_a055_concurrency.sh
+      - name: Client/UI contract (allow-list == SQL signatures, catalog parity, no unsafe sinks)
+        run: node tests/c10_a055_client.test.js
+      - name: Start disposable signed-HMAC PostgREST (never real Supabase)
+        env:
+          CORE10_CI_JWT_SECRET: core10_disposable_a055_ci_signer_only_2026_not_production
+        run: |
+          docker run --rm -d --name core10-a055-pgrst --network host \
+            -e PGRST_DB_URI="postgres://postgres:ci_only_disposable@127.0.0.1:5432/core10_a055_disposable" \
+            -e PGRST_DB_SCHEMAS=c10_demo \
+            -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET="$CORE10_CI_JWT_SECRET" \
+            -e PGRST_JWT_AUD=authenticated \
+            -e PGRST_SERVER_PORT=3000 \
+            postgrest/postgrest:v12.2.12
+          for i in $(seq 1 30); do
+            code=$(curl -s --max-time 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ || true)
+            if [ "$code" = 200 ]; then exit 0; fi
+            sleep 1
+          done
+          docker logs core10-a055-pgrst
+          exit 1
+      - name: Signed-HMAC HTTP API end-to-end (claims never grant authority)
+        env:
+          CORE10_CI_JWT_SECRET: core10_disposable_a055_ci_signer_only_2026_not_production
+          CORE10_CI_REST_URL: http://127.0.0.1:3000
+        run: node tests/api/core10-a055-asset-maintenance-rest-e2e.js
+      - name: PostgREST diagnostics on failure
+        if: failure()
+        run: docker logs core10-a055-pgrst || true
+      - name: Install pinned Chromium
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-playwright" && cd "$RUNNER_TEMP/core10-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Mobile 390px and desktop 1440px real-DOM UI (synthetic signed fixture)
+        run: node tests/e2e/core10-a055-asset-maintenance-browser.js
+      - name: Certification boundary
+        run: echo 'PASS disposable PostgreSQL17 + signed-HMAC PostgREST + synthetic browser fixture only. NOT real GoTrue, NOT staging, NOT production.'
