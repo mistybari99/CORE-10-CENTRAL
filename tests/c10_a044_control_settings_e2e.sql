@@ -107,10 +107,10 @@ BEGIN;
 SET ROLE authenticated;
 SET LOCAL request.jwt.claim.sub='11111111-1111-4111-8111-111111111111';
 DO $$
-DECLARE id bigint; s jsonb;
+DECLARE request_id bigint; s jsonb;
 BEGIN
- SELECT id INTO id FROM c10_demo.control_setting_requests_v1 WHERE control_id='inventory.count' AND status='pending';
- s:=c10_demo.decide_control_setting_v1(id,'approve');
+ SELECT req.id INTO request_id FROM c10_demo.control_setting_requests_v1 req WHERE req.control_id='inventory.count' AND req.status='pending';
+ s:=c10_demo.decide_control_setting_v1(request_id,'approve');
  IF s->>'status'<>'approved' THEN RAISE EXCEPTION 'APPROVAL_FAILED'; END IF;
  IF (SELECT version FROM c10_demo.control_settings_v1 WHERE business_id=101 AND control_id='inventory.count')<>2
  THEN RAISE EXCEPTION 'APPROVAL_NOT_APPLIED'; END IF;
