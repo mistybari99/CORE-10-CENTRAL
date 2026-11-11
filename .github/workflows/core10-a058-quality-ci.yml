@@ -1,0 +1,112 @@
+name: CORE10 A058 Quality + Lot + Recall E2E (disposable PG17)
+on:
+  push:
+    branches: ["feature/c10-a058-*"]
+    paths:
+      - "internal/enterprise-sql/c10_a058_quality_lot_recall_v1.sql"
+      - "tests/c10_a058_quality_e2e.sql"
+      - "modules/quality/**"
+      - "tests/c10-a058-browser.mjs"
+      - ".github/workflows/core10-a058-quality-ci.yml"
+  pull_request:
+    paths:
+      - "internal/enterprise-sql/c10_a058_quality_lot_recall_v1.sql"
+      - "tests/c10_a058_quality_e2e.sql"
+      - "modules/quality/**"
+      - ".github/workflows/core10-a058-quality-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  quality-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_demo
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: synthetic_test_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_demo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: core10_demo
+      PGUSER: postgres
+      PGPASSWORD: synthetic_test_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Create disposable application roles
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
+      - name: Build canonical disposable tenant and business foundation
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+      - name: Load fictitious tenants, sites, roles and item fixtures
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+      - name: Install canonical serializable stock guard
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
+      - name: Install tracked-lot QC and recall module
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a058_quality_lot_recall_v1.sql
+      - name: Run full quality E2E, positive, negative and reconciliation
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a058_quality_e2e.sql
+      - name: Inspect final synthetic database integrity
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "SELECT count(*) AS lot_count, count(*) FILTER(WHERE status='recalled') AS recalled_lots FROM c10_demo.quality_lots_v1"
+          psql -v ON_ERROR_STOP=1 -c "SELECT count(*) AS divergent_balances FROM c10_demo.quality_reconciliation_v1 WHERE NOT reconciled"
+  quality-client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax check
+        run: |
+          if [ -f modules/quality/quality-client.mjs ]; then node --check modules/quality/quality-client.mjs; fi
+          if [ -f modules/quality/quality-demo.mjs ]; then node --check modules/quality/quality-demo.mjs; fi
+          if [ -f modules/quality/quality-workbench.mjs ]; then node --check modules/quality/quality-workbench.mjs; fi
+      - name: Run mock adapter, guided workflow and report tests
+        run: |
+          node --test modules/quality/quality-contract.test.mjs modules/quality/quality-demo.test.mjs
+      - name: Verify sandbox-only preview policy
+        run: |
+          grep -q "connect-src" modules/quality/index.html
+          grep -q "IN-MEMORY DEMO" modules/quality/index.html
+          grep -q "never connects to production" modules/quality/quality-workbench.mjs
+
+  quality-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install browser testing dependency
+        run: npm install --no-save --no-package-lock playwright@1.56.1
+      - name: Install Chromium and dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Verify real UI at 390px Android and 1440px desktop
+        run: node tests/c10-a058-browser.mjs
+      - name: Save visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c10-a058-responsive-quality-ui
+          path: a058-artifacts/
+          retention-days: 7
+          if-no-files-found: ignore
