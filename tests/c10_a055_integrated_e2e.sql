@@ -151,8 +151,11 @@ DO $$ DECLARE r jsonb; w bigint; d bigint; BEGIN
  PERFORM c10_demo.am_wo_add_attachment_v1(101,c10_test.k(),w,jsonb_build_object('file_name','element.jpg','mime','image/jpeg','size_bytes',2048,'sha256',repeat('b',64),'storage_ref','synthetic/it/element.jpg','kind','photo','caption','replaced part'));
  PERFORM c10_test.tr(w,'complete',NULL,'{"cause_code":"AGE","failure_code":"ELEC","action_code":"REPLACE"}');
  PERFORM c10_test.as_user('bo101');
- PERFORM c10_demo.am_end_downtime_v1(101,c10_test.k(),d,NULL,'repaired');
- PERFORM c10_test.eq(c10_demo.am_list_downtime_v1(101,'{"open":true}'::jsonb,50,0)->>'total','0','downtime closed');
+ PERFORM c10_test.eq(c10_demo.am_list_downtime_v1(101,'{"open":true}'::jsonb,50,0)->>'total','0','downtime closed by completion');
+ PERFORM c10_test.denied(format($q$SELECT c10_demo.am_end_downtime_v1(101,%L,%s,NULL,'again')$q$,c10_test.k(),d),'am_downtime_already_ended');
+ -- planned downtime window started and ended manually
+ r:=c10_demo.am_start_downtime_v1(101,c10_test.k(),c10_test.id('mixer'),'{"kind":"planned","reason_code":"PM"}'::jsonb);
+ PERFORM c10_demo.am_end_downtime_v1(101,c10_test.k(),(r->>'id')::bigint,NULL,'cleaning done');
  PERFORM c10_test.tr(w,'verify'); PERFORM c10_test.tr(w,'close');
 END $$; COMMIT;
 
@@ -161,16 +164,18 @@ BEGIN; SET LOCAL ROLE authenticated;
 DO $$ DECLARE r jsonb; csv text; BEGIN
  PERFORM c10_test.as_user('bo101');
  r:=c10_demo.am_get_asset_v1(101,c10_test.id('oven'));
- PERFORM c10_test.ok(r::text LIKE '%wo_%' OR r::text LIKE '%WO-%','asset history carries work orders');
+ PERFORM c10_test.ok(jsonb_array_length(r->'movements')>=2,'asset history carries site movements (transfer out and back)');
+ PERFORM c10_test.eq(c10_demo.am_list_work_orders_v1(101,jsonb_build_object('asset_id',c10_test.id('oven')),50,0)->>'total','2','asset history lists preventive + corrective WOs');
+ PERFORM c10_test.eq(c10_demo.am_list_downtime_v1(101,jsonb_build_object('asset_id',c10_test.id('oven')),50,0)->>'total','1','asset downtime history');
  r:=c10_demo.am_overview_v1(101,NULL); PERFORM c10_test.ok(r IS NOT NULL,'overview');
- r:=c10_demo.am_downtime_report_v1(101,current_date-30,current_date,NULL); PERFORM c10_test.ok(r::text LIKE '%oven%' OR r::text LIKE '%AST-%','downtime report names asset');
+ r:=c10_demo.am_downtime_report_v1(101,current_date-30,current_date,NULL); PERFORM c10_test.ok(r->'totals' IS NOT NULL AND r->'totals' ? 'downtime_minutes','downtime report totals present');
  r:=c10_demo.am_kpi_report_v1(101,current_date-30,current_date,NULL); PERFORM c10_test.ok(r->'cost_rollup' IS NOT NULL,'cost rollup present');
  PERFORM c10_test.ok((r->'cost_rollup')::text LIKE '%ADVISORY%','costs labelled advisory');
  r:=c10_demo.am_asset_health_report_v1(101,NULL); PERFORM c10_test.ok(r IS NOT NULL,'health');
- r:=c10_demo.am_warranty_report_v1(101,60); PERFORM c10_test.ok(r::text LIKE '%Acme%' OR r::text LIKE '%AST-%','warranty expiry report lists the oven');
+ r:=c10_demo.am_warranty_report_v1(101,60); PERFORM c10_test.ok(r::text LIKE '%Main oven%','warranty expiry report lists the oven');
  r:=c10_demo.am_reconciliation_v1(101,current_date-30,current_date); PERFORM c10_test.ok(r IS NOT NULL,'reconciliation');
  r:=c10_demo.am_integrity_report_v1(101); PERFORM c10_test.ok(r IS NOT NULL,'integrity');
- PERFORM c10_test.ok(r::text NOT LIKE '%"ok": false%' AND r::text NOT LIKE '%"failed": [%{%','integrity report has no failed checks: '||left(r::text,400));
+ PERFORM c10_test.eq(r->>'ok','true','integrity report clean: '||left(r::text,300));
  r:=c10_demo.am_export_csv_v1(101,c10_test.k(),'work_orders','{}'::jsonb); csv:=r::text;
  PERFORM c10_test.ok(csv LIKE '%WO-%','work-order CSV has rows');
  r:=c10_demo.am_audit_log_v1(101,'asset',c10_test.id('oven')::text,50,0);
