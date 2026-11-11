@@ -39,6 +39,8 @@ CREATE FUNCTION c10_test.item(j jsonb,p_plan text,p_asset text) RETURNS jsonb LA
  SELECT i FROM jsonb_array_elements(j->'items') i WHERE i->>'plan_name'=p_plan AND i->>'asset_no'=p_asset $$;
 CREATE FUNCTION c10_test.close_wo(p_id bigint) RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN SET LOCAL session_replication_role=replica; UPDATE c10_demo.am_work_orders SET status='CLOSED' WHERE id=p_id; SET LOCAL session_replication_role=origin; END$$;
+CREATE FUNCTION c10_test.wo(p_asset text) RETURNS c10_demo.am_work_orders LANGUAGE sql SECURITY DEFINER AS $$
+ SELECT w FROM c10_demo.am_work_orders w WHERE w.asset_id=c10_test.aid(p_asset) AND w.status NOT IN('CLOSED','CANCELLED') ORDER BY w.id LIMIT 1 $$;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA c10_test TO authenticated,anon;
 
 -- ===== S0 fixtures (superuser): businesses bootstrapped, assets / meters seeded WITHOUT registry RPCs =====
@@ -315,7 +317,7 @@ DO $$ DECLARE r jsonb; r2 jsonb; w record; BEGIN
  PERFORM c10_test.eq(r->>'skipped_count','0','targets of other sites are invisible, not even listed as skipped');
  PERFORM c10_test.eq(c10_test.q($s$SELECT count(*) FROM c10_demo.am_work_orders w JOIN c10_demo.am_assets a ON a.id=w.asset_id WHERE a.site_id<>1001$s$),'0','no WO outside the supervisor site');
  PERFORM c10_test.eq(c10_test.q($s$SELECT count(*) FROM c10_demo.am_work_orders$s$),'2','two work orders exist');
- SELECT * INTO w FROM c10_demo.am_work_orders WHERE asset_id=c10_test.aid('T-OVEN-1');
+ w:=c10_test.wo('T-OVEN-1');
  PERFORM c10_test.eq(w.status,'DRAFT','generated as DRAFT by default'); PERFORM c10_test.eq(w.source,'plan','source plan'); PERFORM c10_test.eq(w.kind,'preventive','kind');
  PERFORM c10_test.eq(w.site_id::text,'1001','site from asset'); PERFORM c10_test.eq(w.plan_target_id::text,c10_test.tgt('pC','T-OVEN-1')::text,'target link');
  PERFORM c10_test.eq(w.due_on::text,c10_test.d(-2),'due_on = target due'); PERFORM c10_test.eq(w.priority,'medium','plan priority');

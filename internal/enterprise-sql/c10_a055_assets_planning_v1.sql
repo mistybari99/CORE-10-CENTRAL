@@ -670,9 +670,9 @@ BEGIN
  IF p_target_ids IS NOT NULL THEN
   FOREACH tid IN ARRAY p_target_ids LOOP
    IF tid=ANY(seen) THEN CONTINUE; END IF;
-   SELECT t.status tstatus,p.active pactive,a.status astatus,a.site_id sid,p.end_on,t.next_due_on INTO tr
-    FROM c10_demo.am_plan_targets t JOIN c10_demo.am_plans p ON p.id=t.plan_id JOIN c10_demo.am_assets a ON a.id=t.asset_id
-    WHERE t.id=tid AND t.business_id=p_business;
+   SELECT tt.status tstatus,pp.active pactive,aa.status astatus,aa.site_id sid,pp.end_on,tt.next_due_on INTO tr
+    FROM c10_demo.am_plan_targets tt JOIN c10_demo.am_plans pp ON pp.id=tt.plan_id JOIN c10_demo.am_assets aa ON aa.id=tt.asset_id
+    WHERE tt.id=tid AND tt.business_id=p_business;
    why:=CASE WHEN NOT FOUND OR NOT (tr.sid=ANY(vs)) THEN 'not_found'
              WHEN p_site IS NOT NULL AND tr.sid<>p_site THEN 'out_of_scope'
              WHEN NOT tr.pactive OR tr.tstatus<>'scheduled' OR tr.astatus IN('retired','disposed') THEN 'inactive'

@@ -315,3 +315,222 @@ DO $$ DECLARE r jsonb; r2 jsonb; a1 bigint; n0 bigint; BEGIN
  PERFORM c10_test.denied($q$SELECT c10_demo.am_create_asset_v1(101,'rg-ast-00043',jsonb_build_object('name','Remote fan','category_id',c10_test.cid(101,'GENERAL'),'site_id',1001,'parent_asset_id',$q$||a1||$q$),NULL)$q$,'am_parent_site_mismatch');
  PERFORM c10_test.denied($q$SELECT c10_demo.am_create_asset_v1(101,'rg-ast-00044',jsonb_build_object('name','Orphan child','category_id',c10_test.cid(101,'GENERAL'),'site_id',1002,'parent_asset_id',999999),NULL)$q$,'am_invalid_input');
 END $$; COMMIT;
+
+-- ===== R5 asset update (not site/status/asset_no; optimistic; assembly rules; role matrix) =====
+BEGIN; SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; a1 bigint:=c10_test.aid('Oven One'); fan bigint:=c10_test.aid('Oven One Fan'); o2 bigint:=c10_test.aid('Oven Other Make');
+ pos bigint:=c10_test.aid('POS Counter 1'); lap bigint:=c10_test.aid('Laptop no serial ok'); v bigint; BEGIN
+ PERFORM c10_test.as_user('sup');
+ v:=c10_test.aver(a1);
+ r:=c10_demo.am_update_asset_v1(101,'rg-upd-00001',a1,v,'{"name":"Oven One (Line A)","location_note":"Bay 3","custom_attrs":{"voltage":"400V"},"acquisition_cost":160000,"custodian_ref":null}'::jsonb,'relocated within bay');
+ PERFORM c10_test.eq(r->>'version',(v+1)::text,'version bumped');
+ PERFORM c10_test.eq(c10_test.aver(a1),(v+1)::text,'persisted version');
+ PERFORM c10_test.eq(c10_demo.am_update_asset_v1(101,'rg-upd-00001',a1,v,'{"name":"Oven One (Line A)","location_note":"Bay 3","custom_attrs":{"voltage":"400V"},"acquisition_cost":160000,"custodian_ref":null}'::jsonb,'relocated within bay')->>'version',(v+1)::text,'update replay returns original receipt');
+ PERFORM c10_test.eq(c10_test.aver(a1),(v+1)::text,'replay changed nothing');
+ v:=v+1;
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00002',$q$||a1||$q$,1,'{"name":"Stale write"}'::jsonb,NULL)$q$,'am_stale_version');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00003',$q$||a1||$q$,$q$||v||$q$,'{"site_id":1001}'::jsonb,NULL)$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00004',$q$||a1||$q$,$q$||v||$q$,'{"status":"retired"}'::jsonb,NULL)$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00005',$q$||a1||$q$,$q$||v||$q$,'{"asset_no":"AST-000099"}'::jsonb,NULL)$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00006',$q$||a1||$q$,$q$||v||$q$,'{}'::jsonb,NULL)$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00007',$q$||a1||$q$,$q$||v||$q$,'{"quantity":null}'::jsonb,NULL)$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00008',$q$||a1||$q$,$q$||v||$q$,'{"custom_attrs":{"a":{"b":1}}}'::jsonb,NULL)$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00009',$q$||a1||$q$,$q$||v||$q$,'{"criticality":6}'::jsonb,NULL)$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00010',$q$||a1||$q$,NULL,'{"name":"No version"}'::jsonb,NULL)$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00011',$q$||a1||$q$,$q$||v||$q$,'{"commission_date":"2000-01-01"}'::jsonb,NULL)$q$,'am_invalid_input');
+ -- duplicate serial on update
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00012',$q$||o2||$q$,$q$||c10_test.aver(o2)||$q$,'{"serial_no":"SN-1001","manufacturer":"Baker Bros"}'::jsonb,NULL)$q$,'am_duplicate_serial');
+ -- assemblies: cycle, site mismatch, retired/foreign parent
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00013',$q$||a1||$q$,$q$||v||$q$,('{"parent_asset_id":$q$||fan||$q$}')::jsonb,NULL)$q$,'am_assembly_cycle_or_too_deep');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00014',$q$||a1||$q$,$q$||v||$q$,('{"parent_asset_id":$q$||a1||$q$}')::jsonb,NULL)$q$,'am_assembly_cycle_or_too_deep');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00015',$q$||pos||$q$,$q$||c10_test.aver(pos)||$q$,('{"parent_asset_id":$q$||a1||$q$}')::jsonb,NULL)$q$,'am_parent_site_mismatch');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00016',$q$||o2||$q$,$q$||c10_test.aver(o2)||$q$,'{"parent_asset_id":987654}'::jsonb,NULL)$q$,'am_invalid_input');
+ PERFORM c10_test.eq(c10_demo.am_update_asset_v1(101,'rg-upd-00017',o2,c10_test.aver(o2),('{"parent_asset_id":'||a1||'}')::jsonb,'attach as sub-assembly')->>'status','applied','attach to parent at same site');
+ PERFORM c10_test.eq(c10_demo.am_update_asset_v1(101,'rg-upd-00018',o2,c10_test.aver(o2),'{"parent_asset_id":null}'::jsonb,'detach')->>'status','applied','detach');
+ -- category change: inactive target refused
+ PERFORM c10_test.as_user('bo101'); PERFORM c10_demo.am_save_category_v1(101,'rg-upd-cat01',c10_test.cid(101,'TOOL'),c10_test.catver(101,'TOOL'),'{"active":false}'::jsonb,'retire TOOL category');
+ PERFORM c10_test.as_user('sup');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00019',$q$||o2||$q$,$q$||c10_test.aver(o2)||$q$,('{"category_id":$q$||c10_test.cid(101,'TOOL')||$q$}')::jsonb,NULL)$q$,'am_category_inactive');
+ PERFORM c10_test.eq(c10_demo.am_update_asset_v1(101,'rg-upd-00020',o2,c10_test.aver(o2),('{"category_id":'||c10_test.cid(101,'POWER')||'}')::jsonb,NULL)->>'status','applied','category change');
+ -- role matrix
+ PERFORM c10_test.as_user('sup1001');
+ PERFORM c10_test.eq(c10_demo.am_update_asset_v1(101,'rg-upd-00021',lap,c10_test.aver(lap),'{"model":"ThinkBook"}'::jsonb,NULL)->>'status','applied','site supervisor updates own-site asset');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00022',$q$||a1||$q$,$q$||v||$q$,'{"name":"Other site"}'::jsonb,NULL)$q$,'am_denied');
+ PERFORM c10_test.as_user('tech1001'); PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00023',$q$||lap||$q$,$q$||c10_test.aver(lap)||$q$,'{"name":"Tech edit"}'::jsonb,NULL)$q$,'am_not_permitted');
+ PERFORM c10_test.as_user('reporter'); PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00024',$q$||lap||$q$,$q$||c10_test.aver(lap)||$q$,'{"name":"Rep edit"}'::jsonb,NULL)$q$,'am_not_permitted');
+ PERFORM c10_test.as_user('auditor'); PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00025',$q$||lap||$q$,$q$||c10_test.aver(lap)||$q$,'{"name":"Aud edit"}'::jsonb,NULL)$q$,'am_not_permitted');
+ PERFORM c10_test.as_user('stock'); PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00026',$q$||lap||$q$,1,'{"name":"Stock edit"}'::jsonb,NULL)$q$,'am_denied');
+ PERFORM c10_test.as_user('bo102'); PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(102,'rg-upd-00027',$q$||a1||$q$,1,'{"name":"Cross business"}'::jsonb,NULL)$q$,'am_denied');
+ PERFORM c10_test.as_user('owner2'); PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-upd-00028',$q$||a1||$q$,1,'{"name":"Cross tenant"}'::jsonb,NULL)$q$,'am_denied');
+ PERFORM c10_test.eq(c10_test.n_audit('asset','updated')>=4,'true','update audit rows');
+END $$; COMMIT;
+
+-- ===== R6 status machine =====
+BEGIN; SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; o2 bigint:=c10_test.aid('Oven Other Make'); pos bigint:=c10_test.aid('POS Counter 1'); cat bigint:=c10_test.cid(101,'GENERAL');
+ rp bigint; rc bigint; w bigint; sa bigint; sb bigint; BEGIN
+ PERFORM c10_test.as_user('sup');
+ r:=c10_demo.am_set_asset_status_v1(101,'rg-sta-00001',o2,c10_test.aver(o2),'idle','line stopped for the season');
+ PERFORM c10_test.eq(r->>'to_status','idle','idle'); PERFORM c10_test.eq(c10_demo.am_set_asset_status_v1(101,'rg-sta-00001',o2,c10_test.aver(o2)-1,'idle','line stopped for the season')->>'to_status','idle','status replay');
+ PERFORM c10_test.eq(c10_demo.am_set_asset_status_v1(101,'rg-sta-00002',o2,c10_test.aver(o2),'active','back in service')->>'to_status','active','active');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00003',$q$||o2||$q$,$q$||c10_test.aver(o2)||$q$,'breakdown','manual breakdown')$q$,'am_invalid_transition');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00004',$q$||o2||$q$,$q$||c10_test.aver(o2)||$q$,'under_maintenance','manual maintenance')$q$,'am_invalid_transition');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00005',$q$||o2||$q$,$q$||c10_test.aver(o2)||$q$,'planned','back to planned')$q$,'am_invalid_transition');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00006',$q$||o2||$q$,$q$||c10_test.aver(o2)||$q$,'active','no-op transition')$q$,'am_invalid_transition');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00007',$q$||o2||$q$,$q$||c10_test.aver(o2)||$q$,'bogus','bad value')$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00008',$q$||o2||$q$,$q$||c10_test.aver(o2)||$q$,'idle',NULL)$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00009',$q$||o2||$q$,1,'idle','stale version')$q$,'am_stale_version');
+ PERFORM c10_test.as_user('tech1002'); PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00010',$q$||o2||$q$,$q$||c10_test.aver(o2)||$q$,'idle','tech tries')$q$,'am_not_permitted');
+ PERFORM c10_test.as_user('sup1001'); PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00011',$q$||o2||$q$,$q$||c10_test.aver(o2)||$q$,'idle','other site')$q$,'am_denied');
+ -- planned -> active commissions (commission_date defaulted)
+ PERFORM c10_test.as_user('sup1001');
+ r:=c10_demo.am_set_asset_status_v1(101,'rg-sta-00012',pos,c10_test.aver(pos),'active','commissioned');
+ PERFORM c10_test.eq(r->>'from_status','planned','commissioning from planned');
+ PERFORM c10_test.eq((c10_demo.am_get_asset_v1(101,pos)->'asset'->>'commission_date') IS NOT NULL,'true','commission_date set');
+ -- retire / dispose guards
+ PERFORM c10_test.as_user('sup');
+ rp:=(c10_demo.am_create_asset_v1(101,'rg-sta-00013',jsonb_build_object('name','Retire Parent','category_id',cat,'site_id',1002),NULL)->>'asset_id')::bigint;
+ rc:=(c10_demo.am_create_asset_v1(101,'rg-sta-00014',jsonb_build_object('name','Retire Child','category_id',cat,'site_id',1002,'parent_asset_id',rp),NULL)->>'asset_id')::bigint;
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00015',$q$||rp||$q$,$q$||c10_test.aver(rp)||$q$,'retired','retire with children')$q$,'am_asset_has_children');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00016',$q$||rp||$q$,$q$||c10_test.aver(rp)||$q$,'disposed','dispose with children')$q$,'am_asset_has_children');
+ w:=c10_test.mkwo(rc,'DRAFT');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00017',$q$||rc||$q$,$q$||c10_test.aver(rc)||$q$,'retired','retire with open wo')$q$,'am_asset_has_open_wo');
+ PERFORM c10_test.wo_set(w,'CANCELLED'); PERFORM c10_test.mkwo(rc,'CLOSED');
+ PERFORM c10_test.mkdt(rc);
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00018',$q$||rc||$q$,$q$||c10_test.aver(rc)||$q$,'retired','retire with open downtime')$q$,'am_asset_has_open_downtime');
+ PERFORM c10_test.enddt(rc);
+ r:=c10_demo.am_set_asset_status_v1(101,'rg-sta-00019',rc,c10_test.aver(rc),'retired','end of life');
+ PERFORM c10_test.eq(r->>'to_status','retired','retired once WOs closed/cancelled, downtime ended');
+ PERFORM c10_test.eq((c10_demo.am_get_asset_v1(101,rc)->'asset'->>'retired_at') IS NOT NULL,'true','retired_at set');
+ PERFORM c10_test.eq(c10_demo.am_set_asset_status_v1(101,'rg-sta-00020',rp,c10_test.aver(rp),'retired','children retired')->>'to_status','retired','parent retires after children');
+ PERFORM c10_test.eq(c10_demo.am_set_asset_status_v1(101,'rg-sta-00021',rp,c10_test.aver(rp),'disposed','sold for scrap')->>'to_status','disposed','retired -> disposed');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00022',$q$||rp||$q$,$q$||c10_test.aver(rp)||$q$,'active','resurrect')$q$,'am_invalid_transition');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_update_asset_v1(101,'rg-sta-00023',$q$||rp||$q$,$q$||c10_test.aver(rp)||$q$,'{"name":"Edit disposed"}'::jsonb,NULL)$q$,'am_invalid_state');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_add_meter_v1(101,'rg-sta-00024',$q$||rc||$q$,'M1','hours',NULL)$q$,'am_invalid_state');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-sta-00025',$q$||rc||$q$,1001,true,'move retired')$q$,'am_invalid_state');
+ -- a retired asset frees its serial; reactivation re-checks it
+ sa:=(c10_demo.am_create_asset_v1(101,'rg-sta-00026',jsonb_build_object('name','Serial Reuse A','category_id',cat,'site_id',1002,'serial_no','RS-1','manufacturer','Acme'),NULL)->>'asset_id')::bigint;
+ PERFORM c10_demo.am_set_asset_status_v1(101,'rg-sta-00027',sa,c10_test.aver(sa),'retired','replaced by new unit');
+ sb:=(c10_demo.am_create_asset_v1(101,'rg-sta-00028',jsonb_build_object('name','Serial Reuse B','category_id',cat,'site_id',1002,'serial_no','RS-1','manufacturer','Acme'),NULL)->>'asset_id')::bigint;
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-sta-00029',$q$||sa||$q$,$q$||c10_test.aver(sa)||$q$,'active','undo retire')$q$,'am_duplicate_serial');
+ PERFORM c10_test.eq(c10_demo.am_set_asset_status_v1(101,'rg-sta-00030',rc,c10_test.aver(rc),'idle','retire was a mistake')->>'to_status','idle','retired -> idle allowed');
+ PERFORM c10_test.eq((c10_demo.am_get_asset_v1(101,rc)->'asset'->>'retired_at') IS NULL,'true','retired_at cleared on reactivation');
+ PERFORM c10_test.eq(c10_test.n_audit('asset','status_changed')>=8,'true','status audit rows');
+END $$; COMMIT;
+
+-- ===== R7 site transfers =====
+BEGIN; SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; t bigint; x bigint; c bigint; lap bigint:=c10_test.aid('Laptop no serial ok'); cat bigint:=c10_test.cid(101,'PROD-EQ'); no0 text; w1 bigint; w2 bigint; w3 bigint; wip bigint; t2 bigint; BEGIN
+ PERFORM c10_test.as_user('sup');
+ x:=(c10_demo.am_create_asset_v1(101,'rg-trf-00001',jsonb_build_object('name','Line Press','category_id',cat,'site_id',1001,'serial_no','LP-1'),NULL)->>'asset_id')::bigint;
+ c:=(c10_demo.am_create_asset_v1(101,'rg-trf-00002',jsonb_build_object('name','Press Motor','category_id',cat,'site_id',1001,'parent_asset_id',x),NULL)->>'asset_id')::bigint;
+ no0:=c10_demo.am_get_asset_v1(101,x)->'asset'->>'asset_no';
+ w1:=c10_test.mkwo(x,'DRAFT'); w2:=c10_test.mkwo(c,'APPROVED'); w3:=c10_test.mkwo(x,'COMPLETED');
+ -- request validation + role matrix (default policy: approval required)
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00003',$q$||x||$q$,1002,false,'leave the motor behind')$q$,'am_transfer_children_required');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00004',$q$||x||$q$,1001,true,'same site')$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00005',$q$||x||$q$,NULL,true,'no target')$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00006',$q$||x||$q$,1002,true,NULL)$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00007',$q$||x||$q$,1003,true,'other business site')$q$,'am_denied');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00008',$q$||x||$q$,2001,true,'other tenant site')$q$,'am_denied');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00009',$q$||c||$q$,1002,true,'move a child alone')$q$,'am_transfer_has_parent');
+ PERFORM c10_test.as_user('bo101');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00010',$q$||x||$q$,1003,true,'other business site')$q$,'am_invalid_input');
+ PERFORM c10_test.as_user('tech1001'); PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00011',$q$||x||$q$,1002,true,'tech moves asset')$q$,'am_not_permitted');
+ PERFORM c10_test.as_user('reporter'); PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00012',$q$||x||$q$,1002,true,'reporter moves asset')$q$,'am_not_permitted');
+ PERFORM c10_test.as_user('stock'); PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00013',$q$||x||$q$,1002,true,'stock moves asset')$q$,'am_denied');
+ PERFORM c10_test.as_user('tech1002'); PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00014',$q$||x||$q$,1002,true,'tech at target')$q$,'am_denied');
+ -- site supervisor requests; pending; second request blocked
+ PERFORM c10_test.as_user('sup1001');
+ r:=c10_demo.am_request_transfer_v1(101,'rg-trf-00015',x,1002,true,'press needed at the factory'); t:=(r->>'transfer_id')::bigint;
+ PERFORM c10_test.eq(r->>'transfer_status','pending','needs approval by default'); PERFORM c10_test.eq(c10_test.asite(x),'1001','nothing moved yet');
+ PERFORM c10_test.eq(c10_demo.am_request_transfer_v1(101,'rg-trf-00015',x,1002,true,'press needed at the factory')->>'transfer_id',t::text,'request replay');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00016',$q$||x||$q$,1004,true,'second pending')$q$,'am_transfer_pending');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-trf-00017',$q$||x||$q$,$q$||c10_test.aver(x)||$q$,'retired','retire while pending')$q$,'am_asset_has_children');
+ PERFORM c10_test.eq(c10_test.n_audit('transfer','requested')>=1,'true','request audited');
+ -- who may decide
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00018',$q$||t||$q$,1,'approve',NULL)$q$,'am_not_permitted');
+ PERFORM c10_test.as_user('reporter'); PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00019',$q$||t||$q$,1,'approve',NULL)$q$,'am_not_permitted');
+ PERFORM c10_test.as_user('tech1002'); PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00020',$q$||t||$q$,1,'approve',NULL)$q$,'am_not_permitted');
+ PERFORM c10_test.as_user('stock'); PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00021',$q$||t||$q$,1,'approve',NULL)$q$,'am_denied');
+ PERFORM c10_test.as_user('owner2'); PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00022',$q$||t||$q$,1,'approve',NULL)$q$,'am_denied');
+ PERFORM c10_test.as_user('sup');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00023',$q$||t||$q$,1,'maybe',NULL)$q$,'am_invalid_input');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00024',$q$||t||$q$,7,'approve',NULL)$q$,'am_stale_version');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00025',999999,1,'approve',NULL)$q$,'am_denied');
+ r:=c10_demo.am_list_transfers_v1(101,'pending');
+ PERFORM c10_test.eq(r->'items'->0->>'can_decide','true','supervisor of both sites can decide');
+ PERFORM c10_test.as_user('sup1001'); PERFORM c10_test.eq(c10_demo.am_list_transfers_v1(101,NULL)->'items'->0->>'can_decide','false','requester/limited supervisor cannot decide');
+ PERFORM c10_test.eq(c10_demo.am_list_transfers_v1(101,NULL)->'items'->0->>'can_cancel','true','requester can cancel');
+ -- active work blocks the move (policy asset.allow_transfer_with_active_wo = false)
+ wip:=c10_test.mkwo(c,'IN_PROGRESS');
+ PERFORM c10_test.as_user('sup');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00026',$q$||t||$q$,1,'approve',NULL)$q$,'am_transfer_blocked');
+ PERFORM c10_test.eq(c10_test.asite(x),'1001','blocked transfer moved nothing');
+ PERFORM c10_test.wo_set(wip,'CANCELLED');
+ r:=c10_demo.am_decide_transfer_v1(101,'rg-trf-00027',t,1,'approve','approved by factory supervisor');
+ PERFORM c10_test.eq(r->>'transfer_status','applied','approved'); PERFORM c10_test.eq(r->>'moved_assets','2','asset + child moved');
+ PERFORM c10_test.eq(c10_test.asite(x)||'/'||c10_test.asite(c),'1002/1002','parent and child at the new site');
+ PERFORM c10_test.eq(c10_demo.am_get_asset_v1(101,x)->'asset'->>'asset_no',no0,'canonical asset id unchanged');
+ PERFORM c10_test.eq(c10_test.n_mov(x,'transfer')||'/'||c10_test.n_mov(c,'transfer'),'1/1','movement rows for asset and child');
+ PERFORM c10_test.eq(c10_test.wo_site(w1)||'/'||c10_test.wo_site(w2)||'/'||c10_test.wo_site(w3),'1002/1002/1001','open DRAFT/APPROVED WOs follow, finished WO keeps its site');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00028',$q$||t||$q$,2,'approve',NULL)$q$,'am_invalid_state');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00029',$q$||t||$q$,1,'approve',NULL)$q$,'am_stale_version');
+ PERFORM c10_test.eq(c10_demo.am_decide_transfer_v1(101,'rg-trf-00027',t,1,'approve','approved by factory supervisor')->>'moved_assets','2','approve replay is transparent');
+ PERFORM c10_test.eq(c10_test.n_mov(x,'transfer'),'1','replay did not move again');
+ -- site-1001-only supervisor lost sight of the asset; the factory technician gained it
+ PERFORM c10_test.as_user('sup1001'); PERFORM c10_test.denied('SELECT c10_demo.am_get_asset_v1(101,'||x||')','am_denied');
+ PERFORM c10_test.as_user('tech1002'); PERFORM c10_test.eq(c10_demo.am_get_asset_v1(101,x)->'asset'->>'site_id','1002','factory technician now sees the press');
+ -- maker-checker on transfers: requester cannot approve own request unless owner
+ PERFORM c10_test.as_user('sup');
+ r:=c10_demo.am_request_transfer_v1(101,'rg-trf-00030',x,1001,true,'send it back'); t:=(r->>'transfer_id')::bigint;
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00031',$q$||t||$q$,1,'approve',NULL)$q$,'am_self_approval_not_allowed');
+ PERFORM c10_test.as_user('bo101');
+ PERFORM c10_test.eq(c10_demo.am_decide_transfer_v1(101,'rg-trf-00032',t,1,'approve','owner approves')->>'transfer_status','applied','owner approves');
+ PERFORM c10_test.eq(c10_test.asite(x)||'/'||c10_test.asite(c),'1001/1001','moved back');
+ PERFORM c10_test.eq(c10_test.n_mov(x,'transfer'),'2','movement history keeps both moves');
+ PERFORM c10_test.as_user('owner');
+ r:=c10_demo.am_request_transfer_v1(101,'rg-trf-00033',x,1005,true,'owner moves to godown'); t:=(r->>'transfer_id')::bigint;
+ PERFORM c10_test.eq(c10_demo.am_decide_transfer_v1(101,'rg-trf-00034',t,1,'approve',NULL)->>'transfer_status','applied','owner may approve own request');
+ PERFORM c10_test.eq(c10_test.asite(x)::text,'1005','tenant owner moved asset');
+ -- reject / cancel
+ PERFORM c10_test.as_user('sup');
+ r:=c10_demo.am_request_transfer_v1(101,'rg-trf-00035',x,1001,true,'try again'); t:=(r->>'transfer_id')::bigint;
+ PERFORM c10_test.as_user('bo101'); PERFORM c10_test.eq(c10_demo.am_decide_transfer_v1(101,'rg-trf-00036',t,1,'reject','not now')->>'transfer_status','rejected','rejected');
+ PERFORM c10_test.eq(c10_test.asite(x)::text,'1005','rejected transfer moved nothing');
+ PERFORM c10_test.as_user('sup1001'); -- site 1001 supervisor: no authority over godown asset
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00037',$q$||x||$q$,1001,true,'no view of godown')$q$,'am_denied');
+ PERFORM c10_test.as_user('sup');
+ r:=c10_demo.am_request_transfer_v1(101,'rg-trf-00038',x,1001,true,'again'); t:=(r->>'transfer_id')::bigint;
+ PERFORM c10_test.as_user('auditor'); PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00039',$q$||t||$q$,1,'cancel',NULL)$q$,'am_not_permitted');
+ PERFORM c10_test.as_user('sup'); PERFORM c10_test.eq(c10_demo.am_decide_transfer_v1(101,'rg-trf-00040',t,1,'cancel','changed my mind')->>'transfer_status','cancelled','requester cancels');
+ -- open downtime blocks too; policy asset.allow_transfer_with_active_wo lets an IN_PROGRESS WO stay behind
+ PERFORM c10_test.mkdt(x);
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00041',$q$||x||$q$,1001,true,'downtime blocks')$q$,'am_transfer_blocked');
+ PERFORM c10_test.enddt(x); wip:=c10_test.mkwo(x,'IN_PROGRESS');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00042',$q$||x||$q$,1001,true,'wo blocks')$q$,'am_transfer_blocked');
+ PERFORM c10_test.setpol(101,'asset.allow_transfer_with_active_wo','true'::jsonb);
+ r:=c10_demo.am_request_transfer_v1(101,'rg-trf-00043',x,1004,true,'allowed with active wo'); t:=(r->>'transfer_id')::bigint;
+ PERFORM c10_test.as_user('bo101'); PERFORM c10_demo.am_decide_transfer_v1(101,'rg-trf-00044',t,1,'approve',NULL);
+ PERFORM c10_test.eq(c10_test.asite(x)::text,'1004','moved despite active wo (policy)'); PERFORM c10_test.eq(c10_test.wo_site(wip)::text,'1005','in-progress WO keeps its site');
+ PERFORM c10_test.eq(c10_test.wo_site(w1)::text,'1004','draft WO followed again');
+ PERFORM c10_test.delpol(101,'asset.allow_transfer_with_active_wo'); PERFORM c10_test.wo_set(wip,'CANCELLED');
+ -- policy asset.transfer_requires_approval=false: direct apply only with transfer authority at BOTH sites
+ PERFORM c10_test.setpol(101,'asset.transfer_requires_approval','false'::jsonb);
+ PERFORM c10_test.as_user('sup');
+ r:=c10_demo.am_request_transfer_v1(101,'rg-trf-00045',x,1005,true,'direct move');
+ PERFORM c10_test.eq(r->>'transfer_status','applied','direct apply when policy says so'); PERFORM c10_test.eq(r->>'moved_assets','2','direct apply moves children');
+ PERFORM c10_test.eq(c10_test.asite(x)::text,'1005','direct apply moved');
+ PERFORM c10_test.as_user('sup1001');
+ r:=c10_demo.am_request_transfer_v1(101,'rg-trf-00046',lap,1002,true,'site supervisor lacks authority at target'); t2:=(r->>'transfer_id')::bigint;
+ PERFORM c10_test.eq(r->>'transfer_status','pending','limited supervisor still needs approval');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-trf-00047',$q$||lap||$q$,$q$||c10_test.aver(lap)||$q$,'retired','retire with pending transfer')$q$,'am_transfer_pending');
+ PERFORM c10_test.eq(c10_demo.am_decide_transfer_v1(101,'rg-trf-00048',t2,1,'cancel',NULL)->>'transfer_status','cancelled','cancelled');
+ PERFORM c10_test.delpol(101,'asset.transfer_requires_approval');
+ PERFORM c10_test.eq((SELECT count(*) FROM jsonb_array_elements(c10_demo.am_list_transfers_v1(101,NULL)->'items'))>=6,'true','sup1001 transfer list');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_list_transfers_v1(101,'bogus')$q$,'am_invalid_input');
+ -- child invariant: no child ever sits at a different site than its parent
+ PERFORM c10_test.as_user('bo101');
+ PERFORM c10_test.eq(c10_demo.am_get_asset_v1(101,c)->'asset'->>'site_id',c10_demo.am_get_asset_v1(101,x)->'asset'->>'site_id','child follows parent');
+ PERFORM c10_test.eq(c10_test.n_audit('transfer','applied')>=4 AND c10_test.n_audit('asset','transferred')>=4,'true','transfer audit rows');
+END $$; COMMIT;
