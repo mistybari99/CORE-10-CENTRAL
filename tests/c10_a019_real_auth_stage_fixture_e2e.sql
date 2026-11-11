@@ -9,7 +9,7 @@ BEGIN
    OR (SELECT count(*) FROM c10_demo.stock_locations)<>3
    OR (SELECT count(*) FROM c10_demo.business_members WHERE role='investor' AND active)<>1
    OR (SELECT count(*) FROM c10_demo.business_members WHERE role='manager' AND NOT active)<>1
-   OR (SELECT count(*) FROM c10_demo.business_members WHERE user_id=:'platformOperator'::uuid)<>0 THEN
+   OR (SELECT count(*) FROM c10_demo.business_members)<>2 THEN
   RAISE EXCEPTION 'C10_STAGE_STRUCTURAL_FIXTURE_INVALID';
  END IF;
  IF has_schema_privilege('anon','c10_demo','USAGE') OR
