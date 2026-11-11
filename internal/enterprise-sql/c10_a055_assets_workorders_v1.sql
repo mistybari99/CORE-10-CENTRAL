@@ -981,7 +981,7 @@ END$$;
 -- ===================== reads =====================
 CREATE FUNCTION c10_demo.am_list_work_orders_v1(p_business bigint,p_filters jsonb DEFAULT '{}',p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
-DECLARE c am_ctx_t; f jsonb:=COALESCE(p_filters,'{}'::jsonb); vs bigint[]; fs bigint[]; es bigint[]; ids bigint[]; page bigint[]; items jsonb:='[]'::jsonb; w am_work_orders; id bigint;
+DECLARE c am_ctx_t; f jsonb:=COALESCE(p_filters,'{}'::jsonb); vs bigint[]; fs bigint[]; es bigint[]; ids bigint[]; page bigint[]; items jsonb:='[]'::jsonb; w am_work_orders; woid bigint;
  v_status text[]; v_kind text; v_site bigint; v_asset bigint; v_prio text; v_mine boolean:=false; v_req boolean:=false; v_over boolean; v_re boolean; v_search text; lim int:=COALESCE(p_limit,50); off int:=COALESCE(p_offset,0);
 BEGIN
  c:=ami_read_ctx(p_business);
@@ -1015,8 +1015,8 @@ BEGIN
   ORDER BY x.id DESC);
  page:=ids[off+1:off+lim];
  IF page IS NOT NULL THEN
-  FOREACH id IN ARRAY page LOOP
-   SELECT * INTO w FROM am_work_orders WHERE am_work_orders.id=id;
+  FOREACH woid IN ARRAY page LOOP
+   SELECT * INTO w FROM am_work_orders WHERE am_work_orders.id=woid;
    items:=items||jsonb_build_array(ami_wk_json(c,w));
   END LOOP;
  END IF;
@@ -1081,7 +1081,7 @@ END$$;
 
 CREATE FUNCTION c10_demo.am_list_downtime_v1(p_business bigint,p_filters jsonb DEFAULT '{}',p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
-DECLARE c am_ctx_t; f jsonb:=COALESCE(p_filters,'{}'::jsonb); vs bigint[]; ids bigint[]; page bigint[]; items jsonb:='[]'; d am_downtime; id bigint;
+DECLARE c am_ctx_t; f jsonb:=COALESCE(p_filters,'{}'::jsonb); vs bigint[]; ids bigint[]; page bigint[]; items jsonb:='[]'; d am_downtime; dtid bigint;
  v_asset bigint; v_site bigint; v_kind text; v_open boolean; v_wo bigint; v_from date; v_to date; lim int:=COALESCE(p_limit,50); off int:=COALESCE(p_offset,0);
 BEGIN
  c:=ami_read_ctx(p_business);
@@ -1099,7 +1099,7 @@ BEGIN
    ORDER BY x.started_at DESC,x.id DESC);
  page:=ids[off+1:off+lim];
  IF page IS NOT NULL THEN
-  FOREACH id IN ARRAY page LOOP SELECT * INTO d FROM am_downtime WHERE am_downtime.id=id; items:=items||jsonb_build_array(ami_wk_dt_json(d)); END LOOP;
+  FOREACH dtid IN ARRAY page LOOP SELECT * INTO d FROM am_downtime WHERE am_downtime.id=dtid; items:=items||jsonb_build_array(ami_wk_dt_json(d)); END LOOP;
  END IF;
  RETURN jsonb_build_object('items',items,'total',COALESCE(cardinality(ids),0),'limit',lim,'offset',off);
 END$$;
