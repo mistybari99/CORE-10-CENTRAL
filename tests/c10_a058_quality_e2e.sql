@@ -130,10 +130,10 @@ BEGIN
 END $$;
 COMMIT;
 -- Permit integrity is checked by the CI database owner: app identities cannot read permits.
-DO $ BEGIN
+DO $$ BEGIN
  IF (SELECT count(*) FROM c10_demo.quality_stock_permits_v1 WHERE NOT consumed)<>0
  THEN RAISE EXCEPTION 'unused stock permit persisted'; END IF;
-END $;
+END $$;
 
 -- Another registered business cannot be enrolled with existing stock from untracked history.
 BEGIN;
