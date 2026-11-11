@@ -1,0 +1,77 @@
+# C10-A040: Owner link + independently downloadable synthetic preview artifact.
+# This is NOT Pages deployment. No Supabase Auth credentials or staging database.
+name: CORE10 A040 Owner Nav and Isolated Stocktake Demo Artifact
+on:
+  push:
+    branches: ['feature/c10-a018-*']
+    paths:
+      - 'core10-owner-business-entry.js'
+      - 'core10-stocktake-preview.html'
+      - 'core10-stocktake-preview.css'
+      - 'core10-stocktake-preview.js'
+      - 'core10-enterprise-client.js'
+      - 'internal/core10-a040-preview-package.js'
+      - 'tests/core10-a040-owner-entry.test.js'
+      - 'tests/core10-a040-preview-package.test.js'
+      - 'tests/e2e/core10-a040-preview-artifact-browser.js'
+      - 'tests/core10-a040-pages-parity.test.js'
+      - '.github/workflows/core10-a040-stocktake-preview-delivery.yml'
+  pull_request:
+    paths:
+      - 'core10-owner-business-entry.js'
+      - 'core10-stocktake-preview.html'
+      - 'core10-stocktake-preview.css'
+      - 'core10-stocktake-preview.js'
+      - 'core10-enterprise-client.js'
+      - 'internal/core10-a040-preview-package.js'
+      - 'tests/core10-a040-owner-entry.test.js'
+      - 'tests/core10-a040-preview-package.test.js'
+      - 'tests/e2e/core10-a040-preview-artifact-browser.js'
+      - 'tests/core10-a040-pages-parity.test.js'
+      - '.github/workflows/core10-a040-stocktake-preview-delivery.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-demo-artifact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assert Owner-only navigation, logout revocation, builder preserved
+        run: node tests/core10-a040-owner-entry.test.js
+      - name: Test 8-file synthetic bundle checksum, allowlist, symlink and write-lock fail-closed
+        run: node tests/core10-a040-preview-package.test.js
+      - name: Confirm no internal/private files in served repository root
+        run: node tests/e2e/forbidden_files.js
+      - name: Build standalone 8-file synthetic stocktake artifact
+        run: node internal/core10-a040-preview-package.js "$RUNNER_TEMP/c10-a040-preview"
+      - name: Verify existing legacy Pages artifact remains safely allowlisted (NO deploy)
+        run: |
+          node tests/core10-pages-package.test.js
+          node internal/core10-pages-package.js "$RUNNER_TEMP/c10-a040-pages-parity"
+          node tests/core10-pages-artifact-http.test.js "$RUNNER_TEMP/c10-a040-pages-parity"
+          node tests/core10-a040-pages-parity.test.js "$RUNNER_TEMP/c10-a040-pages-parity"
+      - name: Install pinned Chromium outside tracked repository
+        run: |
+          mkdir -p "$RUNNER_TEMP/c10-a040-playwright" && cd "$RUNNER_TEMP/c10-a040-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/c10-a040-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Browser test exact artifact 390px and 1440px, no outside requests
+        run: node tests/e2e/core10-a040-preview-artifact-browser.js "$RUNNER_TEMP/c10-a040-preview"
+      - name: Upload ONLY verified synthetic preview files for Owner review
+        uses: actions/upload-artifact@v4
+        with:
+          name: core10-a040-stocktake-demo-preview
+          path: ${{ runner.temp }}/c10-a040-preview/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Show exact release boundary
+        run: echo 'PASS synthetic downloadable Stocktake preview only; no Pages deploy, no staging, no live stock activation.'
