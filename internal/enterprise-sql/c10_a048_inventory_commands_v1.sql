@@ -173,7 +173,7 @@ BEGIN
  SELECT * INTO existing FROM c10_demo.inventory_command_audit_v1
  WHERE business_id=c.business_id AND request_key='advance-'||p_request;
  IF FOUND THEN
-  IF existing.command_id<>p_command OR existing.event<>CASE WHEN p_action='confirm' THEN 'confirmed' ELSE 'posted' END OR
+  IF existing.command_id<>p_command OR existing.event<>(CASE WHEN p_action='confirm' THEN 'confirmed' ELSE 'posted' END) OR
   existing.actor<>c10_demo.actor_uid() OR (existing.detail->>'expected_version')::bigint<>p_version
   THEN RAISE EXCEPTION 'A048_ADVANCE_REPLAY_CONFLICT'; END IF;
   RETURN jsonb_build_object('command_id',c.id,'status',c.status,'version',c.version,'replayed',true);
