@@ -2,9 +2,9 @@ name: CORE10 A048 guarded inventory commands PG17
 on:
   push:
     branches: ['claude/c10-a048-*']
-    paths: ['internal/enterprise-sql/c10_a048_*','tests/c10_a048_*','.github/workflows/core10-a048-inventory-ci.yml']
+    paths: ['internal/enterprise-sql/c10_a048_*','tests/c10_a048_*','core10-inventory-*','.github/workflows/core10-a048-inventory-ci.yml']
   pull_request:
-    paths: ['internal/enterprise-sql/c10_a048_*','tests/c10_a048_*','.github/workflows/core10-a048-inventory-ci.yml']
+    paths: ['internal/enterprise-sql/c10_a048_*','tests/c10_a048_*','core10-inventory-*','.github/workflows/core10-a048-inventory-ci.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -39,5 +39,7 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a048_inventory_commands_v1.sql
       - name: Real SQL command workflow, scope, movement audit and negative tests
         run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a048_inventory_commands_e2e.sql
+      - name: Signed frontend client contract
+        run: node tests/c10_a048_inventory_client.test.js
       - name: Certification boundary
         run: echo "A048 isolated PG17 only; production Supabase and actual GoTrue not tested."
