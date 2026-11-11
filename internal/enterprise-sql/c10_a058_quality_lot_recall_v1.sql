@@ -225,9 +225,13 @@ BEGIN
  THEN RAISE EXCEPTION 'quality_owner_required'; END IF;
  IF NOT EXISTS (SELECT 1 FROM c10_demo.items WHERE id=p_item AND tenant_id=v_tenant AND business_id=p_business)
  THEN RAISE EXCEPTION 'quality_item_scope_mismatch'; END IF;
- -- Do not silently adopt existing untracked stock: historical receipts need migration.
- IF EXISTS(SELECT 1 FROM c10_demo.stock_balances_v1 WHERE business_id=p_business
-  AND item_id=p_item AND on_hand<>0)
+ -- An already tracked SKU can be enrolled again without changing its traceability policy.
+ IF EXISTS(SELECT 1 FROM c10_demo.quality_tracked_items_v1 WHERE business_id=p_business AND item_id=p_item)
+ THEN RETURN true; END IF;
+ -- Never silently re-label old non-lot events as traceable even if historic stock nets to zero.
+ IF EXISTS(SELECT 1 FROM c10_demo.stock_movements WHERE business_id=p_business AND item_id=p_item)
+  OR EXISTS(SELECT 1 FROM c10_demo.stock_balances_v1 WHERE business_id=p_business
+   AND item_id=p_item AND on_hand<>0)
  THEN RAISE EXCEPTION 'quality_existing_stock_requires_backfill'; END IF;
  INSERT INTO c10_demo.quality_tracked_items_v1(tenant_id,business_id,item_id,enabled_by)
  VALUES(v_tenant,p_business,p_item,c10_demo.actor_uid())
@@ -450,15 +454,20 @@ BEGIN
  NOT c10_demo.can_manage(v_parent.tenant_id,v_parent.business_id)
  THEN RAISE EXCEPTION 'quality_genealogy_scope_denied'; END IF;
  PERFORM pg_advisory_xact_lock(1058,v_parent.business_id::integer);
+ v_cmd:=c10_demo.quality_claim_v1(v_parent.tenant_id,v_parent.business_id,'link',p_key,
+  jsonb_build_object('parent',p_parent,'child',p_child));
+ IF v_cmd<0 THEN RETURN p_child; END IF;
+ -- An active/closed recall permanently locks recalled lineage: a late new link
+ -- must not create an unblocked descendant after the recall snapshot.
+ IF EXISTS(SELECT 1 FROM c10_demo.quality_lots_v1
+  WHERE id IN (p_parent,p_child) AND status='recalled')
+ THEN RAISE EXCEPTION 'quality_recalled_lineage_locked'; END IF;
  IF EXISTS(
   WITH RECURSIVE descendants(id) AS (
    SELECT p_child UNION SELECT g.child_lot_id FROM c10_demo.quality_genealogy_v1 g
    JOIN descendants d ON g.parent_lot_id=d.id
   ) SELECT 1 FROM descendants WHERE id=p_parent)
  THEN RAISE EXCEPTION 'quality_genealogy_cycle'; END IF;
- v_cmd:=c10_demo.quality_claim_v1(v_parent.tenant_id,v_parent.business_id,'link',p_key,
-  jsonb_build_object('parent',p_parent,'child',p_child));
- IF v_cmd<0 THEN RETURN p_child; END IF;
  INSERT INTO c10_demo.quality_genealogy_v1
  (tenant_id,business_id,parent_lot_id,child_lot_id,created_by)
  VALUES(v_parent.tenant_id,v_parent.business_id,p_parent,p_child,c10_demo.actor_uid());
