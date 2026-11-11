@@ -116,10 +116,10 @@ END$$;
 -- Directory of staff identity + business/site assignment. No salary, no phone, no uid. Alias visible to owners only.
 CREATE FUNCTION c10_demo.a053_staff_overview_v1(p_business bigint) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
-DECLARE c record; own boolean; today date:=wfi_today();
+DECLARE c record; own boolean; today date;
 BEGIN
  IF to_regclass('c10_demo.wf_employees') IS NULL THEN RAISE EXCEPTION 'a053_not_connected'; END IF;
- c:=wfi_ctx(p_business); own:=wfi_is_owner(c); PERFORM wfi_need(wfi_is_manager_plus(c),'a053_manager_required');
+ today:=wfi_today(); c:=wfi_ctx(p_business); own:=wfi_is_owner(c); PERFORM wfi_need(wfi_is_manager_plus(c),'a053_manager_required');
  RETURN jsonb_build_object('server_authorized',true,'business_id',p_business,'items',(SELECT COALESCE(jsonb_agg(jsonb_build_object('employee_id',e.id,
   'employee_no',e.employee_no,'full_name',CASE WHEN own THEN e.full_name ELSE wfi_mask_name(e.full_name) END,'status',e.status,
   'site_id',wfi_site_of(e.id,today),'site_label',(SELECT label FROM sites WHERE id=wfi_site_of(e.id,today)),
