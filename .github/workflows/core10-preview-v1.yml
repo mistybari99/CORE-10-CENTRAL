@@ -1,0 +1,28 @@
+name: CORE10 Preview V1 static safety and UI contract
+on:
+  push:
+    branches:
+      - preview/c10-integrated-20261111-v1
+    paths:
+      - 'preview/**'
+      - 'tests/core10-preview-v1.test.mjs'
+      - '.github/workflows/core10-preview-v1.yml'
+  pull_request:
+    paths:
+      - 'preview/**'
+      - 'tests/core10-preview-v1.test.mjs'
+      - '.github/workflows/core10-preview-v1.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview-static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check preview/worker.mjs
+      - run: node --test tests/core10-preview-v1.test.mjs
