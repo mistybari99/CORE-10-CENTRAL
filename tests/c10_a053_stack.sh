@@ -24,7 +24,9 @@ case "$MODE" in
   mk $T; a018 $T
   PGDATABASE=$T $P -v c10_demo_ack=I_CONFIRM_DISPOSABLE_A046 -f $SQL/c10_a046_demo_personas_v1.sql
   mv $T $N; a050chain $N
-  [ "$MODE" = full ] && a051 $N
+  if [ "$MODE" = full ]; then a051 $N
+   for f in c10_a054_workforce_policy_v1 c10_a054_workforce_bridge_v1; do PGDATABASE=$N $P -f $SQL/$f.sql; done; fi
+  PGDATABASE=$N $P -f $SQL/c10_a053_workforce_integration_v1.sql
   admin -c "DROP DATABASE IF EXISTS $F"; mv $N $F;;
  *) echo "usage: $0 full|base|reg"; exit 2;;
 esac
