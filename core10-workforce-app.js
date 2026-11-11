@@ -1,5 +1,5 @@
 /* C10-A051 Workforce UI (Employee Directory, Attendance, Shifts/Leave, Payroll, Reports, My Work).
- * All data/authority comes from the signed Workforce RPC adapter. DOM is built with textContent only (no innerHTML of data).
+ * All data/authority comes from the signed Workforce RPC adapter. DOM nodes are built with textContent only (no HTML-string sinks for data).
  * UI capability flags are advisory hints from the server; every action is re-checked by the database.
  */
 (function(){"use strict";
