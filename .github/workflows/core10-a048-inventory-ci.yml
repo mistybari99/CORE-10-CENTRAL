@@ -1,0 +1,43 @@
+name: CORE10 A048 guarded inventory commands PG17
+on:
+  push:
+    branches: ['claude/c10-a048-*']
+    paths: ['internal/enterprise-sql/c10_a048_*','tests/c10_a048_*','.github/workflows/core10-a048-inventory-ci.yml']
+  pull_request:
+    paths: ['internal/enterprise-sql/c10_a048_*','tests/c10_a048_*','.github/workflows/core10-a048-inventory-ci.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory-commands:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_DB: core10_a048_ci, POSTGRES_USER: postgres, POSTGRES_PASSWORD: a048_demo_only }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_a048_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: core10_a048_ci
+      PGUSER: postgres
+      PGPASSWORD: a048_demo_only
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Load disposable database
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a048_inventory_commands_v1.sql
+      - name: Real SQL command workflow, scope, movement audit and negative tests
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a048_inventory_commands_e2e.sql
+      - name: Certification boundary
+        run: echo "A048 isolated PG17 only; production Supabase and actual GoTrue not tested."
