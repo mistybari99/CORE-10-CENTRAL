@@ -1,4 +1,6 @@
 # CLAUDE CODE — CORE 10 CENTRAL Enterprise Simulation & Decision Intelligence: ISOLATED FULL DRAFT BUILD
+**MANDATORY LIVE-BOOK RECONCILIATION (2026-11-12):** The native register now includes REV-010, U01-U26/R089-R114, C10-DETAIL-R081 through R114, D049/R128 and other new cross-module decisions. Before coding, read [the verified 14 KB live reconciliation and full engine build acceptance](./c10-a025/LIVE_DECISION_RECONCILIATION_AND_BUILD_ACCEPTANCE_2026-11-12.md) and [all 34 requirements with exact live cells, acceptance and row URLs](./c10-a025/OWNER_REQUIREMENTS_R081_R114_LIVE_SNAPSHOT_2026-11-12.json). **REV-010 supersedes the old "no draft coding" rule only for Claude Code's isolated Draft implementation; the 2–3 fully verified major-build and security gates still block main/production integration.** These companion files are not implementation evidence.
+
 **Owner authorization:** 2026-11-12 (Asia/Dhaka)
 **ERP repository:** mistybari99/CORE-10-CENTRAL
 **Canonical register:** https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit
