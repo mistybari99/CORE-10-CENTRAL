@@ -107,14 +107,16 @@ BEGIN;
 SET ROLE authenticated;
 SET LOCAL request.jwt.claim.sub='11111111-1111-4111-8111-111111111111';
 DO $$
-DECLARE request_id bigint; s jsonb;
+DECLARE request_id bigint; s jsonb; q jsonb;
 BEGIN
- SELECT req.id INTO request_id FROM c10_demo.control_setting_requests_v1 req WHERE req.control_id='inventory.count' AND req.status='pending';
+ q:=c10_demo.read_control_pending_v1(101);
+ request_id:=(q->'items'->0->>'request_id')::bigint;
+ IF request_id IS NULL THEN RAISE EXCEPTION 'APPROVAL_QUEUE_MISSING'; END IF;
  s:=c10_demo.decide_control_setting_v1(request_id,'approve');
  IF s->>'status'<>'approved' THEN RAISE EXCEPTION 'APPROVAL_FAILED'; END IF;
- IF (SELECT version FROM c10_demo.control_settings_v1 WHERE business_id=101 AND control_id='inventory.count')<>2
+ IF (SELECT (m->>'version')::bigint FROM jsonb_array_elements(c10_demo.read_control_settings_v1(101)->'items') m WHERE m->>'control_id'='inventory.count')<>2
  THEN RAISE EXCEPTION 'APPROVAL_NOT_APPLIED'; END IF;
- IF (SELECT count(*) FROM c10_demo.control_setting_audit_v1 WHERE business_id=101)<3
+ IF (SELECT (m->>'audit_count')::bigint FROM jsonb_array_elements(c10_demo.read_control_settings_v1(101)->'items') m WHERE m->>'control_id'='inventory.count')<3
  THEN RAISE EXCEPTION 'AUDIT_MISSING'; END IF;
  IF EXISTS(SELECT 1 FROM c10_demo.business_module_settings_v1 WHERE operational_enabled)
  THEN RAISE EXCEPTION 'UNAUTHORIZED_MODULE_ACTIVATION'; END IF;
