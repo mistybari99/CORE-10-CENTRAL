@@ -1,0 +1,57 @@
+name: CORE 10 - Approval Mapping CI
+on:
+  pull_request:
+    paths:
+      - "CORE10_APPROVAL_SOURCE_MAPPING_PREFLIGHT.sql"
+      - "tests/sql/core10-approval-mapping-fixture.sql"
+      - ".github/workflows/core10-approval-mapping-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-mapping:
+    name: Two-business SQL regression (isolated)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_mapping_test
+          POSTGRES_USER: core10
+          POSTGRES_PASSWORD: ci_disposable_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U core10 -d core10_mapping_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: core10_mapping_test
+      PGUSER: core10
+      PGPASSWORD: ci_disposable_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PostgreSQL client if absent
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+      - name: Create isolated synthetic businesses and approval records
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/sql/core10-approval-mapping-fixture.sql
+      - name: Execute committed read-only SQL and seven synthetic classification tests
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -A -t -F ',' -f CORE10_APPROVAL_SOURCE_MAPPING_PREFLIGHT.sql > /tmp/core10-mapping.txt
+          cat /tmp/core10-mapping.txt
+          grep -Fxq 'entries,2,2,0,0,0,0,MAPPING_COUNTS_PASS_ONLY' /tmp/core10-mapping.txt
+          grep -Fxq 'release_requests,2,1,0,1,0,0,BLOCKED' /tmp/core10-mapping.txt
+          grep -Fxq 'entry_change_requests,1,1,0,0,0,0,MAPPING_COUNTS_PASS_ONLY' /tmp/core10-mapping.txt
+          grep -Fxq 'exceptions,2,1,0,0,1,0,BLOCKED' /tmp/core10-mapping.txt
+          grep -Fxq 'emergency_requests,2,1,1,0,0,0,BLOCKED' /tmp/core10-mapping.txt
+          grep -Fxq 'pay_requests,2,1,1,0,0,0,BLOCKED' /tmp/core10-mapping.txt
+          grep -Fxq 'wastage_requests,1,1,0,0,0,0,MAPPING_COUNTS_PASS_ONLY' /tmp/core10-mapping.txt
+          grep -Fxq 'item_changes,2,1,1,0,0,0,BLOCKED' /tmp/core10-mapping.txt
+          test "$(grep -c ',t$' /tmp/core10-mapping.txt)" -eq 7
+          ! grep -q ',f$' /tmp/core10-mapping.txt
