@@ -446,7 +446,7 @@ DO $$ DECLARE r jsonb; t bigint; x bigint; c bigint; lap bigint:=c10_test.aid('L
  PERFORM c10_test.eq(r->>'transfer_status','pending','needs approval by default'); PERFORM c10_test.eq(c10_test.asite(x),'1001','nothing moved yet');
  PERFORM c10_test.eq(c10_demo.am_request_transfer_v1(101,'rg-trf-00015',x,1002,true,'press needed at the factory')->>'transfer_id',t::text,'request replay');
  PERFORM c10_test.denied($q$SELECT c10_demo.am_request_transfer_v1(101,'rg-trf-00016',$q$||x||$q$,1004,true,'second pending')$q$,'am_transfer_pending');
- PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-trf-00017',$q$||x||$q$,$q$||c10_test.aver(x)||$q$,'retired','retire while pending')$q$,'am_asset_has_children');
+ PERFORM c10_test.denied($q$SELECT c10_demo.am_set_asset_status_v1(101,'rg-trf-00017',$q$||x||$q$,$q$||c10_test.aver(x)||$q$,'retired','retire while pending')$q$,'am_asset_has_open_wo');
  PERFORM c10_test.eq(c10_test.n_audit('transfer','requested')>=1,'true','request audited');
  -- who may decide
  PERFORM c10_test.denied($q$SELECT c10_demo.am_decide_transfer_v1(101,'rg-trf-00018',$q$||t||$q$,1,'approve',NULL)$q$,'am_not_permitted');

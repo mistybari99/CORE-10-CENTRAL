@@ -398,8 +398,10 @@ SCREENS.assets=async function(body){
    if(r){await refresh();await refreshSide()}return !!r},lab("transfer_decision",d));
  }
  function claimTransition(x,a){
-  const fields=[{n:"decision_note",l:["Note","নোট"],t:"textarea",rows:2,max:500}];
-  if(a==="settle")fields.unshift({n:"amount_settled",l:["Amount settled (advisory)","নিষ্পন্ন পরিমাণ (পরামর্শমূলক)"],t:"num",req:true},{n:"supplier_claim_ref",l:["Supplier claim ref.","সরবরাহকারীর দাবি রেফ."],t:"text",max:60});
+  const ref={n:"supplier_claim_ref",l:["Supplier claim ref.","সরবরাহকারীর দাবি রেফ."],t:"text",max:60};
+  const fields=a==="submit"?[ref,{n:"amount_claimed",l:["Amount claimed (advisory)","দাবির পরিমাণ (পরামর্শমূলক)"],t:"num",val:x.amount_claimed}]
+   :[{n:"decision_note",l:["Note","নোট"],t:"textarea",rows:2,max:1000,req:a==="reject",min:a==="reject"?3:0},ref];
+  if(a==="settle")fields.unshift({n:"amount_settled",l:["Amount settled (advisory)","নিষ্পন্ন পরিমাণ (পরামর্শমূলক)"],t:"num",req:true});
   modalForm(lab("claim_action",a)+" · "+x.claim_no,fields,async(v,err)=>{
    const r=await act("am_claim_transition_v1",{p_claim:x.id,p_expected_version:x.version,p_action:a,p_data:clean(v)},"Claim updated","দাবি হালনাগাদ",err);
    if(r)await refreshSide();return !!r},lab("claim_action",a));
@@ -463,14 +465,14 @@ SCREENS.assets=async function(body){
    {n:"starts_on",l:["Starts on","শুরু"],t:"date",req:true,val:w&&dd(w.starts_on)},{n:"expires_on",l:["Expires on","শেষ"],t:"date",req:true,val:w&&dd(w.expires_on)},
    {n:"coverage",l:["Coverage","আওতা"],t:"textarea",rows:2,val:w&&w.coverage,max:500},
    ...(w?[{n:"status",l:["Status","অবস্থা"],t:"select",opts:[["active",lab("warranty_state","active")],["void",lab("warranty_state","void")]],val:w.status}]:[]),REASON()],async(v,err)=>{
-   const data=clean({asset_id:a.id,supplier_name:v.supplier_name,supplier_ref:v.supplier_ref,starts_on:v.starts_on,expires_on:v.expires_on,coverage:v.coverage,status:v.status});
+   const data=clean({asset_id:w?null:a.id,supplier_name:v.supplier_name,supplier_ref:v.supplier_ref,starts_on:v.starts_on,expires_on:v.expires_on,coverage:v.coverage,status:v.status});
    const r=await act("am_save_warranty_v1",{p_id:w?w.id:null,p_expected_version:w?w.version:null,p_data:data,p_reason:v.reason},"Warranty saved","ওয়ারেন্টি সংরক্ষিত",err);if(r)await reload();return !!r},T("Save","সংরক্ষণ"),"warranty-form");
  }
  function claimForm(a,w,c,reload){
   modalForm(T("Warranty claim","ওয়ারেন্টি দাবি")+" · "+a.asset_no,[{n:"failure_on",l:["Failure date","ত্রুটির তারিখ"],t:"date",req:true,val:c&&dd(c.failure_on)||today()},
    {n:"description",l:["What failed","কী ব্যর্থ হয়েছে"],t:"textarea",req:true,min:3,val:c&&c.description,max:1000},{n:"amount_claimed",l:["Amount claimed (advisory)","দাবির পরিমাণ (পরামর্শমূলক)"],t:"num",val:c&&c.amount_claimed},
    {n:"supplier_claim_ref",l:["Supplier claim ref.","সরবরাহকারীর দাবি রেফ."],t:"text",max:60,val:c&&c.supplier_claim_ref}],async(v,err)=>{
-   const r=await act("am_save_claim_v1",{p_id:c?c.id:null,p_expected_version:c?c.version:null,p_data:clean(Object.assign({warranty_id:w.id,asset_id:a.id},v))},"Claim saved","দাবি সংরক্ষিত",err);if(r){await reload()}return !!r},T("Save claim","দাবি সংরক্ষণ"),"claim-form");
+   const r=await act("am_save_claim_v1",{p_id:c?c.id:null,p_expected_version:c?c.version:null,p_data:clean(Object.assign(c?{}:{warranty_id:w.id},v))},"Claim saved","দাবি সংরক্ষিত",err);if(r){await reload()}return !!r},T("Save claim","দাবি সংরক্ষণ"),"claim-form");
  }
  const bar=h("div",{class:"actions"},can("asset_write")?btn(T("+ New asset","+ নতুন সম্পদ"),()=>assetForm(null,async()=>{await refresh()}),"primary","as-new"):null);
  const doFilter=()=>{page.offset=0;refresh()};

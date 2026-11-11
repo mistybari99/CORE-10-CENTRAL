@@ -234,3 +234,128 @@ DO $$ DECLARE w1 bigint:=c10_test.id('wo1'); oven bigint:=c10_test.id('a_T-OVEN'
  PERFORM c10_test.eq(c10_test.val('SELECT count(*) FROM c10_demo.am_audit WHERE entity=''asset'' AND entity_id='''||oven||''' AND event=''asset.status_auto'''),'2','asset status changes audited');
  PERFORM c10_test.eq(c10_test.val('SELECT bool_and(actor_uid IS NOT NULL AND row_hash IS NOT NULL) FROM c10_demo.am_audit WHERE entity=''work_order'' AND entity_id='''||w1||''''),'true','audit rows hashed');
 END $$; COMMIT;
+
+-- ===== S4 maker-checker (self-approval / self-verification), auto-approval policy =====
+BEGIN; SET LOCAL ROLE authenticated;
+DO $$ DECLARE one bigint:=c10_test.id('a_T-ONE'); press bigint:=c10_test.id('a_T-PRESS'); pos bigint:=c10_test.id('a_T-POS'); r jsonb; wv bigint; wp bigint; wo2 bigint; wo3 bigint; BEGIN
+ PERFORM c10_test.as_user('sup1');
+ r:=c10_demo.am_create_work_order_v1(101,c10_test.k(),jsonb_build_object('asset_id',one,'kind','inspection','title','Quarterly inspection','submit',true));
+ wv:=(r->>'id')::bigint; PERFORM c10_test.put('wo_vc',wv); PERFORM c10_test.eq(r->>'wo_status','SUBMITTED','create+submit');
+ PERFORM c10_test.td(wv,'approve','am_self_approval_denied');
+ PERFORM c10_test.eq(c10_test.has(c10_test.g(wv)->'available_actions','approve'),'false','self approval not offered');
+ PERFORM c10_test.as_user('sup'); r:=c10_test.t(wv,'approve'); PERFORM c10_test.eq(r->>'wo_status','APPROVED','other supervisor approves');
+ PERFORM c10_test.as_user('sup1'); r:=c10_test.t(wv,'start'); PERFORM c10_test.eq(c10_test.g(wv)->>'assigned_to',NULL,'supervisor start does not claim');
+ r:=c10_test.t(wv,'complete'); PERFORM c10_test.eq(r->>'wo_status','COMPLETED','inspection completes without cause code');
+ PERFORM c10_test.td(wv,'verify','am_self_verification_denied');
+ PERFORM c10_test.eq(c10_test.has(c10_test.g(wv)->'available_actions','verify'),'false','self verification not offered');
+ PERFORM c10_test.as_user('sup'); PERFORM c10_test.eq(c10_test.has(c10_test.g(wv)->'available_actions','verify'),'true','verify offered to other supervisor');
+ r:=c10_test.t(wv,'verify'); r:=c10_test.t(wv,'close'); PERFORM c10_test.eq(c10_test.wst(wv),'CLOSED','verified by someone else then closed');
+ -- owners get no exception: business owner and tenant owner cannot approve their own requests
+ PERFORM c10_test.as_user('bo101');
+ r:=c10_demo.am_create_work_order_v1(101,c10_test.k(),jsonb_build_object('asset_id',press,'kind','preventive','title','Press lubrication','submit',true,'priority','low'));
+ wp:=(r->>'id')::bigint; PERFORM c10_test.put('wo_prev',wp);
+ PERFORM c10_test.td(wp,'approve','am_self_approval_denied');
+ PERFORM c10_test.as_user('owner');
+ r:=c10_demo.am_create_work_order_v1(101,c10_test.k(),jsonb_build_object('asset_id',press,'kind','corrective','title','Press guard loose','submit',true));
+ wo2:=(r->>'id')::bigint; PERFORM c10_test.td(wo2,'approve','am_self_approval_denied');
+ PERFORM c10_test.as_user('bo101'); r:=c10_test.t(wo2,'approve'); PERFORM c10_test.eq(r->>'wo_status','APPROVED','business owner may approve tenant owner request');
+ PERFORM c10_test.as_user('owner'); r:=c10_test.t(wp,'approve'); PERFORM c10_test.eq(r->>'wo_status','APPROVED','tenant owner approves bo request');
+ r:=c10_test.t(wo2,'cancel','duplicate of other work'); PERFORM c10_test.eq(r->>'wo_status','CANCELLED','owner cancels own');
+ -- policy off: self approval allowed
+ PERFORM c10_test.sd('SELECT c10_test.pol(''wo.maker_checker'',''false''::jsonb)');
+ PERFORM c10_test.as_user('sup1');
+ r:=c10_demo.am_create_work_order_v1(101,c10_test.k(),jsonb_build_object('asset_id',press,'kind','inspection','title','Self approved by policy','submit',true));
+ wo3:=(r->>'id')::bigint; r:=c10_test.t(wo3,'approve'); PERFORM c10_test.eq(r->>'wo_status','APPROVED','self approval allowed when policy off');
+ PERFORM c10_test.sd('SELECT c10_test.unpol(''wo.maker_checker'')');
+ PERFORM c10_test.td(wo3,'cancel','am_invalid_input'); -- cancel needs a reason
+ r:=c10_test.t(wo3,'cancel','test cleanup');
+ -- approval policy: priority / cost thresholds auto-approve inside the same transaction
+ PERFORM c10_test.sd('SELECT c10_test.pol(''wo.approval_min_priority'',''"high"''::jsonb)');
+ PERFORM c10_test.as_user('t1');
+ r:=c10_demo.am_create_work_order_v1(101,c10_test.k(),jsonb_build_object('asset_id',pos,'kind','inspection','title','POS routine check','submit',true));
+ PERFORM c10_test.eq(r->>'wo_status','APPROVED','medium priority auto-approved'); PERFORM c10_test.eq(r->>'auto_approved','true','flag');
+ PERFORM c10_test.eq(c10_test.g((r->>'id')::bigint)->>'auto_approved','true','read flag'); PERFORM c10_test.eq(c10_test.g((r->>'id')::bigint)->>'approved_by',NULL,'no human approver');
+ r:=c10_demo.am_create_work_order_v1(101,c10_test.k(),jsonb_build_object('asset_id',pos,'kind','preventive','title','POS high prio','priority','high','submit',true));
+ PERFORM c10_test.eq(r->>'wo_status','SUBMITTED','high priority needs approval');
+ PERFORM c10_test.sd('SELECT c10_test.pol(''wo.approval_cost_threshold'',''500''::jsonb)');
+ r:=c10_demo.am_create_work_order_v1(101,c10_test.k(),jsonb_build_object('asset_id',pos,'kind','corrective','title','POS costly','est_labor_cost',400,'est_spares_cost',200,'submit',true));
+ PERFORM c10_test.eq(r->>'wo_status','SUBMITTED','cost above threshold needs approval');
+ PERFORM c10_test.put('wo_pos_costly',(r->>'id')::bigint);
+ PERFORM c10_test.sd('SELECT c10_test.pol(''wo.approval_min_priority'',''"never"''::jsonb)'); PERFORM c10_test.sd('SELECT c10_test.unpol(''wo.approval_cost_threshold'')');
+ PERFORM c10_test.td(c10_test.id('wo_pos_costly'),'cancel','am_invalid_input');
+ PERFORM c10_test.as_user('sup1'); r:=c10_test.t(c10_test.id('wo_pos_costly'),'cancel','cleanup');
+ PERFORM c10_test.as_user('t1');
+ r:=c10_demo.am_create_work_order_v1(101,c10_test.k(),jsonb_build_object('asset_id',pos,'kind','corrective','title','POS never approval','priority','critical','submit',true));
+ PERFORM c10_test.eq(r->>'wo_status','APPROVED','never => approval disabled'); PERFORM c10_test.sd('SELECT c10_test.pol(''wo.approval_min_priority'',''"low"''::jsonb)');
+ PERFORM c10_test.sd('SELECT c10_test.unpol(''wo.approval_min_priority'')');
+END $$; COMMIT;
+
+-- ===== S5 update / execution records (labour, spares, attachments, evidence & labour policy) =====
+BEGIN; SET LOCAL ROLE authenticated;
+DO $$ DECLARE wp bigint:=c10_test.id('wo_prev'); r jsonb; g jsonb; sla0 text; n int; BEGIN
+ PERFORM c10_test.as_user('bo101'); g:=c10_test.g(wp); sla0:=g->>'sla_resolve_due_at';
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_update_work_order_v1(101,%L,%s,%s,''{"title":"New title here"}'',NULL)',c10_test.k(),wp,c10_test.v(wp)),'am_invalid_input'); -- reason required
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_update_work_order_v1(101,%L,%s,%s,''{"bogus":1}'',''reason ok'')',c10_test.k(),wp,c10_test.v(wp)),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_update_work_order_v1(101,%L,%s,%s,''{}'',''reason ok'')',c10_test.k(),wp,c10_test.v(wp)),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_update_work_order_v1(101,%L,%s,%s,''{"status":"CLOSED"}'',''reason ok'')',c10_test.k(),wp,c10_test.v(wp)),'am_invalid_input'); -- status is not editable
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_update_work_order_v1(101,%L,%s,%s,''{"title":"New title here"}'',''reason ok'')',c10_test.k(),wp,c10_test.v(wp)-1),'am_stale_version');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_update_work_order_v1(101,%L,%s,%s,''{"actual_labor_hours":2}'',''reason ok'')',c10_test.k(),wp,c10_test.v(wp)),'am_wo_not_editable');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_update_work_order_v1(101,%L,%s,%s,''{"est_labor_cost":-5}'',''reason ok'')',c10_test.k(),wp,c10_test.v(wp)),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_update_work_order_v1(101,%L,%s,%s,''{"title":123}'',''reason ok'')',c10_test.k(),wp,c10_test.v(wp)),'am_invalid_input');
+ r:=c10_demo.am_update_work_order_v1(101,c10_test.k(),wp,c10_test.v(wp),'{"title":"Press lubrication (updated)","priority":"critical","est_labor_cost":50,"due_on":"2030-01-31"}','tighten priority');
+ g:=c10_test.g(wp); PERFORM c10_test.eq(g->>'title','Press lubrication (updated)','title updated'); PERFORM c10_test.eq(g->>'priority','critical','priority updated');
+ PERFORM c10_test.eq((g->>'sla_resolve_due_at'<>sla0)::text,'true','SLA recomputed on priority change'); PERFORM c10_test.eq(g->>'due_on','2030-01-31','due');
+ PERFORM c10_test.as_user('rep'); PERFORM c10_test.denied(format('SELECT c10_demo.am_update_work_order_v1(101,%L,%s,%s,''{"title":"Rep edit here"}'',''reason ok'')',c10_test.k(),wp,c10_test.v(wp)),'am_denied');
+ PERFORM c10_test.as_user('t1'); PERFORM c10_test.denied(format('SELECT c10_demo.am_update_work_order_v1(101,%L,%s,%s,''{"title":"Tech edit here"}'',''reason ok'')',c10_test.k(),wp,c10_test.v(wp)),'am_not_permitted');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_update_work_order_v1(101,%L,%s,%s,''{"est_labor_cost":1}'',''reason ok'')',c10_test.k(),wp,c10_test.v(wp)),'am_not_permitted'); -- unassigned
+ -- records before start
+ PERFORM c10_test.as_user('sup1');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_labor_v1(101,%L,%s,''{"hours":1,"phase":"actual"}'')',c10_test.k(),wp),'am_wo_not_editable');
+ PERFORM c10_demo.am_wo_add_labor_v1(101,c10_test.k(),wp,'{"hours":2,"rate":25,"phase":"estimate","worker_ref":"EMP-T1"}');
+ PERFORM c10_demo.am_wo_add_spares_v1(101,c10_test.k(),wp,'{"description":"Grease cartridge","qty":3,"unit_cost":4.5,"item_ref":"GRS-1"}');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_spares_v1(101,%L,%s,''{"description":"Bad","qty":1,"stock_effect":true}'')',c10_test.k(),wp),'am_invalid_input');
+ r:=c10_demo.am_assign_work_order_v1(101,c10_test.k(),wp,c10_test.v(wp),c10_test.u('t1'),NULL,NULL,'assign tech');
+ PERFORM c10_test.as_user('t1'); r:=c10_test.t(wp,'start'); PERFORM c10_test.eq(r->>'wo_status','IN_PROGRESS','tech starts assigned WO');
+ PERFORM c10_test.eq(c10_test.ast(c10_test.id('a_T-PRESS')),'under_maintenance','asset under maintenance');
+ -- strict input on records
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_labor_v1(101,%L,%s,''{"hours":0,"phase":"actual"}'')',c10_test.k(),wp),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_labor_v1(101,%L,%s,''{"hours":1.555}'')',c10_test.k(),wp),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_labor_v1(101,%L,%s,''{"hours":"2"}'')',c10_test.k(),wp),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_labor_v1(101,%L,%s,''{"hours":1,"worker_ref":"bad ref;drop"}'')',c10_test.k(),wp),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_labor_v1(101,%L,%s,''{"hours":1,"extra":1}'')',c10_test.k(),wp),'am_invalid_input');
+ PERFORM c10_test.as_user('aud'); PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_labor_v1(101,%L,%s,''{"hours":1}'')',c10_test.k(),wp),'am_not_permitted');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_attachment_v1(101,%L,%s,''{}'')',c10_test.k(),wp),'am_invalid_input');
+ PERFORM c10_test.as_user('t1');
+ -- policy: evidence for every WO + actual labour required
+ PERFORM c10_test.sd('SELECT c10_test.pol(''wo.evidence_required_for'',''"all"''::jsonb)'); PERFORM c10_test.sd('SELECT c10_test.pol(''wo.require_actual_labor'',''true''::jsonb)');
+ PERFORM c10_test.eq(c10_test.g(wp)->'completion_requirements'->>'evidence_required','true','requirement exposed');
+ PERFORM c10_test.td(wp,'complete','am_evidence_required');
+ -- attachments: metadata only, hostile refs rejected
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_attachment_v1(101,%L,%s,%L::jsonb)',c10_test.k(),wp,jsonb_build_object('file_name','a.jpg','mime','image/jpeg','size_bytes',10,'sha256',repeat('a',64),'storage_ref','../../etc/passwd')),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_attachment_v1(101,%L,%s,%L::jsonb)',c10_test.k(),wp,jsonb_build_object('file_name','a.jpg','mime','image/jpeg','size_bytes',10,'sha256',repeat('a',64),'storage_ref','a/../b.jpg')),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_attachment_v1(101,%L,%s,%L::jsonb)',c10_test.k(),wp,jsonb_build_object('file_name','a.jpg','mime','image/jpeg','size_bytes',10,'sha256',repeat('a',64),'storage_ref','https://evil.example/x.jpg')),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_attachment_v1(101,%L,%s,%L::jsonb)',c10_test.k(),wp,jsonb_build_object('file_name','a.jpg','mime','image/jpeg','size_bytes',10,'sha256',repeat('a',64),'storage_ref','/abs/path.jpg')),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_attachment_v1(101,%L,%s,%L::jsonb)',c10_test.k(),wp,jsonb_build_object('file_name','../a.jpg','mime','image/jpeg','size_bytes',10,'sha256',repeat('a',64),'storage_ref','ok/a.jpg')),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_attachment_v1(101,%L,%s,%L::jsonb)',c10_test.k(),wp,jsonb_build_object('file_name','a.exe','mime','application/x-msdownload','size_bytes',10,'sha256',repeat('a',64),'storage_ref','ok/a.exe')),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_attachment_v1(101,%L,%s,%L::jsonb)',c10_test.k(),wp,jsonb_build_object('file_name','a.jpg','mime','image/jpeg','size_bytes',99999999999,'sha256',repeat('a',64),'storage_ref','ok/a.jpg')),'am_invalid_input');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_attachment_v1(101,%L,%s,%L::jsonb)',c10_test.k(),wp,jsonb_build_object('file_name','a.jpg','mime','image/jpeg','size_bytes',10,'sha256','XYZ','storage_ref','ok/a.jpg')),'am_invalid_input');
+ r:=c10_demo.am_wo_add_attachment_v1(101,c10_test.k(),wp,jsonb_build_object('file_name','press after.jpg','mime','image/jpeg','size_bytes',2048,'sha256',repeat('b',64),'storage_ref','wo/press/after-1.jpg','kind','photo','caption','after repair'));
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_attachment_v1(101,%L,%s,%L::jsonb)',c10_test.k(),wp,jsonb_build_object('file_name','copy.jpg','mime','image/jpeg','size_bytes',2048,'sha256',repeat('b',64),'storage_ref','wo/press/copy.jpg')),'am_duplicate_attachment');
+ PERFORM c10_test.td(wp,'complete','am_labor_required');
+ PERFORM c10_demo.am_wo_add_labor_v1(101,c10_test.k(),wp,'{"hours":1.5,"rate":20,"phase":"actual","worker_ref":"EMP-T1"}');
+ PERFORM c10_demo.am_wo_add_labor_v1(101,c10_test.k(),wp,'{"hours":1,"rate":0,"labor_kind":"contractor","note":"vendor help"}');
+ PERFORM c10_demo.am_wo_add_spares_v1(101,c10_test.k(),wp,'{"description":"Grease used","qty":2,"unit_cost":10.5,"phase":"actual"}');
+ r:=c10_test.t(wp,'complete'); PERFORM c10_test.eq(r->>'wo_status','COMPLETED','completes with evidence+labour');
+ g:=c10_test.g(wp);
+ PERFORM c10_test.eq((g->>'actual_labor_hours')::numeric::text,'2.50','labour hours aggregated'); PERFORM c10_test.eq((g->>'actual_labor_cost')::numeric::text,'30.00','labour cost aggregated');
+ PERFORM c10_test.eq((g->>'actual_spares_cost')::numeric::text,'21.00','spares cost aggregated');
+ PERFORM c10_test.eq(c10_test.val('SELECT bool_and(NOT stock_effect) FROM c10_demo.am_wo_spares WHERE work_order_id='||wp),'true','spares never move stock');
+ PERFORM c10_test.eq(jsonb_array_length(g->'labor')::text,'3','labour lines'); PERFORM c10_test.eq(jsonb_array_length(g->'spares')::text,'2','spares lines'); PERFORM c10_test.eq(jsonb_array_length(g->'attachments')::text,'1','attachments');
+ PERFORM c10_test.sd('SELECT c10_test.unpol(''wo.evidence_required_for'')'); PERFORM c10_test.sd('SELECT c10_test.unpol(''wo.require_actual_labor'')');
+ -- attachments still allowed until verified, not after close
+ PERFORM c10_demo.am_wo_add_attachment_v1(101,c10_test.k(),wp,jsonb_build_object('file_name','report.pdf','mime','application/pdf','size_bytes',500,'sha256',repeat('c',64),'storage_ref','wo/press/report.pdf','kind','report'));
+ PERFORM c10_test.as_user('sup'); r:=c10_test.t(wp,'verify'); r:=c10_test.t(wp,'close');
+ PERFORM c10_test.as_user('t1');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_wo_add_attachment_v1(101,%L,%s,%L::jsonb)',c10_test.k(),wp,jsonb_build_object('file_name','late.pdf','mime','application/pdf','size_bytes',500,'sha256',repeat('d',64),'storage_ref','wo/press/late.pdf')),'am_wo_not_editable');
+ PERFORM c10_test.eq(c10_test.ast(c10_test.id('a_T-PRESS')),'active','asset active after completion');
+END $$; COMMIT;

@@ -352,3 +352,75 @@ BEGIN
  PERFORM c10_test.eq(r->'assets_by_status'->>'active','2','1002 filter'); PERFORM c10_test.eq(r#>>'{open_work_orders,total}','3','1002 open');  -- O5,O6,P4
 END $$;
 RESET ROLE;
+
+-- ===================================================== S3 downtime report =====================================================
+CREATE FUNCTION c10_test.pa(r jsonb,p_no text,p_f text) RETURNS text LANGUAGE sql IMMUTABLE AS
+$$ SELECT e->>p_f FROM jsonb_array_elements(r->'per_asset') e WHERE e->>'asset_no'=p_no $$;
+GRANT EXECUTE ON FUNCTION c10_test.pa(jsonb,text,text) TO authenticated;
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE r jsonb; f text:=c10_test.dt(20); t text:=c10_test.dt(1);
+BEGIN
+ PERFORM c10_test.as_user('bo101');
+ r:=c10_demo.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ -- overlapping windows merged (w1+w2 overlap -> 360 not 480), window straddling period start clipped (240), 3-minute window counted by default, planned excluded
+ PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','downtime_minutes'),663,'CNV-1 merged minutes');
+ PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','windows'),5,'CNV-1 counted windows'); PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','merged_windows'),4,'CNV-1 islands');
+ PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','period_minutes'),28800,'CNV-1 period');
+ PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','availability_pct'),round(100*(1-663.0/28800),2),'CNV-1 availability');
+ PERFORM c10_test.eqn(c10_test.pa(r,'CRN-1','downtime_minutes'),720,'CRN-1'); PERFORM c10_test.eqn(c10_test.pa(r,'CHL-1','downtime_minutes'),180,'CHL-1');
+ -- availability period clipped to commission date (POS-1 commissioned 10 days ago)
+ PERFORM c10_test.eqn(c10_test.pa(r,'POS-1','period_minutes'),14400,'POS period clipped'); PERFORM c10_test.eqn(c10_test.pa(r,'POS-1','downtime_minutes'),60,'POS downtime');
+ PERFORM c10_test.eqn(c10_test.pa(r,'POS-1','availability_pct'),round(100*(1-60.0/14400),2),'POS availability');
+ -- open window capped at started + max_open_hours (720h) and flagged
+ PERFORM c10_test.eqn(c10_test.pa(r,'OLD-1','downtime_minutes'),14400,'OLD-1 capped open window');
+ PERFORM c10_test.eq(c10_test.pa(r,'OLD-1','exceeds_max_open'),'true','OLD-1 exceeds'); PERFORM c10_test.eq(c10_test.pa(r,'CNV-1','exceeds_max_open'),'false','CNV no exceed');
+ PERFORM c10_test.eqn(r#>>'{totals,downtime_minutes}',16023,'total minutes'); PERFORM c10_test.eqn(r#>>'{totals,assets_with_downtime}',5,'assets with downtime');
+ PERFORM c10_test.eqn(r#>>'{totals,excluded_planned}',1,'excluded planned'); PERFORM c10_test.eqn(r#>>'{totals,excluded_below_min}',0,'excluded short');
+ PERFORM c10_test.eqn(r#>>'{totals,counted_windows}',11,'counted windows'); PERFORM c10_test.eqn(r#>>'{totals,merged_windows}',10,'merged windows');
+ PERFORM c10_test.eqn(r#>>'{totals,open_windows}',1,'open windows in period'); PERFORM c10_test.eqn(r#>>'{totals,exceeds_max_open}',1,'exceeds count');
+ PERFORM c10_test.eqn(r#>>'{totals,assets_considered}',10,'assets considered');
+ PERFORM c10_test.eqn(r#>>'{totals,fleet_availability_pct}',round(100*(1-(r#>>'{totals,downtime_minutes}')::numeric/(r#>>'{totals,period_minutes}')::numeric),2),'fleet availability');
+ PERFORM c10_test.eq(r#>>'{top_offenders,0,asset_no}','OLD-1','top offender'); PERFORM c10_test.eq(r#>>'{top_offenders,1,asset_no}','CRN-1','second offender');
+ PERFORM c10_test.eq(jsonb_array_length(r->'top_offenders')::text,'5','5 offenders');
+ PERFORM c10_test.eqn((SELECT e->>'downtime_minutes' FROM jsonb_array_elements(r->'per_site') e WHERE e->>'site_id'='1002'),1383,'site 1002 minutes');
+ PERFORM c10_test.eqn((SELECT e->>'downtime_minutes' FROM jsonb_array_elements(r->'per_site') e WHERE e->>'site_id'='1004'),14400,'site 1004 minutes');
+ PERFORM c10_test.eq(jsonb_array_length(r->'open_windows')::text,'1','open window list');
+ -- per-site filtering: supervisor(1001) never sees other sites; explicit p_site
+ PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.eqn(r#>>'{totals,downtime_minutes}',240,'1001 total'); PERFORM c10_test.eq(c10_test.pa(r,'CNV-1','downtime_minutes'),NULL,'no 1002 asset');
+ PERFORM c10_test.eqn(r#>>'{totals,assets_considered}',5,'1001 assets');
+ PERFORM c10_test.as_user('sup'); r:=c10_demo.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date,1002);
+ PERFORM c10_test.eqn(r#>>'{totals,downtime_minutes}',1383,'sup site 1002');
+ -- isolation: 102 only sees its own window (120 min)
+ PERFORM c10_test.as_user('bo102'); r:=c10_demo.am_downtime_report_v1(102,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.eqn(r#>>'{totals,downtime_minutes}',120,'102 minutes'); PERFORM c10_test.eqn(r#>>'{totals,assets_considered}',2,'102 assets');
+ PERFORM c10_test.as_user('owner2'); r:=c10_demo.am_downtime_report_v1(201,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.eqn(r#>>'{totals,downtime_minutes}',0,'201 minutes'); PERFORM c10_test.eqn(r#>>'{totals,assets_considered}',9,'201 assets');
+END $$;
+RESET ROLE;
+-- policy: windows shorter than downtime.min_counted_minutes (5) are excluded
+INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'downtime.min_counted_minutes','5',c10_test.u('bo101'));
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101');
+ r:=c10_demo.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','downtime_minutes'),660,'min minutes excludes 3-minute window'); PERFORM c10_test.eqn(r#>>'{totals,excluded_below_min}',1,'excluded below min');
+ PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','windows'),4,'windows after min'); END $$;
+RESET ROLE;
+DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='downtime.min_counted_minutes';
+-- policy: planned downtime counted when downtime.planned_counts
+INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'downtime.planned_counts','true',c10_test.u('bo101'));
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101');
+ r:=c10_demo.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','downtime_minutes'),1263,'planned counted'); PERFORM c10_test.eqn(r#>>'{totals,excluded_planned}',0,'no planned exclusion'); END $$;
+RESET ROLE;
+DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='downtime.planned_counts';
+-- policy: lower max_open_hours caps the open window earlier (48h => 2880 minutes), scoped by SITE override too
+INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'site',1004,'downtime.max_open_hours','48',c10_test.u('bo101'));
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101');
+ r:=c10_demo.am_downtime_report_v1(101,c10_test.dt(45)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.eqn(c10_test.pa(r,'OLD-1','downtime_minutes'),2880,'site override caps open window'); END $$;
+RESET ROLE;
+DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='downtime.max_open_hours';
