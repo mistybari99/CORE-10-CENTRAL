@@ -8,12 +8,12 @@ function planApproval(input) {
   if (!request || !actor || !Number.isSafeInteger(request.business_id) || request.business_id<=0 ||
       !Number.isSafeInteger(actor.business_id) || actor.business_id<=0 ||
       request.business_id!==actor.business_id) return fail('business_scope_mismatch');
-  if (typeof actor.user_id!=='string' || !actor.user_id.trim() || actor.active!==true || actor.revoked!==false ||
+  if (typeof actor.user_id!=='string' || !actor.user_id.trim() || actor.user_id!==actor.user_id.trim() || actor.active!==true || actor.revoked!==false ||
       !['business_owner','approver'].includes(actor.role)) return fail('approver_not_authorized');
-  if (typeof request.created_by!=='string' || !request.created_by.trim()) return fail('invalid_identity');
+  if (typeof request.created_by!=='string' || !request.created_by.trim() || request.created_by!==request.created_by.trim()) return fail('invalid_identity');
   if (request.created_by===actor.user_id) return fail('maker_approver_conflict');
   if (request.status!=='pending') return fail('invalid_transition');
-  if (typeof request.id!=='string' || !request.id.trim() || typeof input.idempotency_key!=='string' ||
+  if (typeof request.id!=='string' || !request.id.trim() || request.id!==request.id.trim() || typeof input.idempotency_key!=='string' ||
       !/^[A-Za-z0-9_-]{8,128}$/.test(input.idempotency_key)) return fail('invalid_identity');
   return {ok:true,command:Object.freeze({request_id:request.id,business_id:request.business_id,
     expected_status:'pending',next_status:ACTIONS[input.action],actor_id:actor.user_id,
