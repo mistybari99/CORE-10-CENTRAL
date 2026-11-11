@@ -1,0 +1,9 @@
+.iv-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,1fr);gap:18px}
+.iv-panel{border:1px solid var(--edge);border-radius:13px;background:var(--panel);padding:16px;min-width:0}
+.iv-panel h2{font-size:17px;margin:0 0 15px}.iv-form{display:grid;gap:12px}
+.iv-form label{display:block}.iv-form select,.iv-form input{width:100%;background:#152130;color:var(--fg);border:1px solid #536578;border-radius:9px;padding:11px;min-height:44px}
+.iv-card{background:var(--panel2);border:1px solid var(--edge);border-radius:11px;padding:13px;margin:8px 0;overflow-wrap:anywhere}
+.iv-card strong{display:block}.iv-card small{color:var(--muted)}.iv-card .buttons{display:flex;gap:8px;margin-top:12px}
+.iv-card button{min-height:40px;padding:7px 13px}.iv-status{margin:12px 0;color:var(--sea);min-height:25px}
+.iv-status[data-error=true]{color:var(--err)}.iv-meta{color:var(--muted);font-size:12px}
+@media(max-width:1000px){.iv-grid{grid-template-columns:1fr}}
