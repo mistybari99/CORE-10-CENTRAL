@@ -109,5 +109,13 @@ const D={field:"on_hand",op:"lt",threshold:12,outcome:"warn",message:"Stock belo
  assert.equal(rb.config_only,true);assert.equal(rb.state,"PUBLISHED");
  assert.equal(await movements(),afterPost,"config rollback must not touch posted stock");
  assert.ok(audit.length>=8,"immutable audit history present");
+ // ---- Site-level override over HTTP ----
+ const so=ok(await rpc("set_engine_site_override_v1",T.owner,{p_engine:id,p_business:101,p_site:1001,p_params:{threshold:40,outcome:"warn"},p_expected:0,p_request:key("site"),p_reason:"Showroom specific level"}),"site override");
+ assert.equal(so.version,1);
+ const sp=ok(await rpc("preview_site_engine_v1",T.owner,{p_engine:id,p_business:101,p_site:1001,p_inputs:{on_hand:30}}),"site preview");
+ assert.equal(sp.effective.threshold,40);assert.equal(sp.site_override,true);
+ assert.equal(ok(await rpc("preview_site_engine_v1",T.owner,{p_engine:id,p_business:101,p_site:1002,p_inputs:{on_hand:30}}),"other site").site_override,false);
+ denied(await rpc("set_engine_site_override_v1",T.staff,{p_engine:id,p_business:101,p_site:1001,p_params:{threshold:1},p_expected:1,p_request:key("sitest"),p_reason:"staff override attempt"}),"site staff cannot set engine overrides","engine_denied");
+ denied(await rpc("set_engine_site_override_v1",T.owner,{p_engine:id,p_business:101,p_site:1003,p_params:{threshold:1},p_expected:0,p_request:key("sitex"),p_reason:"site of other business"}),"cross-business site","engine_denied");
  console.log("PASS C10-A045 signed-JWT PostgREST E2E: demo owner/business-owner/manager/staff/investor/revoked/other-tenant/operator/anonymous/forged/expired/spoofed; real stock postings unaffected by engine config; NOT GoTrue");
 })().catch(e=>{console.error(e);process.exitCode=1});

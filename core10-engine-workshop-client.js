@@ -152,8 +152,22 @@
    if(!r||r.status!=="rolled_back"||r.config_only!==true)fail("INVALID_ENGINE_ROLLBACK_RECEIPT");
    return r;
   }
+  async function setSiteOverride(x){
+   if(!x||!pos(x.engineId)||!pos(x.businessId)||!pos(x.siteId)||!Number.isSafeInteger(x.expected)||x.expected<0||
+      !validateParams(x.params||{}).ok)fail("INVALID_ENGINE_SITE_OVERRIDE");
+   req(x.requestKey,x.reason);
+   const s=await db(),r=unwrap(await s.rpc("set_engine_site_override_v1",{p_engine:x.engineId,p_business:x.businessId,p_site:x.siteId,
+    p_params:x.params||{},p_expected:x.expected,p_request:x.requestKey,p_reason:x.reason.trim()}));
+   if(!r||r.status!=="applied"||!pos(r.site_id))fail("INVALID_ENGINE_SITE_RECEIPT");
+   return r;
+  }
+  async function previewSite({engineId,businessId,siteId,inputs}){
+   if(!pos(engineId)||!pos(businessId)||!pos(siteId)||!inputs||typeof inputs!=="object")fail("INVALID_ENGINE_PREVIEW");
+   const s=await db();
+   return unwrap(await s.rpc("preview_site_engine_v1",{p_engine:engineId,p_business:businessId,p_site:siteId,p_inputs:inputs}));
+  }
   return Object.freeze({listBusinesses,readRegistry,readAudit,readBusiness,pending,previewDraft,previewBusiness,
-   saveDraft,validateVersion,assign,editParams,decide,rollback,
+   saveDraft,validateVersion,assign,editParams,decide,rollback,setSiteOverride,previewSite,
    releaseStatus:()=>Object.freeze({serverOnly:true,operationallyCertified:false,advisoryOnly:true,
     stockWrites:false,financeWrites:false,arbitraryCode:false})});
  }

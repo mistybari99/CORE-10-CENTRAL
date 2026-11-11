@@ -286,6 +286,50 @@ BEGIN
 END$$;
 COMMIT;
 
+-- ===== 7b. Site-level overrides (A: sites 1001/1002; B: site 1003) =====
+BEGIN;
+SET ROLE authenticated;
+SET LOCAL request.jwt.claim.sub='11111111-1111-4111-8111-111111111111';
+DO $$
+DECLARE x jsonb;
+BEGIN
+ -- Business A was revoked in section 5; republish it (config version continues) for the override tests
+ x:=c10_demo.assign_engine_v1(1,101,1,'PUBLISHED','{"threshold":12}','both','business_owner',(SELECT (i->>'version')::bigint FROM jsonb_array_elements(c10_demo.read_engines_v1(1)->'engines'->0->'assignments') i WHERE i->>'business_id'='101'),'req045_site_pub','Republish A for site overrides');
+ x:=c10_demo.set_engine_site_override_v1(1,101,1001,'{"threshold":40}',0,'req045_site_01','Showroom needs a higher level');
+ IF x->>'status'<>'applied' OR x->>'version'<>'1' THEN RAISE EXCEPTION 'SITE_SET %',x; END IF;
+ IF c10_demo.set_engine_site_override_v1(1,101,1001,'{"threshold":40}',0,'req045_site_01','Showroom needs a higher level')<>x THEN RAISE EXCEPTION 'SITE_REPLAY'; END IF;
+ PERFORM public.t045_fail($q$SELECT c10_demo.set_engine_site_override_v1(1,101,1001,'{"threshold":41}',0,'req045_site_st','Stale site override')$q$,'engine_stale_version');
+ PERFORM public.t045_fail($q$SELECT c10_demo.set_engine_site_override_v1(1,101,1003,'{"threshold":41}',0,'req045_site_xs','Site of another business')$q$,'engine_denied');
+ PERFORM public.t045_fail($q$SELECT c10_demo.set_engine_site_override_v1(1,101,2001,'{"threshold":41}',0,'req045_site_xt','Site of another tenant')$q$,'engine_denied');
+ PERFORM public.t045_fail($q$SELECT c10_demo.set_engine_site_override_v1(1,101,1001,'{"formula":"x"}',1,'req045_site_bad','Invalid override param')$q$,'invalid_engine_request');
+ -- showroom 1001 uses 40, factory 1002 falls back to the business value, other business unaffected
+ x:=c10_demo.preview_site_engine_v1(1,101,1001,'{"on_hand":30}');
+ IF x->>'outcome'<>'warn' OR (x->'effective'->>'threshold')<>'40' OR (x->>'site_override')<>'true' THEN RAISE EXCEPTION 'SITE_EVAL_1001 %',x; END IF;
+ x:=c10_demo.preview_site_engine_v1(1,101,1002,'{"on_hand":30}');
+ IF x->>'outcome'<>'allow' OR (x->>'site_override')<>'false' THEN RAISE EXCEPTION 'SITE_EVAL_1002 %',x; END IF;
+ IF (c10_demo.read_business_engines_v1(101)->'items'->0->'site_overrides'->0->>'site_id')<>'1001' THEN RAISE EXCEPTION 'SITE_PROJECTION'; END IF;
+ IF jsonb_array_length(c10_demo.read_business_engines_v1(102)->'items'->0->'site_overrides')<>0 THEN RAISE EXCEPTION 'B_SITE_LEAK'; END IF;
+END$$;
+COMMIT;
+BEGIN;
+SET ROLE authenticated;
+SET LOCAL request.jwt.claim.sub='22222222-2222-4222-8222-222222222222';
+DO $$
+DECLARE x jsonb;
+BEGIN
+ x:=c10_demo.set_engine_site_override_v1(1,101,1002,'{"threshold":25}',0,'req045_site_bo','Business owner sets factory level');
+ IF x->>'status'<>'applied' THEN RAISE EXCEPTION 'SITE_BO %',x; END IF;
+ PERFORM public.t045_fail($q$SELECT c10_demo.set_engine_site_override_v1(1,102,1003,'{"threshold":1}',0,'req045_site_bo2','Cross business site override')$q$,'engine_denied');
+END$$;
+COMMIT;
+BEGIN;
+SET ROLE authenticated;
+SET LOCAL request.jwt.claim.sub='33333333-3333-4333-8333-333333333333';
+DO $$BEGIN
+ PERFORM public.t045_fail($q$SELECT c10_demo.set_engine_site_override_v1(1,101,1001,'{"threshold":1}',1,'req045_site_mg','Manager override denied')$q$,'engine_denied');
+ PERFORM public.t045_fail($q$SELECT c10_demo.preview_site_engine_v1(1,101,1001,'{"on_hand":1}')$q$,'engine_denied');
+END$$;
+COMMIT;
 -- ===== 8. Immutability, integrity and "no operational side effects" (superuser tamper attempts) =====
 RESET ROLE;
 DO $$

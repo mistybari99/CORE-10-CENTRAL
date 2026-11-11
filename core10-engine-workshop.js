@@ -67,6 +67,10 @@ function ownerShell(){
  '<label>Local edit authority<select id="ew-pub-edit">'+opts(W.MODES.map(x=>[x,L[x]]),"central_only")+'</select></label></div>'+
  '<div id="ew-diff" class="ew-diff" aria-label="Before and after">Select an engine and business to see the before → after diff.</div>'+
  '<div class="ew-actions"><button id="ew-pub-save" class="primary" type="button">Apply to this business only</button></div>'+
+ '<h2 style="margin-top:16px">Site override <small>for the business selected above · other sites unchanged</small></h2><div class="ew-form three">'+
+ '<label>Site id<input id="ew-site-id" type="number" min="1" step="1" placeholder="e.g. 1001"></label>'+
+ '<label>Site threshold<input id="ew-site-threshold" type="number" step="any"></label>'+
+ '<div class="ew-actions" style="align-self:end"><button id="ew-site-save" class="outline" type="button">Save site override</button><button id="ew-site-prev" class="outline" type="button">Preview site</button></div></div>'+
  '<h2 style="margin-top:16px">Assignments <small id="ew-assign-count"></small></h2><div id="ew-assignments" class="ew-table"></div></section>'+
  '<section class="ew-panel ew-wide"><h2>Pending business requests</h2><div id="ew-requests" class="ew-table"><p class="ew-muted">None.</p></div></section>'+
  '<section class="ew-panel ew-wide"><h2>Audit &amp; configuration rollback <small>rollback changes configuration only, never posted transactions</small></h2><div id="ew-audit" class="ew-table"><p class="ew-muted">Select an engine.</p></div></section></div>';
@@ -227,6 +231,20 @@ function wireOwner(){
   if($("ew-reason").value.trim().length<5){$("ew-err-reason").textContent="Required: at least 5 characters.";status("Reason required.",true);return}
   run("Rolling back configuration",async()=>{const r=await S.api.rollback({engineId:e.engine_id,businessId:bid,auditId:Number(b.dataset.rollback),expected:a.version,requestKey:rk(),reason:$("ew-reason").value});
    await reload(e.engine_id);return "Configuration rolled back (config only) · new config version "+r.version})});
+ $("ew-site-save").addEventListener("click",()=>{const e=engine();if(!e)return;
+  const site=Number($("ew-site-id").value),th=$("ew-site-threshold").value;
+  if(!Number.isSafeInteger(site)||site<1||th===""||$("ew-reason").value.trim().length<5){status("Enter a site id, a threshold and the shared reason (min 5 characters).",true);return}
+  run("Saving site override",async()=>{const bid=Number($("ew-pub-business").value);
+   const cur=(await S.api.readBusiness(bid)).items.find(x=>x.engine_id===e.engine_id),so=cur&&cur.site_overrides.find(x=>x.site_id===site);
+   const r=await S.api.setSiteOverride({engineId:e.engine_id,businessId:bid,siteId:site,
+    params:{threshold:Number(th)},expected:so?so.version:0,requestKey:rk(),reason:$("ew-reason").value});
+   await reload(e.engine_id);return "Site #"+r.site_id+" override saved · version "+r.version+" · other sites unchanged"})});
+ $("ew-site-prev").addEventListener("click",()=>{const e=engine();if(!e)return;
+  run("Previewing site",async()=>{const bid=Number($("ew-pub-business").value),a=e.assignments.find(x=>x.business_id===bid);
+   const f=e.versions.find(v=>v.version===a.pinned_version).descriptor.field;
+   const r=await S.api.previewSite({engineId:e.engine_id,businessId:bid,siteId:Number($("ew-site-id").value),inputs:{[f]:Number($("ew-preview-input").value)}});
+   $("ew-preview-result").innerHTML='<b>Site #'+esc(r.site_id)+'</b> · '+esc(f)+' → <b>'+esc(r.outcome)+'</b> (threshold '+esc(r.effective.threshold)+', site override: '+esc(r.site_override)+') · advisory only';
+   return "Site evaluated with its own configuration"})});
  $("ew-requests").addEventListener("click",ev=>{const b=ev.target.closest("[data-decide]");if(!b)return;
   run("Recording decision",async()=>{const r=await S.api.decide(Number(b.dataset.id),b.dataset.decide);await reload(S.selected);return "Request "+r.status})});
 }

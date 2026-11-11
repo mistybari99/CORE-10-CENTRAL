@@ -93,6 +93,8 @@ jobs:
         run: node tests/e2e/core10-a044-control-studio-browser.js
       - name: A045 Workshop browser UI 390px/1440px (synthetic signed fixture)
         run: node tests/e2e/core10-a045-engine-workshop-browser.js
+      - name: A045 static DEMO preview page 390px/1440px (in-memory, no network)
+        run: node tests/e2e/core10-a045-demo-preview-browser.js
 
   engine-signed-rest:
     name: A045 signed-JWT PostgREST E2E with demo tenant staff identities (disposable, not GoTrue)

@@ -85,6 +85,19 @@ CREATE TABLE c10_demo.micro_engine_requests_v1(
  FOREIGN KEY(engine_id,business_id) REFERENCES c10_demo.micro_engine_assignments_v1(engine_id,business_id),
  CHECK((status='pending' AND reviewed_by IS NULL) OR (status<>'pending' AND reviewed_by IS NOT NULL))
 );
+CREATE TABLE c10_demo.micro_engine_site_overrides_v1(
+ engine_id bigint NOT NULL,
+ tenant_id bigint NOT NULL,
+ business_id bigint NOT NULL,
+ site_id bigint NOT NULL,
+ params jsonb NOT NULL,
+ version bigint NOT NULL DEFAULT 1 CHECK(version>0),
+ changed_by uuid NOT NULL,
+ changed_at timestamptz NOT NULL DEFAULT now(),
+ PRIMARY KEY(engine_id,business_id,site_id),
+ FOREIGN KEY(engine_id,business_id) REFERENCES c10_demo.micro_engine_assignments_v1(engine_id,business_id),
+ FOREIGN KEY(site_id,tenant_id,business_id) REFERENCES c10_demo.sites(id,tenant_id,business_id)
+);
 CREATE TABLE c10_demo.micro_engine_receipts_v1(
  tenant_id bigint NOT NULL REFERENCES c10_demo.tenants(id),
  request_key text NOT NULL CHECK(request_key ~ '^[A-Za-z0-9_-]{8,100}$'),
@@ -101,7 +114,7 @@ CREATE TABLE c10_demo.micro_engine_audit_v1(
  business_id bigint,
  event text NOT NULL CHECK(event IN('engine_created','version_saved','version_validated',
   'assignment_changed','params_edited','request_submitted','request_approved','request_rejected',
-  'assignment_rolled_back')),
+  'assignment_rolled_back','site_override_set')),
  before_state jsonb,
  after_state jsonb,
  actor_uid uuid NOT NULL,
@@ -137,11 +150,12 @@ ALTER TABLE c10_demo.micro_engines_v1 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE c10_demo.micro_engine_versions_v1 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE c10_demo.micro_engine_assignments_v1 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE c10_demo.micro_engine_requests_v1 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE c10_demo.micro_engine_site_overrides_v1 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE c10_demo.micro_engine_receipts_v1 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE c10_demo.micro_engine_audit_v1 ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON c10_demo.micro_engine_handlers_v1,c10_demo.micro_engines_v1,
  c10_demo.micro_engine_versions_v1,c10_demo.micro_engine_assignments_v1,
- c10_demo.micro_engine_requests_v1,c10_demo.micro_engine_receipts_v1,
+ c10_demo.micro_engine_requests_v1,c10_demo.micro_engine_site_overrides_v1,c10_demo.micro_engine_receipts_v1,
  c10_demo.micro_engine_audit_v1 FROM PUBLIC,authenticated,anon;
 
 -- ---------- pure validation / evaluation (no table access, no side effects) ----------
@@ -488,6 +502,68 @@ BEGIN
  RETURN res;
 END$$;
 
+-- ---------- Site-level override (per business site; independent of other sites and businesses) ----------
+CREATE FUNCTION c10_demo.set_engine_site_override_v1(p_engine bigint,p_business bigint,p_site bigint,
+ p_params jsonb,p_expected bigint,p_request text,p_reason text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE t bigint; a c10_demo.micro_engine_assignments_v1%ROWTYPE; o c10_demo.micro_engine_site_overrides_v1%ROWTYPE;
+ pay jsonb; res jsonb; nver bigint; owner boolean;
+BEGIN
+ IF c10_demo.actor_uid() IS NULL OR p_engine IS NULL OR p_business IS NULL OR p_site IS NULL OR p_expected IS NULL
+    OR p_expected<0 OR NOT c10_demo.engine_params_valid_v1(COALESCE(p_params,'{}'::jsonb))
+ THEN RAISE EXCEPTION 'invalid_engine_request'; END IF;
+ PERFORM c10_demo.engine_check_req_v1(p_request,p_reason);
+ SELECT tenant_id INTO t FROM c10_demo.businesses WHERE id=p_business;
+ IF t IS NULL THEN RAISE EXCEPTION 'engine_denied'; END IF;
+ PERFORM 1 FROM c10_demo.tenants WHERE id=t FOR UPDATE;
+ IF NOT c10_demo.can_manage(t,p_business) THEN RAISE EXCEPTION 'engine_denied'; END IF;
+ owner:=c10_demo.can_tenant(t);
+ pay:=jsonb_build_object('op','site','engine',p_engine,'business',p_business,'site',p_site,
+   'params',COALESCE(p_params,'{}'::jsonb),'expected',p_expected,'reason',btrim(p_reason));
+ res:=c10_demo.engine_receipt_v1(t,p_request,pay);
+ IF res IS NOT NULL THEN RETURN res; END IF;
+ IF NOT EXISTS(SELECT 1 FROM c10_demo.sites WHERE id=p_site AND business_id=p_business AND tenant_id=t)
+ THEN RAISE EXCEPTION 'engine_denied'; END IF;
+ SELECT * INTO a FROM c10_demo.micro_engine_assignments_v1 WHERE engine_id=p_engine AND business_id=p_business AND tenant_id=t FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'engine_denied'; END IF;
+ IF a.state<>'PUBLISHED' THEN RAISE EXCEPTION 'engine_not_published'; END IF;
+ IF NOT owner AND (a.placement NOT IN('business_only','both') OR a.local_edit_mode<>'business_owner')
+ THEN RAISE EXCEPTION 'engine_local_edit_denied'; END IF;
+ SELECT * INTO o FROM c10_demo.micro_engine_site_overrides_v1 WHERE engine_id=p_engine AND business_id=p_business AND site_id=p_site FOR UPDATE;
+ IF (CASE WHEN FOUND THEN o.version ELSE 0 END)<>p_expected THEN RAISE EXCEPTION 'engine_stale_version'; END IF;
+ nver:=p_expected+1;
+ INSERT INTO c10_demo.micro_engine_site_overrides_v1(engine_id,tenant_id,business_id,site_id,params,version,changed_by)
+ VALUES(p_engine,t,p_business,p_site,COALESCE(p_params,'{}'::jsonb),nver,c10_demo.actor_uid())
+ ON CONFLICT(engine_id,business_id,site_id) DO UPDATE SET params=excluded.params,version=excluded.version,
+   changed_by=excluded.changed_by,changed_at=now();
+ PERFORM c10_demo.engine_audit_v1(t,p_engine,p_business,'site_override_set',
+   CASE WHEN o.engine_id IS NULL THEN NULL ELSE jsonb_build_object('site_id',p_site,'params',o.params,'version',o.version) END,
+   jsonb_build_object('site_id',p_site,'params',COALESCE(p_params,'{}'::jsonb),'version',nver),p_request);
+ res:=jsonb_build_object('status','applied','site_id',p_site,'version',nver,'operationally_certified',false);
+ PERFORM c10_demo.engine_record_v1(t,p_request,pay,res);
+ RETURN res;
+END$$;
+CREATE FUNCTION c10_demo.preview_site_engine_v1(p_engine bigint,p_business bigint,p_site bigint,p_inputs jsonb) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE t bigint; a c10_demo.micro_engine_assignments_v1%ROWTYPE; v c10_demo.micro_engine_versions_v1%ROWTYPE;
+ e c10_demo.micro_engines_v1%ROWTYPE; owner boolean; sp jsonb;
+BEGIN
+ SELECT tenant_id INTO t FROM c10_demo.businesses WHERE id=p_business;
+ IF c10_demo.actor_uid() IS NULL OR t IS NULL OR NOT c10_demo.can_manage(t,p_business) THEN RAISE EXCEPTION 'engine_denied'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM c10_demo.sites WHERE id=p_site AND business_id=p_business AND tenant_id=t) THEN RAISE EXCEPTION 'engine_denied'; END IF;
+ owner:=c10_demo.can_tenant(t);
+ SELECT * INTO a FROM c10_demo.micro_engine_assignments_v1 WHERE engine_id=p_engine AND business_id=p_business AND tenant_id=t;
+ IF NOT FOUND OR (NOT owner AND (a.state='REVOKED' OR a.placement NOT IN('business_only','both'))) THEN RAISE EXCEPTION 'engine_denied'; END IF;
+ IF a.state<>'PUBLISHED' THEN RAISE EXCEPTION 'engine_not_published'; END IF;
+ SELECT * INTO e FROM c10_demo.micro_engines_v1 WHERE id=p_engine;
+ SELECT * INTO v FROM c10_demo.micro_engine_versions_v1 WHERE engine_id=p_engine AND version=a.pinned_version;
+ IF v.descriptor_hash<>md5(v.descriptor::text) THEN RAISE EXCEPTION 'engine_integrity_failed'; END IF;
+ IF e.handler_id<>'threshold_rule_v1' THEN RAISE EXCEPTION 'handler_not_executable'; END IF;
+ SELECT params INTO sp FROM c10_demo.micro_engine_site_overrides_v1 WHERE engine_id=p_engine AND business_id=p_business AND site_id=p_site;
+ RETURN c10_demo.engine_eval_threshold_v1(v.descriptor,a.params||COALESCE(sp,'{}'::jsonb),p_inputs)
+   || jsonb_build_object('engine_id',p_engine,'business_id',p_business,'site_id',p_site,'version',v.version,'site_override',sp IS NOT NULL);
+END$$;
+
 -- ---------- READ RPCs ----------
 -- Owner registry: engines, versions, assignments. Tenant owner only.
 CREATE FUNCTION c10_demo.read_engines_v1(p_tenant bigint) RETURNS jsonb
@@ -539,6 +615,8 @@ BEGIN
    'control_id','engine.'||e.engine_key,'engine_id',e.id,'display_name',e.display_name,'handler_id',e.handler_id,
    'group','micro_engine','state',a.state,'pinned_version',a.pinned_version,
    'descriptor',v.descriptor,'params',a.params,
+   'site_overrides',(SELECT COALESCE(jsonb_agg(jsonb_build_object('site_id',so.site_id,'params',so.params,'version',so.version) ORDER BY so.site_id),'[]'::jsonb)
+      FROM c10_demo.micro_engine_site_overrides_v1 so WHERE so.engine_id=a.engine_id AND so.business_id=a.business_id),
    'effective',CASE WHEN e.handler_id='threshold_rule_v1' THEN jsonb_build_object(
       'field',v.descriptor->>'field','op',v.descriptor->>'op',
       'threshold',COALESCE((a.params->>'threshold')::numeric,(v.descriptor->>'threshold')::numeric),
@@ -588,6 +666,10 @@ REVOKE ALL ON FUNCTION c10_demo.engine_receipt_v1(bigint,text,jsonb),
  c10_demo.engine_audit_v1(bigint,bigint,bigint,text,jsonb,jsonb,text),
  c10_demo.engine_owner_lock_v1(bigint),c10_demo.engine_check_req_v1(text,text),
  c10_demo.engine_descriptor_ok_v1(text,jsonb) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION c10_demo.set_engine_site_override_v1(bigint,bigint,bigint,jsonb,bigint,text,text),
+ c10_demo.preview_site_engine_v1(bigint,bigint,bigint,jsonb) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION c10_demo.set_engine_site_override_v1(bigint,bigint,bigint,jsonb,bigint,text,text),
+ c10_demo.preview_site_engine_v1(bigint,bigint,bigint,jsonb) TO authenticated;
 REVOKE ALL ON FUNCTION
  c10_demo.save_engine_draft_v1(bigint,text,text,text,jsonb,int,text,text),
  c10_demo.validate_engine_version_v1(bigint,int,text,text),
