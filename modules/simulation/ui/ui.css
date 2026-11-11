@@ -36,3 +36,6 @@ ul.clean{margin:.2rem 0;padding-left:1.1rem}.small{font-size:.85rem;color:var(--
 details>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600}
 [hidden]{display:none !important}
 .grid>*,.bar>*{min-width:0}
+.field{margin:0 0 12px}
+.actions{position:sticky;bottom:0;z-index:2;background:var(--card);padding:10px 0;margin-top:8px;border-top:1px solid var(--line)}
+#quick-form{margin-bottom:8px}
