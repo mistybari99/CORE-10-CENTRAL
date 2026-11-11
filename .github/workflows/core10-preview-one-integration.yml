@@ -56,6 +56,7 @@ jobs:
           node tests/forbidden-files.test.js
           node --test tests/static-server-safety.test.js
           node tests/core10-pages-package.test.js
+          node --test tests/preview-one/module-snapshot.test.mjs tests/core10-preview-v1.test.mjs
       - name: Install isolated browser
         run: |
           mkdir -p "$RUNNER_TEMP/preview-one-pw"
@@ -72,3 +73,5 @@ jobs:
           node tests/e2e/core10-a053-a054-workforce-browser.js
           node tests/e2e/core10-a055-asset-maintenance-browser.js
           node tests/e2e/core10-a056-crm-browser.js
+          node tests/preview-one/module-snapshot-browser.cjs
+          node tests/preview-one/crm-worker-browser.cjs
