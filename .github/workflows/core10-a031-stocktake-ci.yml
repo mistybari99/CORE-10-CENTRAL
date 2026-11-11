@@ -68,6 +68,17 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a031_stocktake_v1.sql
       - name: Execute stocktake end-to-end test against isolated database
         run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a031_stocktake_e2e.sql
+      - name: Reset only ephemeral CI demo schema between SQL and signed HTTP suites
+        run: |
+          # This server is the isolated PostgreSQL 17 service initialized in this job.
+          # Never run DROP against Supabase staging, production or an external database.
+          test "$PGHOST" = localhost
+          test "$PGDATABASE" = core10_stocktake_disposable
+          psql -X -v ON_ERROR_STOP=1 -c 'DROP SCHEMA c10_demo CASCADE'
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a031_stocktake_v1.sql
       - name: Start disposable signed-HMAC PostgREST HTTP API (never real Supabase)
         env:
           CORE10_CI_JWT_SECRET: core10_disposable_stocktake_ci_signer_only_2026_not_production
