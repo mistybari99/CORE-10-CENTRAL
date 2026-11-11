@@ -60,6 +60,9 @@ BEGIN
  THEN RAISE EXCEPTION 'issue replay'; END IF;
  IF (SELECT on_hand FROM c10_demo.quality_balances_v1 WHERE location_id=5001 AND lot_id=a)<>20
  THEN RAISE EXCEPTION 'lot receipt-issue math mismatch'; END IF;
+ -- Re-enrollment of an already traced item is safe even after real lot stock events.
+ IF NOT c10_demo.quality_enable_item_v1(101,8010)
+ THEN RAISE EXCEPTION 'repeat tracked-item enrollment failed'; END IF;
  BEGIN
   PERFORM c10_demo.quality_stock_v1(a,5001,50,'issue','Demo overdraw','a058-overdraw');
   RAISE EXCEPTION 'overdraw wrongly accepted';
@@ -102,6 +105,16 @@ BEGIN
  THEN RAISE EXCEPTION 'recursive recall failed'; END IF;
  IF (SELECT status FROM c10_demo.quality_lots_v1 WHERE id=b)<>'released'
  THEN RAISE EXCEPTION 'unrelated lot accidentally recalled'; END IF;
+ -- Security edge: do not allow a new child lot to be linked after parent recall.
+ BEGIN
+  PERFORM c10_demo.quality_link_genealogy_v1(a,b,'a058-after-recall-link');
+  RAISE EXCEPTION 'post-recall descendant link bypass accepted';
+ EXCEPTION WHEN raise_exception THEN
+  IF SQLERRM<>'quality_recalled_lineage_locked' THEN RAISE; END IF;
+ END;
+ -- A previously succeeded genealogy request remains idempotent after recall.
+ IF c10_demo.quality_link_genealogy_v1(a,c,'a058-link-a-c')<>c
+ THEN RAISE EXCEPTION 'existing genealogy idempotent replay failed'; END IF;
  BEGIN
   PERFORM c10_demo.quality_stock_v1(c,5002,1,'issue','Should fail','a058-recalled-sale');
   RAISE EXCEPTION 'sale of recalled stock wrongly accepted';
@@ -142,6 +155,10 @@ SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111'
 DO $$
 BEGIN
  PERFORM c10_demo.post_stock_event(5001,8001,1,'a058-pre-existing-normal-stock');
+ -- Historical events that net to zero must still be backfilled for provenance.
+ PERFORM c10_demo.post_stock_event(5001,8001,-1,'a058-pre-existing-normal-stock-reversal');
+ IF (SELECT on_hand FROM c10_demo.stock_balances_v1 WHERE location_id=5001 AND item_id=8001)<>0
+ THEN RAISE EXCEPTION 'zero-net historic stock test setup failed'; END IF;
  BEGIN
   PERFORM c10_demo.quality_enable_item_v1(101,8001);
   RAISE EXCEPTION 'existing stock silently adopted';
