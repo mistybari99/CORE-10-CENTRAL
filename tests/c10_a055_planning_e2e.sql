@@ -408,7 +408,7 @@ DO $$ DECLARE r jsonb; r2 jsonb; tA1 bigint:=c10_test.tgt('pC','T-OVEN-1'); BEGI
  PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-pc-rule02',%s,1,'{"interval_n":3}'::jsonb,'stale write')$s$,c10_test.g('pC')),'am_stale_version');
  PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-pc-rule03',%s,NULL,'{"interval_n":3}'::jsonb,'no version')$s$,c10_test.g('pC')),'am_invalid_input');
  PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-pc-rule04',%s,2,'{"interval_n":3}'::jsonb,NULL)$s$,c10_test.g('pC')),'am_invalid_input');   -- reason required
- PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-pc-rule05',%s,2,'{"category_id":1}'::jsonb,'retarget')$s$,c10_test.g('pC')),'am_invalid_input');  -- scope immutable
+ PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-pc-rule05',%s,2,'{"category_id":999999}'::jsonb,'retarget')$s$,c10_test.g('pC')),'am_invalid_input');  -- scope immutable
  PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-pc-rule06',%s,2,'{}'::jsonb,'empty')$s$,c10_test.g('pC')),'am_invalid_input');
  r2:=c10_demo.am_save_plan_v1(101,'plan-pc-rule01',c10_test.gi('pC'),1,format($j${"interval_n":2,"start_on":"%s"}$j$,c10_test.d(-1))::jsonb,'move to fortnightly');
  PERFORM c10_test.eq(r2::text,r::text,'rule change replay returns original receipt (not stale)');
