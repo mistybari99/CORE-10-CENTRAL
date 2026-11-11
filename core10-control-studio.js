@@ -17,7 +17,7 @@ function shell(){
  root.innerHTML='<div class="studio-layout"><aside class="studio-rail"><div class="brand">CORE <b>10</b><small> CENTRAL · ENTERPRISE</small></div>'+
  '<nav aria-label="Control navigation"><a href="./owner.html#/organization">Portfolio overview</a>'+
  '<a class="active" href="./core10-control-studio.html">Universal Control Studio</a>'+
- '<a href="./index.html">Business workspace</a></nav><div class="rail-note">D045 · R123 · A042/A043<br>One canonical service. No independent local permissions.</div></aside>'+
+ '<a href="./core10-engine-workshop.html">Micro-Engine Workshop</a><a href="./index.html">Business workspace</a></nav><div class="rail-note">D045 · R123 · A042/A043<br>One canonical service. No independent local permissions.</div></aside>'+
  '<main><div class="topline"><span>OWNER GOVERNANCE / CONFIGURATION</span><span class="version">SERVICE V1 · UNRELEASED</span></div>'+
  '<div class="headline"><div><h1>'+ (isBusiness?"Business Controls":"Universal Control Studio")+'</h1>'+
  '<p>'+(isBusiness?"Business App / Settings / Business Controls":"Central registry · business-specific placement · delegated preferences")+'</p></div>'+
