@@ -1,0 +1,360 @@
+{
+  "metadata": {
+    "source": "CORE 10 Master Decision Book / REQUIREMENTS LOCK",
+    "spreadsheetId": "1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs",
+    "snapshot": "2026-11-12",
+    "range": "A85:F118",
+    "decisionIds": [
+      "C10-D039",
+      "C10-D040"
+    ],
+    "actionId": "C10-A025",
+    "revision": "REV-010",
+    "scopeStatus": "APPROVED",
+    "draftCoding": "CLAUDE_CODE_ISOLATED_DRAFT_AUTHORIZED",
+    "runtimeIntegration": "DEFERRED",
+    "requirementsCount": 34
+  },
+  "requirements": [
+    {
+      "row": 85,
+      "id": "R081",
+      "area": "Simulation / Architecture",
+      "ownerRequirement": "Provide one reusable Business Simulation Engine and central Business Simulation Lab within existing CORE-10-CENTRAL; no new app or duplicate ERP.",
+      "relatedDecisions": "D039",
+      "authority": "Owner explicit",
+      "acceptance": "Central lab discoverable; unified typed engine, reusable contextual components and tests.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A85:F85"
+    },
+    {
+      "row": 86,
+      "id": "R082",
+      "area": "Simulation / Context",
+      "ownerRequirement": "Expose Quick Simulation in relevant business workflow menus (inventory, purchasing, production, sales, pricing, staffing, logistics, projects, funding, finance, cashflow, expansion) only when supported by valid inputs.",
+      "relatedDecisions": "D039",
+      "authority": "Owner explicit",
+      "acceptance": "Context correctly prefilled and scoped; unsupported contexts do not show invented calculations.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A86:F86"
+    },
+    {
+      "row": 87,
+      "id": "R083",
+      "area": "Simulation / Financial integrity",
+      "ownerRequirement": "Use deterministic typed quantities/units/currency/periods and versioned, tested formulas; show assumptions, missing data, tax/cost basis, uncertainty and sensitivity. Estimates never masquerade as guaranteed profit.",
+      "relatedDecisions": "D039,D035",
+      "authority": "Owner explicit + design specification",
+      "acceptance": "Reference calculation fixtures and reconciliation to authoritative sources; unknown never coerced to 0.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A87:F87"
+    },
+    {
+      "row": 88,
+      "id": "R084",
+      "area": "Simulation / Safety",
+      "ownerRequirement": "Keep scenarios, historical snapshots and comparisons separate from REAL stock, accounting, payroll, ledger, invoice and investor history. Any Apply-to-Plan uses explicit diff, role-authorized approval, transactional workflow and audit.",
+      "relatedDecisions": "D039,D033",
+      "authority": "Owner explicit + design specification",
+      "acceptance": "No simulation writes operational ledger/state; approved actions auditable, reversible where permitted, idempotent.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A88:F88"
+    },
+    {
+      "row": 89,
+      "id": "R085",
+      "area": "Simulation / Security",
+      "ownerRequirement": "Enforce platform/tenant/business/site/user permission, RLS/API boundaries, scenario visibility, audit and exports; independently licensed tenant owners keep control of their own operational data; vendor has no covert global data read.",
+      "relatedDecisions": "D039,D036,D037",
+      "authority": "Owner explicit",
+      "acceptance": "Cross-tenant negative tests, role visibility tests, legal data boundaries and no global-bypass privileges.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A89:F89"
+    },
+    {
+      "row": 90,
+      "id": "R086",
+      "area": "Simulation / Commercial",
+      "ownerRequirement": "Master Platform Owner controls proprietary software, license issuance, capability packs, entitlements and optional future sales; separate platform IP control from each customer's legal operational data and tenant ownership.",
+      "relatedDecisions": "D039,D036",
+      "authority": "Owner explicit",
+      "acceptance": "Owner-governed licensing with explicit grants; tenant ownership independent; billing/SaaS rollout remains separate deferred task.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A90:F90"
+    },
+    {
+      "row": 91,
+      "id": "R087",
+      "area": "Simulation / Sequencing",
+      "ownerRequirement": "REV-010 latest Owner correction: Claude Code may START isolated Simulation Engine DRAFT coding immediately in the SAME repository on a separate branch/Draft PR; no merging, deployment, actual customer data or production integration. Original two-to-three fully verified major packages and all A018–A023/P0 security gates remain prerequisites before main/production activation.",
+      "relatedDecisions": "D039,D029",
+      "authority": "Owner explicit",
+      "acceptance": "Separate Claude Code implementation Draft PR with genuine code/tests, versioned model registry, decision log and handover; remains UNMERGED/NOT DEPLOYED. Release remains BLOCKED until named milestone and security evidence. Docs-only mandate PR #75 is not a completed module.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A91:F91"
+    },
+    {
+      "row": 92,
+      "id": "R088",
+      "area": "Simulation / Enterprise UX",
+      "ownerRequirement": "Provide configurable industry-specific templates, mobile/desktop responsive UX, localization BN/Bng-Eng/EN, save/compare/export scenario snapshots, charts, permissions and reliable offline/online behavior where supported.",
+      "relatedDecisions": "D039,D031,D030",
+      "authority": "Owner vision + design specification",
+      "acceptance": "All enabled industry modules covered by QA, simulation types and role-scoped reports; no template marked ready before E2E tests.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A92:F92"
+    },
+    {
+      "row": 93,
+      "id": "R089",
+      "area": "Simulation v2 / Data",
+      "ownerRequirement": "U01 — Trusted Baseline Engine (P0): Pull only authorized tenant/business/site/period operational snapshots, preserve source record IDs and transaction cutoffs; prevent accidental mixture of stale sources.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Given same authorized source snapshot and scope, baselines are reproducible and inaccessible to other businesses.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A93:F93"
+    },
+    {
+      "row": 94,
+      "id": "R090",
+      "area": "Simulation v2 / Data",
+      "ownerRequirement": "U02 — Data Quality & Readiness (P0): Identify missing, stale, incomplete, estimated and unverified inventory/cost/sales/finance data; add explicit data readiness flags and corrective prompts.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Unknown is not zero; incomplete financial results cannot masquerade as certified profit/cashflow.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A94:F94"
+    },
+    {
+      "row": 95,
+      "id": "R091",
+      "area": "Simulation v2 / Data",
+      "ownerRequirement": "U03 — Certified Model Registry (P0): Register typed formulas, numeric units, supported business packs, dependencies, versions, tested/partial/unavailable status and fixture certification.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Unverified models cannot be tagged Ready, and saved outputs retain the exact original formula version.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A95:F95"
+    },
+    {
+      "row": 96,
+      "id": "R092",
+      "area": "Simulation v2 / Data",
+      "ownerRequirement": "U04 — Financial Definition Engine (P0): Canonical revenue, contribution, cost, margin, net profit, cashflow, debt/equity/interest, returns, taxes, fiscal periods, currency and accounting basis definitions.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Different pages using the same canonical business data and period agree or explain the difference.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A96:F96"
+    },
+    {
+      "row": 97,
+      "id": "R093",
+      "area": "Simulation v2 / Data",
+      "ownerRequirement": "U05 — Scenario Provenance (P0): Capture model ID/version, data snapshot hash/ref, inputs/overrides, units, author, source time, business/location/period, warnings and history.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Saved scenarios can be reproduced without changing historical interpretation when live ERP data later changes.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A97:F97"
+    },
+    {
+      "row": 98,
+      "id": "R094",
+      "area": "Simulation v2 / Feasibility",
+      "ownerRequirement": "U06 — Cross-Module Impact Engine (P0): Link effects on stock, purchasing, recipes/BOM, manufacturing, delivery, sales, staff, cash, financial obligations and approvals; apply explicit dependency graph without implicit double counting.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Branch expansion example shows upstream production/supply/cash effects and explains missing links.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A98:F98"
+    },
+    {
+      "row": 99,
+      "id": "R095",
+      "area": "Simulation v2 / Feasibility",
+      "ownerRequirement": "U07 — Feasibility & Constraint Engine (P0): Budget, cash buffer, supplier lead time, transport, plant/warehouse capacity, staff hours, machine throughput, space, project limits and availability windows.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "An infeasible decision is identified with exact breached constraint; it is not shown as readily executable.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A99:F99"
+    },
+    {
+      "row": 100,
+      "id": "R096",
+      "area": "Simulation v2 / Finance",
+      "ownerRequirement": "U08 — Integrated Financial Modeling (P0): Link profit-and-loss, timing of receipts/payments, working capital, assets/liabilities, loans, principal, investor distribution and restricted cash; staged balance-sheet logic only where ledger contracts support it.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Illustrative profitable-but-cash-negative scenario reconciles, no principal repayment counted as operating expense by mistake.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A100:F100"
+    },
+    {
+      "row": 101,
+      "id": "R097",
+      "area": "Simulation v2 / Feasibility",
+      "ownerRequirement": "U09 — Sensitivity & Driver Analysis (P0): One-way, multi-variable and break-even threshold impact of price, volume, cost, lead time, discount, FX, rent, staff and term length.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Top drivers and exact assumption deltas reconcile to base scenario; all variable bounds validated.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A101:F101"
+    },
+    {
+      "row": 102,
+      "id": "R098",
+      "area": "Simulation v2 / Risk",
+      "ownerRequirement": "U10 — Risk & Stress Testing (P1): Named shocks and combined stress cases: demand fall, inflation, interest/return obligation, vendor delay, breakdown, staffing shortage and project slippage.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Every stress result displays assumptions and range, not a claimed guaranteed future outcome.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A102:F102"
+    },
+    {
+      "row": 103,
+      "id": "R099",
+      "area": "Simulation v2 / Optimization",
+      "ownerRequirement": "U11 — Reverse Goal Planning (P1): Target profit, cash reserve, sales, working capital, service level or capacity with inverse calculation of feasible price/volume/cost and resource requirements.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Shows when target is impossible under existing constraints instead of inventing unattainable numbers.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A103:F103"
+    },
+    {
+      "row": 104,
+      "id": "R100",
+      "area": "Simulation v2 / Optimization",
+      "ownerRequirement": "U12 — Constraint-Based Optimization (P1): Compare feasible resource/budget/capacity/stock/production allocation choices against owner-selected objective (cash, margin, service, risk).",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Result declares objective and tradeoffs; honors all hard constraints and never substitutes recommendation for owner approval.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A104:F104"
+    },
+    {
+      "row": 105,
+      "id": "R101",
+      "area": "Simulation v2 / Optimization",
+      "ownerRequirement": "U13 — Multi-Scenario Portfolio (P1): Combine owner-authorized scenarios across same portfolio/business/period and expose concurrent capex, cash, people, stock and machine contention.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Two individually feasible branch expansions with joint cash shortage are flagged; no independent tenant blending.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A105:F105"
+    },
+    {
+      "row": 106,
+      "id": "R102",
+      "area": "Simulation v2 / Risk",
+      "ownerRequirement": "U14 — Advanced Uncertainty Models (P2): Optional probability/range or Monte Carlo only with validated input distributions, correlations, model suitability and documented confidence limits.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Missing statistical basis disables probability claims; output clearly distinguishes illustration from calibrated probability.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A106:F106"
+    },
+    {
+      "row": 107,
+      "id": "R103",
+      "area": "Simulation v2 / Governance",
+      "ownerRequirement": "U15 — Decision Lifecycle Register (P0): Draft → Simulated → Reviewed → Approved/Rejected → Eligible-to-Apply → Applied → Monitored → Closed with actor/role/timestamp and state history.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "No direct skipping of required approval gates; approved decisions remain traceable to exact scenario/version.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A107:F107"
+    },
+    {
+      "row": 108,
+      "id": "R104",
+      "area": "Simulation v2 / Governance",
+      "ownerRequirement": "U16 — Approval Workflow Integration (P0): Reuse canonical ERP request/approval service with financial/operational authority, segregation of duties and delegated thresholds.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "No new parallel approval engine; rejected/unauthorized execution is blocked at server.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A108:F108"
+    },
+    {
+      "row": 109,
+      "id": "R105",
+      "area": "Simulation v2 / Outcome",
+      "ownerRequirement": "U17 — Actual vs Plan Tracking (P0): Store baseline plan from approved simulation and reconcile future real P&L, volumes, stock, staff, capital and cash outcomes with period/location scopes.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "After 30/90 days actuals, variance is derived from verifiable records and planned assumptions.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A109:F109"
+    },
+    {
+      "row": 110,
+      "id": "R106",
+      "area": "Simulation v2 / Outcome",
+      "ownerRequirement": "U18 — Decision Performance Review (P0): Owner sees actual net benefit, liquidity impact, constraint incidence, ROI/payback when valid, variance reasons and retrospective decision notes.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Reviewed case shows realized vs projected outcome without rewriting the historical simulation.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A110:F110"
+    },
+    {
+      "row": 111,
+      "id": "R107",
+      "area": "Simulation v2 / Outcome",
+      "ownerRequirement": "U19 — Forecast Accuracy & Bias (P1): Track comparable forecast-vs-actual accuracy by model, input data period, business, category and horizon; identify persistent bias.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Quality checks handle missing actuals, data leakage, changed definitions and incomparable periods.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A111:F111"
+    },
+    {
+      "row": 112,
+      "id": "R108",
+      "area": "Simulation v2 / Outcome",
+      "ownerRequirement": "U20 — Early Warning & Replanning (P1): Detect cash gaps, stockout, capacity bottlenecks, financing due, large variance and delays; propose refresh/replan, optional authorized alert workflows.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Owner sees evidence and threshold; no automation silently modifies the operational plan.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A112:F112"
+    },
+    {
+      "row": 113,
+      "id": "R109",
+      "area": "Simulation v2 / Governance",
+      "ownerRequirement": "U21 — Collaborative Scenario Review (P1): Role-scoped scenario comments, reviewer roles, business manager/accountant/production advice, attachments and review evidence.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Staff cannot retrieve restricted finance details/other businesses through collaboration or exported reports.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A113:F113"
+    },
+    {
+      "row": 114,
+      "id": "R110",
+      "area": "Simulation v2 / Integration",
+      "ownerRequirement": "U22 — Multi-Business Consolidation (P0): Business/brand/site/factory/warehouse/project comparisons with tenant boundaries, elimination of internal movements, compatible currency/period/accounting bases.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Portfolio summary reconciles without double counting internal transfer or external tenant data.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A114:F114"
+    },
+    {
+      "row": 115,
+      "id": "R111",
+      "area": "Simulation v2 / Integration",
+      "ownerRequirement": "U23 — Investment & Financing Integration (P0): Draw on verified partner/loan agreement definitions: equity, actual-profit shares, principal-based contractual return, loan, repayment/interest, maturity, investor liquidity claims.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Financing cases show cash obligations and classification accurately; no global all-locations aggregation bug.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A115:F115"
+    },
+    {
+      "row": 116,
+      "id": "R112",
+      "area": "Simulation v2 / Integration",
+      "ownerRequirement": "U24 — Secure Scenario Application (P0): Separate simulation read sandbox from proposals; explicit before/after diff, permission and approvals, only domain-validated transactional action, idempotency and audit/recovery; unsupported Apply remains advisory-only.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "No unapproved changes to sales/stock/payroll/accounting; direct RPC bypass attempts denied.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A116:F116"
+    },
+    {
+      "row": 117,
+      "id": "R113",
+      "area": "Simulation v2 / Integration",
+      "ownerRequirement": "U25 — Enterprise UX & Reporting (P0): One Simulation Lab + Contextual Quick Simulation, BN/EN support, mobile/tablet/desktop, charts, comparative tables, saved search/export, usable accessibility and safe errors.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Same model yields same result in both entry points; responsive role-scoped UI and exported reports work end-to-end.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A117:F117"
+    },
+    {
+      "row": 118,
+      "id": "R114",
+      "area": "Simulation v2 / Integration",
+      "ownerRequirement": "U26 — Security, Licensing & Scale (P0): RLS/RPC/backend tenant/business/site/user action gates, scenario entitlements, access revocation, authorized cache/offline, bounded compute and 300+ site performance tests.",
+      "relatedDecisions": "D039,D040",
+      "authority": "Owner-approved upgrade v2.0",
+      "acceptance": "Real signed-in cross-tenant negatives and 300+ site benchmark must pass before claiming enterprise-ready.",
+      "sourceUrl": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit#gid=4106&range=A118:F118"
+    }
+  ]
+}
