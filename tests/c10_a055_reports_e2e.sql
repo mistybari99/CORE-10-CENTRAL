@@ -508,3 +508,126 @@ DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_k
  PERFORM c10_test.eqn(r#>>'{pm_compliance,on_time}',3,'grace policy by site'); PERFORM c10_test.eqn(r#>>'{pm_compliance,compliance_pct}',75,'pm pct with grace'); END $$;
 RESET ROLE;
 DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='schedule.grace_days';
+
+-- ===================================================== S5 asset health + advisory depreciation =====================================================
+CREATE FUNCTION c10_test.hi(r jsonb,p_no text) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$ SELECT e FROM jsonb_array_elements(r->'items') e WHERE e->>'asset_no'=p_no $$;
+CREATE FUNCTION c10_test.comp(h jsonb,p_key text,p_f text) RETURNS text LANGUAGE sql IMMUTABLE AS $$ SELECT c->>p_f FROM jsonb_array_elements(h->'components') c WHERE c->>'key'=p_key $$;
+GRANT EXECUTE ON FUNCTION c10_test.hi(jsonb,text),c10_test.comp(jsonb,text,text) TO authenticated;
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE r jsonb; h jsonb; m int:=(SELECT (extract(year FROM age(c10_test.today()::timestamp,c10_test.dt(400)::timestamp))*12+extract(month FROM age(c10_test.today()::timestamp,c10_test.dt(400)::timestamp)))::int);
+BEGIN
+ PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_asset_health_report_v1(101);
+ PERFORM c10_test.eqn(r->>'total',9,'health total (retired excluded)'); PERFORM c10_test.eq(r->>'advisory','true','health advisory');
+ PERFORM c10_test.eq(r#>>'{items,0,asset_no}','CRN-1','worst asset first');
+ h:=c10_test.hi(r,'CRN-1'); PERFORM c10_test.eqn(h->>'health_score',50,'crane score');
+ PERFORM c10_test.eqn(c10_test.comp(h,'overdue_schedules','penalty'),10,'overdue penalty (deferred target ignored)'); PERFORM c10_test.eqn(c10_test.comp(h,'recent_failures','value'),4,'failures');
+ PERFORM c10_test.eqn(c10_test.comp(h,'recent_failures','penalty'),30,'failures capped'); PERFORM c10_test.eqn(c10_test.comp(h,'age_vs_life','penalty'),0,'age ok');
+ PERFORM c10_test.eqn(c10_test.comp(h,'warranty','penalty'),0,'active warranty'); PERFORM c10_test.eqn(c10_test.comp(h,'meter_staleness','penalty'),10,'stale meter');
+ PERFORM c10_test.eq(h->>'band','poor','crane band'); PERFORM c10_test.eqn(jsonb_array_length(h->'components'),5,'5 components');
+ h:=c10_test.hi(r,'CNV-1'); PERFORM c10_test.eqn(h->>'health_score',85,'conveyor score'); PERFORM c10_test.eq(c10_test.comp(h,'warranty','value'),'expired','expired warranty');
+ PERFORM c10_test.eqn(c10_test.comp(h,'warranty','penalty'),5,'expired penalty'); PERFORM c10_test.eqn(c10_test.comp(h,'overdue_schedules','penalty'),10,'overdue 1');
+ h:=c10_test.hi(r,'CHL-1'); PERFORM c10_test.eqn(h->>'health_score',92,'chiller score'); PERFORM c10_test.eq(h->>'band','good','chiller band');
+ -- depreciation: advisory, never posted; straight line 100000, salvage 10%, 96 months
+ PERFORM c10_test.eq(h#>>'{depreciation,advisory}','true','dep advisory'); PERFORM c10_test.eq(h#>>'{depreciation,posted}','false','dep not posted');
+ PERFORM c10_test.eq(h#>>'{depreciation,method}','straight_line','dep method'); PERFORM c10_test.eqn(h#>>'{depreciation,useful_life_months}',96,'life from category');
+ PERFORM c10_test.eqn(h#>>'{depreciation,salvage_value}',10000,'salvage'); PERFORM c10_test.eqn(h#>>'{depreciation,months_elapsed}',m,'months');
+ PERFORM c10_test.eqn(h#>>'{depreciation,accumulated}',round(90000*m/96.0,2),'SL accumulated'); PERFORM c10_test.eqn(h#>>'{depreciation,book_value}',100000-round(90000*m/96.0,2),'SL book');
+ h:=c10_test.hi(r,'CRN-1'); PERFORM c10_test.eq(h#>>'{depreciation,accumulated}',NULL,'no cost => no depreciation'); PERFORM c10_test.eq(h#>>'{depreciation,reason}','no_acquisition_cost','reason');
+ PERFORM c10_test.eqn(r#>>'{summary,depreciation_advisory,total_accumulated}',round(90000*m/96.0,2)+0,'summary accumulated (only costed assets)');
+ PERFORM c10_test.eq(r#>>'{summary,depreciation_advisory,posted}','false','summary not posted');
+ PERFORM c10_test.eqn((r#>>'{summary,bands}')::jsonb->>'poor',1,'poor band count');
+ -- site filtered
+ PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_asset_health_report_v1(101); PERFORM c10_test.eqn(r->>'total',5,'1001 total'); PERFORM c10_test.eq(c10_test.hi(r,'CRN-1')::text,NULL,'no crane for 1001');
+ PERFORM c10_test.as_user('bo102'); PERFORM c10_test.eqn((c10_demo.am_asset_health_report_v1(102))->>'total',2,'102 total');
+END $$;
+RESET ROLE;
+-- policy: declining balance + category override 'none'
+INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'finance.depreciation_method','"declining_balance"',c10_test.u('bo101'));
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; h jsonb; m int:=(SELECT (extract(year FROM age(c10_test.today()::timestamp,c10_test.dt(400)::timestamp))*12+extract(month FROM age(c10_test.today()::timestamp,c10_test.dt(400)::timestamp)))::int);
+BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_asset_health_report_v1(101); h:=c10_test.hi(r,'CHL-1');
+ PERFORM c10_test.eq(h#>>'{depreciation,method}','declining_balance','DB method');
+ PERFORM c10_test.eqn(h#>>'{depreciation,book_value}',round(GREATEST(10000,100000*power(0.8,m/12.0)),2),'DB book value'); END $$;
+RESET ROLE;
+INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'category',c10_test.catid(101,'COLD'),'finance.depreciation_method','"none"',c10_test.u('bo101'));
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; h jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_asset_health_report_v1(101); h:=c10_test.hi(r,'CHL-1');
+ PERFORM c10_test.eqn(h#>>'{depreciation,accumulated}',0,'none => 0'); PERFORM c10_test.eq(h#>>'{depreciation,reason}','method_none','none reason'); END $$;
+RESET ROLE;
+DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key LIKE 'finance.%';
+
+-- ===================================================== S6 warranty report =====================================================
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE r jsonb;
+BEGIN
+ PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_warranty_report_v1(101);
+ PERFORM c10_test.eq(r#>>'{warranties,counts}','{"void": 1, "active": 2, "expired": 1, "expiring": 1}','warranty counts (policy horizon 60)');
+ PERFORM c10_test.eq(r#>>'{warranties,expiring,0,asset_no}','CHL-1','expiring asset'); PERFORM c10_test.eqn(r#>>'{warranties,expiring,0,days_left}',20,'days left');
+ PERFORM c10_test.eq(r#>>'{warranties,expired,0,asset_no}','CNV-1','expired asset');
+ PERFORM c10_test.eq(r#>>'{claims,by_status}','{"draft": 1, "closed": 0, "settled": 1, "accepted": 0, "rejected": 1, "submitted": 1}','claims by state');
+ PERFORM c10_test.eqn(r#>>'{claims,total}',4,'claims total'); PERFORM c10_test.eqn(r#>>'{claims,amount_settled}',500,'settled'); PERFORM c10_test.eq(r#>>'{claims,advisory}','true','claims advisory');
+ PERFORM c10_test.eqn(jsonb_array_length(r#>'{recurring_failures_in_warranty,items}'),1,'recurring in warranty');
+ PERFORM c10_test.eq(r#>>'{recurring_failures_in_warranty,items,0,failure_code}','MECH','recurring code'); PERFORM c10_test.eqn(r#>>'{recurring_failures_in_warranty,items,0,count}',3,'recurring count');
+ -- explicit horizon overrides policy
+ PERFORM c10_test.eq((c10_demo.am_warranty_report_v1(101,10))#>>'{warranties,counts}','{"void": 1, "active": 3, "expired": 1, "expiring": 0}','horizon 10');
+ PERFORM c10_test.eq((c10_demo.am_warranty_report_v1(101,120))#>>'{warranties,counts}','{"void": 1, "active": 1, "expired": 1, "expiring": 2}','horizon 120');
+ -- per-site and isolation
+ PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_warranty_report_v1(101);
+ PERFORM c10_test.eq(r#>>'{warranties,counts}','{"void": 1, "active": 1, "expired": 0, "expiring": 1}','1001 counts'); PERFORM c10_test.eqn(r#>>'{claims,total}',1,'1001 claims');
+ PERFORM c10_test.eqn(jsonb_array_length(r#>'{recurring_failures_in_warranty,items}'),0,'1001 no recurring');
+ PERFORM c10_test.as_user('bo102'); r:=c10_demo.am_warranty_report_v1(102); PERFORM c10_test.eq(r#>>'{warranties,counts}','{"void": 0, "active": 1, "expired": 0, "expiring": 0}','102 counts');
+ PERFORM c10_test.eqn(r#>>'{claims,total}',0,'102 claims');
+ PERFORM c10_test.as_user('owner2'); PERFORM c10_test.eq((c10_demo.am_warranty_report_v1(201))#>>'{warranties,counts}','{"void": 0, "active": 0, "expired": 0, "expiring": 0}','201 counts');
+END $$;
+RESET ROLE;
+-- policy: asset.warranty_warn_days (site/category scoped)
+INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'asset.warranty_warn_days','10',c10_test.u('bo101'));
+SET LOCAL ROLE authenticated;
+DO $$ BEGIN PERFORM c10_test.as_user('bo101');
+ PERFORM c10_test.eq((c10_demo.am_warranty_report_v1(101))#>>'{warranties,counts}','{"void": 1, "active": 3, "expired": 1, "expiring": 0}','policy warn days 10'); END $$;
+RESET ROLE;
+DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='asset.warranty_warn_days';
+
+-- ===================================================== S7 reconciliation =====================================================
+CREATE FUNCTION c10_test.cls(r jsonb,p_code text,p_f text) RETURNS text LANGUAGE sql IMMUTABLE AS $$ SELECT c->>p_f FROM jsonb_array_elements(r->'classes') c WHERE c->>'code'=p_code $$;
+CREATE FUNCTION c10_test.cls_ids(r jsonb,p_code text) RETURNS text LANGUAGE sql IMMUTABLE AS $$ SELECT (c->'sample_ids')::text FROM jsonb_array_elements(r->'classes') c WHERE c->>'code'=p_code $$;
+GRANT EXECUTE ON FUNCTION c10_test.cls(jsonb,text,text),c10_test.cls_ids(jsonb,text) TO authenticated;
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE r jsonb;
+BEGIN
+ PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_reconciliation_v1(101);
+ PERFORM c10_test.eq(r->>'ok','false','101 is inconsistent'); PERFORM c10_test.eqn(r->>'total_mismatches',9,'9 seeded mismatches'); PERFORM c10_test.eqn(jsonb_array_length(r->'classes'),9,'9 classes');
+ PERFORM c10_test.eq(c10_test.cls_ids(r,'completed_breakdown_wo_without_ended_downtime'),'['||c10_test.k('BD4')||']','class1');
+ PERFORM c10_test.eq(c10_test.cls_ids(r,'breakdown_downtime_without_wo'),'['||c10_test.k('DT-POS')||']','class2');
+ PERFORM c10_test.eq(c10_test.cls_ids(r,'asset_breakdown_without_open_downtime'),'['||c10_test.k('MIX-1')||']','class3');
+ PERFORM c10_test.eq(c10_test.cls_ids(r,'open_downtime_on_non_breakdown_asset'),'['||c10_test.k('DT-GEN')||']','class4');
+ PERFORM c10_test.eq(c10_test.cls_ids(r,'open_wo_on_retired_asset'),'['||c10_test.k('O7')||']','class5');
+ PERFORM c10_test.eqn(c10_test.cls(r,'meter_decrease_without_reset','count'),1,'class6 (reset not flagged)');
+ PERFORM c10_test.eq(c10_test.cls_ids(r,'plan_target_on_closed_plan'),'['||c10_test.k('T6')||']','class7');
+ PERFORM c10_test.eq(c10_test.cls_ids(r,'wo_site_differs_from_asset'),'['||c10_test.k('O8')||']','class8');
+ PERFORM c10_test.eq(c10_test.cls_ids(r,'child_site_differs_from_parent'),'['||c10_test.k('CNV-1M')||']','class9');
+ -- time scope excludes the old events; state-based classes remain
+ r:=c10_demo.am_reconciliation_v1(101,c10_test.dt(3)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.eqn(c10_test.cls(r,'completed_breakdown_wo_without_ended_downtime','count'),0,'time scoped 1'); PERFORM c10_test.eqn(c10_test.cls(r,'breakdown_downtime_without_wo','count'),0,'time scoped 2');
+ PERFORM c10_test.eqn(c10_test.cls(r,'meter_decrease_without_reset','count'),0,'time scoped 6'); PERFORM c10_test.eqn(c10_test.cls(r,'asset_breakdown_without_open_downtime','count'),1,'state class kept');
+ -- site-limited supervisor sees only the 1001 slice
+ PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_reconciliation_v1(101);
+ PERFORM c10_test.eqn(r->>'total_mismatches',5,'1001 slice'); PERFORM c10_test.eqn(c10_test.cls(r,'completed_breakdown_wo_without_ended_downtime','count'),0,'1001 class1');
+ PERFORM c10_test.eqn(c10_test.cls(r,'open_wo_on_retired_asset','count'),0,'1001 class5'); PERFORM c10_test.eqn(c10_test.cls(r,'child_site_differs_from_parent','count'),0,'1001 class9');
+ -- clean business reports ok; other businesses/tenants unaffected
+ PERFORM c10_test.as_user('bo102'); r:=c10_demo.am_reconciliation_v1(102); PERFORM c10_test.eq(r->>'ok','true','102 clean'); PERFORM c10_test.eqn(r->>'total_mismatches',0,'102 zero');
+ PERFORM c10_test.as_user('owner2'); PERFORM c10_test.eq((c10_demo.am_reconciliation_v1(201))->>'ok','true','201 clean');
+END $$;
+RESET ROLE;
+-- policy downtime.end_on=verified: a merely COMPLETED breakdown WO is not expected to have an ended window yet; allow_decrease silences meter class
+INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES
+ (101,1,'business',0,'downtime.end_on','"verified"',c10_test.u('bo101')),(101,1,'business',0,'meter.allow_decrease','true',c10_test.u('bo101'));
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_reconciliation_v1(101);
+ PERFORM c10_test.eqn(c10_test.cls(r,'completed_breakdown_wo_without_ended_downtime','count'),0,'end_on verified'); PERFORM c10_test.eqn(c10_test.cls(r,'meter_decrease_without_reset','count'),0,'allow_decrease');
+ PERFORM c10_test.eqn(r->>'total_mismatches',7,'7 left'); END $$;
+RESET ROLE;
+DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key IN('downtime.end_on','meter.allow_decrease');

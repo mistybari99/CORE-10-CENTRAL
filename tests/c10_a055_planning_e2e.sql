@@ -379,3 +379,69 @@ DO $$ BEGIN
  PERFORM c10_test.denied(format($s$INSERT INTO c10_demo.am_work_orders(tenant_id,business_id,wo_no,kind,asset_id,site_id,plan_target_id,title,requested_by)
   VALUES(1,101,'DUP-1','preventive',%s,1001,%s,'duplicate try','11111111-1111-4111-8111-111111111111')$s$,c10_test.aid('T-OVEN-1'),c10_test.tgt('pC','T-OVEN-1')),'duplicate key');
 END $$;
+
+-- ===== T7 plan rule change after partial completion; assets registered later / retired / moved =====
+BEGIN; SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; r2 jsonb; tA1 bigint:=c10_test.tgt('pC','T-OVEN-1'); BEGIN
+ PERFORM c10_test.as_user('sup');
+ -- A1's work order is done and closed; the target is re-anchored (weekly, from_due_date: due d-2 -> d+5)
+ PERFORM c10_test.x('SELECT c10_test.close_wo('||c10_test.g('woA1')||')');
+ PERFORM c10_test.x(format('SELECT c10_demo.ami_complete_target(%s,%L::date,NULL)',tA1,c10_test.d(0)));
+ PERFORM c10_test.eq(c10_test.q('SELECT next_due_on||''/''||last_done_on||''/''||COALESCE(deferred_until::text,''-'') FROM c10_demo.am_plan_targets WHERE id='||tA1),c10_test.d(5)||'/'||c10_test.d(0)||'/-','re-anchored from due date');
+ -- an asset registered AFTER the category plan joins it automatically (trigger), due at the plan start
+ PERFORM c10_test.x(format($q$INSERT INTO c10_demo.am_assets(tenant_id,business_id,asset_no,name,category_id,site_id,created_by) VALUES(1,101,'T-NEW-6','New press 6',%s,1001,%L)$q$,c10_test.cid(101,'PROD-EQ'),c10_test.u('owner')));
+ PERFORM c10_test.eq(c10_test.q('SELECT next_due_on::text FROM c10_demo.am_plan_targets WHERE id='||c10_test.tgt('pC','T-NEW-6')),c10_test.d(-2),'late asset joins plan at start_on');
+ PERFORM c10_test.eq(c10_test.q('SELECT count(*) FROM c10_demo.am_plan_targets WHERE plan_id='||c10_test.g('pC')),'5','5 targets');
+ -- rule change: A1 (done, no open WO) restarts from last_done; A6 (never done) from the new start; A2/A4/A7 (open WO) untouched
+ r:=c10_demo.am_save_plan_v1(101,'plan-pc-rule01',c10_test.gi('pC'),1,format($j${"interval_n":2,"start_on":"%s"}$j$,c10_test.d(-1))::jsonb,'move to fortnightly');
+ PERFORM c10_test.eq(r->>'rule_changed','true','rule change'); PERFORM c10_test.eq(jsonb_array_length(r->'recomputed')::text,'2','two targets recomputed');
+ PERFORM c10_test.eq(r->>'kept_open_wo','3','three targets with open WO kept');
+ PERFORM c10_test.eq(c10_test.q('SELECT next_due_on::text FROM c10_demo.am_plan_targets WHERE id='||tA1),c10_test.d(14),'A1 = last_done + 2 weeks');
+ PERFORM c10_test.eq(c10_test.q('SELECT next_due_on::text FROM c10_demo.am_plan_targets WHERE id='||c10_test.tgt('pC','T-NEW-6')),c10_test.d(-1),'A6 = new start_on');
+ PERFORM c10_test.eq(c10_test.q('SELECT next_due_on::text FROM c10_demo.am_plan_targets WHERE id='||c10_test.tgt('pC','T-MIXER-2')),c10_test.d(-2),'open-WO target unchanged');
+ PERFORM c10_test.eq((SELECT x->>'old_due_on'||'>'||(x->>'new_due_on') FROM jsonb_array_elements(r->'recomputed') x WHERE (x->>'target_id')::bigint=tA1),c10_test.d(5)||'>'||c10_test.d(14),'old->new reported');
+ PERFORM c10_test.eq(c10_test.q($s$SELECT count(*) FROM c10_demo.am_audit WHERE entity='plan_target' AND event='recompute'$s$),'2','recompute audited per target');
+ PERFORM c10_test.eq(c10_test.q($s$SELECT (before_state->>'next_due_on')||'>'||(after_state->>'next_due_on') FROM c10_demo.am_audit WHERE entity='plan_target' AND event='recompute' AND entity_id=$s$||quote_literal(tA1::text)),c10_test.d(5)||'>'||c10_test.d(14),'audit old->new');
+ PERFORM c10_test.eq(c10_test.q($s$SELECT (after_state->'recomputed'->'changes'->0 IS NOT NULL)::text FROM c10_demo.am_audit WHERE entity='plan' AND event='update' AND entity_id=$s$||quote_literal(c10_test.g('pC'))),'true','plan audit carries recompute');
+ PERFORM c10_test.eq(c10_test.q('SELECT version::text FROM c10_demo.am_plans WHERE id='||c10_test.g('pC')),'2','version bumped');
+ -- optimistic concurrency + replay
+ PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-pc-rule02',%s,1,'{"interval_n":3}'::jsonb,'stale write')$s$,c10_test.g('pC')),'am_stale_version');
+ PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-pc-rule03',%s,NULL,'{"interval_n":3}'::jsonb,'no version')$s$,c10_test.g('pC')),'am_invalid_input');
+ PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-pc-rule04',%s,2,'{"interval_n":3}'::jsonb,NULL)$s$,c10_test.g('pC')),'am_invalid_input');   -- reason required
+ PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-pc-rule05',%s,2,'{"category_id":1}'::jsonb,'retarget')$s$,c10_test.g('pC')),'am_invalid_input');  -- scope immutable
+ PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-pc-rule06',%s,2,'{}'::jsonb,'empty')$s$,c10_test.g('pC')),'am_invalid_input');
+ r2:=c10_demo.am_save_plan_v1(101,'plan-pc-rule01',c10_test.gi('pC'),1,format($j${"interval_n":2,"start_on":"%s"}$j$,c10_test.d(-1))::jsonb,'move to fortnightly');
+ PERFORM c10_test.eq(r2::text,r::text,'rule change replay returns original receipt (not stale)');
+ r:=c10_demo.am_save_plan_v1(101,'plan-pc-rule07',c10_test.gi('pC'),2,'{"priority":"high"}'::jsonb,'raise priority');
+ PERFORM c10_test.eq(r->>'rule_changed','false','priority is not a schedule rule'); PERFORM c10_test.eq(jsonb_array_length(r->'recomputed')::text,'0','nothing recomputed');
+ -- retired asset: target suspended and not suggested; back when re-activated; asset-side scope sync on site move
+ PERFORM c10_test.x($q$UPDATE c10_demo.am_assets SET status='retired' WHERE asset_no='T-NEW-6'$q$);
+ PERFORM c10_test.eq(c10_test.q('SELECT status FROM c10_demo.am_plan_targets WHERE id='||c10_test.tgt('pC','T-NEW-6')),'suspended','retired asset target suspended');
+ PERFORM c10_test.eq(c10_test.item(c10_demo.am_due_suggestions_v1(101,NULL,NULL),'Weekly PM','T-NEW-6')::text,NULL,'retired asset excluded from suggestions');
+ PERFORM c10_test.eq(c10_test.q($s$SELECT count(*) FROM c10_demo.am_plan_targets t JOIN c10_demo.am_assets a ON a.id=t.asset_id WHERE a.asset_no='T-OLD-5'$s$),'0','pre-retired asset never targeted');
+ PERFORM c10_test.eq((SELECT i->>'target_count' FROM jsonb_array_elements(c10_demo.am_list_plans_v1(101)->'items') i WHERE i->>'name'='Weekly PM'),'4','list shows live targets only');
+ PERFORM c10_test.x($q$UPDATE c10_demo.am_assets SET status='active' WHERE asset_no='T-NEW-6'$q$);
+ PERFORM c10_test.eq(c10_test.q('SELECT status FROM c10_demo.am_plan_targets WHERE id='||c10_test.tgt('pC','T-NEW-6')),'scheduled','target back when asset live again');
+ PERFORM c10_test.x($q$UPDATE c10_demo.am_assets SET site_id=1002 WHERE asset_no='T-NEW-6'$q$);
+ PERFORM c10_test.eq(c10_test.q('SELECT count(*) FROM c10_demo.am_plan_targets WHERE status=''scheduled'' AND plan_id='||c10_test.g('pS')),'2','site-scoped plan picks up moved asset');
+ PERFORM c10_test.x($q$UPDATE c10_demo.am_assets SET site_id=1001 WHERE asset_no='T-NEW-6'$q$);
+ PERFORM c10_test.eq(c10_test.q('SELECT count(*) FROM c10_demo.am_plan_targets WHERE status=''scheduled'' AND plan_id='||c10_test.g('pS')),'1','...and drops it when it moves away');
+END $$; COMMIT;
+
+-- ===== T8 usage plans: meter based due, missing meter, stale meter, baseline from meter =====
+BEGIN; SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; s jsonb; i jsonb; tU bigint; tU2 bigint; BEGIN
+ PERFORM c10_test.as_user('sup');
+ PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-us-bad01',NULL,NULL,'{"name":"Usage bad","plan_type":"calibration","asset_id":%s,"frequency_kind":"usage","meter_code":"HRS","start_on":"2030-01-01"}'::jsonb,NULL)$s$,c10_test.aid('T-OVEN-1')),'am_invalid_input'); -- no usage_interval
+ PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-us-bad02',NULL,NULL,'{"name":"Usage bad","plan_type":"calibration","asset_id":%s,"frequency_kind":"usage","meter_code":"hrs","usage_interval":5,"start_on":"2030-01-01"}'::jsonb,NULL)$s$,c10_test.aid('T-OVEN-1')),'am_invalid_input'); -- meter code format
+ PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-us-bad03',NULL,NULL,'{"name":"Usage bad","plan_type":"calibration","asset_id":%s,"frequency_kind":"weekly","usage_interval":5,"start_on":"2030-01-01"}'::jsonb,NULL)$s$,c10_test.aid('T-OVEN-1')),'am_invalid_input');
+ PERFORM c10_test.denied(format($s$SELECT c10_demo.am_save_plan_v1(101,'plan-us-bad04',NULL,NULL,'{"name":"Usage bad","plan_type":"calibration","asset_id":%s,"frequency_kind":"usage","meter_code":"HRS","usage_interval":0,"start_on":"2030-01-01"}'::jsonb,NULL)$s$,c10_test.aid('T-OVEN-1')),'am_invalid_input');
+ r:=c10_demo.am_save_plan_v1(101,'plan-us-0001',NULL,NULL,format($j${"name":"Oven hours calibration","plan_type":"calibration","asset_id":%s,"frequency_kind":"usage","meter_code":"HRS","usage_interval":50,"start_on":"%s"}$j$,c10_test.aid('T-OVEN-1'),c10_test.d(0))::jsonb,NULL);
+ PERFORM c10_test.put('pU',r->>'id'); tU:=c10_test.tgt('pU','T-OVEN-1');
+ PERFORM c10_test.eq(c10_test.q('SELECT next_due_reading||''/''||COALESCE(next_due_on::text,''-'') FROM c10_demo.am_plan_targets WHERE id='||tU),'150.000/-','baseline = meter reading 100 + 50');
+ s:=c10_demo.am_due_suggestions_v1(101,NULL,NULL); i:=c10_test.item(s,'Oven hours calibration','T-OVEN-1');
+ PERFORM c10_test.eq(i->>'state','upcoming','usage upcoming'); PERFORM c10_test.eq(i->>'remaining_usage','50.000','remaining usage'); PERFORM c10_test.eq(i->>'current_reading','100.000','current');
+ PERFORM c10_test.denied(format($s$SELECT c10_demo.am_generate_work_orders_v1(101,'gen-us-00001',ARRAY[%s],NULL,NULL)$s$,tU) ,'zzz_expect_none') ;
+EXCEPTION WHEN OTHERS THEN
+ IF SQLERRM LIKE 'EXPECTED_DENIAL_DID_NOT_HAPPEN%' THEN NULL; ELSE RAISE; END IF;
+END $$; COMMIT;

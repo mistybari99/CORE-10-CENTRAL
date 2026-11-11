@@ -709,7 +709,7 @@ SCREENS.breakdown=async function(body){
 const FREQS=["daily","weekly","monthly","yearly","usage"];
 const PLAN_TYPES=["preventive","inspection","calibration","certification"];
 const tid=(x)=>x.target_id!=null?x.target_id:x.id;
-const itemText=(x)=>(x.asset_no||x.asset_name||("#"+x.asset_id))+" · "+(x.plan_name||x.title||"");
+const itemText=(x)=>(x.wo_no?x.wo_no+" · ":"")+(x.asset_no||x.asset_name||("#"+x.asset_id))+" · "+(x.plan_name||x.title||"");
 function dueChips(x){
  const c=[];if(x.state)c.push(chip(lab("due_state",x.state),toneOf(x.state)));
  const e=x.escalation_level;if(e>0)c.push(chip(lab("escalation",e),e>1?"bad":"warn"));
@@ -745,12 +745,12 @@ SCREENS.schedule=async function(body){
   const hz=Number(horizon.value);if(!Number.isInteger(hz)||hz<0||hz>365){status(T("Horizon must be 0-365 days.","সময়সীমা ০-৩৬৫ দিন হতে হবে।"),"error");return}
   const r=await safe(()=>rd("am_due_suggestions_v1",{p_site:state.site,p_horizon_days:hz}));if(!r)return;
   suggItems=arr(r,"items","suggestions");checked.clear();sugBox.textContent="";
-  sugBox.append(table([[T("Pick","বাছুন"),x=>h("input",{type:"checkbox",class:"cb",id:"sg-check-"+tid(x),"aria-label":T("Select","বাছুন"),disabled:x.state==="has_open_wo",onchange:(e)=>{e.target.checked?checked.add(tid(x)):checked.delete(tid(x))}})],
+  sugBox.append(table([[T("Pick","বাছুন"),x=>h("input",{type:"checkbox",class:"cb",id:"sg-check-"+tid(x),"aria-label":T("Select","বাছুন"),disabled:x.state==="has_open_wo"||x.can_generate===false,onchange:(e)=>{e.target.checked?checked.add(tid(x)):checked.delete(tid(x))}})],
    [T("Asset","সম্পদ"),x=>x.asset_no||x.asset_name||("#"+x.asset_id)],[T("Plan","পরিকল্পনা"),x=>x.plan_name||("#"+x.plan_id)],[T("Due","দেয়"),x=>x.next_due_on?dd(x.next_due_on):(x.next_due_reading!=null?num(x.next_due_reading,3):dash)],
    [T("State","অবস্থা"),x=>h("span",null,...dueChips(x))],["",x=>can("plan_write")&&x.state!=="has_open_wo"?btn(T("Defer","স্থগিত"),()=>deferForm(x),"outline","sg-defer-"+tid(x)):null]],suggItems,T("Nothing is due within the horizon.","সময়সীমায় কিছু দেয় নয়।")));
  }
  function deferForm(x){
-  modalForm(T("Defer","স্থগিত")+" · "+itemText(x),[{n:"until",l:["Defer until","পর্যন্ত স্থগিত"],t:"date",req:true,val:addDays(today(),7)},REASON()],async(v,err)=>{
+  modalForm(T("Defer","স্থগিত")+" · "+itemText(x),[{n:"until",l:["Defer until","পর্যন্ত স্থগিত"],t:"date",req:true,val:addDays(String(x.next_due_on||today()).slice(0,10),2),hint:["Must be after the current due date and within the policy maximum deferral.","বর্তমান তারিখের পরে এবং নীতির সর্বোচ্চ স্থগিতের মধ্যে হতে হবে।"]},REASON()],async(v,err)=>{
    const r=await act("am_defer_target_v1",{p_target:tid(x),p_until:v.until,p_reason:v.reason},"Deferred","স্থগিত হয়েছে",err);if(r){await loadSugg();await loadCal()}return !!r},T("Defer","স্থগিত"),"defer-form");
  }
  function generateForm(){
@@ -782,7 +782,7 @@ SCREENS.schedule=async function(body){
    {n:"lead_days",l:["Lead days (blank = policy)","আগাম দিন (ফাঁকা = নীতি)"],t:"num",step:"1",val:p&&p.lead_days},{n:"team_ref",l:["Team ref.","টিম রেফ."],t:"text",max:40,val:p&&p.team_ref},
    {n:"active",l:["Active","সক্রিয়"],t:"bool",val:p?p.active!==false:true},REASON()];
   modalForm(p?T("Edit plan","পরিকল্পনা সম্পাদনা"):T("New plan","নতুন পরিকল্পনা"),fields,async(v,err)=>{
-   if(v.asset_id==null&&v.category_id==null){err.textContent=T("Choose an asset or a category.","একটি সম্পদ বা ক্যাটাগরি বাছুন।");err.hidden=false;return false}
+   if((v.asset_id==null)===(v.category_id==null)){err.textContent=T("Choose exactly one: an asset or a category.","ঠিক একটি বাছুন: সম্পদ বা ক্যাটাগরি।");err.hidden=false;return false}
    if(v.frequency_kind==="usage"&&(!v.meter_code||!v.usage_interval)){err.textContent=T("Usage plans need a meter code and a usage interval.","ব্যবহারভিত্তিক পরিকল্পনায় মিটার কোড ও ব্যবধান লাগবে।");err.hidden=false;return false}
    const d=clean(Object.assign({},v,{reason:undefined}));if(d.meter_code)d.meter_code=d.meter_code.toUpperCase();
    const r=await act("am_save_plan_v1",{p_id:p?p.id:null,p_expected_version:p?p.version:null,p_data:d,p_reason:v.reason},"Plan saved","পরিকল্পনা সংরক্ষিত",err);if(r){await loadPlans();await loadSugg();await loadCal()}return !!r},T("Save plan","পরিকল্পনা সংরক্ষণ"),"plan-form");
