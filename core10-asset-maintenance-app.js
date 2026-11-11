@@ -136,7 +136,7 @@ function buildForm(fields,opt){
      else if(c.t==="bool"){ci=h("input",{id:cid,type:"checkbox",class:"cb","aria-label":c.l[state.lang==="bn"?1:0]});ci.checked=v&&v[c.n]!=null?!!v[c.n]:c.val!==false}
      else{ci=h("input",{id:cid,type:c.t==="num"?"number":"text",step:c.t==="num"?"any":null,placeholder:c.l[state.lang==="bn"?1:0],"aria-label":c.l[state.lang==="bn"?1:0],maxlength:c.max||80});if(v&&v[c.n]!=null)ci.value=v[c.n]}
      cells[c.n]=ci;r.append(h("div",{class:"rep-cell"},h("small",{text:c.l[state.lang==="bn"?1:0]}),ci))}
-    r.append(btn("×",()=>r.remove(),"outline","","",{"aria-label":T("Remove row","সারি মুছুন")}));r._cells=cells;host.append(r)};
+    r.append(btn("×",()=>r.remove(),"outline",null,{"aria-label":T("Remove row","সারি মুছুন")}));r._cells=cells;host.append(r)};
    for(const v of (f.val||[]))addRow(v);
    input=h("div",null,host,btn(T("+ Add row","+ সারি যোগ"),()=>addRow(null),"outline",id+"-add"));
    get[f.n]=()=>[...host.children].map(r=>{const o={};let any=false;
