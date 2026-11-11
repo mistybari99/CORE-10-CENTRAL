@@ -53,6 +53,34 @@ BEGIN
   IF SQLERRM IS DISTINCT FROM 'approval_not_authorized' THEN RAISE EXCEPTION 'FAIL: revoked manager accepted (unexpected error: %)', SQLERRM; END IF;
  END;
 END $test$;
+-- Deny direct mutations even when the caller has authenticated role.
+SET ROLE authenticated;
+DO $acl$
+DECLARE v_sql text;
+BEGIN
+ FOREACH v_sql IN ARRAY ARRAY[
+  'UPDATE c10_demo.approval_requests SET status = ''rejected'' WHERE id = 1',
+  'DELETE FROM c10_demo.approval_requests WHERE id = 2',
+  'UPDATE c10_demo.approval_events SET action = ''reject'' WHERE request_id = 1',
+  'DELETE FROM c10_demo.approval_events WHERE request_id = 1'
+ ] LOOP
+  BEGIN
+   EXECUTE v_sql;
+   RAISE EXCEPTION 'FAIL: direct approval write accepted: %', v_sql;
+  EXCEPTION WHEN insufficient_privilege THEN
+   NULL; -- Only SQLSTATE 42501 is an expected denial.
+  END;
+ END LOOP;
+END $acl$;
+RESET ROLE;
+DO $acl$
+BEGIN
+ IF has_function_privilege('anon','c10_demo.decide_approval(bigint,text,text)','EXECUTE')
+ THEN RAISE EXCEPTION 'FAIL: anon approval RPC execute grant'; END IF;
+ IF has_table_privilege('authenticated','c10_demo.approval_events','INSERT,UPDATE,DELETE')
+ THEN RAISE EXCEPTION 'FAIL: authenticated audit write grant'; END IF;
+ RAISE NOTICE 'PASS: authenticated direct-write and anon RPC ACL';
+END $acl$;
 RESET ROLE;
 DO $test$
 BEGIN
