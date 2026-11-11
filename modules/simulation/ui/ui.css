@@ -37,5 +37,5 @@ details>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;f
 [hidden]{display:none !important}
 .grid>*,.bar>*{min-width:0}
 .field{margin:0 0 12px}
-.actions{position:sticky;bottom:0;z-index:2;background:var(--card);padding:10px 0;margin-top:8px;border-top:1px solid var(--line)}
+.quickpanel .sheet{display:flex;flex-direction:column;overflow:hidden}.qbody{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}.actions{flex:0 0 auto;padding:10px 0 2px;margin-top:8px;border-top:1px solid var(--line)}
 #quick-form{margin-bottom:8px}
