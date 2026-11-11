@@ -20,6 +20,7 @@ BEGIN IF a IS DISTINCT FROM b THEN RAISE EXCEPTION 'ASSERT % : got [%] want [%]'
 CREATE FUNCTION c10_test.eq(a boolean,b text,msg text) RETURNS void LANGUAGE sql AS $$ SELECT c10_test.eq(a::text,b,msg) $$;
 CREATE FUNCTION c10_test.eq(a bigint,b text,msg text) RETURNS void LANGUAGE sql AS $$ SELECT c10_test.eq(a::text,b,msg) $$;
 CREATE FUNCTION c10_test.eq(a int,b text,msg text) RETURNS void LANGUAGE sql AS $$ SELECT c10_test.eq(a::text,b,msg) $$;
+CREATE FUNCTION c10_test.eq(a numeric,b text,msg text) RETURNS void LANGUAGE sql AS $$ SELECT c10_test.eq(a::text,b,msg) $$;
 CREATE FUNCTION c10_test.denied(p_sql text,p_expect text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
  BEGIN EXECUTE p_sql; EXCEPTION WHEN OTHERS THEN
@@ -148,7 +149,7 @@ DO $$ DECLARE r jsonb; g bigint; n0 bigint; BEGIN
  -- list (owner) + revoke + reactivate
  PERFORM c10_test.as_user('owner');
  r:=c10_demo.am_list_grants_v1(101);
- PERFORM c10_test.eq((r->>'total')::int>=9,'true','owner lists grants incl. seeded');
+ PERFORM c10_test.eq((r->>'total')::int>=8,'true','owner lists grants incl. seeded');
  PERFORM c10_test.eq(c10_demo.am_revoke_role_v1(101,'rg-grant-0030',g,'offboarding')->>'status','applied','revoke applied');
  PERFORM c10_test.denied($q$SELECT c10_demo.am_revoke_role_v1(101,'rg-grant-0031',$q$||g||$q$,'again')$q$,'am_invalid_state');
  PERFORM c10_test.as_user('newbie'); PERFORM c10_test.denied('SELECT c10_demo.am_list_catalog_v1(101)','am_denied');

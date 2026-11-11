@@ -2,6 +2,7 @@
 -- Load: AM_FILES="core planning workorders lockdown" tests/c10_a055_load.sh <db>   (policy/registry/reports files may be loaded too)
 -- Run : psql -X -q -v ON_ERROR_STOP=1 -d <db> -f tests/c10_a055_workorders_e2e.sql   (as superuser; RAISES on any failure)
 \set ON_ERROR_STOP on
+DROP SCHEMA IF EXISTS c10_test CASCADE;
 CREATE SCHEMA c10_test;
 GRANT USAGE ON SCHEMA c10_test TO authenticated,anon;
 CREATE TABLE c10_test.ids(k text PRIMARY KEY,v bigint);
@@ -130,8 +131,8 @@ DO $$ DECLARE r jsonb; r2 jsonb; w1 bigint; oven bigint:=c10_test.id('a_T-OVEN')
  PERFORM c10_test.denied(format('SELECT c10_demo.am_create_work_order_v1(101,%L,jsonb_build_object(''asset_id'',''12'',''title'',''String id''))',c10_test.k()),'am_invalid_input');
  PERFORM c10_test.denied(format('SELECT c10_demo.am_create_work_order_v1(101,%L,jsonb_build_object(''asset_id'',%s,''title'',''Bad due'',''due_on'',''2026-13-45''))',c10_test.k(),oven),'am_invalid_input');
  PERFORM c10_test.denied(format('SELECT c10_demo.am_create_work_order_v1(101,%L,jsonb_build_object(''asset_id'',%s,''title'',''Bad code'',''service_category'',''NOPE''))',c10_test.k(),oven),'am_invalid_code');
- PERFORM c10_test.denied(format('SELECT c10_demo.am_create_work_order_v1(101,%L,jsonb_build_object(''asset_id'',%s,''title'',''Bad tpl'',''checklist_code'',''NO-SUCH''))',c10_test.k(),oven),'am_checklist_not_found');
- PERFORM c10_test.denied('SELECT c10_demo.am_create_work_order_v1(101,''short'',''{}'')','am_invalid_request_key');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_create_work_order_v1(101,%L,jsonb_build_object(''asset_id'',%s,''title'',''Bad tpl'',''kind'',''inspection'',''checklist_code'',''NO-SUCH''))',c10_test.k(),oven),'am_checklist_not_found');
+ PERFORM c10_test.denied(format('SELECT c10_demo.am_create_work_order_v1(101,''short'',jsonb_build_object(''asset_id'',%s,''title'',''Valid title'',''kind'',''inspection''))',oven),'am_invalid_request_key');
  PERFORM c10_test.denied(format('SELECT c10_demo.am_create_work_order_v1(101,%L,jsonb_build_object(''asset_id'',%s,''title'',''Overlap same kind''))',c10_test.k(),oven),'am_overlapping_work_order');
  -- scope of creation
  PERFORM c10_test.denied(format('SELECT c10_demo.am_create_work_order_v1(101,%L,jsonb_build_object(''asset_id'',%s,''title'',''Assign other'',''kind'',''inspection'',''assigned_to'',%L))',c10_test.k(),oven,c10_test.u('sup1')),'am_not_permitted');
@@ -140,5 +141,8 @@ DO $$ DECLARE r jsonb; r2 jsonb; w1 bigint; oven bigint:=c10_test.id('a_T-OVEN')
  PERFORM c10_test.as_user('rep');
  PERFORM c10_test.denied(format('SELECT c10_demo.am_create_work_order_v1(101,%L,jsonb_build_object(''asset_id'',%s,''title'',''Reporter prev'',''kind'',''preventive''))',c10_test.k(),oven),'am_not_permitted');
  PERFORM c10_test.denied(format('SELECT c10_demo.am_create_work_order_v1(101,%L,jsonb_build_object(''asset_id'',%s,''title'',''Reporter estimates'',''est_labor_cost'',5))',c10_test.k(),oven),'am_not_permitted');
- PERFORM c10_test.put('wo_rep',c10_test.cr(c10_test.id('a_T-CHILL'),'x') ) ;
-END $$; ROLLBACK;
+ PERFORM c10_test.denied(format('SELECT c10_test.cr(%s,''Reporter other site'')',c10_test.id('a_T-CHILL')),'am_denied');
+ PERFORM c10_test.put('wo_rep',c10_test.cr(c10_test.id('a_T-ONE'),'Laptop screen flickers'));
+ PERFORM c10_test.eq(c10_test.g(c10_test.id('wo_rep'))->>'status','DRAFT','reporter draft');
+ PERFORM c10_test.eq(c10_test.g(c10_test.id('wo_rep'))->>'requested_by',c10_test.u('rep')::text,'requester recorded');
+END $$; COMMIT;

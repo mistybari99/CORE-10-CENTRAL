@@ -186,19 +186,19 @@ BEGIN
   IF a='approve' AND mc AND w.requested_by=c.user_id THEN CONTINUE; END IF;
   IF a='verify' AND mc AND w.completed_by=c.user_id THEN CONTINUE; END IF;
   IF a='reopen' AND NOT ami_wk_reopen_ok(w) THEN CONTINUE; END IF;
-  o:=o||a;
+  o:=array_append(o,a);
  END LOOP;
  open:=w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS');
- IF ami_wk_auth(c,w,'edit') IS NULL AND w.status IN('DRAFT','SUBMITTED','APPROVED') THEN o:=o||'edit';
- ELSIF ami_wk_auth(c,w,'work') IS NULL AND open THEN o:=o||'edit_estimates'; END IF;
- IF open AND ami_wk_auth(c,w,'assign') IS NULL THEN o:=o||'assign'; o:=o||'merge'; END IF;
+ IF ami_wk_auth(c,w,'edit') IS NULL AND w.status IN('DRAFT','SUBMITTED','APPROVED') THEN o:=array_append(o,'edit'::text);
+ ELSIF ami_wk_auth(c,w,'work') IS NULL AND open THEN o:=array_append(o,'edit_estimates'::text); END IF;
+ IF open AND ami_wk_auth(c,w,'assign') IS NULL THEN o:=array_append(o,'assign'::text); o:=array_append(o,'merge'::text); END IF;
  IF w.status IN('APPROVED','IN_PROGRESS') AND w.safety_ack_at IS NULL AND ami_wk_auth(c,w,'work') IS NULL
     AND (w.safety_critical OR COALESCE((SELECT k.safety_critical FROM am_assets a JOIN am_categories k ON k.id=a.category_id WHERE a.id=w.asset_id),false)) THEN
-  o:=o||'acknowledge_safety'; END IF;
- IF w.status='IN_PROGRESS' AND ami_wk_auth(c,w,'work') IS NULL THEN o:=o||'checklist'; END IF;
+  o:=array_append(o,'acknowledge_safety'::text); END IF;
+ IF w.status='IN_PROGRESS' AND ami_wk_auth(c,w,'work') IS NULL THEN o:=array_append(o,'checklist'::text); END IF;
  IF open AND (ami_wk_auth(c,w,'work') IS NULL OR (ami_wk_auth(c,w,'edit') IS NULL AND w.status IN('DRAFT','SUBMITTED','APPROVED'))) THEN
-  o:=o||'labor'; o:=o||'spares'; END IF;
- IF w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS','COMPLETED','VERIFIED') AND ami_wk_auth(c,w,'attachment') IS NULL THEN o:=o||'attachment'; END IF;
+  o:=array_append(o,'labor'::text); o:=array_append(o,'spares'::text); END IF;
+ IF w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS','COMPLETED','VERIFIED') AND ami_wk_auth(c,w,'attachment') IS NULL THEN o:=array_append(o,'attachment'::text); END IF;
  RETURN o;
 END$$;
 

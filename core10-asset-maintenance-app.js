@@ -691,4 +691,162 @@ SCREENS.breakdown=async function(body){
   panel(T("Open downtime","খোলা ডাউনটাইম"),openBox,can("downtime_write")?btn(T("+ Start downtime","+ ডাউনটাইম শুরু"),startForm,"outline","dt-start"):null,"bd-open-panel"),panel(T("Recently closed","সম্প্রতি শেষ"),histBox));
  await refresh();
 };
+/* =====================================================================  SCHEDULE  ===================================================================== */
+const FREQS=["daily","weekly","monthly","yearly","usage"];
+const PLAN_TYPES=["preventive","inspection","calibration","certification"];
+const tid=(x)=>x.target_id!=null?x.target_id:x.id;
+const itemText=(x)=>(x.asset_no||x.asset_name||("#"+x.asset_id))+" · "+(x.plan_name||x.title||"");
+function dueChips(x){
+ const c=[];if(x.state)c.push(chip(lab("due_state",x.state),toneOf(x.state)));
+ const e=x.escalation_level;if(e>0)c.push(chip(lab("escalation",e),e>1?"bad":"warn"));
+ return c;
+}
+SCREENS.schedule=async function(body){
+ $("am-title").textContent=T("Maintenance schedule","রক্ষণাবেক্ষণ সূচি");
+ const t0=today();const mon={y:Number(t0.slice(0,4)),m:Number(t0.slice(5,7))};
+ const calBox=h("div",{id:"sc-cal"}),agBox=h("div",{id:"sc-agenda"}),sugBox=h("div",{id:"sc-sugg"}),planBox=h("div",{id:"sc-plans"}),clBox=h("div",{id:"sc-checklists"});
+ const horizon=h("input",{id:"sg-horizon",type:"number",min:0,max:365,value:30,"aria-label":T("Horizon (days)","সময়সীমা (দিন)")});
+ const monthLabel=h("b",{id:"sc-month"});
+ const checked=new Set();let suggItems=[];
+ async function loadCal(){
+  const from=mon.y+"-"+pad(mon.m)+"-01",last=new Date(Date.UTC(mon.y,mon.m,0)).getUTCDate(),to=mon.y+"-"+pad(mon.m)+"-"+pad(last);
+  monthLabel.textContent=from.slice(0,7);
+  const r=await safe(()=>rd("am_calendar_v1",{p_from:from,p_to:to,p_site:state.site}));if(!r)return;
+  const days=arr(r,"days"),by={};for(const d of days)by[String(d.date).slice(0,10)]=arr(d,"items");
+  calBox.textContent="";agBox.textContent="";
+  const wd=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((x,i)=>T(x,["রবি","সোম","মঙ্গল","বুধ","বৃহ","শুক্র","শনি"][i]));
+  const grid=h("div",{class:"cal-grid",role:"grid","aria-label":T("Maintenance calendar","রক্ষণাবেক্ষণ ক্যালেন্ডার")},wd.map(x=>h("div",{class:"cal-h",role:"columnheader",text:x})));
+  const lead=new Date(Date.UTC(mon.y,mon.m-1,1)).getUTCDay();
+  for(let i=0;i<lead;i++)grid.append(h("div",{class:"cal-cell empty","aria-hidden":"true"}));
+  for(let d=1;d<=last;d++){
+   const key=mon.y+"-"+pad(mon.m)+"-"+pad(d),its=by[key]||[];
+   grid.append(h("div",{class:"cal-cell"+(key===t0?" today":""),role:"gridcell","data-date":key},h("b",{text:String(d)}),
+    ...its.slice(0,3).map(x=>h("div",{class:"cal-item "+toneOf(x.state)},h("span",{text:itemText(x)}))),its.length>3?h("small",{text:"+"+(its.length-3)+T(" more"," আরও")}):null));
+   if(its.length)agBox.append(h("h4",{text:key}),h("ul",{class:"agenda"},its.map(x=>h("li",null,h("span",{text:itemText(x)+" "}),...dueChips(x)))));
+  }
+  calBox.append(grid);
+  if(!agBox.children.length)agBox.append(h("p",{class:"muted",text:T("Nothing scheduled this month.","এই মাসে কিছু নির্ধারিত নেই।")}));
+ }
+ async function loadSugg(){
+  const hz=Number(horizon.value);if(!Number.isInteger(hz)||hz<0||hz>365){status(T("Horizon must be 0-365 days.","সময়সীমা ০-৩৬৫ দিন হতে হবে।"),"error");return}
+  const r=await safe(()=>rd("am_due_suggestions_v1",{p_site:state.site,p_horizon_days:hz}));if(!r)return;
+  suggItems=arr(r,"items","suggestions");checked.clear();sugBox.textContent="";
+  sugBox.append(table([[T("Pick","বাছুন"),x=>h("input",{type:"checkbox",class:"cb",id:"sg-check-"+tid(x),"aria-label":T("Select","বাছুন"),disabled:x.state==="has_open_wo",onchange:(e)=>{e.target.checked?checked.add(tid(x)):checked.delete(tid(x))}})],
+   [T("Asset","সম্পদ"),x=>x.asset_no||x.asset_name||("#"+x.asset_id)],[T("Plan","পরিকল্পনা"),x=>x.plan_name||("#"+x.plan_id)],[T("Due","দেয়"),x=>x.next_due_on?dd(x.next_due_on):(x.next_due_reading!=null?num(x.next_due_reading,3):dash)],
+   [T("State","অবস্থা"),x=>h("span",null,...dueChips(x))],["",x=>can("plan_write")&&x.state!=="has_open_wo"?btn(T("Defer","স্থগিত"),()=>deferForm(x),"outline","sg-defer-"+tid(x)):null]],suggItems,T("Nothing is due within the horizon.","সময়সীমায় কিছু দেয় নয়।")));
+ }
+ function deferForm(x){
+  modalForm(T("Defer","স্থগিত")+" · "+itemText(x),[{n:"until",l:["Defer until","পর্যন্ত স্থগিত"],t:"date",req:true,val:addDays(today(),7)},REASON()],async(v,err)=>{
+   const r=await act("am_defer_target_v1",{p_target:tid(x),p_until:v.until,p_reason:v.reason},"Deferred","স্থগিত হয়েছে",err);if(r){await loadSugg();await loadCal()}return !!r},T("Defer","স্থগিত"),"defer-form");
+ }
+ function generateForm(){
+  const ids=[...checked];if(!ids.length){status(T("Tick at least one suggestion first.","আগে অন্তত একটি পরামর্শ বাছুন।"),"info");return}
+  const f=buildForm([],{prefix:"g-",id:"gen-form",submitText:T("Create "+ids.length+" work order(s)","কাজের আদেশ তৈরি ("+ids.length+")"),onSubmit:async(v,err)=>{
+   const r=await act("am_generate_work_orders_v1",{p_target_ids:ids,p_site:state.site,p_horizon_days:Number(horizon.value)},"Work orders created","কাজের আদেশ তৈরি হয়েছে",err);
+   if(r){closeModal();state.assetOpts=null;await loadSugg();await loadCal()}}});
+  openModal(T("Generate work orders","কাজের আদেশ তৈরি"),[h("p",{class:"safety",id:"gen-warning",text:T("This creates work orders; nothing runs automatically.","এটি কাজের আদেশ তৈরি করে; কিছুই স্বয়ংক্রিয়ভাবে চলে না।")}),
+   h("ul",null,ids.map(i=>{const x=suggItems.find(s=>tid(s)===i);return h("li",{text:x?itemText(x):("#"+i)})})),f.form],"gen-modal");
+ }
+ async function loadPlans(){
+  const r=await safe(()=>rd("am_list_plans_v1",{p_filters:null}));if(!r)return;planBox.textContent="";
+  planBox.append(table([[T("Plan","পরিকল্পনা"),x=>x.name],[T("Type","ধরন"),x=>lab("plan_type",x.plan_type)],[T("Scope","পরিধি"),x=>x.asset_no||x.asset_name||(x.asset_id?"#"+x.asset_id:(x.category_name||catName(catById(x.category_id))))],
+   [T("Every","প্রতি"),x=>x.interval_n+" "+lab("frequency",x.frequency_kind)],[T("Priority","অগ্রাধিকার"),x=>lab("priority",x.priority)],[T("Active","সক্রিয়"),x=>val(x.active)],
+   ["",x=>can("plan_write")?btn(T("Edit","সম্পাদনা"),()=>planForm(x),"outline","pl-edit-"+x.id):null]],arr(r,"items","plans"),T("No plans yet.","এখনো কোনো পরিকল্পনা নেই।")));
+ }
+ async function planForm(p){
+  const assets=await assetPicker(T("— none —","— নেই —")),cls=await safe(()=>rd("am_list_checklists_v1",{p_include_inactive:false}));
+  const fields=[{n:"name",l:["Plan name","পরিকল্পনার নাম"],t:"text",req:true,val:p&&p.name,max:120},{n:"plan_type",l:["Type","ধরন"],t:"select",opts:enumOpts("plan_type",PLAN_TYPES),val:p&&p.plan_type||"preventive"},
+   {n:"asset_id",l:["For one asset","একটি সম্পদের জন্য"],t:"select",int:true,opts:assets,val:p&&p.asset_id!=null?p.asset_id:""},
+   {n:"category_id",l:["…or a whole category","…অথবা পুরো ক্যাটাগরি"],t:"select",int:true,opts:[["",T("— none —","— নেই —")],...categories().map(c=>[String(c.id),catName(c)])],val:p&&p.category_id!=null?p.category_id:""},
+   {n:"site_id",l:["Only at site","শুধু সাইটে"],t:"select",int:true,opts:siteOptsFor(null,T("— all sites —","— সব সাইট —")),val:p&&p.site_id!=null?p.site_id:""},
+   {n:"frequency_kind",l:["Frequency","ফ্রিকোয়েন্সি"],t:"select",opts:enumOpts("frequency",FREQS),val:p&&p.frequency_kind||"monthly"},{n:"interval_n",l:["Every N","প্রতি N"],t:"num",step:"1",req:true,val:p?p.interval_n:1},
+   {n:"meter_code",l:["Meter code (usage plans)","মিটার কোড (ব্যবহারভিত্তিক)"],t:"text",max:16,val:p&&p.meter_code},{n:"usage_interval",l:["Usage interval","ব্যবহারের ব্যবধান"],t:"num",val:p&&p.usage_interval},
+   {n:"checklist_code",l:["Checklist template","চেকলিস্ট টেমপ্লেট"],t:"select",opts:[["",T("— none —","— নেই —")],...arr(cls,"items").map(c=>[c.code,c.code+" · "+c.name])],val:p&&p.checklist_code||""},
+   {n:"priority",l:["Priority","অগ্রাধিকার"],t:"select",opts:enumOpts("priority",PRIORITIES),val:p&&p.priority||"medium"},{n:"est_labor_hours",l:["Est. labour hours","আনুমানিক শ্রমঘণ্টা"],t:"num",val:p&&p.est_labor_hours},
+   {n:"est_cost",l:["Est. cost (advisory)","আনুমানিক খরচ (পরামর্শমূলক)"],t:"num",val:p&&p.est_cost},{n:"anchor",l:["Recurrence anchor (blank = policy)","পুনরাবৃত্তির ভিত্তি (ফাঁকা = নীতি)"],t:"select",opts:[["",T("— policy —","— নীতি —")],...enumOpts("anchor",["from_completion","from_due_date"])],val:p&&p.anchor||""},
+   {n:"start_on",l:["Starts on","শুরু"],t:"date",req:true,val:p?dd(p.start_on):today()},{n:"end_on",l:["Ends on","শেষ"],t:"date",val:p&&p.end_on?dd(p.end_on):""},
+   {n:"lead_days",l:["Lead days (blank = policy)","আগাম দিন (ফাঁকা = নীতি)"],t:"num",step:"1",val:p&&p.lead_days},{n:"team_ref",l:["Team ref.","টিম রেফ."],t:"text",max:40,val:p&&p.team_ref},
+   {n:"active",l:["Active","সক্রিয়"],t:"bool",val:p?p.active!==false:true},REASON()];
+  modalForm(p?T("Edit plan","পরিকল্পনা সম্পাদনা"):T("New plan","নতুন পরিকল্পনা"),fields,async(v,err)=>{
+   if(v.asset_id==null&&v.category_id==null){err.textContent=T("Choose an asset or a category.","একটি সম্পদ বা ক্যাটাগরি বাছুন।");err.hidden=false;return false}
+   if(v.frequency_kind==="usage"&&(!v.meter_code||!v.usage_interval)){err.textContent=T("Usage plans need a meter code and a usage interval.","ব্যবহারভিত্তিক পরিকল্পনায় মিটার কোড ও ব্যবধান লাগবে।");err.hidden=false;return false}
+   const d=clean(Object.assign({},v,{reason:undefined}));if(d.meter_code)d.meter_code=d.meter_code.toUpperCase();
+   const r=await act("am_save_plan_v1",{p_id:p?p.id:null,p_expected_version:p?p.version:null,p_data:d,p_reason:v.reason},"Plan saved","পরিকল্পনা সংরক্ষিত",err);if(r){await loadPlans();await loadSugg();await loadCal()}return !!r},T("Save plan","পরিকল্পনা সংরক্ষণ"),"plan-form");
+ }
+ async function loadChecklists(){
+  const r=await safe(()=>rd("am_list_checklists_v1",{p_include_inactive:true}));if(!r)return;clBox.textContent="";
+  clBox.append(table([[T("Code","কোড"),x=>x.code],[T("Name","নাম"),x=>x.name],[T("Version","সংস্করণ"),x=>x.version],[T("Items","আইটেম"),x=>x.item_count!=null?x.item_count:arr(x,"items").length],[T("Active","সক্রিয়"),x=>val(x.active)],
+   ["",x=>can("plan_write")?btn(T("Edit (new version)","সম্পাদনা (নতুন সংস্করণ)"),()=>checklistForm(x),"outline","cl-edit-"+x.code):null]],arr(r,"items"),T("No checklist templates.","কোনো চেকলিস্ট টেমপ্লেট নেই।")));
+ }
+ function checklistForm(c){
+  const cols=[{n:"text",l:["Step","ধাপ"],t:"text",max:300},{n:"kind",l:["Kind","ধরন"],t:"select",keep:true,opts:enumOpts("check_kind",["check","measure","safety"])},{n:"required",l:["Required","আবশ্যক"],t:"bool"},
+   {n:"min_value",l:["Min","সর্বনিম্ন"],t:"num"},{n:"max_value",l:["Max","সর্বোচ্চ"],t:"num"},{n:"unit",l:["Unit","একক"],t:"text",max:16}];
+  modalForm(c?T("Edit checklist ","চেকলিস্ট সম্পাদনা ")+c.code:T("New checklist template","নতুন চেকলিস্ট টেমপ্লেট"),[
+   {n:"code",l:["Code (A-Z, 0-9, _ -)","কোড"],t:"text",req:true,max:32,val:c&&c.code},{n:"name",l:["Name","নাম"],t:"text",req:true,val:c&&c.name,max:120},
+   {n:"category_id",l:["Category (optional)","ক্যাটাগরি (ঐচ্ছিক)"],t:"select",int:true,opts:[["",T("— any —","— যেকোনো —")],...categories().map(x=>[String(x.id),catName(x)])],val:c&&c.category_id!=null?c.category_id:""},
+   {n:"items",l:["Checklist steps","চেকলিস্টের ধাপ"],t:"rows",req:true,cols,val:arr(c,"items")},REASON()],async(v,err)=>{
+   const items=v.items.map((x,i)=>clean({seq:i+1,text:x.text,kind:x.kind,required:x.required,min_value:x.min_value,max_value:x.max_value,unit:x.unit}));
+   if(items.some(x=>!x.text)){err.textContent=T("Every step needs text.","প্রতিটি ধাপে লেখা লাগবে।");err.hidden=false;return false}
+   const r=await act("am_save_checklist_template_v1",{p_code:v.code.toUpperCase(),p_name:v.name,p_category_id:v.category_id,p_items:items,p_reason:v.reason},"Checklist saved (new version)","চেকলিস্ট সংরক্ষিত (নতুন সংস্করণ)",err);if(r)await loadChecklists();return !!r},T("Save new version","নতুন সংস্করণ সংরক্ষণ"),"checklist-form");
+ }
+ const nav=h("div",{class:"actions"},btn("‹",()=>{mon.m--;if(mon.m<1){mon.m=12;mon.y--}loadCal()},"outline","sc-prev",{"aria-label":T("Previous month","আগের মাস")}),monthLabel,
+  btn("›",()=>{mon.m++;if(mon.m>12){mon.m=1;mon.y++}loadCal()},"outline","sc-next",{"aria-label":T("Next month","পরের মাস")}));
+ body.append(h("p",{class:"safety",id:"sc-notice",text:T("This creates work orders; nothing runs automatically. Suggestions are computed when you open this page and work orders are created only when you press the button.","এটি কাজের আদেশ তৈরি করে; কিছুই স্বয়ংক্রিয়ভাবে চলে না। পরামর্শ পেজ খোলার সময় হিসাব হয় এবং বোতাম চাপলেই কাজের আদেশ তৈরি হয়।")),
+  panel(T("Calendar","ক্যালেন্ডার"),[nav,h("div",{class:"cal-wrap"},h("div",{class:"cal-only"},calBox),h("div",{class:"agenda-only"},agBox))],null,"sc-cal-panel"),
+  panel(T("Due suggestions","দেয় পরামর্শ"),[filterRow([labeled(T("Look ahead (days)","সামনের দিন"),horizon),btn(T("Refresh","রিফ্রেশ"),loadSugg,"outline","sg-refresh"),
+    btn(T("Tick all due & overdue","সব দেয় ও বিলম্বিত বাছুন"),()=>{for(const x of suggItems)if(["due","overdue"].includes(x.state)){checked.add(tid(x));const c=$("sg-check-"+tid(x));if(c)c.checked=true}},"outline","sg-tick"),
+    can("assign")?btn(T("Generate work orders…","কাজের আদেশ তৈরি…"),generateForm,"primary","sg-generate"):null]),sugBox],null,"sc-sugg-panel"),
+  panel(T("Maintenance plans","রক্ষণাবেক্ষণ পরিকল্পনা"),planBox,can("plan_write")?btn(T("+ New plan","+ নতুন পরিকল্পনা"),()=>planForm(null),"primary","pl-new"):null),
+  panel(T("Checklist templates","চেকলিস্ট টেমপ্লেট"),clBox,can("plan_write")?btn(T("+ New template","+ নতুন টেমপ্লেট"),()=>checklistForm(null),"primary","cl-new"):null));
+ await loadCal();await loadSugg();await loadPlans();await loadChecklists();
+};
+
+/* =====================================================================  REPORTS  ===================================================================== */
+function csvLink(r){
+ const name=/^[A-Za-z0-9._-]{1,100}$/.test(String(r.filename||""))?r.filename:"core10-asset-maintenance.csv";
+ const url=URL.createObjectURL(new Blob([String(r.csv==null?"":r.csv)],{type:"text/csv;charset=utf-8"}));
+ setTimeout(()=>URL.revokeObjectURL(url),120000);
+ return h("a",{id:"csv-link",class:"btn-link",href:url,download:name,text:name+" ("+(r.rows==null?"?":r.rows)+T(" rows"," সারি")+")"});
+}
+SCREENS.reports=async function(body){
+ $("am-title").textContent=T("Reports","রিপোর্ট");
+ const from=h("input",{id:"rep-from",type:"date",value:addDays(today(),-90)}),to=h("input",{id:"rep-to",type:"date",value:today()}),hz=h("input",{id:"rep-horizon",type:"number",min:0,max:365,value:60});
+ const out=h("div",{id:"rep-out"}),tabs=h("div",{class:"tabs",role:"tablist"});
+ const dates=()=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(from.value)||!/^\d{4}-\d{2}-\d{2}$/.test(to.value)||from.value>to.value)throw Object.assign(new Error("am_period_invalid"),{code:"am_period_invalid"});return{p_from:from.value,p_to:to.value}};
+ let cur="overview";
+ const TABS=[["overview","Overview","ওভারভিউ",()=>can("reports")||can("view")],["downtime","Downtime","ডাউনটাইম",()=>can("reports")],["kpi","KPI (MTTR/MTBF)","কেপিআই (MTTR/MTBF)",()=>can("reports")],
+  ["health","Asset health","সম্পদের স্বাস্থ্য",()=>can("reports")],["warranty","Warranty","ওয়ারেন্টি",()=>can("reports")],["reconciliation","Reconciliation","মিলকরণ",()=>can("reports")],
+  ["integrity","Integrity","অখণ্ডতা",()=>can("reports")||can("audit_read")],["audit","Audit log","অডিট লগ",()=>can("audit_read")],["export","CSV export","CSV এক্সপোর্ট",()=>can("export")]];
+ const LOAD={
+  overview:async()=>{const r=await rd("am_overview_v1",{p_site:state.site});out.append(renderData(r));
+   if(isOwner())out.append(btn(T("Business summary (A050 adapter, aggregate)","ব্যবসার সারাংশ (A050 অ্যাডাপ্টার, সামগ্রিক)"),async()=>{const s=await safe(()=>rd("read_asset_maintenance_business_summary_v1",{p_period:null}));if(s){sumBox.textContent="";sumBox.append(renderData(s))}},"outline","rep-summary"));out.append(sumBox)},
+  downtime:async()=>{out.append(renderData(await rd("am_downtime_report_v1",Object.assign(dates(),{p_site:state.site}))))},
+  kpi:async()=>{out.append(note(T("MTTR and MTBF are shown only when enough repairs/failures exist (policy minimum sample). Otherwise you will see 'Insufficient sample'.","MTTR ও MTBF কেবল পর্যাপ্ত মেরামত/ত্রুটি থাকলে দেখানো হয় (নীতির ন্যূনতম নমুনা)। নইলে 'অপর্যাপ্ত নমুনা' দেখাবে।")),renderData(await rd("am_kpi_report_v1",Object.assign(dates(),{p_site:state.site}))))},
+  health:async()=>{out.append(h("p",{class:"safety",id:"rep-advisory",text:T("ADVISORY: depreciation and book values are estimates for planning only. Nothing is posted to any ledger.","পরামর্শমূলক: অবচয় ও বুক-ভ্যালু শুধু পরিকল্পনার অনুমান। কোনো লেজারে পোস্ট হয় না।")}),renderData(await rd("am_asset_health_report_v1",{p_site:state.site})))},
+  warranty:async()=>{const n=Number(hz.value);out.append(renderData(await rd("am_warranty_report_v1",{p_horizon_days:Number.isInteger(n)?n:null})))},
+  reconciliation:async()=>{out.append(renderData(await rd("am_reconciliation_v1",dates())))},
+  integrity:async()=>{const r=await rd("am_integrity_report_v1");if(typeof r.ok==="boolean")out.append(h("p",{id:"rep-integrity-flag",class:r.ok?"good":"bad",text:r.ok?T("ALL CHECKS PASS","সব যাচাই সফল"):T("ISSUES FOUND","সমস্যা পাওয়া গেছে")}));out.append(renderData(r))},
+  audit:async()=>{
+   const en=h("input",{id:"aud-entity",type:"text",maxlength:40,placeholder:"asset, work_order, policy…"}),ei=h("input",{id:"aud-id",type:"text",maxlength:40}),pg={o:0};
+   const box=h("div",{id:"aud-list"});
+   async function go(){const r=await safe(()=>rd("am_audit_log_v1",{p_entity:en.value.trim()||null,p_entity_id:ei.value.trim()||null,p_limit:50,p_offset:pg.o}));if(!r)return;box.textContent="";
+    box.append(table([[T("When","কখন"),x=>dt(x.created_at)],[T("Entity","এনটিটি"),x=>x.entity+" #"+x.entity_id],[T("Event","ঘটনা"),x=>x.event],[T("Reason","কারণ"),x=>x.reason],[T("Actor","কর্তা"),x=>x.actor_uid],[T("Hash","হ্যাশ"),x=>(x.row_hash||"").slice(0,10)]],arr(r,"items"),T("No audit rows.","কোনো অডিট সারি নেই।")),
+     h("div",{class:"actions"},btn(T("Previous","আগের"),()=>{pg.o=Math.max(0,pg.o-50);go()},"outline","aud-prev",{disabled:pg.o===0}),btn(T("Next","পরের"),()=>{pg.o+=50;go()},"outline","aud-next",{disabled:arr(r,"items").length<50})))}
+   out.append(filterRow([labeled(T("Entity","এনটিটি"),en),labeled(T("Entity id","এনটিটি আইডি"),ei),btn(T("Show","দেখান"),()=>{pg.o=0;go()},"primary","aud-go")]),box);await go()},
+  export:async()=>{
+   const kd=sel("exp-kind",enumOpts("export_kind",["assets","work_orders","downtime","schedule","warranty","audit"])),res=h("div",{id:"exp-result"});
+   out.append(note(T("CSV files contain business data. The file name comes from the server.","CSV ফাইলে ব্যবসার তথ্য থাকে। ফাইলের নাম সার্ভার থেকে আসে।")),
+    filterRow([labeled(T("What to export","কী এক্সপোর্ট হবে"),kd),btn(T("Export CSV","CSV এক্সপোর্ট"),async()=>{
+     const p=clean({from:from.value||null,to:to.value||null,site_id:state.site});
+     const r=await act("am_export_csv_v1",{p_kind:kd.value,p_params:Object.keys(p).length?p:null},"Export ready","এক্সপোর্ট প্রস্তুত");
+     if(r){res.textContent="";res.append(csvLink(r))}},"primary","exp-run")]),res)}
+ };
+ const sumBox=h("div",{id:"rep-summary-out"});
+ async function show(k){cur=k;for(const b of tabs.children)b.setAttribute("aria-selected",String(b.dataset.tab===k));out.textContent="";status(T("Loading…","লোড হচ্ছে…"),"info");
+  try{await LOAD[k]();status(T("Ready · business #","প্রস্তুত · ব্যবসা #")+state.biz,"ok")}catch(e){fail(e)}}
+ for(const [k,en,bn,ok] of TABS)if(ok())tabs.append(h("button",{type:"button",role:"tab",class:"tab",id:"rep-"+k,"data-tab":k,"aria-selected":"false",onclick:()=>show(k),text:T(en,bn)}));
+ if(!tabs.children.length){body.append(note(T("Your role has no report access.","আপনার ভূমিকায় রিপোর্ট দেখার অনুমতি নেই।"),"warn"));return}
+ body.append(panel(T("Range","সীমা"),filterRow([labeled(T("From","থেকে"),from),labeled(T("To","পর্যন্ত"),to),labeled(T("Warranty horizon (days)","ওয়ারেন্টি সময়সীমা (দিন)"),hz)])),tabs,out);
+ await show(tabs.children[0].dataset.tab);
+};
 /*@@CONT@@*/
