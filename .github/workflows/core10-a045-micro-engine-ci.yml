@@ -1,0 +1,167 @@
+name: CORE10 A045 Micro-Engine Workshop SQL + UI CI
+on:
+  push:
+    branches: ['feature/c10-a018-*','claude/c10-a045-*']
+    paths:
+      - 'internal/enterprise-sql/c10_a04[45]_*.sql'
+      - 'tests/c10_a04[45]_*'
+      - 'core10-control-*.js'
+      - 'core10-control-*.html'
+      - 'core10-control-*.css'
+      - 'core10-engine-workshop*'
+      - 'tests/e2e/core10-a04[45]-*.js'
+      - 'tests/api/core10-a045-*.js'
+      - '.github/workflows/core10-a045-micro-engine-ci.yml'
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a04[45]_*.sql'
+      - 'tests/c10_a04[45]_*'
+      - 'core10-control-*.js'
+      - 'core10-control-*.html'
+      - 'core10-control-*.css'
+      - 'core10-engine-workshop*'
+      - 'tests/e2e/core10-a04[45]-*.js'
+      - 'tests/api/core10-a045-*.js'
+      - '.github/workflows/core10-a045-micro-engine-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  micro-engine-sql-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+          POSTGRES_DB: core10_demo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_demo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: core10_demo
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Create disposable role fixtures
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
+      - name: A018 baseline & roles
+        run: |
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+      - name: A020 / A021 existing authoritative owner controls
+        run: |
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a020_business_setup_v1.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a021_owner_controls_v1.sql
+      - name: A044 canonical configuration/approval storage (disposable)
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a044_control_settings_v1.sql
+      - name: A044 regression E2E (runs before A045 so its fixtures are unchanged)
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a044_control_settings_e2e.sql
+      - name: A045 Micro-Engine registry/RPC (additive, disposable c10_demo)
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a045_micro_engine_v1.sql
+      - name: A045 SQL E2E - owner/business-owner/manager/staff/revoked/cross-tenant/anon, lifecycle, rollback, immutability
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a045_micro_engine_e2e.sql
+      - name: A042 and A043 contract regressions
+        run: |
+          node tests/c10_a042_universal_control_studio.test.js
+          node tests/c10_a043_business_control_placement.test.js
+      - name: UI/client signed RPC contract unit suites (A044 + A045)
+        run: |
+          node tests/c10_a044_control_ui.test.js
+          node tests/c10_a045_engine_workshop_client.test.js
+      - name: Install pinned Chromium for actual browser UI checks
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-playwright" && cd "$RUNNER_TEMP/core10-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: A044 responsive browser UI (synthetic signed fixture)
+        run: node tests/e2e/core10-a044-control-studio-browser.js
+      - name: A045 Workshop browser UI 390px/1440px (synthetic signed fixture)
+        run: node tests/e2e/core10-a045-engine-workshop-browser.js
+      - name: A045 static DEMO preview page 390px/1440px (in-memory, no network)
+        run: node tests/e2e/core10-a045-demo-preview-browser.js
+
+  engine-signed-rest:
+    name: A045 signed-JWT PostgREST E2E with demo tenant staff identities (disposable, not GoTrue)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_rest_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_rest_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: core10_rest_ci
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+      CORE10_CI_JWT_SECRET: core10_ci_disposable_enterprise_hmac_2026_only_not_production
+      CORE10_CI_REST_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Create disposable PostgREST roles
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
+      - name: Build schema, demo tenants/staff, A018-A021, A044, A045
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a020_business_setup_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a021_owner_controls_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a044_control_settings_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a045_micro_engine_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -c "GRANT USAGE ON SCHEMA c10_demo TO authenticated, anon"
+      - name: Start disposable PostgREST with HMAC verified JWTs
+        run: |
+          docker run --rm -d --name core10-a045-pgrst --network host \
+            -e PGRST_DB_URI="postgres://postgres:demo_only@127.0.0.1:5432/core10_rest_ci" \
+            -e PGRST_DB_SCHEMAS=c10_demo \
+            -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET="$CORE10_CI_JWT_SECRET" \
+            -e PGRST_JWT_AUD=authenticated \
+            -e PGRST_SERVER_PORT=3000 \
+            postgrest/postgrest:v12.2.12
+          for i in $(seq 1 30); do
+            code=$(curl -s --max-time 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ || true)
+            if [ "$code" != "000" ] && [ "$code" != "503" ]; then exit 0; fi
+            sleep 1
+          done
+          docker logs core10-a045-pgrst
+          exit 1
+      - name: A045 signed JWT HTTP E2E, full demo-staff negative matrix and ERP stock independence
+        run: node tests/api/core10-a045-engine-rest-e2e.js
+      - name: PostgREST diagnostics on failure
+        if: failure()
+        run: docker logs core10-a045-pgrst || true

@@ -1,0 +1,40 @@
+/* C10-A045 Micro-Engine Workshop — scoped to #ew-root. Mobile-first; verified at 390px and 1440px. */
+:root{color-scheme:dark;--bg:#101722;--panel:#1a2635;--panel2:#202f40;--edge:#334557;--fg:#eef3f8;--muted:#9bacbc;--hi:#ddb47f;--sea:#77d5be;--err:#f5a6a2;--ok:#8fd9a8;font:15px/1.55 system-ui,"Noto Sans Bengali",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg)}
+button,select,input,textarea{font:inherit;color:inherit}button,select{cursor:pointer}
+button:disabled,select:disabled,input:disabled,textarea:disabled{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--sea);outline-offset:2px}a{color:var(--hi)}
+#ew-root{max-width:1500px;margin:0 auto;padding:18px max(16px,env(safe-area-inset-left)) 40px}
+.ew-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:baseline}
+.ew-top h1{font-size:clamp(24px,5vw,38px);line-height:1.15;letter-spacing:-.02em;margin:4px 0}
+.ew-kicker{font-size:11px;letter-spacing:.14em;color:var(--sea)}
+.ew-nav a{margin-right:12px;white-space:nowrap}
+.ew-safety{border:1px solid #796345;border-left:4px solid var(--hi);background:#332b27;border-radius:10px;padding:11px 14px;font-size:13px;margin:12px 0}
+#ew-status{padding:8px 0;font-size:13px;color:var(--sea);min-height:1.6em;overflow-wrap:anywhere}#ew-status[data-tone=error]{color:var(--err)}
+.ew-grid{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:960px){.ew-grid{grid-template-columns:minmax(260px,.8fr) minmax(0,1.5fr)}.ew-wide{grid-column:1/-1}}
+.ew-panel{background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:14px;min-width:0}
+.ew-panel h2{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.ew-panel h2 small{color:var(--muted);font-weight:400;font-size:11px}
+.ew-list{display:grid;gap:8px}
+.ew-engine{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--edge);border-radius:10px;padding:10px 12px;min-height:44px}
+.ew-engine[aria-selected=true]{border-color:var(--hi);background:#2b3c4f}.ew-engine small{color:var(--muted);overflow-wrap:anywhere}
+.ew-form{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:700px){.ew-form.two{grid-template-columns:repeat(2,minmax(0,1fr))}.ew-form.three{grid-template-columns:repeat(3,minmax(0,1fr))}}
+label{font-size:12px;color:var(--muted);font-weight:650;display:block}
+label select,label input,label textarea{display:block;width:100%;margin-top:5px;min-height:44px;border:1px solid #536578;border-radius:9px;padding:9px 11px;background:#152130}
+label small.err{color:var(--err);display:block;min-height:1.2em}
+.ew-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+button.primary{background:var(--hi);color:#1c1408;border:0;border-radius:9px;padding:10px 16px;min-height:44px;font-weight:700}
+button.outline{background:transparent;border:1px solid var(--edge);border-radius:9px;padding:10px 14px;min-height:44px}
+button.danger{background:transparent;border:1px solid var(--err);color:var(--err);border-radius:9px;padding:10px 14px;min-height:44px}
+.ew-pill{display:inline-block;border-radius:99px;padding:1px 9px;font-size:11px;border:1px solid var(--edge);color:var(--muted)}
+.ew-pill[data-s=VALIDATED],.ew-pill[data-s=PUBLISHED]{color:var(--ok);border-color:var(--ok)}
+.ew-pill[data-s=PAUSED],.ew-pill[data-s=DRAFT]{color:var(--hi);border-color:var(--hi)}.ew-pill[data-s=REVOKED]{color:var(--err);border-color:var(--err)}
+.ew-result{border:1px dashed var(--edge);border-radius:10px;padding:10px;margin-top:10px;font-size:13px;overflow-wrap:anywhere}
+.ew-result b{color:var(--sea)}
+.ew-table{display:grid;gap:8px}.ew-row{display:grid;gap:4px 12px;background:var(--panel2);border:1px solid var(--edge);border-radius:10px;padding:10px 12px;font-size:13px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:760px){.ew-row{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.ew-row .k{color:var(--muted);font-size:11px;display:block}.ew-row>*{overflow-wrap:anywhere}
+.ew-diff{font-family:ui-monospace,Menlo,monospace;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;background:#0e1620;border-radius:8px;padding:9px;margin-top:8px}
+.ew-muted{color:var(--muted);font-size:13px}
