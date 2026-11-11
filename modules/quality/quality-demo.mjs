@@ -58,7 +58,7 @@ export function visibleLots(state,actorKey,businessId) {
    Object.keys(l.stock).some(site=>a.sites.includes(Number(site)))||a.sites.includes(l.originSiteId)));
 }
 export const totalUnits = l => Object.values(l.stock).reduce((a,b)=>a+b,0);
-export const isExpired = (lot, today=new Date().toISOString().slice(0,10)) =>
+export const isExpired = (lot, today="2026-11-12") =>
  !!lot.expiry && lot.expiry<today;
 export function demoFefo(state,businessId,item,siteId,needed) {
  if(!Number.isFinite(needed)||needed<=0)fail("invalid_fefo");
