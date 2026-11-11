@@ -5,11 +5,19 @@ on:
     paths:
       - 'internal/enterprise-sql/c10_a047_site_topology_v1.sql'
       - 'tests/c10_a047_site_topology_e2e.sql'
+      - 'core10-site-topology*'
+      - 'tests/c10_a047_topology_client.test.js'
+      - 'tests/fixtures/c10_a047_topology_browser_mock.js'
+      - 'tests/e2e/core10-a047-site-topology-browser.js'
       - '.github/workflows/core10-a047-site-topology-ci.yml'
   pull_request:
     paths:
       - 'internal/enterprise-sql/c10_a047_site_topology_v1.sql'
       - 'tests/c10_a047_site_topology_e2e.sql'
+      - 'core10-site-topology*'
+      - 'tests/c10_a047_topology_client.test.js'
+      - 'tests/fixtures/c10_a047_topology_browser_mock.js'
+      - 'tests/e2e/core10-a047-site-topology-browser.js'
       - '.github/workflows/core10-a047-site-topology-ci.yml'
   workflow_dispatch:
 permissions:
@@ -57,6 +65,17 @@ jobs:
         run: |
           [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.sites WHERE id IN(1001,1002,1003,2001)')" = 4 ]
           [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.stock_locations WHERE id IN(5001,5002,5003,6001)')" = 4 ]
+      - name: Signed-session RPC client and negative contract suite
+        run: node tests/c10_a047_topology_client.test.js
+      - name: Install pinned Chromium for responsive real DOM checks
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-playwright" && cd "$RUNNER_TEMP/core10-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: 390px / 1440px grouped Owner UI and CRUD flow in isolated signed fixture
+        run: node tests/e2e/core10-a047-site-topology-browser.js
       - name: Honest release boundary
         run: |
           echo 'A047 PASS: isolated PG17 signed-claim SIMULATION only; no real GoTrue, no production Supabase SQL, no stock/finance activation.'
