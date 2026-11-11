@@ -18,8 +18,13 @@ const jwt=(sub,extra={})=>sign({role:"authenticated",sub,aud:"authenticated",iat
 const T=Object.fromEntries(Object.entries(U).map(([k,v])=>[k,jwt(v)]));
 async function rpc(name,token,args){
  const headers={accept:"application/json","content-type":"application/json"};if(token)headers.authorization="Bearer "+token;
- const res=await fetch(base+"/rpc/"+name,{method:"POST",headers,body:JSON.stringify(args||{}),redirect:"error",signal:AbortSignal.timeout(20000)});
- const raw=await res.text();let data;try{data=JSON.parse(raw)}catch{data=raw}return{status:res.status,data};
+ for(let attempt=0;;attempt++){
+  const res=await fetch(base+"/rpc/"+name,{method:"POST",headers,body:JSON.stringify(args||{}),redirect:"error",signal:AbortSignal.timeout(20000)});
+  const raw=await res.text();let data;try{data=JSON.parse(raw)}catch{data=raw}
+  // PostgREST answers 503 (PGRST002) only while its schema cache is still loading; never retry any other status.
+  if(res.status===503&&attempt<40){await new Promise(r=>setTimeout(r,500));continue}
+  return{status:res.status,data};
+ }
 }
 const ok=(r,m)=>{assert.ok(r.status>=200&&r.status<300,m+": HTTP "+r.status+" "+JSON.stringify(r.data));return r.data};
 const deny=(r,m,reason)=>{assert.equal(r.status,400,m+": expected policy denial, got "+r.status+" "+JSON.stringify(r.data));assert.equal(r.data&&r.data.message,reason,m+": reason mismatch "+JSON.stringify(r.data))};
