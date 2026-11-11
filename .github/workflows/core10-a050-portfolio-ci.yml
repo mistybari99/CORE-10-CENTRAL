@@ -1,0 +1,56 @@
+name: CORE10 A050 Owner Portfolio PG17
+on:
+  push:
+    branches: ['claude/c10-a050-*']
+    paths:
+      - 'internal/enterprise-sql/c10_a050_*'
+      - 'tests/c10_a050_*'
+      - 'core10-owner-portfolio*'
+      - '.github/workflows/core10-a050-portfolio-ci.yml'
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a050_*'
+      - 'tests/c10_a050_*'
+      - 'core10-owner-portfolio*'
+      - '.github/workflows/core10-a050-portfolio-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portfolio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_DB: core10_a048_ci_a050, POSTGRES_USER: postgres, POSTGRES_PASSWORD: demo_a050 }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_a048_ci_a050"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: core10_a048_ci_a050
+      PGUSER: postgres
+      PGPASSWORD: demo_a050
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Isolated canonical SQL stack
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a020_business_setup_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_inventory_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a048_inventory_commands_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a049_operation_workflow_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a050_owner_portfolio_v1.sql
+      - name: Tenant, staff, layout, direct-write security
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a050_owner_portfolio_e2e.sql
+      - name: Read-only signed client unit
+        run: node tests/c10_a050_portfolio_client.test.js
+      - name: Release boundary
+        run: echo "A050 isolated PG17 only; real Supabase GoTrue and production not tested."
