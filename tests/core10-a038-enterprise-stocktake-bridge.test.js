@@ -7,7 +7,7 @@ let validUser=true,errorCode=null;
 const rowsByTable={
  stocktakes_v1:[{id:17,business_id:101}],
  stocktake_lines_v1:[{item_id:8001,stocktake_id:17,business_id:101}],
- stocktake_discrepancy_v1:[{item_id:8001,difference:-3,business_id:101}],
+ stocktake_discrepancy_v1:[{item_id:8001,stocktake_id:17,difference:-3,business_id:101}],
  stocktake_audit_v1:[{id:2,stocktake_id:17,event:"submitted"}]
 };
 function query(table){
