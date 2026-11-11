@@ -1,4 +1,6 @@
 -- Disposable PostgreSQL only. No production or SG execution.
+-- Negative assertions require the exact expected authorization/transition error;
+-- unrelated SQL failures must fail the test, not count as a denied request.
 \set ON_ERROR_STOP on
 INSERT INTO c10_demo.approval_requests(tenant_id,business_id,created_by)
 VALUES (1,101,'33333333-3333-4333-8333-333333333333'),
@@ -16,19 +18,19 @@ BEGIN
   PERFORM c10_demo.decide_approval(1,'reject','positive_0001');
   RAISE EXCEPTION 'FAIL: changed action accepted';
  EXCEPTION WHEN OTHERS THEN
-  IF SQLERRM='FAIL: changed action accepted' THEN RAISE; END IF;
+  IF SQLERRM IS DISTINCT FROM 'approval_idempotency_conflict' THEN RAISE EXCEPTION 'FAIL: changed action accepted (unexpected error: %)', SQLERRM; END IF;
  END;
  BEGIN
   PERFORM c10_demo.decide_approval(2,'approve','crossbiz_0001');
   RAISE EXCEPTION 'FAIL: cross-business accepted';
  EXCEPTION WHEN OTHERS THEN
-  IF SQLERRM='FAIL: cross-business accepted' THEN RAISE; END IF;
+  IF SQLERRM IS DISTINCT FROM 'approval_not_authorized' THEN RAISE EXCEPTION 'FAIL: cross-business accepted (unexpected error: %)', SQLERRM; END IF;
  END;
  BEGIN
   PERFORM c10_demo.decide_approval(3,'approve','tenantb_0001');
   RAISE EXCEPTION 'FAIL: cross-tenant accepted';
  EXCEPTION WHEN OTHERS THEN
-  IF SQLERRM='FAIL: cross-tenant accepted' THEN RAISE; END IF;
+  IF SQLERRM IS DISTINCT FROM 'approval_not_authorized' THEN RAISE EXCEPTION 'FAIL: cross-tenant accepted (unexpected error: %)', SQLERRM; END IF;
  END;
 END $test$;
 SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
@@ -38,7 +40,7 @@ BEGIN
   PERFORM c10_demo.decide_approval(2,'approve','selfmade_0001');
   RAISE EXCEPTION 'FAIL: maker self approval accepted';
  EXCEPTION WHEN OTHERS THEN
-  IF SQLERRM='FAIL: maker self approval accepted' THEN RAISE; END IF;
+  IF SQLERRM IS DISTINCT FROM 'approval_not_authorized' THEN RAISE EXCEPTION 'FAIL: maker self approval accepted (unexpected error: %)', SQLERRM; END IF;
  END;
 END $test$;
 SELECT set_config('request.jwt.claim.sub','66666666-6666-4666-8666-666666666666',false);
@@ -48,7 +50,7 @@ BEGIN
   PERFORM c10_demo.decide_approval(2,'approve','revoked_0001');
   RAISE EXCEPTION 'FAIL: revoked manager accepted';
  EXCEPTION WHEN OTHERS THEN
-  IF SQLERRM='FAIL: revoked manager accepted' THEN RAISE; END IF;
+  IF SQLERRM IS DISTINCT FROM 'approval_not_authorized' THEN RAISE EXCEPTION 'FAIL: revoked manager accepted (unexpected error: %)', SQLERRM; END IF;
  END;
 END $test$;
 RESET ROLE;
