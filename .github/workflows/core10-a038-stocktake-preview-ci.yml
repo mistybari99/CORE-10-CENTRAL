@@ -1,0 +1,62 @@
+# C10-A038 - synthetic UI preview and fail-closed Enterprise read-only bridge.
+# No Supabase staging or production credentials. Never deploy from this workflow.
+name: CORE10 A038 Stocktake Owner-Staff Preview and Enterprise Read Bridge
+on:
+  push:
+    branches: ['feature/c10-a018-*']
+    paths:
+      - 'core10-enterprise-client.js'
+      - 'core10-stocktake-preview.html'
+      - 'core10-stocktake-preview.css'
+      - 'core10-stocktake-preview.js'
+      - 'tests/core10-enterprise-client-smoke.js'
+      - 'tests/core10-a038-enterprise-stocktake-bridge.test.js'
+      - 'tests/core10-a038-stocktake-preview.test.js'
+      - 'tests/e2e/core10-a038-stocktake-browser.js'
+      - 'tests/e2e/static_server.js'
+      - '.github/workflows/core10-a038-stocktake-preview-ci.yml'
+  pull_request:
+    paths:
+      - 'core10-enterprise-client.js'
+      - 'core10-stocktake-preview.html'
+      - 'core10-stocktake-preview.css'
+      - 'core10-stocktake-preview.js'
+      - 'tests/core10-enterprise-client-smoke.js'
+      - 'tests/core10-a038-enterprise-stocktake-bridge.test.js'
+      - 'tests/core10-a038-stocktake-preview.test.js'
+      - 'tests/e2e/core10-a038-stocktake-browser.js'
+      - 'tests/e2e/static_server.js'
+      - '.github/workflows/core10-a038-stocktake-preview-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview-and-bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Regression current enterprise bridge (preexisting contracts)
+        run: node tests/core10-enterprise-client-smoke.js
+      - name: Test signed-session A038 typed stocktake READ + all live writes locked
+        run: node tests/core10-a038-enterprise-stocktake-bridge.test.js
+      - name: Test synthetic Owner/Staff count and approval UI model
+        run: node tests/core10-a038-stocktake-preview.test.js
+      - name: Verify forbidden server/security files are not in Pages root
+        run: node tests/e2e/forbidden_files.js
+      - name: Install pinned Chromium for responsive UI test
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-playwright" && cd "$RUNNER_TEMP/core10-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Verify desktop and Android-width preview interactions and no network calls
+        run: node tests/e2e/core10-a038-stocktake-browser.js
+      - name: Certification boundary
+        run: echo 'PASS frontend preview contract only; NO live Supabase Auth/stock write, Pages deploy, or production release.'
