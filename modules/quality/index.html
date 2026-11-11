@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>CORE 10 CENTRAL · Quality & Traceability Workshop</title>
+<link rel="stylesheet" href="../../experimental/owner-console/console.css">
+<link rel="stylesheet" href="quality.css">
+</head>
+<body>
+<a href="#quality-main" class="skip">Skip to Quality Workspace</a>
+<div class="shell">
+ <header class="top" role="banner">
+  <div class="brand"><span class="logo">C10</span><div><h1>CORE 10 CENTRAL</h1><small>QUALITY · TRACEABILITY · RECALL</small></div></div>
+  <div class="controls">
+   <label class="field"><span>Business / ব্যবসা</span><select id="business" aria-label="Demo business"></select></label>
+   <label class="field"><span>View as / পরিচয়</span><select id="actor" aria-label="Synthetic role"></select></label>
+   <label class="field"><span>Language</span><select id="language" aria-label="Language"><option value="bn">বাংলা</option><option value="en">English</option></select></label>
+  </div>
+  <p class="badge"><strong>SYNTHETIC / IN-MEMORY DEMO</strong> · No actual login, real stock, API requests, customer notifications or database writes. RLS exists only in separate isolated PostgreSQL CI.</p>
+ </header>
+ <nav class="nav" id="quality-nav" aria-label="Quality navigation">
+  <button type="button" data-view="overview" aria-current="page">◫ <span>Overview</span></button>
+  <button type="button" data-view="lots">▦ <span>Lots & QC</span></button>
+  <button type="button" data-view="trace">⌁ <span>Traceability</span></button>
+  <button type="button" data-view="recalls">⚑ <span>Recalls</span></button>
+  <button type="button" data-view="integrity">◎ <span>Integrity</span></button>
+ </nav>
+ <main id="quality-main" class="main" tabindex="-1">
+  <div class="quality-heading"><div><p class="eyebrow">OPERATIONS / QUALITY CONTROL</p><h2 id="heading">Quality Operations</h2><p id="subtitle"></p></div><div class="head-actions"><button type="button" id="reset" class="secondary">↺ Reset demo</button><button type="button" id="new-lot" class="primary">+ Register lot</button></div></div>
+  <div id="notice" role="status" aria-live="polite" class="quality-notice" hidden></div>
+  <section id="quality-view" aria-live="polite"></section>
+  <footer class="quality-footer">C10-A058 · disposable quality workbench · Preview only · <a href="https://github.com/mistybari99/CORE-10-CENTRAL/pull/73">Source Draft PR #73</a></footer>
+ </main>
+</div>
+<dialog id="quality-dialog" aria-labelledby="modal-title">
+ <form method="dialog" id="quality-form">
+  <h2 id="modal-title">Demo action</h2><p id="modal-help"></p>
+  <div id="modal-fields"></div>
+  <div class="dialog-actions"><button value="cancel" type="button" id="cancel-action" class="secondary">Cancel</button><button value="save" type="submit" class="primary">Apply to demo</button></div>
+ </form>
+</dialog>
+<script type="module" src="quality-workbench.mjs"></script>
+</body>
+</html>
