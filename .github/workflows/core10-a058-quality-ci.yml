@@ -6,6 +6,7 @@ on:
       - "internal/enterprise-sql/c10_a058_quality_lot_recall_v1.sql"
       - "tests/c10_a058_quality_e2e.sql"
       - "modules/quality/**"
+      - "tests/c10-a058-browser.mjs"
       - ".github/workflows/core10-a058-quality-ci.yml"
   pull_request:
     paths:
@@ -84,3 +85,28 @@ jobs:
           grep -q "connect-src" modules/quality/index.html
           grep -q "IN-MEMORY DEMO" modules/quality/index.html
           grep -q "never connects to production" modules/quality/quality-workbench.mjs
+
+  quality-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install browser testing dependency
+        run: npm install --no-save --no-package-lock playwright@1.56.1
+      - name: Install Chromium and dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Verify real UI at 390px Android and 1440px desktop
+        run: node tests/c10-a058-browser.mjs
+      - name: Save visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c10-a058-responsive-quality-ui
+          path: a058-artifacts/
+          retention-days: 7
+          if-no-files-found: ignore
