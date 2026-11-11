@@ -1,4 +1,11 @@
 # CORE 10 CENTRAL — CURRENT VERIFIED BUILD HANDOFF
+
+## C10-A051 WORKFORCE / ATTENDANCE / LEAVE / PAYROLL — BUILD CHECKPOINT (2026-11-11, Claude-owned, isolated)
+- Branch `claude/c10-a051-workforce-payroll-v1` (based on PR #7 head `1c55625`), Issue #52, Draft PR targets `feature/c10-a018-foundation-catalog-v1`. **Never merged to main; no production Supabase change.**
+- **BUILT (disposable `c10_demo` only):** 4 SQL files `internal/enterprise-sql/c10_a051_workforce_*_v1.sql` (employee master/assignments/shifts/holidays, punches→derived attendance, corrections, OT approval, leave, pay policy/salary/components/advances, payroll preview→draft→review→approve→freeze/amend/void, payslips, reports, PII-safe CSV, integrity, retention, read-only integration contract), signed client `core10-workforce-client.js`, six responsive pages `core10-workforce-*.html`, tests under `tests/c10_a051_*`, `tests/api/core10-a051-*`, `tests/e2e/core10-a051-*`, workflow `core10-a051-workforce-ci.yml`.
+- **Design + permission matrix + calc rules + limitations:** `docs/architecture/C10_A051_WORKFORCE_PAYROLL.md`. Decision Book proposals for ChatGPT: `docs/development/CHATGPT_DECISION_BOOK_PACKAGE_A051.md` (Book not written by Claude).
+- **NOT VERIFIED / BLOCKED:** real GoTrue-issued session E2E, live SG migration, staging, A046 persona alias remap, A050 adapter wiring, navigation entry in `owner.html`/`index.html` (intentionally untouched), real payout/bank/finance posting (out of scope by design).
+- Legacy `employees.js/attendance.js/shifts.js/salary.js/payroll.js/staffreports.js/v2/**` untouched.
 **Checkpoint:** 2026-11-11 (Asia/Dhaka)
 **Purpose:** precise continuation of the one existing ERP build, not another Decision Book, duplicate backlog, released app or approval to modify production.
 **Authoritative policy:** [single Master Decision Book](https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit). Re-read its nine tabs at each new session; latest Owner clarification and approved policies prevail over old snapshot documents.
