@@ -331,3 +331,585 @@ BEGIN
  PERFORM ami_log(c.tenant_id,p_business,'code',cd.id::text,CASE WHEN v_new THEN 'created' ELSE 'updated' END,v_before,to_jsonb(cd),v_reason,p_request);
  RETURN ami_finish(p_business,c.tenant_id,p_request,'save_code',pay,res);
 END$$;
+
+-- ===================== meters (internal helper) & warranties (parse helper) =====================
+CREATE FUNCTION c10_demo.ami_r_meter_ins(c c10_demo.am_ctx_t,p_asset bigint,p_code text,p_unit text,p_reading numeric,p_request text)
+RETURNS bigint LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+DECLARE m am_meters;
+BEGIN
+ IF EXISTS(SELECT 1 FROM am_meters WHERE asset_id=p_asset AND code=p_code) THEN RAISE EXCEPTION 'am_duplicate_meter'; END IF;
+ BEGIN
+  INSERT INTO am_meters(tenant_id,business_id,asset_id,code,unit,current_reading,last_reading_at)
+  VALUES(c.tenant_id,c.business_id,p_asset,p_code,p_unit,COALESCE(p_reading,0),CASE WHEN p_reading IS NULL THEN NULL ELSE now() END) RETURNING * INTO m;
+ EXCEPTION WHEN unique_violation THEN RAISE EXCEPTION 'am_duplicate_meter';
+           WHEN check_violation THEN RAISE EXCEPTION 'am_invalid_input'; END;
+ IF p_reading IS NOT NULL THEN
+  INSERT INTO am_meter_readings(tenant_id,business_id,meter_id,asset_id,reading,kind,read_at,note,recorded_by,request_key)
+  VALUES(c.tenant_id,c.business_id,m.id,p_asset,p_reading,'reading',m.last_reading_at,'initial reading',c.user_id,p_request);
+ END IF;
+ PERFORM ami_log(c.tenant_id,c.business_id,'meter',m.id::text,'created',NULL,to_jsonb(m),NULL,p_request);
+ RETURN m.id;
+END$$;
+
+-- Parse warranty fields on top of an old row (NULL composite for create). Returns the new values (nothing is written).
+CREATE FUNCTION c10_demo.ami_r_warranty_parse(w jsonb,p_old c10_demo.am_warranties) RETURNS c10_demo.am_warranties
+LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+DECLARE r am_warranties:=p_old;
+BEGIN
+ PERFORM ami_r_keys(w,ARRAY['supplier_name','supplier_ref','coverage','starts_on','expires_on','status']);
+ IF p_old.id IS NULL AND w ? 'status' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF w ? 'supplier_name' OR p_old.id IS NULL THEN r.supplier_name:=ami_r_text(w,'supplier_name',2,120,true); END IF;
+ IF w ? 'supplier_ref' THEN r.supplier_ref:=ami_r_text(w,'supplier_ref',1,60,false); END IF;
+ IF w ? 'coverage' THEN r.coverage:=ami_r_text(w,'coverage',1,500,false); END IF;
+ IF w ? 'starts_on' OR p_old.id IS NULL THEN r.starts_on:=ami_r_date(w,'starts_on',true); END IF;
+ IF w ? 'expires_on' OR p_old.id IS NULL THEN r.expires_on:=ami_r_date(w,'expires_on',true); END IF;
+ IF w ? 'status' THEN r.status:=ami_r_enum(w,'status',ARRAY['active','void'],true); END IF;
+ IF r.expires_on<r.starts_on THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ RETURN r;
+END$$;
+
+-- ===================== assets =====================
+CREATE FUNCTION c10_demo.am_create_asset_v1(p_business bigint,p_request text,p_data jsonb,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; pay jsonb; d jsonb; res jsonb; cat am_categories; par am_assets; a am_assets; w am_warranties;
+ v_site bigint; v_reason text; v_status text; v_serial text; v_manu text; v_parent bigint; v_attrs jsonb; v_meters jsonb; v_wj jsonb;
+ v_crit smallint; v_qty numeric; v_acq date; v_com date; v_con text; v_mid bigint; v_mids bigint[]:=ARRAY[]::bigint[]; v_wid bigint;
+ i int; m jsonb; v_codes text[]:=ARRAY[]::text[]; mc text; mu text; mr numeric;
+BEGIN
+ PERFORM ami_r_size(p_data);
+ pay:=jsonb_build_object('data',p_data,'reason',p_reason);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'create_asset',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx; d:=p_data;
+ IF d IS NULL OR jsonb_typeof(d)<>'object' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_site:=ami_r_int(d,'site_id',1,9007199254740991,true);
+ PERFORM ami_r_site_chk(c,v_site);
+ PERFORM ami_need_cap(c,v_site,'asset_write');
+ PERFORM ami_r_keys(d,ARRAY['name','category_id','site_id','criticality','status','location_note','serial_no','model','manufacturer',
+   'ownership','provenance','supplier_name','supplier_ref','purchase_order_ref','custodian_ref','acquisition_date','commission_date',
+   'acquisition_cost','quantity','parent_asset_id','custom_attrs','meters','warranty']);
+ v_reason:=COALESCE(ami_r_reason(p_reason,false),'Asset registered');
+ SELECT * INTO cat FROM am_categories WHERE id=ami_r_int(d,'category_id',1,9007199254740991,true) AND business_id=p_business;
+ IF NOT FOUND THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF NOT cat.active THEN RAISE EXCEPTION 'am_category_inactive'; END IF;
+ v_status:=COALESCE(ami_r_enum(d,'status',ARRAY['planned','active','under_maintenance','breakdown','idle','retired','disposed'],false),'active');
+ IF v_status NOT IN('planned','active','idle') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_crit:=COALESCE(ami_r_int(d,'criticality',1,5,false),cat.default_criticality);
+ v_serial:=ami_r_text(d,'serial_no',1,64,false);
+ IF v_serial IS NOT NULL AND v_serial !~ '^[A-Za-z0-9][A-Za-z0-9._/-]{0,63}$' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_manu:=ami_r_text(d,'manufacturer',1,80,false);
+ IF v_serial IS NULL AND ami_cfg_bool(p_business,v_site,cat.id,'asset.require_serial') THEN RAISE EXCEPTION 'am_serial_required'; END IF;
+ IF v_serial IS NOT NULL AND EXISTS(SELECT 1 FROM am_assets WHERE business_id=p_business AND lower(COALESCE(manufacturer,''))=lower(COALESCE(v_manu,''))
+    AND lower(serial_no)=lower(v_serial) AND status NOT IN('retired','disposed')) THEN RAISE EXCEPTION 'am_duplicate_serial'; END IF;
+ v_qty:=COALESCE(ami_r_num(d,'quantity',0.001,99999999999,false,3),1);
+ v_acq:=ami_r_date(d,'acquisition_date',false); v_com:=ami_r_date(d,'commission_date',false);
+ IF v_acq IS NOT NULL AND v_com IS NOT NULL AND v_com<v_acq THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ v_attrs:=ami_r_attrs(d,'custom_attrs');
+ v_parent:=ami_r_int(d,'parent_asset_id',1,9007199254740991,false);
+ IF v_parent IS NOT NULL THEN
+  SELECT * INTO par FROM am_assets WHERE id=v_parent AND business_id=p_business FOR SHARE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  IF par.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_invalid_parent'; END IF;
+  IF par.site_id<>v_site THEN RAISE EXCEPTION 'am_parent_site_mismatch'; END IF;
+ END IF;
+ -- embedded meters / warranty are fully validated BEFORE any write
+ v_meters:=d->'meters';
+ IF v_meters IS NOT NULL AND jsonb_typeof(v_meters)<>'null' THEN
+  IF jsonb_typeof(v_meters)<>'array' OR jsonb_array_length(v_meters)>10 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  FOR i IN 0..jsonb_array_length(v_meters)-1 LOOP
+   m:=v_meters->i; PERFORM ami_r_keys(m,ARRAY['code','unit','reading']);
+   mc:=ami_r_code(m,'code',16,true);
+   IF mc=ANY(v_codes) THEN RAISE EXCEPTION 'am_duplicate_meter'; END IF; v_codes:=v_codes||mc;
+   mu:=COALESCE(ami_r_enum(m,'unit',ARRAY['hours','km','cycles','units'],false),cat.default_meter_unit);
+   IF mu IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+   PERFORM ami_r_num(m,'reading',0,99999999999999,false,3);
+  END LOOP;
+ END IF;
+ v_wj:=d->'warranty';
+ IF v_wj IS NOT NULL AND jsonb_typeof(v_wj)<>'null' THEN
+  IF jsonb_typeof(v_wj)<>'object' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  w:=ami_r_warranty_parse(v_wj,NULL::am_warranties);
+ END IF;
+ BEGIN
+  INSERT INTO am_assets(tenant_id,business_id,asset_no,name,category_id,status,criticality,site_id,location_note,serial_no,model,manufacturer,
+    ownership,provenance,supplier_name,supplier_ref,purchase_order_ref,custodian_ref,acquisition_date,commission_date,acquisition_cost,
+    quantity,parent_asset_id,custom_attrs,created_by)
+  VALUES(c.tenant_id,p_business,ami_next_no(p_business,'asset'),ami_r_text(d,'name',2,120,true),cat.id,v_status,v_crit,v_site,
+    ami_r_text(d,'location_note',1,200,false),v_serial,ami_r_text(d,'model',1,80,false),v_manu,
+    COALESCE(ami_r_enum(d,'ownership',ARRAY['owned','leased','rented','client_owned','consignment'],false),'owned'),
+    ami_r_text(d,'provenance',1,300,false),ami_r_text(d,'supplier_name',1,120,false),ami_r_text(d,'supplier_ref',1,60,false),
+    ami_r_ref(d,'purchase_order_ref',40),ami_r_ref(d,'custodian_ref',40),v_acq,v_com,ami_r_num(d,'acquisition_cost',0,10000000000000,false,2),
+    v_qty,v_parent,v_attrs,c.user_id) RETURNING * INTO a;
+ EXCEPTION WHEN unique_violation THEN
+   GET STACKED DIAGNOSTICS v_con=CONSTRAINT_NAME;
+   IF v_con='am_assets_serial_uq' THEN RAISE EXCEPTION 'am_duplicate_serial'; END IF; RAISE;
+  WHEN check_violation THEN RAISE EXCEPTION 'am_invalid_input';
+ END;
+ INSERT INTO am_asset_movements(tenant_id,business_id,asset_id,from_site_id,to_site_id,kind,reason,moved_by,request_key)
+ VALUES(c.tenant_id,p_business,a.id,NULL,a.site_id,'initial',v_reason,c.user_id,p_request);
+ IF v_meters IS NOT NULL AND jsonb_typeof(v_meters)='array' THEN
+  FOR i IN 0..jsonb_array_length(v_meters)-1 LOOP
+   m:=v_meters->i;
+   v_mid:=ami_r_meter_ins(c,a.id,ami_r_code(m,'code',16,true),COALESCE(ami_r_enum(m,'unit',ARRAY['hours','km','cycles','units'],false),cat.default_meter_unit),
+     ami_r_num(m,'reading',0,99999999999999,false,3),p_request);
+   v_mids:=v_mids||v_mid;
+  END LOOP;
+ END IF;
+ IF w.supplier_name IS NOT NULL THEN
+  INSERT INTO am_warranties(tenant_id,business_id,asset_id,supplier_name,supplier_ref,coverage,starts_on,expires_on,created_by)
+  VALUES(c.tenant_id,p_business,a.id,w.supplier_name,w.supplier_ref,w.coverage,w.starts_on,w.expires_on,c.user_id) RETURNING id INTO v_wid;
+  PERFORM ami_log(c.tenant_id,p_business,'warranty',v_wid::text,'created',NULL,jsonb_build_object('asset_id',a.id,'expires_on',w.expires_on),v_reason,p_request);
+ END IF;
+ res:=jsonb_build_object('status','applied','asset_id',a.id,'asset_no',a.asset_no,'version',a.version,'meter_ids',to_jsonb(v_mids),'warranty_id',v_wid);
+ PERFORM ami_log(c.tenant_id,p_business,'asset',a.id::text,'created',NULL,to_jsonb(a),v_reason,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'create_asset',pay,res);
+END$$;
+
+CREATE FUNCTION c10_demo.am_update_asset_v1(p_business bigint,p_request text,p_asset bigint,p_expected_version bigint,p_changes jsonb,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; pay jsonb; d jsonb; res jsonb; a am_assets; n am_assets; cat am_categories; par am_assets; v_reason text; v_con text; v_before jsonb;
+ v_cat bigint;
+BEGIN
+ PERFORM ami_r_size(p_changes);
+ pay:=jsonb_build_object('asset',p_asset,'ver',p_expected_version,'changes',p_changes,'reason',p_reason);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'update_asset',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx; d:=p_changes;
+ a:=ami_r_asset(c,p_asset,'asset_write',true);
+ IF d IS NULL OR jsonb_typeof(d)<>'object' OR d='{}'::jsonb THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ PERFORM ami_r_keys(d,ARRAY['name','category_id','criticality','location_note','serial_no','model','manufacturer','ownership','provenance',
+   'supplier_name','supplier_ref','purchase_order_ref','custodian_ref','acquisition_date','commission_date','acquisition_cost','quantity',
+   'parent_asset_id','custom_attrs']);
+ IF p_expected_version IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF a.version<>p_expected_version THEN RAISE EXCEPTION 'am_stale_version'; END IF;
+ IF a.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_invalid_state'; END IF;
+ v_reason:=ami_r_reason(p_reason,false);
+ v_before:=to_jsonb(a); n:=a;
+ IF d ? 'name' THEN n.name:=ami_r_text(d,'name',2,120,true); END IF;
+ IF d ? 'category_id' THEN
+  v_cat:=ami_r_int(d,'category_id',1,9007199254740991,true);
+  IF v_cat<>a.category_id THEN
+   SELECT * INTO cat FROM am_categories WHERE id=v_cat AND business_id=p_business;
+   IF NOT FOUND THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+   IF NOT cat.active THEN RAISE EXCEPTION 'am_category_inactive'; END IF;
+   n.category_id:=v_cat;
+  END IF;
+ END IF;
+ IF d ? 'criticality' THEN n.criticality:=ami_r_int(d,'criticality',1,5,true); END IF;
+ IF d ? 'location_note' THEN n.location_note:=ami_r_text(d,'location_note',1,200,false); END IF;
+ IF d ? 'serial_no' THEN n.serial_no:=ami_r_text(d,'serial_no',1,64,false);
+  IF n.serial_no IS NOT NULL AND n.serial_no !~ '^[A-Za-z0-9][A-Za-z0-9._/-]{0,63}$' THEN RAISE EXCEPTION 'am_invalid_input'; END IF; END IF;
+ IF d ? 'model' THEN n.model:=ami_r_text(d,'model',1,80,false); END IF;
+ IF d ? 'manufacturer' THEN n.manufacturer:=ami_r_text(d,'manufacturer',1,80,false); END IF;
+ IF d ? 'ownership' THEN n.ownership:=ami_r_enum(d,'ownership',ARRAY['owned','leased','rented','client_owned','consignment'],true); END IF;
+ IF d ? 'provenance' THEN n.provenance:=ami_r_text(d,'provenance',1,300,false); END IF;
+ IF d ? 'supplier_name' THEN n.supplier_name:=ami_r_text(d,'supplier_name',1,120,false); END IF;
+ IF d ? 'supplier_ref' THEN n.supplier_ref:=ami_r_text(d,'supplier_ref',1,60,false); END IF;
+ IF d ? 'purchase_order_ref' THEN n.purchase_order_ref:=ami_r_ref(d,'purchase_order_ref',40); END IF;
+ IF d ? 'custodian_ref' THEN n.custodian_ref:=ami_r_ref(d,'custodian_ref',40); END IF;
+ IF d ? 'acquisition_date' THEN n.acquisition_date:=ami_r_date(d,'acquisition_date',false); END IF;
+ IF d ? 'commission_date' THEN n.commission_date:=ami_r_date(d,'commission_date',false); END IF;
+ IF d ? 'acquisition_cost' THEN n.acquisition_cost:=ami_r_num(d,'acquisition_cost',0,10000000000000,false,2); END IF;
+ IF d ? 'quantity' THEN n.quantity:=ami_r_num(d,'quantity',0.001,99999999999,true,3); END IF;
+ IF d ? 'custom_attrs' THEN n.custom_attrs:=ami_r_attrs(d,'custom_attrs'); END IF;
+ IF n.acquisition_date IS NOT NULL AND n.commission_date IS NOT NULL AND n.commission_date<n.acquisition_date THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF d ? 'parent_asset_id' THEN
+  n.parent_asset_id:=ami_r_int(d,'parent_asset_id',1,9007199254740991,false);
+  IF n.parent_asset_id IS NOT NULL AND n.parent_asset_id IS DISTINCT FROM a.parent_asset_id THEN
+   IF n.parent_asset_id=a.id THEN RAISE EXCEPTION 'am_assembly_cycle_or_too_deep'; END IF;
+   SELECT * INTO par FROM am_assets WHERE id=n.parent_asset_id AND business_id=p_business FOR SHARE;
+   IF NOT FOUND THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+   IF par.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_invalid_parent'; END IF;
+   IF par.site_id<>a.site_id THEN RAISE EXCEPTION 'am_parent_site_mismatch'; END IF;
+   IF a.id=ANY(ami_r_descendants(par.id)) THEN RAISE EXCEPTION 'am_assembly_cycle_or_too_deep'; END IF;
+  END IF;
+ END IF;
+ IF n.serial_no IS NULL AND (d ? 'serial_no' OR d ? 'category_id') AND ami_cfg_bool(p_business,a.site_id,n.category_id,'asset.require_serial') THEN
+  RAISE EXCEPTION 'am_serial_required'; END IF;
+ IF n.serial_no IS NOT NULL AND (n.serial_no IS DISTINCT FROM a.serial_no OR n.manufacturer IS DISTINCT FROM a.manufacturer)
+   AND EXISTS(SELECT 1 FROM am_assets WHERE business_id=p_business AND id<>a.id AND lower(COALESCE(manufacturer,''))=lower(COALESCE(n.manufacturer,''))
+     AND lower(serial_no)=lower(n.serial_no) AND status NOT IN('retired','disposed')) THEN RAISE EXCEPTION 'am_duplicate_serial'; END IF;
+ BEGIN
+  UPDATE am_assets SET name=n.name,category_id=n.category_id,criticality=n.criticality,location_note=n.location_note,serial_no=n.serial_no,
+    model=n.model,manufacturer=n.manufacturer,ownership=n.ownership,provenance=n.provenance,supplier_name=n.supplier_name,supplier_ref=n.supplier_ref,
+    purchase_order_ref=n.purchase_order_ref,custodian_ref=n.custodian_ref,acquisition_date=n.acquisition_date,commission_date=n.commission_date,
+    acquisition_cost=n.acquisition_cost,quantity=n.quantity,parent_asset_id=n.parent_asset_id,custom_attrs=n.custom_attrs,
+    version=version+1,updated_at=now() WHERE id=a.id RETURNING * INTO n;
+ EXCEPTION WHEN unique_violation THEN
+   GET STACKED DIAGNOSTICS v_con=CONSTRAINT_NAME;
+   IF v_con='am_assets_serial_uq' THEN RAISE EXCEPTION 'am_duplicate_serial'; END IF; RAISE;
+  WHEN check_violation THEN RAISE EXCEPTION 'am_invalid_input';
+ END;
+ res:=jsonb_build_object('status','applied','asset_id',n.id,'version',n.version);
+ PERFORM ami_log(c.tenant_id,p_business,'asset',n.id::text,'updated',v_before,to_jsonb(n),v_reason,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'update_asset',pay,res);
+END$$;
+
+CREATE FUNCTION c10_demo.am_set_asset_status_v1(p_business bigint,p_request text,p_asset bigint,p_expected_version bigint,p_status text,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; pay jsonb; res jsonb; a am_assets; n am_assets; v_reason text; v_ok boolean; v_before jsonb;
+BEGIN
+ pay:=jsonb_build_object('asset',p_asset,'ver',p_expected_version,'status',p_status,'reason',p_reason);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'set_asset_status',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ a:=ami_r_asset(c,p_asset,'asset_write',true);
+ v_reason:=ami_r_reason(p_reason,true);
+ IF p_status IS NULL OR p_status NOT IN('planned','active','under_maintenance','breakdown','idle','retired','disposed') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_expected_version IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF a.version<>p_expected_version THEN RAISE EXCEPTION 'am_stale_version'; END IF;
+ -- breakdown / under_maintenance are driven only by work-order logic; planned only exists at creation.
+ v_ok:=CASE a.status
+   WHEN 'planned' THEN p_status IN('active','retired')
+   WHEN 'active' THEN p_status IN('idle','retired','disposed')
+   WHEN 'idle' THEN p_status IN('active','retired','disposed')
+   WHEN 'retired' THEN p_status IN('active','idle','disposed')
+   ELSE false END;
+ IF NOT v_ok THEN RAISE EXCEPTION 'am_invalid_transition'; END IF;
+ IF p_status IN('retired','disposed') THEN
+  IF EXISTS(SELECT 1 FROM am_work_orders WHERE asset_id=a.id AND status NOT IN('CLOSED','CANCELLED')) THEN RAISE EXCEPTION 'am_asset_has_open_wo'; END IF;
+  IF EXISTS(SELECT 1 FROM am_downtime WHERE asset_id=a.id AND ended_at IS NULL) THEN RAISE EXCEPTION 'am_asset_has_open_downtime'; END IF;
+  IF EXISTS(SELECT 1 FROM am_assets WHERE parent_asset_id=a.id AND status NOT IN('retired','disposed')) THEN RAISE EXCEPTION 'am_asset_has_children'; END IF;
+  IF EXISTS(SELECT 1 FROM am_transfers WHERE asset_id=a.id AND status='pending') THEN RAISE EXCEPTION 'am_transfer_pending'; END IF;
+ END IF;
+ v_before:=jsonb_build_object('status',a.status,'version',a.version);
+ BEGIN
+  UPDATE am_assets SET status=p_status,version=version+1,updated_at=now(),
+    retired_at=CASE WHEN p_status IN('retired','disposed') THEN COALESCE(retired_at,now()) WHEN p_status IN('active','idle') THEN NULL ELSE retired_at END,
+    commission_date=CASE WHEN a.status='planned' AND p_status='active' THEN COALESCE(commission_date,ami_today(p_business)) ELSE commission_date END
+  WHERE id=a.id RETURNING * INTO n;
+ EXCEPTION WHEN unique_violation THEN RAISE EXCEPTION 'am_duplicate_serial';
+           WHEN check_violation THEN RAISE EXCEPTION 'am_invalid_input'; END;
+ res:=jsonb_build_object('status','applied','asset_id',n.id,'from_status',a.status,'to_status',n.status,'version',n.version);
+ PERFORM ami_log(c.tenant_id,p_business,'asset',n.id::text,'status_changed',v_before,jsonb_build_object('status',n.status,'version',n.version),v_reason,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'set_asset_status',pay,res);
+END$$;
+
+-- ===================== transfers =====================
+CREATE FUNCTION c10_demo.ami_r_transfer_blocks(p_business bigint,p_site bigint,p_ids bigint[]) RETURNS void
+LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+BEGIN
+ IF ami_cfg_bool(p_business,p_site,NULL,'asset.allow_transfer_with_active_wo') THEN RETURN; END IF;
+ IF EXISTS(SELECT 1 FROM am_work_orders WHERE asset_id=ANY(p_ids) AND status='IN_PROGRESS')
+  OR EXISTS(SELECT 1 FROM am_downtime WHERE asset_id=ANY(p_ids) AND ended_at IS NULL) THEN RAISE EXCEPTION 'am_transfer_blocked'; END IF;
+END$$;
+
+-- Applies a pending transfer row atomically (asset + all descendants, movements, open WOs follow). Returns moved asset count.
+CREATE FUNCTION c10_demo.ami_r_apply_transfer(c c10_demo.am_ctx_t,t c10_demo.am_transfers,p_request text) RETURNS int
+LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+DECLARE a am_assets; ids bigint[];
+BEGIN
+ SELECT * INTO a FROM am_assets WHERE id=t.asset_id AND business_id=t.business_id FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'am_denied'; END IF;
+ IF a.site_id<>t.from_site_id THEN RAISE EXCEPTION 'am_transfer_stale'; END IF;
+ IF a.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_invalid_state'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM sites WHERE id=t.to_site_id AND business_id=t.business_id AND tenant_id=t.tenant_id) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ ids:=ami_r_descendants(a.id);
+ IF NOT t.include_children AND cardinality(ids)>1 THEN RAISE EXCEPTION 'am_transfer_children_required'; END IF;
+ PERFORM ami_r_transfer_blocks(t.business_id,t.from_site_id,ids);
+ INSERT INTO am_asset_movements(tenant_id,business_id,asset_id,from_site_id,to_site_id,kind,transfer_id,reason,moved_by,request_key)
+  SELECT t.tenant_id,t.business_id,x.id,x.site_id,t.to_site_id,'transfer',t.id,t.reason,c.user_id,p_request
+  FROM am_assets x WHERE x.id=ANY(ids) ORDER BY x.id;
+ UPDATE am_assets SET site_id=t.to_site_id,version=version+1,updated_at=now() WHERE id=ANY(ids);
+ UPDATE am_work_orders SET site_id=t.to_site_id,version=version+1,updated_at=now()
+  WHERE asset_id=ANY(ids) AND status IN('DRAFT','SUBMITTED','APPROVED') AND site_id<>t.to_site_id;
+ RETURN cardinality(ids);
+END$$;
+
+CREATE FUNCTION c10_demo.am_request_transfer_v1(p_business bigint,p_request text,p_asset bigint,p_to_site bigint,p_include_children boolean,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; pay jsonb; res jsonb; a am_assets; t am_transfers; v_reason text; v_inc boolean; v_direct boolean; v_moved int:=0; ids bigint[];
+BEGIN
+ pay:=jsonb_build_object('asset',p_asset,'to',p_to_site,'children',p_include_children,'reason',p_reason);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'request_transfer',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ a:=ami_r_asset(c,p_asset,'transfer',true);
+ v_reason:=ami_r_reason(p_reason,true); v_inc:=COALESCE(p_include_children,true);
+ PERFORM ami_r_site_chk(c,p_to_site);
+ IF p_to_site=a.site_id THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF a.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_invalid_state'; END IF;
+ IF a.parent_asset_id IS NOT NULL THEN RAISE EXCEPTION 'am_transfer_has_parent'; END IF;
+ IF EXISTS(SELECT 1 FROM am_transfers WHERE asset_id=a.id AND status='pending') THEN RAISE EXCEPTION 'am_transfer_pending'; END IF;
+ ids:=ami_r_descendants(a.id);
+ IF NOT v_inc AND cardinality(ids)>1 THEN RAISE EXCEPTION 'am_transfer_children_required'; END IF;
+ PERFORM ami_r_transfer_blocks(p_business,a.site_id,ids);
+ v_direct:=NOT ami_cfg_bool(p_business,a.site_id,NULL,'asset.transfer_requires_approval') AND ami_has(c,p_to_site,'transfer');
+ BEGIN
+  INSERT INTO am_transfers(tenant_id,business_id,asset_id,from_site_id,to_site_id,include_children,reason,requested_by)
+  VALUES(c.tenant_id,p_business,a.id,a.site_id,p_to_site,v_inc,v_reason,c.user_id) RETURNING * INTO t;
+ EXCEPTION WHEN unique_violation THEN RAISE EXCEPTION 'am_transfer_pending'; END;
+ PERFORM ami_log(c.tenant_id,p_business,'transfer',t.id::text,'requested',NULL,to_jsonb(t),v_reason,p_request);
+ IF v_direct THEN
+  v_moved:=ami_r_apply_transfer(c,t,p_request);
+  UPDATE am_transfers SET status='applied',decided_by=c.user_id,decided_at=now(),decision_note='applied directly (no approval required)',version=version+1
+   WHERE id=t.id RETURNING * INTO t;
+  PERFORM ami_log(c.tenant_id,p_business,'transfer',t.id::text,'applied',NULL,to_jsonb(t),v_reason,p_request);
+  PERFORM ami_log(c.tenant_id,p_business,'asset',a.id::text,'transferred',jsonb_build_object('site_id',a.site_id),jsonb_build_object('site_id',p_to_site,'moved_assets',v_moved),v_reason,p_request);
+ END IF;
+ res:=jsonb_build_object('status','applied','transfer_id',t.id,'transfer_status',t.status,'version',t.version,'moved_assets',v_moved);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'request_transfer',pay,res);
+END$$;
+
+CREATE FUNCTION c10_demo.am_decide_transfer_v1(p_business bigint,p_request text,p_transfer bigint,p_expected_version bigint,p_decision text,p_note text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; pay jsonb; res jsonb; t am_transfers; v_note text; v_moved int:=0; v_new text; v_before jsonb;
+BEGIN
+ pay:=jsonb_build_object('transfer',p_transfer,'ver',p_expected_version,'decision',p_decision,'note',p_note);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'decide_transfer',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ IF p_transfer IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ SELECT * INTO t FROM am_transfers WHERE id=p_transfer AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND OR NOT (ami_has(c,t.from_site_id,'view') OR ami_has(c,t.to_site_id,'view')) THEN RAISE EXCEPTION 'am_denied'; END IF;
+ IF p_decision IS NULL OR p_decision NOT IN('approve','reject','cancel') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_note IS NOT NULL THEN v_note:=btrim(p_note);
+  IF length(v_note) NOT BETWEEN 1 AND 500 OR v_note~'[[:cntrl:]]' THEN RAISE EXCEPTION 'am_invalid_input'; END IF; END IF;
+ IF p_decision='approve' THEN
+  IF NOT (ami_has(c,t.from_site_id,'transfer') AND ami_has(c,t.to_site_id,'transfer')) THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ ELSIF p_decision='reject' THEN
+  IF NOT (ami_has(c,t.from_site_id,'transfer') OR ami_has(c,t.to_site_id,'transfer')) THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ ELSE
+  IF NOT (t.requested_by=c.user_id OR ami_is_owner(c) OR ami_has(c,t.from_site_id,'transfer')) THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
+ END IF;
+ IF p_expected_version IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF t.version<>p_expected_version THEN RAISE EXCEPTION 'am_stale_version'; END IF;
+ IF t.status<>'pending' THEN RAISE EXCEPTION 'am_invalid_state'; END IF;
+ IF p_decision='approve' AND t.requested_by=c.user_id AND NOT ami_is_owner(c) THEN RAISE EXCEPTION 'am_self_approval_not_allowed'; END IF;
+ v_before:=to_jsonb(t);
+ IF p_decision='approve' THEN v_moved:=ami_r_apply_transfer(c,t,p_request); v_new:='applied';
+ ELSIF p_decision='reject' THEN v_new:='rejected'; ELSE v_new:='cancelled'; END IF;
+ UPDATE am_transfers SET status=v_new,decided_by=c.user_id,decided_at=now(),decision_note=v_note,version=version+1 WHERE id=t.id RETURNING * INTO t;
+ res:=jsonb_build_object('status','applied','transfer_id',t.id,'transfer_status',t.status,'version',t.version,'moved_assets',v_moved);
+ PERFORM ami_log(c.tenant_id,p_business,'transfer',t.id::text,v_new,v_before,to_jsonb(t),v_note,p_request);
+ IF v_new='applied' THEN
+  PERFORM ami_log(c.tenant_id,p_business,'asset',t.asset_id::text,'transferred',jsonb_build_object('site_id',t.from_site_id),
+   jsonb_build_object('site_id',t.to_site_id,'moved_assets',v_moved),v_note,p_request); END IF;
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'decide_transfer',pay,res);
+END$$;
+
+-- ===================== meters =====================
+CREATE FUNCTION c10_demo.am_add_meter_v1(p_business bigint,p_request text,p_asset bigint,p_code text,p_unit text,p_initial_reading numeric)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; pay jsonb; res jsonb; a am_assets; v_code text; v_id bigint;
+BEGIN
+ pay:=jsonb_build_object('asset',p_asset,'code',p_code,'unit',p_unit,'initial',p_initial_reading);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'add_meter',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ a:=ami_r_asset(c,p_asset,'asset_write',true);
+ v_code:=upper(btrim(COALESCE(p_code,'')));
+ IF v_code !~ '^[A-Z0-9][A-Z0-9_-]{0,15}$' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_unit IS NULL OR p_unit NOT IN('hours','km','cycles','units') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_initial_reading IS NOT NULL AND (p_initial_reading<0 OR p_initial_reading>99999999999999 OR p_initial_reading<>round(p_initial_reading,3)) THEN
+  RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF a.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_invalid_state'; END IF;
+ v_id:=ami_r_meter_ins(c,a.id,v_code,p_unit,p_initial_reading,p_request);
+ res:=jsonb_build_object('status','applied','meter_id',v_id,'asset_id',a.id,'code',v_code);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'add_meter',pay,res);
+END$$;
+
+CREATE FUNCTION c10_demo.am_record_meter_reading_v1(p_business bigint,p_request text,p_meter bigint,p_reading numeric,p_read_at timestamptz,p_kind text,p_note text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; pay jsonb; res jsonb; m am_meters; a am_assets; v_kind text; v_note text; v_at timestamptz; v_rid bigint; v_before jsonb;
+BEGIN
+ pay:=jsonb_build_object('meter',p_meter,'reading',p_reading,'read_at',p_read_at,'kind',p_kind,'note',p_note);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'record_meter_reading',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ IF p_meter IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ SELECT * INTO m FROM am_meters WHERE id=p_meter AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'am_denied'; END IF;
+ a:=ami_r_asset(c,m.asset_id,'meter_write',false);
+ IF ami_r_tech_only(c,a.site_id) AND NOT ami_cfg_bool(p_business,a.site_id,a.category_id,'access.technician_can_record_meter') THEN
+  RAISE EXCEPTION 'am_not_permitted'; END IF;
+ v_kind:=COALESCE(p_kind,'reading');
+ IF v_kind NOT IN('reading','reset') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_reading IS NULL OR p_reading<0 OR p_reading>99999999999999 OR p_reading<>round(p_reading,3) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_note IS NOT NULL THEN v_note:=btrim(p_note);
+  IF length(v_note) NOT BETWEEN 1 AND 300 OR v_note~'[[:cntrl:]]' THEN RAISE EXCEPTION 'am_invalid_input'; END IF; END IF;
+ IF v_kind='reset' AND (v_note IS NULL OR length(v_note)<3) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF NOT m.active OR a.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_invalid_state'; END IF;
+ v_at:=COALESCE(p_read_at,now());
+ IF v_at>now()+interval '5 minutes' THEN RAISE EXCEPTION 'am_reading_in_future'; END IF;
+ IF m.last_reading_at IS NOT NULL AND v_at<m.last_reading_at THEN RAISE EXCEPTION 'am_reading_out_of_order'; END IF;
+ IF v_kind='reading' AND p_reading<m.current_reading AND NOT ami_cfg_bool(p_business,a.site_id,a.category_id,'meter.allow_decrease') THEN
+  RAISE EXCEPTION 'am_meter_decrease'; END IF;
+ v_before:=jsonb_build_object('current_reading',m.current_reading,'last_reading_at',m.last_reading_at,'version',m.version);
+ INSERT INTO am_meter_readings(tenant_id,business_id,meter_id,asset_id,reading,kind,read_at,note,recorded_by,request_key)
+ VALUES(c.tenant_id,p_business,m.id,m.asset_id,p_reading,v_kind,v_at,v_note,c.user_id,p_request) RETURNING id INTO v_rid;
+ UPDATE am_meters SET current_reading=p_reading,last_reading_at=v_at,version=version+1 WHERE id=m.id RETURNING * INTO m;
+ res:=jsonb_build_object('status','applied','meter_id',m.id,'reading_id',v_rid,'current_reading',m.current_reading,'version',m.version);
+ PERFORM ami_log(c.tenant_id,p_business,'meter',m.id::text,CASE WHEN v_kind='reset' THEN 'reset' ELSE 'reading' END,v_before,
+   jsonb_build_object('current_reading',m.current_reading,'last_reading_at',m.last_reading_at,'version',m.version),v_note,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'record_meter_reading',pay,res);
+END$$;
+
+-- ===================== warranties & claims =====================
+CREATE FUNCTION c10_demo.am_save_warranty_v1(p_business bigint,p_request text,p_id bigint,p_expected_version bigint,p_data jsonb,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; pay jsonb; res jsonb; a am_assets; w am_warranties; n am_warranties; v_reason text; v_before jsonb; v_asset bigint;
+BEGIN
+ PERFORM ami_r_size(p_data);
+ pay:=jsonb_build_object('id',p_id,'ver',p_expected_version,'data',p_data,'reason',p_reason);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'save_warranty',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ IF p_data IS NULL OR jsonb_typeof(p_data)<>'object' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_id IS NULL OR p_id=0 THEN
+  v_asset:=ami_r_int(p_data,'asset_id',1,9007199254740991,true);
+  a:=ami_r_asset(c,v_asset,'warranty_write',true);
+  v_reason:=ami_r_reason(p_reason,false);
+  IF p_expected_version IS NOT NULL AND p_expected_version<>0 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  PERFORM ami_r_keys(p_data,ARRAY['asset_id','supplier_name','supplier_ref','coverage','starts_on','expires_on']);
+  n:=ami_r_warranty_parse(p_data-'asset_id',NULL::am_warranties);
+  INSERT INTO am_warranties(tenant_id,business_id,asset_id,supplier_name,supplier_ref,coverage,starts_on,expires_on,created_by)
+  VALUES(c.tenant_id,p_business,a.id,n.supplier_name,n.supplier_ref,n.coverage,n.starts_on,n.expires_on,c.user_id) RETURNING * INTO w;
+  res:=jsonb_build_object('status','applied','warranty_id',w.id,'version',w.version);
+  PERFORM ami_log(c.tenant_id,p_business,'warranty',w.id::text,'created',NULL,to_jsonb(w),v_reason,p_request);
+ ELSE
+  SELECT * INTO w FROM am_warranties WHERE id=p_id AND business_id=p_business FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'am_denied'; END IF;
+  a:=ami_r_asset(c,w.asset_id,'warranty_write',true);
+  v_reason:=ami_r_reason(p_reason,false);
+  IF p_expected_version IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  IF w.version<>p_expected_version THEN RAISE EXCEPTION 'am_stale_version'; END IF;
+  IF p_data='{}'::jsonb THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  IF w.status='void' THEN RAISE EXCEPTION 'am_invalid_state'; END IF;
+  n:=ami_r_warranty_parse(p_data,w);
+  IF n.status='void' AND EXISTS(SELECT 1 FROM am_warranty_claims WHERE warranty_id=w.id AND status IN('draft','submitted','accepted')) THEN
+   RAISE EXCEPTION 'am_warranty_has_open_claims'; END IF;
+  v_before:=to_jsonb(w);
+  UPDATE am_warranties SET supplier_name=n.supplier_name,supplier_ref=n.supplier_ref,coverage=n.coverage,starts_on=n.starts_on,expires_on=n.expires_on,
+    status=n.status,version=version+1 WHERE id=w.id RETURNING * INTO w;
+  res:=jsonb_build_object('status','applied','warranty_id',w.id,'version',w.version);
+  PERFORM ami_log(c.tenant_id,p_business,'warranty',w.id::text,CASE WHEN w.status='void' THEN 'voided' ELSE 'updated' END,v_before,to_jsonb(w),v_reason,p_request);
+ END IF;
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'save_warranty',pay,res);
+END$$;
+
+-- claim window check (shared by create / edit / submit)
+CREATE FUNCTION c10_demo.ami_r_claim_window(p_business bigint,w c10_demo.am_warranties,a c10_demo.am_assets,p_failure date) RETURNS void
+LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+DECLARE grace int;
+BEGIN
+ IF w.status='void' THEN RAISE EXCEPTION 'am_warranty_void'; END IF;
+ grace:=ami_cfg_int(p_business,a.site_id,a.category_id,'asset.warranty_claim_grace_days');
+ IF p_failure<w.starts_on OR p_failure>w.expires_on+grace THEN RAISE EXCEPTION 'am_claim_outside_warranty'; END IF;
+END$$;
+
+CREATE FUNCTION c10_demo.am_save_claim_v1(p_business bigint,p_request text,p_id bigint,p_expected_version bigint,p_data jsonb)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; pay jsonb; d jsonb; res jsonb; a am_assets; w am_warranties; cl am_warranty_claims; n am_warranty_claims; v_wo am_work_orders; v_before jsonb;
+BEGIN
+ PERFORM ami_r_size(p_data);
+ pay:=jsonb_build_object('id',p_id,'ver',p_expected_version,'data',p_data);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'save_claim',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx; d:=p_data;
+ IF d IS NULL OR jsonb_typeof(d)<>'object' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_id IS NULL OR p_id=0 THEN
+  IF p_expected_version IS NOT NULL AND p_expected_version<>0 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  IF ami_r_int(d,'warranty_id',1,9007199254740991,true) IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  SELECT * INTO w FROM am_warranties WHERE id=(d->>'warranty_id')::bigint AND business_id=p_business FOR SHARE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'am_denied'; END IF;
+  a:=ami_r_asset(c,w.asset_id,'claim_write',true);
+  PERFORM ami_r_keys(d,ARRAY['warranty_id','failure_on','description','work_order_id','amount_claimed','supplier_claim_ref']);
+  n.failure_on:=ami_r_date(d,'failure_on',true);
+  IF n.failure_on>ami_today(p_business) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  n.description:=ami_r_text(d,'description',3,1000,true);
+  n.amount_claimed:=ami_r_num(d,'amount_claimed',0,10000000000000,false,2);
+  n.supplier_claim_ref:=ami_r_text(d,'supplier_claim_ref',1,60,false);
+  n.work_order_id:=ami_r_int(d,'work_order_id',1,9007199254740991,false);
+  PERFORM ami_r_claim_window(p_business,w,a,n.failure_on);
+  IF n.work_order_id IS NOT NULL THEN
+   SELECT * INTO v_wo FROM am_work_orders WHERE id=n.work_order_id AND business_id=p_business;
+   IF NOT FOUND THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+   IF v_wo.asset_id<>a.id THEN RAISE EXCEPTION 'am_claim_wo_mismatch'; END IF;
+  END IF;
+  INSERT INTO am_warranty_claims(tenant_id,business_id,claim_no,warranty_id,asset_id,work_order_id,failure_on,description,amount_claimed,supplier_claim_ref,created_by)
+  VALUES(c.tenant_id,p_business,ami_next_no(p_business,'claim'),w.id,a.id,n.work_order_id,n.failure_on,n.description,n.amount_claimed,n.supplier_claim_ref,c.user_id)
+  RETURNING * INTO cl;
+  res:=jsonb_build_object('status','applied','claim_id',cl.id,'claim_no',cl.claim_no,'version',cl.version);
+  PERFORM ami_log(c.tenant_id,p_business,'claim',cl.id::text,'created',NULL,to_jsonb(cl),NULL,p_request);
+ ELSE
+  SELECT * INTO cl FROM am_warranty_claims WHERE id=p_id AND business_id=p_business FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'am_denied'; END IF;
+  a:=ami_r_asset(c,cl.asset_id,'claim_write',true);
+  IF p_expected_version IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  IF cl.version<>p_expected_version THEN RAISE EXCEPTION 'am_stale_version'; END IF;
+  PERFORM ami_r_keys(d,ARRAY['failure_on','description','work_order_id','amount_claimed','supplier_claim_ref']);
+  IF d='{}'::jsonb THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  IF cl.status<>'draft' THEN RAISE EXCEPTION 'am_invalid_state'; END IF;
+  v_before:=to_jsonb(cl); n:=cl;
+  IF d ? 'failure_on' THEN n.failure_on:=ami_r_date(d,'failure_on',true);
+   IF n.failure_on>ami_today(p_business) THEN RAISE EXCEPTION 'am_invalid_input'; END IF; END IF;
+  IF d ? 'description' THEN n.description:=ami_r_text(d,'description',3,1000,true); END IF;
+  IF d ? 'amount_claimed' THEN n.amount_claimed:=ami_r_num(d,'amount_claimed',0,10000000000000,false,2); END IF;
+  IF d ? 'supplier_claim_ref' THEN n.supplier_claim_ref:=ami_r_text(d,'supplier_claim_ref',1,60,false); END IF;
+  IF d ? 'work_order_id' THEN n.work_order_id:=ami_r_int(d,'work_order_id',1,9007199254740991,false);
+   IF n.work_order_id IS NOT NULL THEN
+    SELECT * INTO v_wo FROM am_work_orders WHERE id=n.work_order_id AND business_id=p_business;
+    IF NOT FOUND THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+    IF v_wo.asset_id<>a.id THEN RAISE EXCEPTION 'am_claim_wo_mismatch'; END IF;
+   END IF; END IF;
+  SELECT * INTO w FROM am_warranties WHERE id=cl.warranty_id;
+  PERFORM ami_r_claim_window(p_business,w,a,n.failure_on);
+  UPDATE am_warranty_claims SET failure_on=n.failure_on,description=n.description,amount_claimed=n.amount_claimed,
+   supplier_claim_ref=n.supplier_claim_ref,work_order_id=n.work_order_id,version=version+1 WHERE id=cl.id RETURNING * INTO cl;
+  res:=jsonb_build_object('status','applied','claim_id',cl.id,'claim_no',cl.claim_no,'version',cl.version);
+  PERFORM ami_log(c.tenant_id,p_business,'claim',cl.id::text,'updated',v_before,to_jsonb(cl),NULL,p_request);
+ END IF;
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'save_claim',pay,res);
+END$$;
+
+CREATE FUNCTION c10_demo.am_claim_transition_v1(p_business bigint,p_request text,p_claim bigint,p_expected_version bigint,p_action text,p_data jsonb)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; pay jsonb; d jsonb; res jsonb; a am_assets; w am_warranties; cl am_warranty_claims; v_before jsonb; v_new text; v_note text;
+ v_ref text; v_amt numeric; v_set_amt boolean:=false; v_set_claimed boolean:=false; v_claimed numeric;
+BEGIN
+ PERFORM ami_r_size(p_data);
+ pay:=jsonb_build_object('claim',p_claim,'ver',p_expected_version,'action',p_action,'data',p_data);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'claim_transition',pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx; d:=COALESCE(p_data,'{}'::jsonb);
+ IF p_claim IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ SELECT * INTO cl FROM am_warranty_claims WHERE id=p_claim AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'am_denied'; END IF;
+ a:=ami_r_asset(c,cl.asset_id,'claim_write',true);
+ IF p_action IS NULL OR p_action NOT IN('submit','accept','reject','settle','close') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF jsonb_typeof(d)<>'object' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ PERFORM ami_r_keys(d,CASE p_action WHEN 'submit' THEN ARRAY['supplier_claim_ref','amount_claimed']
+   WHEN 'settle' THEN ARRAY['amount_settled','decision_note','supplier_claim_ref'] ELSE ARRAY['decision_note','supplier_claim_ref'] END);
+ IF p_expected_version IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF cl.version<>p_expected_version THEN RAISE EXCEPTION 'am_stale_version'; END IF;
+ v_note:=ami_r_text(d,'decision_note',3,1000,p_action='reject');
+ v_ref:=ami_r_text(d,'supplier_claim_ref',1,60,false);
+ v_new:=CASE p_action WHEN 'submit' THEN 'submitted' WHEN 'accept' THEN 'accepted' WHEN 'reject' THEN 'rejected'
+   WHEN 'settle' THEN 'settled' ELSE 'closed' END;
+ IF NOT ((cl.status='draft' AND p_action='submit') OR (cl.status='submitted' AND p_action IN('accept','reject'))
+   OR (cl.status='accepted' AND p_action='settle') OR (cl.status IN('settled','rejected') AND p_action='close')) THEN
+  RAISE EXCEPTION 'am_invalid_state'; END IF;
+ IF p_action='accept' AND cl.submitted_by=c.user_id AND ami_cfg_bool(p_business,NULL,NULL,'wo.maker_checker') THEN
+  RAISE EXCEPTION 'am_maker_checker_violation'; END IF;
+ IF p_action='submit' THEN
+  SELECT * INTO w FROM am_warranties WHERE id=cl.warranty_id;
+  PERFORM ami_r_claim_window(p_business,w,a,cl.failure_on);
+  IF d ? 'amount_claimed' THEN v_claimed:=ami_r_num(d,'amount_claimed',0,10000000000000,false,2); v_set_claimed:=true; END IF;
+ END IF;
+ IF p_action='settle' AND d ? 'amount_settled' THEN v_amt:=ami_r_num(d,'amount_settled',0,10000000000000,false,2); v_set_amt:=true; END IF;
+ v_before:=to_jsonb(cl);
+ UPDATE am_warranty_claims SET status=v_new,version=version+1,
+   supplier_claim_ref=COALESCE(v_ref,supplier_claim_ref),
+   amount_claimed=CASE WHEN v_set_claimed THEN v_claimed ELSE amount_claimed END,
+   amount_settled=CASE WHEN v_set_amt THEN v_amt ELSE amount_settled END,
+   decision_note=COALESCE(v_note,decision_note),
+   submitted_by=CASE WHEN p_action='submit' THEN c.user_id ELSE submitted_by END,
+   submitted_at=CASE WHEN p_action='submit' THEN now() ELSE submitted_at END,
+   decided_by=CASE WHEN p_action IN('accept','reject') THEN c.user_id ELSE decided_by END,
+   decided_at=CASE WHEN p_action IN('accept','reject') THEN now() ELSE decided_at END
+ WHERE id=cl.id RETURNING * INTO cl;
+ res:=jsonb_build_object('status','applied','claim_id',cl.id,'claim_status',cl.status,'version',cl.version);
+ PERFORM ami_log(c.tenant_id,p_business,'claim',cl.id::text,v_new,v_before,to_jsonb(cl),v_note,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'claim_transition',pay,res);
+END$$;

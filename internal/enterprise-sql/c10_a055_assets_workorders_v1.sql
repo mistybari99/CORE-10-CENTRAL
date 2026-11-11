@@ -492,3 +492,201 @@ BEGIN
    jsonb_build_object('assigned_to',n.assigned_to,'assignee_ref',n.assignee_ref,'team_ref',n.team_ref,'version',n.version),rsn,p_request);
  RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_assign',pay,jsonb_build_object('status','applied','id',n.id,'wo_status',n.status,'version',n.version,'assigned_to',n.assigned_to));
 END$$;
+
+-- ===================== lifecycle transitions =====================
+CREATE FUNCTION c10_demo.am_wo_transition_v1(p_business bigint,p_request text,p_wo bigint,p_expected_version bigint,p_action text,
+ p_reason text DEFAULT NULL,p_data jsonb DEFAULT NULL) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE b record; c am_ctx_t; w am_work_orders; n am_work_orders; pay jsonb; rsn text; d jsonb:=COALESCE(p_data,'{}'::jsonb); err text;
+ vr boolean; caps text[]; extra jsonb:='{}'::jsonb; a am_assets; cat bigint; meter numeric; need_safety boolean; ev text;
+ v_fail text; v_cause text; v_actc text; v_corr text; v_restored timestamptz; v_alh numeric; v_alc numeric; v_asc numeric; v_meter numeric; cal jsonb;
+ dw am_downtime; lab_h numeric; lab_c numeric; lab_n int; sp_c numeric; sp_n int; n_ev int; cal_kind text; v_perf date; v_next date; v_res text;
+ v_flag boolean; fin timestamptz; ndt bigint; closed int; pt am_plans; ev_at timestamptz;
+BEGIN
+ IF p_wo IS NULL OR p_expected_version IS NULL OR p_action IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF p_action NOT IN('submit','approve','return','start','complete','verify','close','cancel','reopen') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ rsn:=ami_wk_reason(p_reason,p_action IN('return','cancel','reopen'));
+ PERFORM ami_wk_keys(d,CASE p_action WHEN 'start' THEN ARRAY['downtime'] WHEN 'cancel' THEN ARRAY['end_downtime'] WHEN 'reopen' THEN ARRAY['restart_downtime']
+   WHEN 'complete' THEN ARRAY['failure_code','cause_code','action_code','corrective_action','restored_at','actual_labor_hours','actual_labor_cost',
+     'actual_spares_cost','meter_reading','calibration'] ELSE ARRAY[]::text[] END);
+ pay:=jsonb_build_object('wo',p_wo,'v',p_expected_version,'a',p_action,'r',rsn,'d',d);
+ SELECT * INTO b FROM ami_begin(p_business,p_request,'wo_'||p_action,pay);
+ IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
+ c:=b.o_ctx;
+ SELECT * INTO w FROM am_work_orders WHERE id=p_wo AND business_id=p_business FOR UPDATE;
+ IF NOT FOUND OR NOT ami_wk_visible(c,w) THEN RAISE EXCEPTION 'am_denied'; END IF;
+ err:=ami_wk_auth(c,w,p_action);
+ IF err IS NOT NULL THEN RAISE EXCEPTION '%',err; END IF;
+ IF w.version<>p_expected_version THEN RAISE EXCEPTION 'am_stale_version'; END IF;
+ IF w.status='CANCELLED' THEN RAISE EXCEPTION 'am_wo_cancelled_is_final'; END IF;
+ vr:=ami_wk_pb(w,'wo.verify_required');
+ IF p_action='close' AND w.status='COMPLETED' AND vr THEN RAISE EXCEPTION 'am_verification_required'; END IF;
+ IF NOT ami_wk_state_ok(w,p_action,vr) THEN RAISE EXCEPTION 'am_wo_illegal_transition'; END IF;
+ SELECT * INTO a FROM am_assets WHERE id=w.asset_id FOR UPDATE;
+ cat:=a.category_id; caps:=ami_caps(c,w.site_id);
+
+ IF p_action='submit' THEN
+  IF a.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_asset_retired'; END IF;
+  n:=ami_wk_do_submit(w,p_request,false);
+
+ ELSIF p_action='approve' THEN
+  IF ami_wk_maker_checker(p_business) AND w.requested_by=c.user_id THEN RAISE EXCEPTION 'am_self_approval_denied'; END IF;
+  UPDATE am_work_orders SET status='APPROVED',approved_by=c.user_id,approved_at=now(),responded_at=COALESCE(responded_at,now()),
+    last_reason=rsn,version=version+1,updated_at=now() WHERE id=w.id RETURNING * INTO n;
+  PERFORM ami_wk_hist(n,w.status,n.status,'approve',rsn,p_request);
+
+ ELSIF p_action='return' THEN
+  UPDATE am_work_orders SET status='DRAFT',submitted_at=NULL,last_reason=rsn,version=version+1,updated_at=now() WHERE id=w.id RETURNING * INTO n;
+  PERFORM ami_wk_hist(n,w.status,n.status,'return',rsn,p_request);
+
+ ELSIF p_action='start' THEN
+  IF a.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_asset_retired'; END IF;
+  need_safety:=w.safety_critical OR COALESCE((SELECT k.safety_critical FROM am_categories k WHERE k.id=cat),false);
+  IF need_safety AND ami_cfg_bool(p_business,w.site_id,cat,'wo.require_safety_ack') AND w.safety_ack_at IS NULL THEN RAISE EXCEPTION 'am_safety_ack_required'; END IF;
+  v_flag:=ami_wk_bool(d,'downtime',false);
+  IF v_flag AND w.kind='breakdown' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  SELECT m.current_reading INTO meter FROM am_meters m WHERE m.asset_id=w.asset_id AND m.active ORDER BY m.id LIMIT 1;
+  UPDATE am_work_orders SET status='IN_PROGRESS',started_at=now(),started_by=c.user_id,responded_at=COALESCE(responded_at,now()),
+    assigned_to=CASE WHEN assigned_to IS NULL AND NOT ('assign'=ANY(caps)) THEN c.user_id ELSE assigned_to END,
+    meter_reading_at_start=meter,last_reason=rsn,version=version+1,updated_at=now() WHERE id=w.id RETURNING * INTO n;
+  PERFORM ami_wk_hist(n,w.status,n.status,'start',rsn,p_request);
+  IF w.kind<>'breakdown' THEN PERFORM ami_wk_set_asset(w.asset_id,'under_maintenance',ARRAY['active','idle','planned'],p_request); END IF;
+  IF v_flag THEN
+   IF EXISTS(SELECT 1 FROM am_downtime x WHERE x.asset_id=w.asset_id AND x.ended_at IS NULL) THEN RAISE EXCEPTION 'am_downtime_open_exists'; END IF;
+   IF ami_wk_dt_overlap(w.asset_id,now(),NULL,NULL) THEN RAISE EXCEPTION 'am_downtime_overlap'; END IF;
+   INSERT INTO am_downtime(tenant_id,business_id,asset_id,site_id,work_order_id,kind,reason_code,started_at,started_by)
+   VALUES(w.tenant_id,p_business,w.asset_id,w.site_id,w.id,'planned',
+     (SELECT code FROM am_codes WHERE business_id=p_business AND kind='downtime_reason' AND code='PM' AND active),now(),c.user_id) RETURNING id INTO ndt;
+   PERFORM ami_log(c.tenant_id,p_business,'downtime',ndt::text,'downtime.start',NULL,jsonb_build_object('kind','planned','work_order_id',w.id),'planned work started',p_request);
+   extra:=jsonb_build_object('downtime_id',ndt);
+  END IF;
+
+ ELSIF p_action='complete' THEN
+  v_fail:=ami_wk_code(p_business,'failure',ami_wk_re(d,'failure_code','^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$',false));
+  v_cause:=ami_wk_code(p_business,'cause',ami_wk_re(d,'cause_code','^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$',false));
+  v_actc:=ami_wk_code(p_business,'action',ami_wk_re(d,'action_code','^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$',false));
+  v_corr:=ami_wk_txt(d,'corrective_action',1,2000,false);
+  v_alh:=ami_wk_num(d,'actual_labor_hours',0,100000,false); v_alc:=ami_wk_num(d,'actual_labor_cost',0,1e12,false);
+  v_asc:=ami_wk_num(d,'actual_spares_cost',0,1e12,false); v_meter:=ami_wk_num(d,'meter_reading',0,1e15,false);
+  v_restored:=ami_wk_ts(d,'restored_at',false);
+  IF v_restored IS NOT NULL AND w.kind<>'breakdown' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  -- cause code for breakdown / corrective work
+  IF w.kind IN('breakdown','corrective') AND ami_wk_pb(w,'wo.require_cause_code') AND COALESCE(v_cause,w.cause_code) IS NULL THEN RAISE EXCEPTION 'am_cause_required'; END IF;
+  -- checklist
+  IF ami_wk_pb(w,'wo.require_checklist_complete') THEN
+   IF EXISTS(SELECT 1 FROM am_wo_checklist x WHERE x.work_order_id=w.id AND x.required AND x.result NOT IN('pass','fail')) THEN RAISE EXCEPTION 'am_checklist_incomplete'; END IF;
+   IF EXISTS(SELECT 1 FROM am_wo_checklist x WHERE x.work_order_id=w.id AND x.required AND x.result='fail' AND btrim(COALESCE(x.note,''))='') THEN RAISE EXCEPTION 'am_checklist_incomplete'; END IF;
+  END IF;
+  IF EXISTS(SELECT 1 FROM am_wo_checklist x WHERE x.work_order_id=w.id AND x.kind='measure' AND x.result='pass' AND x.value IS NOT NULL
+     AND ((x.min_value IS NOT NULL AND x.value<x.min_value) OR (x.max_value IS NOT NULL AND x.value>x.max_value))) THEN RAISE EXCEPTION 'am_measure_out_of_range'; END IF;
+  -- evidence
+  ev:=ami_wk_pt(w,'wo.evidence_required_for');
+  IF ev='all' OR (ev='breakdown' AND w.kind='breakdown') THEN
+   SELECT count(*) INTO n_ev FROM am_wo_attachments x WHERE x.work_order_id=w.id;
+   IF n_ev=0 THEN RAISE EXCEPTION 'am_evidence_required'; END IF;
+  END IF;
+  -- actual labour / spares (explicit > recorded lines > what is already on the WO)
+  SELECT COALESCE(sum(hours),0),COALESCE(sum(hours*COALESCE(rate,0)),0),count(*) INTO lab_h,lab_c,lab_n FROM am_wo_labor WHERE work_order_id=w.id AND phase='actual';
+  SELECT COALESCE(sum(qty*COALESCE(unit_cost,0)),0),count(*) INTO sp_c,sp_n FROM am_wo_spares WHERE work_order_id=w.id AND phase='actual';
+  v_alh:=COALESCE(v_alh,CASE WHEN lab_n>0 THEN lab_h END,w.actual_labor_hours);
+  v_alc:=COALESCE(v_alc,CASE WHEN lab_n>0 THEN lab_c END,w.actual_labor_cost);
+  v_asc:=COALESCE(v_asc,CASE WHEN sp_n>0 THEN sp_c END,w.actual_spares_cost);
+  IF ami_wk_pb(w,'wo.require_actual_labor') AND COALESCE(v_alh,0)<=0 THEN RAISE EXCEPTION 'am_labor_required'; END IF;
+  -- calibration payload
+  cal:=d->'calibration';
+  IF cal IS NOT NULL AND jsonb_typeof(cal)='null' THEN cal:=NULL; END IF;
+  IF cal IS NULL AND w.kind='calibration' THEN RAISE EXCEPTION 'am_calibration_required'; END IF;
+  IF cal IS NOT NULL THEN
+   IF w.kind NOT IN('calibration','inspection') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+   PERFORM ami_wk_keys(cal,ARRAY['result','next_due_on','certificate_ref','standard_ref','vendor','note','performed_on']);
+   v_res:=ami_wk_txt(cal,'result',1,10,true);
+   IF v_res NOT IN('pass','fail','adjusted') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+   v_perf:=COALESCE(ami_wk_date(cal,'performed_on',false),ami_today(p_business));
+   IF v_perf>ami_today(p_business) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+   v_next:=ami_wk_date(cal,'next_due_on',false);
+   IF v_next IS NOT NULL AND v_next<v_perf THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+   PERFORM ami_wk_txt(cal,'certificate_ref',1,80,false); PERFORM ami_wk_txt(cal,'standard_ref',1,80,false);
+   PERFORM ami_wk_txt(cal,'vendor',1,120,false); PERFORM ami_wk_txt(cal,'note',1,500,false);
+  END IF;
+  -- breakdown restoration time
+  SELECT * INTO dw FROM am_downtime WHERE work_order_id=w.id AND kind='breakdown' AND ended_at IS NULL ORDER BY id LIMIT 1;
+  ev_at:=now();
+  IF v_restored IS NOT NULL THEN
+   ev_at:=ami_wk_clamp(v_restored,'am_downtime_end_invalid');
+   IF dw.id IS NOT NULL AND ev_at<dw.started_at THEN RAISE EXCEPTION 'am_downtime_end_invalid'; END IF;
+  END IF;
+  IF v_meter IS NULL THEN SELECT m.current_reading INTO v_meter FROM am_meters m WHERE m.asset_id=w.asset_id AND m.active ORDER BY m.id LIMIT 1; END IF;
+  UPDATE am_work_orders SET status='COMPLETED',completed_at=now(),completed_by=c.user_id,
+    failure_code=COALESCE(v_fail,failure_code),cause_code=COALESCE(v_cause,cause_code),action_code=COALESCE(v_actc,action_code),
+    corrective_action=COALESCE(v_corr,corrective_action),actual_labor_hours=v_alh,actual_labor_cost=v_alc,actual_spares_cost=v_asc,
+    meter_reading_at_end=v_meter,last_reason=rsn,version=version+1,updated_at=now() WHERE id=w.id RETURNING * INTO n;
+  PERFORM ami_wk_hist(n,w.status,n.status,'complete',rsn,p_request);
+  IF cal IS NOT NULL THEN
+   cal_kind:=CASE w.kind WHEN 'calibration' THEN 'calibration' ELSE 'inspection' END;
+   IF w.plan_target_id IS NOT NULL THEN
+    SELECT p.* INTO pt FROM am_plan_targets t JOIN am_plans p ON p.id=t.plan_id WHERE t.id=w.plan_target_id;
+    IF pt.plan_type IN('calibration','inspection','certification') THEN cal_kind:=pt.plan_type; END IF;
+   END IF;
+   INSERT INTO am_cal_records(tenant_id,business_id,asset_id,work_order_id,plan_kind,performed_on,next_due_on,result,certificate_ref,standard_ref,vendor,note,recorded_by)
+   VALUES(w.tenant_id,p_business,w.asset_id,w.id,cal_kind,v_perf,v_next,v_res,ami_wk_txt(cal,'certificate_ref',1,80,false),
+     ami_wk_txt(cal,'standard_ref',1,80,false),ami_wk_txt(cal,'vendor',1,120,false),ami_wk_txt(cal,'note',1,500,false),c.user_id);
+  END IF;
+  closed:=ami_wk_close_windows(w.id,ARRAY['planned'],now(),p_request);
+  IF w.kind='breakdown' AND ami_wk_pt(w,'downtime.end_on')='completed' THEN
+   closed:=closed+ami_wk_close_windows(w.id,ARRAY['breakdown'],ev_at,p_request); END IF;
+  PERFORM ami_wk_restore_asset(w.asset_id,p_request);
+  IF w.plan_target_id IS NOT NULL THEN PERFORM ami_complete_target(w.plan_target_id,ami_today(p_business),v_meter); END IF;
+  extra:=jsonb_build_object('downtime_windows_closed',closed);
+
+ ELSIF p_action='verify' THEN
+  IF ami_wk_maker_checker(p_business) AND w.completed_by=c.user_id THEN RAISE EXCEPTION 'am_self_verification_denied'; END IF;
+  UPDATE am_work_orders SET status='VERIFIED',verified_by=c.user_id,verified_at=now(),last_reason=rsn,version=version+1,updated_at=now() WHERE id=w.id RETURNING * INTO n;
+  PERFORM ami_wk_hist(n,w.status,n.status,'verify',rsn,p_request);
+  IF w.kind='breakdown' AND ami_wk_pt(w,'downtime.end_on')='verified' THEN
+   closed:=ami_wk_close_windows(w.id,ARRAY['breakdown'],now(),p_request);
+   PERFORM ami_wk_restore_asset(w.asset_id,p_request); extra:=jsonb_build_object('downtime_windows_closed',closed); END IF;
+
+ ELSIF p_action='close' THEN
+  UPDATE am_work_orders SET status='CLOSED',closed_by=c.user_id,closed_at=now(),last_reason=rsn,version=version+1,updated_at=now() WHERE id=w.id RETURNING * INTO n;
+  PERFORM ami_wk_hist(n,w.status,n.status,'close',rsn,p_request);
+  closed:=ami_wk_close_windows(w.id,ARRAY['planned','breakdown'],now(),p_request);
+  IF closed>0 THEN PERFORM ami_wk_restore_asset(w.asset_id,p_request); extra:=jsonb_build_object('downtime_windows_closed',closed); END IF;
+
+ ELSIF p_action='cancel' THEN
+  v_flag:=ami_wk_bool(d,'end_downtime',false);
+  UPDATE am_work_orders SET status='CANCELLED',cancel_reason=rsn,last_reason=rsn,version=version+1,updated_at=now() WHERE id=w.id RETURNING * INTO n;
+  PERFORM ami_wk_hist(n,w.status,n.status,'cancel',rsn,p_request);
+  -- planned windows always end with the WO; a breakdown outage stays OPEN (it still exists) unless end_downtime=true
+  closed:=ami_wk_close_windows(w.id,CASE WHEN v_flag THEN ARRAY['planned','breakdown','other'] ELSE ARRAY['planned'] END,now(),p_request);
+  PERFORM ami_wk_restore_asset(w.asset_id,p_request);
+  extra:=jsonb_build_object('downtime_windows_closed',closed,'downtime_left_open',EXISTS(SELECT 1 FROM am_downtime x WHERE x.work_order_id=w.id AND x.ended_at IS NULL));
+
+ ELSIF p_action='reopen' THEN
+  IF NOT ami_wk_reopen_ok(w) THEN RAISE EXCEPTION 'am_reopen_window_expired'; END IF;
+  IF a.status IN('retired','disposed') THEN RAISE EXCEPTION 'am_asset_retired'; END IF;
+  v_flag:=ami_wk_bool(d,'restart_downtime',false);
+  IF v_flag AND w.kind<>'breakdown' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+  BEGIN
+   UPDATE am_work_orders SET status='IN_PROGRESS',reopen_count=reopen_count+1,verified_by=NULL,verified_at=NULL,closed_by=NULL,closed_at=NULL,
+     last_reason=rsn,version=version+1,updated_at=now() WHERE id=w.id RETURNING * INTO n;
+  EXCEPTION WHEN unique_violation THEN RAISE EXCEPTION 'am_target_has_open_wo'; END;
+  PERFORM ami_wk_hist(n,w.status,n.status,'reopen',rsn,p_request);
+  IF v_flag THEN
+   IF EXISTS(SELECT 1 FROM am_downtime x WHERE x.asset_id=w.asset_id AND x.ended_at IS NULL) THEN RAISE EXCEPTION 'am_downtime_open_exists'; END IF;
+   IF ami_wk_dt_overlap(w.asset_id,now(),NULL,NULL) THEN RAISE EXCEPTION 'am_downtime_overlap'; END IF;
+   INSERT INTO am_downtime(tenant_id,business_id,asset_id,site_id,work_order_id,kind,reason_code,started_at,started_by)
+   VALUES(w.tenant_id,p_business,w.asset_id,w.site_id,w.id,'breakdown',
+     (SELECT code FROM am_codes WHERE business_id=p_business AND kind='downtime_reason' AND code='BREAKDOWN' AND active),now(),c.user_id) RETURNING id INTO ndt;
+   PERFORM ami_log(c.tenant_id,p_business,'downtime',ndt::text,'downtime.start',NULL,jsonb_build_object('kind','breakdown','work_order_id',w.id,'reopened',true),rsn,p_request);
+   PERFORM ami_wk_set_asset(w.asset_id,'breakdown',ARRAY['active','idle','planned','under_maintenance'],p_request);
+   extra:=jsonb_build_object('downtime_id',ndt);
+  ELSE
+   PERFORM ami_wk_set_asset(w.asset_id,'under_maintenance',ARRAY['active','idle','planned'],p_request);
+  END IF;
+  PERFORM ami_log(c.tenant_id,p_business,'work_order',w.id::text,'wo.reopen_exception',ami_wk_state(w),ami_wk_state(n),rsn,p_request);
+ END IF;
+
+ PERFORM ami_log(c.tenant_id,p_business,'work_order',w.id::text,'wo.'||p_action,ami_wk_state(w),ami_wk_state(n),rsn,p_request);
+ RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_'||p_action,pay,jsonb_build_object('status','applied','id',n.id,'wo_no',n.wo_no,
+   'wo_status',n.status,'version',n.version,'action',p_action,'auto_approved',(n.approved_at IS NOT NULL AND n.approved_by IS NULL))||extra);
+END$$;

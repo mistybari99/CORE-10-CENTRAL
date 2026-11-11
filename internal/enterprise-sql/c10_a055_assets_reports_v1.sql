@@ -494,19 +494,118 @@ BEGIN
  v_today:=c10_demo.ami_today(p_business);
  v_tz:=c10_demo.ami_cfg_text(p_business,NULL,NULL,'general.timezone');
  minrec:=c10_demo.ami_cfg_int(p_business,NULL,NULL,'analytics.recurring_min_count');
- WITH w AS (
-  SELECT x.*,CASE WHEN x.wstatus='void' THEN 'void' WHEN x.expires_on<v_today THEN 'expired'
-              WHEN x.expires_on-v_today<=x.horizon THEN 'expiring' ELSE 'active' END AS dstate,
-         row_number() OVER (PARTITION BY (CASE WHEN x.wstatus='void' THEN 'void' WHEN x.expires_on<v_today THEN 'expired'
-              WHEN x.expires_on-v_today<=x.horizon THEN 'expiring' ELSE 'active' END) ORDER BY x.expires_on,x.wid) AS rn
-  FROM (SELECT w.id AS wid,w.asset_id,a.asset_no,a.name,a.site_id,w.supplier_name,w.starts_on,w.expires_on,w.status AS wstatus,
-         COALESCE(p_horizon_days,c10_demo.ami_cfg_int(p_business,a.site_id,a.category_id,'asset.warranty_warn_days')) AS horizon,
-         (SELECT count(*) FROM c10_demo.am_warranty_claims cl WHERE cl.warranty_id=w.id) AS claims
+ WITH w0 AS (
+  SELECT w.id AS wid,w.asset_id,a.asset_no,a.name,a.site_id,w.supplier_name,w.starts_on,w.expires_on,w.status AS wstatus,
+    COALESCE(p_horizon_days,c10_demo.ami_cfg_int(p_business,a.site_id,a.category_id,'asset.warranty_warn_days')) AS horizon,
+    (SELECT count(*) FROM c10_demo.am_warranty_claims cl WHERE cl.warranty_id=w.id) AS claims
+  FROM c10_demo.am_warranties w JOIN c10_demo.am_assets a ON a.id=w.asset_id
+  WHERE w.business_id=p_business AND a.site_id=ANY(v_sites)),
+ w1 AS (SELECT w0.*,CASE WHEN w0.wstatus='void' THEN 'void' WHEN w0.expires_on<v_today THEN 'expired'
+         WHEN w0.expires_on-v_today<=w0.horizon THEN 'expiring' ELSE 'active' END AS dstate FROM w0),
+ w AS (SELECT w1.*,row_number() OVER (PARTITION BY w1.dstate ORDER BY w1.expires_on,w1.wid) AS rn,
+        jsonb_build_object('warranty_id',w1.wid,'asset_id',w1.asset_id,'asset_no',w1.asset_no,'name',w1.name,'site_id',w1.site_id,
+          'supplier_name',w1.supplier_name,'starts_on',w1.starts_on,'expires_on',w1.expires_on,'days_left',w1.expires_on-v_today,
+          'horizon_days',w1.horizon,'claims',w1.claims,'state',w1.dstate) AS j FROM w1)
+ SELECT jsonb_build_object('counts',jsonb_build_object('active',count(*) FILTER (WHERE dstate='active'),
+    'expiring',count(*) FILTER (WHERE dstate='expiring'),'expired',count(*) FILTER (WHERE dstate='expired'),'void',count(*) FILTER (WHERE dstate='void')),
+   'active',COALESCE(jsonb_agg(j ORDER BY expires_on,wid) FILTER (WHERE dstate='active' AND rn<=200),'[]'::jsonb),
+   'expiring',COALESCE(jsonb_agg(j ORDER BY expires_on,wid) FILTER (WHERE dstate='expiring' AND rn<=200),'[]'::jsonb),
+   'expired',COALESCE(jsonb_agg(j ORDER BY expires_on,wid) FILTER (WHERE dstate='expired' AND rn<=200),'[]'::jsonb))
+  INTO res FROM w;
+ SELECT jsonb_build_object('by_status',jsonb_build_object('draft',count(*) FILTER (WHERE cl.status='draft'),
+    'submitted',count(*) FILTER (WHERE cl.status='submitted'),'accepted',count(*) FILTER (WHERE cl.status='accepted'),
+    'rejected',count(*) FILTER (WHERE cl.status='rejected'),'settled',count(*) FILTER (WHERE cl.status='settled'),
+    'closed',count(*) FILTER (WHERE cl.status='closed')),
+   'advisory',true,'amount_claimed',COALESCE(sum(cl.amount_claimed),0),'amount_settled',COALESCE(sum(cl.amount_settled),0),'total',count(*))
+  INTO claims FROM c10_demo.am_warranty_claims cl JOIN c10_demo.am_assets a ON a.id=cl.asset_id
+  WHERE cl.business_id=p_business AND a.site_id=ANY(v_sites);
+ SELECT COALESCE(jsonb_agg(jsonb_build_object('warranty_id',q.wid,'asset_id',q.asset_id,'asset_no',q.asset_no,'failure_code',q.failure_code,
+    'count',q.n,'wo_ids',to_jsonb(q.ids[1:20])) ORDER BY q.n DESC,q.wid,q.failure_code),'[]'::jsonb) INTO rec
+  FROM (SELECT w.id AS wid,w.asset_id,a.asset_no,o.failure_code,count(*) AS n,array_agg(o.id ORDER BY o.id) AS ids
         FROM c10_demo.am_warranties w JOIN c10_demo.am_assets a ON a.id=w.asset_id
-        WHERE w.business_id=p_business AND a.site_id=ANY(v_sites)) x)
- SELECT jsonb_build_object('counts',jsonb_build_object('active',count(*) FILTER (WHERE dstate='active'),'expiring',count(*) FILTER (WHERE dstate='expiring'),
-   'expired',count(*) FILTER (WHERE dstate='expired'),'void',count(*) FILTER (WHERE dstate='void')),
-   'active',COALESCE(jsonb_agg(to_jsonb_item) FILTER (WHERE false),'[]'::jsonb))
- INTO res FROM (SELECT dstate,NULL::jsonb AS to_jsonb_item FROM w) q WHERE false;
- RETURN NULL;
+        JOIN c10_demo.am_work_orders o ON o.asset_id=w.asset_id AND o.business_id=p_business
+        WHERE w.business_id=p_business AND w.status='active' AND a.site_id=ANY(v_sites) AND o.kind IN('breakdown','corrective')
+         AND o.status<>'CANCELLED' AND o.merged_into_id IS NULL AND o.failure_code IS NOT NULL
+         AND (o.requested_at AT TIME ZONE v_tz)::date BETWEEN w.starts_on AND w.expires_on
+        GROUP BY w.id,w.asset_id,a.asset_no,o.failure_code HAVING count(*)>=minrec) q;
+ RETURN jsonb_build_object('business_id',p_business,'sites',to_jsonb(v_sites),'as_of_date',v_today,'generated_at',now(),
+  'horizon_days',p_horizon_days,'horizon_source',CASE WHEN p_horizon_days IS NULL THEN 'policy asset.warranty_warn_days' ELSE 'request' END,
+  'warranties',res,'claims',claims,'recurring_failures_in_warranty',jsonb_build_object('min_count',minrec,'items',rec));
+END$$;
+
+-- ===================== am_reconciliation_v1 =====================
+CREATE FUNCTION c10_demo.am_reconciliation_v1(p_business bigint,p_from date DEFAULT NULL,p_to date DEFAULT NULL) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+DECLARE c c10_demo.am_ctx_t; v_sites bigint[]; v_today date; pe record; v_lo timestamptz; v_hi timestamptz;
+ i1 bigint[]; i2 bigint[]; i3 bigint[]; i4 bigint[]; i5 bigint[]; i6 bigint[]; i7 bigint[]; i8 bigint[]; i9 bigint[]; cls jsonb; tot int;
+BEGIN
+ c:=c10_demo.ami_read_ctx(p_business);
+ v_sites:=c10_demo.ami_rpt_scope(c,NULL,'reports');
+ v_today:=c10_demo.ami_today(p_business);
+ IF p_from IS NOT NULL OR p_to IS NOT NULL THEN
+  SELECT * INTO pe FROM c10_demo.ami_rpt_period(p_business,p_from,p_to); v_lo:=pe.o_from_ts; v_hi:=pe.o_to_ts; END IF;
+ -- 1 completed breakdown WO without an ended downtime window (policy downtime.end_on: 'verified' waits for VERIFIED)
+ SELECT COALESCE(array_agg(w.id ORDER BY w.id),ARRAY[]::bigint[]) INTO i1
+  FROM c10_demo.am_work_orders w JOIN c10_demo.am_assets a ON a.id=w.asset_id
+  WHERE w.business_id=p_business AND w.kind='breakdown' AND w.site_id=ANY(v_sites) AND w.merged_into_id IS NULL
+   AND w.status IN('COMPLETED','VERIFIED','CLOSED')
+   AND (w.status IN('VERIFIED','CLOSED') OR c10_demo.ami_cfg_text(p_business,w.site_id,a.category_id,'downtime.end_on')='completed')
+   AND (NOT EXISTS(SELECT 1 FROM c10_demo.am_downtime d WHERE d.work_order_id=w.id AND d.ended_at IS NOT NULL)
+        OR EXISTS(SELECT 1 FROM c10_demo.am_downtime d WHERE d.work_order_id=w.id AND d.ended_at IS NULL))
+   AND (v_lo IS NULL OR (w.completed_at>=v_lo AND w.completed_at<v_hi));
+ -- 2 breakdown downtime without a work order
+ SELECT COALESCE(array_agg(d.id ORDER BY d.id),ARRAY[]::bigint[]) INTO i2
+  FROM c10_demo.am_downtime d JOIN c10_demo.am_assets a ON a.id=d.asset_id
+  WHERE d.business_id=p_business AND d.kind='breakdown' AND d.work_order_id IS NULL AND a.site_id=ANY(v_sites)
+   AND (v_lo IS NULL OR (d.started_at>=v_lo AND d.started_at<v_hi));
+ -- 3 asset status breakdown but no open downtime
+ SELECT COALESCE(array_agg(a.id ORDER BY a.id),ARRAY[]::bigint[]) INTO i3
+  FROM c10_demo.am_assets a WHERE a.business_id=p_business AND a.status='breakdown' AND a.site_id=ANY(v_sites)
+   AND NOT EXISTS(SELECT 1 FROM c10_demo.am_downtime d WHERE d.asset_id=a.id AND d.ended_at IS NULL);
+ -- 4 open downtime on an asset whose status is not breakdown/under_maintenance/idle
+ SELECT COALESCE(array_agg(d.id ORDER BY d.id),ARRAY[]::bigint[]) INTO i4
+  FROM c10_demo.am_downtime d JOIN c10_demo.am_assets a ON a.id=d.asset_id
+  WHERE d.business_id=p_business AND d.ended_at IS NULL AND a.site_id=ANY(v_sites) AND a.status NOT IN('breakdown','under_maintenance','idle');
+ -- 5 open WO on retired/disposed asset
+ SELECT COALESCE(array_agg(w.id ORDER BY w.id),ARRAY[]::bigint[]) INTO i5
+  FROM c10_demo.am_work_orders w JOIN c10_demo.am_assets a ON a.id=w.asset_id
+  WHERE w.business_id=p_business AND w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS') AND a.status IN('retired','disposed')
+   AND (w.site_id=ANY(v_sites) OR a.site_id=ANY(v_sites));
+ -- 6 meter series decreasing without a reset (unless meter.allow_decrease)
+ SELECT COALESCE(array_agg(q.id ORDER BY q.id),ARRAY[]::bigint[]) INTO i6
+  FROM (SELECT r.id,r.kind,r.reading,r.read_at,lag(r.reading) OVER (PARTITION BY r.meter_id ORDER BY r.read_at,r.id) AS prev,m.asset_id
+        FROM c10_demo.am_meter_readings r JOIN c10_demo.am_meters m ON m.id=r.meter_id WHERE r.business_id=p_business) q
+  JOIN c10_demo.am_assets a ON a.id=q.asset_id
+  WHERE q.kind='reading' AND q.prev IS NOT NULL AND q.reading<q.prev AND a.site_id=ANY(v_sites)
+   AND NOT c10_demo.ami_cfg_bool(p_business,a.site_id,a.category_id,'meter.allow_decrease')
+   AND (v_lo IS NULL OR (q.read_at>=v_lo AND q.read_at<v_hi));
+ -- 7 scheduled plan target pointing at a closed (inactive/ended) plan
+ SELECT COALESCE(array_agg(t.id ORDER BY t.id),ARRAY[]::bigint[]) INTO i7
+  FROM c10_demo.am_plan_targets t JOIN c10_demo.am_plans p ON p.id=t.plan_id JOIN c10_demo.am_assets a ON a.id=t.asset_id
+  WHERE t.business_id=p_business AND t.status='scheduled' AND a.site_id=ANY(v_sites)
+   AND (NOT p.active OR (p.end_on IS NOT NULL AND p.end_on<v_today));
+ -- 8 open WO whose site differs from the asset site
+ SELECT COALESCE(array_agg(w.id ORDER BY w.id),ARRAY[]::bigint[]) INTO i8
+  FROM c10_demo.am_work_orders w JOIN c10_demo.am_assets a ON a.id=w.asset_id
+  WHERE w.business_id=p_business AND w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS') AND w.site_id<>a.site_id
+   AND (w.site_id=ANY(v_sites) OR a.site_id=ANY(v_sites));
+ -- 9 child asset at a different site than its parent
+ SELECT COALESCE(array_agg(ch.id ORDER BY ch.id),ARRAY[]::bigint[]) INTO i9
+  FROM c10_demo.am_assets ch JOIN c10_demo.am_assets pa ON pa.id=ch.parent_asset_id
+  WHERE ch.business_id=p_business AND ch.site_id<>pa.site_id AND ch.status NOT IN('retired','disposed') AND ch.site_id=ANY(v_sites);
+ cls:=jsonb_build_array(
+  c10_demo.ami_rpt_cls('completed_breakdown_wo_without_ended_downtime','Completed breakdown work order without an ended downtime window','work_order',i1),
+  c10_demo.ami_rpt_cls('breakdown_downtime_without_wo','Breakdown downtime without a work order','downtime',i2),
+  c10_demo.ami_rpt_cls('asset_breakdown_without_open_downtime','Asset in breakdown status without open downtime','asset',i3),
+  c10_demo.ami_rpt_cls('open_downtime_on_non_breakdown_asset','Open downtime on an asset that is not in breakdown/under_maintenance/idle status','downtime',i4),
+  c10_demo.ami_rpt_cls('open_wo_on_retired_asset','Open work order on a retired or disposed asset','work_order',i5),
+  c10_demo.ami_rpt_cls('meter_decrease_without_reset','Meter reading decreased without a reset','meter_reading',i6),
+  c10_demo.ami_rpt_cls('plan_target_on_closed_plan','Scheduled plan target pointing to a closed plan','plan_target',i7),
+  c10_demo.ami_rpt_cls('wo_site_differs_from_asset','Open work order site differs from asset site','work_order',i8),
+  c10_demo.ami_rpt_cls('child_site_differs_from_parent','Child asset site differs from parent asset site','asset',i9));
+ tot:=cardinality(i1)+cardinality(i2)+cardinality(i3)+cardinality(i4)+cardinality(i5)+cardinality(i6)+cardinality(i7)+cardinality(i8)+cardinality(i9);
+ RETURN jsonb_build_object('business_id',p_business,'sites',to_jsonb(v_sites),'generated_at',now(),
+  'period',CASE WHEN v_lo IS NULL THEN NULL ELSE jsonb_build_object('from',pe.o_from,'to',pe.o_to) END,
+  'time_scoped_classes',jsonb_build_array('completed_breakdown_wo_without_ended_downtime','breakdown_downtime_without_wo','meter_decrease_without_reset'),
+  'ok',tot=0,'total_mismatches',tot,'classes',cls);
 END$$;
