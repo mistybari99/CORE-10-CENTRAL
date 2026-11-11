@@ -37,7 +37,7 @@ Set up disposable `authenticated` and `anon` database roles before A018; GitHub 
 
 ### Important security gap surfaced, not hidden
 
-The historical A018 `can_site` implementation grants managers every site action through `can_business`, including `stock.post` without a per-site `stock.post` grant. A046 models **observed legacy behavior**, not a claim that it is acceptable for production. A034 integration must close this permission inheritance gap and adjust expected tests. No bypassing A021/A034 by a UI role dropdown.
+The historical A018 `can_site` grants managers every site action through `can_business`, including `stock.post` without a site-specific stock posting grant. Moreover, its `post_stock_event` SECURITY INVOKER function needs table INSERT permission that the demo role does not have: the legacy `tests/c10_a018_demo_e2e.sql` fails at stock posting with `permission denied for table stock_movements`. This is a pre-existing incompatible write-contract, **NOT a regression introduced by A046**; A046 does not weaken direct table privileges or pretend its stock-post flow passed. A034/Inventory must reconcile both strict action authorization and an audited safe posting RPC with actual SQL privileges, staging tests and rollback before any activation. A046 tests check scope and explicit direct-write denial only.
 
 ### Real signed staging later (no personal IDs needed)
 

@@ -6,6 +6,7 @@ on:
       - 'internal/demo-identity-program/**'
       - 'internal/enterprise-sql/c10_a046_demo_personas_v1.sql'
       - 'tests/c10_a046_demo_matrix.test.js'
+      - 'tests/c10_a046_action_acl_e2e.sql'
       - '.github/workflows/core10-a046-demo-identity-ci.yml'
   pull_request:
     paths:
@@ -67,7 +68,7 @@ jobs:
         run: |
           node internal/demo-identity-program/index.js sql > "$RUNNER_TEMP/a046-rls-matrix.sql"
           psql -X -v ON_ERROR_STOP=1 -f "$RUNNER_TEMP/a046-rls-matrix.sql"
-      - name: Existing A018 positive, denied, idempotency and stock isolation regressions
-        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_e2e.sql
+      - name: Direct table denial, factory staff action negative and legacy manager grant truth
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a046_action_acl_e2e.sql
       - name: Print exact certification boundary
         run: echo 'A046 PASS DISPOSABLE PG17 ONLY. 16 synthetic UUID personas plus anon; NOT real Supabase GoTrue signed sessions, production users, stock/finance activation or live rollout.'
