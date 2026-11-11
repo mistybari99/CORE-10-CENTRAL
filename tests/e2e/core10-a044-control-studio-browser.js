@@ -96,7 +96,14 @@ window.supabase={createClient:function(){
       assert.equal(await page.locator("[data-control]").count(),18);
     }
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
-    assert.ok(overflow<=2,surface+" "+width+" horizontal overflow: "+overflow);
+    if(overflow>2){
+ const rightmost=await page.evaluate(()=>Array.from(document.querySelectorAll("*")).map(e=>({
+  tag:e.tagName,cls:typeof e.className==="string"?e.className:"",
+  right:Math.round(e.getBoundingClientRect().right),scroll:e.scrollWidth
+ })).filter(x=>x.right>innerWidth+2).sort((a,b)=>b.right-a.right).slice(0,12));
+ console.log("OFFENDING_ELEMENT_BOUNDS",JSON.stringify(rightmost));
+}
+assert.ok(overflow<=2,surface+" "+width+" horizontal overflow: "+overflow);
     assert.deepEqual(errors,[],surface+" "+width+" browser JS errors");
     assert.deepEqual(external,[],surface+" "+width+" contacted external URL");
     console.log("PASS A044 "+surface+" "+width+"px real DOM, signed adapter fixture, scope and menu projection; NO production calls");
