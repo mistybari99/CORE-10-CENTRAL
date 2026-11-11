@@ -122,8 +122,6 @@ BEGIN
  THEN RAISE EXCEPTION 'recall closure missing'; END IF;
  IF EXISTS(SELECT 1 FROM c10_demo.quality_reconciliation_v1 WHERE NOT reconciled)
  THEN RAISE EXCEPTION 'reconciliation failed after recall disposal'; END IF;
- IF (SELECT count(*) FROM c10_demo.quality_stock_permits_v1 WHERE NOT consumed)<>0
- THEN RAISE EXCEPTION 'unused stock permit persisted'; END IF;
  IF (SELECT sum(delta) FROM c10_demo.quality_movements_v1 WHERE command_id=
   (SELECT id FROM c10_demo.quality_commands_v1 WHERE request_key='a058-transfer-a'))<>0
  THEN RAISE EXCEPTION 'lot transfer must be zero sum'; END IF;
@@ -131,6 +129,11 @@ BEGIN
  THEN RAISE EXCEPTION 'unrecalled lot stock conservation failed'; END IF;
 END $$;
 COMMIT;
+-- Permit integrity is checked by the CI database owner: app identities cannot read permits.
+DO $ BEGIN
+ IF (SELECT count(*) FROM c10_demo.quality_stock_permits_v1 WHERE NOT consumed)<>0
+ THEN RAISE EXCEPTION 'unused stock permit persisted'; END IF;
+END $;
 
 -- Another registered business cannot be enrolled with existing stock from untracked history.
 BEGIN;
