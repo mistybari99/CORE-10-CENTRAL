@@ -1,0 +1,79 @@
+name: CORE10 A052 Owner Intent PG17
+on:
+  push:
+    branches: ['claude/c10-a052-*']
+    paths:
+      - 'internal/enterprise-sql/c10_a052_*'
+      - 'tests/c10_a052_*'
+      - 'tests/e2e/core10-a052-*'
+      - 'core10-owner-intent*'
+      - 'docs/architecture/C10_A052_*'
+      - '.github/workflows/core10-a052-owner-intent-ci.yml'
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a052_*'
+      - 'tests/c10_a052_*'
+      - 'tests/e2e/core10-a052-*'
+      - 'core10-owner-intent*'
+      - 'docs/architecture/C10_A052_*'
+      - '.github/workflows/core10-a052-owner-intent-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owner-intent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_DB: core10_a052_ci, POSTGRES_USER: postgres, POSTGRES_PASSWORD: demo_a052 }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_a052_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: core10_a052_ci
+      PGUSER: postgres
+      PGPASSWORD: demo_a052
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Isolated canonical SQL stack (A018, A020, A021, A044, A045)
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a020_business_setup_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a021_owner_controls_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a044_control_settings_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a045_micro_engine_v1.sql
+      - name: A052 SQL (additive)
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a052_intent_core_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a052_intent_guidance_seed_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a052_intent_rpc_v1.sql
+      - name: SQL RLS/authz positive+negative, tenant isolation, lifecycle, A045 adapter
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a052_intent_e2e.sql
+      - name: Node unit (rule engine Bangla/English, signed client, guidance seed drift, JS/SQL parity)
+        run: |
+          node tests/c10_a052_intent_engine.test.js
+          node tests/c10_a052_intent_client.test.js
+          node tests/c10_a052_gen_guidance.js --check
+          node tests/c10_a052_eval_parity.test.js
+      - name: Install pinned Chromium
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-playwright" && cd "$RUNNER_TEMP/core10-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Browser E2E 390px/1440px against disposable PostgreSQL (committing; runs last)
+        run: node tests/e2e/core10-a052-owner-intent-browser.js
+      - name: Release boundary
+        run: echo "A052 isolated PG17 only; signed-claim simulation, NOT GoTrue; no production Supabase; advisory configuration only."
