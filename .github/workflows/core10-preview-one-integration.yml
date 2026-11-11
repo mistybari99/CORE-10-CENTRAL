@@ -40,7 +40,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Install browser for real PostgreSQL-backed intent UI
+        if: matrix.suite == 'intent' || matrix.suite == 'assets'
+        run: |
+          mkdir -p "$RUNNER_TEMP/preview-intent-pw"
+          cd "$RUNNER_TEMP/preview-intent-pw"
+          npm init -y >/dev/null
+          npm install --save-dev playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/preview-intent-pw/node_modules" >> "$GITHUB_ENV"
       - name: Entire combined migration stack, then original regression or cross-module RPC chain
+        env:
+          CORE10_PREVIEW_INTENT_BROWSER: '1'
+          CORE10_PREVIEW_ASSETS_REST: '1'
         run: bash tests/preview-one/run-combined.sh '${{ matrix.suite }}'
   packaged-browser:
     name: Packaged browser safety and module journeys
@@ -69,9 +83,7 @@ jobs:
         run: |
           node tests/e2e/smoke.js
           node tests/e2e/core10-a045-engine-workshop-browser.js
-          node tests/e2e/core10-a052-owner-intent-browser.js
           node tests/e2e/core10-a053-a054-workforce-browser.js
-          node tests/e2e/core10-a055-asset-maintenance-browser.js
           node tests/e2e/core10-a056-crm-browser.js
           node tests/preview-one/module-snapshot-browser.cjs
           node tests/preview-one/crm-worker-browser.cjs

@@ -67,3 +67,15 @@ test("CRM demo routes use only the pinned PR66 synthetic adapter assets", async 
     }
   } finally { globalThis.fetch = previous; }
 });
+
+test("source cards distinguish integrated modules, runnable CRM, work order and isolated quality", async () => {
+  const source = await (await worker.fetch(new Request("https://example.test/preview.js"))).text();
+  new vm.Script(source);
+  assert.match(source, /Owner Intent & Guidance/);
+  assert.match(source, /A055.*Enterprise Assets & Maintenance/);
+  assert.match(source, /3936e1e|Runnable synthetic demo/);
+  assert.match(source, /A057.*Online Commerce Work Order/);
+  assert.match(source, /combined compatibility and preview integration remain pending/);
+  assert.match(source, /5a6e9e22878184faf2c56b5df4de0d5c5281e7b1/);
+  assert.doesNotMatch(source, /not accepted into this preview|A055 under development|universal engine not completed/);
+});

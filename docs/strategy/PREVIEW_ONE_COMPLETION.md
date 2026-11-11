@@ -39,3 +39,17 @@ For each supported workflow: canonical identity and permission checks; complete 
 ## Evidence boundaries
 
 Local browser coverage includes 390px and 1440px, original CRM lead-to-order/support/consent/tenant journey through the Worker, original Inventory/Operations rendering and scope switch, and private-path HTTP denial. GitHub PostgreSQL17 matrix runs are separate evidence; a queued run is not a pass. No production database, live staff/payment/provider operation, paid-service activation or main merge is part of this preview integration.
+
+### Verified local execution (2026-11-11)
+
+- Real PostgreSQL **17.9** server; psql **17.11** client, both isolated under `/tmp/core10-pg17.jg50ff`. All seven initial combined-schema suites passed. Temporary test databases were removed by the runner.
+- Expanded original CRM, A051 and A054 concurrency tests passed on combined schemas. All five A055 per-area suites, integrated suite, six race scenarios and the client/catalog/SQL contract passed on combined schemas.
+- Original A055 signed-HMAC PostgREST **12.2.12** API suite and original Assets browser at 390/1440 passed on a fresh combined schema. This includes signature/expiry/forged-role, foreign-tenant, direct-table/helper denial and actual work-order/report paths. It remains synthetic identity proof, not GoTrue.
+- Original A052 browser passed at 390/1440 using actual combined PostgreSQL through its original psql bridge. Original A045 and A053/A054 browser fixture journeys passed against the packaged public artifact.
+- Worker safety/module route tests, artifact injection tests, actual HTTP denial, original legacy mobile/offline smoke, deterministic factory and 116/116 capability-registry validation passed.
+- Public HTTP smoke: **4/4 passed**. Public deployed browser: original operations/inventory scope switch and disabled writes, CRM lead/enquiry/opportunity, all eight CRM entries and tenant isolation passed at 390/1440. The environment's browser proxy required an explicit certificate-error override; this is UI evidence, not TLS certification. Independent curl/Node HTTP checks used normal environment certificate trust.
+- GitHub Actions runs were queued with no started jobs at this checkpoint; local results must not be relabelled as remote CI success. Recheck the eventual results for the final commit.
+
+Original module scripts with real dependencies remain real: A052 UI tests run while its combined PostgreSQL database is alive; A055 HTTP/UI tests run with signed-HMAC PostgREST against a fresh combined database. They do not run as disconnected fixture-only checks.
+
+A055 concurrency deliberately retains an open breakdown. HTTP tests require their own clean baseline, so they get a separate fresh combined database; race evidence is retained rather than deleted. The original A055 race script's isolated loader is omitted in-memory only after verifying its exact bootstrap lines, while every race assertion remains unchanged.

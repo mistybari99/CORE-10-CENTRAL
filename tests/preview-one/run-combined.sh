@@ -7,7 +7,19 @@ case "${PGHOST:-}" in localhost|127.0.0.1) ;; *) echo 'Loopback disposable Postg
   echo 'Set CORE10_PREVIEW_DISPOSABLE_ACK=I_CONFIRM_DISPOSABLE_PREVIEW'; exit 2;
 }
 suite=${1:-cross-module}
-case "$suite" in cross-module|operations|intent|crm|workforce|workforce-policy|assets) ;; *) echo 'Unknown suite'; exit 2;; esac
+case "$suite" in cross-module|operations|intent|crm|workforce|workforce-policy|assets|assets-policy|assets-registry|assets-planning|assets-workorders|assets-reports|assets-integrated|assets-http) ;; *) echo 'Unknown suite'; exit 2;; esac
+if [[ "$suite" == assets ]]; then
+  # Original A055 CI runs each area on a fresh database. Preserve that isolation,
+  # but install ALL merged preview modules before every original area test.
+  for area in policy registry planning workorders reports integrated; do
+    bash tests/preview-one/run-combined.sh "assets-$area"
+  done
+  if [[ "${CORE10_PREVIEW_ASSETS_REST:-0}" == 1 ]]; then
+    bash tests/preview-one/run-combined.sh assets-http
+  fi
+  echo 'PASS all A055 areas + integrated + concurrency + client on combined schemas'
+  exit 0
+fi
 psql=(psql -X -q -v ON_ERROR_STOP=1)
 seed_db="core10_a046_ci_preview_${BASHPID}"
 work_db="core10_a048_ci_preview_${BASHPID}"
@@ -53,17 +65,45 @@ done
 case "$suite" in
  cross-module) load tests/preview-one/cross-module.sql;;
  operations) load tests/c10_a049_operation_workflow_e2e.sql;;
- intent) load tests/c10_a052_intent_e2e.sql;;
- crm) load tests/c10_a056_crm_lifecycle_e2e.sql;;
+ intent)
+  load tests/c10_a052_intent_e2e.sql
+  if [[ "${CORE10_PREVIEW_INTENT_BROWSER:-0}" == 1 ]]; then
+    node tests/e2e/core10-a052-owner-intent-browser.js
+  fi;;
+ crm)
+  load tests/c10_a056_crm_lifecycle_e2e.sql
+  bash tests/c10_a056_concurrency.sh;;
  workforce)
   load tests/c10_a051_workforce_seed.sql
-  load tests/c10_a051_workforce_e2e.sql;;
+  load tests/c10_a051_workforce_e2e.sql
+  bash tests/c10_a051_workforce_concurrency.sh;;
  workforce-policy)
   load tests/c10_a051_workforce_seed.sql
   load tests/c10_a054_policy_e2e.sql
-  load tests/c10_a053_integration_e2e.sql;;
- assets)
+  load tests/c10_a053_integration_e2e.sql
+  bash tests/c10_a054_concurrency.sh;;
+ assets-policy|assets-registry|assets-planning|assets-workorders|assets-reports)
   load tests/c10_a055_seed.sql
-  load tests/c10_a055_integrated_e2e.sql;;
+  load "tests/c10_a055_${suite#assets-}_e2e.sql";;
+ assets-integrated)
+  load tests/c10_a055_seed.sql
+  load tests/c10_a055_integrated_e2e.sql
+  # The original A055 race script's loader would destroy the combined stack.
+  # Adapt ONLY its bootstrap to reuse this disposable database; every original
+  # race, expected count, denial, and integrity assertion executes unchanged.
+  grep -Fxq 'cd "$(dirname "$0")/.."' tests/c10_a055_concurrency.sh
+  grep -Fxq 'tests/c10_a055_load.sh "$DB" >/dev/null' tests/c10_a055_concurrency.sh
+  echo 'A055 concurrency: reuse combined DB; replace original loader only'
+  A055_CONC_DB=$PGDATABASE bash <(sed \
+    -e '/^cd "$(dirname "$0")\/\.\."$/d' \
+    -e '/^tests\/c10_a055_load\.sh "\$DB" >\/dev\/null$/d' \
+    tests/c10_a055_concurrency.sh)
+  node tests/c10_a055_client.test.js;;
+ assets-http)
+  # The concurrency suite intentionally leaves an open breakdown. The original
+  # HTTP suite asserts a clean open-downtime baseline, so it gets its own fresh
+  # combined-schema DB rather than deleting or concealing race-test evidence.
+  load tests/c10_a055_seed.sql
+  bash tests/preview-one/assets-rest.sh;;
 esac
 printf 'PASS combined PostgreSQL17 preview stack: %s; synthetic claims, NOT GoTrue/staging/production\n' "$suite"
