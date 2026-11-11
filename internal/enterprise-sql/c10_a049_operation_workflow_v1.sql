@@ -40,6 +40,7 @@ CREATE TABLE c10_demo.operation_orders_v1(
  created_at timestamptz NOT NULL DEFAULT now(),
  posted_at timestamptz,
  UNIQUE(business_id,request_key),
+ UNIQUE(id,tenant_id,business_id),
  FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id),
  FOREIGN KEY(location_id,tenant_id,business_id,site_id) REFERENCES c10_demo.stock_locations(id,tenant_id,business_id,site_id),
  FOREIGN KEY(item_id,tenant_id,business_id) REFERENCES c10_demo.items(id,tenant_id,business_id),
