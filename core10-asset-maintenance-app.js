@@ -488,14 +488,14 @@ const WO_KINDS=["preventive","corrective","breakdown","inspection","calibration"
 const PRIORITIES=["low","medium","high","critical"];
 const TRANSITIONS=["submit","approve","return","start","complete","verify","close","cancel","reopen"];
 const REASON_REQ=["return","cancel","reopen"];
-const ALIASES={update:"edit",record_checklist:"checklist",checklist_result:"checklist",labor:"add_labor",add_labour:"add_labor",spares:"add_spares",attachment:"add_attachment",safety_ack:"acknowledge_safety",ack_safety:"acknowledge_safety"};
+const ALIASES={update:"edit",estimates:"edit_estimates",record_checklist:"checklist",checklist_result:"checklist",labor:"add_labor",add_labour:"add_labor",spares:"add_spares",attachment:"add_attachment",safety_ack:"acknowledge_safety",ack_safety:"acknowledge_safety"};
 const UUID_RX=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FINAL_WO=["COMPLETED","VERIFIED","CLOSED","CANCELLED"];
 /* The server decides which actions exist for the caller; the client never infers them from status or role. */
 function actionsOf(d){const wo=d.work_order||d.wo||d;const raw=d.available_actions||wo.available_actions||[];
  return raw.map(x=>typeof x==="string"?x:(x&&(x.action||x.name||x.code))).filter(Boolean).map(x=>ALIASES[x]||x)}
 function slaChips(wo){
- const out=[],s=wo.sla||{},r=wo.sla_response_state||s.response||s.response_state,z=wo.sla_resolve_state||s.resolve||s.resolve_state||wo.sla_state;
+ const out=[],s=wo.sla||{},r=wo.response_state||wo.sla_response_state||s.response,z=wo.resolve_state||wo.sla_resolve_state||s.resolve||wo.sla_state;
  if(r)out.push(chip(T("Response: ","সাড়া: ")+lab("sla",r),toneOf(r)));
  if(z)out.push(chip(T("Resolve: ","সমাধান: ")+lab("sla",z),toneOf(z)));
  if(!out.length&&wo.sla_resolve_due_at&&!FINAL_WO.includes(wo.status)){const late=Date.parse(wo.sla_resolve_due_at)<Date.now();out.push(chip(T("Resolve due ","সমাধানের সময় ")+dt(wo.sla_resolve_due_at)+(late?T(" (past)"," (অতিক্রান্ত)"):""),late?"bad":"dim"))}
@@ -547,7 +547,8 @@ SCREENS.workorders=async function(body){
   for(const a of acts){
    if(TRANSITIONS.includes(a))bar.append(btn(lab("wo_action",a),()=>transitionForm(wo,a,reload),["approve","start","complete","verify","close","submit"].includes(a)?"primary":"outline","act-"+a));
    else if(a==="assign")bar.append(btn(lab("wo_action","assign"),()=>assignForm(wo,reload),"outline","act-assign"));
-   else if(a==="edit")bar.append(btn(lab("wo_action","edit"),()=>editForm(wo,reload),"outline","act-edit"));
+   else if(a==="edit")bar.append(btn(lab("wo_action","edit"),()=>editForm(wo,reload,false),"outline","act-edit"));
+   else if(a==="edit_estimates")bar.append(btn(lab("wo_action","edit_estimates"),()=>editForm(wo,reload,true),"outline","act-edit_estimates"));
    else if(a==="add_labor")bar.append(btn(lab("wo_action",a),()=>laborForm(wo,reload),"outline","act-add_labor"));
    else if(a==="add_spares")bar.append(btn(lab("wo_action",a),()=>sparesForm(wo,reload),"outline","act-add_spares"));
    else if(a==="add_attachment")bar.append(btn(lab("wo_action",a),()=>attachForm(wo,reload),"outline","act-add_attachment"));
@@ -587,11 +588,15 @@ SCREENS.workorders=async function(body){
  }
  function transitionForm(wo,a,reload){
   const fields=[];
-  if(a==="start")fields.push({n:"meter_reading_at_start",l:["Meter reading at start","শুরুতে মিটার রিডিং"],t:"num"});
+  if(a==="start")fields.push({n:"downtime",l:["Also open a planned-downtime window","এই সঙ্গে পরিকল্পিত ডাউনটাইম খুলুন"],t:"bool",val:false});
+  if(a==="cancel")fields.push({n:"end_downtime",l:["Also end the linked open downtime","সংযুক্ত খোলা ডাউনটাইমও শেষ করুন"],t:"bool",val:false});
+  if(a==="reopen")fields.push({n:"restart_downtime",l:["Also restart downtime","ডাউনটাইম আবার শুরু করুন"],t:"bool",val:false});
   if(a==="complete"){
    fields.push({n:"failure_code",l:["Failure code","ত্রুটি কোড"],t:"select",opts:codeOpts("failure",T("— none —","— নেই —"))},{n:"cause_code",l:["Cause code","কারণ কোড"],t:"select",opts:codeOpts("cause",T("— none —","— নেই —"))},
     {n:"action_code",l:["Action code","পদক্ষেপ কোড"],t:"select",opts:codeOpts("action",T("— none —","— নেই —"))},{n:"corrective_action",l:["What was done","কী করা হয়েছে"],t:"textarea",max:2000},
-    {n:"meter_reading_at_end",l:["Meter reading at end","শেষে মিটার রিডিং"],t:"num"});
+    {n:"meter_reading",l:["Meter reading at end","শেষে মিটার রিডিং"],t:"num"},{n:"actual_labor_hours",l:["Actual labour hours","প্রকৃত শ্রমঘণ্টা"],t:"num"},{n:"actual_labor_cost",l:["Actual labour cost (advisory)","প্রকৃত শ্রম খরচ (পরামর্শমূলক)"],t:"num"},
+    {n:"actual_spares_cost",l:["Actual spares cost (advisory)","প্রকৃত যন্ত্রাংশ খরচ (পরামর্শমূলক)"],t:"num"});
+   if(wo.kind==="breakdown")fields.push({n:"restored_at",l:["Service restored at","সেবা ফিরেছে"],t:"dt",val:nowLocalInput()});
    if(wo.kind==="calibration")fields.push({n:"cal_performed_on",l:["Calibrated on","ক্যালিব্রেশনের তারিখ"],t:"date",req:true,val:today()},{n:"cal_next_due_on",l:["Next due","পরবর্তী তারিখ"],t:"date"},
     {n:"cal_result",l:["Calibration result","ক্যালিব্রেশন ফল"],t:"select",opts:enumOpts("cal_result",["pass","fail","adjusted"])},{n:"cal_certificate_ref",l:["Certificate ref.","সনদ রেফ."],t:"text",max:80},
     {n:"cal_standard_ref",l:["Standard ref.","স্ট্যান্ডার্ড রেফ."],t:"text",max:80},{n:"cal_vendor",l:["Vendor","ভেন্ডর"],t:"text",max:120},{n:"cal_note",l:["Calibration note","ক্যালিব্রেশন নোট"],t:"text",max:500});
@@ -599,8 +604,9 @@ SCREENS.workorders=async function(body){
   fields.push(REASON({n:"reason",req:REASON_REQ.includes(a),min:REASON_REQ.includes(a)?5:0}));
   modalForm(lab("wo_action",a)+" · "+(wo.wo_no||""),fields,async(v,err)=>{
    const data={};
-   for(const k of ["meter_reading_at_start","failure_code","cause_code","action_code","corrective_action","meter_reading_at_end"])if(v[k]!=null&&v[k]!=="")data[k]=v[k];
-   if(wo.kind==="calibration"&&a==="complete"){data.calibration=clean({performed_on:v.cal_performed_on,next_due_on:v.cal_next_due_on,result:v.cal_result,certificate_ref:v.cal_certificate_ref,standard_ref:v.cal_standard_ref,vendor:v.cal_vendor,note:v.cal_note})}
+   for(const k of ["failure_code","cause_code","action_code","corrective_action","restored_at","meter_reading","actual_labor_hours","actual_labor_cost","actual_spares_cost"])if(v[k]!=null&&v[k]!=="")data[k]=v[k];
+   for(const k of ["downtime","end_downtime","restart_downtime"])if(v[k]===true)data[k]=true;
+   if(wo.kind==="calibration"&&a==="complete")data.calibration=clean({performed_on:v.cal_performed_on,next_due_on:v.cal_next_due_on,result:v.cal_result,certificate_ref:v.cal_certificate_ref,standard_ref:v.cal_standard_ref,vendor:v.cal_vendor,note:v.cal_note});
    const r=await act("am_wo_transition_v1",{p_wo:wo.id,p_expected_version:wo.version,p_action:a,p_reason:v.reason,p_data:Object.keys(data).length?data:null},lab("wo_action",a)+" done",lab("wo_action",a)+" সম্পন্ন",err);
    if(r)await reload();return !!r},lab("wo_action",a),"wo-transition-form");
  }
@@ -670,7 +676,7 @@ SCREENS.breakdown=async function(body){
    [T("Work order","কাজের আদেশ"),x=>x.work_order_id?h("a",{href:"./core10-asset-maintenance-workorders.html?biz="+state.biz+"&wo="+x.work_order_id,text:x.wo_no||("#"+x.work_order_id)}):dash],
    ["",x=>can("downtime_write",x.site_id)?btn(T("End downtime","ডাউনটাইম শেষ"),()=>endForm(x),"primary","dt-end-"+x.id):null]],arr(o,"items"),T("No open downtime. Everything is running.","কোনো খোলা ডাউনটাইম নেই। সব চলছে।")))}
   const c=await safe(()=>rd("am_list_downtime_v1",{p_filters:clean({open:false,site_id:state.site}),p_limit:20,p_offset:0}));
-  if(c){histBox.textContent="";histBox.append(table([[T("Asset","সম্পদ"),x=>x.asset_no||("#"+x.asset_id)],[T("Kind","ধরন"),x=>lab("downtime_kind",x.kind)],[T("From","থেকে"),x=>dt(x.started_at)],[T("To","পর্যন্ত"),x=>dt(x.ended_at)],[T("Minutes","মিনিট"),x=>num(x.minutes==null?x.duration_minutes:x.minutes,0)]],arr(c,"items"),T("No closed downtime yet.","এখনো কোনো শেষ হওয়া ডাউনটাইম নেই।")))}
+  if(c){histBox.textContent="";histBox.append(table([[T("Asset","সম্পদ"),x=>x.asset_no||("#"+x.asset_id)],[T("Kind","ধরন"),x=>lab("downtime_kind",x.kind)],[T("From","থেকে"),x=>dt(x.started_at)],[T("To","পর্যন্ত"),x=>dt(x.ended_at)],[T("Minutes","মিনিট"),x=>num(x.duration_minutes,0)]],arr(c,"items"),T("No closed downtime yet.","এখনো কোনো শেষ হওয়া ডাউনটাইম নেই।")))}
  }
  function endForm(x){
   modalForm(T("End downtime","ডাউনটাইম শেষ")+" · "+(x.asset_no||x.asset_id),[{n:"ended_at",l:["Ended at","শেষের সময়"],t:"dt",val:nowLocalInput()},{n:"note",l:["Note","নোট"],t:"text",max:300}],async(v,err)=>{
@@ -686,7 +692,7 @@ SCREENS.breakdown=async function(body){
   {n:"priority",l:["How urgent?","কতটা জরুরি?"],t:"select",opts:enumOpts("priority",PRIORITIES),val:"high"},{n:"failure_code",l:["Type of failure","ত্রুটির ধরন"],t:"select",opts:codeOpts("failure",T("— not sure —","— নিশ্চিত নই —"))},
   {n:"impact",l:["Impact on work","কাজে প্রভাব"],t:"textarea",rows:2,max:500},{n:"started_at",l:["Stopped at","বন্ধ হয়েছে"],t:"dt",val:nowLocalInput()}],
   {prefix:"bd-",id:"bd-form",submitText:T("REPORT BREAKDOWN","বিকল জানান"),cancel:false,onSubmit:async(v,err)=>{
-   const r=await act("am_report_breakdown_v1",{p_asset:v.asset,p_data:clean({title:v.title,description:v.description,priority:v.priority,failure_code:v.failure_code,impact:v.impact,started_at:v.started_at})},"Breakdown reported","বিকল জানানো হয়েছে",err);
+   const r=await act("am_report_breakdown_v1",{p_asset:v.asset,p_data:clean({title:v.title,description:v.description,priority:v.priority,failure_code:v.failure_code,impact:v.impact,occurred_at:v.started_at})},"Breakdown reported","বিকল জানানো হয়েছে",err);
    if(r){state.assetOpts=null;await refresh();$("bd-title").value="";$("bd-description").value="";$("bd-impact").value=""}}});
  bd.form.classList.add("big");
  body.append(...(can("report")?[panel(T("Report a breakdown","বিকল জানান"),[note(T("One tap to tell the maintenance team. A work order and a downtime window are opened for you.","রক্ষণাবেক্ষণ দলকে জানাতে একটি চাপ। আপনার জন্য কাজের আদেশ ও ডাউনটাইম খোলা হবে।")),bd.form],null,"bd-panel")]:[note(T("Your role cannot report breakdowns.","আপনার ভূমিকায় বিকল জানানো যায় না।"),"warn")]),

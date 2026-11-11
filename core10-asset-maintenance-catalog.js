@@ -348,7 +348,7 @@
   priority:{low:["Low","কম"],medium:["Medium","মাঝারি"],high:["High","উচ্চ"],critical:["Critical","জরুরি"]},
   wo_action:{submit:["Submit","জমা দিন"],approve:["Approve","অনুমোদন"],return:["Return to draft","ফেরত পাঠান"],start:["Start work","কাজ শুরু"],
    complete:["Complete","সম্পন্ন করুন"],verify:["Verify","যাচাই করুন"],close:["Close","বন্ধ করুন"],cancel:["Cancel","বাতিল"],reopen:["Reopen","পুনরায় খুলুন"],
-   assign:["Assign","দায়িত্ব দিন"],edit:["Edit","সম্পাদনা"],checklist:["Checklist","চেকলিস্ট"],add_labor:["Add labour","শ্রম যোগ"],add_spares:["Add spares","যন্ত্রাংশ যোগ"],
+   assign:["Assign","দায়িত্ব দিন"],edit:["Edit","সম্পাদনা"],edit_estimates:["Edit estimates","আনুমানিক সম্পাদনা"],checklist:["Checklist","চেকলিস্ট"],add_labor:["Add labour","শ্রম যোগ"],add_spares:["Add spares","যন্ত্রাংশ যোগ"],
    add_attachment:["Add attachment record","সংযুক্তি রেকর্ড"],acknowledge_safety:["Acknowledge safety","নিরাপত্তা স্বীকার"],merge:["Merge","একীভূত করুন"]},
   claim_status:{draft:["Draft","খসড়া"],submitted:["Submitted","জমা"],accepted:["Accepted","গৃহীত"],rejected:["Rejected","প্রত্যাখ্যাত"],settled:["Settled","নিষ্পন্ন"],closed:["Closed","বন্ধ"]},
   claim_action:{submit:["Submit","জমা দিন"],accept:["Accept","গ্রহণ"],reject:["Reject","প্রত্যাখ্যান"],settle:["Settle","নিষ্পত্তি"],close:["Close","বন্ধ"]},

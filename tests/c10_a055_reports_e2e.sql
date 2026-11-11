@@ -424,3 +424,87 @@ DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101');
  PERFORM c10_test.eqn(c10_test.pa(r,'OLD-1','downtime_minutes'),2880,'site override caps open window'); END $$;
 RESET ROLE;
 DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='downtime.max_open_hours';
+
+-- ===================================================== S4 KPI report =====================================================
+CREATE FUNCTION c10_test.ka(r jsonb,p_no text,p_f text) RETURNS text LANGUAGE sql IMMUTABLE AS
+$$ SELECT e->>p_f FROM jsonb_array_elements(r->'per_asset') e WHERE e->>'asset_no'=p_no $$;
+GRANT EXECUTE ON FUNCTION c10_test.ka(jsonb,text,text) TO authenticated;
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE r jsonb; d jsonb; f date:=c10_test.dt(20)::date; t date:=c10_test.dt(1)::date;
+BEGIN
+ PERFORM c10_test.as_user('bo101');
+ r:=c10_demo.am_kpi_report_v1(101,f,t); d:=c10_demo.am_downtime_report_v1(101,f,t);
+ PERFORM c10_test.eqn(r#>>'{mttr,hours}',3.6,'fleet MTTR'); PERFORM c10_test.eqn(r#>>'{mttr,sample_size}',5,'mttr sample'); PERFORM c10_test.eq(r#>>'{mttr,insufficient_sample}','false','mttr sufficient');
+ PERFORM c10_test.eqn(r#>>'{mtbf,failures}',5,'failures');
+ PERFORM c10_test.eqn(r#>>'{mtbf,operating_hours}',round(((d#>>'{totals,period_minutes}')::numeric-(d#>>'{totals,downtime_minutes}')::numeric)/60,2),'operating hours consistent');
+ PERFORM c10_test.eqn(r#>>'{mtbf,hours}',round((r#>>'{mtbf,operating_hours}')::numeric/5,2),'fleet MTBF'); PERFORM c10_test.eq(r#>>'{mtbf,insufficient_sample}','false','mtbf sufficient');
+ PERFORM c10_test.eqn(c10_test.ka(r,'CRN-1','failures'),4,'crane failures'); PERFORM c10_test.eqn(c10_test.ka(r,'CRN-1','mttr_hours'),3.75,'crane MTTR');
+ PERFORM c10_test.eqn(c10_test.ka(r,'CRN-1','mtbf_hours'),117,'crane MTBF (480h - 12h)/4');
+ PERFORM c10_test.eq(c10_test.ka(r,'CHL-1','mttr_hours'),NULL,'chiller MTTR insufficient'); PERFORM c10_test.eq(c10_test.ka(r,'CHL-1','mttr_insufficient_sample'),'true','chiller flag');
+ PERFORM c10_test.eq(c10_test.ka(r,'CHL-1','mtbf_hours'),NULL,'chiller MTBF insufficient'); PERFORM c10_test.eq(c10_test.ka(r,'CHL-1','mtbf_insufficient_sample'),'true','chiller mtbf flag');
+ -- PM compliance, backlog, SLA, recurring, risk, cost
+ PERFORM c10_test.eqn(r#>>'{pm_compliance,due}',4,'pm due'); PERFORM c10_test.eqn(r#>>'{pm_compliance,on_time}',2,'pm on time'); PERFORM c10_test.eqn(r#>>'{pm_compliance,late}',1,'pm late');
+ PERFORM c10_test.eqn(r#>>'{pm_compliance,not_done}',1,'pm not done'); PERFORM c10_test.eqn(r#>>'{pm_compliance,compliance_pct}',50,'pm pct');
+ PERFORM c10_test.eqn(r#>>'{overdue_backlog,count}',3,'backlog'); PERFORM c10_test.eqn(r#>>'{overdue_backlog,buckets,1_7}',2,'bucket 1-7');
+ PERFORM c10_test.eqn(r#>>'{overdue_backlog,buckets,8_30}',0,'bucket 8-30'); PERFORM c10_test.eqn(r#>>'{overdue_backlog,buckets,31_90}',1,'bucket 31-90');
+ PERFORM c10_test.eqn(r#>>'{overdue_backlog,buckets,over_90}',0,'bucket 90+'); PERFORM c10_test.eqn(r#>>'{overdue_backlog,oldest_days}',40,'oldest');
+ PERFORM c10_test.eqn(r#>>'{sla_compliance,resolve,met}',3,'sla met'); PERFORM c10_test.eqn(r#>>'{sla_compliance,resolve,breached}',1,'sla breached');
+ PERFORM c10_test.eqn(r#>>'{sla_compliance,resolve,compliance_pct}',75,'sla pct'); PERFORM c10_test.eq(r#>>'{sla_compliance,response,compliance_pct}',NULL,'no response sla');
+ PERFORM c10_test.eq(jsonb_array_length(r#>'{recurring_failures,items}')::text,'1','recurring groups');
+ PERFORM c10_test.eq(r#>>'{recurring_failures,items,0,failure_code}','MECH','recurring code'); PERFORM c10_test.eqn(r#>>'{recurring_failures,items,0,count}',3,'recurring count');
+ PERFORM c10_test.eq(r#>>'{recurring_failures,items,0,asset_no}','CRN-1','recurring asset');
+ PERFORM c10_test.eqn((SELECT e->>'score' FROM jsonb_array_elements(r#>'{risk_matrix,items}') e WHERE e->>'asset_no'='CRN-1'),20,'crane risk score');
+ PERFORM c10_test.eq((SELECT e->>'band' FROM jsonb_array_elements(r#>'{risk_matrix,items}') e WHERE e->>'asset_no'='CRN-1'),'critical','crane band');
+ PERFORM c10_test.eqn((SELECT e->>'score' FROM jsonb_array_elements(r#>'{risk_matrix,items}') e WHERE e->>'asset_no'='CHL-1'),10,'chiller score (2x5)');
+ PERFORM c10_test.eq((SELECT e->>'band' FROM jsonb_array_elements(r#>'{risk_matrix,items}') e WHERE e->>'asset_no'='CHL-1'),'high','chiller band');
+ PERFORM c10_test.eqn((SELECT e->>'likelihood' FROM jsonb_array_elements(r#>'{risk_matrix,items}') e WHERE e->>'asset_no'='CRN-1'),4,'4 failures -> likelihood 4');
+ PERFORM c10_test.eq(r#>>'{risk_matrix,bands}','{"low": 7, "high": 1, "medium": 0, "critical": 1}','risk bands');
+ PERFORM c10_test.eq(r#>>'{cost_rollup,advisory}','true','cost advisory'); PERFORM c10_test.eq(r#>>'{cost_rollup,posted}','false','cost not posted');
+ PERFORM c10_test.eqn(r#>>'{cost_rollup,work_orders}',8,'cost wos'); PERFORM c10_test.eqn(r#>>'{cost_rollup,totals,est_labor_cost}',900,'est labor');
+ PERFORM c10_test.eqn(r#>>'{cost_rollup,totals,est_spares_cost}',200,'est spares'); PERFORM c10_test.eqn(r#>>'{cost_rollup,totals,actual_labor_cost}',1050,'act labor');
+ PERFORM c10_test.eqn(r#>>'{cost_rollup,totals,actual_spares_cost}',400,'act spares'); PERFORM c10_test.eqn(r#>>'{cost_rollup,by_kind,breakdown,actual_total}',1450,'cost by kind');
+ PERFORM c10_test.chk(r#>>'{cost_rollup,label}' ILIKE 'ADVISORY%','cost label');
+ -- site-limited supervisor: sample of 1 => insufficient (MTTR and MTBF null + flag)
+ PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_kpi_report_v1(101,f,t);
+ PERFORM c10_test.eq(r#>>'{mttr,hours}',NULL,'1001 MTTR null'); PERFORM c10_test.eq(r#>>'{mttr,insufficient_sample}','true','1001 mttr flag'); PERFORM c10_test.eqn(r#>>'{mttr,sample_size}',1,'1001 sample');
+ PERFORM c10_test.eq(r#>>'{mtbf,hours}',NULL,'1001 MTBF null'); PERFORM c10_test.eq(r#>>'{mtbf,insufficient_sample}','true','1001 mtbf flag');
+ PERFORM c10_test.eqn(r#>>'{pm_compliance,due}',3,'1001 pm due'); PERFORM c10_test.eqn(r#>>'{pm_compliance,compliance_pct}',66.67,'1001 pm pct');
+ PERFORM c10_test.eqn(r#>>'{overdue_backlog,count}',1,'1001 backlog'); PERFORM c10_test.eqn(r#>>'{cost_rollup,totals,actual_total}',0,'1001 cost');
+ PERFORM c10_test.eqn(r#>>'{risk_matrix,items,0,failures}',1,'1001 top risk is chiller');
+ -- isolation
+ PERFORM c10_test.as_user('bo102'); r:=c10_demo.am_kpi_report_v1(102,f,t);
+ PERFORM c10_test.eqn(r#>>'{mtbf,failures}',1,'102 failures'); PERFORM c10_test.eqn(r#>>'{pm_compliance,due}',1,'102 pm'); PERFORM c10_test.eqn(r#>>'{pm_compliance,compliance_pct}',100,'102 pm pct');
+ PERFORM c10_test.eq(r#>>'{mttr,insufficient_sample}','true','102 mttr insufficient');
+END $$;
+RESET ROLE;
+-- policy-driven sample sizes: min sample 6 makes the fleet MTTR (5 samples) insufficient; min 1 makes chiller sufficient
+INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES
+ (101,1,'business',0,'analytics.min_sample_mttr','6',c10_test.u('bo101')),(101,1,'business',0,'analytics.min_sample_mtbf','6',c10_test.u('bo101'));
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_kpi_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.eq(r#>>'{mttr,hours}',NULL,'MTTR null below policy sample'); PERFORM c10_test.eq(r#>>'{mttr,insufficient_sample}','true','flag'); PERFORM c10_test.eqn(r#>>'{mttr,min_sample}',6,'min sample echoed');
+ PERFORM c10_test.eq(r#>>'{mtbf,hours}',NULL,'MTBF null'); PERFORM c10_test.eq(r#>>'{mtbf,insufficient_sample}','true','mtbf flag'); END $$;
+RESET ROLE;
+DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key IN('analytics.min_sample_mttr','analytics.min_sample_mtbf');
+INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'analytics.min_sample_mttr','1',c10_test.u('bo101'));
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_kpi_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.eqn(r#>>'{mttr,hours}',3,'single sample sufficient when policy min is 1 (BD5: 3h)'); PERFORM c10_test.eq(r#>>'{mttr,insufficient_sample}','false','flag cleared'); END $$;
+RESET ROLE;
+DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='analytics.min_sample_mttr';
+-- policy: risk thresholds
+INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES
+ (101,1,'business',0,'risk.high_threshold','8',c10_test.u('bo101')),(101,1,'business',0,'risk.critical_threshold','10',c10_test.u('bo101'));
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_kpi_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.eq((SELECT e->>'band' FROM jsonb_array_elements(r#>'{risk_matrix,items}') e WHERE e->>'asset_no'='CHL-1'),'critical','chiller critical at threshold 10'); END $$;
+RESET ROLE;
+DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key LIKE 'risk.%';
+-- policy: PM grace (site override 1001: grace 7 makes P2 (4 days late) on time => 3 of 3 at site 1001)
+INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'site',1001,'schedule.grace_days','7',c10_test.u('bo101'));
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_kpi_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.eqn(r#>>'{pm_compliance,on_time}',3,'grace policy by site'); PERFORM c10_test.eqn(r#>>'{pm_compliance,compliance_pct}',75,'pm pct with grace'); END $$;
+RESET ROLE;
+DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='schedule.grace_days';
