@@ -21,10 +21,10 @@ BEGIN
   RAISE EXCEPTION 'A047_BOOTSTRAP_FAILED'; END IF;
  IF (c10_demo.bootstrap_site_groups_v1(101,'boot-101-001')->>'new_members')<>'0' THEN
   RAISE EXCEPTION 'A047_BOOTSTRAP_NOT_IDEMPOTENT'; END IF;
- IF (SELECT COALESCE(sum(jsonb_array_length(g->'sites')),0) FROM jsonb_array_elements(c10_demo.read_site_topology_v1(101)->'groups') g)<>2 THEN
+ IF (SELECT COALESCE(sum(jsonb_array_length(jgroup->'sites')),0) FROM jsonb_array_elements(c10_demo.read_site_topology_v1(101)->'groups') AS jgroup)<>2 THEN
   RAISE EXCEPTION 'A047_ORIGINAL_SITE_MEMBERS_LOST'; END IF;
  PERFORM c10_demo.bootstrap_site_groups_v1(102,'boot-102-001');
- IF (SELECT COALESCE(sum(jsonb_array_length(g->'sites')),0) FROM jsonb_array_elements(c10_demo.read_site_topology_v1(102)->'groups') g)<>1 THEN
+ IF (SELECT COALESCE(sum(jsonb_array_length(jgroup->'sites')),0) FROM jsonb_array_elements(c10_demo.read_site_topology_v1(102)->'groups') AS jgroup)<>1 THEN
   RAISE EXCEPTION 'A047_SECOND_BUSINESS_NOT_GROUPED'; END IF;
  one:=c10_demo.create_site_group_v1(101,'showroom','north_showrooms','North Showrooms','group-north-001');
  two:=c10_demo.create_site_group_v1(101,'showroom','north_showrooms','North Showrooms','group-north-001');
