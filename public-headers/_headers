@@ -1,0 +1,30 @@
+# Cloudflare Pages custom headers (copied to dist/_headers by tools/build_dist.js).
+# The /* Content-Security-Policy MUST equal the <meta> CSP in index.html plus frame-ancestors 'none'
+# (frame-ancestors is ignored in <meta>). tools/build_dist.js fails the build if they drift.
+# Cloudflare MERGES duplicate headers across matching rules; "! Header" detaches an inherited one.
+
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=(), usb=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-bEm8+KnLBn+iBDNJaTjgdUiI/i2P6lJ8VfbMH7ig4a8=' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://tessdata.projectnaptha.com; worker-src 'self' blob:; frame-src 'self' blob: about:; media-src 'self' blob: data:; manifest-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'
+  Cache-Control: no-cache
+
+# Versioned assets (loaded as name.js?v=<hash>; the URL changes when content changes).
+/*.js
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.css
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+
+# Unversioned scripts must always revalidate: service worker + vendor libs.
+/sw.js
+  ! Cache-Control
+  Cache-Control: no-cache
+
+/vendor/*
+  ! Cache-Control
+  Cache-Control: no-cache
