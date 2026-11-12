@@ -77,6 +77,10 @@ DO $t$
 BEGIN
  IF has_table_privilege('anon','c10_demo.approval_status_report_v1','SELECT')
  OR has_table_privilege('authenticated','c10_demo.approval_status_report_v1','UPDATE')
+ OR has_table_privilege('authenticated','c10_demo.approval_status_report_v1','INSERT')
+ OR has_table_privilege('authenticated','c10_demo.approval_status_report_v1','DELETE')
+ OR has_table_privilege('authenticated','c10_demo.approval_status_report_v1','TRUNCATE')
+ OR has_table_privilege('authenticated','c10_demo.approval_status_report_v1','REFERENCES')
  THEN RAISE EXCEPTION 'FAIL: public/writable approval status report'; END IF;
  IF NOT EXISTS(SELECT 1 FROM pg_class c
     JOIN pg_namespace n ON n.oid=c.relnamespace
