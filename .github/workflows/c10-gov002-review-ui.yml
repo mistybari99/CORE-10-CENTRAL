@@ -9,6 +9,7 @@ on:
       - 'tests/c10_gov002_signed_session_browser.py'
       - 'tests/c10_gov002_bounded_paged_reports_v1.test.mjs'
       - 'tests/c10_gov002_signed_pages_adapter_v1.test.mjs'
+      - 'tests/c10_gov002_reviewer_tasks_signed_v2.test.mjs'
       - 'tests/c10_gov002_scoped_reports_v1.test.mjs'
       - '.github/workflows/c10-gov002-review-ui.yml'
   push:
@@ -21,6 +22,7 @@ on:
       - 'tests/c10_gov002_signed_session_browser.py'
       - 'tests/c10_gov002_bounded_paged_reports_v1.test.mjs'
       - 'tests/c10_gov002_signed_pages_adapter_v1.test.mjs'
+      - 'tests/c10_gov002_reviewer_tasks_signed_v2.test.mjs'
       - 'tests/c10_gov002_scoped_reports_v1.test.mjs'
       - '.github/workflows/c10-gov002-review-ui.yml'
 permissions:
@@ -92,6 +94,7 @@ jobs:
           node --test tests/c10_gov002_session_bound_review_v1.test.mjs
           node --test tests/c10_gov002_bounded_paged_reports_v1.test.mjs
           node --test tests/c10_gov002_signed_pages_adapter_v1.test.mjs
+          node --test tests/c10_gov002_reviewer_tasks_signed_v2.test.mjs
           node --check internal/enterprise-client/c10_gov002_bounded_paged_reports_v1.mjs
           node --check internal/enterprise-client/c10_gov002_session_bound_review_v1.mjs
           node --check internal/enterprise-client/c10_gov002_review_ui_v1.mjs
