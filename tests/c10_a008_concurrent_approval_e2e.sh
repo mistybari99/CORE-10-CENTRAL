@@ -2,9 +2,11 @@
 # Disposable PostgreSQL only: two independent sessions race the same approval/key.
 set -euo pipefail
 export PGOPTIONS="-c statement_timeout=15000"
-psql -v ON_ERROR_STOP=1 -Atc "INSERT INTO c10_demo.approval_requests(tenant_id,business_id,created_by) VALUES (1,101,'33333333-3333-4333-8333-333333333333') RETURNING id" > /tmp/c10-a008-request-id
+if ! psql -v ON_ERROR_STOP=1 -Atc "INSERT INTO c10_demo.approval_requests(tenant_id,business_id,created_by) VALUES (1,101,'33333333-3333-4333-8333-333333333333') RETURNING id" > /tmp/c10-a008-request-id 2> /tmp/c10-a008-seed-error; then
+  echo "FAIL: concurrency fixture INSERT failed"; cat /tmp/c10-a008-seed-error; exit 1
+fi
 id="$(tail -n1 /tmp/c10-a008-request-id)"
-[[ "$id" =~ ^[0-9]+$ ]]
+[[ "$id" =~ ^[0-9]+$ ]] || { echo "FAIL: invalid request id: $id"; cat /tmp/c10-a008-request-id; exit 1; }
 rm -f /tmp/c10-a008-lock-ready
 # Lock the request in a separate transaction; ensure both callers must wait.
 psql -v ON_ERROR_STOP=1 > /tmp/c10-a008-lock.log 2>&1 <<SQL &
