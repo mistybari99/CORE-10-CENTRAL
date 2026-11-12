@@ -34,6 +34,10 @@ BEGIN
  req_id:=c10_demo.submit_typed_approval_v1(101,'integration_test',
   'compatibility_review','compat-source-1',1,'{"review":"non-posting"}'::jsonb,'compat_req_20261112');
  IF req_id IS NULL OR req_id<1 THEN RAISE EXCEPTION 'COMPAT_TYPED_REQUEST_MISSING'; END IF;
+ -- Persist the known valid ID only in this disposable transaction. Once the
+ -- owner expires RLS must hide the row, but we must still probe the true RPC
+ -- authorization on this existing ID rather than passing NULL.
+ PERFORM set_config('core10.gov002_compat_request_id',req_id::text,true);
  BEGIN
   PERFORM c10_demo.decide_approval(req_id,'approve','compat_maker_try_01');
   RAISE EXCEPTION 'COMPAT_MAKER_SELF_APPROVED';
@@ -86,7 +90,7 @@ BEGIN
  IF c10_demo.can_manage(1,101) OR
     (SELECT count(*) FROM c10_demo.approval_status_report_v1 WHERE business_id=101)<>0
  THEN RAISE EXCEPTION 'COMPAT_EXPIRED_OWNER_RETAINED_INBOX'; END IF;
- SELECT id INTO req_id FROM c10_demo.approval_requests WHERE submit_key_v1='compat_req_20261112';
+ req_id:=current_setting('core10.gov002_compat_request_id',true)::bigint;
  BEGIN
   PERFORM c10_demo.decide_approval(req_id,'approve','compat_expired_owner_01');
   RAISE EXCEPTION 'COMPAT_EXPIRED_OWNER_APPROVED';
