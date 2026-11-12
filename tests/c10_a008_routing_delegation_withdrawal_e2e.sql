@@ -224,3 +224,104 @@ DO $t$ BEGIN
  THEN RAISE EXCEPTION 'FAIL: append-only stage history'; END IF;
  RAISE NOTICE 'PASS: two-stage routed approval, bounded delegation/revoke, maker withdrawal, role/tenant/stage negatives, idempotency, zero posting';
 END $t$;
+
+
+-- Extra safeguards: current role, revocation race, expiry and withdrawal AFTER
+-- an intermediate stage. No trusted identity is ever supplied by the client.
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
+SELECT c10_demo.submit_typed_approval_v1(
+ 101,'demo_inventory','adjustment_review','two-stage-doc-6',1,
+ '{"amount":610,"unit":"kg"}'::jsonb,'two_stage_submit_06');
+SELECT c10_demo.submit_typed_approval_v1(
+ 101,'demo_inventory','adjustment_review','two-stage-doc-7',1,
+ '{"amount":720,"unit":"kg"}'::jsonb,'two_stage_submit_07');
+
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+DO $t$ BEGIN
+ BEGIN
+  PERFORM c10_demo.decide_approval(7,'approve','tenant_skips_stage_01');
+  RAISE EXCEPTION 'FAIL: tenant-level owner hijacked business-owner stage';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM<>'approval_not_authorized' THEN RAISE; END IF;
+ END;
+END $t$;
+
+SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+DO $t$ BEGIN
+ PERFORM c10_demo.decide_approval(6,'approve','stage_one_then_withdraw');
+ IF (SELECT status FROM c10_demo.approval_requests WHERE id=6)<>'pending'
+ THEN RAISE EXCEPTION 'FAIL: intermediate approval finalized'; END IF;
+ PERFORM c10_demo.delegate_approval_stage_v1(
+ 7,'99999999-9999-4999-8999-999999999999',30,'grant_revocation_07');
+ BEGIN
+  PERFORM c10_demo.delegate_approval_stage_v1(
+   7,'99999999-9999-4999-8999-999999999999',15,'grant_revocation_07');
+  RAISE EXCEPTION 'FAIL: delegation TTL replay conflict accepted';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM<>'delegation_replay_conflict' THEN RAISE; END IF;
+ END;
+END $t$;
+
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
+DO $t$ BEGIN
+ PERFORM c10_demo.withdraw_typed_approval_v1(6,'withdraw_after_stage_one');
+ IF (SELECT status FROM c10_demo.approval_requests WHERE id=6)<>'withdrawn'
+ THEN RAISE EXCEPTION 'FAIL: staged request not withdrawn'; END IF;
+END $t$;
+
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+DO $t$ BEGIN
+ BEGIN
+  PERFORM c10_demo.decide_approval(6,'approve','after_midstage_withdraw');
+  RAISE EXCEPTION 'FAIL: stage two approved withdrawn request';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM<>'approval_invalid_transition' THEN RAISE; END IF;
+ END;
+END $t$;
+RESET ROLE;
+
+-- Superuser fixture toggles role to model real-time revoke before a vote.
+UPDATE c10_demo.business_members SET active=false
+ WHERE business_id=101 AND user_id='99999999-9999-4999-8999-999999999999';
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','99999999-9999-4999-8999-999999999999',false);
+DO $t$ BEGIN
+ BEGIN
+  PERFORM c10_demo.decide_approval(7,'approve','revoked_membership_07');
+  RAISE EXCEPTION 'FAIL: revoked delegated manager approved';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM<>'approval_not_authorized' THEN RAISE; END IF;
+ END;
+END $t$;
+RESET ROLE;
+UPDATE c10_demo.business_members SET active=true
+ WHERE business_id=101 AND user_id='99999999-9999-4999-8999-999999999999';
+-- Fixture expiry of the explicit grant, without sleeping 30 minutes.
+UPDATE c10_demo.approval_delegations_v1 SET valid_until=clock_timestamp()-interval '1 minute'
+ WHERE request_id=7;
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','99999999-9999-4999-8999-999999999999',false);
+DO $t$ BEGIN
+ BEGIN
+  PERFORM c10_demo.decide_approval(7,'approve','expired_delegation_07');
+  RAISE EXCEPTION 'FAIL: expired delegated manager approved';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM<>'approval_not_authorized' THEN RAISE; END IF;
+ END;
+END $t$;
+RESET ROLE;
+
+DO $t$ BEGIN
+ IF (SELECT count(*) FROM c10_demo.approval_delegation_events_v1)<>4
+ THEN RAISE EXCEPTION 'FAIL: grant/revoke append-only event count'; END IF;
+ IF (SELECT count(*) FROM c10_demo.approval_stage_receipts_v1
+      WHERE request_id=4 AND delegated_by='22222222-2222-4222-8222-222222222222')<>1
+ THEN RAISE EXCEPTION 'FAIL: delegated vote not attributed to grantor'; END IF;
+ IF (SELECT count(*) FROM c10_demo.approval_stage_receipts_v1
+      WHERE request_id=6 AND stage_no=1)<>1
+ THEN RAISE EXCEPTION 'FAIL: midstage withdrawal lost previous evidence'; END IF;
+ IF (SELECT count(*) FROM c10_demo.stock_movements)<>0
+ THEN RAISE EXCEPTION 'FAIL: approval posted a stock event'; END IF;
+ RAISE NOTICE 'PASS: exact-role stage, TTL conflict, midstage withdrawal, membership revoke, expired delegation and append-only grant/revoke audit';
+END $t$;
