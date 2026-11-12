@@ -1,0 +1,166 @@
+{
+  "registry_version": 1,
+  "status": "ADVISORY_ONLY_NOT_ACTIVATION_AUTHORITY",
+  "version_policy": "immutable_revision; explicit owner review; never auto-enable ERP capabilities",
+  "profiles": [
+    {
+      "industry_id": "sweets_bakery",
+      "profile_version": 1,
+      "site_kind_hints": [
+        "showroom",
+        "factory",
+        "godown",
+        "warehouse"
+      ],
+      "first_site_hint": "showroom",
+      "site_hints_advisory": true,
+      "automatic_modules": [],
+      "automatic_roles": [],
+      "jurisdiction_policy": "REQUIRES_OWNER_AND_DOMAIN_VALIDATION",
+      "financial_policy": "UNSPECIFIED_NO_DEFAULTS",
+      "release_state": "BLOCKED_UNTIL_CERTIFIED"
+    },
+    {
+      "industry_id": "restaurant",
+      "profile_version": 1,
+      "site_kind_hints": [
+        "showroom",
+        "factory",
+        "godown"
+      ],
+      "first_site_hint": "showroom",
+      "site_hints_advisory": true,
+      "automatic_modules": [],
+      "automatic_roles": [],
+      "jurisdiction_policy": "REQUIRES_OWNER_AND_DOMAIN_VALIDATION",
+      "financial_policy": "UNSPECIFIED_NO_DEFAULTS",
+      "release_state": "BLOCKED_UNTIL_CERTIFIED"
+    },
+    {
+      "industry_id": "paint_hardware",
+      "profile_version": 1,
+      "site_kind_hints": [
+        "showroom",
+        "warehouse",
+        "godown"
+      ],
+      "first_site_hint": "showroom",
+      "site_hints_advisory": true,
+      "automatic_modules": [],
+      "automatic_roles": [],
+      "jurisdiction_policy": "REQUIRES_OWNER_AND_DOMAIN_VALIDATION",
+      "financial_policy": "UNSPECIFIED_NO_DEFAULTS",
+      "release_state": "BLOCKED_UNTIL_CERTIFIED"
+    },
+    {
+      "industry_id": "retail_wholesale",
+      "profile_version": 1,
+      "site_kind_hints": [
+        "showroom",
+        "warehouse",
+        "godown"
+      ],
+      "first_site_hint": "showroom",
+      "site_hints_advisory": true,
+      "automatic_modules": [],
+      "automatic_roles": [],
+      "jurisdiction_policy": "REQUIRES_OWNER_AND_DOMAIN_VALIDATION",
+      "financial_policy": "UNSPECIFIED_NO_DEFAULTS",
+      "release_state": "BLOCKED_UNTIL_CERTIFIED"
+    },
+    {
+      "industry_id": "general_manufacturing",
+      "profile_version": 1,
+      "site_kind_hints": [
+        "factory",
+        "warehouse",
+        "godown"
+      ],
+      "first_site_hint": "factory",
+      "site_hints_advisory": true,
+      "automatic_modules": [],
+      "automatic_roles": [],
+      "jurisdiction_policy": "REQUIRES_OWNER_AND_DOMAIN_VALIDATION",
+      "financial_policy": "UNSPECIFIED_NO_DEFAULTS",
+      "release_state": "BLOCKED_UNTIL_CERTIFIED"
+    },
+    {
+      "industry_id": "construction",
+      "profile_version": 1,
+      "site_kind_hints": [
+        "project",
+        "warehouse",
+        "godown"
+      ],
+      "first_site_hint": "project",
+      "site_hints_advisory": true,
+      "automatic_modules": [],
+      "automatic_roles": [],
+      "jurisdiction_policy": "REQUIRES_OWNER_AND_DOMAIN_VALIDATION",
+      "financial_policy": "UNSPECIFIED_NO_DEFAULTS",
+      "release_state": "BLOCKED_UNTIL_CERTIFIED"
+    },
+    {
+      "industry_id": "import_export",
+      "profile_version": 1,
+      "site_kind_hints": [
+        "warehouse",
+        "godown",
+        "showroom"
+      ],
+      "first_site_hint": "warehouse",
+      "site_hints_advisory": true,
+      "automatic_modules": [],
+      "automatic_roles": [],
+      "jurisdiction_policy": "REQUIRES_OWNER_AND_DOMAIN_VALIDATION",
+      "financial_policy": "UNSPECIFIED_NO_DEFAULTS",
+      "release_state": "BLOCKED_UNTIL_CERTIFIED"
+    },
+    {
+      "industry_id": "ecommerce",
+      "profile_version": 1,
+      "site_kind_hints": [
+        "warehouse",
+        "godown",
+        "showroom"
+      ],
+      "first_site_hint": "warehouse",
+      "site_hints_advisory": true,
+      "automatic_modules": [],
+      "automatic_roles": [],
+      "jurisdiction_policy": "REQUIRES_OWNER_AND_DOMAIN_VALIDATION",
+      "financial_policy": "UNSPECIFIED_NO_DEFAULTS",
+      "release_state": "BLOCKED_UNTIL_CERTIFIED"
+    },
+    {
+      "industry_id": "technology_digital",
+      "profile_version": 1,
+      "site_kind_hints": [
+        "project",
+        "showroom"
+      ],
+      "first_site_hint": "project",
+      "site_hints_advisory": true,
+      "automatic_modules": [],
+      "automatic_roles": [],
+      "jurisdiction_policy": "REQUIRES_OWNER_AND_DOMAIN_VALIDATION",
+      "financial_policy": "UNSPECIFIED_NO_DEFAULTS",
+      "release_state": "BLOCKED_UNTIL_CERTIFIED"
+    },
+    {
+      "industry_id": "services",
+      "profile_version": 1,
+      "site_kind_hints": [
+        "project",
+        "showroom"
+      ],
+      "first_site_hint": "project",
+      "site_hints_advisory": true,
+      "automatic_modules": [],
+      "automatic_roles": [],
+      "jurisdiction_policy": "REQUIRES_OWNER_AND_DOMAIN_VALIDATION",
+      "financial_policy": "UNSPECIFIED_NO_DEFAULTS",
+      "release_state": "BLOCKED_UNTIL_CERTIFIED"
+    }
+  ]
+}
