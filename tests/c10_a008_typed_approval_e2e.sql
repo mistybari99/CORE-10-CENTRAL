@@ -176,8 +176,10 @@ SELECT c10_demo.submit_typed_approval_v1(
   '{"amount":2}'::jsonb,'request_expired_01');
 RESET ROLE;
 -- PostgreSQL superuser edits a synthetic test fixture to avoid 5-minute sleep.
-UPDATE c10_demo.approval_requests SET expires_at_v1 = clock_timestamp() - interval '1 second'
- WHERE id=2;
+UPDATE c10_demo.approval_requests
+SET created_at = clock_timestamp() - interval '2 hours',
+    expires_at_v1 = clock_timestamp() - interval '1 hour'
+WHERE id=2;
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
 DO $t$
