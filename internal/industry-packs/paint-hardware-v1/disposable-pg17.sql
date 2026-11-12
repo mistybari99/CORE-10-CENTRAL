@@ -113,7 +113,7 @@ BEGIN
     p_request IS NULL OR p_request !~ '^[A-Za-z0-9_-]{8,100}$' THEN
     RAISE EXCEPTION 'PAINT_INVALID_COMMAND';
  END IF;
- v_hash:=encode(digest(p_command||':'||p_payload::text,'sha256'),'hex');
+ v_hash:=encode(public.digest(p_command||':'||p_payload::text,'sha256'),'hex');
  INSERT INTO c10_demo.paint_receipt_v1(tenant_id,business_id,request_key,actor,command,payload_hash)
  VALUES(v_tenant,p_business,p_request,v_actor,p_command,v_hash)
  ON CONFLICT(business_id,request_key) DO NOTHING;
