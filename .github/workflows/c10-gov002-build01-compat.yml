@@ -1,0 +1,89 @@
+name: C10 GOV002 Build01 pinned authority compatibility PG17
+on:
+  pull_request:
+    paths:
+      - 'tests/c10_gov002_build01_access_compat_e2e.sql'
+      - '.github/workflows/c10-gov002-build01-compat.yml'
+      - 'docs/development/C10_GOV002_BUILD01_HANDOFF_20261112.md'
+  push:
+    branches: ['feature/c10-gov002-*']
+    paths:
+      - 'tests/c10_gov002_build01_access_compat_e2e.sql'
+      - '.github/workflows/c10-gov002-build01-compat.yml'
+permissions:
+  contents: read
+jobs:
+  cross-build17:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: compatibility_disposable_only
+          POSTGRES_DB: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: compatibility_disposable_only
+      PGDATABASE: core10_build01_sql_89002
+      CORE10_BUILD01_DISPOSABLE_ACK: I_CONFIRM_BUILD01_DISPOSABLE
+    steps:
+      - name: Checkout GOV002 without modifying source branch
+        uses: actions/checkout@v4
+        with:
+          path: build02
+          persist-credentials: false
+      - name: Checkout EXACT Codex Build01 checkpoint, read-only
+        uses: actions/checkout@v4
+        with:
+          path: build01
+          ref: 0dccbd1808ba16e6ce39e1f7b211e8578a6d2837
+          persist-credentials: false
+      - name: Verify pinned Build01 source (never track a moving branch silently)
+        run: |
+          test "$(git -C build01 rev-parse HEAD)" = "0dccbd1808ba16e6ce39e1f7b211e8578a6d2837"
+          test "$PGHOST" = "127.0.0.1"
+          echo "Pinned Codex GOV001 source: $(git -C build01 rev-parse HEAD)"
+          echo "GOV002 source: $(git -C build02 rev-parse HEAD)"
+      - name: Install PostgreSQL CLI and create disposable database
+        run: |
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+          PGDATABASE=postgres psql -X -v ON_ERROR_STOP=1 -c 'CREATE DATABASE core10_build01_sql_89002'
+          psql -X -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='service_role')
+            THEN CREATE ROLE service_role NOLOGIN; END IF;
+          END$$;
+          SQL
+      - name: Load unchanged pinned Build01 canonical hierarchy, access and expiry
+        run: bash build01/tests/build01/run-load.sh
+      - name: Install unchanged GOV002 typed approval and reporting stack
+        run: |
+          for file in \
+            c10_a008_atomic_approval_draft.sql \
+            c10_a008_typed_approval_v1.sql \
+            c10_a008_scoped_inbox_v1.sql \
+            c10_a008_routing_delegation_withdrawal_v1.sql \
+            c10_a008_threshold_units_v1.sql \
+            c10_a008_demo_source_post_reverse_v1.sql \
+            c10_a008_scoped_outcome_report_v1.sql \
+            c10_a008_bounded_exception_escalation_v1.sql \
+            c10_a008_scoped_activity_feed_v1.sql; do
+            echo "LOAD GOV002 $file"
+            psql -X -v ON_ERROR_STOP=1 -f "build02/internal/enterprise-sql/$file"
+          done
+      - name: GOV002 approval under Build01 canonical membership expiry/revocation
+        run: psql -X -v ON_ERROR_STOP=1 -f build02/tests/c10_gov002_build01_access_compat_e2e.sql
+      - name: Confirm zero business or approval records survive test rollback
+        run: |
+          test "$(psql -X -tA -c 'SELECT count(*) FROM c10_demo.approval_requests')" = 0
+          test "$(psql -X -tA -c 'SELECT count(*) FROM c10_demo.approval_events')" = 0
+          test "$(psql -X -tA -c 'SELECT count(*) FROM c10_demo.approval_demo_execution_receipts_v1')" = 0
+          echo 'PASS: synthetic compatibility test left no domain posting and no approval rows'
