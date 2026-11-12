@@ -139,6 +139,27 @@ export function createProcurementKernel(input) {
       fail('SUPPLIER_NOT_ELIGIBLE');
     return supplier;
   };
+  function compareQuotes(actor, requisitionId, onDate) {
+    day(onDate);
+    const req=get(s.requisitions,requisitionId,'REQUISITION');
+    assertActor(actor,ctx,'proc.quote.compare',req.siteId);
+    const quotes=Object.values(s.quotes).filter(x=>x.requisitionId===req.id);
+    if(!quotes.length) return {requisitionId,quotes:[],comparison:'NO_QUOTES'};
+    const currencies=new Set(quotes.map(x=>x.currency));
+    if(currencies.size!==1) fail('MIXED_CURRENCY_COMPARISON_DENIED');
+    const entries=quotes.map(x=>({
+      quoteId:x.id, supplierId:x.supplierId,currency:x.currency,
+      uom:req.uom,unitPriceMinor:x.unitPriceMinor,leadDays:x.leadDays,
+      taxMinor:x.taxMinor,freightMinor:x.freightMinor,
+      totalMinor:exactMinor(x.unitPriceMinor,req.qtyMilli)+x.taxMinor+x.freightMinor,
+      eligible:x.validThrough>=onDate && s.suppliers[x.supplierId]?.status==='ACTIVE' &&
+        s.suppliers[x.supplierId]?.validThrough>=onDate &&
+        !s.suppliers[x.supplierId]?.relatedPartyHold
+    }));
+    entries.sort((a,b)=>a.totalMinor-b.totalMinor || a.quoteId.localeCompare(b.quoteId));
+    return clone({requisitionId,currency:entries[0].currency,quotes:entries,
+      comparison:'ADVISORY_ONLY_NO_AUTO_SUPPLIER_SELECTION',formula:'ROUND_HALF_UP(unit_minor*qty_milli/1000)+explicit_tax_minor+explicit_freight_minor'});
+  }
   function report(actor) {
     assertActor(actor, ctx, 'proc.report');
     const included = new Set(actor.siteIds || []);
@@ -373,7 +394,7 @@ export function createProcurementKernel(input) {
     s=tx;
     return clone(receipt);
   }
-  return Object.freeze({dispatch,report,
+  return Object.freeze({dispatch,report,compareQuotes,
     describe:()=>({tenantId:ctx.tenantId,businessId:ctx.businessId,sites:[...ctx.sites],
       authority:'ISOLATED_DRAFT_ONLY',sideEffects:'NONE',implementedCommands:Object.keys(policy)}),
     inspect:(actor)=>{assertActor(actor,ctx,'proc.audit.read');return clone(s);}
