@@ -60,6 +60,13 @@ for file in \
  c10_a056_core_v1 c10_a056_pipeline_v1 c10_a056_growth_v1; do
   load "internal/enterprise-sql/$file.sql"
 done
+# Build 01 regression mode exercises the new canonical predicates against the
+# ENTIRE existing module stack; default Preview One behavior is unchanged.
+if [[ "${CORE10_PREVIEW_BUILD01:-0}" == 1 ]]; then
+  load internal/enterprise-sql/c10_a020_industry_draft_v2.sql
+  load internal/enterprise-sql/c10_a034_access_governance_v1.sql
+  load internal/enterprise-sql/c10_build01_access_integration_v1.sql
+fi
 # Each matrix job runs the COMPLETE migration stack in one database before its
 # unmodified module regression. Tests never borrow data from another job.
 case "$suite" in
