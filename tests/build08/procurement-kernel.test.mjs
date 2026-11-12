@@ -268,3 +268,32 @@ test('invalid date and fractional stock quantity are refused',()=>{
   denied(()=>h.send('requisition.create',{id:'R',siteId:'SITE-A',itemId:'X',uom:'KG',
     sourceDemandId:'D',neededOn:'2026-11-20',qtyMilli:1.25}),'INVALID_POSITIVE_INTEGER');
 });
+
+test('comparable supplier quotations are ranked by full explicit charge, without automatic PO choice',()=>{
+  const h=harness();h.prepare('DRAFT');
+  h.send('quote.add',{id:'QUOTE-2',requisitionId:'REQ-1',supplierId:'SUP-1',
+    uom:'KG',currency:'BDT',unitPriceMinor:20000,taxMinor:1000,freightMinor:0,
+    leadDays:3,validThrough:'2026-12-01'});
+  const view=h.kernel.compareQuotes(actor('maker',['SITE-A'],{
+    permissions:[...roles.maker,'proc.quote.compare']
+  }),'REQ-1','2026-11-12');
+  assert.equal(view.quotes.length,2);
+  assert.equal(view.quotes[0].quoteId,'QUOTE-2');
+  assert.equal(view.quotes[0].totalMinor,201000);
+  assert.equal(view.comparison,'ADVISORY_ONLY_NO_AUTO_SUPPLIER_SELECTION');
+});
+test('mixed quote currencies fail closed instead of applying an invented FX rate',()=>{
+  const h=harness();h.prepare('DRAFT');
+  h.send('quote.add',{id:'USD-QUOTE',requisitionId:'REQ-1',supplierId:'SUP-1',
+    uom:'KG',currency:'USD',unitPriceMinor:100,taxMinor:0,freightMinor:0,
+    leadDays:2,validThrough:'2026-12-01'});
+  denied(()=>h.kernel.compareQuotes(actor('maker',['SITE-A'],{
+    permissions:[...roles.maker,'proc.quote.compare']
+  }),'REQ-1','2026-11-12'),'MIXED_CURRENCY_COMPARISON_DENIED');
+});
+test('quote comparison remains site-scoped and never trusts supplied user identity',()=>{
+  const h=harness();h.prepare('DRAFT');
+  denied(()=>h.kernel.compareQuotes(actor('maker',['SITE-B'],{
+    permissions:[...roles.maker,'proc.quote.compare']
+  }),'REQ-1','2026-11-12'),'SITE_DENIED');
+});
