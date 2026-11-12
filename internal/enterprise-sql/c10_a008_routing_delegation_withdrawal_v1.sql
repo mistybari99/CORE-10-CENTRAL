@@ -52,6 +52,7 @@ CREATE TABLE c10_demo.approval_delegations_v1 (
   granted_by uuid NOT NULL,
   delegated_to uuid NOT NULL,
   delegation_key text NOT NULL CHECK(delegation_key ~ '^[A-Za-z0-9_-]{8,128}$'),
+  requested_minutes integer NOT NULL CHECK(requested_minutes BETWEEN 5 AND 1440),
   valid_until timestamptz NOT NULL,
   created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
   revoked_by uuid,
@@ -72,6 +73,32 @@ CREATE POLICY approval_delegate_read_v1 ON c10_demo.approval_delegations_v1
   );
 REVOKE ALL ON c10_demo.approval_delegations_v1 FROM PUBLIC,anon,authenticated;
 GRANT SELECT ON c10_demo.approval_delegations_v1 TO authenticated;
+
+-- Append-only grant/revoke audit. The mutable revoked_at flag is only current
+-- enforcement state; this journal proves WHO granted/revoked and WHEN.
+CREATE TABLE c10_demo.approval_delegation_events_v1 (
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  delegation_id bigint NOT NULL REFERENCES c10_demo.approval_delegations_v1(id),
+  request_id bigint NOT NULL REFERENCES c10_demo.approval_requests(id),
+  tenant_id bigint NOT NULL,
+  business_id bigint NOT NULL,
+  actor_id uuid NOT NULL,
+  action text NOT NULL CHECK(action IN ('grant','revoke')),
+  created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+  UNIQUE(delegation_id,action)
+);
+ALTER TABLE c10_demo.approval_delegation_events_v1 ENABLE ROW LEVEL SECURITY;
+CREATE POLICY approval_delegation_event_read_v1
+ ON c10_demo.approval_delegation_events_v1 FOR SELECT TO authenticated USING (
+   c10_demo.can_manage(tenant_id,business_id)
+   OR EXISTS (
+     SELECT 1 FROM c10_demo.approval_delegations_v1 d
+      WHERE d.id=delegation_id AND d.delegated_to=c10_demo.actor_uid()
+       AND c10_demo.can_business(d.tenant_id,d.business_id)
+   )
+ );
+REVOKE ALL ON c10_demo.approval_delegation_events_v1 FROM PUBLIC,anon,authenticated;
+GRANT SELECT ON c10_demo.approval_delegation_events_v1 TO authenticated;
 
 -- Stage receipt is append-only, links to the canonical audit event, and
 -- records actual actor versus grantor. No direct app writes to either table.
@@ -171,7 +198,7 @@ BEGIN
   WHERE request_id=p_request AND stage_no=1;
  IF FOUND THEN
    IF v_prev.delegation_key<>p_key OR v_prev.granted_by<>v_actor
-      OR v_prev.delegated_to<>p_delegate
+      OR v_prev.delegated_to<>p_delegate OR v_prev.requested_minutes<>p_minutes
    THEN RAISE EXCEPTION 'delegation_replay_conflict'; END IF;
    RETURN v_prev.id;
  END IF;
@@ -180,9 +207,12 @@ BEGIN
  IF v_until<=clock_timestamp() THEN RAISE EXCEPTION 'delegation_invalid_expiry'; END IF;
  INSERT INTO c10_demo.approval_delegations_v1
  (request_id,tenant_id,business_id,stage_no,granted_by,delegated_to,
-  delegation_key,valid_until)
+  delegation_key,requested_minutes,valid_until)
  VALUES(p_request,v_req.tenant_id,v_req.business_id,1,v_actor,p_delegate,
-        p_key,v_until) RETURNING id INTO v_id;
+        p_key,p_minutes,v_until) RETURNING id INTO v_id;
+ INSERT INTO c10_demo.approval_delegation_events_v1
+  (delegation_id,request_id,tenant_id,business_id,actor_id,action)
+ VALUES(v_id,p_request,v_req.tenant_id,v_req.business_id,v_actor,'grant');
  RETURN v_id;
 END $fn$;
 
@@ -204,7 +234,14 @@ BEGIN
  UPDATE c10_demo.approval_delegations_v1
   SET revoked_at=clock_timestamp(),revoked_by=v_actor
   WHERE request_id=p_request AND revoked_at IS NULL;
- RETURN FOUND;
+ IF FOUND THEN
+   INSERT INTO c10_demo.approval_delegation_events_v1
+    (delegation_id,request_id,tenant_id,business_id,actor_id,action)
+   SELECT d.id,d.request_id,d.tenant_id,d.business_id,v_actor,'revoke'
+   FROM c10_demo.approval_delegations_v1 d WHERE d.request_id=p_request;
+   RETURN true;
+ END IF;
+ RETURN false;
 END $fn$;
 
 -- The only transition API remains decide_approval. Route steps never write
@@ -264,7 +301,12 @@ BEGIN
    IF v_stages[v_next]='tenant_owner' THEN
       v_can := c10_demo.can_tenant(v_req.tenant_id);
    ELSIF v_stages[v_next]='business_owner' THEN
-      v_can := c10_demo.can_manage(v_req.tenant_id,v_req.business_id);
+      -- Exact role, not the wider can_manage() owner-of-tenant shortcut.
+      v_can := EXISTS(SELECT 1 FROM c10_demo.business_members owner
+        WHERE owner.tenant_id=v_req.tenant_id
+          AND owner.business_id=v_req.business_id
+          AND owner.user_id=v_actor AND owner.role='business_owner'
+          AND owner.active);
       IF NOT v_can THEN
         SELECT d.granted_by INTO v_delegator
         FROM c10_demo.approval_delegations_v1 d
