@@ -79,18 +79,17 @@ test("locale and tax jurisdiction remain explicit unapproved inputs",()=>{
 });
 test("Build01 adapter uses only explicit signed-context candidate and immutable supplied replay key",()=>{
   const plan=engine.normalizeDraft(draft());
-  const ctx={legal_entities:[{id:4}],templates:[{industry_id:"paint_hardware",code:"hardware_paint",available:true}]};
+  const ctx={legal_entities:[{id:4}],templates:[{industry_id:"paint_hardware",code:"paint_hardware",source_status:"not_implemented",draft_supported:true}]};
   const r=engine.toBuild01Request(plan,ctx,"build04_request_01234567");
-  assert.equal(r.template,"hardware_paint");
+  assert.equal(r.template,"paint_hardware");
   assert.equal(r.legalId,4);
-  assert.equal(r.authority,"REVERIFY_AT_BUILD01_RPC");
-  assert.deepEqual(r.omittedByDesign,["requested_modules","locale_code","jurisdiction_code"]);
+  assert.deepEqual(Object.keys(r).sort(),["legalId","slug","template","displayName","mode","sites","requestKey","brandHex"].sort());
 });
 test("Build01 adapter blocks foreign legal, unready template, forged context and invalid replay key",()=>{
   const plan=engine.normalizeDraft(draft());
-  const ctx={legal_entities:[{id:4}],templates:[{industry_id:"paint_hardware",code:"hardware_paint",available:true}]};
+  const ctx={legal_entities:[{id:4}],templates:[{industry_id:"paint_hardware",code:"paint_hardware",source_status:"not_implemented",draft_supported:true}]};
   code(()=>engine.toBuild01Request(plan,{...ctx,legal_entities:[{id:5}]},"build04_request_01234567"),"SETUP_CONTEXT_LEGAL_NOT_PRESENT");
-  code(()=>engine.toBuild01Request(plan,{...ctx,templates:[{industry_id:"paint_hardware",code:"hardware_paint",available:false}]},"build04_request_01234567"),"SETUP_CONTEXT_TEMPLATE_UNAVAILABLE");
+  code(()=>engine.toBuild01Request(plan,{...ctx,templates:[{industry_id:"paint_hardware",code:"paint_hardware",source_status:"not_implemented",draft_supported:false}]},"build04_request_01234567"),"SETUP_CONTEXT_TEMPLATE_UNAVAILABLE");
   code(()=>engine.toBuild01Request(plan,{...ctx,is_owner:true},"build04_request_01234567"),"SETUP_CONTEXT_INVALID");
   code(()=>engine.toBuild01Request(plan,ctx,"short"),"SETUP_REQUEST_KEY_INVALID");
 });
