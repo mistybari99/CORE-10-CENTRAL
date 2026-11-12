@@ -5,6 +5,7 @@ on:
       - 'internal/enterprise-client/c10_gov002_*'
       - 'docs/preview/c10-gov002-*'
       - 'tests/c10_gov002_review_ui_*'
+      - 'tests/c10_gov002_scoped_reports_v1.test.mjs'
       - '.github/workflows/c10-gov002-review-ui.yml'
   push:
     branches: ['feature/c10-gov002-*']
@@ -12,6 +13,7 @@ on:
       - 'internal/enterprise-client/c10_gov002_*'
       - 'docs/preview/c10-gov002-*'
       - 'tests/c10_gov002_review_ui_*'
+      - 'tests/c10_gov002_scoped_reports_v1.test.mjs'
       - '.github/workflows/c10-gov002-review-ui.yml'
 permissions:
   contents: read
@@ -78,6 +80,7 @@ jobs:
           node --test tests/c10_a008_activity_csv_v1.test.mjs
           node --test tests/c10_a008_signed_review_client_v1.test.mjs
           node --test tests/c10_gov002_review_ui_model_v1.test.mjs
+          node --test tests/c10_gov002_scoped_reports_v1.test.mjs
           node --check internal/enterprise-client/c10_gov002_review_ui_v1.mjs
           node --check internal/enterprise-client/c10_gov002_signed_review_entry_v1.mjs
       - name: Chromium 390px/1440px real browser smoke + mock action confirmation
