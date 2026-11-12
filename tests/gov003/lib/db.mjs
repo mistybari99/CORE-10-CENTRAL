@@ -44,8 +44,8 @@ export function exec(db, sql, ctx = {}) {
 }
 /** Run a SELECT-able query and return rows as objects (via json_agg). */
 export function rows(db, query, ctx = {}) {
-  const out = exec(db, `select coalesce(json_agg(t), '[]'::json) from (${query}) t;`, ctx).trim();
-  return JSON.parse(out.split('\n').filter(Boolean).pop());
+  const out = exec(db, `select coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) from (${query}) t;`, ctx).trim();
+  return JSON.parse(out);
 }
 export const one = (db, query, ctx) => rows(db, query, ctx)[0];
 

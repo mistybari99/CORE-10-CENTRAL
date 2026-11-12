@@ -1,0 +1,76 @@
+name: c10-gov003-standalone-pg17
+
+# GOV-003 isolated test bed. Disposable PostgreSQL 17 service only. No deploy. No secrets. No production access.
+on:
+  push:
+    paths:
+      - 'internal/gov003/**'
+      - 'tests/gov003/**'
+      - 'docs/development/GOV003_*'
+      - '.github/workflows/c10-gov003-standalone-pg17.yml'
+  pull_request:
+    paths:
+      - 'internal/gov003/**'
+      - 'tests/gov003/**'
+      - 'docs/development/GOV003_*'
+      - '.github/workflows/c10-gov003-standalone-pg17.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: c10-gov003-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gov003:
+    name: GOV-003 PG17 + Node
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      G3_EXPECT_PG_MAJOR: '17'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Tool versions
+        run: |
+          node --version
+          psql --version
+          psql -d postgres -Atc "show server_version"
+      - name: Isolation fence (only GOV003 paths may change)
+        if: github.event_name == 'pull_request'
+        run: |
+          base="origin/${{ github.base_ref }}"
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          bad=$(git diff --name-only "$base"...HEAD | grep -vE '^(internal/gov003/|tests/gov003/|docs/development/GOV003_|docs/development/CLAUDE_BUILD03_GOV003_|\.github/workflows/c10-gov003-standalone-pg17\.yml$)' || true)
+          if [ -n "$bad" ]; then echo "Files outside the GOV-003 fence changed:"; echo "$bad"; exit 1; fi
+          echo "Fence OK"
+      - name: Static safety checks
+        run: node tests/gov003/static-checks.mjs
+      - name: SQL + Node suites (fresh PG17 databases, real two-session races)
+        run: node --test --test-concurrency=2 tests/gov003/node/ tests/gov003/sql/
+      - name: Demo end-to-end (local API + browser-less HTTP contract)
+        run: node --test tests/gov003/demo/
+      - name: Evidence line
+        if: always()
+        run: echo "GOV003 head=${GITHUB_SHA} job_status=${{ job.status }}"
