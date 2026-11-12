@@ -155,3 +155,54 @@ test("account switch during approval or exception RPC rejects stale success rece
   await assert.rejects(createGov002ReviewClient(f.supabase)[method](args),/signed_actor_changed/);
  }
 });
+
+test("account switch during paginated read rejects stale page before rendering",async()=>{
+ let actor="actor-A";
+ const f=fakeSupabase();
+ f.supabase.auth.getUser=async()=>({data:{user:{id:actor}},error:null});
+ const originalSchema=f.supabase.schema;
+ f.supabase.schema=(schema)=>{
+  const db=originalSchema(schema),originalFrom=db.from;
+  db.from=(view)=>{
+   const q=originalFrom(view);
+   q.range=async(start,end)=>{
+    assert.equal(start,0);assert.equal(end,24);
+    actor="actor-B";
+    return {data:[event],error:null};
+   };
+   return q;
+  };
+  return db;
+ };
+ await assert.rejects(createGov002ReviewClient(f.supabase).listActivityPage({businessId:101,limit:25}),/signed_actor_changed/);
+});
+test("account switch during current reviewer task RPC rejects stale task list",async()=>{
+ let actor="actor-A";
+ const f=fakeSupabase();
+ f.supabase.auth.getUser=async()=>({data:{user:{id:actor}},error:null});
+ const originalSchema=f.supabase.schema;
+ f.supabase.schema=(schema)=>{
+  const db=originalSchema(schema),originalRpc=db.rpc;
+  db.rpc=async(...args)=>{
+   assert.equal(args[0],"my_routed_review_tasks_v2");
+   await originalRpc(...args);
+   actor="actor-B";
+   return {data:[{business_id:101,request_id:27,stage_no:1,stage_total:2}],error:null};
+  };
+  return db;
+ };
+ await assert.rejects(createGov002ReviewClient(f.supabase).listReviewerTasks({businessId:101}),/signed_actor_changed/);
+});
+test("auth revocation after backend response rejects data and RPC receipts",async()=>{
+ for(const method of ["listActivity","decideApproval"]){
+  let checks=0;
+  const f=fakeSupabase();
+  f.supabase.auth.getUser=async()=>{
+   checks++;
+   return checks===1?{data:{user:{id:"actor-A"}},error:null}:{data:{user:null},error:null};
+  };
+  const args=method==="listActivity"?{businessId:101}:{requestId:7,action:"approve",idempotencyKey:"revoked_actor_01"};
+  await assert.rejects(createGov002ReviewClient(f.supabase)[method](args),/auth_required/);
+  assert.equal(checks,2);
+ }
+});
