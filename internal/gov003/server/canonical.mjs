@@ -98,7 +98,7 @@ export function strictJsonParse(text) {
   let bad = null;
   const dupCheck = (t) => {
     // Detect duplicate keys cheaply: re-scan with a tiny tokenizer only over object key positions.
-    const seen = []; let i = 0; const n = t.length;
+    let i = 0; const n = t.length;
     const skipStr = () => { i++; while (i < n && t[i] !== '"') { if (t[i] === '\\') i++; i++; } i++; };
     const stack = [];
     while (i < n) {
@@ -120,7 +120,6 @@ export function strictJsonParse(text) {
       else if (c === ',') { const top = stack[stack.length - 1]; if (top && top.type === 'o') top.expectKey = true; }
       i++;
     }
-    void seen;
   };
   const value = JSON.parse(text, function reviver(_k, v, ctx) {
     if (typeof v === 'number') {
