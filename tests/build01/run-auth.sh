@@ -27,7 +27,7 @@ if [[ -z "${CORE10_BUILD01_AUTH_DIRECTORY:-}" ]]; then
 fi
 rest_binary=${CORE10_BUILD01_POSTGREST_BINARY:-"$runtime/postgrest"}
 if [[ -z "${CORE10_BUILD01_POSTGREST_BINARY:-}" ]]; then
-  curl -fsSL --retry 2 https://github.com/PostgREST/postgrest/releases/download/v12.2.12/postgrest-v12.2.12-linux-static-x64.tar.xz -o "$runtime/postgrest.tar.xz"
+  curl -fsSL --retry 2 https://github.com/PostgREST/postgrest/releases/download/v12.2.12/postgrest-v12.2.12-linux-static-x86-64.tar.xz -o "$runtime/postgrest.tar.xz"
   printf '%s  %s\n' 5de4092f1719da3353c40bf96c8dec6913f2254a7cd0b61cc05f233153b557d5 "$runtime/postgrest.tar.xz" | sha256sum --check
   tar -xJf "$runtime/postgrest.tar.xz" -C "$runtime"
 fi
