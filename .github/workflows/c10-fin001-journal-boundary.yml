@@ -1,0 +1,34 @@
+name: CORE10 FIN001 Draft Journal Boundary (NO LIVE POSTING)
+
+on:
+  push:
+    branches:
+      - chatgpt/build-11-fin001-journal-boundary-20261112
+    paths:
+      - 'internal/enterprise-finance/**'
+      - 'tests/c10_fin001_journal_boundary_v1.test.mjs'
+      - '.github/workflows/c10-fin001-journal-boundary.yml'
+  pull_request:
+    paths:
+      - 'internal/enterprise-finance/**'
+      - 'tests/c10_fin001_journal_boundary_v1.test.mjs'
+      - '.github/workflows/c10-fin001-journal-boundary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Pure FIN001 contract and negative tests
+        run: node --test tests/c10_fin001_journal_boundary_v1.test.mjs
+      - name: Assert draft boundary cannot post
+        run: |
+          node --input-type=module -e "import { postJournal, FinanceGateError } from './internal/enterprise-finance/c10_fin001_journal_boundary_v1.mjs'; try { postJournal(); process.exit(1); } catch (e) { if (!(e instanceof FinanceGateError) || e.code !== 'FIN_CANONICAL_POSTING_ADAPTER_NOT_CONNECTED') process.exit(1); }"
