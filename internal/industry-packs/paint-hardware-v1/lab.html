@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="demo-token" content="__DEMO_TOKEN__">
+<title>Paint & Hardware — Workflow Lab (Synthetic)</title>
+<link rel="stylesheet" href="/lab.css">
+<script src="/lab.js" defer></script>
+</head>
+<body>
+<div class="shell">
+<aside class="side">
+  <div class="brand"><span class="brand-icon" aria-hidden="true">◈</span><span><b>Paint & Hardware</b><small>Industry workflow lab</small></span></div>
+  <div class="mode">SYNTHETIC DATA · NO LIVE CONNECTION</div>
+  <nav aria-label="Sections">
+    <a href="#workflow" class="nav-link selected">◉ <span>Tinting & QC</span></a>
+    <a href="#commercial" class="nav-link">▦ <span>Dealer & Finance</span></a>
+    <a href="#safety" class="nav-link">◇ <span>Safety & Hardware</span></a>
+    <a href="#activity" class="nav-link">≡ <span>Audit trail</span></a>
+  </nav>
+  <p class="aside-note">এই পেজটি শুধু fake data দিয়ে পরীক্ষা করার জন্য। Stock, sale, cash, tax বা ledger বদলায় না।</p>
+</aside>
+<main class="main">
+  <header class="top">
+    <div><p class="eyebrow">BUILD 05 / PREVIEW WORKSPACE</p><h1>Paint Operations</h1><p class="subtitle">টিন্টিং থেকে QC, dealer exposure এবং evidence-based reporting</p></div>
+    <div class="top-meta"><span class="pill">● DEMO ONLY</span><span class="asof">Fixture · 12 Nov 2026</span></div>
+  </header>
+  <div id="notice" class="notice" role="status" aria-live="polite">ডেমো চালু হচ্ছে…</div>
+  <section id="workflow" aria-labelledby="workflow-title">
+    <div class="section-title"><div><p class="eyebrow">01 / WORKFLOW</p><h2 id="workflow-title">Tinting & quality control</h2></div><span id="workflow-status" class="status">DRAFT</span></div>
+    <div class="stats">
+      <article class="metric"><span class="metric-name">Formula</span><strong id="formula-id">—</strong><small id="formula-version">Version —</small></article>
+      <article class="metric"><span class="metric-name">Base quantity</span><strong id="base-volume">—</strong><small>Unit: Litre (not KG)</small></article>
+      <article class="metric"><span class="metric-name">QC rounds</span><strong id="qc-rounds">0</strong><small>Independent checker required</small></article>
+      <article class="metric"><span class="metric-name">Actual stock posting</span><strong>0</strong><small>Not integrated · blocked</small></article>
+    </div>
+    <article class="panel workflow-panel">
+      <div class="panel-head"><div><h3>Step-by-step demo</h3><p>এই workflow-তে শুধু safe synthetic transitions ঘটবে</p></div><button id="reset" class="button ghost" data-action="reset">Reset demo</button></div>
+      <ol class="steps" aria-label="Workflow status"><li>Draft ticket</li><li>Record mix</li><li>Independent QC</li><li>Quote preview</li></ol>
+      <div class="actions">
+        <button data-action="start" class="button primary">1. Start tint</button>
+        <button data-action="mix" class="button">2. Record mix</button>
+        <button data-action="qc-fail" class="button warn">3a. Test QC fail</button>
+        <button data-action="rework" class="button">4. Rework</button>
+        <button data-action="qc-pass" class="button">3b. Test QC pass</button>
+      </div>
+      <div class="detail-grid">
+        <div class="detail"><span>Ticket</span><b id="ticket-id">Not created</b></div>
+        <div class="detail"><span>Output</span><b id="output-sku">—</b></div>
+        <div class="detail"><span>Expected tint doses</span><b id="tint-doses">—</b></div>
+        <div class="detail"><span>QC Evidence</span><b id="qc-evidence">—</b></div>
+      </div>
+    </article>
+    <article class="panel quote"><div><h3>Dealer quote — preview</h3><p>Tax rate unknown; this amount is NOT a payable invoice.</p></div><div><strong id="quote-value">Not available until QC passes</strong><small id="quote-source">No approved price snapshot for actual transaction</small></div></article>
+  </section>
+  <section id="commercial" aria-labelledby="commercial-title">
+    <div class="section-title"><div><p class="eyebrow">02 / COMMERCIAL</p><h2 id="commercial-title">Dealer & profitability evidence</h2></div></div>
+    <div class="cards-3">
+      <article class="panel card"><div class="card-label">Dealer credit</div><h3 id="credit-status">—</h3><p id="credit-detail">—</p><small>Receivables + pending orders + proposed amount</small></article>
+      <article class="panel card"><div class="card-label">Principal scheme</div><h3 id="scheme-value">—</h3><p id="scheme-detail">—</p><small>Estimated only, not earned or received cash</small></article>
+      <article class="panel card"><div class="card-label">Certified gross margin</div><h3 id="profit-value">—</h3><p id="profit-detail">—</p><small>Missing freight / uncertified COGS = UNKNOWN</small></article>
+    </div>
+  </section>
+  <section id="safety" aria-labelledby="safety-title">
+    <div class="section-title"><div><p class="eyebrow">03 / CONTROL</p><h2 id="safety-title">Safety, cheque & serial</h2></div></div>
+    <div class="cards-3">
+      <article class="panel card"><div class="card-label">SDS safety</div><h3 id="sds-status">—</h3><p id="sds-detail">—</p><small>No shipment authority</small></article>
+      <article class="panel card"><div class="card-label">Post-dated cheque</div><h3>Instrument held</h3><p id="pdc-detail">—</p><small>Not payment until bank and ledger reconciliation</small></article>
+      <article class="panel card"><div class="card-label">Hardware serial</div><h3>Variant + warranty</h3><p id="serial-detail">—</p><small>Sale source required before warranty activation</small></article>
+    </div>
+  </section>
+  <section id="activity" aria-labelledby="activity-title">
+    <div class="section-title"><div><p class="eyebrow">04 / TRACEABILITY</p><h2 id="activity-title">Synthetic event history</h2></div></div>
+    <article class="panel"><ul id="audit-list" class="audit-list"><li>Waiting for fixture…</li></ul></article>
+  </section>
+  <footer>Industry Pack · Non-posting draft · No Supabase, real accounts or stock journal connected.</footer>
+</main>
+</div>
+</body>
+</html>
