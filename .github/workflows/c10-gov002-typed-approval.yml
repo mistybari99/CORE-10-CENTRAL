@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'internal/enterprise-sql/c10_a008_typed_approval_v1.sql'
+      - 'internal/enterprise-sql/c10_a008_scoped_inbox_v1.sql'
+      - 'tests/c10_a008_scoped_inbox_e2e.sql'
       - 'internal/enterprise-sql/c10_a008_atomic_approval_draft.sql'
       - 'tests/c10_a008_typed_approval_e2e.sql'
       - '.github/workflows/c10-gov002-typed-approval.yml'
@@ -11,6 +13,8 @@ on:
       - 'feature/c10-gov002-*'
     paths:
       - 'internal/enterprise-sql/c10_a008_typed_approval_v1.sql'
+      - 'internal/enterprise-sql/c10_a008_scoped_inbox_v1.sql'
+      - 'tests/c10_a008_scoped_inbox_e2e.sql'
       - 'tests/c10_a008_typed_approval_e2e.sql'
       - '.github/workflows/c10-gov002-typed-approval.yml'
   workflow_dispatch:
@@ -68,3 +72,7 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_typed_approval_v1.sql
       - name: Verify version pin, scoped approvals, replay, stale/expiry/ACL negatives and zero posting
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_typed_approval_e2e.sql
+      - name: Enforce source-scoped approval inbox RLS
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_scoped_inbox_v1.sql
+      - name: Verify maker/approver, revoked, site-only, foreign tenant and anon inbox privacy
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_scoped_inbox_e2e.sql
