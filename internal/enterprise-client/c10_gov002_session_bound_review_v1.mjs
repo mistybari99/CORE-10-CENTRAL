@@ -8,7 +8,7 @@ const METHODS=Object.freeze([
   'listStatus','listExceptions','listActivity',
   'decideApproval','withdrawApproval','requestException',
   'decideException','withdrawException','exportActivityCsv',
-  'listStatusPage','listExceptionsPage','listActivityPage'
+  'listStatusPage','listExceptionsPage','listActivityPage','listReviewerTasks'
 ]);
 const INVALIDATING_EVENTS=new Set([
   'SIGNED_OUT','USER_DELETED','PASSWORD_RECOVERY','MFA_CHALLENGE_VERIFIED'
