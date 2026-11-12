@@ -293,6 +293,7 @@ GRANT EXECUTE ON FUNCTION c10_demo.publish_approval_policy_v1(bigint,text,text,i
   TO authenticated;
 GRANT EXECUTE ON FUNCTION c10_demo.submit_typed_approval_v1(bigint,text,text,text,bigint,jsonb,text)
   TO authenticated;
+GRANT USAGE ON SCHEMA c10_demo TO service_role;
 GRANT EXECUTE ON FUNCTION c10_demo.verify_approval_binding_v1(bigint,bigint,text,text,text,bigint,jsonb)
   TO service_role;
 -- The pre-existing A008 decide_approval grant stays authenticated.
