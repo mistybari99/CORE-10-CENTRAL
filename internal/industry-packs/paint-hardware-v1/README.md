@@ -8,7 +8,11 @@ This is **C10-CAP-PAINT-001**, existing Decision Book rows 270–281. Owner's la
 
 `dealership.mjs` / `dealership.test.mjs`: sealed litres/4L pack pricing with no KG conflation; dealer credit exposure and limit using versioned outstanding+pending source snapshots; principal scheme effective dates, net-of-return eligible invoice rebates; separate submitted/approved/receipt-evidenced claim and reconciliation unknown; PDC instrument / maturity / bounce / clearance-evidence-only; SDS revision/expiry/hazard storage draft gate; quarantine and lineage of returned tint; hardware SKU+variant+serial and evidence-linked warranty; profitability showing only certified gross margin, pending rebates separately and unknown net profit.
 
-**All data in these JavaScript modules is local memory, not durable enterprise storage.** Only `synthetic-only` contexts work; self-labelled `canonical-readonly` snapshots are synthetic test inputs and are **not** authenticated or guaranteed canonical. No customer data or actual payment is touched.
+**Isolated PG17 persistence increment:** `disposable-pg17.sql` and `disposable-pg17.test.sql` implement actual isolated recipe/tint/QC PostgreSQL tables, replay receipt and signed-context-compatible canonical `actor_uid/can_manage` RPC contract in a disposable test database only. A test membership mock replaces real GoTrue exclusively in CI. The SQL deliberately fails against SG/non-disposable database names and cannot post stock/finance. Dealer/other workflows remain in-memory and unconnected.
+
+**Mobile/desktop demo review:** `node internal/industry-packs/paint-hardware-v1/lab-server.mjs --demo-run`, then open `http://127.0.0.1:4377/` on the same desktop. It binds loopback, requires a random per-server token for actions, uses a restrictive CSP and executes the actual synthetic Node models; it does not serve via a public URL or run from Android directly. API/browser smoke: `lab-server.test.mjs`.
+
+**All data in the JavaScript modules is local memory, not durable enterprise storage.** Only `synthetic-only` contexts work; self-labelled `canonical-readonly` snapshots are synthetic test inputs and are **not** authenticated or guaranteed canonical. No customer data or actual payment is touched.
 
 ## Production-completion blockers — do not claim DONE
 
@@ -19,7 +23,7 @@ This is **C10-CAP-PAINT-001**, existing Decision Book rows 270–281. Owner's la
 5. Guided BN/EN role-based Android 390px and desktop 1440px front-end, live stage accounts and revocation tests, concurrency/replay, backup and restore, hosted staging demo and Owner release.
 6. Read-only reconciliation against existing legacy `tinting129.js`, `schemes128.js`, `cheques127.js`; never copy customized Islamia records/code into common industry template.
 
-**Code status:** working isolated Node 22 source and negative tests after CI. **Decision Book status:** every one of 12 rows is **PLANNED_DETAIL_NOT_CERTIFIED**; full Paint industry module **NOT_COMPLETE_PER_DETAIL**.
+**Code status:** isolated Node 22 source and negative tests, disposable PG17 read/write/deny tests, localhost responsive review UI and HTTP scenario smoke after exact-head CI. These are NOT real authenticated staging tests. **Decision Book status:** every one of 12 rows is **PLANNED_DETAIL_NOT_CERTIFIED**; full Paint industry module **NOT_COMPLETE_PER_DETAIL**.
 
 ## Codex verification / merge sequence
 Run:
