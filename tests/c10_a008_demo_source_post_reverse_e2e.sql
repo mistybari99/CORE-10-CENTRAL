@@ -200,17 +200,14 @@ BEGIN
  IF c10_demo.prepare_demo_reversal_v1(
    1,'Duplicate physical count found','demo_reverse_prep_01')<>v
  THEN RAISE EXCEPTION 'FAIL: reversal creation idempotency'; END IF;
+ PERFORM c10_demo.prepare_demo_stock_v1(
+  5001,8001,2,'demo_unposted_src_03');
  BEGIN
   PERFORM c10_demo.prepare_demo_reversal_v1(
-   2,'Changed duplicate count','demo_second_reverse_02');
+   3,'Unposted cannot reverse','demo_unposted_reverse_03');
   RAISE EXCEPTION 'FAIL: unposted reversal accepted';
  EXCEPTION WHEN OTHERS THEN
-  -- Command 2 IS posted; demonstrate a separate reversal remains pending,
-  -- or release the fixture if a later scenario extends it.
-  IF SQLERRM='demo_reversal_invalid_source' THEN NULL; ELSE
-    -- A valid posted command can of course be reversed; no failure expected.
-    RAISE;
-  END IF;
+  IF SQLERRM<>'demo_reversal_invalid_source' THEN RAISE; END IF;
  END;
  r:=c10_demo.submit_typed_approval_v1(
   101,'demo_stock','reverse_adjustment','demo-reversal:'||v,1,
