@@ -1,0 +1,113 @@
+name: C10 GOV002 Bounded Escalation PG17
+on:
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a008_threshold_units_v1.sql'
+      - 'internal/enterprise-sql/c10_a008_demo_source_post_reverse_v1.sql'
+      - 'tests/c10_a008_demo_source_post_reverse_e2e.sql'
+      - 'tests/c10_a008_demo_execution_concurrency.sh'
+      - 'internal/enterprise-sql/c10_a008_scoped_outcome_report_v1.sql'
+      - 'tests/c10_a008_scoped_outcome_report_e2e.sql'
+      - 'tests/c10_a008_threshold_units_e2e.sql'
+      - 'internal/enterprise-sql/c10_a008_bounded_exception_escalation_v1.sql'
+      - 'tests/c10_a008_bounded_exception_escalation_e2e.sql'
+      - 'tests/c10_a008_exception_escalation_concurrency.sh'
+      - 'internal/enterprise-sql/c10_a008_scoped_activity_feed_v1.sql'
+      - 'tests/c10_a008_scoped_activity_feed_e2e.sql'
+      - 'internal/enterprise-client/c10_gov002_activity_csv_v1.mjs'
+      - 'tests/c10_a008_activity_csv_v1.test.mjs'
+      - '.github/workflows/c10-gov002-bounded-escalation.yml'
+      - 'internal/enterprise-sql/c10_a008_routing_delegation_withdrawal_v1.sql'
+  push:
+    branches: ['feature/c10-gov002-*']
+    paths:
+      - 'internal/enterprise-sql/c10_a008_threshold_units_v1.sql'
+      - 'internal/enterprise-sql/c10_a008_demo_source_post_reverse_v1.sql'
+      - 'tests/c10_a008_demo_source_post_reverse_e2e.sql'
+      - 'tests/c10_a008_demo_execution_concurrency.sh'
+      - 'internal/enterprise-sql/c10_a008_scoped_outcome_report_v1.sql'
+      - 'tests/c10_a008_scoped_outcome_report_e2e.sql'
+      - 'tests/c10_a008_threshold_units_e2e.sql'
+      - 'internal/enterprise-sql/c10_a008_bounded_exception_escalation_v1.sql'
+      - 'tests/c10_a008_bounded_exception_escalation_e2e.sql'
+      - 'tests/c10_a008_exception_escalation_concurrency.sh'
+      - 'internal/enterprise-sql/c10_a008_scoped_activity_feed_v1.sql'
+      - 'tests/c10_a008_scoped_activity_feed_e2e.sql'
+      - 'internal/enterprise-client/c10_gov002_activity_csv_v1.mjs'
+      - 'tests/c10_a008_activity_csv_v1.test.mjs'
+      - '.github/workflows/c10-gov002-bounded-escalation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  postgres17:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+          POSTGRES_DB: core10_demo
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_demo"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGDATABASE: core10_demo
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: PostgreSQL CLI
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Disposable schema, policy, routing and their parent regressions
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$BEGIN
+           IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
+           IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+           IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='service_role') THEN CREATE ROLE service_role NOLOGIN; END IF;
+          END$$;
+          SQL
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_atomic_approval_draft.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_typed_approval_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a008_typed_approval_e2e.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_scoped_inbox_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a008_scoped_inbox_e2e.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_routing_delegation_withdrawal_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a008_routing_delegation_withdrawal_e2e.sql
+          bash tests/c10_a008_routed_concurrency.sh
+      - name: Install immutable versioned unit thresholds
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_threshold_units_v1.sql
+      - name: Verify currency, KG, owner/maker, replay, precision, FX negatives
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_threshold_units_e2e.sql
+      - name: Install only disposable source-bound command adapter and compensating reversal
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_demo_source_post_reverse_v1.sql
+      - name: Verify source→approved command→ledger→reversal, stale/replay and role negatives
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_demo_source_post_reverse_e2e.sql
+      - name: Race actual independently committed service-role posting and reversal
+        run: bash tests/c10_a008_demo_execution_concurrency.sh
+      - name: Install security-invoker approval status and source-linked receipt report
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_scoped_outcome_report_v1.sql
+      - name: Verify maker/owner report scope, stage progression and real ledger receipt joins
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_scoped_outcome_report_e2e.sql
+      - name: Install bounded non-authorizing exception triage and scoped inbox
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_bounded_exception_escalation_v1.sql
+      - name: Verify maker-checker, TTL, role/tenant denials, parent binding and zero bypass
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_bounded_exception_escalation_e2e.sql
+      - name: Race two real authenticated escalation reviewers and normal parent approval
+        run: bash tests/c10_a008_exception_escalation_concurrency.sh
+      - name: Install approval + exception activity notice projection (read only)
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_scoped_activity_feed_v1.sql
+      - name: Verify maker/owner RLS activity feed and no raw event payload export
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_scoped_activity_feed_e2e.sql
+      - name: Reject CSV spreadsheet injection, cross-business export, oversized rows
+        run: node --test tests/c10_a008_activity_csv_v1.test.mjs
