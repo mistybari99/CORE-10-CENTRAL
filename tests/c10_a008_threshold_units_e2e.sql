@@ -47,23 +47,21 @@ SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333'
 DO $t$
 DECLARE v_money bigint;v_qty bigint; v_late bigint; r bigint;
 BEGIN
- SELECT id INTO v_money FROM c10_demo.approval_policy_versions_v1
-  WHERE business_id=101 AND domain='demo_finance' AND action_code='expense_review';
- SELECT id INTO v_qty FROM c10_demo.approval_policy_versions_v1
-  WHERE business_id=101 AND domain='demo_inventory' AND action_code='quantity_review';
- SELECT id INTO v_late FROM c10_demo.approval_policy_versions_v1
-  WHERE business_id=101 AND domain='demo_inventory' AND action_code='late_limit_review';
- IF c10_demo.assess_approval_threshold_v1(
-  v_money,'{"amount":100,"unit":"BDT"}'::jsonb)<>'REVIEW_REQUIRED'
- OR c10_demo.assess_approval_threshold_v1(
-  v_money,'{"amount":99.99,"unit":"BDT"}'::jsonb)<>'BELOW_THRESHOLD'
- OR c10_demo.assess_approval_threshold_v1(
-  v_late,'{}'::jsonb)<>'UNCONFIGURED'
+ -- Manager sees no raw Owner policy rows. Assessment is instead routed
+ -- through business/domain/action inside one auth-checked DEFINER RPC.
+ IF c10_demo.assess_current_approval_threshold_v1(
+  101,'demo_finance','expense_review','{"amount":100,"unit":"BDT"}'::jsonb)<>'REVIEW_REQUIRED'
+ OR c10_demo.assess_current_approval_threshold_v1(
+  101,'demo_finance','expense_review','{"amount":99.99,"unit":"BDT"}'::jsonb)<>'BELOW_THRESHOLD'
+ OR c10_demo.assess_current_approval_threshold_v1(
+  101,'demo_inventory','late_limit_review','{}'::jsonb)<>'UNCONFIGURED'
  THEN RAISE EXCEPTION 'FAIL: policy assessment mismatch'; END IF;
  r:=c10_demo.submit_typed_approval_v1(
   101,'demo_finance','expense_review','invoice-101',1,
   '{"amount":100.00,"unit":"BDT"}'::jsonb,'threshold_request_01');
  IF r IS NULL THEN RAISE EXCEPTION 'FAIL: allowed threshold request'; END IF;
+ SELECT policy_id_v1 INTO v_money FROM c10_demo.approval_requests WHERE id=r;
+ IF v_money IS NULL THEN RAISE EXCEPTION 'FAIL: request policy id not visible to own requester'; END IF;
  BEGIN
   PERFORM c10_demo.submit_typed_approval_v1(
    101,'demo_finance','expense_review','invoice-102',1,
@@ -140,11 +138,11 @@ SELECT set_config('request.jwt.claim.sub','77777777-7777-4777-8777-777777777777'
 DO $t$
 DECLARE v_money bigint;
 BEGIN
- SELECT id INTO v_money FROM c10_demo.approval_policy_versions_v1
-  WHERE business_id=101 AND domain='demo_finance' AND action_code='expense_review';
+ -- Explicitly fail closed without leaking policy version IDs.
+ v_money:=4; -- inert synthetic fixture: three parent policy versions already exist
  BEGIN
-  PERFORM c10_demo.assess_approval_threshold_v1(
-    v_money,'{"amount":100,"unit":"BDT"}'::jsonb);
+  PERFORM c10_demo.assess_current_approval_threshold_v1(
+    101,'demo_finance','expense_review','{"amount":100,"unit":"BDT"}'::jsonb);
   RAISE EXCEPTION 'FAIL: foreign tenant assessed policy';
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM<>'approval_assessment_denied' THEN RAISE; END IF;
