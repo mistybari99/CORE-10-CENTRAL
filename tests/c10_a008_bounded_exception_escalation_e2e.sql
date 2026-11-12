@@ -242,7 +242,7 @@ DO $t$ BEGIN
    current_setting('demo.test.movement_baseline')
  THEN RAISE EXCEPTION 'FAIL: escalation created stock movement'; END IF;
  IF (SELECT count(*) FROM c10_demo.approval_exception_escalations_v1)<>4
- OR (SELECT count(*) FROM c10_demo.approval_exception_events_v1)<>5
+ OR (SELECT count(*) FROM c10_demo.approval_exception_events_v1)<>6
  THEN RAISE EXCEPTION 'FAIL: event chain or duplicate escalation row'; END IF;
  RAISE NOTICE 'PASS: typed exception triage with actor, reason, scoped reviewer, parent/expiry/TTL, idempotency, immutable events, no stock/approval bypass';
 END $t$;
