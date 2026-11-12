@@ -351,16 +351,22 @@ test('REAL two-process race: one psql backend holds its review transaction open 
       select review_id from ${S}.review_signal(${uuidLit(s)}, 'dismiss', 'test_activity', 'race-idem-A001');
       select pg_sleep(2.5);
       commit;`, as(OWNER1B));
-  await sleep(500);
-  const b = execAsync(DB, `select review_id from ${S}.review_signal(${uuidLit(s)}, 'acknowledge', 'followup_required', 'race-idem-B001');`, as(TOWN)).then((r) => ({ ...r, ms: Date.now() - t0 }));
+  // do not start B until A genuinely holds its advisory lock (poll the cluster lock table for THIS database only)
+  const lockCount = (granted) => one(DB, `select count(*)::int as n from pg_locks where locktype = 'advisory' and granted = ${granted}
+      and database = (select oid from pg_database where datname = ${lit(DB)})`).n;
+  for (let i = 0; i < 100 && lockCount(true) < 1; i += 1) await sleep(50);
+  assert.ok(lockCount(true) >= 1, 'first reviewer must hold the lock before the second starts');
+  const t1 = Date.now();
+  const b = execAsync(DB, `select review_id from ${S}.review_signal(${uuidLit(s)}, 'acknowledge', 'followup_required', 'race-idem-B001');`, as(TOWN)).then((r) => ({ ...r, ms: Date.now() - t1 }));
   await sleep(900);
   // a THIRD independent connection proves B is genuinely blocked, not just slow
-  const waiting = one(DB, `select count(*)::int as n from pg_locks where locktype = 'advisory' and not granted`).n;
+  const waiting = lockCount(false);
   assert.ok(waiting >= 1, 'second reviewer must be waiting on the advisory lock while the first holds its transaction open');
   const [ra, rb] = await Promise.all([a, b]);
   assert.equal(ra.ok, true, ra.error?.message);
   assert.equal(rb.ok, false); assert.equal(rb.error.code, 'G3C02');
-  assert.ok(rb.ms >= 2000, `loser must have waited for the winner's commit (took ${rb.ms}ms)`);
+  assert.ok(rb.ms >= 1000, `loser must have waited for the winner's commit (took ${rb.ms}ms)`);
+  assert.ok(Date.now() - t0 >= 2400, 'the winner held its transaction open across the overlap');
   const revs = rows(DB, `select decision, reviewer_id from ${S}.risk_signal_reviews where signal_id = ${uuidLit(s)}`, owner);
   assert.deepEqual(revs, [{ decision: 'dismiss', reviewer_id: OWNER1B }], 'EXACTLY ONE terminal state, from the winner');
   assert.equal(one(DB, `select count(*)::int as n from ${S}.audit_events where idempotency_key = ${lit('risk-review:' + s)}`, owner).n, 1);

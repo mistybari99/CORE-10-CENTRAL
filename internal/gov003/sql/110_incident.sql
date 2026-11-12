@@ -161,16 +161,16 @@ begin
   select i.evidence_id as eid, i.case_id as cid, i.retain_until as ru into ev
     from c10_gov003_demo.incident_evidence_items i where i.evidence_id = p_evidence;
   if not found then return r; end if;
-  if ev.ru is not null and ev.ru > p_now then r := r || 'item_retention'; end if;
+  if ev.ru is not null and ev.ru > p_now then r := array_append(r, 'item_retention'::text); end if;
   if exists (select 1 from c10_gov003_demo.incident_holds h
               where h.case_id = ev.cid and (h.evidence_id is null or h.evidence_id = ev.eid)
                 and not exists (select 1 from c10_gov003_demo.incident_hold_releases x where x.hold_id = h.hold_id)) then
-    r := r || 'hold_active';
+    r := array_append(r, 'hold_active'::text);
   end if;
   if exists (select 1 from c10_gov003_demo.incident_holds h
               where h.case_id = ev.cid and (h.evidence_id is null or h.evidence_id = ev.eid)
                 and h.retention_until > p_now) then
-    r := r || 'hold_retention';
+    r := array_append(r, 'hold_retention'::text);
   end if;
   return r;
 end $$;
