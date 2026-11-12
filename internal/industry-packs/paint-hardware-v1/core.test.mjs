@@ -83,3 +83,13 @@ test('defensive reads do not mutate ticket, audit or business report',()=>{
   assert.equal(e.audit(actor())[0].detail.version,1);
   assert.equal(e.summary(actor()).actualSalesMinor,null);
 });
+
+test('same ticket id in independent businesses does not collide',()=>{
+  const {e,r}=setup();
+  const rb=e.addRecipe(actor('boss','paintB'),'recipe-b',recipe());
+  e.openTicket(actor('staff','paintB'),'ticket-b',{ticketId:'ticket01',recipeId:rb.id,baseML:1000});
+  assert.equal(e.readTicket(actor(),'ticket01').baseML,2500);
+  assert.equal(e.readTicket(actor('staff','paintB'),'ticket01').baseML,1000);
+  assert.equal(e.listTickets(actor('staff','paintB')).length,1);
+  assert.throws(()=>e.openTicket(actor(),'again',{ticketId:'ticket01',recipeId:r.id,baseML:1000}),/DUPLICATE_TICKET_ID/);
+});

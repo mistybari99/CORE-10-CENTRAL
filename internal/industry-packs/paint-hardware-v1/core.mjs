@@ -24,7 +24,9 @@ export class PaintPackDraft {
     this.#events.push({seq:this.#events.length+1,tenant:c.tenant,business:c.business,actor:c.actor,op,id,requestId:rid,detail:clone(detail)});
   }
   #get(map,c,id) {
-    const row=map.get(token(id));
+    const normalized=token(id);
+    const key=map===this.#tickets ? [c.tenant,c.business,normalized].join(':') : normalized;
+    const row=map.get(key);
     if(!row||row.tenant!==c.tenant||row.business!==c.business) bad('NOT_FOUND_IN_SCOPE');
     return row;
   }
@@ -53,13 +55,14 @@ export class PaintPackDraft {
   }
   openTicket(ctx,requestId,input) {
     return this.#call(ctx,'OPEN',requestId,input,c=>{
-      const id=token(input?.ticketId,'TICKET');if(this.#tickets.has(id)) bad('DUPLICATE_TICKET_ID');
+      const id=token(input?.ticketId,'TICKET'), ticketKey=[c.tenant,c.business,id].join(':');
+      if(this.#tickets.has(ticketKey)) bad('DUPLICATE_TICKET_ID');
       const r=this.#get(this.#recipes,c,input.recipeId), baseML=count(input.baseML,'BASE_ML',100,200000);
       const doses=r.pigments.map(p=>({sku:p.sku,expectedUL:Number(round(BigInt(p.ulPerL)*BigInt(baseML),1000n))}));
       const t={id,tenant:c.tenant,business:c.business,recipeId:r.id,recipeVersion:r.version,
         outputSku:r.outputSku,baseSku:r.baseSku,baseML,doses,status:'DRAFT',
         mixes:[],qcChecks:[],previewOnly:true};
-      this.#tickets.set(id,t);this.#log(c,'TICKET_OPENED',id,requestId,{recipeId:r.id,baseML});return t;
+      this.#tickets.set(ticketKey,t);this.#log(c,'TICKET_OPENED',id,requestId,{recipeId:r.id,baseML});return t;
     });
   }
   mix(ctx,requestId,input) {
