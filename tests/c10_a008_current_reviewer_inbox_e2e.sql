@@ -36,8 +36,12 @@ SELECT set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444'
 DO $t$
 DECLARE task bigint:=current_setting('c10.gov002_rev_task_id',true)::bigint;
 BEGIN
- IF EXISTS(SELECT 1 FROM c10_demo.my_routed_review_tasks_v2(101) WHERE request_id=task)
- THEN RAISE EXCEPTION 'REVIEWER_SITE_STAFF_LEAK'; END IF;
+ BEGIN
+  PERFORM c10_demo.my_routed_review_tasks_v2(101);
+  RAISE EXCEPTION 'REVIEWER_SITE_STAFF_LEAK';
+ EXCEPTION WHEN raise_exception THEN
+  IF SQLERRM<>'reviewer_task_access_denied' THEN RAISE; END IF;
+ END;
 END $t$;
 SELECT set_config('request.jwt.claim.sub','77777777-7777-4777-8777-777777777777',true);
 DO $t$
