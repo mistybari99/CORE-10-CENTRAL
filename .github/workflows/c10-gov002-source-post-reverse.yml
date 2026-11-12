@@ -5,6 +5,7 @@ on:
       - 'internal/enterprise-sql/c10_a008_threshold_units_v1.sql'
       - 'internal/enterprise-sql/c10_a008_demo_source_post_reverse_v1.sql'
       - 'tests/c10_a008_demo_source_post_reverse_e2e.sql'
+      - 'tests/c10_a008_demo_execution_concurrency.sh'
       - 'tests/c10_a008_threshold_units_e2e.sql'
       - '.github/workflows/c10-gov002-source-post-reverse.yml'
       - 'internal/enterprise-sql/c10_a008_routing_delegation_withdrawal_v1.sql'
@@ -14,6 +15,7 @@ on:
       - 'internal/enterprise-sql/c10_a008_threshold_units_v1.sql'
       - 'internal/enterprise-sql/c10_a008_demo_source_post_reverse_v1.sql'
       - 'tests/c10_a008_demo_source_post_reverse_e2e.sql'
+      - 'tests/c10_a008_demo_execution_concurrency.sh'
       - 'tests/c10_a008_threshold_units_e2e.sql'
       - '.github/workflows/c10-gov002-source-post-reverse.yml'
   workflow_dispatch:
@@ -73,3 +75,5 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_demo_source_post_reverse_v1.sql
       - name: Verify source→approved command→ledger→reversal, stale/replay and role negatives
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_demo_source_post_reverse_e2e.sql
+      - name: Race actual independently committed service-role posting and reversal
+        run: bash tests/c10_a008_demo_execution_concurrency.sh
