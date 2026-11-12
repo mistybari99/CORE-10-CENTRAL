@@ -124,16 +124,19 @@ function toBuild01Request(plan, context, requestKey) {
   const legal = context.legal_entities.find(x => object(x) && Number(x.id) === plan.legal_id);
   if (!legal) fail("SETUP_CONTEXT_LEGAL_NOT_PRESENT");
   // Require an explicit, backend-supplied and APPROVED industry→template binding.
+  // Exactly Build01 build01_context_v1() fields (code, draft_supported, source_status).
+  // A draft-supported template is NOT an enterprise-certified running engine.
   const template = context.templates.find(x => object(x) &&
-    x.industry_id === plan.industry_id && x.available === true &&
-    typeof x.code === "string" && /^[a-z][a-z0-9_]{1,79}$/.test(x.code));
+    x.code === plan.industry_id && x.draft_supported === true &&
+    typeof x.source_status === "string" &&
+    /^[a-z][a-z0-9_]{1,79}$/.test(x.code));
   if (!template) fail("SETUP_CONTEXT_TEMPLATE_UNAVAILABLE");
+  // Exactly the eight fields accepted by core10-build01-client.js setup().
+  // Do not pass proposed modules, locale, jurisdiction or advisory metadata.
   return {
     legalId:plan.legal_id,slug:plan.slug,template:template.code,
     displayName:plan.name,mode:plan.mode,
-    sites:plan.sites.map(x => ({...x})),requestKey:key,brandHex:plan.brand_hex,
-    omittedByDesign:["requested_modules","locale_code","jurisdiction_code"],
-    authority:"REVERIFY_AT_BUILD01_RPC"
+    sites:plan.sites.map(x => ({...x})),requestKey:key,brandHex:plan.brand_hex
   };
 }
 function assessActivation(evidence) {
