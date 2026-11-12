@@ -1,0 +1,33 @@
+name: CORE10 Build04 Setup Profile and Preflight
+on:
+  pull_request:
+    paths:
+      - 'internal/setup001/**'
+      - 'tests/setup001/**'
+      - '.github/workflows/c10-build04-setup-profiles.yml'
+  push:
+    branches:
+      - 'feature/c10-build04-*'
+    paths:
+      - 'internal/setup001/**'
+      - 'tests/setup001/**'
+      - '.github/workflows/c10-build04-setup-profiles.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  setup-profile-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and deterministic contract tests (advisory only)
+        run: |
+          node --check internal/setup001/setup-profile-engine.cjs
+          node --test tests/setup001/*.test.cjs
+      - name: Static production-safety assertions
+        run: |
+          ! grep -E '(BOS_CONFIG|service_role|SUPABASE_SECRET_KEY|createClient\\(|process\\.env)' internal/setup001/setup-profile-engine.cjs
