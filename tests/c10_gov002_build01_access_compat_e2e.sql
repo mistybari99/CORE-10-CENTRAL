@@ -67,6 +67,19 @@ BEGIN
  THEN RAISE EXCEPTION 'COMPAT_SITE_APPROVAL_LEAK'; END IF;
  IF c10_demo.can_manage(1,101) THEN RAISE EXCEPTION 'COMPAT_CLAIM_ROLE_PROMOTION'; END IF;
 END $b02$;
+-- Negative RPC probes must use the known request ID even when RLS hides the row.
+-- A forged owner claim on site-only staff must not grant decision authority.
+DO $b02$
+DECLARE req_id bigint;
+BEGIN
+ req_id:=current_setting('core10.gov002_compat_request_id',true)::bigint;
+ BEGIN
+  PERFORM c10_demo.decide_approval(req_id,'approve','compat_site_forged_decision_01');
+  RAISE EXCEPTION 'COMPAT_SITE_FORGED_APPROVAL_SUCCEEDED';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM<>'approval_not_authorized' THEN RAISE; END IF;
+ END;
+END $b02$;
 SELECT set_config('request.jwt.claims','{"sub":"77777777-7777-4777-8777-777777777777"}',true);
 SELECT set_config('request.jwt.claim.sub','77777777-7777-4777-8777-777777777777',true);
 DO $b02$
@@ -75,6 +88,17 @@ BEGIN
  THEN RAISE EXCEPTION 'COMPAT_FOREIGN_TENANT_LEAK'; END IF;
 END $b02$;
 
+DO $b02$
+DECLARE req_id bigint;
+BEGIN
+ req_id:=current_setting('core10.gov002_compat_request_id',true)::bigint;
+ BEGIN
+  PERFORM c10_demo.decide_approval(req_id,'approve','compat_foreign_tenant_decision_01');
+  RAISE EXCEPTION 'COMPAT_FOREIGN_TENANT_APPROVED';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM<>'approval_not_authorized' THEN RAISE; END IF;
+ END;
+END $b02$;
 RESET ROLE;
 -- Expiry in the *canonical Build01 membership*, NOT client-side state,
 -- immediately revokes the owner's ability to read and decide this request.
