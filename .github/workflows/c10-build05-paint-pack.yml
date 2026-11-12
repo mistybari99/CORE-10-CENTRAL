@@ -1,4 +1,4 @@
-name: CORE10 Build05 Paint Pack tests
+name: CORE10 Build05 Paint Pack Node and disposable PG17
 on:
   pull_request:
     paths:
@@ -6,14 +6,30 @@ on:
       - '.github/workflows/c10-build05-paint-pack.yml'
   workflow_dispatch:
 jobs:
-  test:
+  industry-contracts:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: core10_paint_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_paint_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 15
+    env:
+      PGPASSWORD: postgres
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Node 22 complete paint industry synthetic source tests
+      - name: Complete synthetic Node negative tests
         run: node --test internal/industry-packs/paint-hardware-v1/*.test.mjs
+      - name: Disposable canonical-scope contract mock and SQL E2E
+        run: |
+          psql -h 127.0.0.1 -U postgres -d core10_paint_ci -v ON_ERROR_STOP=1             -f internal/industry-packs/paint-hardware-v1/disposable-pg17.test.sql
