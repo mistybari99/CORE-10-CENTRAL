@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "source": "internal/gov003/sql/020_audit_core.sql#payload_allowlist",
+  "note": "Exact copy of c10_gov003_demo.payload_allowlist. Kinds: enum, ref, money, count, ts, text. Parity-tested against the database table.",
+  "fields": [
+    {
+      "field_name": "amount_minor",
+      "kind": "money"
+    },
+    {
+      "field_name": "currency",
+      "kind": "enum"
+    },
+    {
+      "field_name": "item_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "quantity_milli",
+      "kind": "count"
+    },
+    {
+      "field_name": "unit",
+      "kind": "enum"
+    },
+    {
+      "field_name": "status",
+      "kind": "enum"
+    },
+    {
+      "field_name": "old_status",
+      "kind": "enum"
+    },
+    {
+      "field_name": "new_status",
+      "kind": "enum"
+    },
+    {
+      "field_name": "reason_code",
+      "kind": "enum"
+    },
+    {
+      "field_name": "entity_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "entity_kind",
+      "kind": "enum"
+    },
+    {
+      "field_name": "source_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "channel",
+      "kind": "enum"
+    },
+    {
+      "field_name": "window_start",
+      "kind": "ts"
+    },
+    {
+      "field_name": "window_end",
+      "kind": "ts"
+    },
+    {
+      "field_name": "count",
+      "kind": "count"
+    },
+    {
+      "field_name": "expected_count",
+      "kind": "count"
+    },
+    {
+      "field_name": "row_count",
+      "kind": "count"
+    },
+    {
+      "field_name": "grant_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "policy_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "severity",
+      "kind": "enum"
+    },
+    {
+      "field_name": "note_code",
+      "kind": "enum"
+    },
+    {
+      "field_name": "signal_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "review_decision",
+      "kind": "enum"
+    },
+    {
+      "field_name": "evidence_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "artifact_sha256",
+      "kind": "ref"
+    },
+    {
+      "field_name": "commit_sha",
+      "kind": "ref"
+    },
+    {
+      "field_name": "report_id",
+      "kind": "ref"
+    },
+    {
+      "field_name": "filter_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "hold_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "case_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "feature_id",
+      "kind": "ref"
+    },
+    {
+      "field_name": "requirement_id",
+      "kind": "ref"
+    },
+    {
+      "field_name": "receipt_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "batch_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "doc_ref",
+      "kind": "ref"
+    },
+    {
+      "field_name": "method",
+      "kind": "enum"
+    },
+    {
+      "field_name": "detail_code",
+      "kind": "enum"
+    },
+    {
+      "field_name": "observed_at",
+      "kind": "ts"
+    },
+    {
+      "field_name": "last_seen_at",
+      "kind": "ts"
+    }
+  ]
+}
