@@ -30,9 +30,21 @@ SELECT c10_demo.decide_approval($id,'approve','concurrent_same_key_01');
 SQL
   pids[$n]=$!
 done
-wait "${pids[1]}"
-wait "${pids[2]}"
-wait "$locker"
+# Preserve failing connection logs instead of exiting silently under set -e.
+rc1=0; rc2=0; lock_rc=0
+wait "${pids[1]}" || rc1=$?
+wait "${pids[2]}" || rc2=$?
+wait "$locker" || lock_rc=$?
+if (( rc1 != 0 || rc2 != 0 || lock_rc != 0 )); then
+  echo "FAIL: concurrent sessions exited: first=$rc1 second=$rc2 locker=$lock_rc"
+  for n in 1 2; do
+    echo "--- authenticated session $n ---"
+    cat "/tmp/c10-a008-race-$n"
+  done
+  echo "--- lock session ---"
+  cat /tmp/c10-a008-lock.log
+  exit 1
+fi
 a="$(tail -n1 /tmp/c10-a008-race-1)"
 b="$(tail -n1 /tmp/c10-a008-race-2)"
 [[ "$a" =~ ^[0-9]+$ && "$a" == "$b" ]] || { echo 'FAIL: concurrent replay differs'; cat /tmp/c10-a008-race-{1,2}; exit 1; }
