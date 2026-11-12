@@ -71,6 +71,21 @@ async function test(){
  denied(await rpc(T,"build01_setup_v1",{...qargs,p_slug:"foreign",p_request:"foreign-setup"}),"Foreign legal entity setup");
  const advanced=ok(await rpc(O,"build01_setup_v1",{...qargs,p_slug:"build01-http-advanced",p_display_name:"Synthetic HTTP Advanced",p_mode:"advanced",p_sites:[{kind:"factory",label:"Factory"},{kind:"warehouse",label:"Warehouse"}],p_request:"build01-http-setup-advanced"}),"Advanced setup");
  assert.notEqual(advanced.business_id,quick.business_id);
+ // Exercise the existing ten-family draft engine through genuine user sessions,
+ // not just SQL claims; industry modules remain locked and uncertified.
+ const families=["sweets_bakery","restaurant","paint_hardware","retail_wholesale","general_manufacturing","construction","import_export","ecommerce","technology_digital","services"];
+ for(const family of families){
+  assert(context.templates.some(t=>t.code===family&&t.draft_supported),"Missing draft family "+family);
+  for(const mode of ["quick","advanced"]){
+   const args={...qargs,p_slug:("http-"+family+"-"+mode).replaceAll("_","-"),p_template:family,p_mode:mode,p_sites:mode==="quick"?[]:[{kind:"showroom",label:"Synthetic Counter"},{kind:"warehouse",label:"Synthetic Storage"}],p_request:"http-family-"+family+"-"+mode};
+   const created=ok(await rpc(O,"build01_setup_v1",args),family+" "+mode);
+   assert.equal(created.status,"draft");assert.equal(created.production_certified,false);
+   assert.deepEqual(ok(await rpc(O,"build01_setup_v1",args),family+" exact replay"),created);
+   const w=ok(await rpc(O,"build01_workspace_v1",{p_business:created.business_id}),family+" scoped workspace");
+   assert.equal(w.sites.length,mode==="quick"?1:2);
+  }
+ }
+ console.log("PASS all10 industry families Quick/Advanced draft setup + exact replay through actual GoTrue sessions");
  const site=ok(await rpc(O,"build01_site_v1",{p_business:quick.business_id,p_kind:"warehouse",p_label:"HTTP Test Warehouse",p_request:"build01-http-add-site"}),"Add canonical site");
  assert(site.site_id);
  const access={p_business:quick.business_id,p_subject:uid("staff"),p_command:"site_grant.grant",p_role:null,p_site:site.site_id,p_actions:["stock.read","stock.post"],p_denied_actions:[],p_valid_until:null,p_request:"build01-http-grant-staff"};

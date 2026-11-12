@@ -177,6 +177,11 @@ DECLARE business bigint; tenant bigint; actor uuid:=c10_demo.actor_uid(); signat
 BEGIN
  SELECT tenant_id INTO tenant FROM c10_demo.legal_entities WHERE id=p_legal;
  IF actor IS NULL OR tenant IS NULL OR NOT c10_demo.can_tenant(tenant) THEN RAISE EXCEPTION 'BUILD01_SETUP_DENIED'; END IF;
+ -- Original setup engines perform multiple canonical inserts. Serialize the
+ -- same tenant/request before entering either engine so concurrent retries
+ -- observe the committed receipt instead of racing the unique slug constraint.
+ PERFORM pg_advisory_xact_lock(hashtextextended(jsonb_build_array('build01.setup',tenant,p_request)::text,0));
+ IF NOT c10_demo.can_tenant(tenant) THEN RAISE EXCEPTION 'BUILD01_SETUP_DENIED'; END IF;
  -- Reuse the original ten-family draft engine. Module selections come only
  -- from its canonical catalog; that engine keeps every module locked/disabled.
  -- Legacy demo-approved template codes retain the existing A020 v1 contract.
