@@ -4,6 +4,7 @@ on:
     paths:
       - 'internal/enterprise-sql/c10_a008_routing_delegation_withdrawal_v1.sql'
       - 'tests/c10_a008_routing_delegation_withdrawal_e2e.sql'
+      - 'tests/c10_a008_routed_concurrency.sh'
       - '.github/workflows/c10-gov002-route-delegate.yml'
       - 'internal/enterprise-sql/c10_a008_typed_approval_v1.sql'
       - 'internal/enterprise-sql/c10_a008_scoped_inbox_v1.sql'
@@ -66,3 +67,5 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_routing_delegation_withdrawal_v1.sql
       - name: Verify stages, authorization, revoke, idempotency, withdrawal and zero posting
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_routing_delegation_withdrawal_e2e.sql
+      - name: Verify two real concurrent PostgreSQL sessions cannot double-vote
+        run: bash tests/c10_a008_routed_concurrency.sh
