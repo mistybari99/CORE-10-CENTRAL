@@ -1,0 +1,37 @@
+# C10-A042 brand-neutral cross-industry Owner Control Studio — contract only.
+# No production migrations or grants, no Supabase project contact, no deployment.
+name: CORE10 A042 Universal Owner Control Studio Contract
+on:
+  push:
+    branches: ['feature/c10-a018-*']
+    paths:
+      - 'internal/universal-control-studio/**'
+      - 'docs/architecture/CORE10_UNIVERSAL_CONTROL_STUDIO_V1.md'
+      - 'tests/c10_a042_universal_control_studio.test.js'
+      - '.github/workflows/core10-a042-universal-control-studio-ci.yml'
+  pull_request:
+    paths:
+      - 'internal/universal-control-studio/**'
+      - 'docs/architecture/CORE10_UNIVERSAL_CONTROL_STUDIO_V1.md'
+      - 'tests/c10_a042_universal_control_studio.test.js'
+      - '.github/workflows/core10-a042-universal-control-studio-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  universal-control-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Control registry and effective permission simulation negative tests
+        run: node tests/c10_a042_universal_control_studio.test.js
+      - name: Root forbidden private source regression
+        run: node tests/e2e/forbidden_files.js
+      - name: No real authority or release boundary
+        run: echo 'PASS only universal configuration design and advisory logic; no live permission grants, Supabase mutation or production activation.'

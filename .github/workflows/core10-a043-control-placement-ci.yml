@@ -1,0 +1,38 @@
+# C10-A043 cross-business display placement contract, no real database or deploy.
+name: CORE10 A043 Universal and Business Control Placement Contract
+on:
+  push:
+    branches: ['feature/c10-a018-*']
+    paths:
+      - 'internal/universal-control-studio/**'
+      - 'docs/architecture/CORE10_CONTROL_PLACEMENT_V1.md'
+      - 'tests/c10_a043_business_control_placement.test.js'
+      - '.github/workflows/core10-a043-control-placement-ci.yml'
+  pull_request:
+    paths:
+      - 'internal/universal-control-studio/**'
+      - 'docs/architecture/CORE10_CONTROL_PLACEMENT_V1.md'
+      - 'tests/c10_a043_business_control_placement.test.js'
+      - '.github/workflows/core10-a043-control-placement-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  business-controls-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Universal contract regression
+        run: node tests/c10_a042_universal_control_studio.test.js
+      - name: Central to Business projection and delegation negative tests
+        run: node tests/c10_a043_business_control_placement.test.js
+      - name: Root private file protection
+        run: node tests/e2e/forbidden_files.js
+      - name: No activation or release
+        run: echo 'PASS A043 contract only. No live grants, settings persistence, real ERP UI, Supabase writes or production deployment.'

@@ -1,0 +1,36 @@
+name: C10-A018 Pages artifact safety (DRAFT ONLY)
+on:
+  pull_request:
+    paths:
+      - 'internal/core10-pages-package.js'
+      - 'tests/core10-pages-package.test.js'
+      - 'tests/core10-pages-artifact-http.test.js'
+      - '.github/workflows/core10-a018-pages-package.yml'
+      - '.github/workflows/pages-dist.yml.disabled'
+  push:
+    branches: ['feature/c10-a018-foundation-catalog-v1']
+    paths:
+      - 'internal/core10-pages-package.js'
+      - 'tests/core10-pages-package.test.js'
+      - 'tests/core10-pages-artifact-http.test.js'
+      - '.github/workflows/core10-a018-pages-package.yml'
+      - '.github/workflows/pages-dist.yml.disabled'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test allowlist, legacy entry parity, disabled release template, and negative security fixtures
+        run: node tests/core10-pages-package.test.js
+      - name: Build non-public staging artifact (NO DEPLOYMENT)
+        run: node internal/core10-pages-package.js "$RUNNER_TEMP/core10-pages-candidate"
+      - name: Run HTTP parity and forbidden internal-file tests on exact artifact
+        run: node tests/core10-pages-artifact-http.test.js "$RUNNER_TEMP/core10-pages-candidate"

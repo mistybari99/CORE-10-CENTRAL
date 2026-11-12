@@ -1,0 +1,70 @@
+name: C10 A008 Disposable PostgreSQL Approval E2E
+on:
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a008_atomic_approval_draft.sql'
+      - 'tests/c10_a008_atomic_approval_e2e.sql'
+      - 'tests/c10_a008_concurrent_approval_e2e.sh'
+      - '.github/workflows/c10-a008-approval-postgres.yml'
+  push:
+    branches:
+      - 'feature/c10-a008-*'
+    paths:
+      - 'internal/enterprise-sql/c10_a008_atomic_approval_draft.sql'
+      - 'tests/c10_a008_atomic_approval_e2e.sql'
+      - '.github/workflows/c10-a008-approval-postgres.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  disposable-approval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+          POSTGRES_DB: core10_demo
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_demo"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGDATABASE: core10_demo
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install psql
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Create disposable Supabase-compatible roles
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+              CREATE ROLE authenticated NOLOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+              CREATE ROLE anon NOLOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+              CREATE ROLE service_role NOLOGIN;
+            END IF;
+          END $$;
+          SQL
+      - name: Build disposable backend
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+      - name: Seed isolated identities
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+      - name: Install approval prototype
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_atomic_approval_draft.sql
+      - name: Execute approval authorization and audit E2E
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_atomic_approval_e2e.sql
+      - name: Execute concurrent approval replay regression
+        run: bash tests/c10_a008_concurrent_approval_e2e.sh

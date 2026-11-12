@@ -1,0 +1,20 @@
+"use strict";
+// Android file-provider work-around: one HTML must own its CSS + JS, no sibling URLs.
+const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path");
+const file=path.resolve(__dirname,"../core10-stocktake-offline.html");
+const doc=fs.readFileSync(file,"utf8");
+assert.ok(doc.startsWith("<!doctype html>"));
+assert.match(doc,/<meta http-equiv="Content-Security-Policy"[^>]*connect-src 'none'/);
+assert.match(doc,/<style>[\s\S]+@media\(max-width:730px\)/);
+assert.match(doc,/<script>[\s\S]+C10-A038 Owner \+ Staff/);
+assert.match(doc,/OFFLINE DEMO/);
+assert.match(doc,/data-screen="overview" style="border:0/);
+assert.doesNotMatch(doc,/<script[^>]*\ssrc=/i);
+assert.doesNotMatch(doc,/<link[^>]*\shref=/i);
+assert.doesNotMatch(doc,/<(?:img|iframe|embed)[^>]*\ssrc=/i);
+assert.doesNotMatch(doc,/<a[^>]*\shref=/i);
+assert.doesNotMatch(doc,/https?:\/\//i);
+assert.doesNotMatch(doc,/file:\/\//i);
+assert.doesNotMatch(doc,/localStorage|sessionStorage/i);
+assert.match(doc,/C10_A038_REAL_AUTH_AND_OWNER_RELEASE_REQUIRED|STAGING_WRITES_LOCKED/);
+console.log("PASS C10-A041 single-file Android offline preview: 0 external/sibling assets, inline CSP, mobile CSS, demo-only handlers");

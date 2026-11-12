@@ -1,0 +1,49 @@
+name: C10-A019 Real Supabase Auth staging probe CONTRACT (mock CI only)
+on:
+  pull_request:
+    paths:
+      - 'tests/api/core10-supabase-auth-staging-probe.js'
+      - 'tests/api/core10-supabase-auth-staging-probe.test.js'
+      - 'internal/core10-a019-real-auth-stage.js'
+      - 'tests/c10_a019_real_auth_stage_contract.test.js'
+      - '.github/workflows/core10-a019-auth-stage-contract.yml'
+      - '.github/workflows/core10-a019-auth-stage-manual.yml'
+      - '.github/workflows/core10-a019-real-auth-stage.yml.disabled'
+  push:
+    branches: ['feature/c10-a018-*']
+    paths:
+      - 'tests/api/core10-supabase-auth-staging-probe.js'
+      - 'tests/api/core10-supabase-auth-staging-probe.test.js'
+      - 'internal/core10-a019-real-auth-stage.js'
+      - 'tests/c10_a019_real_auth_stage_contract.test.js'
+      - '.github/workflows/core10-a019-auth-stage-contract.yml'
+      - '.github/workflows/core10-a019-auth-stage-manual.yml'
+      - '.github/workflows/core10-a019-real-auth-stage.yml.disabled'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe-contract-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test existing public-schema four-principal stage probe (synthetic responses)
+        run: node tests/api/core10-supabase-auth-staging-probe.test.js
+      - name: Test canonical c10_demo six-principal stage probe and token/redirect guards (synthetic responses)
+        run: node tests/c10_a019_real_auth_stage_contract.test.js
+      - name: Assert both staging runners fail closed without explicit configuration
+        run: |
+          if node tests/api/core10-supabase-auth-staging-probe.js; then
+            echo 'CRITICAL: legacy staging probe ran without approvals'; exit 1
+          fi
+          if node internal/core10-a019-real-auth-stage.js; then
+            echo 'CRITICAL: canonical staging probe ran without approvals'; exit 1
+          fi
+      - name: State certification boundary
+        run: echo 'PASS MOCK CONTRACTS ONLY; no actual Supabase Auth user, staging grant, live RLS, migration, or production access tested'
