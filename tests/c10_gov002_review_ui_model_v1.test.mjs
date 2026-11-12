@@ -66,3 +66,12 @@ test('untrusted HTML/script source keys are plain text values, not markup',()=>{
   assert.equal(safeText('<img src=x onerror=alert(1)>'),'<img src=x onerror=alert(1)>');
   assert(!safeText('abc\nscript').includes('\n'));
 });
+
+test('new 3-5 stage labels show canonical step without approval authority',()=>{
+ for(const [n,word] of [[3,'তৃতীয়'],[4,'চতুর্থ'],[5,'পঞ্চম']]){
+  const row={...pending,display_status:`awaiting_stage_${n}`};
+  assert.equal(approvalState(row),'pending');
+  assert.match(approvalStageText(row),new RegExp(word));
+  assert.equal(canOfferApprovalAction(row,'approve'),true);
+ }
+});
