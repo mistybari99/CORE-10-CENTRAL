@@ -119,3 +119,33 @@ test("export is first signed RLS page only, Excel formula injection sanitized",a
  const foreign=fakeSupabase({row:[{...event,business_id:102}]});
  await assert.rejects(createGov002ReviewClient(foreign.supabase).exportActivityCsv({businessId:101}),/server_scope_mismatch/);
 });
+
+test("explicit auth failure denies every read/export and mutation before schema access",async()=>{
+ const calls=[];
+ const supabase={
+  auth:{async getUser(){calls.push("auth");return {data:{user:null},error:{message:"JWT expired"}};}},
+  schema(){calls.push("schema");throw new Error("must not reach database");}
+ };
+ const c=createGov002ReviewClient(supabase);
+ for(const action of [
+  ()=>c.listStatus({businessId:101}),
+  ()=>c.listExceptions({businessId:101}),
+  ()=>c.listActivity({businessId:101}),
+  ()=>c.exportActivityCsv({businessId:101}),
+  ()=>c.decideApproval({requestId:5,action:"reject",idempotencyKey:"auth_deny_01"}),
+  ()=>c.withdrawApproval({requestId:5,idempotencyKey:"auth_deny_02"}),
+  ()=>c.requestException({requestId:5,reason:"Valid exception reason",idempotencyKey:"auth_deny_03"}),
+  ()=>c.decideException({escalationId:5,action:"declined",idempotencyKey:"auth_deny_04"}),
+  ()=>c.withdrawException({escalationId:5,idempotencyKey:"auth_deny_05"})
+ ]) await assert.rejects(action(),/auth_required/);
+ assert.equal(calls.filter(x=>x==="auth").length,9);
+ assert.equal(calls.includes("schema"),false);
+});
+test("backend read denial and missing RPC receipt must never be interpreted as success",async()=>{
+ const denied=fakeSupabase({readError:new Error("permission denied"),row:[]});
+ await assert.rejects(createGov002ReviewClient(denied.supabase).listStatus({businessId:101}),/permission denied/);
+ const absent=fakeSupabase({rpcData:null});
+ await assert.rejects(createGov002ReviewClient(absent.supabase).decideApproval({
+  requestId:5,action:"approve",idempotencyKey:"missing_receipt_01"
+ }),/approval_rpc_missing_receipt/);
+});
