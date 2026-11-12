@@ -1,0 +1,78 @@
+name: C10 GOV002 Typed Approval Disposable PG17 E2E
+on:
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a008_typed_approval_v1.sql'
+      - 'internal/enterprise-sql/c10_a008_scoped_inbox_v1.sql'
+      - 'tests/c10_a008_scoped_inbox_e2e.sql'
+      - 'internal/enterprise-sql/c10_a008_atomic_approval_draft.sql'
+      - 'tests/c10_a008_typed_approval_e2e.sql'
+      - '.github/workflows/c10-gov002-typed-approval.yml'
+  push:
+    branches:
+      - 'feature/c10-gov002-*'
+    paths:
+      - 'internal/enterprise-sql/c10_a008_typed_approval_v1.sql'
+      - 'internal/enterprise-sql/c10_a008_scoped_inbox_v1.sql'
+      - 'tests/c10_a008_scoped_inbox_e2e.sql'
+      - 'tests/c10_a008_typed_approval_e2e.sql'
+      - '.github/workflows/c10-gov002-typed-approval.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  disposable-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+          POSTGRES_DB: core10_demo
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_demo"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGDATABASE: core10_demo
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PostgreSQL CLI
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Create disposable DB roles
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN
+              CREATE ROLE authenticated NOLOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN
+              CREATE ROLE anon NOLOGIN;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='service_role') THEN
+              CREATE ROLE service_role NOLOGIN;
+            END IF;
+          END $$;
+          SQL
+      - name: Create canonical demo schema and synthetic identities
+        run: |
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+      - name: Install existing A008 approval journal and additive typed policy extension
+        run: |
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_atomic_approval_draft.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_typed_approval_v1.sql
+      - name: Verify version pin, scoped approvals, replay, stale/expiry/ACL negatives and zero posting
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_typed_approval_e2e.sql
+      - name: Enforce source-scoped approval inbox RLS
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_scoped_inbox_v1.sql
+      - name: Verify maker/approver, revoked, site-only, foreign tenant and anon inbox privacy
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_scoped_inbox_e2e.sql
