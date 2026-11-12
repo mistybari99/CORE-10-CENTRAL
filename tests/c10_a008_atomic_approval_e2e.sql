@@ -89,3 +89,56 @@ BEGIN
  IF (SELECT count(*) FROM c10_demo.approval_requests WHERE status='pending')<>2 THEN RAISE EXCEPTION 'FAIL: unauthorized mutation'; END IF;
  RAISE NOTICE 'PASS: approval transaction, replay, cross-business, cross-tenant, self-maker, revoked and audit';
 END $test$;
+
+-- Signed-identity RLS read matrix: prevent approval inbox/audit leakage.
+-- These are synthetic JWT claim fixtures in disposable PostgreSQL, not real Supabase Auth.
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+DO $rls$
+BEGIN
+ IF (SELECT count(*) FROM c10_demo.approval_requests) <> 1
+    OR (SELECT count(*) FROM c10_demo.approval_events) <> 1 THEN
+   RAISE EXCEPTION 'FAIL: business owner approval read isolation';
+ END IF;
+END $rls$;
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
+DO $rls$
+BEGIN
+ IF (SELECT count(*) FROM c10_demo.approval_requests) <> 1
+    OR (SELECT count(*) FROM c10_demo.approval_events) <> 1 THEN
+   RAISE EXCEPTION 'FAIL: manager approval read isolation';
+ END IF;
+END $rls$;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+DO $rls$
+BEGIN
+ IF (SELECT count(*) FROM c10_demo.approval_requests) <> 2
+    OR (SELECT count(*) FROM c10_demo.approval_events) <> 1 THEN
+   RAISE EXCEPTION 'FAIL: tenant owner approval read isolation';
+ END IF;
+END $rls$;
+SELECT set_config('request.jwt.claim.sub','77777777-7777-4777-8777-777777777777',false);
+DO $rls$
+BEGIN
+ IF (SELECT count(*) FROM c10_demo.approval_requests) <> 1
+    OR (SELECT count(*) FROM c10_demo.approval_events) <> 0 THEN
+   RAISE EXCEPTION 'FAIL: foreign tenant approval read isolation';
+ END IF;
+END $rls$;
+SELECT set_config('request.jwt.claim.sub','66666666-6666-4666-8666-666666666666',false);
+DO $rls$
+BEGIN
+ IF (SELECT count(*) FROM c10_demo.approval_requests) <> 0
+    OR (SELECT count(*) FROM c10_demo.approval_events) <> 0 THEN
+   RAISE EXCEPTION 'FAIL: revoked member approval read isolation';
+ END IF;
+END $rls$;
+RESET ROLE;
+DO $rls$
+BEGIN
+ IF has_table_privilege('anon','c10_demo.approval_requests','SELECT')
+    OR has_table_privilege('anon','c10_demo.approval_events','SELECT') THEN
+   RAISE EXCEPTION 'FAIL: anon approval table read grant';
+ END IF;
+ RAISE NOTICE 'PASS: approval request/event scoped read matrix (5 identities + anon ACL)';
+END $rls$;
