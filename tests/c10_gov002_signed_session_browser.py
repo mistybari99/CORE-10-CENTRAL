@@ -33,15 +33,16 @@ def run():
               requested_by:'signed-maker-102',requested_at:'2026-11-12T00:00:00Z',
               expires_at:'2035-01-01T00:00:00Z',stored_status:'pending',display_status:'awaiting_stage_1',
               required_checks:3,completed_checks:0};
+            function from(view){
+              const query={
+                select(){return query},eq(){return query},order(){return query},
+                async limit(){return {data:view==='approval_status_report_v1'?[record]:[],error:null}}
+              };return query;
+            }
             const client={auth:{
               async getUser(){return {data:{user:current?{id:current}:null}}},
               onAuthStateChange(fn){callback=fn;return {data:{subscription:{unsubscribe(){unsubscribed++}}}}}
-            },schema(){return {
-              from(view){return {select(){return {eq(){return {order(){return {async limit(){
-                return {data:view==='approval_status_report_v1'?[record]:[],error:null};
-              }}}}}}}}}},
-              async rpc(){return {data:300,error:null}}
-            }}};
+            },schema(){return {from,async rpc(){return {data:300,error:null}}}}};
             window.__testEmit=(event,user=null)=>callback(event,{user:user?{id:user}:null});
             window.__testActor=uid=>{current=uid};
             window.__testUnsubscribe=()=>unsubscribed;
