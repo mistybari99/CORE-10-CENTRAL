@@ -26,7 +26,7 @@ test("formula injection including padded, quotes and CRLF rows is neutralized",(
  const dangerous={...row,source_key:" \t=HYPERLINK(\"https://evil\",\"GO\")\r\n+SUM(1,1)"};
  const csv=makeApprovalActivityCsv([dangerous],{businessId:101});
  assert.equal(csv.split("\r\n").length,3);
- assert.match(csv,/\'\s+=HYPERLINK\(/u);
+ assert.match(csv,/'\s+=HYPERLINK\(/u);
  assert.ok(csv.includes('""https://evil""'),csv);
  assert.ok(csv.includes("+SUM(1,1)"),csv);
  const second=makeApprovalActivityCsv([{...row,source_key:"@CMD"},{...row,activity_id:"exception:103",source_key:"-1+2"}],{businessId:101});
