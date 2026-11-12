@@ -81,6 +81,26 @@ BEGIN
  END;
 END $fn$;
 
+-- Manager-facing assessment resolves the active policy from the scoped command,
+-- rather than asking a non-owner to enumerate Owner-only policy IDs.
+CREATE FUNCTION c10_demo.assess_current_approval_threshold_v1(
+ p_business bigint,p_domain text,p_action text,p_payload jsonb
+) RETURNS text LANGUAGE plpgsql SECURITY DEFINER
+SET search_path=c10_demo,pg_catalog AS $fn$
+DECLARE v_tenant bigint;v_policy bigint;
+BEGIN
+ SELECT tenant_id INTO v_tenant FROM c10_demo.businesses WHERE id=p_business;
+ IF NOT FOUND OR c10_demo.actor_uid() IS NULL
+  OR NOT c10_demo.can_business(v_tenant,p_business)
+ THEN RAISE EXCEPTION 'approval_assessment_denied'; END IF;
+ SELECT id INTO v_policy FROM c10_demo.approval_policy_versions_v1
+  WHERE tenant_id=v_tenant AND business_id=p_business
+    AND domain=p_domain AND action_code=p_action
+  ORDER BY version DESC LIMIT 1;
+ IF NOT FOUND THEN RAISE EXCEPTION 'approval_policy_missing'; END IF;
+ RETURN c10_demo.assess_approval_threshold_v1(v_policy,p_payload);
+END $fn$;
+
 CREATE FUNCTION c10_demo.configure_approval_threshold_v1(
  p_policy bigint,p_measure text,p_unit text,p_minimum numeric,p_key text
 ) RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER
@@ -213,3 +233,8 @@ GRANT EXECUTE ON FUNCTION c10_demo.assess_approval_threshold_v1(bigint,jsonb)
 GRANT EXECUTE ON FUNCTION c10_demo.configure_approval_threshold_v1(bigint,text,text,numeric,text)
   TO authenticated;
 -- The earlier authenticated grant on submit_typed_approval_v1 survives REPLACE.
+
+REVOKE ALL ON FUNCTION c10_demo.assess_current_approval_threshold_v1(bigint,text,text,jsonb)
+  FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION c10_demo.assess_current_approval_threshold_v1(bigint,text,text,jsonb)
+  TO authenticated;
