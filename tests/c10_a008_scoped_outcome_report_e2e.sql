@@ -72,6 +72,19 @@ DO $t$ BEGIN
  IF (SELECT count(*) FROM c10_demo.approval_status_report_v1)<>0
  THEN RAISE EXCEPTION 'FAIL: unrelated tenant approval history leak'; END IF;
 END $t$;
+-- Anonymous requests must fail at the SQL privilege boundary, not merely return zero rows.
+RESET ROLE;
+SET ROLE anon;
+DO $anon$
+BEGIN
+ BEGIN
+   EXECUTE 'SELECT count(*) FROM c10_demo.approval_status_report_v1';
+   RAISE EXCEPTION 'FAIL: anonymous report SELECT unexpectedly succeeded';
+ EXCEPTION
+   WHEN insufficient_privilege THEN
+     RAISE NOTICE 'PASS: anonymous report SELECT denied';
+ END;
+END $anon$;
 RESET ROLE;
 DO $t$
 BEGIN
