@@ -1,0 +1,16 @@
+-- f10/f11 fixture: deterministic synthetic audit events (inert fixture identities). DEMO / NOT LIVE.
+-- Run as role c10g3_backend. Each statement derives its actor from the simulated request.jwt.claim.sub.
+\set ON_ERROR_STOP on
+set request.jwt.claim.sub = '1d000000-0000-4000-8000-000000000003';
+select c10_gov003_demo.append_event('11111111-1111-4111-8111-111111111111', 'b1000000-0000-4000-8000-000000000001', '51000000-0000-4000-8000-000000000001', null, 'stock', 'sku-1', 'v1', 'stock.adjust', '2026-10-01T10:00:00Z'::timestamptz, 'corr-fx-01', 'fx-idem-0001', '{"item_ref":"sku-1","quantity_milli":"5000"}'::jsonb, null, 'inventory');
+select c10_gov003_demo.append_event('11111111-1111-4111-8111-111111111111', 'b1000000-0000-4000-8000-000000000001', '51000000-0000-4000-8000-000000000001', null, 'stock', 'sku-2', 'v1', 'stock.adjust', '2026-10-02T10:00:00Z'::timestamptz, 'corr-fx-02', 'fx-idem-0002', '{"item_ref":"sku-2","quantity_milli":"-250"}'::jsonb, null, 'inventory');
+set request.jwt.claim.sub = '1d000000-0000-4000-8000-000000000002';
+select c10_gov003_demo.append_event('11111111-1111-4111-8111-111111111111', 'b1000000-0000-4000-8000-000000000001', null, null, 'sales', 'sale-1001', 'v1', 'sales.sale', '2026-10-03T10:00:00Z'::timestamptz, 'corr-fx-03', 'fx-idem-0003', '{"amount_minor":"15000","currency":"bdt"}'::jsonb, null, 'finance');
+select c10_gov003_demo.append_event('11111111-1111-4111-8111-111111111111', 'b1000000-0000-4000-8000-000000000001', null, null, 'sales', '-refund-7', 'v1', 'sales.refund', '2026-10-04T10:00:00Z'::timestamptz, 'corr-fx-04', 'fx-idem-0004', '{"amount_minor":"-500","currency":"bdt","reason_code":"customer_return"}'::jsonb, null, 'finance');
+select c10_gov003_demo.append_event('11111111-1111-4111-8111-111111111111', 'b1000000-0000-4000-8000-000000000001', null, null, 'stock', 'b1-only-marker-1', 'v1', 'stock.adjust', '2026-10-05T10:00:00Z'::timestamptz, 'corr-fx-05', 'fx-idem-0005', '{"item_ref":"b1-only-marker-1","note_code":"marker"}'::jsonb, null, 'inventory');
+set request.jwt.claim.sub = '1d000000-0000-4000-8000-000000000009';
+select c10_gov003_demo.append_event('11111111-1111-4111-8111-111111111111', 'b1000000-0000-4000-8000-000000000002', null, null, 'stock', 'b2-sku-1', 'v1', 'stock.adjust', '2026-10-01T11:00:00Z'::timestamptz, 'corr-fx-06', 'fx-idem-0006', '{"item_ref":"b2-sku-1"}'::jsonb, null, 'inventory');
+select c10_gov003_demo.append_event('11111111-1111-4111-8111-111111111111', 'b1000000-0000-4000-8000-000000000002', null, null, 'stock', 'b2-sku-2', 'v1', 'stock.adjust', '2026-10-02T11:00:00Z'::timestamptz, 'corr-fx-07', 'fx-idem-0007', '{"item_ref":"b2-sku-2"}'::jsonb, null, 'inventory');
+set request.jwt.claim.sub = '1d000000-0000-4000-8000-000000000006';
+select c10_gov003_demo.append_event('22222222-2222-4222-8222-222222222222', 'b1000000-0000-4000-8000-000000000003', null, null, 'stock', 'b3-marker-1', 'v1', 'stock.adjust', '2026-10-01T12:00:00Z'::timestamptz, 'corr-fx-08', 'fx-idem-0008', '{"item_ref":"b3-marker-1"}'::jsonb, null, 'inventory');
+select c10_gov003_demo.append_event('22222222-2222-4222-8222-222222222222', 'b1000000-0000-4000-8000-000000000003', null, null, 'sales', 'b3-sale-1', 'v1', 'sales.sale', '2026-10-02T12:00:00Z'::timestamptz, 'corr-fx-09', 'fx-idem-0009', '{"amount_minor":"999","currency":"bdt"}'::jsonb, null, 'finance');
