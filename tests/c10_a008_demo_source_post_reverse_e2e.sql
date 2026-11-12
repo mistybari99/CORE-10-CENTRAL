@@ -25,6 +25,7 @@ DO $t$
 DECLARE v bigint;again bigint;r bigint;
 BEGIN
  v:=c10_demo.prepare_demo_stock_v1(5001,8001,5,'demo_src_prepare_01');
+ PERFORM set_config('demo.test.cmd_a',v::text,false);
  again:=c10_demo.prepare_demo_stock_v1(5001,8001,5,'demo_src_prepare_01');
  IF v<>again THEN RAISE EXCEPTION 'FAIL: source create replay'; END IF;
  BEGIN
@@ -84,7 +85,7 @@ SET ROLE service_role;
 DO $t$ BEGIN
  BEGIN
   PERFORM c10_demo.execute_approved_demo_stock_v1(
-    1,current_setting('demo.test.post_a')::bigint,'demo_exec_post_01');
+    current_setting('demo.test.cmd_a')::bigint,current_setting('demo.test.post_a')::bigint,'demo_exec_post_01');
   RAISE EXCEPTION 'FAIL: unapproved command posted';
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM<>'approval_not_effective' THEN RAISE; END IF;
@@ -103,13 +104,13 @@ DO $t$
 DECLARE v bigint;again bigint;
 BEGIN
  v:=c10_demo.execute_approved_demo_stock_v1(
-   1,current_setting('demo.test.post_a')::bigint,'demo_exec_post_01');
+   current_setting('demo.test.cmd_a')::bigint,current_setting('demo.test.post_a')::bigint,'demo_exec_post_01');
  again:=c10_demo.execute_approved_demo_stock_v1(
-   1,current_setting('demo.test.post_a')::bigint,'demo_exec_post_01');
+   current_setting('demo.test.cmd_a')::bigint,current_setting('demo.test.post_a')::bigint,'demo_exec_post_01');
  IF v<>again THEN RAISE EXCEPTION 'FAIL: idempotent posting'; END IF;
  BEGIN
   PERFORM c10_demo.execute_approved_demo_stock_v1(
-   1,current_setting('demo.test.post_a')::bigint,'demo_changed_execution_01');
+   current_setting('demo.test.cmd_a')::bigint,current_setting('demo.test.post_a')::bigint,'demo_changed_execution_01');
   RAISE EXCEPTION 'FAIL: execution replay key changed';
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM<>'demo_execution_replay_conflict' THEN RAISE; END IF;
@@ -119,7 +120,7 @@ RESET ROLE;
 DO $t$ BEGIN
  IF (SELECT count(*) FROM c10_demo.stock_movements)<>1
  OR (SELECT sum(delta) FROM c10_demo.stock_movements WHERE location_id=5001)<>5
- OR (SELECT status FROM c10_demo.approval_demo_stock_commands_v1 WHERE id=1)<>'posted'
+ OR (SELECT status FROM c10_demo.approval_demo_stock_commands_v1 WHERE id=current_setting('demo.test.cmd_a')::bigint)<>'posted'
  OR (SELECT count(*) FROM c10_demo.approval_demo_execution_receipts_v1)<>1
  THEN RAISE EXCEPTION 'FAIL: approval→stock→receipt atomic reconciliation'; END IF;
 END $t$;
@@ -132,7 +133,7 @@ DO $t$
 DECLARE v bigint;approval bigint; nextver bigint;
 BEGIN
  v:=c10_demo.prepare_demo_stock_v1(5001,8001,3,'demo_src_prepare_02');
- IF v<>2 THEN RAISE EXCEPTION 'FAIL: second source id fixture'; END IF;
+ PERFORM set_config('demo.test.cmd_b',v::text,false);
  approval:=c10_demo.submit_typed_approval_v1(
   101,'demo_stock','post_adjustment','demo-adjustment:'||v,1,
   c10_demo.demo_stock_payload_v1(v),'demo_submit_stale_02');
@@ -160,7 +161,7 @@ SET ROLE service_role;
 DO $t$ BEGIN
  BEGIN
   PERFORM c10_demo.execute_approved_demo_stock_v1(
-   2,current_setting('demo.test.stale_a')::bigint,'stale_exec_attempt_02');
+   current_setting('demo.test.cmd_b')::bigint,current_setting('demo.test.stale_a')::bigint,'stale_exec_attempt_02');
   RAISE EXCEPTION 'FAIL: source version changed but approved';
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM<>'approval_stale_or_payload_changed' THEN RAISE; END IF;
@@ -172,8 +173,9 @@ RESET ROLE;
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
 SELECT c10_demo.submit_typed_approval_v1(
-  101,'demo_stock','post_adjustment','demo-adjustment:2',2,
-  c10_demo.demo_stock_payload_v1(2),'demo_resubmit_fresh_02');
+  101,'demo_stock','post_adjustment',
+  'demo-adjustment:'||current_setting('demo.test.cmd_b'),2,
+  c10_demo.demo_stock_payload_v1(current_setting('demo.test.cmd_b')::bigint),'demo_resubmit_fresh_02');
 RESET ROLE;
 SELECT set_config('demo.test.fresh_b',
  (SELECT id::text FROM c10_demo.approval_requests
@@ -185,7 +187,7 @@ SELECT c10_demo.decide_approval(
 RESET ROLE;
 SET ROLE service_role;
 SELECT c10_demo.execute_approved_demo_stock_v1(
-  2,current_setting('demo.test.fresh_b')::bigint,'demo_execute_fresh_02');
+  current_setting('demo.test.cmd_b')::bigint,current_setting('demo.test.fresh_b')::bigint,'demo_execute_fresh_02');
 RESET ROLE;
 
 -- The original posted adjustment is reversed ONLY after its own separate
@@ -196,15 +198,16 @@ DO $t$
 DECLARE v bigint;r bigint;
 BEGIN
  v:=c10_demo.prepare_demo_reversal_v1(
-  1,'Duplicate physical count found','demo_reverse_prep_01');
+  current_setting('demo.test.cmd_a')::bigint,'Duplicate physical count found','demo_reverse_prep_01');
+ PERFORM set_config('demo.test.rev_a',v::text,false);
  IF c10_demo.prepare_demo_reversal_v1(
-   1,'Duplicate physical count found','demo_reverse_prep_01')<>v
+   current_setting('demo.test.cmd_a')::bigint,'Duplicate physical count found','demo_reverse_prep_01')<>v
  THEN RAISE EXCEPTION 'FAIL: reversal creation idempotency'; END IF;
- PERFORM c10_demo.prepare_demo_stock_v1(
-  5001,8001,2,'demo_unposted_src_03');
+ PERFORM set_config('demo.test.cmd_unposted',c10_demo.prepare_demo_stock_v1(
+  5001,8001,2,'demo_unposted_src_03')::text,false);
  BEGIN
   PERFORM c10_demo.prepare_demo_reversal_v1(
-   3,'Unposted cannot reverse','demo_unposted_reverse_03');
+   current_setting('demo.test.cmd_unposted')::bigint,'Unposted cannot reverse','demo_unposted_reverse_03');
   RAISE EXCEPTION 'FAIL: unposted reversal accepted';
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM<>'demo_reversal_invalid_source' THEN RAISE; END IF;
@@ -222,7 +225,7 @@ SET ROLE service_role;
 DO $t$ BEGIN
  BEGIN
   PERFORM c10_demo.execute_approved_demo_reversal_v1(
-   1,current_setting('demo.test.reverse_a')::bigint,'demo_exec_reverse_01');
+   current_setting('demo.test.rev_a')::bigint,current_setting('demo.test.reverse_a')::bigint,'demo_exec_reverse_01');
   RAISE EXCEPTION 'FAIL: reversal applied without independent checker';
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM<>'approval_not_effective' THEN RAISE; END IF;
@@ -239,13 +242,13 @@ DO $t$
 DECLARE a bigint;b bigint;
 BEGIN
  a:=c10_demo.execute_approved_demo_reversal_v1(
-  1,current_setting('demo.test.reverse_a')::bigint,'demo_exec_reverse_01');
+  current_setting('demo.test.rev_a')::bigint,current_setting('demo.test.reverse_a')::bigint,'demo_exec_reverse_01');
  b:=c10_demo.execute_approved_demo_reversal_v1(
-  1,current_setting('demo.test.reverse_a')::bigint,'demo_exec_reverse_01');
+  current_setting('demo.test.rev_a')::bigint,current_setting('demo.test.reverse_a')::bigint,'demo_exec_reverse_01');
  IF a<>b THEN RAISE EXCEPTION 'FAIL: reversal idempotency'; END IF;
  BEGIN
   PERFORM c10_demo.execute_approved_demo_reversal_v1(
-   1,current_setting('demo.test.reverse_a')::bigint,'demo_exec_reverse_changed');
+   current_setting('demo.test.rev_a')::bigint,current_setting('demo.test.reverse_a')::bigint,'demo_exec_reverse_changed');
   RAISE EXCEPTION 'FAIL: reversal replay key changed';
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM<>'demo_reversal_execution_replay_conflict' THEN RAISE; END IF;
@@ -256,8 +259,8 @@ DO $t$ BEGIN
  IF (SELECT count(*) FROM c10_demo.stock_movements)<>3
   OR (SELECT sum(delta) FROM c10_demo.stock_movements WHERE location_id=5001)<>4
   OR (SELECT count(*) FROM c10_demo.approval_demo_execution_receipts_v1)<>3
-  OR (SELECT status FROM c10_demo.approval_demo_stock_commands_v1 WHERE id=1)<>'reversed'
-  OR (SELECT status FROM c10_demo.approval_demo_stock_reversals_v1 WHERE id=1)<>'applied'
+  OR (SELECT status FROM c10_demo.approval_demo_stock_commands_v1 WHERE id=current_setting('demo.test.cmd_a')::bigint)<>'reversed'
+  OR (SELECT status FROM c10_demo.approval_demo_stock_reversals_v1 WHERE id=current_setting('demo.test.rev_a')::bigint)<>'applied'
  THEN RAISE EXCEPTION 'FAIL: 5+4-5 net4, 3 immutable ledger and receipt events'; END IF;
  IF has_function_privilege('authenticated','c10_demo.execute_approved_demo_stock_v1(bigint,bigint,text)','EXECUTE')
  OR has_function_privilege('anon','c10_demo.execute_approved_demo_reversal_v1(bigint,bigint,text)','EXECUTE')
