@@ -1,0 +1,9 @@
+# GOV-002 — Signed scoped pagination and bounded CSV
+
+This source-built addition extends the existing `createGov002ReviewClient` rather than introducing a second identity engine. It queries the **same** security-invoker PostgreSQL RLS views through the authenticated browser Supabase client. Scope is a single business ID; requests never use `service_role`. A secondary local check rejects mixed-business rows and invalid IDs. Each page includes a deterministic descending timestamp plus ID tie-breaker in its PostgREST query.
+
+The session-bound facade in PR91 also wraps the three new page operations. The client verifies `auth.getUser()` **before and after** each page. A changed login during a page or full export invalidates the result; duplicate event IDs, conflicting business IDs, missing page metadata, non-progress and over-limit requests are denied. The CSV formatter is the prior GOV002 formula-injection-safe formatter; no raw SQL or direct table writes occur.
+
+`createGov002BoundedReportPager()` provides offset pagination for status, escalation and activity; its CSV method fetches multiple authorized activity pages, hard capped at 5,000 rows. Every result declares `SIGNED_RLS_OFFSET_WINDOW_NOT_ATOMIC`, `is_consistent_snapshot:false` and `full_audit_archive:false`. Concurrent writes can shift offset windows; even a page shorter than the requested limit is **not** a certified immutable or exhaustive audit report. Signed server cursor/snapshot and GOV003 reconciliation are still required for a certified historical export.
+
+The 12 GOV002 detailed rows remain NOT_CERTIFIED_PER_DETAIL. A034 explicit approval action deny, actual GoTrue + hosted RLS staging, dynamic per-amount risk route selection, production domain adapters, real inventory/finance execution/reversal and Owner-controlled migration/release remain pending. Original Islamiya ERP, Codex Build01, Claude GOV003, production SG, main and public preview stay untouched.
