@@ -1,0 +1,43 @@
+name: Build08 Procurement Kernel (isolated draft)
+
+on:
+  pull_request:
+    paths:
+      - "internal/enterprise-procurement/build08/**"
+      - "tests/build08/**"
+      - ".github/workflows/c10-build08-procurement.yml"
+  push:
+    branches:
+      - "feature/c10-build08-procurement-kernel-20261112"
+    paths:
+      - "internal/enterprise-procurement/build08/**"
+      - "tests/build08/**"
+      - ".github/workflows/c10-build08-procurement.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-draft-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout exact proposed commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax validation
+        run: |
+          node --check internal/enterprise-procurement/build08/procurement-kernel.mjs
+          node --check tests/build08/procurement-kernel.test.mjs
+      - name: Deterministic positive, negative and accounting-boundary suite
+        run: node --test --test-reporter=spec tests/build08/procurement-kernel.test.mjs
+      - name: Ensure draft never writes to production or publishes live UI
+        run: |
+          ! grep -Ein 'https?://|fetch\(|supabase\.|service_role|POSTGRES_PASSWORD|apikey' internal/enterprise-procurement/build08/procurement-kernel.mjs
+          test ! -f dist/internal/enterprise-procurement/build08/procurement-kernel.mjs
