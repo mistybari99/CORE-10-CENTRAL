@@ -218,6 +218,21 @@ BEGIN
    RAISE EXCEPTION 'FAIL: authenticated rewrote signed request';
  EXCEPTION WHEN insufficient_privilege THEN NULL;
  END;
+ BEGIN
+   DELETE FROM c10_demo.approval_policy_versions_v1 WHERE id=1;
+   RAISE EXCEPTION 'FAIL: authenticated deleted immutable policy';
+ EXCEPTION WHEN insufficient_privilege THEN NULL;
+ END;
+ BEGIN
+   DELETE FROM c10_demo.approval_requests WHERE id=1;
+   RAISE EXCEPTION 'FAIL: authenticated deleted approval request';
+ EXCEPTION WHEN insufficient_privilege THEN NULL;
+ END;
+ BEGIN
+   DELETE FROM c10_demo.approval_events WHERE id=1;
+   RAISE EXCEPTION 'FAIL: authenticated deleted audit event';
+ EXCEPTION WHEN insufficient_privilege THEN NULL;
+ END;
 END $t$;
 RESET ROLE;
 
