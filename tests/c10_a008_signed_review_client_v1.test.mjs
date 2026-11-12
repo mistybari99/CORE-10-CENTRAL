@@ -41,7 +41,7 @@ test("only scoped read-only view and explicit business filter after auth.getUser
  const rows=await c.listActivity({businessId:101,limit:25});
  assert.deepEqual(rows,[event]);
  assert.deepEqual(f.calls.map(x=>x.verb),
-  ["getUser","schema","from","select","eq","order","limit"]);
+  ["getUser","schema","from","select","eq","order","limit","getUser"]);
  assert.equal(f.calls[2].name,"approval_activity_feed_v1");
  assert.deepEqual(f.calls[4],{verb:"eq",field:"business_id",value:101});
  assert.equal(f.calls[5].field,"occurred_at");
@@ -73,7 +73,7 @@ test("signed decision RPC passes only request/action/key; never supplied actor/t
  assert.deepEqual(rpc.params,{p_request:55,p_action:"approve",p_key:"decision_001"});
  assert.equal(Object.keys(rpc.params).some(x=>/role|actor|tenant|posted|effect/.test(x)),false);
  assert.deepEqual(await c.withdrawApproval({requestId:55,idempotencyKey:"withdraw_001"}),99);
- assert.equal(f.calls.filter(x=>x.verb==="getUser").length,2);
+ assert.equal(f.calls.filter(x=>x.verb==="getUser").length,4);
 });
 test("bounded exception methods never call stock/finance execute RPCs",async()=>{
  const f=fakeSupabase();
@@ -118,4 +118,40 @@ test("export is first signed RLS page only, Excel formula injection sanitized",a
  await assert.rejects(c.listActivity({businessId:101,limit:1001}),/invalid_page_limit/);
  const foreign=fakeSupabase({row:[{...event,business_id:102}]});
  await assert.rejects(createGov002ReviewClient(foreign.supabase).exportActivityCsv({businessId:101}),/server_scope_mismatch/);
+});
+
+test("account switch during scoped read rejects stale rows and CSV",async()=>{
+ for(const method of ["listActivity","exportActivityCsv"]){
+  let user="actor-A";
+  const f=fakeSupabase();
+  f.supabase.auth.getUser=async()=>({data:{user:{id:user}},error:null});
+  const base=f.supabase.schema;
+  f.supabase.schema=(name)=>{
+   const db=base(name),original=db.from;
+   db.from=(view)=>{
+    const q=original(view),limit=q.limit;
+    q.limit=async(n)=>{const r=await limit(n);user="actor-B";return r;};
+    return q;
+   };
+   return db;
+  };
+  await assert.rejects(createGov002ReviewClient(f.supabase)[method]({businessId:101}),/signed_actor_changed/);
+ }
+});
+test("account switch during approval or exception RPC rejects stale success receipt",async()=>{
+ for(const method of ["decideApproval","requestException"]){
+  let user="actor-A";
+  const f=fakeSupabase();
+  f.supabase.auth.getUser=async()=>({data:{user:{id:user}},error:null});
+  const base=f.supabase.schema;
+  f.supabase.schema=(name)=>{
+   const db=base(name),original=db.rpc;
+   db.rpc=async(...args)=>{const r=await original(...args);user="actor-B";return r;};
+   return db;
+  };
+  const args=method==="decideApproval"
+   ? {requestId:7,action:"approve",idempotencyKey:"switch_actor_01"}
+   : {requestId:7,reason:"Account switch during review",idempotencyKey:"switch_actor_02"};
+  await assert.rejects(createGov002ReviewClient(f.supabase)[method](args),/signed_actor_changed/);
+ }
 });
