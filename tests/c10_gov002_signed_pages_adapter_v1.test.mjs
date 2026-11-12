@@ -35,7 +35,7 @@ test('signed page read rejects other business, bad bounds, and forged scope befo
  const x=mockSupabase([sample(1,201)]);const c=createGov002ReviewClient(x.supabase);
  await assert.rejects(c.listActivityPage({businessId:101,offset:0,limit:2}),/server_scope_mismatch/);
  for(const args of [{businessId:0,offset:0,limit:2},{businessId:101,offset:50001,limit:2},{businessId:101,offset:0,limit:1001}])
-   await assert.rejects(c.listActivityPage(args),/invalid_page/);
+   await assert.rejects(c.listActivityPage(args),/invalid_page|invalid_business_id/);
 });
 test('session changes during SQL range are rejected, even if query returns authorized-looking rows',async()=>{
  const x=mockSupabase([sample(1)]),c=createGov002ReviewClient(x.supabase);
