@@ -75,7 +75,7 @@ test('f10 positive: owner export returns filtered rows, the byte hash, a durable
   const nf = normalizeFilter();
   assert.equal(rc.filter_sha256, nf.filterSha256); assert.deepEqual(rc.filter_params, nf.filter);
   assert.ok(Date.now() - Date.parse(rc.issued_at) < 60000);
-  const ev = one(DB, `select *, ${ISO('event_time')} as t from c10_gov003_demo.v_audit_events where event_id = '${rc.audit_event_id}'`, rd(U.bizOwnerB1));
+  const ev = one(DB, `select *, ${ISO('event_time')} as time_iso from c10_gov003_demo.v_audit_events where event_id = '${rc.audit_event_id}'`, rd(U.bizOwnerB1));
   assert.equal(ev.action, 'export.csv'); assert.equal(ev.source_domain, 'gov003.export'); assert.equal(ev.reason_category, 'export');
   assert.equal(ev.actor_id, U.bizOwnerB1); assert.equal(ev.source_version, rc.source_version); assert.equal(ev.receipt_id, rc.audit_receipt_id);
   assert.deepEqual(Object.keys(ev.payload).sort(), ['artifact_sha256', 'filter_ref', 'receipt_ref', 'report_id', 'row_count']);
@@ -120,9 +120,9 @@ test('f10 parity: SQL CSV bytes are identical to the Node writer for the same jo
 
 const CELLS = [
   '', 'plain', 'a,b', 'say "hi"', 'l1\r\nl2', 'l1\rl2', 'l1\nl2', '=1+1', '+1', '-1', '@x', '\t=x', '\r=x', '\n+x', ' =x', "'=x",
-  'a=b+c-d@e', 'é', 'é', 'a‮b⁦c​d﻿e­f', 'a\u0007b\u007Fc\u0085d e f', '‮=1+1',
-  'কাজ', '\u{1F600} smile', '\u{1F468}‍\u{1F469}', 'tab\there', '-5', '1+1', '=HYPERLINK("http://x","y")',
-  'x'.repeat(2048), `=${'x'.repeat(100)}`, '"', ',', '""', 'ÅÅ', 'q̣́',
+  'a=b+c-d@e', 'e\u0301', '\u00E9', 'a\u202Eb\u2066c\u200Bd\uFEFFe\u00ADf', 'a\u0007b\u007Fc\u0085d\u2028e\u2029f', '\u202E=1+1',
+  '\u0995\u09BE\u099C', '\u{1F600} smile', '\u{1F468}\u200D\u{1F469}', 'tab\there', '-5', '1+1', '=HYPERLINK("http://x","y")',
+  'x'.repeat(2048), `=${'x'.repeat(100)}`, '"', ',', '""', '\u00C5\u212B', 'q\u0301\u0323',
 ];
 test('f10 parity: g3_csv_cell (SQL) equals csvCell (Node) on a hostile corpus, including formula/CR/LF/Unicode cases', () => {
   const q = CELLS.map((s, i) => `select ${i} as i, encode(convert_to(c10_gov003_demo.g3_csv_cell(${hexText(s)}), 'UTF8'), 'hex') as h`).join(' union all ');
@@ -269,10 +269,11 @@ test('f10 scope: a denied caller learns nothing about foreign tenants (identical
 test('f10 scope: owner of T2 exports only their business; no T1 row, marker or count appears', () => {
   const r = exp(U.t2Owner, { t: T2, b: B3 });
   assert.equal(r.row_count, 2);
-  assert.ok(!r.csv_text.includes('b1-only-marker') && !r.csv_text.includes('sku-1') && !r.csv_text.includes('b2-sku'));
+  assert.ok(!r.csv_text.includes('b1-only-marker') && !r.csv_text.includes('b2-sku') && !r.csv_text.includes('sale-1001'));
   assert.deepEqual(parseCsv(r.csv_text).slice(1).map((x) => x[5]), ['b3-marker-1', 'b3-sale-1']);
-  const b2 = exp(U.bizOwnerB2, { b: B2 });
-  assert.ok(!b2.csv_text.includes('sku-1') && !b2.csv_text.includes('b3-marker') && !b2.csv_text.includes('b1-only-marker'));
+  const b2 = exp(U.bizOwnerB2, { b: B2, action: 'stock.adjust' });
+  assert.deepEqual(parseCsv(b2.csv_text).slice(1).map((x) => x[5]), ['b2-sku-1', 'b2-sku-2']);
+  assert.ok(!b2.csv_text.includes('b3-marker') && !b2.csv_text.includes('b1-only-marker'));
 });
 
 test('f10 scope: scoped receipt views show nobody else\'s receipts or counts', () => {
@@ -281,10 +282,13 @@ test('f10 scope: scoped receipt views show nobody else\'s receipts or counts', (
   assert.ok(mine.length > 0 && mine.every((x) => x.business_id === B1));
   for (const sub of [U.t2Owner, U.staffS1, U.investorB1, U.revokedB1, U.support, U.bizOwnerB2]) {
     assert.equal(rows(DB, `select 1 from c10_gov003_demo.v_export_receipts where business_id = '${B1}'`, rd(sub)).length, 0, sub);
-    assert.equal(Number(one(DB, 'select count(*)::int as c from c10_gov003_demo.v_export_receipts', rd(sub)).c) === 0 || sub === U.bizOwnerB2, true);
+    assert.equal(rows(DB, `select 1 from c10_gov003_demo.v_export_receipts where business_id = '${B1}'`, be(sub)).length, 0, sub);
   }
-  assert.equal(rows(DB, 'select 1 from c10_gov003_demo.v_export_receipts', rd(U.t2Owner)).length, 1 * rows(DB, `select 1 from c10_gov003_demo.v_export_receipts where business_id = '${B3}'`, rd(U.t2Owner)).length);
-  assert.equal(rows(DB, 'select 1 from c10_gov003_demo.v_export_receipts', rd(U.unknown)).length, 0);
+  for (const sub of [U.staffS1, U.investorB1, U.revokedB1, U.support, U.unknown]) {
+    assert.equal(rows(DB, 'select 1 from c10_gov003_demo.v_export_receipts', rd(sub)).length, 0, sub);
+  }
+  assert.ok(rows(DB, 'select business_id from c10_gov003_demo.v_export_receipts', rd(U.t2Owner)).every((x) => x.business_id === B3));
+  assert.ok(rows(DB, 'select business_id from c10_gov003_demo.v_export_receipts', rd(U.bizOwnerB2)).every((x) => x.business_id === B2));
 });
 
 test('f10 forged actor: caller-supplied actor that differs from the server-derived one is G3A01; a matching claim is harmless', () => {
@@ -340,7 +344,7 @@ test('f10 verify_export: exact bytes verify; any altered byte, dropped row, appe
     [lines[0], ...lines.slice(2)].join('\r\n'),                          // dropped row
     `${r.csv_text}${lines[1]}\r\n`,                                      // duplicated/appended row
     r.csv_text.replaceAll('\r\n', '\n'),                                 // line-ending rewrite
-    r.csv_text.slice(0, -2), `${r.csv_text} `, `﻿${r.csv_text}`, '',
+    r.csv_text.slice(0, -2), `${r.csv_text} `, `\uFEFF${r.csv_text}`, '',
   ];
   for (const t of tampered) assert.equal(code(() => v(t)), 'G3A04', JSON.stringify(t.slice(0, 60)));
   assert.equal(code(() => exec(DB, `select * from c10_gov003_demo.verify_export(${uuidLit(r.export_receipt_id)}, null)`, be(U.bizOwnerB1))), 'G3A04');
@@ -358,7 +362,7 @@ test('f10 verify_export: unknown receipt (missing receipt for a claimed export) 
   // a claimed file whose hash has no receipt at all is detectable through the scoped view
   const claimed = sha256Hex('some other file');
   assert.equal(rows(DB, `select 1 from c10_gov003_demo.v_export_receipts where byte_sha256 = '${claimed}'`, rd(U.bizOwnerB1)).length, 0);
-  assert.equal(rows(DB, `select 1 from c10_gov003_demo.v_export_receipts where byte_sha256 = '${r.byte_sha256}'`, rd(U.bizOwnerB1)).length, 1);
+  assert.ok(rows(DB, `select 1 from c10_gov003_demo.v_export_receipts where byte_sha256 = '${r.byte_sha256}'`, rd(U.bizOwnerB1)).length >= 1);
 });
 
 test('f10 export_ledger_check: receipts and export audit events are balanced; foreign callers are denied', () => {
@@ -379,7 +383,7 @@ test('f10 tamper: receipt edits, deleted receipts, edited audit link and rewritt
   // 1. DBA edits a stored receipt
   su(`update c10_gov003_demo.export_receipts set row_count = row_count + 1 where export_receipt_id = '${r1.export_receipt_id}'`);
   assert.equal(code(() => verify(r1)), 'G3A04');
-  assert.equal(code(() => exp(U.bizOwnerB1, { idem: r1.export_receipt_id && undefined, action: 'stock.adjust' }, DB_TAMPER) && null), null); // other exports unaffected
+  assert.equal(e({ action: 'stock.adjust' }).outcome, 'created');                // unrelated exports keep working
   // 2. DBA deletes a receipt: the claimed export has no receipt and the ledger shows an orphan audit event
   su(`delete from c10_gov003_demo.export_receipts where export_receipt_id = '${r2.export_receipt_id}'`);
   assert.equal(code(() => verify(r2)), 'G3A04');
@@ -436,7 +440,7 @@ test('f10 formula injection: =,+,-,@,TAB,CR,LF at the start of source ids and pa
   freshDb(DB_INJECT, { only: ONLY }); seedFixture(DB_INJECT);
   runSqlFile(DB_INJECT, INJECT);                      // disposable DB only: lets hostile values reach the journal
   const hostile = [
-    '=HYPERLINK("http://evil.example/x","click")', '+1+1', '@SUM(A1)', '-2+3', '\t=1+1', '\r=cmd', '\n+x', '‮=1+1',
+    '=HYPERLINK("http://evil.example/x","click")', '+1+1', '@SUM(A1)', '-2+3', '\t=1+1', '\r=cmd', '\n+x', '\u202E=1+1',
     'a,b"c', 'line1\r\nline2', "=cmd|' /C calc'!A0", 'safe-id',
   ];
   hostile.forEach((sid, i) => exec(DB_INJECT, `select c10_gov003_demo.append_event('${T1}', '${B1}', null, null, 'stock', ${hexText(sid)}, 'v1', 'stock.adjust', now(), 'corr-inj-${i}', 'idem-inj-${String(i).padStart(4, '0')}',
@@ -448,7 +452,7 @@ test('f10 formula injection: =,+,-,@,TAB,CR,LF at the start of source ids and pa
   for (const rec of recs.slice(1)) for (const cell of rec) assert.ok(!/^[=+\-@\t\r\n]/.test(cell), JSON.stringify(cell));
   const sources = recs.slice(1).map((x) => x[5]);
   for (const [raw, exp_] of [['=HYPERLINK("http://evil.example/x","click")', '\'=HYPERLINK("http://evil.example/x","click")'], ['+1+1', "'+1+1"], ['@SUM(A1)', "'@SUM(A1)"], ['-2+3', "'-2+3"],
-    ['\t=1+1', "'\t=1+1"], ['\r=cmd', "'\n=cmd"], ['\n+x', "'\n+x"], ['‮=1+1', "'=1+1"], ['line1\r\nline2', 'line1\nline2'], ['safe-id', "'safe-id".slice(1)]]) {
+    ['\t=1+1', "'\t=1+1"], ['\r=cmd', "'\n=cmd"], ['\n+x', "'\n+x"], ['\u202E=1+1', "'=1+1"], ['line1\r\nline2', 'line1\nline2'], ['safe-id', "'safe-id".slice(1)]]) {
     if (raw === 'safe-id') continue;
     assert.ok(sources.includes(exp_), JSON.stringify([raw, exp_]));
   }

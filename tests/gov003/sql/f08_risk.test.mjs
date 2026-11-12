@@ -198,31 +198,16 @@ test('advisory language: every reason is review-only wording, never an accusatio
     assertAdvisoryOnly({ disposition: s.disposition, reason: s.reason });
     assert.match(s.reason, /^Advisory only:/); assert.match(s.reason, /no action was taken|No permission was changed/);
   }
-  const ins = (reason, disp = 'advisory_review_only') => exec(DB, `select set_config('c10_gov003.writer','append_path',false);
+  const ins = (reason, disp = 'advisory_review_only') => exec(DB, `begin; select set_config('c10_gov003.writer','append_path',true);
     insert into ${S}.risk_signals (signal_id, tenant_id, business_id, rule_id, signal_key, disposition, severity, confidence_pct, reason, detected_by, event_id, receipt_id)
-    select gen_random_uuid(), tenant_id, business_id, 'dup_key', 'x-lang-' || md5(${lit(reason + disp)}), ${lit(disp)}, 'low', 10, ${lit(reason)}, detected_by, event_id, receipt_id from ${S}.risk_signals limit 1`, owner);
+    select gen_random_uuid(), tenant_id, business_id, 'dup_key', 'x-lang-' || md5(${lit(reason + disp)}), ${lit(disp)}, 'low', 10, ${lit(reason)}, detected_by, event_id, receipt_id from ${S}.risk_signals limit 1; rollback;`, owner);
   assert.equal(codeOf(() => ins('Advisory only: this person committed fraud and must be stopped.')), '23514');
   assert.equal(codeOf(() => ins('This employee is guilty of theft; freeze the account immediately please.')), '23514');
   assert.equal(codeOf(() => ins('Advisory only: unusual volume, human review is required, nothing done.', 'auto_freeze')), '23514');
   assert.equal(codeOf(() => ins('Advisory only: unusual volume seen; human review is required; nothing was done.')), 'NO_ERROR');
-  exec(DB, `select set_config('c10_gov003.writer','',false)`, owner);
   const cols = rows(DB, `select table_name, column_name from information_schema.columns where table_schema = '${S}' and table_name in
     ('risk_signals','risk_signal_evidence','risk_signal_reviews','idempotency_conflict_log','catalog_snapshots','catalog_baselines','catalog_diffs')`, owner);
   assert.deepEqual(cols.filter((c) => /(freeze|block|suspend|terminate|fire|debit|transfer|escalat)/i.test(c.column_name)), []);
-});
-
-test('signals, evidence, reviews and the log are immutable for every principal', () => {
-  for (const t of ['risk_signals', 'risk_signal_evidence', 'risk_signal_reviews', 'idempotency_conflict_log']) {
-    assert.equal(codeOf(() => exec(DB, `update ${S}.${t} set tenant_id = tenant_id`, as(OWNER1))), '42501', `${t} update (backend)`);
-    assert.equal(codeOf(() => exec(DB, `delete from ${S}.${t}`, as(OWNER1))), '42501', `${t} delete (backend)`);
-    assert.equal(codeOf(() => exec(DB, `truncate ${S}.${t}`, as(OWNER1))), '42501', `${t} truncate (backend)`);
-    assert.equal(codeOf(() => exec(DB, `update ${S}.${t} set tenant_id = tenant_id`, owner)), 'G3H01', `${t} update (owner role bypass attempt)`);
-    assert.equal(codeOf(() => exec(DB, `delete from ${S}.${t}`, owner)), 'G3H01', `${t} delete (owner role bypass attempt)`);
-    assert.equal(codeOf(() => exec(DB, `truncate ${S}.${t}`, owner)), 'G3H01', `${t} truncate (owner role bypass attempt)`);
-  }
-  assert.equal(codeOf(() => exec(DB, `insert into ${S}.risk_signals (signal_id) values (gen_random_uuid())`, as(OWNER1))), '42501');
-  assert.equal(codeOf(() => exec(DB, `insert into ${S}.risk_signals (signal_id) values (gen_random_uuid())`, owner)), 'G3H01', 'owner direct INSERT outside the append path');
-  assert.equal(codeOf(() => exec(DB, `select * from ${S}.risk_signals`, { role: 'c10g3_app', sub: OWNER1 })), '42501');
 });
 
 test('reads are business-scoped: site staff, investor, revoked, support, other owners and T2 see zero rows and zero counts', () => {
@@ -342,6 +327,21 @@ test('second review of the same signal: exact replay returns the stored review; 
   const ack = review(TOWN, sig.unauthorized_command.signal_id, 'acknowledge', 'followup_required', 'rev-idem-0006')[0];
   assert.equal(ack.decision, 'acknowledge');
   assert.equal(one(DB, `select status from ${S}.v_risk_signals where signal_id = ${uuidLit(sig.unauthorized_command.signal_id)}`, as(OWNER1)).status, 'acknowledged');
+});
+
+test('signals, evidence, reviews and the log are immutable for every principal', () => {
+  for (const t of ['risk_signals', 'risk_signal_evidence', 'risk_signal_reviews', 'idempotency_conflict_log']) {
+    assert.equal(codeOf(() => exec(DB, `update ${S}.${t} set tenant_id = tenant_id`, as(OWNER1))), '42501', `${t} update (backend)`);
+    assert.equal(codeOf(() => exec(DB, `delete from ${S}.${t}`, as(OWNER1))), '42501', `${t} delete (backend)`);
+    assert.equal(codeOf(() => exec(DB, `truncate ${S}.${t}`, as(OWNER1))), '42501', `${t} truncate (backend)`);
+    assert.equal(codeOf(() => exec(DB, `update ${S}.${t} set tenant_id = tenant_id`, owner)), 'G3H01', `${t} update (owner role bypass attempt)`);
+    assert.equal(codeOf(() => exec(DB, `delete from ${S}.${t}`, owner)), 'G3H01', `${t} delete (owner role bypass attempt)`);
+    // tables referenced by foreign keys refuse TRUNCATE at parse time (0A000); the others hit the append-only trigger
+    assert.ok(['G3H01', '0A000'].includes(codeOf(() => exec(DB, `truncate ${S}.${t}`, owner))), `${t} truncate (owner role bypass attempt)`);
+  }
+  assert.equal(codeOf(() => exec(DB, `insert into ${S}.risk_signals (signal_id) values (gen_random_uuid())`, as(OWNER1))), '42501');
+  assert.equal(codeOf(() => exec(DB, `insert into ${S}.risk_signals (signal_id) values (gen_random_uuid())`, owner)), 'G3H01', 'owner direct INSERT outside the append path');
+  assert.equal(codeOf(() => exec(DB, `select * from ${S}.risk_signals`, { role: 'c10g3_app', sub: OWNER1 })), '42501');
 });
 
 test('REAL two-process race: one psql backend holds its review transaction open (pg_sleep); the second overlaps, WAITS on the advisory lock, then loses with G3C02', async () => {

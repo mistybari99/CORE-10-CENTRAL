@@ -66,7 +66,7 @@ end $$;
 -- Payload cell: allowlisted fields only (payload_allowlist), sorted by key, "key=value;key=value".
 -- Values that look like secrets/PII are replaced by [withheld]; every value is formula-guarded.
 create function c10_gov003_demo.g3_csv_payload_text(p jsonb) returns text
-language plpgsql stable
+language plpgsql stable security definer
 set search_path = pg_catalog, c10_gov003_demo, pg_temp
 as $$
 declare k text; v jsonb; sv text; parts text[] := '{}';
