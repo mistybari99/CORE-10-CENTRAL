@@ -68,9 +68,9 @@ jobs:
       - name: Static safety checks
         run: node tests/gov003/static-checks.mjs
       - name: SQL + Node suites (fresh PG17 databases, real two-session races)
-        run: node --test --test-concurrency=2 tests/gov003/node/ tests/gov003/sql/
+        run: node --test --test-concurrency=2 "tests/gov003/node/*.test.mjs" "tests/gov003/sql/*.test.mjs"
       - name: Demo end-to-end (local API + browser-less HTTP contract)
-        run: node --test tests/gov003/demo/
+        run: node --test "tests/gov003/demo/*.test.mjs"
       - name: Evidence line
         if: always()
         run: echo "GOV003 head=${GITHUB_SHA} job_status=${{ job.status }}"
