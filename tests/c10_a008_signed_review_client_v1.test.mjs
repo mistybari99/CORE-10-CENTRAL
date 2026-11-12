@@ -120,6 +120,15 @@ test("export is first signed RLS page only, Excel formula injection sanitized",a
  await assert.rejects(createGov002ReviewClient(foreign.supabase).exportActivityCsv({businessId:101}),/server_scope_mismatch/);
 });
 
+test("oversized first-page responses fail closed for read and CSV export",async()=>{
+ const oversized=Array.from({length:3},(_,i)=>({...event,activity_id:"approval:"+i}));
+ for(const method of ["listActivity","exportActivityCsv"]){
+  const f=fakeSupabase({row:oversized});
+  await assert.rejects(createGov002ReviewClient(f.supabase)[method]({businessId:101,limit:2}),/approval_read_invalid_response/);
+  assert.equal(f.calls.find(x=>x.verb==="limit").n,2);
+ }
+});
+
 test("account switch during scoped read rejects stale rows and CSV",async()=>{
  for(const method of ["listActivity","exportActivityCsv"]){
   let user="actor-A";
