@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CORE 10 · GOV-002 Draft Approval UI</title>
+<link rel="stylesheet" href="../../internal/enterprise-client/c10_gov002_review_ui_v1.css"/>
+<style>body{margin:0}#preview-explanation{position:absolute;left:-10000px}</style></head><body>
+<p id="preview-explanation">Synthetic fixture only. No real database, login or active actions.</p>
+<div id="c10-approval-workspace"></div>
+<script type="module">
+import {mountGov002ApprovalUI} from '../../internal/enterprise-client/c10_gov002_review_ui_v1.mjs';
+const now = new Date('2026-11-12T11:00:00Z');
+const r=(id,status,display,domain,action,source,checks=1,done=0)=>({
+  request_id:id,business_id:101,domain,action_code:action,source_key:source,
+  source_version:2,requested_by:'synthetic-maker-example',requested_at:now.toISOString(),
+  expires_at:'2027-01-01T00:00:00Z',stored_status:status,display_status:display,
+  required_checks:checks,completed_checks:done,movement_id:null,original_movement_id:null
+});
+const statuses=[
+  r(102,'pending','awaiting_stage_1','demo_stock','STOCK_ADJUST','IMG-M/DEMO-102',2,0),
+  r(101,'pending','awaiting_stage_2','demo_stock','STOCK_ADJUST','IMG-2/DEMO-101',2,1),
+  r(100,'approved','approved_pending_execution','demo_stock','STOCK_ADJUST','IMG-M/DEMO-100',2,2),
+  r(99,'rejected','rejected','demo_ops','PURCHASE_REVIEW','PR-99'),
+  r(98,'deferred','deferred','demo_ops','SALES_EXCEPTION','SX-98'),
+  r(97,'withdrawn','withdrawn','demo_ops','ADMIN_REVIEW','AD-97'),
+  {...r(96,'pending','expired','demo_ops','POLICY_REVIEW','PX-96'),expires_at:'2026-01-01T00:00:00Z'}
+];
+const exceptions=[{escalation_id:11,request_id:102,business_id:101,created_by:'synthetic-maker-example',
+  reason:'Demo escalation for source validation only',severity:'urgent',created_at:now.toISOString(),
+  expires_at:'2027-01-01T00:00:00Z',stored_status:'pending',display_status:'pending',parent_approval_status:'pending'}];
+const activity=[{activity_id:'approval:102',business_id:101,request_id:102,
+  domain:'demo_stock',action_code:'STOCK_ADJUST',source_key:'IMG-M/DEMO-102',
+  event_actor:'synthetic-reviewer',activity_type:'approval',action:'submitted',occurred_at:now.toISOString(),approval_status:'pending'}];
+const blocked=async()=>{throw new Error('fixture_actions_blocked')};
+const reviewClient={
+  listStatus:async({businessId})=>businessId===101?statuses:[],
+  listExceptions:async({businessId})=>businessId===101?exceptions:[],
+  listActivity:async({businessId})=>businessId===101?activity:[],
+  decideApproval:blocked,withdrawApproval:blocked,requestException:blocked,
+  decideException:blocked,withdrawException:blocked,exportActivityCsv:blocked
+};
+window.__c10Demo=mountGov002ApprovalUI({root:document.querySelector('#c10-approval-workspace'),
+  reviewClient,businessId:101,businesses:[{id:101,name:'Islamiya Misty Ghar · Synthetic'},
+  {id:102,name:'Other Business · Synthetic (empty)'}],actionsEnabled:false,
+  environmentLabel:'SYNTHETIC PREVIEW · Actions disabled'});
+</script></body></html>

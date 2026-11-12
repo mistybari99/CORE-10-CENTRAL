@@ -14,7 +14,7 @@ const KEY = /^[A-Za-z0-9_-]{8,128}$/u;
 const VIEWS = Object.freeze({
   status: Object.freeze({
     name: "approval_status_report_v1",
-    columns: "request_id,business_id,domain,action_code,source_key,source_version,requested_by,requested_at,stored_status,display_status,required_checks,completed_checks,execution_kind,movement_id,original_movement_id",
+    columns: "request_id,business_id,domain,action_code,source_key,source_version,policy_version,source_fingerprint,requested_by,requested_at,expires_at,stored_status,display_status,required_checks,completed_checks,execution_kind,movement_id,original_movement_id",
     order: "requested_at"
   }),
   exceptions: Object.freeze({
