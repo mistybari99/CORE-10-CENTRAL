@@ -17,7 +17,7 @@ test('only signed user can request business-scoped current reviewer tasks',async
 });
 test('wrong-business, unsupported tasks and missing auth fail closed',async()=>{
  const x=supabase([task(1,202)]),c=createGov002ReviewClient(x.client);
- await assert.rejects(c.listReviewerTasks({businessId:101}),/server_scope_mismatch/);
+ await assert.rejects(c.listReviewerTasks({businessId:101}),/reviewer_task_invalid_response/);
  await assert.rejects(c.listReviewerTasks({businessId:0}),/invalid_business_id/);
  const y=supabase([task(1)]);y.setUser(null);
  await assert.rejects(createGov002ReviewClient(y.client).listReviewerTasks({businessId:101}),/auth_required/);
