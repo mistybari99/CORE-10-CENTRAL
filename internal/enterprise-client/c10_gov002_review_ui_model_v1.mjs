@@ -47,6 +47,11 @@ export function approvalStageText(row) {
   const d = String(row?.display_status || '').toLowerCase();
   if (d === 'awaiting_stage_1') return 'প্রথম ধাপ (Stage 1)';
   if (d === 'awaiting_stage_2') return 'দ্বিতীয় ধাপ (Stage 2)';
+  if (/^awaiting_stage_[3-5]$/u.test(d)) {
+    const labels = {3:'তৃতীয়',4:'চতুর্থ',5:'পঞ্চম'};
+    const stage = Number(d.at(-1));
+    return `${labels[stage]} ধাপ (Stage ${stage})`;
+  }
   if (d === 'approved_pending_execution') return 'অনুমোদিত · কার্যকর হয়নি';
   if (d === 'executed') return 'Synthetic execution receipt';
   const names = {

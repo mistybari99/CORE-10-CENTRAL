@@ -58,7 +58,7 @@ export function summarizeScopedApprovalPages({businessId,statusRows,exceptionRow
   const exceptions=verifiedBusinessRows(exceptionRows,businessId,'exceptions');
   const activities=verifiedBusinessRows(activityRows,businessId,'activity');
   const counts={pending:0,approved:0,rejected:0,deferred:0,withdrawn:0,expired:0,unknown:0};
-  const stages={awaiting_stage_1:0,awaiting_stage_2:0};
+  const stages={awaiting_stage_1:0,awaiting_stage_2:0,awaiting_stage_3:0,awaiting_stage_4:0,awaiting_stage_5:0};
   const sources=[];
   const approvalHistory=[];
   for(const r of statuses){

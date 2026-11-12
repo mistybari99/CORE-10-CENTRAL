@@ -33,7 +33,7 @@ test('constructs six non-authoritative business-scoped reports from bounded sign
  const r=summarizeScopedApprovalPages(fixture);
  assert.equal(r.coverage,GOV002_REPORT_COVERAGE);
  assert.deepEqual(r.status_summary,{pending:1,approved:1,rejected:1,deferred:1,withdrawn:1,expired:1,unknown:0});
- assert.deepEqual(r.pending_summary,{pending:1,expired:1,awaiting_stage_1:1,awaiting_stage_2:0});
+ assert.deepEqual(r.pending_summary,{pending:1,expired:1,awaiting_stage_1:1,awaiting_stage_2:0,awaiting_stage_3:0,awaiting_stage_4:0,awaiting_stage_5:0});
  assert.deepEqual(r.rejection_withdrawal,{rejected:1,withdrawn:1});
  assert.equal(r.exception_escalation.pending,1);
  assert.equal(r.exception_escalation.urgent,1);
@@ -111,4 +111,13 @@ test('domain port rejects client-made authority and unconfigured units/scopes',(
  assert.throws(()=>describeGov002OperationPort({...x,operation:'pay_now'}),/unsupported_canonical_operation_port/);
  assert.throws(()=>describeGov002OperationPort({...x,operation:'inventory_adjustment'}),/operation_requires_canonical_site/);
  assert.throws(()=>describeGov002OperationPort({...x,businessId:0}),/invalid_operation_business/);
+});
+
+test('dynamic 3 to 5 stage reports retain bounded business scope and never certify posting',()=>{
+ const x=summarizeScopedApprovalPages({...fixture,statusRows:[req(91,'pending','awaiting_stage_3'),req(92,'pending','awaiting_stage_4'),req(93,'pending','awaiting_stage_5')]});
+ assert.equal(x.pending_summary.awaiting_stage_3,1);
+ assert.equal(x.pending_summary.awaiting_stage_4,1);
+ assert.equal(x.pending_summary.awaiting_stage_5,1);
+ assert.equal(x.not_a_certified_audit,true);
+ assert.equal(x.coverage,'SERVER_SCOPED_FIRST_PAGE_ONLY');
 });
