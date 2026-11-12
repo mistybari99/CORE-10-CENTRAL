@@ -101,6 +101,22 @@ export function createGov002ReviewClient(supabase) {
   listStatusPage:({businessId:b,offset=0,limit=250})=>listPage("status",b,offset,limit),
   listExceptionsPage:({businessId:b,offset=0,limit=250})=>listPage("exceptions",b,offset,limit),
   listActivityPage:({businessId:b,offset=0,limit=250})=>listPage("activity",b,offset,limit),
+  listReviewerTasks:async({businessId:b})=>{
+    const business=businessId(b),actor=await currentUser();
+    const result=await supabase.schema(SCHEMA).rpc("my_routed_review_tasks_v2",{p_business:business});
+    const after=await currentUser();
+    if(after!==actor)throw new Error("signed_actor_changed");
+    if(result?.error)throw result.error;
+    if(!Array.isArray(result?.data)||result.data.length>100)
+      throw new Error("reviewer_task_invalid_response");
+    if(result.data.some(x=>!x||Number(x.business_id)!==business||
+       !/^[1-9][0-9]*$/u.test(String(x.request_id??""))||
+       !Number.isSafeInteger(x.stage_no)||x.stage_no<1||
+       !Number.isSafeInteger(x.stage_total)||x.stage_total<2||x.stage_total>5||
+       x.stage_no>x.stage_total))
+      throw new Error("reviewer_task_invalid_response");
+    return result.data;
+  },
   decideApproval:({requestId,action,idempotencyKey})=>{
    if(!["approve","reject","defer"].includes(action))throw new Error("invalid_approval_action");
    return rpc("decide_approval",{
