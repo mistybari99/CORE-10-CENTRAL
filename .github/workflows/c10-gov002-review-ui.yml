@@ -1,0 +1,87 @@
+name: C10 GOV002 Approval UI PG17 Node Chromium
+on:
+  pull_request:
+    paths:
+      - 'internal/enterprise-client/c10_gov002_*'
+      - 'docs/preview/c10-gov002-*'
+      - 'tests/c10_gov002_review_ui_*'
+      - '.github/workflows/c10-gov002-review-ui.yml'
+  push:
+    branches: ['feature/c10-gov002-*']
+    paths:
+      - 'internal/enterprise-client/c10_gov002_*'
+      - 'docs/preview/c10-gov002-*'
+      - 'tests/c10_gov002_review_ui_*'
+      - '.github/workflows/c10-gov002-review-ui.yml'
+permissions:
+  contents: read
+jobs:
+  postgres17-and-frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: demo_only
+          POSTGRES_DB: core10_demo
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_demo"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGDATABASE: core10_demo
+      PGUSER: postgres
+      PGPASSWORD: demo_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: PostgreSQL17 client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Build full disposable approval dependency stack
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$BEGIN
+           IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
+           IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+           IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='service_role') THEN CREATE ROLE service_role NOLOGIN; END IF;
+          END$$;
+          SQL
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_atomic_approval_draft.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_typed_approval_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a008_typed_approval_e2e.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_scoped_inbox_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a008_scoped_inbox_e2e.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_routing_delegation_withdrawal_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a008_routing_delegation_withdrawal_e2e.sql
+          bash tests/c10_a008_routed_concurrency.sh
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_threshold_units_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a008_threshold_units_e2e.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_demo_source_post_reverse_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a008_demo_source_post_reverse_e2e.sql
+          bash tests/c10_a008_demo_execution_concurrency.sh
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_scoped_outcome_report_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a008_scoped_outcome_report_e2e.sql
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_bounded_exception_escalation_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a008_bounded_exception_escalation_e2e.sql
+          bash tests/c10_a008_exception_escalation_concurrency.sh
+          psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_scoped_activity_feed_v1.sql
+          psql -v ON_ERROR_STOP=1 -f tests/c10_a008_scoped_activity_feed_e2e.sql
+      - name: Node signed client, CSV and approval UI presentation/negative tests
+        run: |
+          node --test tests/c10_a008_activity_csv_v1.test.mjs
+          node --test tests/c10_a008_signed_review_client_v1.test.mjs
+          node --test tests/c10_gov002_review_ui_model_v1.test.mjs
+          node --check internal/enterprise-client/c10_gov002_review_ui_v1.mjs
+          node --check internal/enterprise-client/c10_gov002_signed_review_entry_v1.mjs
+      - name: Chromium 390px/1440px real browser smoke + mock action confirmation
+        run: |
+          python3 -m pip install --user --break-system-packages playwright==1.56.0
+          python3 -m playwright install chromium
+          python3 tests/c10_gov002_review_ui_browser.py
