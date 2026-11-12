@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="bn" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <title>GOV-003 Audit &amp; Readiness - DEMO / NOT LIVE</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/app.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main" data-i18n="skip">মূল অংশে যান</a>
+
+  <div class="demo-banner" id="demo-banner" role="note" aria-label="Demo notice">
+    <strong lang="en">DEMO / NOT LIVE &mdash; synthetic data</strong>
+    <span class="demo-sub" data-i18n="banner_sub" lang="bn">স্থানীয় পরীক্ষা-সার্ভার, কৃত্রিম তথ্য। এটি কোনো সত্যিকারের ব্যবসা, অর্থ বা স্টক নয়।</span>
+  </div>
+
+  <header class="top" role="banner">
+    <div class="brand">
+      <svg class="seal" viewBox="0 0 48 48" width="40" height="40" aria-hidden="true" focusable="false">
+        <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <circle cx="24" cy="24" r="14" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 3"/>
+        <path d="M17 25.5l5 5 9-12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <p class="brand-kicker">C10-CAP-GOV-003</p>
+        <h1 class="brand-title" data-i18n="title">নিরীক্ষা ও প্রস্তুতির সত্য-পর্যালোচনা</h1>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="field">
+        <label for="identity" data-i18n="identity_label">পরিচয় (কৃত্রিম ফিক্সচার)</label>
+        <select id="identity" name="identity"></select>
+      </div>
+      <div class="field">
+        <label for="target" data-i18n="target_label">লক্ষ্য ব্যবসা</label>
+        <select id="target" name="target"></select>
+      </div>
+      <div class="field field-lang">
+        <span class="field-label" id="lang-label" data-i18n="lang_label">ভাষা</span>
+        <div class="seg" role="group" aria-labelledby="lang-label">
+          <button type="button" id="lang-bn" class="seg-btn" lang="bn" aria-pressed="true">বাংলা</button>
+          <button type="button" id="lang-en" class="seg-btn" lang="en" aria-pressed="false">English</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="nav" aria-label="Views" id="nav">
+      <div class="tabs" role="tablist" id="tabs" aria-orientation="vertical"></div>
+    </nav>
+
+    <main id="main" tabindex="-1">
+      <p class="whoami" id="whoami" role="status" aria-live="polite"></p>
+      <section id="view" role="tabpanel" aria-busy="true">
+        <p class="state state-loading" data-i18n="loading">লোড হচ্ছে...</p>
+      </section>
+      <noscript><p class="state state-error">This demo needs JavaScript (same-origin file /app.js). No third-party script is loaded.</p></noscript>
+    </main>
+  </div>
+
+  <footer class="foot" role="contentinfo">
+    <p data-i18n="foot1">এই পাতার প্রতিটি বোতাম স্থানীয় API ও স্থানীয় PostgreSQL ডাটাবেসকে সত্যিই ডাকে। স্ট্যাটিক নমুনা দেখানো হয় না।</p>
+    <p data-i18n="foot2">পরিচয় একটি ফিক্সচার লেবেল, স্বাক্ষরিত GoTrue সেশন নয়। হ্যাশ-চেইন পরিবর্তনের প্রমাণ দেয়, WORM সুরক্ষা নয়। সংকেত কেবল পরামর্শ।</p>
+  </footer>
+</body>
+</html>
