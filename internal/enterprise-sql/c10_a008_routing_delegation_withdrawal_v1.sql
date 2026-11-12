@@ -236,6 +236,21 @@ BEGIN
        AND p.domain=v_req.domain_v1 AND p.action_code=v_req.action_code_v1)
    THEN RAISE EXCEPTION 'approval_policy_pin_invalid'; END IF;
  END IF;
+ -- A retry of a completed vote must not be reinterpreted as the NEXT stage.
+ -- It has no new side effect; nevertheless a removed member cannot query its
+ -- old receipt through this SECURITY DEFINER entry point.
+ SELECT * INTO v_prior FROM c10_demo.approval_events
+  WHERE request_id=p_request AND idempotency_key=p_key;
+ IF FOUND THEN
+   IF v_prior.actor_id<>v_actor OR v_prior.action<>p_action
+      OR v_prior.tenant_id<>v_req.tenant_id
+      OR v_prior.business_id<>v_req.business_id
+   THEN RAISE EXCEPTION 'approval_idempotency_conflict'; END IF;
+   IF NOT c10_demo.can_business(v_req.tenant_id,v_req.business_id)
+      AND NOT c10_demo.can_tenant(v_req.tenant_id)
+   THEN RAISE EXCEPTION 'approval_not_authorized'; END IF;
+   RETURN v_prior.id;
+ END IF;
  SELECT stages INTO v_stages FROM c10_demo.approval_routes_v1
  WHERE policy_id=v_req.policy_id_v1;
  IF FOUND THEN
