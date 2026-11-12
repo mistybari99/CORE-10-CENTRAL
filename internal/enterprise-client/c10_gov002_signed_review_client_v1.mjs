@@ -60,7 +60,8 @@ export function createGov002ReviewClient(supabase) {
     .eq("business_id",b).order(v.order,{ascending:false}).limit(n);
   if(await currentUser()!==actor)throw new Error("signed_actor_changed");
   if(result?.error)throw result.error;
-  if(!Array.isArray(result?.data))throw new Error("approval_read_invalid_response");
+  if(!Array.isArray(result?.data)||result.data.length>n)
+   throw new Error("approval_read_invalid_response");
   // Defence in depth: never render/export a wrong-business projection.
   if(result.data.some(x=>Number(x.business_id)!==b))throw new Error("server_scope_mismatch");
   return result.data;
