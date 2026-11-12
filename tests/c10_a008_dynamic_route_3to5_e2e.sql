@@ -38,10 +38,16 @@ END $test$;
 SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
 SELECT c10_demo.submit_typed_approval_v1(101,'demo_advanced','route_three','d3source',1,'{}'::jsonb,'dyn3_submit_20261112');
 SELECT c10_demo.submit_typed_approval_v1(101,'demo_advanced','route_five','d5source',1,'{}'::jsonb,'dyn5_submit_20261112');
+-- Pin server-created request IDs while the authenticated maker can still read them.
+-- Later stage actors are intentionally not allowed to enumerate the owner's inbox.
+SELECT set_config('c10.gov002_dyn3_request_id',
+ (SELECT id::text FROM c10_demo.approval_requests WHERE submit_key_v1='dyn3_submit_20261112'),true);
+SELECT set_config('c10.gov002_dyn5_request_id',
+ (SELECT id::text FROM c10_demo.approval_requests WHERE submit_key_v1='dyn5_submit_20261112'),true);
 DO $test$
 DECLARE req bigint;
 BEGIN
- SELECT id INTO req FROM c10_demo.approval_requests WHERE submit_key_v1='dyn3_submit_20261112';
+ req:=current_setting('c10.gov002_dyn3_request_id',true)::bigint;
  BEGIN
   PERFORM c10_demo.decide_approval(req,'approve','dyn3_self_20261112');
   RAISE EXCEPTION 'DYNAMIC_MAKER_APPROVED';
@@ -51,7 +57,8 @@ SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222'
 DO $test$
 DECLARE req bigint;policy bigint;r bigint;
 BEGIN
- SELECT id,policy_id_v1 INTO req,policy FROM c10_demo.approval_requests WHERE submit_key_v1='dyn3_submit_20261112';
+ req:=current_setting('c10.gov002_dyn3_request_id',true)::bigint;
+ SELECT policy_id_v1 INTO policy FROM c10_demo.approval_requests WHERE id=req;
  BEGIN
   PERFORM c10_demo.configure_approval_route_dynamic_v2(policy,ARRAY['business_owner','manager','tenant_owner'],'dyn3_route_20261112');
   -- Idempotent same route is valid even after use.
@@ -61,7 +68,7 @@ BEGIN
  OR (SELECT status FROM c10_demo.approval_requests WHERE id=req)<>'pending'
  OR (SELECT display_status FROM c10_demo.approval_status_report_v1 WHERE request_id=req)<>'awaiting_stage_2'
  THEN RAISE EXCEPTION 'DYNAMIC_3_FIRST_STAGE_FAILED'; END IF;
- SELECT id INTO req FROM c10_demo.approval_requests WHERE submit_key_v1='dyn5_submit_20261112';
+ req:=current_setting('c10.gov002_dyn5_request_id',true)::bigint;
  PERFORM c10_demo.decide_approval(req,'approve','dyn5_s1_20261112');
  IF (SELECT required_checks FROM c10_demo.approval_status_report_v1 WHERE request_id=req)<>5
  THEN RAISE EXCEPTION 'DYNAMIC_5_REQUIRED_COUNT_WRONG'; END IF;
@@ -70,27 +77,25 @@ SELECT set_config('request.jwt.claim.sub','99999999-9999-4999-8999-999999999999'
 DO $test$
 DECLARE req bigint;
 BEGIN
- SELECT id INTO req FROM c10_demo.approval_requests WHERE submit_key_v1='dyn3_submit_20261112';
- PERFORM c10_demo.decide_approval(req,'approve','dyn3_s2_20261112');
- IF NOT EXISTS (SELECT 1 FROM c10_demo.approval_events e WHERE e.request_id=req AND e.actor_id='99999999-9999-4999-8999-999999999999' AND e.action='approve')
+ req:=current_setting('c10.gov002_dyn3_request_id',true)::bigint;
+ IF c10_demo.decide_approval(req,'approve','dyn3_s2_20261112') IS NULL
  THEN RAISE EXCEPTION 'DYNAMIC_3_SECOND_STAGE_FAILED'; END IF;
- SELECT id INTO req FROM c10_demo.approval_requests WHERE submit_key_v1='dyn5_submit_20261112';
+ req:=current_setting('c10.gov002_dyn5_request_id',true)::bigint;
  PERFORM c10_demo.decide_approval(req,'approve','dyn5_s2_20261112');
 END $test$;
 SELECT set_config('request.jwt.claim.sub','88888888-8888-4888-8888-888888888888',true);
 DO $test$
 DECLARE req bigint;
 BEGIN
- SELECT id INTO req FROM c10_demo.approval_requests WHERE submit_key_v1='dyn5_submit_20261112';
- PERFORM c10_demo.decide_approval(req,'approve','dyn5_s3_20261112');
- IF NOT EXISTS (SELECT 1 FROM c10_demo.approval_events e WHERE e.request_id=req AND e.actor_id='88888888-8888-4888-8888-888888888888' AND e.action='approve')
+ req:=current_setting('c10.gov002_dyn5_request_id',true)::bigint;
+ IF c10_demo.decide_approval(req,'approve','dyn5_s3_20261112') IS NULL
  THEN RAISE EXCEPTION 'DYNAMIC_5_THIRD_STAGE_MISSING'; END IF;
 END $test$;
 SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
 DO $test$
 DECLARE req bigint;
 BEGIN
- SELECT id INTO req FROM c10_demo.approval_requests WHERE submit_key_v1='dyn5_submit_20261112';
+ req:=current_setting('c10.gov002_dyn5_request_id',true)::bigint;
  BEGIN
   PERFORM c10_demo.decide_approval(req,'approve','dyn5_repeat_20261112');
   RAISE EXCEPTION 'DYNAMIC_REPEAT_CHECKER_ACCEPTED';
@@ -100,7 +105,7 @@ SELECT set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 DO $test$
 DECLARE req bigint;
 BEGIN
- SELECT id INTO req FROM c10_demo.approval_requests WHERE submit_key_v1='dyn5_submit_20261112';
+ req:=current_setting('c10.gov002_dyn5_request_id',true)::bigint;
  PERFORM c10_demo.decide_approval(req,'approve','dyn5_s4_20261112');
  IF (SELECT display_status FROM c10_demo.approval_status_report_v1 WHERE request_id=req)<>'awaiting_stage_5'
  THEN RAISE EXCEPTION 'DYNAMIC_5_STAGE5_NOT_VISIBLE'; END IF;
@@ -109,11 +114,11 @@ SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111'
 DO $test$
 DECLARE req bigint;
 BEGIN
- SELECT id INTO req FROM c10_demo.approval_requests WHERE submit_key_v1='dyn3_submit_20261112';
+ req:=current_setting('c10.gov002_dyn3_request_id',true)::bigint;
  PERFORM c10_demo.decide_approval(req,'approve','dyn3_s3_20261112');
  IF (SELECT status FROM c10_demo.approval_requests WHERE id=req)<>'approved' THEN
  RAISE EXCEPTION 'DYNAMIC_3_FINAL_MISSING'; END IF;
- SELECT id INTO req FROM c10_demo.approval_requests WHERE submit_key_v1='dyn5_submit_20261112';
+ req:=current_setting('c10.gov002_dyn5_request_id',true)::bigint;
  PERFORM c10_demo.decide_approval(req,'approve','dyn5_s5_20261112');
  IF (SELECT status FROM c10_demo.approval_requests WHERE id=req)<>'approved'
  OR (SELECT count(*) FROM c10_demo.approval_stage_receipts_v1 WHERE request_id=req)<>5
