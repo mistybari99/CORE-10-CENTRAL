@@ -64,6 +64,29 @@ export function createGov002ReviewClient(supabase) {
   if(result.data.some(x=>Number(x.business_id)!==b))throw new Error("server_scope_mismatch");
   return result.data;
  }
+ async function listPage(view,requestedBusiness,offset=0,limit=250) {
+  const b=businessId(requestedBusiness),n=boundedLimit(limit),v=VIEWS[view];
+  if(!v||!Number.isSafeInteger(offset)||offset<0||offset>50000)
+   throw new Error("invalid_page_offset_or_view");
+  // Each page is a signed server-RLS read, never service_role. Timestamp +
+  // identifier ordering is deterministic inside each single response; offset
+  // windows are NOT a frozen transactional snapshot.
+  const actor=await currentUser();
+  const tie=view==="status"?"request_id":view==="exceptions"?"escalation_id":"activity_id";
+  const result=await supabase.schema(SCHEMA).from(v.name).select(v.columns)
+   .eq("business_id",b).order(v.order,{ascending:false})
+   .order(tie,{ascending:false}).range(offset,offset+n-1);
+  const after=await currentUser();
+  if(after!==actor)throw new Error("signed_actor_changed");
+  if(result?.error)throw result.error;
+  if(!Array.isArray(result?.data)||result.data.length>n)
+   throw new Error("paged_approval_read_invalid_response");
+  if(result.data.some(x=>Number(x?.business_id)!==b))
+   throw new Error("server_scope_mismatch");
+  return Object.freeze({business_id:b,offset,limit:n,rows:result.data,
+   has_more:result.data.length===n,
+   coverage:"SIGNED_RLS_OFFSET_WINDOW_NOT_ATOMIC"});
+ }
  async function rpc(name,params) {
   await currentUser();
   const result=await supabase.schema(SCHEMA).rpc(name,params);
@@ -75,6 +98,9 @@ export function createGov002ReviewClient(supabase) {
   listStatus:({businessId:b,limit=50})=>list("status",b,limit),
   listExceptions:({businessId:b,limit=50})=>list("exceptions",b,limit),
   listActivity:({businessId:b,limit=50})=>list("activity",b,limit),
+  listStatusPage:({businessId:b,offset=0,limit=250})=>listPage("status",b,offset,limit),
+  listExceptionsPage:({businessId:b,offset=0,limit=250})=>listPage("exceptions",b,offset,limit),
+  listActivityPage:({businessId:b,offset=0,limit=250})=>listPage("activity",b,offset,limit),
   decideApproval:({requestId,action,idempotencyKey})=>{
    if(!["approve","reject","defer"].includes(action))throw new Error("invalid_approval_action");
    return rpc("decide_approval",{
