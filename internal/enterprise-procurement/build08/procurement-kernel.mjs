@@ -165,12 +165,17 @@ export function createProcurementKernel(input) {
     need(requestId, 'INVALID_REQUEST_ID'); day(onDate);
     if (!Object.hasOwn(policy,type)) fail('UNKNOWN_COMMAND');
     const p = payload || {};
-    const targetSite = p.siteId ?? (p.poId ? s.orders[p.poId]?.siteId : undefined)
+    // Resolve the site from the canonical existing record FIRST. A caller may not
+    // substitute p.siteId to authorize a different site than the referenced document.
+    const recordSite = (p.poId ? s.orders[p.poId]?.siteId : undefined)
       ?? (p.receiptId ? s.receipts[p.receiptId]?.siteId : undefined)
       ?? (p.invoiceId ? s.invoices[p.invoiceId]?.siteId : undefined)
+      ?? (type === 'invoice.revise' && p.id ? s.invoices[p.id]?.siteId : undefined)
       ?? (p.requisitionId ? s.requisitions[p.requisitionId]?.siteId : undefined)
       ?? (p.quoteId ? s.requisitions[s.quotes[p.quoteId]?.requisitionId]?.siteId : undefined)
       ?? (p.paymentId ? s.payments[p.paymentId]?.siteId : undefined);
+    if (recordSite && p.siteId && p.siteId !== recordSite) fail('SITE_MISMATCH');
+    const targetSite = recordSite ?? p.siteId;
     assertActor(actor,ctx,policy[type],targetSite);
     if (targetSite) isSite(targetSite);
     const fingerprint = digest({tenantId:ctx.tenantId,businessId:ctx.businessId,type,payload:p,
