@@ -12,6 +12,10 @@ on:
       - 'internal/enterprise-sql/c10_a008_bounded_exception_escalation_v1.sql'
       - 'tests/c10_a008_bounded_exception_escalation_e2e.sql'
       - 'tests/c10_a008_exception_escalation_concurrency.sh'
+      - 'internal/enterprise-sql/c10_a008_scoped_activity_feed_v1.sql'
+      - 'tests/c10_a008_scoped_activity_feed_e2e.sql'
+      - 'internal/enterprise-client/c10_gov002_activity_csv_v1.mjs'
+      - 'tests/c10_a008_activity_csv_v1.test.mjs'
       - '.github/workflows/c10-gov002-bounded-escalation.yml'
       - 'internal/enterprise-sql/c10_a008_routing_delegation_withdrawal_v1.sql'
   push:
@@ -27,6 +31,10 @@ on:
       - 'internal/enterprise-sql/c10_a008_bounded_exception_escalation_v1.sql'
       - 'tests/c10_a008_bounded_exception_escalation_e2e.sql'
       - 'tests/c10_a008_exception_escalation_concurrency.sh'
+      - 'internal/enterprise-sql/c10_a008_scoped_activity_feed_v1.sql'
+      - 'tests/c10_a008_scoped_activity_feed_e2e.sql'
+      - 'internal/enterprise-client/c10_gov002_activity_csv_v1.mjs'
+      - 'tests/c10_a008_activity_csv_v1.test.mjs'
       - '.github/workflows/c10-gov002-bounded-escalation.yml'
   workflow_dispatch:
 permissions:
@@ -97,3 +105,9 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_bounded_exception_escalation_e2e.sql
       - name: Race two real authenticated escalation reviewers and normal parent approval
         run: bash tests/c10_a008_exception_escalation_concurrency.sh
+      - name: Install approval + exception activity notice projection (read only)
+        run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a008_scoped_activity_feed_v1.sql
+      - name: Verify maker/owner RLS activity feed and no raw event payload export
+        run: psql -v ON_ERROR_STOP=1 -f tests/c10_a008_scoped_activity_feed_e2e.sql
+      - name: Reject CSV spreadsheet injection, cross-business export, oversized rows
+        run: node --test tests/c10_a008_activity_csv_v1.test.mjs
