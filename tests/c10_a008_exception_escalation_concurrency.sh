@@ -7,6 +7,7 @@ maker='33333333-3333-4333-8333-333333333333'
 bo='22222222-2222-4222-8222-222222222222'
 to='11111111-1111-4111-8111-111111111111'
 db() { psql -X -qAt -v ON_ERROR_STOP=1 -c "$1"; }
+initial_stock="$(db 'SELECT count(*) FROM c10_demo.stock_movements;')"
 as_actor() {
  local actor="$1" stmt="$2"
  db "SET ROLE authenticated; SELECT set_config('request.jwt.claim.sub','$actor',false);$stmt" | tail -n1
@@ -56,6 +57,6 @@ set -e
  { echo "FAIL: main approval not finalized";exit 1; }
 [[ "$(db "SELECT count(*) FROM c10_demo.approval_exception_events_v1 WHERE escalation_id=$e2 AND action='acknowledged';")" -le 1 ]] ||
  { echo "FAIL: duplicate escalation race receipt";exit 1; }
-[[ "$(db "SELECT count(*) FROM c10_demo.stock_movements;")" == 6 ]] ||
+[[ "$(db "SELECT count(*) FROM c10_demo.stock_movements;")" == "$initial_stock" ]] ||
  { echo "FAIL: escalation touched stock";exit 1; }
 echo 'PASS: independent escalation terminal races, parent approval serialization, no non-authorizing stock effect'
