@@ -54,10 +54,11 @@ export function createGov002ReviewClient(supabase) {
  async function list(view,requestedBusiness,limit=50) {
   const b=businessId(requestedBusiness), n=boundedLimit(limit), v=VIEWS[view];
   if(!v)throw new Error("invalid_approval_view");
-  await currentUser();
+  const actor=await currentUser();
   const q=supabase.schema(SCHEMA).from(v.name);
   const result=await q.select(v.columns)
     .eq("business_id",b).order(v.order,{ascending:false}).limit(n);
+  if(await currentUser()!==actor)throw new Error("signed_actor_changed");
   if(result?.error)throw result.error;
   if(!Array.isArray(result?.data))throw new Error("approval_read_invalid_response");
   // Defence in depth: never render/export a wrong-business projection.
@@ -88,8 +89,9 @@ export function createGov002ReviewClient(supabase) {
    coverage:"SIGNED_RLS_OFFSET_WINDOW_NOT_ATOMIC"});
  }
  async function rpc(name,params) {
-  await currentUser();
+  const actor=await currentUser();
   const result=await supabase.schema(SCHEMA).rpc(name,params);
+  if(await currentUser()!==actor)throw new Error("signed_actor_changed");
   if(result?.error)throw result.error;
   if(result?.data==null)throw new Error("approval_rpc_missing_receipt");
   return result.data;
