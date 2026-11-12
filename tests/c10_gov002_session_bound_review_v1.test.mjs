@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGov002SessionBoundReviewClient} from '../internal/enterprise-client/c10_gov002_session_bound_review_v1.mjs';
 const names=['listStatus','listExceptions','listActivity','decideApproval','withdrawApproval',
- 'requestException','decideException','withdrawException','exportActivityCsv'];
+ 'requestException','decideException','withdrawException','exportActivityCsv',
+ 'listStatusPage','listExceptionsPage','listActivityPage'];
 function setup(){
  let uid='maker-101',callback,unsubscribed=0,events=[];
  const auth={
