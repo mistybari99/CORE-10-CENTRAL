@@ -114,8 +114,8 @@ test("export is first signed RLS page only, Excel formula injection sanitized",a
  assert.ok(csv.includes('"approval:22"'));
  assert.equal(f.calls.find(x=>x.verb==="from").name,"approval_activity_feed_v1");
  assert.equal(f.calls.find(x=>x.verb==="limit").n,15);
- assert.throws(()=>c.listActivity({businessId:0}),/invalid_business_id/);
- assert.throws(()=>c.listActivity({businessId:101,limit:1001}),/invalid_page_limit/);
+ await assert.rejects(c.listActivity({businessId:0}),/invalid_business_id/);
+ await assert.rejects(c.listActivity({businessId:101,limit:1001}),/invalid_page_limit/);
  const foreign=fakeSupabase({row:[{...event,business_id:102}]});
  await assert.rejects(createGov002ReviewClient(foreign.supabase).exportActivityCsv({businessId:101}),/server_scope_mismatch/);
 });
