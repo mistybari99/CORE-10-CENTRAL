@@ -2,7 +2,7 @@
 -- Disposable c10_demo candidate ONLY; not a hosted/production migration.
 -- Original membership, site, setup and access-event records remain canonical.
 DO $guard$ BEGIN
- IF current_database() !~ '^core10_(build01|a[0-9]+|preview)' OR
+ IF current_database() !~ '^core10_(build01|build02a|a[0-9]+|preview)' OR
     to_regclass('c10_demo.access_change_events_v1') IS NULL OR
     to_regclass('c10_demo.industry_catalog_v2') IS NULL THEN
   RAISE EXCEPTION 'BUILD01_DISPOSABLE_A018_A020_A034_REQUIRED';
