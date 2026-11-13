@@ -48,3 +48,45 @@ It does not yet provide approval-specific actions, universal module expiry adapt
 ## Work started
 
 The next branch starts Build 02A on the Preview integration head. Its first deliverable is the additive action resolver and its signed-server test suite. GOV-002 source is deliberately not copied until that contract passes.
+
+## Owner directive: demo-first full ERP completion
+
+Every build, test, browser walkthrough, dashboard, approval route and cross-module chain uses the canonical fictitious demo identities only. No real person, email inbox, phone number, operational stock, payment, payroll, customer, supplier or business permission is required or requested during this programme.
+
+The demo programme has a fixed execution loop:
+
+1. Give every module a tenant, legal entity, business, site, role and synthetic source-record fixture from the shared demo registry.
+2. Exercise a complete happy path plus tenant, business, site, role, expiry, revoke, replay, stale-version, concurrent-request and recovery failures.
+3. Make its UI show the same server-authorized result on mobile and desktop.
+4. Run the module in the complete Preview database, then record the exact commit, CI and remaining limitation in the existing Decision Book.
+5. Merge only a passing, compatible draft into Preview. Main, production and real-user activation remain later gates.
+
+## Builder and final-integration model
+
+Independent builders may produce isolated Draft PRs for assigned module packages. Each package must stay in its namespace, use only demo fixtures, include a handoff, and state its unbuilt integration gaps. It may not add a second auth, ledger, stock, permission or audit system.
+
+Codex owns the final integration path for every such Draft PR:
+
+1. Check the exact source commit, CI and Decision Book scope.
+2. Review changed files for overlap with shared contracts and protected Claude/legacy namespaces.
+3. Rebase or adapt it to the current Preview head without copying a parallel engine.
+4. Install it with all existing modules into one disposable PostgreSQL 17 database.
+5. Run signed demo-identity, cross-tenant, deny, expiry, revoke, replay and concurrency tests plus 390/1440 browser checks where it has a UI.
+6. Merge the compatible result into Preview and write evidence plus remaining gaps into the same Decision Book.
+
+This means builders can advance modules in parallel while the final integrated ERP remains one coherent system.
+
+## Demo-completion roadmap
+
+| Wave | Integration outcome | Existing work to reconcile |
+| --- | --- | --- |
+| 0 | Canonical demo registry, business setup, login, site scope, stock and approval permissions | A018/A020/A034, Build01, Build02A |
+| 1 | Approval lifecycle, owner/reviewer UI and immutable audit/read models | GOV-002 PR87–99, GOV-003 PR85 |
+| 2 | Workforce, leave, payroll preview, assets and expiry-safe cross-module adapters | A051/A053/A054/A055 drafts |
+| 3 | Configured setup profiles and 303-site demo scale proof | Build04 PR94 |
+| 4 | Purchase, inventory, production and sales source chain | A048/A049 and procurement PR97 |
+| 5 | Source-linked journal, reversal, reconciliation and owner reports | FIN-001 PR96 after Wave 4 |
+| 6 | Industry packs and CRM/commerce on the shared source chain | Paint PR95, A057 and remaining vertical drafts |
+| 7 | Full demo acceptance: two tenants, multiple businesses/sites, all role personas, report drill-downs and end-to-end mobile/desktop journeys | Complete Preview integration matrix |
+
+After Wave 7, real-user onboarding is a separate stabilization phase: create a small approved real-user pilot, test only real-environment differences, fix defects, and keep the demo evidence and release gates intact.
