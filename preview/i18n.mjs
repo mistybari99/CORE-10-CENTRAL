@@ -916,8 +916,75 @@ export const PHRASES = Object.freeze([
   [
     "বাংলা",
     "বাংলা"
-  ]
+  ],
+  ["Business setup and Approval permissions","Business Setup ও Approval-এর Access"],
+  ["Current demo walkthrough for Build 01 and Build 02A. This does not use real login or change access, stock, money, or employee records.","Build 01 ও Build 02A-এর ডেমো। এখানে আসল Login নয়; কারও Access, Stock, টাকা বা স্টাফের রেকর্ড বদলায় না।"],
+  ["Boundary:","জেনে রাখুন:"],
+  ["The decisions below use canonical synthetic personas only. Real GoTrue/staging and production release have separate gates.","নিচে শুধু A046-এর বানানো ডেমো ইউজার দেখানো হয়েছে। আসল Login ও Production release আলাদাভাবে যাচাই করতে হবে।"],
+  ["ALLOW","অনুমতি আছে"],
+  ["DENY","অনুমতি নেই"],
+  ["Original module previews","আগের মডিউলের Preview"],
+  ["NEW · Setup & approval walkthrough","নতুন · Setup ও Approval ডেমো"],
+  ["CRM · Runnable synthetic demo","CRM · চালু ডেমো"],
+  ["Purchase & Sales · Original UI snapshot","কেনা ও Sales · আগের UI-এর নমুনা"],
+  ["Inventory · Original UI snapshot","Stock · আগের UI-এর নমুনা"],
+  ["The new setup/approval walkthrough reflects Preview merge #100 and is synthetic/read-only. CRM runs its original local synthetic test adapter; inventory and operations are read-only regression snapshots.","নতুন Setup/Approval ডেমোটি PR #100-এর সোর্স থেকে। CRM ডেমো ব্রাউজারে চলে; Stock ও কাজের অন্য Preview শুধু দেখা যায়।"],
+  ["CORE 10 · Setup & Approval Preview","CORE 10 · Setup ও Approval Preview"]
 ]);
+export const NAMED_MESSAGES = Object.freeze({
+  "common.language": [
+    "Language",
+    "ভাষা"
+  ],
+  "common.demoOnly": [
+    "Demo only — no real data",
+    "শুধু ডেমো · আসল ডাটা নয়"
+  ],
+  "common.previewOnly": [
+    "Preview only",
+    "শুধু Preview"
+  ],
+  "common.owner": [
+    "Owner",
+    "Owner"
+  ],
+  "common.report": [
+    "Report",
+    "রিপোর্ট"
+  ],
+  "common.stock": [
+    "Stock",
+    "স্টক"
+  ],
+  "common.settings": [
+    "Settings",
+    "সেটিংস"
+  ],
+  "common.approval": [
+    "Approval",
+    "Approval (অনুমোদনের ধাপ)"
+  ],
+  "nav.overview": [
+    "Overview",
+    "এক নজরে"
+  ],
+  "nav.businesses": [
+    "Businesses",
+    "ব্যবসাগুলো"
+  ],
+  "nav.inventory": [
+    "Inventory",
+    "স্টক"
+  ],
+  "nav.reports": [
+    "Reports",
+    "রিপোর্ট"
+  ],
+  "preview.languageHint": [
+    "Change the display language on this page only.",
+    "শুধু এই পেজের ভাষা বদলাবে।"
+  ]
+});
 export const DEFAULT_LOCALE = "bn-BD";
 export const SUPPORTED_LOCALES = Object.freeze(["bn-BD", "en"]);
 const byEnglish = new Map(PHRASES);
@@ -926,7 +993,7 @@ export function createI18n(locale = DEFAULT_LOCALE) {
   return Object.freeze({
     get locale() { return current; },
     setLocale(next) { if (!SUPPORTED_LOCALES.includes(next)) return false; current = next; return true; },
-    t(key) { if (!byEnglish.has(key)) throw new Error("UNKNOWN_UI_COPY_KEY: " + key); return current === "bn-BD" ? byEnglish.get(key) : key; }
+    t(key) { if (Object.hasOwn(NAMED_MESSAGES,key)) return NAMED_MESSAGES[key][current === "bn-BD" ? 1 : 0]; if (!byEnglish.has(key)) throw new Error("UNKNOWN_UI_COPY_KEY: " + key); return current === "bn-BD" ? byEnglish.get(key) : key; }
   });
 }
 // Served by the existing static Worker, same-origin with connect-src 'none'.
@@ -934,12 +1001,13 @@ export function createI18n(locale = DEFAULT_LOCALE) {
 // NEW modules must call C10I18N.t(reviewedKey) or use data-i18n=reviewedKey.
 export const BROWSER_I18N_JS = `(()=>{"use strict";
 const entries=${JSON.stringify(PHRASES)};
+const named=${JSON.stringify(NAMED_MESSAGES)};
 const en=new Map(entries),bnToEn=new Map(entries.map(([a,b])=>[b,a]));
 const originals=new WeakMap(),attributes=new WeakMap(),listeners=new Set();
 let locale="bn-BD";
 function known(s){return en.has(s)?s:bnToEn.get(s);}
 function tr(s){const k=known(s);return k?(locale==="bn-BD"?en.get(k):k):s;}
-function t(key){if(!en.has(key))throw Error("UNKNOWN_UI_COPY_KEY: "+key);return locale==="bn-BD"?en.get(key):key;}
+function t(key){if(Object.hasOwn(named,key))return named[key][locale==="bn-BD"?1:0];if(!en.has(key))throw Error("UNKNOWN_UI_COPY_KEY: "+key);return locale==="bn-BD"?en.get(key):key;}
 function apply(root=document){
  document.documentElement.lang=locale;
  const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
@@ -951,7 +1019,7 @@ function apply(root=document){
  for(const e of root.querySelectorAll("[aria-label],[placeholder],[title],[data-i18n]")){
   let base=attributes.get(e);if(!base){base={};for(const a of ["aria-label","placeholder","title"])if(e.hasAttribute(a))base[a]=e.getAttribute(a);attributes.set(e,base);}
   for(const a of ["aria-label","placeholder","title"])if(base[a]!==undefined)e.setAttribute(a,tr(base[a]));
-  if(e.hasAttribute("data-i18n")){const key=e.getAttribute("data-i18n");if(en.has(key))e.textContent=t(key);}
+  if(e.hasAttribute("data-i18n")){const key=e.getAttribute("data-i18n");if(en.has(key)||Object.hasOwn(named,key))e.textContent=t(key);}
  }
  const title=document.querySelector("title");if(title){const original=originals.get(title.firstChild)||title.textContent;if(title.firstChild&&!originals.has(title.firstChild))originals.set(title.firstChild,original);title.textContent=tr(original);}
  const switcher=document.getElementById("c10-language");if(switcher)switcher.value=locale;
