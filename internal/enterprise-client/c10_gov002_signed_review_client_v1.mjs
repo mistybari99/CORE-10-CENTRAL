@@ -114,7 +114,7 @@ export function createGov002ReviewClient(supabase) {
     if(!Array.isArray(result?.data)||result.data.length>100)
       throw new Error("reviewer_task_invalid_response");
     if(result.data.some(x=>!x||Number(x.business_id)!==business||
-       !/^[1-9][0-9]*$/u.test(String(x.request_id??""))||
+       !(typeof x.request_id==="number" && Number.isSafeInteger(x.request_id) && x.request_id>0 || typeof x.request_id==="string" && /^[1-9][0-9]{0,18}$/u.test(x.request_id) && BigInt(x.request_id)<=9223372036854775807n)||
        !Number.isSafeInteger(x.stage_no)||x.stage_no<1||
        !Number.isSafeInteger(x.stage_total)||x.stage_total<2||x.stage_total>5||
        x.stage_no>x.stage_total))

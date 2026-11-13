@@ -226,3 +226,22 @@ test("PostgreSQL bigint identifiers accept upper bound but reject overflow befor
  assert.throws(()=>c.withdrawApproval({requestId:"9999999999999999999",idempotencyKey:"bigint_overflow_02"}),/invalid_positive_id/);
  assert.equal(f.calls.filter(x=>x.verb==="rpc").length,before);
 });
+
+test("reviewer task IDs reject PostgreSQL bigint overflow and unsafe JS integers",async()=>{
+ for(const invalid of ["9223372036854775808","9999999999999999999",9007199254740992,"00027",0,null]){
+  let calls=0;
+  const supabase={
+   auth:{async getUser(){return {data:{user:{id:"actor-A"}},error:null};}},
+   schema(){return {async rpc(){calls++;return {data:[{business_id:101,request_id:invalid,stage_no:1,stage_total:2}],error:null};}};}
+  };
+  await assert.rejects(createGov002ReviewClient(supabase).listReviewerTasks({businessId:101}),/reviewer_task_invalid_response/);
+  assert.equal(calls,1);
+ }
+ for(const valid of ["9223372036854775807",27]){
+  const supabase={
+   auth:{async getUser(){return {data:{user:{id:"actor-A"}},error:null};}},
+   schema(){return {async rpc(){return {data:[{business_id:101,request_id:valid,stage_no:1,stage_total:2}],error:null};}};}
+  };
+  assert.equal((await createGov002ReviewClient(supabase).listReviewerTasks({businessId:101}))[0].request_id,valid);
+ }
+});
