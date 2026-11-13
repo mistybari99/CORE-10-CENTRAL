@@ -989,47 +989,92 @@ export const NAMED_MESSAGES = Object.freeze({
     "Approval (অনুমোদনের ধাপ): কে কোন অনুরোধে সিদ্ধান্ত নিতে পারবেন।"
   ]
 });
+// Three independently reviewed display styles: natural Bangla script, conversational mixed copy, and English.
+// Keep loanwords such as স্টক/প্ল্যান/সেলস in Bengali. Never force formal মজুদ/পরিকল্পনা.
+const BENGALI_SCRIPT_TERMS = Object.freeze([
+  ["Business Setup","বিজনেস সেটআপ"],["Business setup","বিজনেস সেটআপ"],
+  ["Approval-এর","অ্যাপ্রুভালের"],["Approval","অ্যাপ্রুভাল"],["Access","অ্যাক্সেস"],
+  ["Login","লগইন"],["Database","ডেটাবেস"],["PREVIEW","প্রিভিউ"],["Preview","প্রিভিউ"],
+  ["Owner","ওনার"],["Role","রোল"],["Sales","সেলস"],["Plan","প্ল্যান"],
+  ["Stock","স্টক"],["Report","রিপোর্ট"],["Settings","সেটিংস"],["Staff","স্টাফ"],
+  ["Demo","ডেমো"],["Handler","হ্যান্ডলার"],["Review","রিভিউ"],["Draft","ড্রাফট"],
+  ["Confirm","কনফার্ম"],["Post","পোস্ট"],["Release","রিলিজ"],
+  ["Production","প্রোডাকশন"],["Payment","পেমেন্ট"],["Counter","কাউন্টার"],
+  ["Manager","ম্যানেজার"],["ERP","ইআরপি"],["UI","ইউআই"],["Request","রিকোয়েস্ট"]
+]);
+const MIXED_COMMON_TERMS = Object.freeze([
+  ["স্টকের","Stock-এর"],["স্টকে","Stock-এ"],["স্টক","Stock"],
+  ["প্ল্যানের","Plan-এর"],["প্ল্যান","Plan"],["সেলস","Sales"],
+  ["রিপোর্ট","Report"],["সেটিংস","Settings"],["স্টাফ","Staff"],
+  ["লগইন","Login"],["ডেটাবেস","Database"],["ডেমো","Demo"],
+  ["প্রিভিউ","Preview"],["অ্যাপ্রুভাল","Approval"],["অ্যাক্সেস","Access"],
+  ["কাস্টমার","Customer"],["ওনার","Owner"],["ফ্যাক্টরি","Factory"],
+  ["ম্যানেজার","Manager"],["পেমেন্ট","Payment"],["ড্রাফট","Draft"],
+  ["রিভিউ","Review"]
+]);
+function applyReviewedTerms(value, terms) {
+  let copy = value;
+  for (const [from, to] of terms) copy = copy.replaceAll(from, to);
+  return copy;
+}
+// Each source message resolves to [English, Bengali-script conversational, Eng/Bng conversational].
+export const CATALOG = Object.freeze(PHRASES.map(([en, original]) => Object.freeze([
+  en, applyReviewedTerms(original, BENGALI_SCRIPT_TERMS), applyReviewedTerms(original, MIXED_COMMON_TERMS)
+])));
+export const NAMED_CATALOG = Object.freeze(Object.fromEntries(
+  Object.entries(NAMED_MESSAGES).map(([key, [en, original]]) => [key, Object.freeze([
+    en, applyReviewedTerms(original, BENGALI_SCRIPT_TERMS), applyReviewedTerms(original, MIXED_COMMON_TERMS)
+  ])])
+));
 export const DEFAULT_LOCALE = "bn-BD";
-export const SUPPORTED_LOCALES = Object.freeze(["bn-BD", "en"]);
-const byEnglish = new Map(PHRASES);
+export const SUPPORTED_LOCALES = Object.freeze(["bn-BD", "bn-BD-mixed", "en"]);
+const LOCALE_INDEX = Object.freeze({ en: 0, "bn-BD": 1, "bn-BD-mixed": 2 });
+const byEnglish = new Map(CATALOG.map(([en, bn, mixed]) => [en, [en, bn, mixed]]));
 export function createI18n(locale = DEFAULT_LOCALE) {
   let current = SUPPORTED_LOCALES.includes(locale) ? locale : DEFAULT_LOCALE;
   return Object.freeze({
     get locale() { return current; },
     setLocale(next) { if (!SUPPORTED_LOCALES.includes(next)) return false; current = next; return true; },
-    t(key) { if (Object.hasOwn(NAMED_MESSAGES,key)) return NAMED_MESSAGES[key][current === "bn-BD" ? 1 : 0]; if (!byEnglish.has(key)) throw new Error("UNKNOWN_UI_COPY_KEY: " + key); return current === "bn-BD" ? byEnglish.get(key) : key; }
+    t(key) {
+      if (Object.hasOwn(NAMED_CATALOG, key)) return NAMED_CATALOG[key][LOCALE_INDEX[current]];
+      const copy = byEnglish.get(key);
+      if (!copy) throw new Error("UNKNOWN_UI_COPY_KEY: " + key);
+      return copy[LOCALE_INDEX[current]];
+    }
   });
 }
-// Served by the existing static Worker, same-origin with connect-src 'none'.
-// For legacy Preview DOM, reviewed source phrases are exact-match bridge entries.
-// NEW modules must call C10I18N.t(reviewedKey) or use data-i18n=reviewedKey.
+// Served from the same Preview Worker origin. No storage, AI translation, or network calls.
+// Includes source-phrase aliases for the existing legacy DOM; new UI should use named keys.
 export const BROWSER_I18N_JS = `(()=>{"use strict";
-const entries=${JSON.stringify(PHRASES)};
-const named=${JSON.stringify(NAMED_MESSAGES)};
-const en=new Map(entries),bnToEn=new Map(entries.map(([a,b])=>[b,a]));
+const entries=${JSON.stringify(CATALOG)};
+const oldEntries=${JSON.stringify(PHRASES)};
+const named=${JSON.stringify(NAMED_CATALOG)};
+const indexes={en:0,"bn-BD":1,"bn-BD-mixed":2};
+const lookup=new Map(),byEnglish=new Map();
+for(const pair of entries){byEnglish.set(pair[0],pair);for(const alias of pair)lookup.set(alias,pair[0]);}
+for(const [en,oldBn] of oldEntries)if(!lookup.has(oldBn))lookup.set(oldBn,en);
 const originals=new WeakMap(),attributes=new WeakMap(),listeners=new Set();
 let locale="bn-BD";
-function known(s){return en.has(s)?s:bnToEn.get(s);}
-function tr(s){const k=known(s);return k?(locale==="bn-BD"?en.get(k):k):s;}
-function t(key){if(Object.hasOwn(named,key))return named[key][locale==="bn-BD"?1:0];if(!en.has(key))throw Error("UNKNOWN_UI_COPY_KEY: "+key);return locale==="bn-BD"?en.get(key):key;}
+function tr(s){const en=lookup.get(s);return en?byEnglish.get(en)[indexes[locale]]:s;}
+function t(key){if(Object.hasOwn(named,key))return named[key][indexes[locale]];const pair=byEnglish.get(key);if(!pair)throw Error("UNKNOWN_UI_COPY_KEY: "+key);return pair[indexes[locale]];}
 function apply(root=document){
- document.documentElement.lang=locale;
+ document.documentElement.lang=locale==="en"?"en":"bn-BD";
  const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
  let n;while((n=walk.nextNode())){if(!n.parentElement||/^(SCRIPT|STYLE|CODE|PRE|NOSCRIPT)$/i.test(n.parentElement.tagName))continue;
  const source=originals.has(n)?originals.get(n):n.nodeValue;
  if(!originals.has(n))originals.set(n,source);
- const m=/^(\\s*)([\\s\\S]*?)(\\s*)$/.exec(source);if(m){const out=tr(m[2]);if(out!==m[2]||known(m[2]))n.nodeValue=m[1]+out+m[3];}
+ const m=/^(\\s*)([\\s\\S]*?)(\\s*)$/.exec(source);if(m){const out=tr(m[2]);if(out!==m[2]||lookup.has(m[2]))n.nodeValue=m[1]+out+m[3];}
  }
  for(const e of root.querySelectorAll("[aria-label],[placeholder],[title],[data-i18n]")){
   let base=attributes.get(e);if(!base){base={};for(const a of ["aria-label","placeholder","title"])if(e.hasAttribute(a))base[a]=e.getAttribute(a);attributes.set(e,base);}
   for(const a of ["aria-label","placeholder","title"])if(base[a]!==undefined)e.setAttribute(a,tr(base[a]));
-  if(e.hasAttribute("data-i18n")){const key=e.getAttribute("data-i18n");if(en.has(key)||Object.hasOwn(named,key))e.textContent=t(key);}
+  if(e.hasAttribute("data-i18n")){const key=e.getAttribute("data-i18n");if(byEnglish.has(key)||Object.hasOwn(named,key))e.textContent=t(key);}
  }
  const title=document.querySelector("title");if(title){const original=originals.get(title.firstChild)||title.textContent;if(title.firstChild&&!originals.has(title.firstChild))originals.set(title.firstChild,original);title.textContent=tr(original);}
  const switcher=document.getElementById("c10-language");if(switcher)switcher.value=locale;
- }
- function setLocale(next){if(next!=="bn-BD"&&next!=="en")return false;if(locale===next)return true;locale=next;apply();listeners.forEach(fn=>fn(locale));return true;}
- document.addEventListener("change",e=>{if(e.target?.id==="c10-language")setLocale(e.target.value)});
- window.C10I18N=Object.freeze({t,apply,setLocale,getLocale:()=>locale,onChange:fn=>{listeners.add(fn);return ()=>listeners.delete(fn)}});
- apply();
+}
+function setLocale(next){if(!Object.hasOwn(indexes,next))return false;if(locale===next)return true;locale=next;apply();listeners.forEach(fn=>fn(locale));return true;}
+document.addEventListener("change",e=>{if(e.target?.id==="c10-language")setLocale(e.target.value)});
+window.C10I18N=Object.freeze({t,apply,setLocale,getLocale:()=>locale,onChange:fn=>{listeners.add(fn);return ()=>listeners.delete(fn)}});
+apply();
 })();`;
