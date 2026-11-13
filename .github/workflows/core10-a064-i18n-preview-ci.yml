@@ -32,7 +32,7 @@ jobs:
         run: node --test tests/core10-preview-v1.test.mjs tests/core10-preview-i18n.test.mjs
   browser-responsive:
     name: Local synthetic Chromium 390/1440
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
