@@ -12,14 +12,14 @@ Use short, natural, conversational Bangla. Bengali uses the **Bangla script even
 | Dashboard / overview | এক নজরে / Dashboard | Overview / Dashboard | সমন্বিত তথ্যফলক |
 | Report | রিপোর্ট | Report | প্রতিবেদন-উৎপাদন ব্যবস্থাপনা |
 | Stock / inventory | স্টক | Stock / Inventory | পণ্য-মজুদ ব্যবস্থাপনা-সংক্রান্ত দীর্ঘ অনুবাদ |
-| Approval | Approval (অনুমোদনের ধাপ), next: Approval | Approval | অনুমোদন-প্রক্রিয়াকরণ ব্যবস্থা |
-| Sales | Sales / বিক্রি | Sales | বিক্রয়-কার্যক্রম পরিচালনা |
+| Approval | অ্যাপ্রুভাল (অনুমোদনের ধাপ), পরে অ্যাপ্রুভাল | Approval | অনুমোদন-প্রক্রিয়াকরণ ব্যবস্থা |
+| Sales | সেলস / বিক্রি | Sales | বিক্রয়-কার্যক্রম পরিচালনা |
 | Settings | সেটিংস | Settings | বিন্যাস-সমন্বয় ব্যবস্থা |
 | Factory / branch | ফ্যাক্টরি / শাখা | Factory / Branch | উৎপাদন-উপকেন্দ্র |
 | Demo | ডেমো / শুধু দেখার জন্য | Demo | পরীক্ষামূলক মডেল-অনুমিত |
 | Read-only | শুধু দেখা যাবে; ডাটা বদলাবে না | Read-only; no write | পঠনমাত্র (without explanation) |
 
-Every first-use specialist term needs a **brief meaning in context**—e.g., “Approval (অনুমোদনের ধাপ)”—then use the common term on later screens. For a blocked action, say *what cannot happen* and *what is needed next*, not just `ERROR`. Keep hard boundaries visible: synthetic demo is not real login, real stock, payment or production access.
+Every first-use specialist term needs a **brief meaning in context**—e.g., “অ্যাপ্রুভাল (অনুমোদনের ধাপ)” for Bengali and “Approval (অনুমোদনের ধাপ)” for Eng/Bng—then use the common term on later screens. For a blocked action, say *what cannot happen* and *what is needed next*, not just `ERROR`. Keep hard boundaries visible: synthetic demo is not real login, real stock, payment or production access.
 
 ## Three-option selector contract
 
@@ -30,6 +30,8 @@ Every first-use specialist term needs a **brief meaning in context**—e.g., “
 | English | `en` | Reconcile stock | Create a new plan | Fully idiomatic English |
 
 Codes, product brands, SHA, API identifiers and person aliases remain verbatim in every mode. Only user-facing copy changes. The two preview surfaces share one local i18n catalog. `lang` is `bn-BD` in both Bengali-based modes and `en` in English mode. Refresh resets to Bengali as before. Some legacy inline copy and upstream snapshots still need semantic-key cleanup; this PR does not claim full ERP translation.
+
+The ERP-wide mandatory rule for every new future module is in [C10_LANGUAGE_CONTRACT.md](./C10_LANGUAGE_CONTRACT.md); all agents must read it before designing new user-facing UI. This Preview file is not a claim that the whole ERP is localized.
 
 ## Shared implementation contract
 
@@ -43,7 +45,7 @@ Codes, product brands, SHA, API identifiers and person aliases remain verbatim i
 
 ## UI test contract / safety
 
-Unit tests prove canonical default, English switch, finite key coverage, prohibited literal wording guard, static CSP `connect-src 'none'`, read-only HTTP semantics and absence of translation fetch/storage. Local Playwright checks at 390px and 1440px prove labels, toggle, no overflow, stock +5 in-memory demo and Build01/02A synthetic resolver with **no external requests**.
+Unit tests prove canonical default, three-mode switching, finite key coverage, prohibited literal wording guard, static CSP `connect-src 'none'`, read-only HTTP semantics and absence of translation fetch/storage. Local Playwright checks at 390px and 1440px prove labels, toggle, no overflow, stock +5 in-memory demo and Build01/02A synthetic resolver with **no external requests**.
 
 The public Preview URL is only considered updated after a separate verified deployment; a Draft PR by itself does **not** update Cloudflare.
 
