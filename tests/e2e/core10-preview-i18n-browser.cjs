@@ -40,6 +40,7 @@ const {chromium}=require("playwright");
         }else{
           assert.match(await page.locator("h1").innerText(),/Business Setup ও Approval-এর Access/);
           assert.match(await page.locator(".notice").innerText(),/A046-এর বানানো ডেমো ইউজার/);
+          assert.match(await page.locator(".first-use").innerText(),/Approval \(অনুমোদনের ধাপ\)/);
           await page.locator("#resolve").click();
           assert.match(await page.locator("#decision").innerText(),/অনুমতি আছে/);
           await page.locator("#actor").selectOption("revoked");
@@ -55,6 +56,7 @@ const {chromium}=require("playwright");
           assert.match(await page.locator("tr").filter({hasText:"Sample flour"}).innerText(),/53 kg/);
         }else{
           assert.equal(await page.locator("h1").innerText(),"Business setup and Approval permissions");
+          assert.match(await page.locator(".first-use").innerText(),/Approval \(review step\)/);
           assert.match(await page.locator("#decision").innerText(),/DENY/);
         }
         await page.locator("#c10-language").selectOption("bn-BD");
