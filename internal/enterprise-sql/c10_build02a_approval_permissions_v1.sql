@@ -35,7 +35,7 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog,
        WHERE m.business_id=p_business AND m.tenant_id=p_tenant AND m.user_id=c10_demo.actor_uid()
         AND m.active AND (m.valid_until IS NULL OR m.valid_until>statement_timestamp())
         AND (
-          p_action=ANY(m.approval_actions)
+          ((m.approval_valid_until IS NULL OR m.approval_valid_until>statement_timestamp()) AND p_action=ANY(m.approval_actions))
           OR (m.role='business_owner')
           OR (m.role='manager' AND p_action=ANY(ARRAY['approval.submit','approval.withdraw']))
         ))
