@@ -215,3 +215,14 @@ test("auth revocation after backend response rejects data and RPC receipts",asyn
   assert.equal(checks,2);
  }
 });
+
+test("PostgreSQL bigint identifiers accept upper bound but reject overflow before RPC",async()=>{
+ const f=fakeSupabase();
+ const c=createGov002ReviewClient(f.supabase);
+ await c.decideApproval({requestId:"9223372036854775807",action:"approve",idempotencyKey:"bigint_valid_01"});
+ assert.equal(f.calls.find(x=>x.verb==="rpc").params.p_request,"9223372036854775807");
+ const before=f.calls.filter(x=>x.verb==="rpc").length;
+ assert.throws(()=>c.decideApproval({requestId:"9223372036854775808",action:"approve",idempotencyKey:"bigint_overflow_01"}),/invalid_positive_id/);
+ assert.throws(()=>c.withdrawApproval({requestId:"9999999999999999999",idempotencyKey:"bigint_overflow_02"}),/invalid_positive_id/);
+ assert.equal(f.calls.filter(x=>x.verb==="rpc").length,before);
+});
