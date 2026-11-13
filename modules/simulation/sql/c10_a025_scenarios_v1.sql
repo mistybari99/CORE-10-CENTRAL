@@ -3,7 +3,7 @@
 -- Apply order: c10_a025_fixture_v1.sql (test only) -> this file -> c10_a025_rollback_v1.sql to undo.
 create schema if not exists c10_sim;
 revoke all on schema c10_sim from public;
-grant usage on schema c10_sim to sim_authenticated;
+grant usage on schema c10_sim to sim_authenticated, sim_gateway;
 
 -- ---- scope sources (REPLACE with canonical A018/A021/A034 views in staging) ----
 create or replace view c10_sim.business_source as select id as business_id, tenant_id from c10_sim_fixture.businesses;
@@ -229,6 +229,15 @@ end $$;
 
 -- ---- privileges: functions callable ONLY by sim_authenticated; helpers not callable ----
 revoke all on all functions in schema c10_sim from public;
-grant execute on function c10_sim.create_scenario(text,text,text,text,text,text,text,jsonb,text,text), c10_sim.save_inputs(uuid,integer,jsonb), c10_sim.record_run(uuid,text,text,text,jsonb,jsonb),
+grant execute on function c10_sim.create_scenario(text,text,text,text,text,text,text,jsonb,text,text), c10_sim.save_inputs(uuid,integer,jsonb),
   c10_sim.transition_scenario(uuid,text,text), c10_sim.propose_scenario(uuid), c10_sim.apply_to_live(uuid), c10_sim.share_scenario(uuid,text), c10_sim.add_annotation(uuid,text), c10_sim.archive_scenario(uuid), c10_sim.export_scenario(uuid) to sim_authenticated;
 grant execute on function c10_sim.actor(), c10_sim.can(text,text,text), c10_sim.can_see(uuid) to sim_authenticated;  -- RLS policies run as the caller and call these
+
+-- ---- TRUSTED RESULT WRITER (closes IMPL-009) ----
+-- record_run is callable ONLY by sim_gateway: the trusted service that authenticates the user, re-computes the result with the pinned
+-- model version and then writes it. Browser/PostgREST users (sim_authenticated) can no longer submit a result of their own.
+grant execute on function c10_sim.record_run(uuid,text,text,text,jsonb,jsonb) to sim_gateway;
+grant execute on function c10_sim.actor(), c10_sim.can(text,text,text), c10_sim.can_see(uuid) to sim_gateway;
+create policy sd_select_gw on c10_sim.scenario_drafts for select to sim_gateway using (c10_sim.can_see(id));
+grant select on c10_sim.scenario_drafts, c10_sim.model_registry to sim_gateway;
+create policy mr_select_gw on c10_sim.model_registry for select to sim_gateway using (true);

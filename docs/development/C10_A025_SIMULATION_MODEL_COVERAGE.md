@@ -27,7 +27,7 @@
 | M19 | 1.0.0 | consolidation | CODED + TESTED (golden, adverse, negative) | 2 (1 adverse) | No unrealised-profit-in-stock elimination; No FX |
 | M20 | 1.0.0 | declarative_template | CODED + TESTED (golden, adverse, negative) | 2 (1 adverse) | No loops, no conditionals, no user functions |
 
-Other registry entries: `X01` calibrated uncertainty / Monte Carlo — **research_only, refuses to run** (needs validated distributions and correlations from verified actuals; U14/R102).
+Other registry entries: `X01` — **research_only, refuses to run**. Calibrated probabilities are NOT a registry model: `lib/uncertainty.js` runs a seeded Monte Carlo only when each driver carries validated calibration evidence and otherwise refuses (U14/R102).
 
 Counts: 19 of 20 families coded+tested, 1 partial (M18), 0 not built among M01–M20. Golden evidence: 46 fixtures verified against an independent python implementation (`tests/c10_a025/golden_reference.py`).
 
@@ -39,7 +39,7 @@ Counts: 19 of 20 families coded+tested, 1 partial (M18), 0 not built among M01�
 | U02 | R090 | Data quality & readiness grading | tested | `tests/c10_a025/kernel.test.js` | Grades provenance kind; does not reconcile to a real source |
 | U03 | R091 | Certified model registry | tested | `tests/c10_a025/registry.test.js` | Fixture-certified only; no independent actuarial/audit certification |
 | U04 | R092 | Financial definition engine | tested | `tests/c10_a025/models.test.js` | Definitions encoded in formulas/glossary; no tax rate registry |
-| U05 | R093 | Scenario provenance & immutability | tested | `tests/c10_a025/scenario.test.js`, `tests/c10_a025/persistence.test.js` | Hashes are integrity aids, not signatures |
+| U05 | R093 | Scenario provenance & immutability | tested | `tests/c10_a025/scenario.test.js`, `tests/c10_a025/persistence.test.js`, `tests/c10_a025/gateway.test.js` | Hashes are integrity aids, not signatures |
 | U06 | R094 | Cross-module impact graph | implemented | `tests/c10_a025/analysis.test.js` | Declared dependency graph + model links; source modules (A048/A049/A050) are NOT connected |
 | U07 | R095 | Feasibility & constraints | tested | `tests/c10_a025/analysis.test.js` | Rule-based on model outputs; no solver over real capacity data |
 | U08 | R096 | Integrated finance (P&L ↔ cash) | tested | `tests/c10_a025/models.test.js` | No balance sheet, no tax timing |
@@ -48,21 +48,21 @@ Counts: 19 of 20 families coded+tested, 1 partial (M18), 0 not built among M01�
 | U11 | R099 | Reverse goal planning | tested | `tests/c10_a025/analysis.test.js` | Single-driver monotone bisection only |
 | U12 | R100 | Constraint optimisation | partial_tested | `tests/c10_a025/analysis.test.js` | Bounded grid search (<=3 variables, <=5000 runs); not an LP/MIP solver |
 | U13 | R101 | Multi-scenario portfolio | partial_tested | `tests/c10_a025/scenario.test.js` | Compare within authorised scope; no concurrent capex/cash portfolio roll-up |
-| U14 | R102 | Calibrated uncertainty | proposed | `tests/c10_a025/registry.test.js` | Monte Carlo/probabilities REFUSED (X01 research_only); only scenario ranges exist |
+| U14 | R102 | Calibrated uncertainty | partial_tested | `tests/c10_a025/uncertainty.test.js` | Seeded Monte Carlo runs ONLY with structurally validated calibration evidence (refuses 9 weak-evidence cases); evidence is declared by the caller, not verified against real data; correlations normal-only; <=2000 runs; output is conditional, never a forecast |
 | U15 | R103 | Decision lifecycle | tested | `tests/c10_a025/scenario.test.js`, `tests/c10_a025/persistence.test.js` | Eligible-to-apply/applied states intentionally absent (apply disabled) |
 | U16 | R104 | Approval adapter | implemented | `tests/c10_a025/scenario.test.js` | CONTRACT + mock only; real ERP approval engine NOT connected; module-visibility mutation refused |
 | U17 | R105 | Actual vs plan | tested | `tests/c10_a025/analysis.test.js` | Synthetic actuals only |
-| U18 | R106 | Decision performance review | proposed | — | Not built beyond actual-vs-plan variance rows |
+| U18 | R106 | Decision performance review | partial_tested | `tests/c10_a025/uncertainty.test.js` | Verdict MET/PARTIALLY_MET/MISSED over ACTUAL-kind values only, constraint incidence, mechanical input-deviation reasons; synthetic actuals; no ROI/payback inference |
 | U19 | R107 | Forecast accuracy & bias | tested | `tests/c10_a025/analysis.test.js` | Needs >=3 comparable actuals; synthetic only |
 | U20 | R108 | Early warning & replan | tested | `tests/c10_a025/analysis.test.js` | Threshold rules on synthetic actuals |
 | U21 | R109 | Collaborative review | partial_tested | `tests/c10_a025/scenario.test.js`, `tests/c10_a025/persistence.test.js` | Comments + reviewer permissions; no attachments or notifications |
 | U22 | R110 | Consolidation & elimination | tested | `tests/c10_a025/models.test.js`, `tests/c10_a025/bench.test.js` | No unrealised-profit elimination |
 | U23 | R111 | Funding / partner semantics | tested | `tests/c10_a025/models.test.js` | Not wired to real A022 agreements; A022 values are MANUAL_UNVERIFIED seeds |
-| U24 | R112 | Safe application gateway | tested | `tests/c10_a025/scenario.test.js`, `tests/c10_a025/persistence.test.js` | Apply is DISABLED by design |
+| U24 | R112 | Safe application gateway | tested | `tests/c10_a025/scenario.test.js`, `tests/c10_a025/persistence.test.js`, `tests/c10_a025/gateway.test.js` | Apply is DISABLED by design |
 | U25 | R113 | Lab + Quick UX, BN/EN, reports | tested | `tests/c10_a025/browser.test.js`, `tests/c10_a025/parity.test.js` | Synthetic demo harness; not mounted in live navigation |
-| U26 | R114 | Security, licensing & scale | partial_tested | `tests/c10_a025/persistence.test.js`, `tests/c10_a025/bench.test.js` | Synthetic jwt-claim RLS only (NOT signed GoTrue); licensing = design only; 300-site compute benchmark measured, DB scale not |
+| U26 | R114 | Security, licensing & scale | partial_tested | `tests/c10_a025/persistence.test.js`, `tests/c10_a025/gateway.test.js`, `tests/c10_a025/dbscale.test.js`, `tests/c10_a025/bench.test.js` | Synthetic jwt-claim RLS only (NOT signed GoTrue); licensing = design only; trusted gateway recomputes results; measured: 320 sites / 10,000 scenarios under RLS on a throwaway PostgreSQL (see handover) — not a production load test |
 
-Summary: 3 implemented, 17 tested, 4 partial_tested, 2 proposed. **U14, U18 are not built.** U16 is a contract + mock only. No U capability is integrated, signed-auth verified or production approved.
+Summary: 3 implemented, 17 tested, 6 partial_tested. None not built. U16 is a contract + mock only. No U capability is integrated, signed-auth verified or production approved.
 
 ## 3. R081–R114 (live Decision Book snapshot)
 
@@ -75,7 +75,7 @@ Summary: 3 implemented, 17 tested, 4 partial_tested, 2 proposed. **U14, U18 are 
 | R085 | Permission/RLS/audit/export scope | partial_tested | Tested on synthetic claims; signed-auth not verified |
 | R086 | Platform licensing/entitlements | proposed | Design-only; no entitlement enforcement (C10-A024 separate) |
 | R087 | Sequencing (REV-010 isolated draft) | tested | Process: separate Claude branch + Draft PR, no main merge |
-| R088 | Industry templates, responsive UX, BN/EN, save/compare/export | partial_tested | 3 industry demos, BN/EN, save/compare/export; 10-industry template packs not all built |
+| R088 | Industry templates, responsive UX, BN/EN, save/compare/export | tested | 10 canonical industry packs as data (recommended models + verified guided journeys), BN/EN, save/compare/export |
 | R089 | Trusted Baseline Engine (U01) | implemented | Mock provider only (hash + cutoff + stale flag); no real A048/A049/A050 source contract verified |
 | R090 | Data Quality & Readiness (U02) | tested | Grades provenance kind; does not reconcile to a real source |
 | R091 | Certified Model Registry (U03) | tested | Fixture-certified only; no independent actuarial/audit certification |
@@ -89,11 +89,11 @@ Summary: 3 implemented, 17 tested, 4 partial_tested, 2 proposed. **U14, U18 are 
 | R099 | Reverse Goal Planning (U11) | tested | Single-driver monotone bisection only |
 | R100 | Constraint-Based Optimization (U12) | partial_tested | Bounded grid search (<=3 variables, <=5000 runs); not an LP/MIP solver |
 | R101 | Multi-Scenario Portfolio (U13) | partial_tested | Compare within authorised scope; no concurrent capex/cash portfolio roll-up |
-| R102 | Advanced Uncertainty Models (U14) | proposed | Monte Carlo/probabilities REFUSED (X01 research_only); only scenario ranges exist |
+| R102 | Advanced Uncertainty Models (U14) | partial_tested | Seeded Monte Carlo runs ONLY with structurally validated calibration evidence (refuses 9 weak-evidence cases); evidence is declared by the caller, not verified against real data; correlations normal-only; <=2000 runs; output is conditional, never a forecast |
 | R103 | Decision Lifecycle Register (U15) | tested | Eligible-to-apply/applied states intentionally absent (apply disabled) |
 | R104 | Approval Workflow Integration (U16) | implemented | CONTRACT + mock only; real ERP approval engine NOT connected; module-visibility mutation refused |
 | R105 | Actual vs Plan Tracking (U17) | tested | Synthetic actuals only |
-| R106 | Decision Performance Review (U18) | proposed | Not built beyond actual-vs-plan variance rows |
+| R106 | Decision Performance Review (U18) | partial_tested | Verdict MET/PARTIALLY_MET/MISSED over ACTUAL-kind values only, constraint incidence, mechanical input-deviation reasons; synthetic actuals; no ROI/payback inference |
 | R107 | Forecast Accuracy & Bias (U19) | tested | Needs >=3 comparable actuals; synthetic only |
 | R108 | Early Warning & Replanning (U20) | tested | Threshold rules on synthetic actuals |
 | R109 | Collaborative Scenario Review (U21) | partial_tested | Comments + reviewer permissions; no attachments or notifications |
@@ -101,9 +101,24 @@ Summary: 3 implemented, 17 tested, 4 partial_tested, 2 proposed. **U14, U18 are 
 | R111 | Investment & Financing Integration (U23) | tested | Not wired to real A022 agreements; A022 values are MANUAL_UNVERIFIED seeds |
 | R112 | Secure Scenario Application (U24) | tested | Apply is DISABLED by design |
 | R113 | Enterprise UX & Reporting (U25) | tested | Synthetic demo harness; not mounted in live navigation |
-| R114 | Security, Licensing & Scale (U26) | partial_tested | Synthetic jwt-claim RLS only (NOT signed GoTrue); licensing = design only; 300-site compute benchmark measured, DB scale not |
+| R114 | Security, Licensing & Scale (U26) | partial_tested | Synthetic jwt-claim RLS only (NOT signed GoTrue); licensing = design only; trusted gateway recomputes results; measured: 320 sites / 10,000 scenarios under RLS on a throwaway PostgreSQL (see handover) — not a production load test |
 
-## 4. Dependencies that remain BLOCKED (not claimed anywhere above)
+## 4. Industry packs (data only; one kernel)
+
+| Industry id | Recommended models | Guided journey steps |
+|---|---|---|
+| sweets_bakery | M07, M01, M05, M17, M16, M04, M09, M10, M02 | 4 |
+| restaurant | M07, M01, M17, M16, M04, M08, M05, M14 | 4 |
+| paint_hardware | M06, M10, M05, M01, M09, M04, M17, M16 | 4 |
+| retail_wholesale | M01, M06, M05, M10, M17, M16, M09, M19, M03 | 4 |
+| general_manufacturing | M07, M08, M09, M11, M12, M05, M06, M16 | 4 |
+| construction | M15, M04, M14, M13, M10, M12, M08, M19 | 4 |
+| import_export | M06, M09, M10, M01, M18, M04, M13, M05 | 4 |
+| ecommerce | M01, M17, M05, M10, M04, M09, M18, M06 | 4 |
+| technology_digital | M01, M17, M08, M12, M14, M04, M16, M20 | 4 |
+| services | M08, M01, M17, M04, M16, M12, M20, M10, M03, M02 | 4 |
+
+## 5. Dependencies that remain BLOCKED (not claimed anywhere above)
 
 - Signed Supabase GoTrue/PostgREST negative tests need a separate staging project and the P0 migration gates (tests here use synthetic `request.jwt.claims`).
 - A018–A023 canonical sources: scope/grant views are fixtures; real A021/A034 views must replace `c10_sim.grant_source`/`business_source` (see handover).

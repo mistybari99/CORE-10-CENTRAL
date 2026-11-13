@@ -18,7 +18,8 @@ Everything a future agent needs without the chat. **Scope is APPROVED; isolated 
 modules/simulation/
   index.js                       entry, registers models
   lib/    decimal.js sha256.js units.js kernel.js analysis.js context.js demo-data.js
-          scenario.js decisions.js reports.js quick.js coverage.js
+          scenario.js decisions.js reports.js quick.js coverage.js uncertainty.js packs.js
+  server/ db-psql.js gateway.js api.js   (trusted gateway + HTTP API; recompute before record_run)
   models/ spec.js core.js(M01-M08) finance.js(M09-M14) ops.js(M15-M20) not_built.js(X01)
   sql/    c10_a025_fixture_v1.sql  c10_a025_scenarios_v1.sql  c10_a025_rollback_v1.sql
   ui/     lab.html lab.js quick.html quick.js ui.js ui.css
@@ -32,6 +33,7 @@ docs/development/C10_A025_SIMULATION_{DRAFT_DECISION_LOG,TECHNICAL_HANDOVER,MODE
 
 ## 3. Run it
 ```bash
+# gateway API (disposable DB only):  C10_SIM_ACK_SYNTHETIC=yes PORT=8787 node modules/simulation/server/api.js   (tokens: dev-<userId>)
 node tests/c10_a025/run-all.js               # everything (needs python3, psql+PostgreSQL binaries, Playwright)
 node tests/c10_a025/run-all.js --no-pg --no-browser   # pure engine only
 # start the UI (static, no build step):
@@ -53,7 +55,7 @@ Persistence (`c10_sim`): drafts, immutable runs, append-only decision events/ann
 ## 5. Integration points (what to wire, in order, and what NOT to do)
 1. Replace `c10_sim.business_source/site_source/grant_source` views with views over the canonical A018 hierarchy and A021/A034 effective capability service. Keep the capability names or map them. **Do not** create a second role authority.
 2. Replace `request.jwt.claims` actor with the real signed claim path only on the separate staging project; run the same matrix there. Synthetic claims prove SQL logic, not GoTrue.
-3. Put a trusted recompute step in front of `record_run` (see Known defects #1).
+3. Trusted recompute is DONE (`server/gateway.js`; `record_run` only for `sim_gateway`). Replace the psql executor with a pooled driver and the synthetic token map with a verified-JWT check on the staging project.
 4. Source adapters (read-only, signed scope): A048 inventory, A049 purchase→production→sales, A050 portfolio, A054 payroll policy, A022/A023 finance (**manual_unverified** ⇒ seeds only). Use `InputValue{kind:'actual', sourceReference, observedAt}`; stale sources are flagged by the provider contract.
 5. Mount the Quick panel through the owner placement service only where the module is enabled **and** the backend authorises the operation (`quick.available`). No live screen was modified here.
 6. Approval: implement a real adapter behind `MockApprovalAdapter` using the canonical request/approval service; never reuse the module-visibility mutation path.
@@ -65,25 +67,26 @@ Persistence (`c10_sim`): drafts, immutable runs, append-only decision events/ann
 | Property tests (seeded) | 60 iterations: scale invariance, monotone break-even, loan principal conservation & zero closing balance, cash conservation |
 | Scenario/security (JS) | 13-actor matrix, SoD, revision conflict, idempotent retry, immutable runs, audit tamper detection, CSV formula-injection, redaction, no-side-effects hash on 7 canonical sentinels |
 | PostgreSQL 16.15 | 15-actor RLS/RPC matrix, direct DML denied, concurrency (exactly one of two same-revision writers wins), immutability, advisory constraints, audit chain, sentinel hashes unchanged, rollback leaves stand-ins intact; 4 mutation checks all killed |
-| Chromium | 318 checks × 390/768/1440: a11y names, keyboard, BN/EN, offline, XSS-inert names, empty/unauthorized/error states, no horizontal overflow, Quick == Lab for 5 contexts, no non-local network |
-| Bench (measured) | 320-site consolidation 9.7 ms; 12 scenarios 6.5 ms; 99-run optimisation 32.7 ms; 25 DB RPC creates 867 ms incl. process spawn. **300+ site DB scale NOT measured** |
+| Chromium | 342 checks × 390/768/1440: a11y names, keyboard, BN/EN, offline, XSS-inert names, empty/unauthorized/error states, no horizontal overflow, Quick == Lab for 5 contexts, no non-local network |
+| Gateway | HTTP API on PostgreSQL: server-side recompute, forged result impossible, auth/RLS/SoD/advisory/export/concurrency matrix, 10 stored runs reproduced |
+| Bench (measured) | compute: 320-site consolidation 9.7 ms; 12 scenarios 6.5 ms; 99-run optimisation 32.7 ms. **DB (PostgreSQL 16.15, RLS): 320 sites / 10,000 scenarios: owner count 174 ms, site-scoped 389 ms, foreign tenant 307 ms, first-50 list 189 ms.** Synthetic single-tenant load on a throwaway cluster, not a production test |
 CI (GitHub Actions run #8 on `28ed047`, all 3 jobs green: engine, **PostgreSQL 17.x service**, Chromium 141): https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/43116718339 . Earlier red runs (#1–#7) were a real defect found only on CI Chromium 141: a long Quick button label widened the 390 px layout and pushed the Run button off-screen; fixed (buttons wrap, Run footer outside scroll area) and guarded by a layout-overflow assertion.
 Screenshots: CI artifact `c10-a025-screenshots`; locally `tests/c10_a025/artifacts/` (git-ignored).
 
 ## 7. Known defects / limitations (honest)
-1. **Trust boundary:** DB checks formula hash + input snapshot but does not recompute results (IMPL-009). Smallest next security step.
-2. UI persistence is browser `localStorage` only; not connected to SQL.
+1. **Trust boundary:** closed by the gateway (IMPL-009). Remaining trust is the gateway process and pinned engine code; the psql-per-call executor is a draft convenience (not pooled).
+2. UI persistence is browser `localStorage`; the SQL-backed gateway API is tested but the UI is not switched to it.
 3. PostgreSQL **17** is verified by CI only; local runs used 16.15. Functions use no 17-specific features.
 4. Accessibility: automated label/keyboard/overflow checks only; **no real screen-reader or Bangla-shaping device review**. Charts are SVG with `role=img` plus the exact table.
 5. BN covers UI strings, model titles, explain text and field/output labels; formula text, assumptions and limitations are English.
-6. M18 partial (no verified rate source). U14 and U18 not built. U16 is a contract + mock. R086 licensing is design-only.
-7. Industry demos are model-example based (sweets/bakery, paint & wholesale, construction, loan/investor, consolidation); the 10 canonical industry packs are not each built.
+6. M18 partial (no verified rate source). U14 (calibration evidence only structurally validated) and U18 (synthetic actuals) are partial_tested. U16 is a contract + mock. R086 licensing is design-only.
+7. Ten industry packs exist as data with 40 verified journey steps; they recommend and order existing models and do not add industry-specific formulas.
 8. Optimisation is a bounded grid (≤3 variables, ≤5000 runs), not an LP/MIP solver. Reverse goal is single-driver monotone bisection and refuses non-monotone cases.
 9. Series ≤120, lists ≤400 rows, sensitivity ≤400 runs — deliberate bounds.
 10. The live Decision Book could not be re-read at cell level (see §1).
 
 ## 8. Next smallest merge-independent step
-Add a trusted recompute function (Node edge function or SQL-callable service) that re-runs `runModel` for `record_run` and rejects mismatching outputs; extend `persistence.test.js` with a forged-result negative. This closes the only known integrity gap without touching any other package.
+Switch the Lab UI to the gateway API (`/api/scenarios`, bearer tokens) behind a feature flag in the demo page, keeping `localStorage` as the offline fallback; then replace synthetic tokens with the staging JWT verifier.
 
 ## 9. Rollback and upgrade
 Rollback: `psql -f modules/simulation/sql/c10_a025_rollback_v1.sql` (drops only schema `c10_sim`; the test proves canonical stand-in tables are unchanged). Code rollback = close PR #77 / delete the branch; nothing else references it.
@@ -91,5 +94,5 @@ Upgrade protocol: follow `C10_A025_SIMULATION_EXTENSION_GUIDE.md` (new versions,
 
 ## 10. Decision Book / NEXT ACTIONS update — **NOT WRITTEN** (connector cannot edit sheet cells)
 Paste-ready text for **NEXT ACTIONS row 26 (C10-A025)**, evidence column. Do **not** change status to Approved/Ready/Built:
-> `2026-11-12 CLAUDE DRAFT EVIDENCE: Draft PR #77 (branch ccr-527e5d03-bcl99t, base main c390529). Isolated engine code: M01–M20 registry (19 coded+tested, M18 partial, X01 research_only), 46 golden fixtures verified by independent python reference, scenario lifecycle + advisory-only gateway, c10_sim PostgreSQL schema tested on disposable PG, Lab + Quick UI tested at 390/768/1440. U14/U18 not built; U16 contract-only; signed-auth, A021–A023 canonical wiring, A048–A054 sources, server-side recompute and licensing NOT done. State remains: ENGINE DRAFT ONLY — NOT MERGED / NOT DEPLOYED / NOT INTEGRATED; release DEFERRED pending original Owner gates.`
+> `2026-11-12 CLAUDE DRAFT EVIDENCE: Draft PR #77 (branch ccr-527e5d03-bcl99t, base main c390529). Isolated engine code: M01–M20 registry (19 coded+tested, M18 partial, X01 research_only), 46 golden fixtures verified by independent python reference, scenario lifecycle + advisory-only gateway, c10_sim PostgreSQL schema tested on disposable PG, Lab + Quick UI tested at 390/768/1440. U14/U18 partial_tested; U16 contract-only; trusted server-side recompute gateway built; signed-auth, A021–A023 canonical wiring, A048–A054 sources and licensing NOT done. State remains: ENGINE DRAFT ONLY — NOT MERGED / NOT DEPLOYED / NOT INTEGRATED; release DEFERRED pending original Owner gates.`
 Also append to DECISION REVISIONS only if the Owner wants a record; **no new D/R/REV/A IDs were created.**

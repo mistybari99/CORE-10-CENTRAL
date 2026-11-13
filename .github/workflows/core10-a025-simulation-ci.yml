@@ -35,7 +35,7 @@ jobs:
           python3 tests/c10_a025/golden_reference.py --check
       - name: Unit, property, journey, analysis, scenario, parity, bench, guard tests
         run: |
-          for t in golden kernel registry models analysis scenario parity bench guard; do node tests/c10_a025/$t.test.js; done
+          for t in golden kernel registry models analysis uncertainty packs scenario parity bench guard; do node tests/c10_a025/$t.test.js; done
       - name: Upload measured benchmark
         if: always()
         uses: actions/upload-artifact@v4
@@ -73,12 +73,18 @@ jobs:
         run: psql -d postgres -Atc "show server_version" | tee "$GITHUB_STEP_SUMMARY"
       - name: Persistence + security matrix on throwaway database
         run: node tests/c10_a025/persistence.test.js
+      - name: Trusted gateway over HTTP (server-side recompute, forged results impossible)
+        run: node tests/c10_a025/gateway.test.js
+      - name: DB scale - 320 sites / 10,000 scenarios under RLS (measured)
+        run: node tests/c10_a025/dbscale.test.js
       - name: Upload DB timing evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: c10-a025-pg
-          path: tests/c10_a025/pg-bench-result.json
+          path: |
+            tests/c10_a025/pg-bench-result.json
+            tests/c10_a025/db-scale-result.json
           if-no-files-found: ignore
           retention-days: 14
   browser:

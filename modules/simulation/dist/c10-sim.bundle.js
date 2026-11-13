@@ -6,7 +6,7 @@ __defs["index.js"] = function (module, exports, require) {
 /* C10-A025 simulation engine entry. Load order matters: models register into the immutable registry. */
 require("./models/core"); require("./models/finance"); require("./models/ops"); require("./models/not_built");
 module.exports = Object.assign({}, require("./lib/decimal"), require("./lib/kernel"), { sha256: require("./lib/sha256"), units: require("./lib/units"),
-  lib: { scenario: require("./lib/scenario"), quick: require("./lib/quick"), analysis: require("./lib/analysis"), decisions: require("./lib/decisions"), reports: require("./lib/reports"), context: require("./lib/context"), demo: require("./lib/demo-data"), coverage: require("./lib/coverage") } });
+  lib: { scenario: require("./lib/scenario"), quick: require("./lib/quick"), analysis: require("./lib/analysis"), decisions: require("./lib/decisions"), reports: require("./lib/reports"), context: require("./lib/context"), demo: require("./lib/demo-data"), coverage: require("./lib/coverage"), packs: require("./lib/packs"), uncertainty: require("./lib/uncertainty") } });
 
 };
 __defs["lib/analysis.js"] = function (module, exports, require) {
@@ -115,7 +115,18 @@ function earlyWarnings(plan, actuals, rules) {
   const av = actualVsPlan(plan, actuals); const out = []; for (const r of rules) { const row = av.rows.find(x => x.output === r.output && x.status === "MEASURED"); if (!row) continue; const v = r.metric === "pp" ? row.variancePercentagePoints : row.variancePct; if (v === null) continue; const V = D(v); const bad = r.direction === "below" ? V.lt(D(r.threshold).neg()) : V.gt(r.threshold); if (bad) out.push({ output: r.output, ruleId: "EW-" + r.output, variance: v, threshold: r.threshold, message: "Actual deviates from plan beyond threshold: re-run the simulation with the actual baseline." , replanRecommended: true }); }
   return { kind: "early_warning", warnings: out, evidence: av.rows, replan: out.length ? "RECOMMENDED" : "NOT_TRIGGERED" };
 }
-module.exports = { sensitivity, stress, reverseGoal, optimize, feasibility, insights, planSnapshot, actualVsPlan, forecastAccuracy, earlyWarnings, DEPENDENCIES, getLeaf, setLeaf, clone };
+/* ---------- U18 / R106 decision performance review (synthetic actuals only in this draft) ---------- */
+function decisionReview(spec) {
+  const { plan, actuals, expectations, planInputs, actualInputs } = spec; const av = actualVsPlan(plan, actuals); const rows = []; let met = 0, missed = 0, measured = 0;
+  for (const ex of expectations) { const r = av.rows.find(x => x.output === ex.output && x.status === "MEASURED"); if (!r) { rows.push({ output: ex.output, verdict: "NOT_MEASURABLE", reason: "no comparable ACTUAL value" }); continue; } measured++; const tol = D(ex.tolerancePct == null ? 10 : ex.tolerancePct); const P = D(r.plan), Ac = D(r.actual); const shortfall = ex.direction === "lower_better" ? Ac.sub(P) : P.sub(Ac); const base = P.abs(); const pctShort = base.isZero() ? (shortfall.isPos() ? D(100) : ZERO) : shortfall.div(base).mul(100);
+    const verdict = pctShort.lte(0) ? "MET" : pctShort.lte(tol) ? "WITHIN_TOLERANCE" : "MISSED"; if (verdict === "MISSED") missed++; else met++; rows.push({ output: ex.output, plan: r.plan, actual: r.actual, shortfallPct: pctShort.toString(2), tolerancePct: tol.toString(2), verdict }); }
+  const reasons = []; if (planInputs && actualInputs) for (const k of Object.keys(planInputs)) { if (actualInputs[k] === undefined || typeof planInputs[k] !== "string") continue; const pv = D(planInputs[k]), av2 = D(actualInputs[k]); if (!pv.isZero() && av2.sub(pv).div(pv.abs()).abs().gt("0.1")) reasons.push({ code: "INPUT_DEVIATION", input: k, plan: planInputs[k], actual: actualInputs[k], deviationPct: av2.sub(pv).div(pv.abs()).mul(100).toString(1) }); }
+  const events = (actuals.events || []).filter(e => ["cash_gap", "stockout", "capacity_breach"].includes(e.type)); const incidence = {}; for (const e of events) incidence[e.type] = (incidence[e.type] || 0) + 1;
+  const verdict = measured === 0 ? "INSUFFICIENT_ACTUALS" : missed === 0 ? "MET" : met === 0 ? "MISSED" : "PARTIALLY_MET";
+  const notes = ["ROI/payback are reported only when a measured actual exists for them; none is inferred.", "Variance reasons are mechanical input deviations (>10%), not causal proof."];
+  return { kind: "decision_performance_review", planHash: plan.planHash, verdict, measured, rows, varianceReasons: reasons, constraintIncidence: incidence, notes, planImmutable: true };
+}
+module.exports = { decisionReview, sensitivity, stress, reverseGoal, optimize, feasibility, insights, planSnapshot, actualVsPlan, forecastAccuracy, earlyWarnings, DEPENDENCIES, getLeaf, setLeaf, clone };
 
 };
 __defs["lib/context.js"] = function (module, exports, require) {
@@ -164,7 +175,7 @@ const U = [
   T("U02", "R090", "Data quality & readiness grading", "tested", ["tests/c10_a025/kernel.test.js"], "Grades provenance kind; does not reconcile to a real source"),
   T("U03", "R091", "Certified model registry", "tested", ["tests/c10_a025/registry.test.js"], "Fixture-certified only; no independent actuarial/audit certification"),
   T("U04", "R092", "Financial definition engine", "tested", ["tests/c10_a025/models.test.js"], "Definitions encoded in formulas/glossary; no tax rate registry"),
-  T("U05", "R093", "Scenario provenance & immutability", "tested", ["tests/c10_a025/scenario.test.js", "tests/c10_a025/persistence.test.js"], "Hashes are integrity aids, not signatures"),
+  T("U05", "R093", "Scenario provenance & immutability", "tested", ["tests/c10_a025/scenario.test.js", "tests/c10_a025/persistence.test.js", "tests/c10_a025/gateway.test.js"], "Hashes are integrity aids, not signatures"),
   T("U06", "R094", "Cross-module impact graph", "implemented", ["tests/c10_a025/analysis.test.js"], "Declared dependency graph + model links; source modules (A048/A049/A050) are NOT connected"),
   T("U07", "R095", "Feasibility & constraints", "tested", ["tests/c10_a025/analysis.test.js"], "Rule-based on model outputs; no solver over real capacity data"),
   T("U08", "R096", "Integrated finance (P&L ↔ cash)", "tested", ["tests/c10_a025/models.test.js"], "No balance sheet, no tax timing"),
@@ -173,19 +184,19 @@ const U = [
   T("U11", "R099", "Reverse goal planning", "tested", ["tests/c10_a025/analysis.test.js"], "Single-driver monotone bisection only"),
   T("U12", "R100", "Constraint optimisation", "partial_tested", ["tests/c10_a025/analysis.test.js"], "Bounded grid search (<=3 variables, <=5000 runs); not an LP/MIP solver"),
   T("U13", "R101", "Multi-scenario portfolio", "partial_tested", ["tests/c10_a025/scenario.test.js"], "Compare within authorised scope; no concurrent capex/cash portfolio roll-up"),
-  T("U14", "R102", "Calibrated uncertainty", "proposed", ["tests/c10_a025/registry.test.js"], "Monte Carlo/probabilities REFUSED (X01 research_only); only scenario ranges exist"),
+  T("U14", "R102", "Calibrated uncertainty", "partial_tested", ["tests/c10_a025/uncertainty.test.js"], "Seeded Monte Carlo runs ONLY with structurally validated calibration evidence (refuses 9 weak-evidence cases); evidence is declared by the caller, not verified against real data; correlations normal-only; <=2000 runs; output is conditional, never a forecast"),
   T("U15", "R103", "Decision lifecycle", "tested", ["tests/c10_a025/scenario.test.js", "tests/c10_a025/persistence.test.js"], "Eligible-to-apply/applied states intentionally absent (apply disabled)"),
   T("U16", "R104", "Approval adapter", "implemented", ["tests/c10_a025/scenario.test.js"], "CONTRACT + mock only; real ERP approval engine NOT connected; module-visibility mutation refused"),
   T("U17", "R105", "Actual vs plan", "tested", ["tests/c10_a025/analysis.test.js"], "Synthetic actuals only"),
-  T("U18", "R106", "Decision performance review", "proposed", [], "Not built beyond actual-vs-plan variance rows"),
+  T("U18", "R106", "Decision performance review", "partial_tested", ["tests/c10_a025/uncertainty.test.js"], "Verdict MET/PARTIALLY_MET/MISSED over ACTUAL-kind values only, constraint incidence, mechanical input-deviation reasons; synthetic actuals; no ROI/payback inference"),
   T("U19", "R107", "Forecast accuracy & bias", "tested", ["tests/c10_a025/analysis.test.js"], "Needs >=3 comparable actuals; synthetic only"),
   T("U20", "R108", "Early warning & replan", "tested", ["tests/c10_a025/analysis.test.js"], "Threshold rules on synthetic actuals"),
   T("U21", "R109", "Collaborative review", "partial_tested", ["tests/c10_a025/scenario.test.js", "tests/c10_a025/persistence.test.js"], "Comments + reviewer permissions; no attachments or notifications"),
   T("U22", "R110", "Consolidation & elimination", "tested", ["tests/c10_a025/models.test.js", "tests/c10_a025/bench.test.js"], "No unrealised-profit elimination"),
   T("U23", "R111", "Funding / partner semantics", "tested", ["tests/c10_a025/models.test.js"], "Not wired to real A022 agreements; A022 values are MANUAL_UNVERIFIED seeds"),
-  T("U24", "R112", "Safe application gateway", "tested", ["tests/c10_a025/scenario.test.js", "tests/c10_a025/persistence.test.js"], "Apply is DISABLED by design"),
+  T("U24", "R112", "Safe application gateway", "tested", ["tests/c10_a025/scenario.test.js", "tests/c10_a025/persistence.test.js", "tests/c10_a025/gateway.test.js"], "Apply is DISABLED by design"),
   T("U25", "R113", "Lab + Quick UX, BN/EN, reports", "tested", ["tests/c10_a025/browser.test.js", "tests/c10_a025/parity.test.js"], "Synthetic demo harness; not mounted in live navigation"),
-  T("U26", "R114", "Security, licensing & scale", "partial_tested", ["tests/c10_a025/persistence.test.js", "tests/c10_a025/bench.test.js"], "Synthetic jwt-claim RLS only (NOT signed GoTrue); licensing = design only; 300-site compute benchmark measured, DB scale not")
+  T("U26", "R114", "Security, licensing & scale", "partial_tested", ["tests/c10_a025/persistence.test.js", "tests/c10_a025/gateway.test.js", "tests/c10_a025/dbscale.test.js", "tests/c10_a025/bench.test.js"], "Synthetic jwt-claim RLS only (NOT signed GoTrue); licensing = design only; trusted gateway recomputes results; measured: 320 sites / 10,000 scenarios under RLS on a throwaway PostgreSQL (see handover) — not a production load test")
 ];
 const R_ORIG = [
   ["R081", "One reusable engine + Lab inside the existing repo", "tested", "Single registry/kernel; no new app"],
@@ -195,7 +206,7 @@ const R_ORIG = [
   ["R085", "Permission/RLS/audit/export scope", "partial_tested", "Tested on synthetic claims; signed-auth not verified"],
   ["R086", "Platform licensing/entitlements", "proposed", "Design-only; no entitlement enforcement (C10-A024 separate)"],
   ["R087", "Sequencing (REV-010 isolated draft)", "tested", "Process: separate Claude branch + Draft PR, no main merge"],
-  ["R088", "Industry templates, responsive UX, BN/EN, save/compare/export", "partial_tested", "3 industry demos, BN/EN, save/compare/export; 10-industry template packs not all built"]
+  ["R088", "Industry templates, responsive UX, BN/EN, save/compare/export", "tested", "10 canonical industry packs as data (recommended models + verified guided journeys), BN/EN, save/compare/export"]
 ];
 function modelCoverage() { const latest = new Map(); for (const m of listModels()) { const cur = latest.get(m.id); if (!cur || m.version > cur.version) latest.set(m.id, m); } return [...latest.values()].filter(m => /^M\d\d$/.test(m.id)).sort((a, b) => (a.id < b.id ? -1 : 1)).map(m => ({ id: m.id, version: m.version, family: m.family, status: m.status, reason: m.reason || null, formulaHash: m.formulaHash })); }
 module.exports = { LADDER, U, R_ORIG, modelCoverage };
@@ -490,6 +501,26 @@ function serializeInputs(raw) { return jsonSafe(raw || {}); }
 module.exports = { registerModel, getModel, listModels, runModel, normalizeInputs, grade, jsonSafe, KINDS, STATUSES, LIMITS, cmpVer };
 
 };
+__defs["lib/packs.js"] = function (module, exports, require) {
+/* Industry packs are DATA, not calculators: which registered models matter for an industry, in what order, with which verified demo journey.
+   Ten canonical families (ids match core10_capability_catalog_v1.json). One kernel, one registry. A pack never contains a formula. */
+const N = (en, bn) => ({ en, bn });
+const PACKS = [
+  { id: "sweets_bakery", name: N("Sweets & bakery", "মিষ্টি ও বেকারি"), recommended: ["M07", "M01", "M05", "M17", "M16", "M04", "M09", "M10", "M02"], journey: ["M07-sweet-batch", "M01-fee-v2", "M17-mix", "M16-branch-funded-loan"], conventions: N("Recipe yield, spoilage and shelf life drive cost; sales are mostly cash.", "রেসিপি ইল্ড, নষ্ট হওয়া ও মেয়াদ খরচ ঠিক করে; বিক্রি বেশিরভাগ নগদে।"), units: ["kg", "g", "l", "piece", "dozen"] },
+  { id: "restaurant", name: N("Restaurant", "রেস্টুরেন্ট"), recommended: ["M07", "M01", "M17", "M16", "M04", "M08", "M05", "M14"], journey: ["M07-sweet-batch", "M17-mix", "M08-bottleneck", "M16-slow-ramp"], conventions: N("Menu mix and table/kitchen capacity set contribution.", "মেনু মিশ্রণ ও টেবিল/রান্নাঘর সক্ষমতা অবদান ঠিক করে।"), units: ["kg", "g", "l", "piece", "staff_hour"] },
+  { id: "paint_hardware", name: N("Paint & hardware", "রং ও হার্ডওয়্যার"), recommended: ["M06", "M10", "M05", "M01", "M09", "M04", "M17", "M16"], journey: ["M06-overbuy-volume", "M10-long-credit", "M05-base", "M09-van-vs-truck"], conventions: N("Pack sizes, supplier credit and stock cover dominate cash.", "প্যাক আকার, সরবরাহকারী ক্রেডিট ও স্টক কভার নগদ নির্ধারণ করে।"), units: ["l", "ml", "kg", "bag50kg", "piece"] },
+  { id: "retail_wholesale", name: N("Retail & wholesale", "খুচরা ও পাইকারি"), recommended: ["M01", "M06", "M05", "M10", "M17", "M16", "M09", "M19", "M03"], journey: ["M01-base-v1", "M06-early-discount", "M10-growth", "M19-balanced"], conventions: N("Margin, turns and supplier terms; internal transfers between outlets are eliminated.", "মার্জিন, টার্নওভার ও সরবরাহ শর্ত; আউটলেটের অভ্যন্তরীণ স্থানান্তর বাদ।"), units: ["piece", "dozen", "kg", "carton12", "carton24"] },
+  { id: "general_manufacturing", name: N("General manufacturing", "উৎপাদন"), recommended: ["M07", "M08", "M09", "M11", "M12", "M05", "M06", "M16"], journey: ["M07-sweet-batch", "M08-bottleneck", "M11-payback", "M12-single-root"], conventions: N("Yield, machine hours and capex payback; hypothetical labour cost only.", "ইল্ড, মেশিন ঘণ্টা ও ক্যাপেক্স পেব্যাক; শ্রম খরচ শুধু অনুমান।"), units: ["kg", "ton", "piece", "machine_hour", "staff_hour"] },
+  { id: "construction", name: N("Construction", "নির্মাণ"), recommended: ["M15", "M04", "M14", "M13", "M10", "M12", "M08", "M19"], journey: ["M15-supplier-credit", "M15-delay", "M13-amortized", "M14-four-structures"], conventions: N("Staged billing, retention and variations; no legal or tax rule is assumed.", "ধাপে বিল, রিটেনশন ও ভেরিয়েশন; কোনো আইনি বা কর নিয়ম ধরা হয় না।"), units: ["m", "sqm", "ton", "bag50kg", "piece"] },
+  { id: "import_export", name: N("Import & export", "আমদানি ও রপ্তানি"), recommended: ["M06", "M09", "M10", "M01", "M18", "M04", "M13", "M05"], journey: ["M06-early-discount", "M09-van-vs-truck", "M18-all-verified", "M10-long-credit"], conventions: N("Landed cost excludes duty unless entered; one currency per run, no FX conversion.", "ল্যান্ডেড খরচে শুল্ক নেই যদি না দেওয়া হয়; প্রতি রানে এক মুদ্রা, বিনিময় নেই।"), units: ["kg", "ton", "carton12", "carton24", "piece"] },
+  { id: "ecommerce", name: N("E-commerce", "ই-কমার্স"), recommended: ["M01", "M17", "M05", "M10", "M04", "M09", "M18", "M06"], journey: ["M01-fee-v2", "M17-mix", "M09-van-vs-truck", "M10-growth"], conventions: N("Marketplace fee on net price, delivery cost and returns shape contribution.", "নিট মূল্যে মার্কেটপ্লেস ফি, ডেলিভারি ও রিটার্ন অবদান ঠিক করে।"), units: ["piece", "carton12", "kg", "g"] },
+  { id: "technology_digital", name: N("Technology & digital", "প্রযুক্তি ও ডিজিটাল"), recommended: ["M01", "M17", "M08", "M12", "M14", "M04", "M16", "M20"], journey: ["M12-single-root", "M14-four-structures", "M20-template", "M04-healthy"], conventions: N("Recurring revenue and staff capacity; use M20 for custom unit economics.", "পুনরাবৃত্ত আয় ও কর্মী সক্ষমতা; কাস্টম ইউনিট ইকোনমিক্সে M20।"), units: ["staff_hour", "hour", "piece"] },
+  { id: "services", name: N("Services", "সেবা"), recommended: ["M08", "M01", "M17", "M04", "M16", "M12", "M20", "M10", "M03", "M02"], journey: ["M08-ok", "M02-base", "M03-verified-tax", "M16-slow-ramp"], conventions: N("Billable hours and utilisation drive revenue; staff cost is hypothetical.", "বিলযোগ্য ঘণ্টা ও ব্যবহার আয় নির্ধারণ করে; কর্মী খরচ অনুমান।"), units: ["staff_hour", "hour", "machine_hour"] }
+];
+function byId(id) { return PACKS.find(p => p.id === id) || null; }
+module.exports = { PACKS, byId };
+
+};
 __defs["lib/quick.js"] = function (module, exports, require) {
 /* Contextual Quick Simulation adapter. It is a THIN mapping: same registry, same kernel, same results as the Lab.
    Host screens supply values; values are marked 'actual' ONLY when the host says they came through an authorised read
@@ -633,6 +664,47 @@ function canon(v) {
 module.exports = { sha256, canon, hashOf: v => sha256(canon(v)) };
 
 };
+__defs["lib/uncertainty.js"] = function (module, exports, require) {
+/* U14 / R102 — calibrated uncertainty. A probability is produced ONLY from caller-supplied, structurally validated calibration evidence.
+   No evidence (or weak evidence) => REFUSED. Output is always labelled conditional on that evidence; it is never a forecast, guarantee or advice.
+   Sampling uses a seeded PRNG: identical inputs + seed => identical results. Sample values are converted to exact decimal strings before the model runs. */
+const { Dec, D, SimError } = require("./decimal");
+const { runModel } = require("./kernel"); const { hashOf } = require("./sha256"); const A = require("./analysis");
+const LIMITS = { maxRuns: 2000, maxDrivers: 4, minSample: 30, minValidationObs: 20 };
+function validateCalibration(c) {
+  const p = []; if (!c || typeof c !== "object") return ["calibration evidence missing"]; const d = c.distribution || {};
+  if (!["normal", "triangular", "uniform"].includes(d.type)) p.push("distribution.type must be normal|triangular|uniform");
+  const num = x => typeof x === "string" && /^-?\d+(\.\d+)?$/.test(x);
+  if (d.type === "normal" && !(num(d.mean) && num(d.sd) && D(d.sd).isPos())) p.push("normal needs decimal-string mean and sd>0");
+  if (d.type === "triangular" && !(num(d.min) && num(d.mode) && num(d.max) && D(d.min).lt(d.max) && D(d.mode).gte(d.min) && D(d.mode).lte(d.max))) p.push("triangular needs min<=mode<=max, min<max");
+  if (d.type === "uniform" && !(num(d.min) && num(d.max) && D(d.min).lt(d.max))) p.push("uniform needs min<max");
+  if (!Number.isInteger(c.sampleSize) || c.sampleSize < LIMITS.minSample) p.push("sampleSize must be an integer >= " + LIMITS.minSample);
+  if (typeof c.sourceRef !== "string" || c.sourceRef.length < 3) p.push("sourceRef (where the observations came from) required");
+  const v = c.validation; if (!v || !["holdout", "backtest"].includes(v.method) || !Number.isInteger(v.observations) || v.observations < LIMITS.minValidationObs || typeof v.coverage80Pct !== "number" || v.coverage80Pct < 70 || v.coverage80Pct > 90) p.push("validation {method:holdout|backtest, observations>=" + LIMITS.minValidationObs + ", coverage80Pct in [70,90]} required: the 80% interval must actually contain ~80% of held-out observations");
+  return p;
+}
+function prng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function normalPair(u) { const a = Math.max(u(), 1e-12), b = u(); const r = Math.sqrt(-2 * Math.log(a)); return [r * Math.cos(2 * Math.PI * b), r * Math.sin(2 * Math.PI * b)]; }
+function chol(m) { const n = m.length, L = Array.from({ length: n }, () => new Array(n).fill(0)); for (let i = 0; i < n; i++) for (let j = 0; j <= i; j++) { let s = m[i][j]; for (let k = 0; k < j; k++) s -= L[i][k] * L[j][k]; if (i === j) { if (s <= 1e-12) throw new SimError("BAD_CORRELATION", "correlation matrix is not positive definite"); L[i][i] = Math.sqrt(s); } else L[i][j] = s / L[j][j]; } return L; }
+function monteCarlo(spec, ctx) {
+  const { modelId, version, inputs, drivers, outputKey } = spec; if (!drivers || !drivers.length || drivers.length > LIMITS.maxDrivers) throw new SimError("BOUND_EXCEEDED", "1.." + LIMITS.maxDrivers + " drivers");
+  const runs = spec.runs || 500; if (!Number.isInteger(runs) || runs < 50 || runs > LIMITS.maxRuns) throw new SimError("BOUND_EXCEEDED", "runs 50.." + LIMITS.maxRuns);
+  const problems = []; drivers.forEach((d, i) => validateCalibration(d.calibration).forEach(x => problems.push("driver " + (d.path || i) + ": " + x)));
+  if (problems.length) return { kind: "monte_carlo", status: "REFUSED_NOT_CALIBRATED", problems, message: "Probabilities require validated distribution evidence (U14/R102). Use scenario ranges instead.", probabilities: null };
+  const corr = spec.correlations || []; let L = null; if (corr.length) { if (drivers.some(d => d.calibration.distribution.type !== "normal")) return { kind: "monte_carlo", status: "REFUSED_NOT_CALIBRATED", problems: ["correlations are supported only between normal drivers"], probabilities: null };
+    const n = drivers.length, m = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))); for (const c of corr) { const a = drivers.findIndex(d => d.path === c.a), b = drivers.findIndex(d => d.path === c.b); if (a < 0 || b < 0 || a === b || typeof c.rho !== "number" || Math.abs(c.rho) >= 1) throw new SimError("BAD_CORRELATION", "invalid correlation entry"); if (!c.evidence || !c.evidence.sourceRef) throw new SimError("BAD_CORRELATION", "each correlation needs evidence.sourceRef"); m[a][b] = m[b][a] = c.rho; } L = chol(m); }
+  const u = prng(spec.seed == null ? 1 : spec.seed), outs = []; let invalid = 0; const spare = []; const stdNormal = () => { if (spare.length) return spare.pop(); const [x, y] = normalPair(u); spare.push(y); return x; };
+  for (let r = 0; r < runs; r++) { const z = drivers.map(() => stdNormal()); const zc = L ? z.map((_, i) => z.slice(0, i + 1).reduce((s, v, k) => s + L[i][k] * v, 0)) : z; const c = A.clone(inputs);
+    drivers.forEach((d, i) => { const dist = d.calibration.distribution; let x; if (dist.type === "normal") x = Number(dist.mean) + Number(dist.sd) * zc[i]; else if (dist.type === "uniform") x = Number(dist.min) + (Number(dist.max) - Number(dist.min)) * u(); else { const a = Number(dist.min), b = Number(dist.mode), cc = Number(dist.max), w = u(), f = (b - a) / (cc - a); x = w < f ? a + Math.sqrt(w * (cc - a) * (b - a)) : cc - Math.sqrt((1 - w) * (cc - a) * (cc - b)); } if (d.min != null) x = Math.max(x, Number(d.min)); if (d.max != null) x = Math.min(x, Number(d.max)); A.setLeaf(c, d.path, x.toFixed(6)); });
+    let res; try { res = runModel(modelId, version, c, ctx); } catch (e) { if (e instanceof SimError) { invalid++; continue; } throw e; } if (res.outputs === null) { invalid++; continue; } const v = res.exact && res.exact[outputKey] !== undefined ? res.exact[outputKey] : res.outputs[outputKey]; if (v == null) { invalid++; continue; } outs.push(D(v)); }
+  if (outs.length < runs * 0.8) return { kind: "monte_carlo", status: "TOO_MANY_INVALID_RUNS", invalid, runs, probabilities: null };
+  const s = outs.slice().sort((a, b) => a.cmp(b)); const pct = p => s[Math.min(s.length - 1, Math.max(0, Math.ceil(p / 100 * s.length) - 1))].toString(4); const n = s.length, mean = s.reduce((a, b) => a.add(b), D(0)).div(n); const sd = s.reduce((a, b) => a.add(b.sub(mean).mul(b.sub(mean))), D(0)).div(n > 1 ? n - 1 : 1).sqrt();
+  const probs = (spec.thresholds || []).map(t => ({ output: outputKey, op: ">=", threshold: String(t), probabilityPct: D(s.filter(x => x.gte(t)).length).div(n).mul(100).toString(2) }));
+  return { kind: "monte_carlo", status: "CALIBRATED_CONDITIONAL", seed: spec.seed == null ? 1 : spec.seed, runs, validRuns: n, invalidRuns: invalid, outputKey, mean: mean.toString(4), sd: sd.toString(4), percentiles: { p5: pct(5), p10: pct(10), p25: pct(25), p50: pct(50), p75: pct(75), p90: pct(90), p95: pct(95) }, probabilities: probs, evidenceHash: hashOf(drivers.map(d => ({ p: d.path, c: d.calibration }))), disclaimer: "Conditional on the supplied calibration evidence and the model's assumptions. Not a forecast, guarantee, legal or investment advice. Uncalibrated or changed conditions invalidate it." };
+}
+module.exports = { monteCarlo, validateCalibration, LIMITS };
+
+};
 __defs["lib/units.js"] = function (module, exports, require) {
 const { D, SimError } = require("./decimal");
 /* Dimensioned conversions. Only same-dimension conversion allowed; unknown units rejected. Factors are exact decimals to the dimension base. */
@@ -660,7 +732,7 @@ const { convert, UNITS } = require("../lib/units");
 const { registerModel } = require("../lib/kernel");
 const S = require("./spec");
 const { money, signed, pct, dec, int, qty, series, list, enumT, bool, text, opt } = S;
-const ALLI = ["sweets_bakery", "restaurant", "paint_hardware", "retail_wholesale", "manufacturing", "construction", "import_export", "ecommerce", "technology_digital", "services"];
+const ALLI = ["sweets_bakery", "restaurant", "paint_hardware", "retail_wholesale", "general_manufacturing", "construction", "import_export", "ecommerce", "technology_digital", "services"];
 const T = (en, bn) => ({ en, bn });
 const out = (k, l, places, extra) => Object.assign({ k, l, places: places == null ? 2 : places }, extra || {});
 const row = o => { const r = {}; for (const k of Object.keys(o)) r[k] = o[k] instanceof Dec ? o[k].toString(2) : o[k]; return r; };
@@ -778,7 +850,7 @@ registerModel({ id: "M06", version: "1.0.0", family: "supplier_quotes", title: T
     return { outputs: { best_offer: best.name, offers: rows }, warnings: w, breakdown: [{ label: "Landed total", formula: "packs × price × (1 − volume discount) + transport", value: best.landed_total }] }; } });
 
 /* ===== M07 BOM / yield / unit cost ===== */
-registerModel({ id: "M07", version: "1.0.0", family: "bom_yield", title: T("Recipe/BOM yield & cost per good unit", "রেসিপি/BOM ইল্ড ও প্রতি ভালো এককের খরচ"), industries: ["sweets_bakery", "restaurant", "manufacturing", "paint_hardware"],
+registerModel({ id: "M07", version: "1.0.0", family: "bom_yield", title: T("Recipe/BOM yield & cost per good unit", "রেসিপি/BOM ইল্ড ও প্রতি ভালো এককের খরচ"), industries: ["sweets_bakery", "restaurant", "general_manufacturing", "paint_hardware"],
   explain: { what: T("Batch cost from ingredients (unit-converted, with waste), labour, energy; divides by sellable output after spoilage.", "উপকরণ (ইউনিট রূপান্তর, অপচয়সহ), শ্রম, জ্বালানি দিয়ে ব্যাচ খরচ; নষ্ট হওয়ার পর বিক্রয়যোগ্য একক দিয়ে ভাগ।"), when: T("Pricing a product or testing raw-price changes.", "পণ্যের দাম ঠিক বা কাঁচামালের দাম বদলের প্রভাব দেখতে।"), why: T("True cost per piece includes waste and spoilage.", "প্রকৃত খরচে অপচয় ও নষ্ট অন্তর্ভুক্ত।"), example: T("Sweet batch of 200 pieces, 4% spoilage.", "২০০ পিসের মিষ্টি ব্যাচ, ৪% নষ্ট।") },
   inputs: [list("ingredients", ["Ingredients", "উপকরণ"], [S.text("name", ["Name", "নাম"]), S.dec("qty", ["Quantity per batch", "প্রতি ব্যাচ পরিমাণ"], { min: "0" }), S.enumT("qty_unit", ["Quantity unit", "পরিমাণ একক"], UNITS), S.money("price", ["Price", "মূল্য"]), S.enumT("price_unit", ["Price per unit", "মূল্যের একক"], UNITS), S.opt(S.pct("waste_pct", ["Ingredient waste %", "উপকরণ অপচয় %"], { def: "0", max: "99.99" }))], { minLen: 1 }), dec("batch_output_units", ["Nominal output per batch", "প্রতি ব্যাচ নামমাত্র আউটপুট"], { min: "0.000001" }), opt(pct("spoilage_pct", ["Finished-goods spoilage %", "তৈরি পণ্য নষ্ট %"], { def: "0", max: "99.99" })), opt(dec("labor_hours", ["Labour hours per batch", "প্রতি ব্যাচ শ্রম ঘণ্টা"], { def: "0", min: "0" })), opt(money("labor_rate_per_hour", ["Labour rate per hour", "ঘণ্টা প্রতি শ্রম হার"], { def: "0" })), opt(money("energy_cost_per_batch", ["Energy (gas/electric) per batch", "প্রতি ব্যাচ জ্বালানি"], { def: "0" })), opt(money("other_cost_per_batch", ["Other per batch", "অন্যান্য প্রতি ব্যাচ"], { def: "0" }))],
   outputs: [out("ingredient_cost_per_batch", ["Ingredient cost / batch", "ব্যাচ প্রতি উপকরণ খরচ"]), out("total_cost_per_batch", ["Total cost / batch", "ব্যাচ প্রতি মোট খরচ"]), out("sellable_units_per_batch", ["Sellable units / batch", "বিক্রয়যোগ্য একক"], 4), out("cost_per_sellable_unit", ["Cost per sellable unit", "প্রতি বিক্রয়যোগ্য একক খরচ"], 4)], status: "implemented_tested",

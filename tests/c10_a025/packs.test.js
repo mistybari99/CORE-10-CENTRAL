@@ -1,0 +1,13 @@
+"use strict";
+const assert = require("node:assert/strict"); const E = require("../../modules/simulation/index.js"); const { PACKS } = E.lib.packs ? E.lib.packs : require("../../modules/simulation/lib/packs"); const golden = require("./golden.json"); const catalog = require("../../data/core10_capability_catalog_v1.json"); const { UNITS } = E.units;
+const latest = id => E.getModel(id); const catalogIds = catalog.templates.map(t => t.id);
+assert.deepEqual(PACKS.map(p => p.id).sort(), catalogIds.slice().sort(), "exactly the ten canonical industry ids from the repo catalog");
+const covered = new Set(); const ids = new Set();
+for (const p of PACKS) { assert.ok(!ids.has(p.id)); ids.add(p.id); assert.ok(p.name.en && p.name.bn && p.conventions.en && p.conventions.bn, p.id + " bilingual"); assert.ok(p.recommended.length >= 8 && new Set(p.recommended).size === p.recommended.length, p.id + " >=8 unique recommended models");
+  for (const m of p.recommended) { const d = latest(m); assert.ok(d && d.status !== "research_only" && d.status !== "not_implemented", p.id + " model " + m + " must be runnable"); assert.ok(d.industries.includes(p.id), p.id + ": " + m + " is not applicable to this industry (model.industries)"); covered.add(m); }
+  assert.ok(p.journey.length >= 4, p.id + " guided journey"); for (const j of p.journey) { const fx = golden.find(g => g.id === j); assert.ok(fx, p.id + " journey fixture exists: " + j); assert.ok(p.recommended.includes(fx.model), p.id + ": journey step " + j + " uses a model outside its recommended list"); const r = E.runModel(fx.model, fx.version, fx.inputs, { currency: "BDT", tenantId: "T1" }); assert.ok(["ok", "partial_unverified_rules"].includes(r.readiness), p.id + " journey step runs: " + j); }
+  for (const u of p.units) assert.ok(UNITS.includes(u), p.id + " unit " + u + " is registered"); assert.ok(/^[^\s].*$/.test(p.id)); assert.doesNotMatch(JSON.stringify(p), /islamia|ইসলামিয়া|BOS_APP/i, "brand-neutral (REV-009)"); }
+for (let i = 1; i <= 20; i++) assert.ok(covered.has("M" + String(i).padStart(2, "0")), "every model family is recommended by at least one pack: M" + i);
+/* models restricted by industries must not leak into other packs */
+for (const d of E.listModels().filter(x => /^M\d\d$/.test(x.id))) for (const p of PACKS) if (!d.industries.includes(p.id)) assert.ok(!p.recommended.includes(d.id), p.id + " recommends " + d.id + " which does not apply");
+console.log("PASS packs: 10 canonical industries as data, " + PACKS.reduce((s, p) => s + p.journey.length, 0) + " verified journey steps run, all 20 families reachable, no brand logic");

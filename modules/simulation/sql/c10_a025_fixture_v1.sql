@@ -5,6 +5,7 @@ create schema if not exists c10_sim_fixture;
 do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'sim_authenticated') then create role sim_authenticated nologin; end if;
   if not exists (select 1 from pg_roles where rolname = 'sim_anon') then create role sim_anon nologin; end if;
+  if not exists (select 1 from pg_roles where rolname = 'sim_gateway') then create role sim_gateway nologin; end if;
 end $$;
 create table c10_sim_fixture.businesses (id text primary key, tenant_id text not null, industry_id text not null);
 create table c10_sim_fixture.sites (id text primary key, business_id text not null references c10_sim_fixture.businesses(id));
