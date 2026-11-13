@@ -1,17 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import worker from "../preview/worker.mjs";
-import { createI18n, DEFAULT_LOCALE, SUPPORTED_LOCALES, PHRASES, NAMED_MESSAGES, BROWSER_I18N_JS } from "../preview/i18n.mjs";
+import { createI18n, DEFAULT_LOCALE, SUPPORTED_LOCALES, PHRASES, NAMED_MESSAGES, CATALOG, NAMED_CATALOG, BROWSER_I18N_JS } from "../preview/i18n.mjs";
 
 const req = (path,method="GET") => new Request("https://preview.c10.invalid"+path,{method});
 
-test("C10-A064: bn-BD is canonical default; English is explicit and resettable",()=>{
+test("C10-A064: Bengali, Eng/Bng, and English are distinct display modes",()=>{
   assert.equal(DEFAULT_LOCALE,"bn-BD");
-  assert.deepEqual(SUPPORTED_LOCALES,["bn-BD","en"]);
+  assert.deepEqual(SUPPORTED_LOCALES,["bn-BD","bn-BD-mixed","en"]);
   const i18n=createI18n();
   assert.equal(i18n.locale,"bn-BD");
   assert.equal(i18n.t("nav.overview"),"এক নজরে");
+  assert.equal(i18n.t("common.approval"),"অ্যাপ্রুভাল (অনুমোদনের ধাপ)");
+  assert.equal(i18n.t("nav.inventory"),"স্টক");
+  assert.equal(i18n.setLocale("bn-BD-mixed"),true);
   assert.equal(i18n.t("common.approval"),"Approval (অনুমোদনের ধাপ)");
+  assert.equal(i18n.t("nav.inventory"),"Stock");
+  assert.equal(i18n.t("nav.reports"),"Report");
   assert.equal(i18n.setLocale("en"),true);
   assert.equal(i18n.t("nav.overview"),"Overview");
   assert.equal(i18n.t("common.language"),"Language");
@@ -19,6 +24,9 @@ test("C10-A064: bn-BD is canonical default; English is explicit and resettable",
   assert.equal(i18n.locale,"en");
   assert.equal(i18n.setLocale("bn-BD"),true);
   assert.equal(i18n.t("common.stock"),"স্টক");
+  assert.equal(i18n.t("common.settings"),"সেটিংস");
+  assert.deepEqual(CATALOG.find(row=>row[0]==="Inventory"),["Inventory","স্টক","Stock"]);
+  assert.equal(NAMED_CATALOG["preview.approvalHelp"][1].includes("অ্যাপ্রুভাল"),true);
   assert.throws(()=>i18n.t("unreviewed.copy"),/UNKNOWN_UI_COPY_KEY/);
   assert.equal(createI18n("xx").locale,"bn-BD");
 });
@@ -50,6 +58,7 @@ test("C10-A064: both covered Preview pages load same-origin local-only language 
     assert.match(h,/id="c10-language"/);
     assert.match(h,/data-i18n="common.language"/);
     assert.match(h,/value="bn-BD"/);
+    assert.match(h,/value="bn-BD-mixed">Eng\/Bng/);
     assert.match(h,/value="en"/);
   }
   const out=await worker.fetch(req("/preview-i18n.js"));
@@ -57,6 +66,7 @@ test("C10-A064: both covered Preview pages load same-origin local-only language 
   assert.match(out.headers.get("content-type"),/javascript/);
   const js=await out.text();
   assert.match(js,/let locale="bn-BD"/);
+  assert.match(js,/"bn-BD-mixed"/);
   for(const forbidden of [/fetch\s*\(/,/XMLHttpRequest/,/localStorage/,/sessionStorage/,/sendBeacon/,/\/api\//])assert.doesNotMatch(js,forbidden);
   assert.match(js,/setLocale/);
   assert.match(BROWSER_I18N_JS,/data-i18n/);
