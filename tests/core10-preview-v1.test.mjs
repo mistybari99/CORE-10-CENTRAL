@@ -36,6 +36,15 @@ test("health endpoint proves nonproduction guard and pinned source",async()=>{
  assert.match(j.source_sha,/^[0-9a-f]{40}$/);
 });
 
+test("Build 01 and Build 02A have an honest synthetic walkthrough",async()=>{
+ const r=await worker.fetch(request("/build01-build02a.html"));
+ assert.equal(r.status,200);
+ const h=await r.text();
+ for(const x of ["Build 01","Build 02A","78900331a1d1f8ea4712288f094eab82479db764","real login নয়"])assert.ok(h.includes(x),x);
+ const js=await (await worker.fetch(request("/build01-build02a.js"))).text();
+ assert.doesNotMatch(js,/fetch\(|\.rpc\(|localStorage|sessionStorage/);
+});
+
 test("original A045 demo asset fetch is allowlisted and pinned",async()=>{
  const old=globalThis.fetch,seen=[];
  globalThis.fetch=async url=>{seen.push(String(url));return new Response("/* original fixture */",{status:200})};
