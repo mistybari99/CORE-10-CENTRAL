@@ -1,0 +1,28 @@
+/* A047: additive layout built on the established A044 Studio tokens and components. */
+.topology-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(290px,1fr);gap:18px}
+.topology-panel{border:1px solid var(--edge);border-radius:15px;background:var(--panel);min-width:0;overflow:hidden}
+.topology-panel h2{font-size:17px;margin:0}.topology-inner{padding:18px}
+.topology-list{display:grid;gap:12px;padding:15px;min-width:0}
+.topology-group{background:var(--panel2);border:1px solid var(--edge);border-radius:12px;min-width:0;overflow:hidden}
+.topology-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--edge)}
+.topology-heading strong{display:block;font-size:16px}.topology-heading small{color:var(--muted)}
+.topology-count{color:var(--sea);font-size:12px;font-weight:700}
+.topology-sites{padding:0 15px}.topology-site{border-top:1px solid var(--edge);padding:13px 0}
+.topology-site:first-child{border-top:none}.topology-site .line{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.topology-site .line strong{overflow-wrap:anywhere}.topology-site small{color:var(--muted);font-size:11px}
+.topology-move{display:grid;grid-template-columns:minmax(140px,1fr) minmax(140px,1.3fr) auto;gap:8px;align-items:end;margin-top:8px}
+.topology-move select,.topology-move input,.topology-create input,.topology-create select,
+.topology-join input{width:100%;border:1px solid #536578;background:#152130;color:var(--fg);border-radius:8px;min-height:42px;padding:8px}
+.topology-move label,.topology-create label{font-size:12px}
+.topology-join{display:flex;gap:9px;padding:13px 15px;align-items:center;border-top:1px solid var(--edge)}
+.topology-join input{min-width:0;flex:1}.topology-join button{flex-shrink:0}
+.topology-create{display:grid;gap:13px}.topology-create label{display:grid;gap:5px}
+.topology-help{font-size:12px;color:var(--muted);margin:12px 0}
+#topology-audit{font-size:12px;line-height:1.6;max-height:440px;overflow:auto}
+#topology-audit p{border-bottom:1px solid var(--edge);padding:8px 0;margin:0}
+#topology-status{margin:15px 0;color:var(--sea);min-height:23px;font-size:13px}
+#topology-status[data-tone=error]{color:var(--err)}
+.topology-actions{display:flex;gap:9px;flex-wrap:wrap}
+.topology-empty{padding:13px;font-size:13px;color:var(--muted)}
+@media(max-width:1060px){.topology-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.topology-move{grid-template-columns:1fr}.topology-join{flex-wrap:wrap}.topology-join input{flex-basis:100%}.topology-heading{align-items:flex-start}.topology-actions button{flex:1}}

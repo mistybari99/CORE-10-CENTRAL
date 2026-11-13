@@ -1,0 +1,74 @@
+name: CORE10 A046 Disposable Demo Identity Registry and Permission Matrix
+on:
+  push:
+    branches: ['chatgpt/c10-a046-*']
+    paths:
+      - 'internal/demo-identity-program/**'
+      - 'internal/enterprise-sql/c10_a046_demo_personas_v1.sql'
+      - 'tests/c10_a046_demo_matrix.test.js'
+      - 'tests/c10_a046_action_acl_e2e.sql'
+      - '.github/workflows/core10-a046-demo-identity-ci.yml'
+  pull_request:
+    paths:
+      - 'internal/demo-identity-program/**'
+      - 'internal/enterprise-sql/c10_a046_demo_personas_v1.sql'
+      - 'tests/c10_a046_demo_matrix.test.js'
+      - '.github/workflows/core10-a046-demo-identity-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-persona-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable_a046_only
+          POSTGRES_DB: core10_a046_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d core10_a046_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGDATABASE: core10_a046_ci
+      PGUSER: postgres
+      PGPASSWORD: disposable_a046_only
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate identity roster and tampered-scope rejections
+        run: node tests/c10_a046_demo_matrix.test.js
+      - name: Install disposable A018 SQL and original ID base
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a018_demo_backend.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/c10_a018_demo_seed.sql
+      - name: Missing disposable acknowledgement must fail without writes
+        run: |
+          if psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a046_demo_personas_v1.sql; then
+            echo 'CRITICAL: seed accepted without disposable acknowledgement'; exit 1
+          fi
+          [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.business_members')" = 4 ]
+      - name: Seed and re-seed idempotently without changing legacy demo identities
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -v c10_demo_ack=I_CONFIRM_DISPOSABLE_A046 -f internal/enterprise-sql/c10_a046_demo_personas_v1.sql
+          psql -X -v ON_ERROR_STOP=1 -v c10_demo_ack=I_CONFIRM_DISPOSABLE_A046 -f internal/enterprise-sql/c10_a046_demo_personas_v1.sql
+          [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.business_members')" = 6 ]
+      - name: Generate identity RLS assertions from canonical JSON and execute
+        run: |
+          node internal/demo-identity-program/index.js sql > "$RUNNER_TEMP/a046-rls-matrix.sql"
+          psql -X -v ON_ERROR_STOP=1 -f "$RUNNER_TEMP/a046-rls-matrix.sql"
+      - name: Direct table denial, factory staff action negative and legacy manager grant truth
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a046_action_acl_e2e.sql
+      - name: Print exact certification boundary
+        run: echo 'A046 PASS DISPOSABLE PG17 ONLY. 16 synthetic UUID personas plus anon; NOT real Supabase GoTrue signed sessions, production users, stock/finance activation or live rollout.'

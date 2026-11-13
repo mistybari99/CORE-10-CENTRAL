@@ -1,0 +1,20 @@
+name: CORE10 Issue 68 Global Demo Factory
+on:
+  push:
+    paths: ["internal/demo-factory/**", "internal/demo-identity-program/**", "tests/demo-factory/**", "docs/strategy/**", ".github/workflows/core10-global-demo-factory.yml"]
+  pull_request:
+    paths: ["internal/demo-factory/**", "internal/demo-identity-program/**", "tests/demo-factory/**", "docs/strategy/**", ".github/workflows/core10-global-demo-factory.yml"]
+permissions:
+  contents: read
+jobs:
+  deterministic-demo-factory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node tests/demo-factory/core10-global-demo-factory.test.js
+      - run: node tests/demo-factory/core10-capability-registry.test.js
+      - run: node internal/demo-factory/index.js report

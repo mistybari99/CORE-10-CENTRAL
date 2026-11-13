@@ -1,0 +1,105 @@
+# C10-A053 Workforce integration + A054 payroll governance/policy — isolated PostgreSQL 17 + signed-HMAC PostgREST + Node + Chromium.
+# No Supabase staging/production access, no real staff/payroll data, no service keys. NOT a GoTrue verification.
+name: CORE10 A053 A054 Workforce Integration Policy CI
+on:
+  push:
+    branches: ['claude/c10-a053-a054-*']
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a05[1-4]_*.sql'
+      - 'tests/c10_a05[1-4]_*'
+      - 'tests/c10_a053_*'
+      - 'tests/api/core10-a053-*'
+      - 'tests/e2e/core10-a053-*'
+      - 'core10-workforce-*'
+      - 'docs/architecture/C10_A053_A054_*.md'
+      - '.github/workflows/core10-a053-a054-workforce-policy-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  workforce-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_only_disposable
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: ci_only_disposable
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Client/UI contract, allow-list == SQL signatures, A046 registry parity, no payment API
+        run: node tests/c10_a053_a054_client.test.js
+      - name: A051 baseline regression WITH A054 hooks installed (unchanged A051 e2e + concurrency)
+        run: |
+          bash tests/c10_a054_regression.sh
+          PGDATABASE=core10_a053_ci_reg bash tests/c10_a051_workforce_concurrency.sh
+      - name: Full stack (A018 + A046 personas + A048/A049/A050 portfolio + A051 + A054 + A053)
+        run: bash tests/c10_a053_stack.sh full
+      - name: A054 SQL end-to-end (delegation, effective-dated policy, approval vs payment, leave carry-forward, retention, privacy)
+        run: PGDATABASE=core10_a053_ci psql -X -v ON_ERROR_STOP=1 -f tests/c10_a054_policy_e2e.sql
+      - name: A053 SQL end-to-end (persona registry, staff identity, Owner Portfolio to Workforce adapter)
+        run: PGDATABASE=core10_a053_ci psql -X -v ON_ERROR_STOP=1 -f tests/c10_a053_integration_e2e.sql
+      - name: Real parallel-session concurrency (revocation race, payment cap, idempotency, leave quota)
+        run: PGDATABASE=core10_a053_ci bash tests/c10_a054_concurrency.sh
+      - name: NOT CONNECTED when the A051 migration is missing
+        run: |
+          bash tests/c10_a053_stack.sh base
+          PGDATABASE=core10_a053_ci_noa051 psql -X -v ON_ERROR_STOP=1 -f tests/c10_a053_not_connected_e2e.sql
+      - name: Start disposable signed-HMAC PostgREST (never real Supabase)
+        env:
+          CORE10_CI_JWT_SECRET: core10_disposable_a053_ci_signer_only_2026_not_production
+        run: |
+          docker run --rm -d --name core10-a053-pgrst --network host \
+            -e PGRST_DB_URI="postgres://postgres:ci_only_disposable@127.0.0.1:5432/core10_a053_ci" \
+            -e PGRST_DB_SCHEMAS=c10_demo \
+            -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET="$CORE10_CI_JWT_SECRET" \
+            -e PGRST_JWT_AUD=authenticated \
+            -e PGRST_SERVER_PORT=3000 \
+            postgrest/postgrest:v12.2.12
+          for i in $(seq 1 30); do
+            code=$(curl -s --max-time 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ || true)
+            if [ "$code" = 200 ]; then exit 0; fi
+            sleep 1
+          done
+          docker logs core10-a053-pgrst
+          exit 1
+      - name: Signed-HMAC HTTP API end-to-end (claims never grant authority)
+        env:
+          CORE10_CI_JWT_SECRET: core10_disposable_a053_ci_signer_only_2026_not_production
+          CORE10_CI_REST_URL: http://127.0.0.1:3000
+        run: node tests/api/core10-a053-a054-workforce-rest-e2e.js
+      - name: PostgREST diagnostics on failure
+        if: failure()
+        run: docker logs core10-a053-pgrst || true
+      - name: Install pinned Chromium
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-playwright" && cd "$RUNNER_TEMP/core10-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Mobile 390px and desktop 1440px real-DOM UI, English and Bangla (synthetic signed fixture)
+        run: node tests/e2e/core10-a053-a054-workforce-browser.js
+      - name: Certification boundary
+        run: echo 'PASS disposable PostgreSQL17 + signed-HMAC PostgREST + synthetic browser fixture only. NOT real GoTrue, NOT staging, NOT production. No payment is ever executed.'

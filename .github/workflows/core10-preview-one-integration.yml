@@ -1,0 +1,89 @@
+name: CORE10 Preview One combined PostgreSQL integration
+on:
+  push:
+    branches: ['codex/preview-one-*', 'preview/c10-integrated-20261111-v1']
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/**'
+      - 'tests/preview-one/**'
+      - 'tests/c10_a05*'
+      - '.github/workflows/core10-preview-one-integration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  combined-postgres:
+    name: Combined schema / ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [cross-module, operations, intent, crm, workforce, workforce-policy, assets]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: preview_disposable_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: preview_disposable_only
+      CORE10_PREVIEW_DISPOSABLE_ACK: I_CONFIRM_DISPOSABLE_PREVIEW
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Install browser for real PostgreSQL-backed intent UI
+        if: matrix.suite == 'intent' || matrix.suite == 'assets'
+        run: |
+          mkdir -p "$RUNNER_TEMP/preview-intent-pw"
+          cd "$RUNNER_TEMP/preview-intent-pw"
+          npm init -y >/dev/null
+          npm install --save-dev playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/preview-intent-pw/node_modules" >> "$GITHUB_ENV"
+      - name: Entire combined migration stack, then original regression or cross-module RPC chain
+        env:
+          CORE10_PREVIEW_INTENT_BROWSER: '1'
+          CORE10_PREVIEW_ASSETS_REST: '1'
+        run: bash tests/preview-one/run-combined.sh '${{ matrix.suite }}'
+  packaged-browser:
+    name: Packaged browser safety and module journeys
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Verify actual served artifact and HTTP private-path denial
+        run: |
+          node tests/forbidden-files.test.js
+          node --test tests/static-server-safety.test.js
+          node tests/core10-pages-package.test.js
+          node --test tests/preview-one/module-snapshot.test.mjs tests/core10-preview-v1.test.mjs
+      - name: Install isolated browser
+        run: |
+          mkdir -p "$RUNNER_TEMP/preview-one-pw"
+          cd "$RUNNER_TEMP/preview-one-pw"
+          npm init -y >/dev/null
+          npm install --save-dev playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/preview-one-pw/node_modules" >> "$GITHUB_ENV"
+      - name: Original module browser regressions against packaged assets
+        run: |
+          node tests/e2e/smoke.js
+          node tests/e2e/core10-a045-engine-workshop-browser.js
+          node tests/e2e/core10-a053-a054-workforce-browser.js
+          node tests/e2e/core10-a056-crm-browser.js
+          node tests/preview-one/module-snapshot-browser.cjs
+          node tests/preview-one/crm-worker-browser.cjs

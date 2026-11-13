@@ -1,0 +1,22 @@
+name: CORE10 Preview V1 deployed URL smoke
+on:
+  push:
+    branches:
+      - preview/c10-integrated-20261111-v1
+    paths:
+      - 'tests/core10-preview-live-smoke.mjs'
+      - '.github/workflows/core10-preview-live-smoke.yml'
+      - 'preview/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/core10-preview-live-smoke.mjs

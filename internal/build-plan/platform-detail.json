@@ -1,0 +1,2738 @@
+[
+  {
+    "capability_id": "C10-CAP-GOV-001",
+    "area": "tenant and organization scope",
+    "title": "Canonical hierarchy",
+    "workflow": "Provision tenant → legal entity → business → operating site → stock location",
+    "acceptance": "Every child references a same-tenant parent; reports resolve identical canonical IDs",
+    "negative_cases": "Cross-tenant parent, orphan site, business label used as identity",
+    "dependencies": "signed GoTrue staging and legacy bridge",
+    "existing_evidence": "Original research registry evidence: PR#7@1c55625 A018/A019; live SG UNKNOWN. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Reconcile all module references and legacy bridge before activation",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql",
+      "internal/core10-a019-real-auth-stage.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-001",
+    "area": "tenant and organization scope",
+    "title": "Signed actor resolution",
+    "workflow": "Verify signed session → derive actor → load current memberships",
+    "acceptance": "Actor identity comes from verified subject and current server memberships, never submitted role",
+    "negative_cases": "Forged role metadata, expired token, anonymous caller",
+    "dependencies": "signed GoTrue staging and legacy bridge",
+    "existing_evidence": "Original research registry evidence: PR#7@1c55625 A018/A019; live SG UNKNOWN. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Real GoTrue stage matrix remains release-gated",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql",
+      "internal/core10-a019-real-auth-stage.js"
+    ],
+    "scope_class": "release-gated"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-001",
+    "area": "tenant and organization scope",
+    "title": "Effective action grants",
+    "workflow": "Resolve actor + action + business/site → effective grant",
+    "acceptance": "A021/A034 produce one deterministic allow/deny decision consumed by module RPCs",
+    "negative_cases": "A module-local role or hidden menu granting authority",
+    "dependencies": "signed GoTrue staging and legacy bridge",
+    "existing_evidence": "Original research registry evidence: PR#7@1c55625 A018/A019; live SG UNKNOWN. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "A034 shared governance compatibility still needs explicit certification",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql",
+      "internal/core10-a019-real-auth-stage.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-001",
+    "area": "tenant and organization scope",
+    "title": "Explicit deny precedence",
+    "workflow": "Combine inherited allow with user/site deny",
+    "acceptance": "Explicit deny wins at every matching scope and returns a reason code",
+    "negative_cases": "Broad tenant allow overriding narrow deny",
+    "dependencies": "signed GoTrue staging and legacy bridge",
+    "existing_evidence": "Original research registry evidence: PR#7@1c55625 A018/A019; live SG UNKNOWN. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Unify precedence across existing module adapters",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql",
+      "internal/core10-a019-real-auth-stage.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-001",
+    "area": "tenant and organization scope",
+    "title": "Grant expiry",
+    "workflow": "Check effective_from/effective_until at command execution",
+    "acceptance": "Expired access fails even when a page or queued request was opened earlier",
+    "negative_cases": "Cached permission, clock boundary, expired delegation",
+    "dependencies": "signed GoTrue staging and legacy bridge",
+    "existing_evidence": "Original research registry evidence: PR#7@1c55625 A018/A019; live SG UNKNOWN. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Use one server clock and effective-date contract",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql",
+      "internal/core10-a019-real-auth-stage.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-001",
+    "area": "tenant and organization scope",
+    "title": "Immediate revocation",
+    "workflow": "Revoke assignment/grant → retry read/write/export",
+    "acceptance": "Next server operation denies revoked identity and audit names the revoker",
+    "negative_cases": "Already-open page, queued write, reused token",
+    "dependencies": "signed GoTrue staging and legacy bridge",
+    "existing_evidence": "Original research registry evidence: PR#7@1c55625 A018/A019; live SG UNKNOWN. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Prove revocation across every module and offline replay",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql",
+      "internal/core10-a019-real-auth-stage.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-001",
+    "area": "tenant and organization scope",
+    "title": "Scoped delegation",
+    "workflow": "Owner delegates bounded actions, scope and time",
+    "acceptance": "Delegate cannot exceed grantor authority or redelegate outside policy",
+    "negative_cases": "Self-escalation, delegation loop, foreign site",
+    "dependencies": "signed GoTrue staging and legacy bridge",
+    "existing_evidence": "Original research registry evidence: PR#7@1c55625 A018/A019; live SG UNKNOWN. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Canonical A034 delegation must replace incompatible local shortcuts",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql",
+      "internal/core10-a019-real-auth-stage.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-001",
+    "area": "tenant and organization scope",
+    "title": "Legal-entity boundaries",
+    "workflow": "Assign business to entity → authorize inter-entity read",
+    "acceptance": "Entity and business scopes stay explicit; branding never merges unrelated operators",
+    "negative_cases": "Franchise outlet treated as internal branch",
+    "dependencies": "signed GoTrue staging and legacy bridge",
+    "existing_evidence": "Original research registry evidence: PR#7@1c55625 A018/A019; live SG UNKNOWN. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Intercompany writes require separate domain contracts",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql",
+      "internal/core10-a019-real-auth-stage.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-001",
+    "area": "tenant and organization scope",
+    "title": "Site and custody distinction",
+    "workflow": "Assign site membership → choose stock location/bin",
+    "acceptance": "Site work permission and custody/location stock permission remain distinct",
+    "negative_cases": "Site manager reading payroll or posting another warehouse",
+    "dependencies": "signed GoTrue staging and legacy bridge",
+    "existing_evidence": "Original research registry evidence: PR#7@1c55625 A018/A019; live SG UNKNOWN. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Complete scoped location resolver and module consumers",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql",
+      "internal/core10-a019-real-auth-stage.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-001",
+    "area": "tenant and organization scope",
+    "title": "Authorized portfolio",
+    "workflow": "Resolve cross-business owner portfolio → drill into each business",
+    "acceptance": "Aggregate contains only authorized businesses and every total drills to allowed source IDs",
+    "negative_cases": "Platform operator, investor or business owner gaining global portfolio",
+    "dependencies": "signed GoTrue staging and legacy bridge",
+    "existing_evidence": "Original research registry evidence: PR#7@1c55625 A018/A019; live SG UNKNOWN. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Enforce projection contracts across A050/A053/reporting",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql",
+      "internal/core10-a019-real-auth-stage.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-001",
+    "area": "tenant and organization scope",
+    "title": "Legacy identity crosswalk",
+    "workflow": "Map historical location/item identity to canonical scope",
+    "acceptance": "Read comparison preserves historical IDs and correct business ownership without rewriting source records",
+    "negative_cases": "Duplicate mapping, orphan FK, blind mass reassignment",
+    "dependencies": "signed GoTrue staging and legacy bridge",
+    "existing_evidence": "Original research registry evidence: PR#7@1c55625 A018/A019; live SG UNKNOWN. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Current live schema remains unverified; migration is release-gated",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql",
+      "internal/core10-a019-real-auth-stage.js"
+    ],
+    "scope_class": "release-gated"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-001",
+    "area": "tenant and organization scope",
+    "title": "Tenant lifecycle",
+    "workflow": "Suspend/archive tenant or business → preserve history → block new actions",
+    "acceptance": "Suspension blocks new operational writes while authorized audit/history remain readable",
+    "negative_cases": "Deleted tenant cascading away financial history",
+    "dependencies": "signed GoTrue staging and legacy bridge",
+    "existing_evidence": "Original research registry evidence: PR#7@1c55625 A018/A019; live SG UNKNOWN. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Specify retention, reactivation and release behavior without hard deletion",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a019_legacy_location_bridge_v1.sql",
+      "internal/core10-a019-real-auth-stage.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-002",
+    "area": "approval and segregation of duties",
+    "title": "Typed approval request",
+    "workflow": "Create typed command → fingerprint payload → request approval",
+    "acceptance": "Approval stores domain/action, source version, scoped actors and immutable payload digest",
+    "negative_cases": "Generic approve flag reused on another command",
+    "dependencies": "effective authorization and one typed approval service",
+    "existing_evidence": "Original research registry evidence: PR#7 A021/A044; PR#22 A034 draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Reconcile A021/A034 and module-specific approval contracts",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a021_owner_controls_v1.sql",
+      "internal/enterprise-sql/c10_a044_control_settings_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-002",
+    "area": "approval and segregation of duties",
+    "title": "Maker-checker separation",
+    "workflow": "Requester submits → independent eligible actor reviews",
+    "acceptance": "Requester cannot approve own restricted action, including through another delegated role",
+    "negative_cases": "Self approval, alternate-role alias, owner toggle bypassing invariant",
+    "dependencies": "effective authorization and one typed approval service",
+    "existing_evidence": "Original research registry evidence: PR#7 A021/A044; PR#22 A034 draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Certify actor separation per high-risk domain",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a021_owner_controls_v1.sql",
+      "internal/enterprise-sql/c10_a044_control_settings_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-002",
+    "area": "approval and segregation of duties",
+    "title": "Versioned approval policy",
+    "workflow": "Create effective-dated policy → route a new request",
+    "acceptance": "Request pins exact policy version and explains matched rule/threshold",
+    "negative_cases": "Policy edit silently changing pending approval",
+    "dependencies": "effective authorization and one typed approval service",
+    "existing_evidence": "Original research registry evidence: PR#7 A021/A044; PR#22 A034 draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Define pending-request migration versus fresh approval",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a021_owner_controls_v1.sql",
+      "internal/enterprise-sql/c10_a044_control_settings_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-002",
+    "area": "approval and segregation of duties",
+    "title": "Multi-step routing",
+    "workflow": "Match scope/value/risk → sequence reviewers → final approval",
+    "acceptance": "All required stages finish in order and only authorized final stage unlocks command",
+    "negative_cases": "Skipped stage, empty reviewer set, parallel double approval",
+    "dependencies": "effective authorization and one typed approval service",
+    "existing_evidence": "Original research registry evidence: PR#7 A021/A044; PR#22 A034 draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Build typed reusable approval transition engine",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a021_owner_controls_v1.sql",
+      "internal/enterprise-sql/c10_a044_control_settings_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-002",
+    "area": "approval and segregation of duties",
+    "title": "Bounded delegated approver",
+    "workflow": "Delegate reviewer role with expiry → process assigned request",
+    "acceptance": "Delegation identifies grantor, allowed action, business/site and validity window",
+    "negative_cases": "Expired substitute, delegation loop, cross-business reviewer",
+    "dependencies": "effective authorization and one typed approval service",
+    "existing_evidence": "Original research registry evidence: PR#7 A021/A044; PR#22 A034 draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Use canonical delegation resolution on every approval",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a021_owner_controls_v1.sql",
+      "internal/enterprise-sql/c10_a044_control_settings_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-002",
+    "area": "approval and segregation of duties",
+    "title": "Threshold and units",
+    "workflow": "Evaluate approved rule against amount/quantity/currency",
+    "acceptance": "Threshold comparisons show exact units, currency, rounding and policy source",
+    "negative_cases": "BDT versus XTS mix, percent versus multiplier error",
+    "dependencies": "effective authorization and one typed approval service",
+    "existing_evidence": "Original research registry evidence: PR#7 A021/A044; PR#22 A034 draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Handlers must reject unconfigured unit/FX policy",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a021_owner_controls_v1.sql",
+      "internal/enterprise-sql/c10_a044_control_settings_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-002",
+    "area": "approval and segregation of duties",
+    "title": "Stale payload handling",
+    "workflow": "Change source document after approval → attempt execution",
+    "acceptance": "Payload/version mismatch invalidates approval and demands fresh review",
+    "negative_cases": "Approved amount altered before posting",
+    "dependencies": "effective authorization and one typed approval service",
+    "existing_evidence": "Original research registry evidence: PR#7 A021/A044; PR#22 A034 draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Bind typed execution to approval fingerprint atomically",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a021_owner_controls_v1.sql",
+      "internal/enterprise-sql/c10_a044_control_settings_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-002",
+    "area": "approval and segregation of duties",
+    "title": "Approval expiry and withdrawal",
+    "workflow": "Withdraw/expire request → retry command",
+    "acceptance": "Expired or withdrawn approval cannot authorize execution; withdrawal is audited",
+    "negative_cases": "Replaying previous approval receipt",
+    "dependencies": "effective authorization and one typed approval service",
+    "existing_evidence": "Original research registry evidence: PR#7 A021/A044; PR#22 A034 draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Implement terminal-state and expiry checks in typed commands",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a021_owner_controls_v1.sql",
+      "internal/enterprise-sql/c10_a044_control_settings_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-002",
+    "area": "approval and segregation of duties",
+    "title": "Concurrent decisions",
+    "workflow": "Two reviewers approve/reject same expected version",
+    "acceptance": "One decision wins; other receives stale/conflict without duplicate effect",
+    "negative_cases": "Race between approve, reject, revoke and execution",
+    "dependencies": "effective authorization and one typed approval service",
+    "existing_evidence": "Original research registry evidence: PR#7 A021/A044; PR#22 A034 draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Run genuine parallel-session tests per transition",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a021_owner_controls_v1.sql",
+      "internal/enterprise-sql/c10_a044_control_settings_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-002",
+    "area": "approval and segregation of duties",
+    "title": "Exception escalation",
+    "workflow": "Rule blocks operation → authorized escalation with reason",
+    "acceptance": "Exception is time/scope/payload bounded and does not disable financial or stock invariants",
+    "negative_cases": "Unbounded emergency bypass or hidden superuser action",
+    "dependencies": "effective authorization and one typed approval service",
+    "existing_evidence": "Original research registry evidence: PR#7 A021/A044; PR#22 A034 draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Specify eligible exceptions per domain; legal policy stays gated",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a021_owner_controls_v1.sql",
+      "internal/enterprise-sql/c10_a044_control_settings_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-002",
+    "area": "approval and segregation of duties",
+    "title": "Approval inbox privacy",
+    "workflow": "Project pending tasks → act → drill to source",
+    "acceptance": "Inbox reveals only authorized source fields and excludes unrelated tenants/sites",
+    "negative_cases": "Count badges leaking foreign requests",
+    "dependencies": "effective authorization and one typed approval service",
+    "existing_evidence": "Original research registry evidence: PR#7 A021/A044; PR#22 A034 draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Apply server-filtered inbox and export projections",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a021_owner_controls_v1.sql",
+      "internal/enterprise-sql/c10_a044_control_settings_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-002",
+    "area": "approval and segregation of duties",
+    "title": "Execution and reversal link",
+    "workflow": "Approve → execute once → record source event → reverse by linked command",
+    "acceptance": "One approved effect produces one receipt/audit chain; correction creates reversal rather than history deletion",
+    "negative_cases": "Approval treated as payment, reversal deleting original",
+    "dependencies": "effective authorization and one typed approval service",
+    "existing_evidence": "Original research registry evidence: PR#7 A021/A044; PR#22 A034 draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Integrate typed approval with existing stock/journal boundaries",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a021_owner_controls_v1.sql",
+      "internal/enterprise-sql/c10_a044_control_settings_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-003",
+    "area": "audit, fraud and readiness truth",
+    "title": "Canonical audit event",
+    "workflow": "Command/request → actor/scope/source/version → append event",
+    "acceptance": "Event records who, what, when, why and correlation ID from server authority",
+    "negative_cases": "Client-supplied actor, missing business scope",
+    "dependencies": "tenant-safe observability and evidence registry",
+    "existing_evidence": "Original research registry evidence: PR#7 synthetic audit; deployment receipt absent. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "One audit correlation contract across modules",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-003",
+    "area": "audit, fraud and readiness truth",
+    "title": "Append-only history",
+    "workflow": "Attempt UPDATE/DELETE of audit/versioned history",
+    "acceptance": "Ordinary app roles cannot rewrite audit; privileged maintenance is separately governed",
+    "negative_cases": "Table-owner path bypass, hidden audit deletion",
+    "dependencies": "tenant-safe observability and evidence registry",
+    "existing_evidence": "Original research registry evidence: PR#7 synthetic audit; deployment receipt absent. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Inventory existing triggers and independent tamper checks",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-003",
+    "area": "audit, fraud and readiness truth",
+    "title": "Idempotency evidence",
+    "workflow": "Retry same request → compare receipts and audit",
+    "acceptance": "Same key/payload yields one domain effect and a stable receipt",
+    "negative_cases": "Same key changed payload, duplicate event chain",
+    "dependencies": "tenant-safe observability and evidence registry",
+    "existing_evidence": "Original research registry evidence: PR#7 synthetic audit; deployment receipt absent. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Unify receipt identity and retention across adapters",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-003",
+    "area": "audit, fraud and readiness truth",
+    "title": "Scope-safe observability",
+    "workflow": "Log operational failure → project support evidence",
+    "acceptance": "Logs redact tokens/PII and separate tenant-visible evidence from platform diagnostics",
+    "negative_cases": "Foreign-tenant log access, secret in stack trace",
+    "dependencies": "tenant-safe observability and evidence registry",
+    "existing_evidence": "Original research registry evidence: PR#7 synthetic audit; deployment receipt absent. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Define field allowlist and support-access policy",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-003",
+    "area": "audit, fraud and readiness truth",
+    "title": "Readiness states",
+    "workflow": "Register feature evidence → show proposed/coded/tested/integrated/released",
+    "acceptance": "Each displayed state links exact commit, environment and test result",
+    "negative_cases": "Synthetic demo labelled production-ready",
+    "dependencies": "tenant-safe observability and evidence registry",
+    "existing_evidence": "Original research registry evidence: PR#7 synthetic audit; deployment receipt absent. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Keep local SQL, signed-HMAC, GoTrue and deployed evidence separate",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-003",
+    "area": "audit, fraud and readiness truth",
+    "title": "Exact-commit CI receipts",
+    "workflow": "Record test run → bind head SHA → update delivery record",
+    "acceptance": "Older green run never certifies a newer source commit",
+    "negative_cases": "Branch head moved after successful run",
+    "dependencies": "tenant-safe observability and evidence registry",
+    "existing_evidence": "Original research registry evidence: PR#7 synthetic audit; deployment receipt absent. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Automate immutable run/SHA correlation",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-003",
+    "area": "audit, fraud and readiness truth",
+    "title": "Deployment provenance",
+    "workflow": "Build allowed artifact → deploy → verify runtime health/source",
+    "acceptance": "Runtime exposes verifiable source/version and deployment receipt",
+    "negative_cases": "Preview branch code assumed deployed without runtime smoke",
+    "dependencies": "tenant-safe observability and evidence registry",
+    "existing_evidence": "Original research registry evidence: PR#7 synthetic audit; deployment receipt absent. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Deployment proof must remain separate from source assembly",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-003",
+    "area": "audit, fraud and readiness truth",
+    "title": "Risk advisory triage",
+    "workflow": "Detect configured anomaly → show evidence → human review",
+    "acceptance": "Risk signal is advisory with source/date/confidence and dismissal audit",
+    "negative_cases": "Automatic accusation, autonomous stock/money freeze",
+    "dependencies": "tenant-safe observability and evidence registry",
+    "existing_evidence": "Original research registry evidence: PR#7 synthetic audit; deployment receipt absent. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Build explainable review workflow, not a fraud verdict",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-003",
+    "area": "audit, fraud and readiness truth",
+    "title": "Grant and policy review",
+    "workflow": "Enumerate effective grants → compare reviewed baseline",
+    "acceptance": "Unexpected grants/functions/RLS policies are surfaced with source diffs",
+    "negative_cases": "Permissive RLS OR widening scope silently",
+    "dependencies": "tenant-safe observability and evidence registry",
+    "existing_evidence": "Original research registry evidence: PR#7 synthetic audit; deployment receipt absent. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Produce canonical periodic grant/policy inventory",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-003",
+    "area": "audit, fraud and readiness truth",
+    "title": "Export provenance",
+    "workflow": "Export filtered report → hash content → record scope and actor",
+    "acceptance": "Every export has parameters, source versions, row count and audit receipt",
+    "negative_cases": "Unlogged PII export, formula injection",
+    "dependencies": "tenant-safe observability and evidence registry",
+    "existing_evidence": "Original research registry evidence: PR#7 synthetic audit; deployment receipt absent. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Connect module export adapters to audit metadata",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-003",
+    "area": "audit, fraud and readiness truth",
+    "title": "Incident evidence preservation",
+    "workflow": "Open incident → retain source logs/receipts → scoped investigation",
+    "acceptance": "Evidence manifest is immutable, access controlled and legally held when configured",
+    "negative_cases": "Purging relevant evidence during incident",
+    "dependencies": "tenant-safe observability and evidence registry",
+    "existing_evidence": "Original research registry evidence: PR#7 synthetic audit; deployment receipt absent. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Define owner-approved retention and legal-hold routing",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-GOV-003",
+    "area": "audit, fraud and readiness truth",
+    "title": "Decision and change trace",
+    "workflow": "Map requirement → feature → source code → tests → release",
+    "acceptance": "Every feature retains parent requirement and explicit deferred/gap status",
+    "negative_cases": "Removing difficult requirements from completion count",
+    "dependencies": "tenant-safe observability and evidence registry",
+    "existing_evidence": "Original research registry evidence: PR#7 synthetic audit; deployment receipt absent. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Machine-check no orphan feature or unexplained omission",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-SETUP-001",
+    "area": "Quick and Advanced setup",
+    "title": "Unified Quick/Advanced engine",
+    "workflow": "Choose Quick defaults or Advanced fields → same typed setup command",
+    "acceptance": "Equivalent inputs create identical canonical hierarchy and capabilities",
+    "negative_cases": "Quick creating a second limited engine",
+    "dependencies": "GOV-001 and versioned recommended profiles",
+    "existing_evidence": "Original research registry evidence: PR#7 A020 disposable SQL. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Compare canonical request/result parity",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a020_business_setup_v1.sql",
+      "tests/c10_a020_business_setup_e2e.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-SETUP-001",
+    "area": "Quick and Advanced setup",
+    "title": "Versioned setup profile",
+    "workflow": "Select industry profile → preview defaults → save profile version",
+    "acceptance": "Profile records recommended defaults and supports later authorized editing",
+    "negative_cases": "Industry label claimed as completed runtime",
+    "dependencies": "GOV-001 and versioned recommended profiles",
+    "existing_evidence": "Original research registry evidence: PR#7 A020 disposable SQL. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Separate profile configuration from handler certification",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a020_business_setup_v1.sql",
+      "tests/c10_a020_business_setup_e2e.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-SETUP-001",
+    "area": "Quick and Advanced setup",
+    "title": "Preflight validation",
+    "workflow": "Enter tenant/entity/business/site details → validate before commit",
+    "acceptance": "Validation lists missing fields, conflicts and unsupported policies with no partial writes",
+    "negative_cases": "Invalid currency/parent, malformed site code",
+    "dependencies": "GOV-001 and versioned recommended profiles",
+    "existing_evidence": "Original research registry evidence: PR#7 A020 disposable SQL. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Use shared schema for UI/API validation",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a020_business_setup_v1.sql",
+      "tests/c10_a020_business_setup_e2e.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-SETUP-001",
+    "area": "Quick and Advanced setup",
+    "title": "Atomic hierarchy provisioning",
+    "workflow": "Submit valid setup → create related canonical records",
+    "acceptance": "All required records commit together or none commit",
+    "negative_cases": "Failure between business and first site",
+    "dependencies": "GOV-001 and versioned recommended profiles",
+    "existing_evidence": "Original research registry evidence: PR#7 A020 disposable SQL. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Prove transaction rollback and FK scope integrity",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a020_business_setup_v1.sql",
+      "tests/c10_a020_business_setup_e2e.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-SETUP-001",
+    "area": "Quick and Advanced setup",
+    "title": "Setup idempotency",
+    "workflow": "Retry setup after timeout/crash using stable request key",
+    "acceptance": "Exactly one business/site set exists and replay returns original IDs",
+    "negative_cases": "Same key changed profile, double-click submissions",
+    "dependencies": "GOV-001 and versioned recommended profiles",
+    "existing_evidence": "Original research registry evidence: PR#7 A020 disposable SQL. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Persist immutable setup receipts",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a020_business_setup_v1.sql",
+      "tests/c10_a020_business_setup_e2e.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-SETUP-001",
+    "area": "Quick and Advanced setup",
+    "title": "Duplicate identity resolution",
+    "workflow": "Detect duplicate legal/business/site code → resolve explicitly",
+    "acceptance": "Duplicate codes scoped correctly and user chooses existing identity or corrected request",
+    "negative_cases": "Same branding automatically merging businesses",
+    "dependencies": "GOV-001 and versioned recommended profiles",
+    "existing_evidence": "Original research registry evidence: PR#7 A020 disposable SQL. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "No inferred identity from names or phone alone",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a020_business_setup_v1.sql",
+      "tests/c10_a020_business_setup_e2e.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-SETUP-001",
+    "area": "Quick and Advanced setup",
+    "title": "Stock-location defaults",
+    "workflow": "Create factory/showroom/warehouse site → canonical location/bin",
+    "acceptance": "Each location belongs to its authorized site and no fake opening stock is inserted",
+    "negative_cases": "Orphan bin, warehouse granted as business authority",
+    "dependencies": "GOV-001 and versioned recommended profiles",
+    "existing_evidence": "Original research registry evidence: PR#7 A020 disposable SQL. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Reuse A047 topology and A018 location identities",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a020_business_setup_v1.sql",
+      "tests/c10_a020_business_setup_e2e.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-SETUP-001",
+    "area": "Quick and Advanced setup",
+    "title": "Role-bound onboarding",
+    "workflow": "Authorized owner provisions → invite/assign supported actor",
+    "acceptance": "Only eligible actor can create scope and grants remain bounded",
+    "negative_cases": "Business owner provisioning another tenant",
+    "dependencies": "GOV-001 and versioned recommended profiles",
+    "existing_evidence": "Original research registry evidence: PR#7 A020 disposable SQL. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Separate identity invitation from employee creation",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a020_business_setup_v1.sql",
+      "tests/c10_a020_business_setup_e2e.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-SETUP-001",
+    "area": "Quick and Advanced setup",
+    "title": "Locale and jurisdiction setup",
+    "workflow": "Choose locale/currency/timezone → show policy requirements",
+    "acceptance": "Language selection does not select unapproved tax/payroll law",
+    "negative_cases": "Invented VAT/retention rate from country label",
+    "dependencies": "GOV-001 and versioned recommended profiles",
+    "existing_evidence": "Original research registry evidence: PR#7 A020 disposable SQL. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Jurisdiction policy is not auto-activated",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a020_business_setup_v1.sql",
+      "tests/c10_a020_business_setup_e2e.sql"
+    ],
+    "scope_class": "release-gated"
+  },
+  {
+    "capability_id": "C10-CAP-SETUP-001",
+    "area": "Quick and Advanced setup",
+    "title": "Legacy import preview",
+    "workflow": "Map legacy identifiers → validate/dry-run → compare source report",
+    "acceptance": "Crosswalk preserves original PKs/history and rejects ambiguous ownership",
+    "negative_cases": "Bulk FK rewrite, duplicate migrated item",
+    "dependencies": "GOV-001 and versioned recommended profiles",
+    "existing_evidence": "Original research registry evidence: PR#7 A020 disposable SQL. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "REV-009 read comparison required before any live import",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a020_business_setup_v1.sql",
+      "tests/c10_a020_business_setup_e2e.sql"
+    ],
+    "scope_class": "release-gated"
+  },
+  {
+    "capability_id": "C10-CAP-SETUP-001",
+    "area": "Quick and Advanced setup",
+    "title": "Readiness and activation report",
+    "workflow": "Complete setup → show modules ready/blocked and next task",
+    "acceptance": "Report distinguishes configured defaults, installed handlers and missing certifications",
+    "negative_cases": "Setup success interpreted as operational ERP certification",
+    "dependencies": "GOV-001 and versioned recommended profiles",
+    "existing_evidence": "Original research registry evidence: PR#7 A020 disposable SQL. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Link each blocker to build/test evidence",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a020_business_setup_v1.sql",
+      "tests/c10_a020_business_setup_e2e.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-SETUP-001",
+    "area": "Quick and Advanced setup",
+    "title": "303-site measured fixture",
+    "workflow": "Provision synthetic 303-site hierarchy → query authorized portfolio",
+    "acceptance": "Idempotent setup and scoped query plans measured against recorded dataset",
+    "negative_cases": "Declaring scale target achieved without latency/query evidence",
+    "dependencies": "GOV-001 and versioned recommended profiles",
+    "existing_evidence": "Original research registry evidence: PR#7 A020 disposable SQL. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Load measurements and index review remain required",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a020_business_setup_v1.sql",
+      "tests/c10_a020_business_setup_e2e.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-MDM-001",
+    "area": "party, catalog and UOM master data",
+    "title": "Canonical party identity",
+    "workflow": "Create customer/supplier/company contact → deduplicate → link roles",
+    "acceptance": "One party identity can hold permitted roles without copied customer/supplier masters",
+    "negative_cases": "Cross-tenant merge, same-name false duplicate",
+    "dependencies": "GOV-001",
+    "existing_evidence": "Original research registry evidence: main legacy masters + PR#7 demo contracts. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Define neutral party contract before adapter migration",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GLOBAL_BUSINESS_UNIVERSE_2026.md",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-MDM-001",
+    "area": "party, catalog and UOM master data",
+    "title": "Party location and contact roles",
+    "workflow": "Associate company locations, billing/delivery contacts and consent",
+    "acceptance": "Every location/contact has effective role and correct tenant/business visibility",
+    "negative_cases": "Billing contact interpreted as blanket organization access",
+    "dependencies": "GOV-001",
+    "existing_evidence": "Original research registry evidence: main legacy masters + PR#7 demo contracts. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Coordinate CRM/commerce party links",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GLOBAL_BUSINESS_UNIVERSE_2026.md",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-MDM-001",
+    "area": "party, catalog and UOM master data",
+    "title": "Item and service catalog",
+    "workflow": "Create product/service → category → business availability",
+    "acceptance": "Stocked item versus non-stock service is explicit and source IDs stable",
+    "negative_cases": "Service generating inventory movement",
+    "dependencies": "GOV-001",
+    "existing_evidence": "Original research registry evidence: main legacy masters + PR#7 demo contracts. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Preserve legacy catalog via adapters",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GLOBAL_BUSINESS_UNIVERSE_2026.md",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-MDM-001",
+    "area": "party, catalog and UOM master data",
+    "title": "Variants and attributes",
+    "workflow": "Define size/color/grade/package variants → use document line",
+    "acceptance": "Variant identity and permitted attributes persist into inventory/order history",
+    "negative_cases": "Changing variant silently rewriting posted lines",
+    "dependencies": "GOV-001",
+    "existing_evidence": "Original research registry evidence: main legacy masters + PR#7 demo contracts. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Version variant and pack definitions",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GLOBAL_BUSINESS_UNIVERSE_2026.md",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-MDM-001",
+    "area": "party, catalog and UOM master data",
+    "title": "UOM dimensional conversions",
+    "workflow": "Define base unit and exact rational conversion → transact",
+    "acceptance": "Compatible conversions round predictably and preserve base quantity",
+    "negative_cases": "Mass-to-volume without approved density, circular conversion",
+    "dependencies": "GOV-001",
+    "existing_evidence": "Original research registry evidence: main legacy masters + PR#7 demo contracts. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Type dimensions and effective conversion versions",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GLOBAL_BUSINESS_UNIVERSE_2026.md",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-MDM-001",
+    "area": "party, catalog and UOM master data",
+    "title": "Barcode and QR mapping",
+    "workflow": "Assign barcode/QR to item/variant/package → scan resolve",
+    "acceptance": "One active scoped code resolves deterministically and unknown code asks confirmation",
+    "negative_cases": "Duplicate barcode, camera recognition guessed silently",
+    "dependencies": "GOV-001",
+    "existing_evidence": "Original research registry evidence: main legacy masters + PR#7 demo contracts. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Shared scanner adapter and audit mapping needed",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GLOBAL_BUSINESS_UNIVERSE_2026.md",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-MDM-001",
+    "area": "party, catalog and UOM master data",
+    "title": "Price-list versioning",
+    "workflow": "Set effective business/channel/customer price → quote",
+    "acceptance": "Price source/version/currency and rounding are retained on document",
+    "negative_cases": "Retroactive price edit changing posted sale",
+    "dependencies": "GOV-001",
+    "existing_evidence": "Original research registry evidence: main legacy masters + PR#7 demo contracts. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Separate price from statutory tax policy",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GLOBAL_BUSINESS_UNIVERSE_2026.md",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-MDM-001",
+    "area": "party, catalog and UOM master data",
+    "title": "Category and master lifecycle",
+    "workflow": "Archive master → retain historical references → block new use",
+    "acceptance": "Archive never deletes posted source identity; approved replacement is linked",
+    "negative_cases": "Hard-delete referenced item or location",
+    "dependencies": "GOV-001",
+    "existing_evidence": "Original research registry evidence: main legacy masters + PR#7 demo contracts. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Standardize archive/merge policies across masters",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GLOBAL_BUSINESS_UNIVERSE_2026.md",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-MDM-001",
+    "area": "party, catalog and UOM master data",
+    "title": "Master merge crosswalk",
+    "workflow": "Review duplicate → approve merge/crosswalk → preserve references",
+    "acceptance": "Original IDs and source lineage remain recoverable with rollback/read comparison",
+    "negative_cases": "Cross-business collision or lost history",
+    "dependencies": "GOV-001",
+    "existing_evidence": "Original research registry evidence: main legacy masters + PR#7 demo contracts. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Implement domain-specific non-destructive merge",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GLOBAL_BUSINESS_UNIVERSE_2026.md",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-MDM-001",
+    "area": "party, catalog and UOM master data",
+    "title": "Master-data permissions",
+    "workflow": "Authorize create/edit/view by action/business/site",
+    "acceptance": "Catalog visibility does not grant purchase/stock/finance posting",
+    "negative_cases": "Staff editing salary/contact PII through generic master API",
+    "dependencies": "GOV-001",
+    "existing_evidence": "Original research registry evidence: main legacy masters + PR#7 demo contracts. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Use canonical action grants and masked projections",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GLOBAL_BUSINESS_UNIVERSE_2026.md",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-MDM-001",
+    "area": "party, catalog and UOM master data",
+    "title": "Import validation and provenance",
+    "workflow": "Import synthetic CSV → preview row errors → idempotent apply",
+    "acceptance": "Every row retains source file/hash and errors prevent untracked partial changes",
+    "negative_cases": "Spreadsheet formula payload, incompatible UOM, duplicate retry",
+    "dependencies": "GOV-001",
+    "existing_evidence": "Original research registry evidence: main legacy masters + PR#7 demo contracts. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Define bounded import batch receipts and rollback",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GLOBAL_BUSINESS_UNIVERSE_2026.md",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-MDM-001",
+    "area": "party, catalog and UOM master data",
+    "title": "Master change impact",
+    "workflow": "Edit future master version → show affected open documents/reports",
+    "acceptance": "Open documents revalidate; posted documents retain original version",
+    "negative_cases": "Renamed UOM changing old quantity meaning",
+    "dependencies": "GOV-001",
+    "existing_evidence": "Original research registry evidence: main legacy masters + PR#7 demo contracts. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Dependency-aware impact/readiness preview",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GLOBAL_BUSINESS_UNIVERSE_2026.md",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-REPORT-001",
+    "area": "reporting KPI and planning",
+    "title": "Versioned metric definition",
+    "workflow": "Register metric formula/version/unit/source → compute read model",
+    "acceptance": "Metric identifies exact source classes, time basis, units and version",
+    "negative_cases": "Unversioned formula changing historical comparisons",
+    "dependencies": "canonical sources and FIN-001",
+    "existing_evidence": "Original research registry evidence: 193 legacy definitions preserved; PR#7 A023 uncertified. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "One certified metric registry, not per-widget formulas",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "internal/enterprise-sql/c10_a055_assets_reports_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-REPORT-001",
+    "area": "reporting KPI and planning",
+    "title": "Transaction drilldown",
+    "workflow": "Open KPI → list contributing source documents → line detail",
+    "acceptance": "Drilldown reconciles exactly to allowed displayed total",
+    "negative_cases": "Aggregate containing inaccessible source rows",
+    "dependencies": "canonical sources and FIN-001",
+    "existing_evidence": "Original research registry evidence: 193 legacy definitions preserved; PR#7 A023 uncertified. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Authorize aggregate and detail using same resolver",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "internal/enterprise-sql/c10_a055_assets_reports_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-REPORT-001",
+    "area": "reporting KPI and planning",
+    "title": "Unknown versus zero",
+    "workflow": "Request metric with missing cost/rate/source → evaluate completeness",
+    "acceptance": "Missing required input returns INCOMPLETE/null with named gaps; true zero remains zero",
+    "negative_cases": "Missing COGS treated as0 and fake margin",
+    "dependencies": "canonical sources and FIN-001",
+    "existing_evidence": "Original research registry evidence: 193 legacy definitions preserved; PR#7 A023 uncertified. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Propagate completeness from finance/inventory contracts",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "internal/enterprise-sql/c10_a055_assets_reports_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-REPORT-001",
+    "area": "reporting KPI and planning",
+    "title": "Portfolio consolidation",
+    "workflow": "Aggregate authorized businesses → eliminate internal transfers",
+    "acceptance": "Transfers do not inflate sales; currencies/entities remain explicit",
+    "negative_cases": "Double-count intercompany movement or franchise data",
+    "dependencies": "canonical sources and FIN-001",
+    "existing_evidence": "Original research registry evidence: 193 legacy definitions preserved; PR#7 A023 uncertified. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "FIN-002 consolidation policy dependency",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "internal/enterprise-sql/c10_a055_assets_reports_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-REPORT-001",
+    "area": "reporting KPI and planning",
+    "title": "Scope and period filters",
+    "workflow": "Choose tenant/business/site/project/period → request report",
+    "acceptance": "Server validates every filter and results exclude foreign scopes",
+    "negative_cases": "Filter parameter injection or unauthorized aggregate count",
+    "dependencies": "canonical sources and FIN-001",
+    "existing_evidence": "Original research registry evidence: 193 legacy definitions preserved; PR#7 A023 uncertified. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Bind filters to canonical IDs and actor",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "internal/enterprise-sql/c10_a055_assets_reports_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-REPORT-001",
+    "area": "reporting KPI and planning",
+    "title": "Operational exception reports",
+    "workflow": "Read backlog, stock shortage, overdue order and stale approval",
+    "acceptance": "Each exception links its source record and appropriate recovery action",
+    "negative_cases": "Invented exception from unrelated synthetic totals",
+    "dependencies": "canonical sources and FIN-001",
+    "existing_evidence": "Original research registry evidence: 193 legacy definitions preserved; PR#7 A023 uncertified. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Use source-derived statuses and freshness markers",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "internal/enterprise-sql/c10_a055_assets_reports_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-REPORT-001",
+    "area": "reporting KPI and planning",
+    "title": "Financial statement readiness",
+    "workflow": "Build profit/cash/AP/AR view → inspect required input classes",
+    "acceptance": "Net profit withheld until sales, COGS, expense, period and tax basis complete",
+    "negative_cases": "Revenue minus stock quantity labelled profit",
+    "dependencies": "canonical sources and FIN-001",
+    "existing_evidence": "Original research registry evidence: 193 legacy definitions preserved; PR#7 A023 uncertified. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Certified FIN-001 source and close reconciliation required",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "internal/enterprise-sql/c10_a055_assets_reports_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-REPORT-001",
+    "area": "reporting KPI and planning",
+    "title": "Workforce and asset reporting",
+    "workflow": "Project HR/payroll/assets summary → drill to approved fields",
+    "acceptance": "Owner sees authorized totals; manager/staff projections mask salary/PII",
+    "negative_cases": "Portfolio card exposing individual payroll",
+    "dependencies": "canonical sources and FIN-001",
+    "existing_evidence": "Original research registry evidence: 193 legacy definitions preserved; PR#7 A023 uncertified. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Reuse A051/A053/A055 reporting RPCs",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "internal/enterprise-sql/c10_a055_assets_reports_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-REPORT-001",
+    "area": "reporting KPI and planning",
+    "title": "Snapshot reproducibility",
+    "workflow": "Save parameters/source watermarks/formula version → rerun",
+    "acceptance": "Snapshot reproduces original basis or explicitly flags unavailable history",
+    "negative_cases": "Current price/rate applied to old report without disclosure",
+    "dependencies": "canonical sources and FIN-001",
+    "existing_evidence": "Original research registry evidence: 193 legacy definitions preserved; PR#7 A023 uncertified. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Immutable reporting manifests and effective-dated sources",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "internal/enterprise-sql/c10_a055_assets_reports_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-REPORT-001",
+    "area": "reporting KPI and planning",
+    "title": "Exports and print",
+    "workflow": "Export scoped CSV/print → inspect columns/totals/provenance",
+    "acceptance": "Export matches visible authorized data and neutralizes spreadsheet formulas",
+    "negative_cases": "CSV injection, hidden phone/NID fields",
+    "dependencies": "canonical sources and FIN-001",
+    "existing_evidence": "Original research registry evidence: 193 legacy definitions preserved; PR#7 A023 uncertified. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Audit export request and content hash",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "internal/enterprise-sql/c10_a055_assets_reports_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-REPORT-001",
+    "area": "reporting KPI and planning",
+    "title": "Forecast and budget evidence",
+    "workflow": "Choose scenario inputs/version → compare actual and forecast",
+    "acceptance": "Forecast names assumptions, confidence and date; no posting or guaranteed outcome",
+    "negative_cases": "Projection presented as actual cash/profit",
+    "dependencies": "canonical sources and FIN-001",
+    "existing_evidence": "Original research registry evidence: 193 legacy definitions preserved; PR#7 A023 uncertified. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Planning model remains separate from source ledger",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "internal/enterprise-sql/c10_a055_assets_reports_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-REPORT-001",
+    "area": "reporting KPI and planning",
+    "title": "Legacy report preservation",
+    "workflow": "Compare historical customized report to adapter result",
+    "acceptance": "All retained report definitions stay in legacy business context with verified source parity",
+    "negative_cases": "Cloning193 legacy reports as generic certified reports",
+    "dependencies": "canonical sources and FIN-001",
+    "existing_evidence": "Original research registry evidence: 193 legacy definitions preserved; PR#7 A023 uncertified. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "REV-009 semantic parity and module-by-module migration",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "internal/enterprise-sql/c10_a055_assets_reports_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-INTEGRATION-001",
+    "area": "provider API webhook and cost controls",
+    "title": "One integration port registry",
+    "workflow": "Register provider adapter/capabilities → bind tenant connection",
+    "acceptance": "All providers extend PR27 ports, outbox and secret references",
+    "negative_cases": "Second integration queue or shadow ERP ledger",
+    "dependencies": "merge/reconcile PR#27",
+    "existing_evidence": "Original research registry evidence: PR#27@9da6403 integration ports draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Reconcile existing PR27 before new adapters",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-INTEGRATION-001",
+    "area": "provider API webhook and cost controls",
+    "title": "OFF-by-default connection",
+    "workflow": "Owner configures connection → dry-run → explicit enable",
+    "acceptance": "New connection cannot send external events until valid scoped enablement",
+    "negative_cases": "Installing adapter silently activating paid provider",
+    "dependencies": "merge/reconcile PR#27",
+    "existing_evidence": "Original research registry evidence: PR#27@9da6403 integration ports draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Store consent and connection version",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-INTEGRATION-001",
+    "area": "provider API webhook and cost controls",
+    "title": "Secret-reference lifecycle",
+    "workflow": "Store encrypted backend credential reference → rotate → revoke",
+    "acceptance": "Browser/logs/export never receive secret; rotation updates reference atomically",
+    "negative_cases": "Secret in JavaScript, webhook URL or error trace",
+    "dependencies": "merge/reconcile PR#27",
+    "existing_evidence": "Original research registry evidence: PR#27@9da6403 integration ports draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Use one secrets boundary, not per-module credential tables",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-INTEGRATION-001",
+    "area": "provider API webhook and cost controls",
+    "title": "Provider-independent command",
+    "workflow": "Map typed ERP event → canonical adapter envelope",
+    "acceptance": "Envelope preserves source IDs, tenant, operation type, currency/units and version",
+    "negative_cases": "Provider payload directly authorizing stock/money write",
+    "dependencies": "merge/reconcile PR#27",
+    "existing_evidence": "Original research registry evidence: PR#27@9da6403 integration ports draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Backend typed validation remains domain authority",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-INTEGRATION-001",
+    "area": "provider API webhook and cost controls",
+    "title": "Transactional outbox",
+    "workflow": "Commit domain intent and outbox row → dispatch worker",
+    "acceptance": "One committed intent yields one persistent job and stable idempotency key",
+    "negative_cases": "Commit succeeds but event disappears, duplicate effect on retry",
+    "dependencies": "merge/reconcile PR#27",
+    "existing_evidence": "Original research registry evidence: PR#27@9da6403 integration ports draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Atomic local effect/outbox design required",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-INTEGRATION-001",
+    "area": "provider API webhook and cost controls",
+    "title": "Webhook signature verification",
+    "workflow": "Receive callback → validate signature/timestamp/provider scope",
+    "acceptance": "Bad signature/replay/window mismatch fails before state mutation",
+    "negative_cases": "Unsigned event, algorithm downgrade, wrong tenant secret",
+    "dependencies": "merge/reconcile PR#27",
+    "existing_evidence": "Original research registry evidence: PR#27@9da6403 integration ports draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Implement adapter-specific verified signature contracts",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-INTEGRATION-001",
+    "area": "provider API webhook and cost controls",
+    "title": "Timeout-after-success",
+    "workflow": "Provider times out → mark UNKNOWN → query/reconcile",
+    "acceptance": "No duplicate financial/message effect; ambiguity remains visible until resolved",
+    "negative_cases": "Automatic retry causing second payout or shipment",
+    "dependencies": "merge/reconcile PR#27",
+    "existing_evidence": "Original research registry evidence: PR#27@9da6403 integration ports draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Model inquiry/callback reconciliation separately",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-INTEGRATION-001",
+    "area": "provider API webhook and cost controls",
+    "title": "Retry and dead-letter queue",
+    "workflow": "Retry transient errors → bounded backoff → quarantine",
+    "acceptance": "Attempt count/reason visible; permanent error cannot loop indefinitely",
+    "negative_cases": "Unbounded retry bill or dropping failed job",
+    "dependencies": "merge/reconcile PR#27",
+    "existing_evidence": "Original research registry evidence: PR#27@9da6403 integration ports draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Owner-reviewable replay with fresh authorization",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-INTEGRATION-001",
+    "area": "provider API webhook and cost controls",
+    "title": "Quota and free-first limits",
+    "workflow": "Evaluate monthly/provider caps → reject/defer at cap",
+    "acceptance": "Free capacity and rate budgets shown; no paid-tier enablement by code",
+    "negative_cases": "Auto-upgrade, surprise SMS/AI expenditure",
+    "dependencies": "merge/reconcile PR#27",
+    "existing_evidence": "Original research registry evidence: PR#27@9da6403 integration ports draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Cost gate is independent of feature configuration",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-INTEGRATION-001",
+    "area": "provider API webhook and cost controls",
+    "title": "Consent and quiet hours",
+    "workflow": "Evaluate recipient consent/channel preferences/time window",
+    "acceptance": "No external delivery without required consent; quiet-hour work deferred correctly",
+    "negative_cases": "Expired opt-in, wrong locale/timezone, tenant-wide recipient leak",
+    "dependencies": "merge/reconcile PR#27",
+    "existing_evidence": "Original research registry evidence: PR#27@9da6403 integration ports draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Reuse CRM consent plus versioned communication policy",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-INTEGRATION-001",
+    "area": "provider API webhook and cost controls",
+    "title": "Revocation and replay",
+    "workflow": "Revoke connection → retry queued/in-flight work",
+    "acceptance": "Fresh dispatch denies revoked scope; prior callbacks reconcile without reopening authority",
+    "negative_cases": "Cached token continuing send after revoke",
+    "dependencies": "merge/reconcile PR#27",
+    "existing_evidence": "Original research registry evidence: PR#27@9da6403 integration ports draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Define safe cancellation and unknown-outcome handling",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-INTEGRATION-001",
+    "area": "provider API webhook and cost controls",
+    "title": "Automation and AI bounded tools",
+    "workflow": "Resolve rule/AI proposal → typed scoped adapter call → human gate",
+    "acceptance": "AI sees only authorized data and cannot eval arbitrary code or post consequential actions without certified route",
+    "negative_cases": "Prompt-injected tool scope, automatic legal/financial decision",
+    "dependencies": "merge/reconcile PR#27",
+    "existing_evidence": "Original research registry evidence: PR#27@9da6403 integration ports draft. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Certified handlers, consent and release gates remain authoritative",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DRIVE-001",
+    "area": "tenant-consented Google Drive documents",
+    "title": "Tenant-owned OAuth consent",
+    "workflow": "Owner chooses Drive account/folder → grant minimum scopes",
+    "acceptance": "Connection records tenant/account/folder ownership and explicit consent",
+    "negative_cases": "Vendor central account silently owning all tenant files",
+    "dependencies": "INTEGRATION-001",
+    "existing_evidence": "Original research registry evidence: no product adapter; must extend PR#27. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Product OAuth live activation separately authorized",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "release-gated"
+  },
+  {
+    "capability_id": "C10-CAP-DRIVE-001",
+    "area": "tenant-consented Google Drive documents",
+    "title": "Drive port reuse",
+    "workflow": "Register Drive adapter on PR27 → expose supported document operations",
+    "acceptance": "Adapter reuses canonical outbox, retry, idempotency and secret reference",
+    "negative_cases": "Second provider job/secrets engine",
+    "dependencies": "INTEGRATION-001",
+    "existing_evidence": "Original research registry evidence: no product adapter; must extend PR#27. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Implement Google Drive contract through integration port",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DRIVE-001",
+    "area": "tenant-consented Google Drive documents",
+    "title": "Folder-scope authorization",
+    "workflow": "User requests export → validate tenant/business/folder grants",
+    "acceptance": "Export cannot traverse to unrelated folder or business",
+    "negative_cases": "Forged folder ID, cross-tenant connection reference",
+    "dependencies": "INTEGRATION-001",
+    "existing_evidence": "Original research registry evidence: no product adapter; must extend PR#27. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Server-side folder/record scope resolver",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DRIVE-001",
+    "area": "tenant-consented Google Drive documents",
+    "title": "Document provenance",
+    "workflow": "Build document → attach source IDs/version/hash/actor",
+    "acceptance": "Drive object metadata links exact source snapshot and export receipt",
+    "negative_cases": "Uploaded document claimed as current without source version",
+    "dependencies": "INTEGRATION-001",
+    "existing_evidence": "Original research registry evidence: no product adapter; must extend PR#27. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Versioned object/receipt schema",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DRIVE-001",
+    "area": "tenant-consented Google Drive documents",
+    "title": "Idempotent export",
+    "workflow": "Queue same export key twice → create/resolve object once",
+    "acceptance": "Same key/source returns existing receipt; changed content conflicts or versions explicitly",
+    "negative_cases": "Duplicate files after timeout retry",
+    "dependencies": "INTEGRATION-001",
+    "existing_evidence": "Original research registry evidence: no product adapter; must extend PR#27. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Stable export identity distinct from human filename",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DRIVE-001",
+    "area": "tenant-consented Google Drive documents",
+    "title": "ETag conflict recovery",
+    "workflow": "Read remote version → conditional update → reconcile conflict",
+    "acceptance": "Concurrent remote edit is preserved and shown for resolution",
+    "negative_cases": "Blind overwrite of owner's manual edits",
+    "dependencies": "INTEGRATION-001",
+    "existing_evidence": "Original research registry evidence: no product adapter; must extend PR#27. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Conditional write and explicit conflict policy",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DRIVE-001",
+    "area": "tenant-consented Google Drive documents",
+    "title": "Ambiguous upload outcome",
+    "workflow": "Upload timeout → query idempotency/provenance → reconcile",
+    "acceptance": "UNKNOWN persists until remote object verified; retry creates no duplicates",
+    "negative_cases": "Reporting success without remote verification",
+    "dependencies": "INTEGRATION-001",
+    "existing_evidence": "Original research registry evidence: no product adapter; must extend PR#27. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Provider lookup/recovery contract",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DRIVE-001",
+    "area": "tenant-consented Google Drive documents",
+    "title": "Revoked access",
+    "workflow": "Revoke OAuth/folder access → queued export attempts",
+    "acceptance": "Dispatch fails closed and displays reconnect/repermission action",
+    "negative_cases": "Old cached credential exporting after revocation",
+    "dependencies": "INTEGRATION-001",
+    "existing_evidence": "Original research registry evidence: no product adapter; must extend PR#27. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Token refresh/revoke handling and audit",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DRIVE-001",
+    "area": "tenant-consented Google Drive documents",
+    "title": "Quota/rate handling",
+    "workflow": "Receive quota/rate response → bounded retry or defer",
+    "acceptance": "No paid tier enabled; owner sees failed/deferred reason and next retry",
+    "negative_cases": "Infinite retry or automatic purchase of storage",
+    "dependencies": "INTEGRATION-001",
+    "existing_evidence": "Original research registry evidence: no product adapter; must extend PR#27. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Explicit free-first budget and capacity evidence",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DRIVE-001",
+    "area": "tenant-consented Google Drive documents",
+    "title": "Export privacy and sharing",
+    "workflow": "Build document from authorized projection → apply allowed sharing",
+    "acceptance": "Sensitive fields excluded and sharing never broadened by default",
+    "negative_cases": "Public link exposing payroll/customer PII",
+    "dependencies": "INTEGRATION-001",
+    "existing_evidence": "Original research registry evidence: no product adapter; must extend PR#27. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Policy-specific sharing remains separately approved",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DRIVE-001",
+    "area": "tenant-consented Google Drive documents",
+    "title": "Retention and version history",
+    "workflow": "Apply owner-approved retention/version policy → archive/delete safely",
+    "acceptance": "Legal hold and source audit preserved; deletion is scoped and logged",
+    "negative_cases": "Deleting held payroll evidence or unrelated Drive file",
+    "dependencies": "INTEGRATION-001",
+    "existing_evidence": "Original research registry evidence: no product adapter; must extend PR#27. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Retention governance is not inferred from punch policy",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DRIVE-001",
+    "area": "tenant-consented Google Drive documents",
+    "title": "Backup distinction and restore",
+    "workflow": "Export archive → verify hashes → isolated restore drill",
+    "acceptance": "Ordinary Drive upload labelled document export; backup claim only after complete restore proof",
+    "negative_cases": "Treating CSV upload as database/auth/storage backup",
+    "dependencies": "INTEGRATION-001",
+    "existing_evidence": "Original research registry evidence: no product adapter; must extend PR#27. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "DR-001 certification required before backup claim",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/GOOGLE_DRIVE_INTEGRATION_CONTRACT.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-OFFLINE-001",
+    "area": "offline bounded intent and deterministic replay",
+    "title": "Tenant-user-bound encrypted drafts",
+    "workflow": "Capture permitted form offline → encrypt with scoped device key",
+    "acceptance": "Draft cannot be read under another tenant/user/session",
+    "negative_cases": "Shared device revealing previous payroll/customer data",
+    "dependencies": "GOV-001 and typed commands",
+    "existing_evidence": "Original research registry evidence: PR#7 core10-offline-drafts; PR#23 proposal. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Complete device-key provisioning and revocation design",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "tests/core10-offline-drafts-smoke.js",
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-OFFLINE-001",
+    "area": "offline bounded intent and deterministic replay",
+    "title": "Visible stale state",
+    "workflow": "Render cached record → show last sync/source watermark",
+    "acceptance": "User sees stale/read-only status and cannot mistake cache for live balance",
+    "negative_cases": "Cached stock represented as authoritative availability",
+    "dependencies": "GOV-001 and typed commands",
+    "existing_evidence": "Original research registry evidence: PR#7 core10-offline-drafts; PR#23 proposal. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "UI freshness contract across modules",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "tests/core10-offline-drafts-smoke.js",
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-OFFLINE-001",
+    "area": "offline bounded intent and deterministic replay",
+    "title": "Bounded command intents",
+    "workflow": "Save only allowed typed draft/proposal → queue",
+    "acceptance": "Offline storage cannot authorize stock, money, approval or settlement posting",
+    "negative_cases": "Local sale marked paid or journal posted",
+    "dependencies": "GOV-001 and typed commands",
+    "existing_evidence": "Original research registry evidence: PR#7 core10-offline-drafts; PR#23 proposal. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Map each module's safe offline subset",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "tests/core10-offline-drafts-smoke.js",
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-OFFLINE-001",
+    "area": "offline bounded intent and deterministic replay",
+    "title": "Deterministic replay identity",
+    "workflow": "Assign device/request IDs and payload digest → reconnect",
+    "acceptance": "Same intent replays to one receipt; changed payload under key conflicts",
+    "negative_cases": "Duplicate device replay or edit-after-signature",
+    "dependencies": "GOV-001 and typed commands",
+    "existing_evidence": "Original research registry evidence: PR#7 core10-offline-drafts; PR#23 proposal. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Reuse canonical idempotency boundary",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "tests/core10-offline-drafts-smoke.js",
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-OFFLINE-001",
+    "area": "offline bounded intent and deterministic replay",
+    "title": "Fresh server authorization",
+    "workflow": "Reconnect → verify session/grants before replay",
+    "acceptance": "Revoked/expired scope rejects queued request even if originally allowed",
+    "negative_cases": "Cached authorization treated as permanent authority",
+    "dependencies": "GOV-001 and typed commands",
+    "existing_evidence": "Original research registry evidence: PR#7 core10-offline-drafts; PR#23 proposal. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Connect PR23 replay to A021/A034 resolver",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "tests/core10-offline-drafts-smoke.js",
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-OFFLINE-001",
+    "area": "offline bounded intent and deterministic replay",
+    "title": "Business rule revalidation",
+    "workflow": "Replay → recalc current price/tax/stock/period constraints",
+    "acceptance": "Closed period, changed policy, credit hold or unavailable stock produces explicit conflict",
+    "negative_cases": "Old offline price or tax silently accepted",
+    "dependencies": "GOV-001 and typed commands",
+    "existing_evidence": "Original research registry evidence: PR#7 core10-offline-drafts; PR#23 proposal. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Typed module commands retain final authority",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "tests/core10-offline-drafts-smoke.js",
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-OFFLINE-001",
+    "area": "offline bounded intent and deterministic replay",
+    "title": "Two-device conflicts",
+    "workflow": "Edit same record on two devices → submit expected versions",
+    "acceptance": "First valid version wins; other gets diff/recovery without lost update",
+    "negative_cases": "Last-write-wins overwriting approved document",
+    "dependencies": "GOV-001 and typed commands",
+    "existing_evidence": "Original research registry evidence: PR#7 core10-offline-drafts; PR#23 proposal. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Version-aware merge rules per document type",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "tests/core10-offline-drafts-smoke.js",
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-OFFLINE-001",
+    "area": "offline bounded intent and deterministic replay",
+    "title": "Outbox ordering and dependencies",
+    "workflow": "Queue document with dependent attachment/line → resume",
+    "acceptance": "Dependencies execute in required order and unrelated scopes remain separated",
+    "negative_cases": "Sale replay before prerequisite customer/receipt",
+    "dependencies": "GOV-001 and typed commands",
+    "existing_evidence": "Original research registry evidence: PR#7 core10-offline-drafts; PR#23 proposal. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Bounded dependency graph, no arbitrary executable jobs",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "tests/core10-offline-drafts-smoke.js",
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-OFFLINE-001",
+    "area": "offline bounded intent and deterministic replay",
+    "title": "Retry/recovery UX",
+    "workflow": "Reconnect intermittently → retry/defer/quarantine",
+    "acceptance": "Attempt state, error reason and safe user action remain visible",
+    "negative_cases": "Hidden retry loop creating cost or data duplication",
+    "dependencies": "GOV-001 and typed commands",
+    "existing_evidence": "Original research registry evidence: PR#7 core10-offline-drafts; PR#23 proposal. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "One queue state machine and exception screen",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "tests/core10-offline-drafts-smoke.js",
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-OFFLINE-001",
+    "area": "offline bounded intent and deterministic replay",
+    "title": "Logout and device revoke",
+    "workflow": "Sign out/revoke device → clear access to local drafts",
+    "acceptance": "Sensitive keys/data unavailable after logout; safe draft retention follows explicit policy",
+    "negative_cases": "Next user reading last user's cached form",
+    "dependencies": "GOV-001 and typed commands",
+    "existing_evidence": "Original research registry evidence: PR#7 core10-offline-drafts; PR#23 proposal. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Test shared-device wipe and key revocation",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "tests/core10-offline-drafts-smoke.js",
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-OFFLINE-001",
+    "area": "offline bounded intent and deterministic replay",
+    "title": "PWA update preservation",
+    "workflow": "Install new worker → failed install/update → retain old working cache",
+    "acceptance": "Offline app remains usable and queued drafts survive compatible updates",
+    "negative_cases": "Partial update deleting prior functional cache",
+    "dependencies": "GOV-001 and typed commands",
+    "existing_evidence": "Original research registry evidence: PR#7 core10-offline-drafts; PR#23 proposal. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Preserve existing service-worker regression invariants",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "tests/core10-offline-drafts-smoke.js",
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-OFFLINE-001",
+    "area": "offline bounded intent and deterministic replay",
+    "title": "Offline export/import safety",
+    "workflow": "Export allowed draft bundle → verify version/hash/scope → import as draft",
+    "acceptance": "Bundle never carries credential or posting authority and rejects tamper/foreign scope",
+    "negative_cases": "Modified bundle granting role or replaying paid state",
+    "dependencies": "GOV-001 and typed commands",
+    "existing_evidence": "Original research registry evidence: PR#7 core10-offline-drafts; PR#23 proposal. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Separate file portability from server certification",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "tests/core10-offline-drafts-smoke.js",
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-UX-001",
+    "area": "task-led bilingual accessible UX",
+    "title": "Task-led entry points",
+    "workflow": "Choose Sell/Buy/Receive/Transfer/Produce/Count/Approve/Pay/Review",
+    "acceptance": "Task opens correct typed flow with authorized business/site context",
+    "negative_cases": "Unrelated dashboard/role granting capability",
+    "dependencies": "server-filtered projections and typed high-risk components",
+    "existing_evidence": "Original research registry evidence: PR#60 synthetic preview current head not all green. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Map actual supported commands to discoverable entry points",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "preview/worker.mjs",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-UX-001",
+    "area": "task-led bilingual accessible UX",
+    "title": "Canonical business context",
+    "workflow": "Switch business/site → reload authorized projection",
+    "acceptance": "Context switch updates canonical IDs and clears stale document selections",
+    "negative_cases": "Business label switch retaining another business's data",
+    "dependencies": "server-filtered projections and typed high-risk components",
+    "existing_evidence": "Original research registry evidence: PR#60 synthetic preview current head not all green. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Server filtering and client cache-key scope",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "preview/worker.mjs",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-UX-001",
+    "area": "task-led bilingual accessible UX",
+    "title": "Bangla and English parity",
+    "workflow": "Switch language → navigate forms/help/reports",
+    "acceptance": "Labels, errors, units and date/money explanations remain equivalent and legible",
+    "negative_cases": "Translated percent altering formula semantics",
+    "dependencies": "server-filtered projections and typed high-risk components",
+    "existing_evidence": "Original research registry evidence: PR#60 synthetic preview current head not all green. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Central localization keys with context-sensitive wording",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "preview/worker.mjs",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-UX-001",
+    "area": "task-led bilingual accessible UX",
+    "title": "Contextual action guidance",
+    "workflow": "Open action help → show what/why/when/default/alternatives",
+    "acceptance": "Guidance explains consequences, permissions, inputs, result and report destination",
+    "negative_cases": "Generic help suggesting unavailable financial handler",
+    "dependencies": "server-filtered projections and typed high-risk components",
+    "existing_evidence": "Original research registry evidence: PR#60 synthetic preview current head not all green. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Bind guidance to actual handler readiness/version",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "preview/worker.mjs",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-UX-001",
+    "area": "task-led bilingual accessible UX",
+    "title": "Formula and result explanation",
+    "workflow": "Preview calculated value → inspect inputs/formula/rounding",
+    "acceptance": "Explanation names source/date/unit/version and distinguishes missing inputs",
+    "negative_cases": "Confident invented result or hidden rounding",
+    "dependencies": "server-filtered projections and typed high-risk components",
+    "existing_evidence": "Original research registry evidence: PR#60 synthetic preview current head not all green. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Render certified calculation trace rather than client reimplementation",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "preview/worker.mjs",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-UX-001",
+    "area": "task-led bilingual accessible UX",
+    "title": "Central Control Studio discovery",
+    "workflow": "Open Studio/search regardless of ordinary-menu placement",
+    "acceptance": "Authorized owner can find Central/Business/Both/Hidden controls by canonical ID",
+    "negative_cases": "Hidden setting inaccessible to owner or hidden menu treated as deny",
+    "dependencies": "server-filtered projections and typed high-risk components",
+    "existing_evidence": "Original research registry evidence: PR#60 synthetic preview current head not all green. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Use same settings record/projection in business UI",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "preview/worker.mjs",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-UX-001",
+    "area": "task-led bilingual accessible UX",
+    "title": "Permission versus placement",
+    "workflow": "Inspect feature enabled/visibility/data/action/approval separately",
+    "acceptance": "UI explains these distinct axes and locked state reason",
+    "negative_cases": "ON toggle granting stock/payroll rights",
+    "dependencies": "server-filtered projections and typed high-risk components",
+    "existing_evidence": "Original research registry evidence: PR#60 synthetic preview current head not all green. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Use effective server permission response",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "preview/worker.mjs",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-UX-001",
+    "area": "task-led bilingual accessible UX",
+    "title": "Mobile and desktop forms",
+    "workflow": "Complete supported journey at390/1440 using keyboard/touch",
+    "acceptance": "No horizontal page overflow, inaccessible action or clipped validation message",
+    "negative_cases": "Dense table hiding confirm/cancel on Android",
+    "dependencies": "server-filtered projections and typed high-risk components",
+    "existing_evidence": "Original research registry evidence: PR#60 synthetic preview current head not all green. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Purpose-built responsive command/document editors",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "preview/worker.mjs",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-UX-001",
+    "area": "task-led bilingual accessible UX",
+    "title": "Keyboard and screen reader",
+    "workflow": "Navigate menus/dialogs/forms → receive status/error",
+    "acceptance": "Focus order, labels, errors and live status are accessible; focus returns after modal",
+    "negative_cases": "Unlabelled input, focus trap, color-only error",
+    "dependencies": "server-filtered projections and typed high-risk components",
+    "existing_evidence": "Original research registry evidence: PR#60 synthetic preview current head not all green. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "WCAG2.2 checks and real browser evidence",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "preview/worker.mjs",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-UX-001",
+    "area": "task-led bilingual accessible UX",
+    "title": "Search and authorized discoverability",
+    "workflow": "Search module/record/control → server-filtered result",
+    "acceptance": "Result titles/counts/snippets contain only allowed scope",
+    "negative_cases": "Hidden foreign customer showing through autocomplete",
+    "dependencies": "server-filtered projections and typed high-risk components",
+    "existing_evidence": "Original research registry evidence: PR#60 synthetic preview current head not all green. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Server-side search authorization, not client filtering",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "preview/worker.mjs",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-UX-001",
+    "area": "task-led bilingual accessible UX",
+    "title": "Honest unavailable and recovery states",
+    "workflow": "Open unsupported/blocked action → show reason and next route",
+    "acceptance": "Loading/empty/error/locked/not-built states are distinct; no inert fake action",
+    "negative_cases": "Endless verifying session, fake success toast",
+    "dependencies": "server-filtered projections and typed high-risk components",
+    "existing_evidence": "Original research registry evidence: PR#60 synthetic preview current head not all green. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Every visible control gets tested behavior or explicit unavailable state",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "preview/worker.mjs",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-UX-001",
+    "area": "task-led bilingual accessible UX",
+    "title": "Branding and tenant presentation",
+    "workflow": "Apply authorized business theme/logo → render workspace/export",
+    "acceptance": "Brand assets isolate tenants and readable contrast remains",
+    "negative_cases": "Another customer/vendor identity leaking into tenant app",
+    "dependencies": "server-filtered projections and typed high-risk components",
+    "existing_evidence": "Original research registry evidence: PR#60 synthetic preview current head not all green. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Theme configuration independent of data rights and industry certification",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "preview/worker.mjs",
+      "docs/development/CODEX_MASTER_EXECUTION_HANDOVER_2026-11-11.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DR-001",
+    "area": "backup restore and disaster recovery",
+    "title": "Backup scope manifest",
+    "workflow": "Enumerate database/auth/storage/config/version scope → build manifest",
+    "acceptance": "Manifest identifies included and excluded components plus schema/commit/date",
+    "negative_cases": "Database dump claimed to include missing auth/storage",
+    "dependencies": "external encrypted storage and restore drill",
+    "existing_evidence": "Original research registry evidence: PR#7 disposable dump/restore only. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Document exact recovery coverage before scheduling",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DR-001",
+    "area": "backup restore and disaster recovery",
+    "title": "Consistent snapshot",
+    "workflow": "Capture related data at coherent snapshot/source watermark",
+    "acceptance": "Stock, journal and audit snapshots reconcile to same basis",
+    "negative_cases": "Transactions split across incompatible dump times",
+    "dependencies": "external encrypted storage and restore drill",
+    "existing_evidence": "Original research registry evidence: PR#7 disposable dump/restore only. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Choose supported snapshot/locking strategy",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DR-001",
+    "area": "backup restore and disaster recovery",
+    "title": "Encryption and key separation",
+    "workflow": "Encrypt backup → store key outside backup failure domain",
+    "acceptance": "Unauthorized backup holder cannot decrypt; key recovery tested separately",
+    "negative_cases": "Key embedded in same archive or lost-only key",
+    "dependencies": "external encrypted storage and restore drill",
+    "existing_evidence": "Original research registry evidence: PR#7 disposable dump/restore only. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Owner-approved key custody and rotation",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DR-001",
+    "area": "backup restore and disaster recovery",
+    "title": "Independent failure domain",
+    "workflow": "Copy encrypted backup to separate controlled destination",
+    "acceptance": "Loss/revocation of primary account does not eliminate all recovery copies",
+    "negative_cases": "Same compromised account as only backup",
+    "dependencies": "external encrypted storage and restore drill",
+    "existing_evidence": "Original research registry evidence: PR#7 disposable dump/restore only. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Free-first storage capacity and access evidence required",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DR-001",
+    "area": "backup restore and disaster recovery",
+    "title": "Backup integrity verification",
+    "workflow": "Upload backup → verify size/hash/manifest → receipt",
+    "acceptance": "Truncated/tampered archive fails verification and alerts owner",
+    "negative_cases": "Upload200 treated as successful recoverable backup",
+    "dependencies": "external encrypted storage and restore drill",
+    "existing_evidence": "Original research registry evidence: PR#7 disposable dump/restore only. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Persist immutable verification receipt",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DR-001",
+    "area": "backup restore and disaster recovery",
+    "title": "Isolated restore drill",
+    "workflow": "Restore into clean isolated environment → run application checks",
+    "acceptance": "Restored schema/data/auth/storage scope matches declared manifest",
+    "negative_cases": "Restoring over production to test backup",
+    "dependencies": "external encrypted storage and restore drill",
+    "existing_evidence": "Original research registry evidence: PR#7 disposable dump/restore only. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Provision isolated runtime; no operational credentials copied live",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DR-001",
+    "area": "backup restore and disaster recovery",
+    "title": "Quantity and ledger reconciliation",
+    "workflow": "Compare restored counts, stock lineage, journal totals and audit",
+    "acceptance": "Conserved quantities, DR=CR and source references agree with snapshot",
+    "negative_cases": "Unbalanced journal, orphan movement, missing payslip/audit",
+    "dependencies": "external encrypted storage and restore drill",
+    "existing_evidence": "Original research registry evidence: PR#7 disposable dump/restore only. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Use domain invariant suite after restore",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DR-001",
+    "area": "backup restore and disaster recovery",
+    "title": "Schema and binary compatibility",
+    "workflow": "Select backup schema/version → apply tested recovery steps",
+    "acceptance": "Target version supports data/functions and migration path is explicit",
+    "negative_cases": "Restoring stale schema with newest app assuming compatibility",
+    "dependencies": "external encrypted storage and restore drill",
+    "existing_evidence": "Original research registry evidence: PR#7 disposable dump/restore only. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Versioned restore manifest and migration rehearsal",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DR-001",
+    "area": "backup restore and disaster recovery",
+    "title": "Recovery objectives measurement",
+    "workflow": "Measure restore duration/data loss on synthetic workload",
+    "acceptance": "Observed RTO/RPO reported with dataset/environment, no unmeasured guarantee",
+    "negative_cases": "303-site scale or zero-loss claim without timing proof",
+    "dependencies": "external encrypted storage and restore drill",
+    "existing_evidence": "Original research registry evidence: PR#7 disposable dump/restore only. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Set objectives only from owner policy and measured capacity",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DR-001",
+    "area": "backup restore and disaster recovery",
+    "title": "Restore permissions and secrets",
+    "workflow": "Restore grants/secrets references → verify scopes/revocations",
+    "acceptance": "Restored permissions do not resurrect revoked users or leak credentials",
+    "negative_cases": "Old backup restoring expired access as active",
+    "dependencies": "external encrypted storage and restore drill",
+    "existing_evidence": "Original research registry evidence: PR#7 disposable dump/restore only. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Fresh authorization reconciliation before any cutover",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DR-001",
+    "area": "backup restore and disaster recovery",
+    "title": "Retention and legal hold",
+    "workflow": "Apply backup lifecycle → preserve held evidence → prune approved copies",
+    "acceptance": "Deletion policy respects legal hold and keeps required restore generations",
+    "negative_cases": "Purge job deleting sole valid copy or held payroll history",
+    "dependencies": "external encrypted storage and restore drill",
+    "existing_evidence": "Original research registry evidence: PR#7 disposable dump/restore only. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Retention policy separately governed, not guessed statutory rates",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DR-001",
+    "area": "backup restore and disaster recovery",
+    "title": "Cutover and rollback",
+    "workflow": "Review successful drill → authorize cutover → verify smoke/rollback",
+    "acceptance": "Production restore/cutover requires independent approval and recoverable rollback evidence",
+    "negative_cases": "Automatic cutover from mere upload success",
+    "dependencies": "external encrypted storage and restore drill",
+    "existing_evidence": "Original research registry evidence: PR#7 disposable dump/restore only. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Production action remains release-gated",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/strategy/UNIFIED_ARCHITECTURE_DECISIONS.md",
+      "docs/strategy/FREE_FIRST_COST_LICENSE_AND_LIMITS.md"
+    ],
+    "scope_class": "release-gated"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Capability descriptor registration",
+    "workflow": "Owner describes supported need → resolve canonical capability → save inert descriptor",
+    "acceptance": "Descriptor references typed schema/dependencies and cannot execute code by itself",
+    "negative_cases": "SQL/JavaScript eval, duplicated permission or stock engine",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Extend A045 registry with certified typed handlers",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Handler readiness classification",
+    "workflow": "Resolve requested operation → classify available/build-needed/advisory/blocked/gated",
+    "acceptance": "CONFIGURABLE_NOW requires installed tested handler; unsupported intent returns blueprint",
+    "negative_cases": "Natural language falsely treated as arbitrary executable feature",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "A052 five advisory capabilities are not universal operational support",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Immutable engine versions",
+    "workflow": "Draft parameters/schema → validate → save hashed version",
+    "acceptance": "Published version immutable and source/report dependencies pinned",
+    "negative_cases": "Editing published threshold silently changing past outcomes",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Use A045 immutable version/receipt service",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Typed parameter validation",
+    "workflow": "Edit threshold/units/conditions → validate schema and ranges",
+    "acceptance": "Unsupported field/operator or incompatible unit fails before publication",
+    "negative_cases": "1% versus1.00 multiplier confusion, arbitrary expression injection",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Certified domain validators, not generic code execution",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Before/after impact preview",
+    "workflow": "Select proposed version/context → compute isolated preview",
+    "acceptance": "Preview shows existing/proposed result, uncertainty, affected modules/reports and no operational write",
+    "negative_cases": "Preview mutating real stock/journal/payroll",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Certified preview inputs and lineage contract",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Certification evidence",
+    "workflow": "Build handler → positive/negative/concurrency/tenant tests → register certification",
+    "acceptance": "Registry binds handler version/hash to exact tests/environment and invariant boundaries",
+    "negative_cases": "Handler labelled certified from docs or synthetic screenshot alone",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Engineering completion precedes availability advertisement",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Multi-business publication",
+    "workflow": "Publish one engine version to authorized businesses with params",
+    "acceptance": "Businesses reference one canonical descriptor with independently effective parameters",
+    "negative_cases": "Copying engine/audit/grants into module-local settings",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Reuse A045 assignment/projection contract",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Site overrides and inheritance",
+    "workflow": "Set tenant/business defaults → site override → resolve effective value",
+    "acceptance": "Effective hierarchy is explicit, versioned and deny/invariant precedence preserved",
+    "negative_cases": "Site override enabling protected invariant bypass",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Certify supported override types rather than arbitrary hierarchy edits",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Placement and discoverability",
+    "workflow": "Assign Central/Business/Both/Hidden → inspect both projections",
+    "acceptance": "Same engine/control ID and audit appear in correct surfaces; owner can still search hidden",
+    "negative_cases": "Menu relocation changing data/action authority",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Connect A044/A045 shared projections",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Delegated configuration change",
+    "workflow": "Delegate eligible parameter edit or request-approval → review",
+    "acceptance": "Business user edits only allowed fields/scope; protected fields remain locked",
+    "negative_cases": "Delegated editor publishing operational handler or approving self",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Resolve canonical grants before every config mutation",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Approval-bound publication",
+    "workflow": "Validate proposal → independent approval where required → publish exact payload",
+    "acceptance": "Published fingerprint matches approved config and stale approval is rejected",
+    "negative_cases": "Parameters altered after approval",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Unify engine lifecycle with GOV-002 typed approval",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Pause, revoke and withdrawal",
+    "workflow": "Pause/revoke one assignment → evaluate affected businesses",
+    "acceptance": "Target assignment stops effective use while unrelated businesses remain unchanged",
+    "negative_cases": "One revoke deleting global engine or rewriting posted history",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Keep config lifecycle separate from historical domain events",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Configuration-only rollback",
+    "workflow": "Choose prior validated config version → preview → apply authorized rollback",
+    "acceptance": "Rollback changes future configuration only and records source/target version; no undo of posted transactions",
+    "negative_cases": "Rollback deleting stock movements or frozen payroll",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Operational corrections use domain reversals",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Natural-language clarification",
+    "workflow": "Capture Bangla/English intent with real context → resolve missing facts",
+    "acceptance": "Only necessary missing facts asked; interpretation/units/scope shown before save",
+    "negative_cases": "Keyword parser silently choosing legal rate or business scope",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Extend deterministic/AI parsing with constrained typed output",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Unsupported capability blueprint",
+    "workflow": "Classify NEEDS_HANDLER_BUILD → generate source/schema/API/test plan",
+    "acceptance": "Blueprint identifies canonical dependencies, owner scope and missing handlers without claiming runtime success",
+    "negative_cases": "Blueprint creating new shadow ledger or activation",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Track blueprint as planned specification until engineering completes",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-RULE-001",
+    "area": "certified rule handler and contextual guidance",
+    "title": "Contextual guidance and report destinations",
+    "workflow": "Publish certified handler → attach action help/formula/report links",
+    "acceptance": "Every supported action explains what changes, what does not, approval and resulting source/report",
+    "negative_cases": "Report link to nonexistent handler, generic help implying payment",
+    "dependencies": "A044/A045 and Claude parity",
+    "existing_evidence": "Original research registry evidence: PR#42 A045 one advisory handler; A052 Claude reserved. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Guidance version travels with handler and rendered workspace",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/enterprise-sql/c10_a045_micro_engine_v1.sql",
+      "internal/enterprise-sql/c10_a052_intent_rpc_v1.sql",
+      "docs/strategy/PREVIEW_ONE_COMPLETION.md"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DEMO-001",
+    "area": "deterministic synthetic demo factory",
+    "title": "Deterministic seed identity",
+    "workflow": "Generate synthetic tenant/business/site fixtures with fixed seed",
+    "acceptance": "Same seed/version yields byte-identical IDs and provenance hash",
+    "negative_cases": "Random drift making test results incomparable",
+    "dependencies": "A046 manifest and A048/A049 contracts",
+    "existing_evidence": "Original research registry evidence: Issue#68 Codex namespace. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Extend existing deterministic factory, no real identity import",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/demo-factory/index.js",
+      "tests/demo-factory/core10-global-demo-factory.test.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DEMO-001",
+    "area": "deterministic synthetic demo factory",
+    "title": "Canonical persona reuse",
+    "workflow": "Reference16 A046 personas → map memberships and negative actors",
+    "acceptance": "Tests reuse canonical persona keys without creating fake live users",
+    "negative_cases": "Demo selector represented as real authentication",
+    "dependencies": "A046 manifest and A048/A049 contracts",
+    "existing_evidence": "Original research registry evidence: Issue#68 Codex namespace. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Alias fixture identities to A018/A046 records explicitly",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/demo-factory/index.js",
+      "tests/demo-factory/core10-global-demo-factory.test.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DEMO-001",
+    "area": "deterministic synthetic demo factory",
+    "title": "Two-tenant isolation fixture",
+    "workflow": "Populate both tenants with overlapping names/codes → run scopes",
+    "acceptance": "Negative reads/writes exclude other tenant despite identical labels",
+    "negative_cases": "Name-based authorization or operator implicit access",
+    "dependencies": "A046 manifest and A048/A049 contracts",
+    "existing_evidence": "Original research registry evidence: Issue#68 Codex namespace. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Expand domain-specific foreign-scope cases",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/demo-factory/index.js",
+      "tests/demo-factory/core10-global-demo-factory.test.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DEMO-001",
+    "area": "deterministic synthetic demo factory",
+    "title": "Six-business and303-site structure",
+    "workflow": "Generate hierarchy → verify parent links and site counts",
+    "acceptance": "Two tenants/six businesses/303 structural sites remain distinct from four functional test sites",
+    "negative_cases": "Scale target represented as measured production capacity",
+    "dependencies": "A046 manifest and A048/A049 contracts",
+    "existing_evidence": "Original research registry evidence: Issue#68 Codex namespace. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Keep structural fixture versus load benchmark evidence separate",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/demo-factory/index.js",
+      "tests/demo-factory/core10-global-demo-factory.test.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DEMO-001",
+    "area": "deterministic synthetic demo factory",
+    "title": "Golden source-document chain",
+    "workflow": "Seed requisition/PO/receipt/transfer/production/sale/return/settlements",
+    "acceptance": "Every expected event has upstream/downstream source IDs and no unrelated duplicate entity",
+    "negative_cases": "Disconnected mock totals described as integrated transaction proof",
+    "dependencies": "A046 manifest and A048/A049 contracts",
+    "existing_evidence": "Original research registry evidence: Issue#68 Codex namespace. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Real RPC integration tests execute separately from expected fixtures",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/demo-factory/index.js",
+      "tests/demo-factory/core10-global-demo-factory.test.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DEMO-001",
+    "area": "deterministic synthetic demo factory",
+    "title": "Expected inventory conservation",
+    "workflow": "Compute sample receipt/issue/transfer/return outcomes",
+    "acceptance": "Transfer revenue0 and stock conservation are asserted from explicit quantities/UOM",
+    "negative_cases": "Negative stock or transfer inflating sales",
+    "dependencies": "A046 manifest and A048/A049 contracts",
+    "existing_evidence": "Original research registry evidence: Issue#68 Codex namespace. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Extend actual inventory/valuation tests when handlers exist",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/demo-factory/index.js",
+      "tests/demo-factory/core10-global-demo-factory.test.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DEMO-001",
+    "area": "deterministic synthetic demo factory",
+    "title": "Balanced journal expectations",
+    "workflow": "Generate11 expected journals → check DR=CR and source lineage",
+    "acceptance": "Expected math balances by source/currency and is labelled non-posting fixture",
+    "negative_cases": "Balanced sample mistaken for installed accounting engine",
+    "dependencies": "A046 manifest and A048/A049 contracts",
+    "existing_evidence": "Original research registry evidence: Issue#68 Codex namespace. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Certified journal/COGS implementation remains separate work",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/demo-factory/index.js",
+      "tests/demo-factory/core10-global-demo-factory.test.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DEMO-001",
+    "area": "deterministic synthetic demo factory",
+    "title": "Negative-case matrix",
+    "workflow": "Generate revoked/foreign/stale/replay/missing-cost/closed-period cases",
+    "acceptance": "Each negative names actor/input/expected denial and target invariant",
+    "negative_cases": "Passing only happy-path UI screenshots",
+    "dependencies": "A046 manifest and A048/A049 contracts",
+    "existing_evidence": "Original research registry evidence: Issue#68 Codex namespace. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Add module-specific rejection cases as detailed build proceeds",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/demo-factory/index.js",
+      "tests/demo-factory/core10-global-demo-factory.test.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DEMO-001",
+    "area": "deterministic synthetic demo factory",
+    "title": "Fixture provenance and hashes",
+    "workflow": "Build fixture → record generator/schema/seed/source hashes",
+    "acceptance": "Changed source or expected data changes manifest and fails stale artifact check",
+    "negative_cases": "Hand-edited fixture silently accepted",
+    "dependencies": "A046 manifest and A048/A049 contracts",
+    "existing_evidence": "Original research registry evidence: Issue#68 Codex namespace. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Machine-check generated artifacts before PR acceptance",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/demo-factory/index.js",
+      "tests/demo-factory/core10-global-demo-factory.test.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DEMO-001",
+    "area": "deterministic synthetic demo factory",
+    "title": "Synthetic realism and privacy",
+    "workflow": "Use realistic invented quantities/roles with example identifiers",
+    "acceptance": "Data is clearly synthetic, no real staff/contact/account/stock imported",
+    "negative_cases": "Real-looking personal contact copied from operational systems",
+    "dependencies": "A046 manifest and A048/A049 contracts",
+    "existing_evidence": "Original research registry evidence: Issue#68 Codex namespace. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Use example.test and inert test-only identities",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/demo-factory/index.js",
+      "tests/demo-factory/core10-global-demo-factory.test.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DEMO-001",
+    "area": "deterministic synthetic demo factory",
+    "title": "Reset and retry isolation",
+    "workflow": "Create disposable database → run workflow → cleanup owned database",
+    "acceptance": "Each suite independent, repeatable and cannot target production host/name",
+    "negative_cases": "Cleanup deleting shared database; prior test contamination",
+    "dependencies": "A046 manifest and A048/A049 contracts",
+    "existing_evidence": "Original research registry evidence: Issue#68 Codex namespace. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Keep loopback/name/explicit-ack guards and owned-resource tracking",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/demo-factory/index.js",
+      "tests/demo-factory/core10-global-demo-factory.test.js"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "capability_id": "C10-CAP-DEMO-001",
+    "area": "deterministic synthetic demo factory",
+    "title": "Evidence truth labels",
+    "workflow": "Run Node/SQL/HMAC/browser/GoTrue checks → record each separately",
+    "acceptance": "Fixture expected math, real disposable RPC and real signed staging statuses never conflated",
+    "negative_cases": "HMAC JWT called GoTrue, queued CI labelled pass",
+    "dependencies": "A046 manifest and A048/A049 contracts",
+    "existing_evidence": "Original research registry evidence: Issue#68 Codex namespace. Detailed atomic acceptance below remains un-certified; later preview integration does not certify every planned feature.",
+    "gap": "Attach exact source SHA/environment/result to module acceptance",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "internal/demo-factory/index.js",
+      "tests/demo-factory/core10-global-demo-factory.test.js"
+    ],
+    "scope_class": "existing-mandate"
+  }
+]
