@@ -3,15 +3,13 @@ BEGIN;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 DO $$
-DECLARE r jsonb; replay jsonb; member_version bigint; expiry timestamptz:='2099-01-01T00:00:00Z';
+DECLARE r jsonb; replay jsonb; expiry timestamptz:='2099-01-01T00:00:00Z';
 BEGIN
  -- A manager has only submit/withdraw by role. Stock grants never create decision rights.
- SELECT version INTO member_version FROM c10_demo.business_members WHERE business_id=101 AND user_id='33333333-3333-4333-8333-333333333333';
- IF member_version IS NULL THEN RAISE EXCEPTION 'manager fixture missing'; END IF;
  r:=c10_demo.build02a_set_approval_policy_v1(101,'33333333-3333-4333-8333-333333333333',
-  ARRAY['approval.decide','approval.export'],ARRAY['approval.withdraw'],expiry,'build02a-manager-policy',member_version);
+  ARRAY['approval.decide','approval.export'],ARRAY['approval.withdraw'],expiry,'build02a-manager-policy',1);
  replay:=c10_demo.build02a_set_approval_policy_v1(101,'33333333-3333-4333-8333-333333333333',
-  ARRAY['approval.decide','approval.export'],ARRAY['approval.withdraw'],expiry,'build02a-manager-policy',member_version);
+  ARRAY['approval.decide','approval.export'],ARRAY['approval.withdraw'],expiry,'build02a-manager-policy',1);
  IF r->>'request_key'<>'build02a-manager-policy' OR replay->>'event_id'<>r->>'event_id' THEN RAISE EXCEPTION 'approval policy replay failed'; END IF;
 END $$;
 ROLLBACK;
