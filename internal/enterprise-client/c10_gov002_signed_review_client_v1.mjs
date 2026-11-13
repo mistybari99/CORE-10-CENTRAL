@@ -30,7 +30,8 @@ const VIEWS = Object.freeze({
 });
 function positiveId(v) {
  if (typeof v === "number" && Number.isSafeInteger(v) && v>0) return v;
- if (typeof v === "string" && /^[1-9][0-9]{0,18}$/u.test(v)) return v;
+ if (typeof v === "string" && /^[1-9][0-9]{0,18}$/u.test(v) &&
+     BigInt(v) <= 9223372036854775807n) return v;
  throw new Error("invalid_positive_id");
 }
 function businessId(v) {
