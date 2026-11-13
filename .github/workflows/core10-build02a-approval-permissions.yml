@@ -1,0 +1,33 @@
+name: CORE10 Build 02A canonical approval permissions
+on:
+  push:
+    branches: ['codex/build-02a-*']
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_build02a_approval_permissions_v1.sql'
+      - 'tests/build02a/**'
+      - '.github/workflows/core10-build02a-approval-permissions.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  approval-permissions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: build02a_disposable_only
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: build02a_disposable_only
+      CORE10_BUILD02A_DISPOSABLE_ACK: I_CONFIRM_BUILD02A_DISPOSABLE
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: bash tests/build02a/run-sql.sh
