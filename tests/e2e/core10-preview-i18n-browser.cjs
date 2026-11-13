@@ -38,14 +38,24 @@ const {chromium}=require("playwright");
           await row.locator('[data-receive="DEMO-FLR"]').click();
           assert.match(await page.locator("tr").filter({hasText:"ডেমো ময়দা"}).innerText(),/53 kg/);
         }else{
-          assert.match(await page.locator("h1").innerText(),/Business Setup ও Approval-এর Access/);
+          assert.match(await page.locator("h1").innerText(),/বিজনেস সেটআপ ও অ্যাপ্রুভালের অ্যাক্সেস/);
           assert.match(await page.locator(".notice").innerText(),/A046-এর বানানো ডেমো ইউজার/);
-          assert.match(await page.locator(".first-use").innerText(),/Approval \(অনুমোদনের ধাপ\)/);
+          assert.match(await page.locator(".first-use").innerText(),/অ্যাপ্রুভাল \(অনুমোদনের ধাপ\)/);
           await page.locator("#resolve").click();
           assert.match(await page.locator("#decision").innerText(),/অনুমতি আছে/);
           await page.locator("#actor").selectOption("revoked");
           await page.locator("#resolve").click();
           assert.match(await page.locator("#decision").innerText(),/অনুমতি নেই/);
+        }
+        await page.locator("#c10-language").selectOption("bn-BD-mixed");
+        assert.equal(await page.locator("#c10-language").inputValue(),"bn-BD-mixed");
+        assert.equal(await page.evaluate(()=>window.C10I18N.getLocale()),"bn-BD-mixed");
+        assert.equal(await page.locator("html").getAttribute("lang"),"bn-BD");
+        if(path==="/"){
+          assert.match(await page.locator("#screen").innerText(),/Stock-এর কাজের Demo/);
+        }else{
+          assert.match(await page.locator("h1").innerText(),/Business Setup ও Approval-এর Access/);
+          assert.match(await page.locator(".first-use").innerText(),/Approval \(অনুমোদনের ধাপ\)/);
         }
         await page.locator("#c10-language").selectOption("en");
         assert.equal(await page.locator('label[for="c10-language"] span').innerText(),"Language");
@@ -67,7 +77,7 @@ const {chromium}=require("playwright");
         assert.deepEqual(bad,[],path+" unexpected requests "+bad.join("; "));
         assert.deepEqual(errors,[],path+" JS errors "+errors.join("; "));
         await page.close();
-        console.log("PASS C10-A064 "+path+" "+width+"px · bn default, en toggle, interaction, zero network/write");
+        console.log("PASS C10-A064 "+path+" "+width+"px · three language modes, interaction, zero network/write");
       }
     }
     console.log("PASS C10-A064 all local-only 390/1440 browser checks");
