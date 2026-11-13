@@ -1,0 +1,90 @@
+{
+ "M01@1.0.0": {
+  "formulaHash": "c783fae431c9b69076130858db5e2e9053a2ea8d5bb1da4e86aa5f763e54ec0d",
+  "status": "implemented_tested"
+ },
+ "M01@2.0.0": {
+  "formulaHash": "1926f186371c7dba10b296e3ec4b264018c31f2ac1e1cab3ad83237e955a8ea0",
+  "status": "implemented_tested"
+ },
+ "M02@1.0.0": {
+  "formulaHash": "0bc4cc55ad252e304a83b5a76c2b7d5cd9dae75bfc2cee3eb3f345277e2c81fa",
+  "status": "implemented_tested"
+ },
+ "M03@1.0.0": {
+  "formulaHash": "df926ec4758bbe7b3d90c7921dd658db224a7e21376ec3fd01eea676f33bb33b",
+  "status": "implemented_tested"
+ },
+ "M04@1.0.0": {
+  "formulaHash": "69a5b02e1f8986ab192cee66a927d8968139b882113e6d628a1c4551d4a78fec",
+  "status": "implemented_tested"
+ },
+ "M05@1.0.0": {
+  "formulaHash": "6c0056afd706a2e4ae32ab25c77bf9914a9596eca8f69c8c2b7b9404a20cd02e",
+  "status": "implemented_tested"
+ },
+ "M06@1.0.0": {
+  "formulaHash": "a62d1d9148ee900b8068ba2623d34cc1326841241317a1ff5c23ae5412859ac2",
+  "status": "implemented_tested"
+ },
+ "M07@1.0.0": {
+  "formulaHash": "e9419971ea49f36a7e3a6295d8c621fb763cdfd2ce9c5457cb9a210e89f050ae",
+  "status": "implemented_tested"
+ },
+ "M08@1.0.0": {
+  "formulaHash": "7501e40cb2a46ae0e9407eb81beb7d11f777f5506f7a0f8e1f12b96b8a6143ff",
+  "status": "implemented_tested"
+ },
+ "M09@1.0.0": {
+  "formulaHash": "ce2acd8eb8afaf9416ab53dda07988147bee625d7c26123121d1d5acbb0326ea",
+  "status": "implemented_tested"
+ },
+ "M10@1.0.0": {
+  "formulaHash": "59c4cb538ebce93f6e8f727ba4cbb15916dbe3fb2cfb7ef9040072d13130023e",
+  "status": "implemented_tested"
+ },
+ "M11@1.0.0": {
+  "formulaHash": "b24628d05143dd09d7205915f9a55fda721a00fd8c0b9aa512e93f1c8edea372",
+  "status": "implemented_tested"
+ },
+ "M12@1.0.0": {
+  "formulaHash": "10723799c8543c5da6806c3da052289cc6f558c3c04d108fea61ba2eb314b480",
+  "status": "implemented_tested"
+ },
+ "M13@1.0.0": {
+  "formulaHash": "03bd98a6619e06a728b8138092ba749ec094514cd12671acd8c3396fc826e6f3",
+  "status": "implemented_tested"
+ },
+ "M14@1.0.0": {
+  "formulaHash": "c335a95d15e08040cc2a0c1f1872c39fa2be16d3995b6342a3363e7d1b8115ca",
+  "status": "implemented_tested"
+ },
+ "M15@1.0.0": {
+  "formulaHash": "cafbeb85ab04002fe9e3f9d7c10604dbb7698fba7e7ab640321f95cfe4ed02de",
+  "status": "implemented_tested"
+ },
+ "M16@1.0.0": {
+  "formulaHash": "cd4001f5cb771fc18eb8e763afd87581af0dee7442b935666e4c66fd211e6838",
+  "status": "implemented_tested"
+ },
+ "M17@1.0.0": {
+  "formulaHash": "998aedad98d8c5ab4e72fd3efb44be34c10807c5bdc7c2ef1723351f814cdee8",
+  "status": "implemented_tested"
+ },
+ "M18@1.0.0": {
+  "formulaHash": "28c91232122ce21427bb0206223419ebb452b0e320734f0bdbac840b878f7067",
+  "status": "partial"
+ },
+ "M19@1.0.0": {
+  "formulaHash": "49dd3363de82344f1d3f10a8b60535ce73ad020bab199c3ddcb7ca047543052b",
+  "status": "implemented_tested"
+ },
+ "M20@1.0.0": {
+  "formulaHash": "193fe32c24f8ea149be9ab90746a2d16fda07006fd651c458e6f1b54ab2928d7",
+  "status": "implemented_tested"
+ },
+ "X01@0.0.0": {
+  "formulaHash": null,
+  "status": "research_only"
+ }
+}

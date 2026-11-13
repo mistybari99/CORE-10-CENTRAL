@@ -1,0 +1,4 @@
+bench-result.json
+pg-bench-result.json
+artifacts/
+db-scale-result.json

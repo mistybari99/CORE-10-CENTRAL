@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>C10-A025 Quick Simulation harness — isolated draft</title>
+<link rel="stylesheet" href="ui.css">
+</head>
+<body>
+<div class="wrap">
+  <h1 id="app-title">Quick Simulation — integration harness</h1>
+  <div class="banner" id="banner-draft" role="note"></div>
+  <p class="small" id="harness-note">Isolated harness: pretend host screens. No live ERP screen is modified. The Quick panel calls the same registry/kernel as the Lab.</p>
+  <div class="bar">
+    <div><label for="lang">Language</label><select id="lang"><option value="en">English</option><option value="bn">বাংলা</option></select></div>
+    <div><label for="persona">Signed in as</label><select id="persona"></select></div>
+    <div><label for="business">Business</label><select id="business"></select></div>
+    <div><label for="host">Pretend host screen (mock)</label><select id="host"></select></div>
+  </div>
+  <p id="no-access" class="banner err" hidden role="alert"></p>
+  <section class="card" id="host-screen" aria-labelledby="host-title"><h2 id="host-title"></h2><p id="host-body" class="small"></p><div class="row"><button type="button" id="quick-open" class="primary"></button><span id="quick-unavailable" class="small" role="status"></span></div></section>
+</div>
+<div class="quickpanel" id="quick-panel" hidden role="presentation">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="quick-title" id="quick-sheet">
+    <div class="row" style="justify-content:space-between"><h2 id="quick-title"></h2><button type="button" id="quick-close"></button></div>
+    <p class="help" id="quick-help"></p>
+    <div class="qbody" id="quick-body">
+      <form id="quick-form" novalidate onsubmit="return false"></form>
+      <div id="quick-error" class="banner err" role="alert" hidden></div>
+      <div id="quick-results" aria-live="polite"></div>
+    </div>
+    <div class="row actions"><button type="button" id="quick-run" class="primary"></button><a id="quick-lab" href="lab.html"></a></div>
+  </div>
+</div>
+<script src="../dist/c10-sim.bundle.js"></script>
+<script src="../dist/c10-sim-examples.js"></script>
+<script src="ui.js"></script>
+<script src="quick.js"></script>
+</body>
+</html>

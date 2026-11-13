@@ -1,0 +1,1434 @@
+[
+ {
+  "adverse": false,
+  "expect": {
+   "contribution_per_unit": "26.84",
+   "effective_unit_cost": "63.16",
+   "margin_on_revenue_pct": "29.8246",
+   "markup_on_cost_pct": "42.5000",
+   "max_discount_before_loss_pct": "36.8421",
+   "net_price": "90.00",
+   "total_contribution": "5368.42"
+  },
+  "id": "M01-base-v1",
+  "inputs": {
+   "discount_pct": "10",
+   "selling_price": "100",
+   "unit_cost": "60",
+   "units": "200",
+   "waste_pct": "5"
+  },
+  "model": "M01",
+  "note": "",
+  "version": "1.0.0"
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "contribution_per_unit": "-13.89",
+   "effective_unit_cost": "88.89",
+   "margin_on_revenue_pct": "-18.5185",
+   "markup_on_cost_pct": "-15.6250",
+   "max_discount_before_loss_pct": "11.1111",
+   "net_price": "75.00",
+   "total_contribution": "-13.89"
+  },
+  "id": "M01-loss-v1",
+  "inputs": {
+   "discount_pct": "25",
+   "selling_price": "100",
+   "unit_cost": "80",
+   "waste_pct": "10"
+  },
+  "model": "M01",
+  "note": "discount pushes price below cost",
+  "version": "1.0.0"
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "contribution_per_unit": "16.04",
+   "effective_unit_cost": "63.16",
+   "margin_on_revenue_pct": "17.8246",
+   "markup_on_cost_pct": "25.4000",
+   "max_discount_before_loss_pct": "28.2297",
+   "net_price": "90.00",
+   "total_contribution": "802.11"
+  },
+  "id": "M01-fee-v2",
+  "inputs": {
+   "channel_fee_pct": "12",
+   "discount_pct": "10",
+   "selling_price": "100",
+   "unit_cost": "60",
+   "units": "50",
+   "waste_pct": "5"
+  },
+  "model": "M01",
+  "note": "",
+  "version": "2.0.0"
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "contribution_per_unit": "-5.00",
+   "effective_unit_cost": "75.00",
+   "margin_on_revenue_pct": "-5.0000",
+   "markup_on_cost_pct": "-6.6667",
+   "max_discount_before_loss_pct": "-7.1429",
+   "net_price": "100.00",
+   "total_contribution": "-5.00"
+  },
+  "id": "M01-fee-loss-v2",
+  "inputs": {
+   "channel_fee_pct": "30",
+   "selling_price": "100",
+   "unit_cost": "75"
+  },
+  "model": "M01",
+  "note": "",
+  "version": "2.0.0"
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "break_even_revenue": "400000.00",
+   "break_even_units": "4000.0000",
+   "break_even_units_rounded_up": "4000",
+   "contribution_per_unit": "40.00"
+  },
+  "id": "M02-base",
+  "inputs": {
+   "fixed_costs": "120000",
+   "target_profit": "40000",
+   "unit_price": "100",
+   "variable_cost_per_unit": "60"
+  },
+  "model": "M02",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "break_even_revenue": null,
+   "break_even_units": null,
+   "contribution_per_unit": "-5.00"
+  },
+  "id": "M02-infeasible",
+  "inputs": {
+   "fixed_costs": "120000",
+   "unit_price": "55",
+   "variable_cost_per_unit": "60"
+  },
+  "model": "M02",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "gross_profit": "200000.00",
+   "net_profit": "52000.00",
+   "operating_cash_estimate": "50000.00",
+   "operating_profit": "70000.00",
+   "profit_before_tax": "65000.00",
+   "tax_amount": "13000.00"
+  },
+  "id": "M03-verified-tax",
+  "inputs": {
+   "change_in_inventory": "10000",
+   "change_in_payables": "15000",
+   "change_in_receivables": "30000",
+   "cogs": "300000",
+   "depreciation": "10000",
+   "interest_expense": "5000",
+   "operating_expenses": "120000",
+   "revenue": "500000",
+   "tax_config_verified": true,
+   "tax_rate_pct": "20"
+  },
+  "model": "M03",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "gross_profit": "20000.00",
+   "net_profit": null,
+   "operating_cash_estimate": null,
+   "operating_profit": "-20000.00",
+   "profit_before_tax": "-22000.00",
+   "tax_amount": null
+  },
+  "id": "M03-loss-no-tax-config",
+  "inputs": {
+   "cogs": "80000",
+   "interest_expense": "2000",
+   "operating_expenses": "40000",
+   "revenue": "100000",
+   "tax_config_verified": false,
+   "tax_rate_pct": "20"
+  },
+  "model": "M03",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "closing_cash": "10000.00",
+   "first_month_below_zero": "1",
+   "minimum_closing_cash": "-150000.00",
+   "months_below_buffer": "6",
+   "profitable_months_with_negative_cash": "2",
+   "receivables_outstanding_end": "200000.00"
+  },
+  "id": "M04-profit-negative-cash",
+  "inputs": {
+   "collection_lag_months": 2,
+   "minimum_cash_buffer": "20000",
+   "monthly_capex": [
+    "80000",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0"
+   ],
+   "monthly_loan_interest": [
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0"
+   ],
+   "monthly_loan_principal": [
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0"
+   ],
+   "monthly_operating_cost": [
+    "60000",
+    "60000",
+    "60000",
+    "60000",
+    "60000",
+    "60000"
+   ],
+   "monthly_revenue": [
+    "100000",
+    "100000",
+    "100000",
+    "100000",
+    "100000",
+    "100000"
+   ],
+   "opening_cash": "50000"
+  },
+  "model": "M04",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "closing_cash": "364000.00",
+   "first_month_below_zero": null,
+   "minimum_closing_cash": "200000.00",
+   "months_below_buffer": "0",
+   "profitable_months_with_negative_cash": "0",
+   "receivables_outstanding_end": "0.00"
+  },
+  "id": "M04-healthy",
+  "inputs": {
+   "monthly_financing_inflow": [
+    "0",
+    "50000",
+    "0"
+   ],
+   "monthly_operating_cost": [
+    "70000",
+    "72000",
+    "74000"
+   ],
+   "monthly_revenue": [
+    "100000",
+    "110000",
+    "120000"
+   ],
+   "opening_cash": "200000"
+  },
+  "model": "M04",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "annual_carrying_cost_of_safety_stock": "300.00",
+   "days_of_cover": "5.0000",
+   "economic_order_qty": "540.3702",
+   "reorder_point": "170.0000"
+  },
+  "id": "M05-base",
+  "inputs": {
+   "annual_carrying_rate_pct": "20",
+   "annual_demand": "7300",
+   "daily_demand": "20",
+   "lead_time_days": 7,
+   "on_hand_qty": "100",
+   "order_cost": "200",
+   "safety_stock_qty": "30",
+   "unit_cost": "50"
+  },
+  "model": "M05",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "days_of_cover": "3.3803",
+   "reorder_point": "497.0000"
+  },
+  "id": "M05-stockout",
+  "inputs": {
+   "daily_demand": "35.5",
+   "lead_time_days": 14,
+   "on_hand_qty": "120",
+   "safety_stock_qty": "0"
+  },
+  "model": "M05",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "best_offer": "A",
+   "offers[0].effective_total": "9708.00",
+   "offers[0].landed_total": "9900.00",
+   "offers[0].packs": "2",
+   "offers[1].effective_total": "11000.00",
+   "offers[1].landed_total": "11000.00",
+   "offers[1].packs": "100"
+  },
+  "id": "M06-early-discount",
+  "inputs": {
+   "base_unit": "kg",
+   "cost_of_capital_pct": "10",
+   "offers": [
+    {
+     "early_pay_days": 10,
+     "early_pay_discount_pct": "2",
+     "name": "A",
+     "pack_size": "50",
+     "pack_unit": "kg",
+     "payment_days": 30,
+     "price_per_pack": "4800",
+     "transport_total": "300"
+    },
+    {
+     "name": "B",
+     "pack_size": "1",
+     "pack_unit": "kg",
+     "price_per_pack": "110"
+    }
+   ],
+   "required_qty": "100"
+  },
+  "model": "M06",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "best_offer": "Bag",
+   "offers[0].effective_total": "17100.00",
+   "offers[0].landed_total": "17100.00",
+   "offers[0].packs": "2",
+   "offers[1].effective_total": "12500.00",
+   "offers[1].landed_total": "12500.00",
+   "offers[1].packs": "5"
+  },
+  "id": "M06-overbuy-volume",
+  "inputs": {
+   "base_unit": "kg",
+   "offers": [
+    {
+     "discount_pct": "5",
+     "min_discount_qty": "200",
+     "name": "Drum",
+     "pack_size": "100",
+     "pack_unit": "kg",
+     "price_per_pack": "9000"
+    },
+    {
+     "name": "Bag",
+     "pack_size": "25",
+     "pack_unit": "kg",
+     "price_per_pack": "2400",
+     "transport_total": "500"
+    }
+   ],
+   "required_qty": "120"
+  },
+  "model": "M06",
+  "note": "pack granularity causes overbuy; discount not reached",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "cost_per_sellable_unit": "20.2434",
+   "ingredient_cost_per_batch": "2436.73",
+   "sellable_units_per_batch": "192.0000",
+   "total_cost_per_batch": "3886.73"
+  },
+  "id": "M07-sweet-batch",
+  "inputs": {
+   "batch_output_units": "200",
+   "energy_cost_per_batch": "450",
+   "ingredients": [
+    {
+     "name": "milk",
+     "price": "90",
+     "price_unit": "l",
+     "qty": "20",
+     "qty_unit": "l",
+     "waste_pct": "2"
+    },
+    {
+     "name": "sugar",
+     "price": "120",
+     "price_unit": "kg",
+     "qty": "5000",
+     "qty_unit": "g"
+    }
+   ],
+   "labor_hours": "6",
+   "labor_rate_per_hour": "150",
+   "other_cost_per_batch": "100",
+   "spoilage_pct": "4"
+  },
+  "model": "M07",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "cost_per_sellable_unit": "10.0000",
+   "ingredient_cost_per_batch": "600.00",
+   "sellable_units_per_batch": "60.0000",
+   "total_cost_per_batch": "600.00"
+  },
+  "id": "M07-high-spoilage",
+  "inputs": {
+   "batch_output_units": "100",
+   "ingredients": [
+    {
+     "name": "flour",
+     "price": "60",
+     "price_unit": "kg",
+     "qty": "10",
+     "qty_unit": "kg"
+    }
+   ],
+   "spoilage_pct": "40"
+  },
+  "model": "M07",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "bottleneck": "packing_staff_hours",
+   "capacity_units": "600.0000",
+   "shortfall_units": "100.0000"
+  },
+  "id": "M08-bottleneck",
+  "inputs": {
+   "planned_units": "700",
+   "resources": [
+    {
+     "available": "40",
+     "name": "oven_hours",
+     "required_per_unit": "0.05"
+    },
+    {
+     "available": "120",
+     "name": "packing_staff_hours",
+     "required_per_unit": "0.2"
+    }
+   ]
+  },
+  "model": "M08",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "bottleneck": "machine",
+   "capacity_units": "400.0000",
+   "shortfall_units": "0.0000"
+  },
+  "id": "M08-ok",
+  "inputs": {
+   "planned_units": "100",
+   "resources": [
+    {
+     "available": "200",
+     "name": "machine",
+     "required_per_unit": "0.5"
+    },
+    {
+     "available": "5",
+     "name": "idle",
+     "required_per_unit": "0"
+    }
+   ]
+  },
+  "model": "M08",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "allocation[0].allocated_cost": "1500.00",
+   "allocation[1].allocated_cost": "750.00",
+   "allocation[2].allocated_cost": "450.00",
+   "best_vehicle": "truck",
+   "options[0].total_cost": "3300.00",
+   "options[1].total_cost": "2700.00"
+  },
+  "id": "M09-van-vs-truck",
+  "inputs": {
+   "destinations": [
+    {
+     "site": "A",
+     "units": "500"
+    },
+    {
+     "site": "B",
+     "units": "250"
+    },
+    {
+     "site": "C",
+     "units": "150"
+    }
+   ],
+   "units_to_move": "900",
+   "vehicles": [
+    {
+     "capacity_units": "300",
+     "cost_per_km": "20",
+     "distance_km": "30",
+     "fixed_cost_per_trip": "500",
+     "name": "van"
+    },
+    {
+     "capacity_units": "1000",
+     "cost_per_km": "40",
+     "distance_km": "30",
+     "fixed_cost_per_trip": "1500",
+     "name": "truck"
+    }
+   ]
+  },
+  "model": "M09",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "allocation[0].allocated_cost": "33.34",
+   "allocation[1].allocated_cost": "33.33",
+   "allocation[2].allocated_cost": "33.33",
+   "best_vehicle": "v",
+   "options[0].total_cost": "100.00"
+  },
+  "id": "M09-rounding-alloc",
+  "inputs": {
+   "destinations": [
+    {
+     "site": "A",
+     "units": "1"
+    },
+    {
+     "site": "B",
+     "units": "1"
+    },
+    {
+     "site": "C",
+     "units": "1"
+    }
+   ],
+   "units_to_move": "3",
+   "vehicles": [
+    {
+     "capacity_units": "10",
+     "cost_per_km": "0",
+     "distance_km": "0",
+     "fixed_cost_per_trip": "100",
+     "name": "v"
+    }
+   ]
+  },
+  "model": "M09",
+  "note": "100.00 over 3 sites must still add to 100.00",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "cash_conversion_cycle_days": "15.75",
+   "dio": "11.25",
+   "dpo": "6.75",
+   "dso": "11.25",
+   "incremental_working_capital_for_growth": "57000.00",
+   "net_working_capital": "190000.00"
+  },
+  "id": "M10-growth",
+  "inputs": {
+   "avg_inventory": "100000",
+   "avg_payables": "60000",
+   "avg_receivables": "150000",
+   "cogs": "800000",
+   "days_in_period": 90,
+   "growth_pct": "30",
+   "revenue": "1200000"
+  },
+  "model": "M10",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "cash_conversion_cycle_days": "344.72",
+   "dio": "182.50",
+   "dpo": "20.28",
+   "dso": "182.50",
+   "net_working_capital": "540000.00"
+  },
+  "id": "M10-long-credit",
+  "inputs": {
+   "avg_inventory": "270000",
+   "avg_payables": "30000",
+   "avg_receivables": "300000",
+   "cogs": "540000",
+   "revenue": "600000"
+  },
+  "model": "M10",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "discounted_payback_periods": "38.7597",
+   "net_gain_over_horizon": "250000.00",
+   "simple_payback_periods": "32.0000"
+  },
+  "id": "M11-payback",
+  "inputs": {
+   "discount_rate_per_period_pct": "1",
+   "initial_investment": "800000",
+   "net_inflows": [
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000",
+    "25000"
+   ],
+   "nonrecoverable_setup": "100000",
+   "residual_value": "50000"
+  },
+  "model": "M11",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "net_gain_over_horizon": "-680000.00",
+   "simple_payback_periods": null
+  },
+  "id": "M11-never",
+  "inputs": {
+   "initial_investment": "800000",
+   "net_inflows": [
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "10000"
+   ]
+  },
+  "model": "M11",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "irr_pct_per_period": "9.701026",
+   "irr_status": "OK",
+   "npv": "-5.26",
+   "roi_pct": "20.0000"
+  },
+  "id": "M12-single-root",
+  "inputs": {
+   "cashflows": [
+    "-1000",
+    "400",
+    "400",
+    "400"
+   ],
+   "discount_rate_pct": "10",
+   "period": "year"
+  },
+  "model": "M12",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "irr_pct_per_period": null,
+   "irr_status": "MULTIPLE_ROOTS",
+   "npv": "0.00",
+   "roi_pct": "-0.8621"
+  },
+  "id": "M12-multiple-roots",
+  "inputs": {
+   "cashflows": [
+    "-100",
+    "230",
+    "-132"
+   ],
+   "discount_rate_pct": "10",
+   "period": "year"
+  },
+  "model": "M12",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "irr_pct_per_period": null,
+   "irr_status": "NO_SIGN_CHANGE",
+   "npv": null,
+   "roi_pct": "-100.0000"
+  },
+  "id": "M12-no-sign-change",
+  "inputs": {
+   "cashflows": [
+    "-100",
+    "-50"
+   ],
+   "period": "month"
+  },
+  "model": "M12",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "irr_pct_per_period": "1.497666",
+   "irr_status": "OK",
+   "npv": "380.59",
+   "roi_pct": "10.0000"
+  },
+  "id": "M12-monthly-nominal",
+  "inputs": {
+   "cashflows": [
+    "-12000",
+    "1100",
+    "1100",
+    "1100",
+    "1100",
+    "1100",
+    "1100",
+    "1100",
+    "1100",
+    "1100",
+    "1100",
+    "1100",
+    "1100"
+   ],
+   "discount_rate_basis": "annual_nominal_for_monthly",
+   "discount_rate_pct": "12",
+   "period": "month"
+  },
+  "model": "M12",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "first_payment": "44424.39",
+   "last_payment": "44424.47",
+   "total_cost_of_credit": "38092.76",
+   "total_interest": "33092.76",
+   "upfront_fee": "5000.00"
+  },
+  "id": "M13-amortized",
+  "inputs": {
+   "annual_rate_nominal_pct": "12",
+   "method": "amortized",
+   "principal": "500000",
+   "term_months": 12,
+   "upfront_fee_pct": "1"
+  },
+  "model": "M13",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "first_payment": "15785.71",
+   "last_payment": "14500.03",
+   "total_cost_of_credit": "6000.00",
+   "total_interest": "6000.00",
+   "upfront_fee": "0.00"
+  },
+  "id": "M13-fixed-principal",
+  "inputs": {
+   "annual_rate_nominal_pct": "18",
+   "method": "fixed_principal",
+   "principal": "100000",
+   "term_months": 7
+  },
+  "model": "M13",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "first_payment": "0.00",
+   "last_payment": "250000.00",
+   "total_cost_of_credit": "0.00",
+   "total_interest": "0.00",
+   "upfront_fee": "0.00"
+  },
+  "id": "M13-bullet-zero-rate",
+  "inputs": {
+   "annual_rate_nominal_pct": "0",
+   "method": "bullet",
+   "principal": "250000",
+   "term_months": 5
+  },
+  "model": "M13",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "comparison[0].closing_cash": "1267800.00",
+   "comparison[0].minimum_cash": "1080000.00",
+   "comparison[0].paid_in_loss_months": "0.00",
+   "comparison[0].total_paid": "32200.00",
+   "comparison[1].closing_cash": "210000.00",
+   "comparison[1].minimum_cash": "210000.00",
+   "comparison[1].paid_in_loss_months": "30000.00",
+   "comparison[1].total_paid": "1090000.00",
+   "comparison[2].closing_cash": "761277.28",
+   "comparison[2].minimum_cash": "761277.28",
+   "comparison[2].paid_in_loss_months": "179574.24",
+   "comparison[2].total_paid": "538722.72",
+   "comparison[3].closing_cash": "1277000.00",
+   "comparison[3].minimum_cash": "1080000.00",
+   "comparison[3].paid_in_loss_months": "0.00",
+   "comparison[3].total_paid": "23000.00"
+  },
+  "id": "M14-four-structures",
+  "inputs": {
+   "amount_raised": "1000000",
+   "minimum_cash_buffer": "0",
+   "opening_cash": "100000",
+   "projected_monthly_profit": [
+    "-20000",
+    "30000",
+    "60000",
+    "90000",
+    "-10000",
+    "50000"
+   ],
+   "structures": [
+    {
+     "name": "PP14",
+     "profit_share_bps": "1400",
+     "type": "profit_participation"
+    },
+    {
+     "fixed_payment_pct_of_principal_per_month": "1.5",
+     "name": "Fixed",
+     "return_principal_at_end": true,
+     "type": "fixed_contractual"
+    },
+    {
+     "annual_rate_nominal_pct": "14",
+     "name": "Bank",
+     "term_months": 12,
+     "type": "bank_debt"
+    },
+    {
+     "name": "Eq",
+     "ownership_pct": "20",
+     "payout_ratio_pct": "50",
+     "type": "equity"
+    }
+   ]
+  },
+  "model": "M14",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "comparison[0].closing_cash": "438600.00",
+   "comparison[0].minimum_cash": "430000.00",
+   "comparison[0].paid_in_loss_months": "0.00",
+   "comparison[0].total_paid": "1400.00",
+   "comparison[1].closing_cash": "400000.00",
+   "comparison[1].minimum_cash": "400000.00",
+   "comparison[1].paid_in_loss_months": "30000.00",
+   "comparison[1].total_paid": "40000.00"
+  },
+  "id": "M14-loss-stress",
+  "inputs": {
+   "amount_raised": "500000",
+   "minimum_cash_buffer": "0",
+   "opening_cash": "20000",
+   "projected_monthly_profit": [
+    "-40000",
+    "-30000",
+    "-20000",
+    "10000"
+   ],
+   "structures": [
+    {
+     "name": "PP",
+     "profit_share_bps": "1400",
+     "type": "profit_participation"
+    },
+    {
+     "fixed_payment_pct_of_principal_per_month": "2",
+     "name": "Fixed",
+     "type": "fixed_contractual"
+    }
+   ]
+  },
+  "model": "M14",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "billable_value": "10500000.00",
+   "boq_cost_total": "8000000.00",
+   "estimated_margin": "2000000.00",
+   "estimated_margin_pct": "19.0476",
+   "peak_funding_gap": "6225000.00"
+  },
+  "id": "M15-delay",
+  "inputs": {
+   "approved_variation_cost": "300000",
+   "approved_variation_value": "500000",
+   "boq": [
+    {
+     "category": "material",
+     "item": "cement",
+     "qty": "1000",
+     "unit_rate": "6000"
+    },
+    {
+     "category": "labor",
+     "item": "labor",
+     "qty": "1",
+     "unit_rate": "2000000"
+    }
+   ],
+   "client_payment_lag_months": 1,
+   "contract_value": "10000000",
+   "delay_months": 2,
+   "delay_overhead_per_month": "100000",
+   "progress_pct_cumulative": [
+    "25",
+    "50",
+    "75",
+    "100"
+   ],
+   "retention_pct": "5",
+   "retention_release_month": 9,
+   "supplier_credit_months": 0,
+   "unapproved_variation_value": "200000"
+  },
+  "model": "M15",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "billable_value": "4000000.00",
+   "boq_cost_total": "3000000.00",
+   "estimated_margin": "1000000.00",
+   "estimated_margin_pct": "25.0000",
+   "peak_funding_gap": "900000.00"
+  },
+  "id": "M15-supplier-credit",
+  "inputs": {
+   "boq": [
+    {
+     "category": "material",
+     "item": "steel",
+     "qty": "100",
+     "unit_rate": "20000"
+    },
+    {
+     "category": "labor",
+     "item": "crew",
+     "qty": "1",
+     "unit_rate": "1000000"
+    }
+   ],
+   "client_payment_lag_months": 2,
+   "contract_value": "4000000",
+   "opening_cash": "100000",
+   "progress_pct_cumulative": [
+    "50",
+    "100"
+   ],
+   "retention_pct": "10",
+   "retention_release_month": 6,
+   "supplier_credit_months": 2
+  },
+  "model": "M15",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "additional_funding_needed": "10000.00",
+   "closing_cash": "2606000.00",
+   "cumulative_net_profit": "2466000.00",
+   "first_profitable_month": "1",
+   "lowest_cash": "-10000.00",
+   "lowest_cash_month": "0"
+  },
+  "id": "M16-branch-infeasible",
+  "inputs": {
+   "avg_daily_sales_at_maturity": "40000",
+   "cogs_pct": "55",
+   "fitout_capex": "900000",
+   "monthly_cost_per_staff": "18000",
+   "monthly_rent": "60000",
+   "opening_inventory_investment": "150000",
+   "refundable_deposit": "360000",
+   "staff_count": "8",
+   "startup_funding": "1400000"
+  },
+  "model": "M16",
+  "note": "setup outflows exceed funding",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "additional_funding_needed": "0.00",
+   "closing_cash": "1744898.92",
+   "cumulative_net_profit": "1421530.74",
+   "first_profitable_month": "2",
+   "lowest_cash": "190000.00",
+   "lowest_cash_month": "0"
+  },
+  "id": "M16-branch-funded-loan",
+  "inputs": {
+   "avg_daily_sales_at_maturity": "40000",
+   "cogs_pct": "55",
+   "deposit_refund_month": 12,
+   "fitout_capex": "900000",
+   "fixed_investor_payment_monthly": "8000",
+   "loan_principal": "600000",
+   "loan_rate_nominal_pct": "13",
+   "loan_term_months": 24,
+   "minimum_cash_buffer": "100000",
+   "monthly_cost_per_staff": "18000",
+   "monthly_rent": "60000",
+   "opening_inventory_investment": "150000",
+   "refundable_deposit": "360000",
+   "sales_multiplier_pct": "80",
+   "staff_count": "8",
+   "startup_funding": "1000000"
+  },
+  "model": "M16",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "additional_funding_needed": "0.00",
+   "closing_cash": "186942.00",
+   "cumulative_net_profit": "-113058.00",
+   "first_profitable_month": "8",
+   "lowest_cash": "125122.50",
+   "lowest_cash_month": "7"
+  },
+  "id": "M16-slow-ramp",
+  "inputs": {
+   "avg_daily_sales_at_maturity": "9000",
+   "cogs_pct": "62",
+   "fitout_capex": "200000",
+   "horizon_months": 12,
+   "monthly_cost_per_staff": "15000",
+   "monthly_rent": "30000",
+   "ramp_months": 9,
+   "ramp_start_pct": "30",
+   "staff_count": "3",
+   "startup_funding": "500000"
+  },
+  "model": "M16",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "mix_break_even_revenue": "542763.16",
+   "operating_profit": "2000.00",
+   "total_contribution": "152000.00",
+   "total_revenue": "550000.00",
+   "weighted_contribution_ratio_pct": "27.6364"
+  },
+  "id": "M17-mix",
+  "inputs": {
+   "fixed_costs": "150000",
+   "products": [
+    {
+     "channel_fee_pct": "10",
+     "name": "cake",
+     "price": "800",
+     "units": "300",
+     "variable_cost": "500"
+    },
+    {
+     "name": "snack",
+     "price": "50",
+     "units": "5000",
+     "variable_cost": "40"
+    },
+    {
+     "name": "drink",
+     "price": "30",
+     "units": "2000",
+     "variable_cost": "12"
+    }
+   ]
+  },
+  "model": "M17",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "operating_profit": "-8000.00",
+   "total_contribution": "-7000.00",
+   "total_revenue": "110000.00",
+   "weighted_contribution_ratio_pct": "-6.3636"
+  },
+  "id": "M17-negative-mix",
+  "inputs": {
+   "fixed_costs": "1000",
+   "products": [
+    {
+     "name": "loss_leader",
+     "price": "100",
+     "units": "1000",
+     "variable_cost": "110"
+    },
+    {
+     "name": "ok",
+     "price": "100",
+     "units": "100",
+     "variable_cost": "70"
+    }
+   ]
+  },
+  "model": "M17",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "amount_after_exclusive_charges": "1017.00",
+   "total_verified_charges": "64.62",
+   "unverified_rule_count": "1"
+  },
+  "id": "M18-verified-and-not",
+  "inputs": {
+   "base_amount": "1000",
+   "rules": [
+    {
+     "basis": "exclusive",
+     "config_verified": true,
+     "flat": "2",
+     "kind": "fee",
+     "name": "fee",
+     "rate_pct": "1.5",
+     "source_ref": "owner doc 1"
+    },
+    {
+     "basis": "inclusive",
+     "config_verified": true,
+     "kind": "tax",
+     "name": "levy-incl",
+     "rate_pct": "5",
+     "source_ref": "owner doc 2"
+    },
+    {
+     "basis": "exclusive",
+     "config_verified": true,
+     "kind": "tax",
+     "name": "no-source",
+     "rate_pct": "15"
+    }
+   ]
+  },
+  "model": "M18",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "amount_after_exclusive_charges": "255.51",
+   "total_verified_charges": "5.01",
+   "unverified_rule_count": "0"
+  },
+  "id": "M18-all-verified",
+  "inputs": {
+   "base_amount": "250.50",
+   "rules": [
+    {
+     "basis": "exclusive",
+     "config_verified": true,
+     "kind": "fee",
+     "name": "fee",
+     "rate_pct": "2",
+     "source_ref": "bank letter"
+    }
+   ]
+  },
+  "model": "M18",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "consolidated_profit": "40000.00",
+   "consolidated_revenue": "130000.00",
+   "eliminated_internal_revenue": "100000.00",
+   "elimination_difference": "0.00"
+  },
+  "id": "M19-balanced",
+  "inputs": {
+   "sites": [
+    {
+     "business_id": "B",
+     "cost_external": "70000",
+     "revenue_external": "0",
+     "revenue_internal": "100000",
+     "site_id": "F",
+     "tenant_id": "T1"
+    },
+    {
+     "business_id": "B",
+     "cost_external": "20000",
+     "cost_internal": "100000",
+     "revenue_external": "130000",
+     "site_id": "S",
+     "tenant_id": "T1"
+    }
+   ]
+  },
+  "model": "M19",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "consolidated_profit": "45000.00",
+   "consolidated_revenue": "135000.00",
+   "eliminated_internal_revenue": "100000.00",
+   "elimination_difference": "10000.00"
+  },
+  "id": "M19-mismatch",
+  "inputs": {
+   "sites": [
+    {
+     "business_id": "B",
+     "cost_external": "70000",
+     "revenue_external": "5000",
+     "revenue_internal": "100000",
+     "site_id": "F",
+     "tenant_id": "T1"
+    },
+    {
+     "business_id": "B",
+     "cost_external": "20000",
+     "cost_internal": "90000",
+     "revenue_external": "130000",
+     "site_id": "S",
+     "tenant_id": "T1"
+    }
+   ]
+  },
+  "model": "M19",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": false,
+  "expect": {
+   "results.be": "500.00",
+   "results.profit": "20000.00"
+  },
+  "id": "M20-template",
+  "inputs": {
+   "template": {
+    "inputs": [
+     "units",
+     "price",
+     "cost",
+     "fixed"
+    ],
+    "outputs": [
+     {
+      "expr": "units*(price-cost)-fixed",
+      "k": "profit"
+     },
+     {
+      "expr": "fixed/(price-cost)",
+      "k": "be"
+     }
+    ]
+   },
+   "values": {
+    "cost": "60",
+    "fixed": "20000",
+    "price": "100",
+    "units": "1000"
+   }
+  },
+  "model": "M20",
+  "note": "",
+  "version": null
+ },
+ {
+  "adverse": true,
+  "expect": {
+   "results.be": "500.00",
+   "results.profit": "-16000.00"
+  },
+  "id": "M20-negative-profit",
+  "inputs": {
+   "template": {
+    "inputs": [
+     "units",
+     "price",
+     "cost",
+     "fixed"
+    ],
+    "outputs": [
+     {
+      "expr": "units*(price-cost)-fixed",
+      "k": "profit"
+     },
+     {
+      "expr": "fixed/(price-cost)",
+      "k": "be"
+     }
+    ]
+   },
+   "values": {
+    "cost": "60",
+    "fixed": "20000",
+    "price": "100",
+    "units": "100"
+   }
+  },
+  "model": "M20",
+  "note": "",
+  "version": null
+ }
+]
