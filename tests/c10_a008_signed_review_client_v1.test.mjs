@@ -41,7 +41,7 @@ test("only scoped read-only view and explicit business filter after auth.getUser
  const rows=await c.listActivity({businessId:101,limit:25});
  assert.deepEqual(rows,[event]);
  assert.deepEqual(f.calls.map(x=>x.verb),
-  ["getUser","schema","from","select","eq","order","limit"]);
+  ["getUser","schema","from","select","eq","order","limit","getUser"]);
  assert.equal(f.calls[2].name,"approval_activity_feed_v1");
  assert.deepEqual(f.calls[4],{verb:"eq",field:"business_id",value:101});
  assert.equal(f.calls[5].field,"occurred_at");
@@ -73,7 +73,7 @@ test("signed decision RPC passes only request/action/key; never supplied actor/t
  assert.deepEqual(rpc.params,{p_request:55,p_action:"approve",p_key:"decision_001"});
  assert.equal(Object.keys(rpc.params).some(x=>/role|actor|tenant|posted|effect/.test(x)),false);
  assert.deepEqual(await c.withdrawApproval({requestId:55,idempotencyKey:"withdraw_001"}),99);
- assert.equal(f.calls.filter(x=>x.verb==="getUser").length,2);
+ assert.equal(f.calls.filter(x=>x.verb==="getUser").length,4);
 });
 test("bounded exception methods never call stock/finance execute RPCs",async()=>{
  const f=fakeSupabase();
@@ -118,4 +118,111 @@ test("export is first signed RLS page only, Excel formula injection sanitized",a
  await assert.rejects(c.listActivity({businessId:101,limit:1001}),/invalid_page_limit/);
  const foreign=fakeSupabase({row:[{...event,business_id:102}]});
  await assert.rejects(createGov002ReviewClient(foreign.supabase).exportActivityCsv({businessId:101}),/server_scope_mismatch/);
+});
+
+test("oversized first-page responses fail closed for read and CSV export",async()=>{
+ const oversized=Array.from({length:3},(_,i)=>({...event,activity_id:"approval:"+i}));
+ for(const method of ["listActivity","exportActivityCsv"]){
+  const f=fakeSupabase({row:oversized});
+  await assert.rejects(createGov002ReviewClient(f.supabase)[method]({businessId:101,limit:2}),/approval_read_invalid_response/);
+  assert.equal(f.calls.find(x=>x.verb==="limit").n,2);
+ }
+});
+
+test("account switch during scoped read rejects stale rows and CSV",async()=>{
+ for(const method of ["listActivity","exportActivityCsv"]){
+  let user="actor-A";
+  const f=fakeSupabase();
+  f.supabase.auth.getUser=async()=>({data:{user:{id:user}},error:null});
+  const base=f.supabase.schema;
+  f.supabase.schema=(name)=>{
+   const db=base(name),original=db.from;
+   db.from=(view)=>{
+    const q=original(view),limit=q.limit;
+    q.limit=async(n)=>{const r=await limit(n);user="actor-B";return r;};
+    return q;
+   };
+   return db;
+  };
+  await assert.rejects(createGov002ReviewClient(f.supabase)[method]({businessId:101}),/signed_actor_changed/);
+ }
+});
+test("account switch during approval or exception RPC rejects stale success receipt",async()=>{
+ for(const method of ["decideApproval","requestException"]){
+  let user="actor-A";
+  const f=fakeSupabase();
+  f.supabase.auth.getUser=async()=>({data:{user:{id:user}},error:null});
+  const base=f.supabase.schema;
+  f.supabase.schema=(name)=>{
+   const db=base(name),original=db.rpc;
+   db.rpc=async(...args)=>{const r=await original(...args);user="actor-B";return r;};
+   return db;
+  };
+  const args=method==="decideApproval"
+   ? {requestId:7,action:"approve",idempotencyKey:"switch_actor_01"}
+   : {requestId:7,reason:"Account switch during review",idempotencyKey:"switch_actor_02"};
+  await assert.rejects(createGov002ReviewClient(f.supabase)[method](args),/signed_actor_changed/);
+ }
+});
+
+test("account switch during paginated read rejects stale page before rendering",async()=>{
+ let actor="actor-A";
+ const f=fakeSupabase();
+ f.supabase.auth.getUser=async()=>({data:{user:{id:actor}},error:null});
+ const originalSchema=f.supabase.schema;
+ f.supabase.schema=(schema)=>{
+  const db=originalSchema(schema),originalFrom=db.from;
+  db.from=(view)=>{
+   const q=originalFrom(view);
+   q.range=async(start,end)=>{
+    assert.equal(start,0);assert.equal(end,24);
+    actor="actor-B";
+    return {data:[event],error:null};
+   };
+   return q;
+  };
+  return db;
+ };
+ await assert.rejects(createGov002ReviewClient(f.supabase).listActivityPage({businessId:101,limit:25}),/signed_actor_changed/);
+});
+test("account switch during current reviewer task RPC rejects stale task list",async()=>{
+ let actor="actor-A";
+ const f=fakeSupabase();
+ f.supabase.auth.getUser=async()=>({data:{user:{id:actor}},error:null});
+ const originalSchema=f.supabase.schema;
+ f.supabase.schema=(schema)=>{
+  const db=originalSchema(schema),originalRpc=db.rpc;
+  db.rpc=async(...args)=>{
+   assert.equal(args[0],"my_routed_review_tasks_v2");
+   await originalRpc(...args);
+   actor="actor-B";
+   return {data:[{business_id:101,request_id:27,stage_no:1,stage_total:2}],error:null};
+  };
+  return db;
+ };
+ await assert.rejects(createGov002ReviewClient(f.supabase).listReviewerTasks({businessId:101}),/signed_actor_changed/);
+});
+test("auth revocation after backend response rejects data and RPC receipts",async()=>{
+ for(const method of ["listActivity","decideApproval"]){
+  let checks=0;
+  const f=fakeSupabase();
+  f.supabase.auth.getUser=async()=>{
+   checks++;
+   return checks===1?{data:{user:{id:"actor-A"}},error:null}:{data:{user:null},error:null};
+  };
+  const args=method==="listActivity"?{businessId:101}:{requestId:7,action:"approve",idempotencyKey:"revoked_actor_01"};
+  await assert.rejects(createGov002ReviewClient(f.supabase)[method](args),/auth_required/);
+  assert.equal(checks,2);
+ }
+});
+
+test("PostgreSQL bigint identifiers accept upper bound but reject overflow before RPC",async()=>{
+ const f=fakeSupabase();
+ const c=createGov002ReviewClient(f.supabase);
+ await c.decideApproval({requestId:"9223372036854775807",action:"approve",idempotencyKey:"bigint_valid_01"});
+ assert.equal(f.calls.find(x=>x.verb==="rpc").params.p_request,"9223372036854775807");
+ const before=f.calls.filter(x=>x.verb==="rpc").length;
+ assert.throws(()=>c.decideApproval({requestId:"9223372036854775808",action:"approve",idempotencyKey:"bigint_overflow_01"}),/invalid_positive_id/);
+ assert.throws(()=>c.withdrawApproval({requestId:"9999999999999999999",idempotencyKey:"bigint_overflow_02"}),/invalid_positive_id/);
+ assert.equal(f.calls.filter(x=>x.verb==="rpc").length,before);
 });
