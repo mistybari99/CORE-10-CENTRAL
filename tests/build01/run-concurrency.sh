@@ -53,14 +53,14 @@ for i in {1..8}; do
   (if q "$owner SELECT c10_demo.build01_set_access_v1(101,'44444444-4444-4444-8444-444444444444','site_grant.grant',NULL,1002,ARRAY['stock.read','stock.post'],'{}',NULL,'build01-race-stale-$i',$version);" >"$out/stale-$i.log" 2>&1; then
     printf 'applied\n' >"$out/stale-$i.result"
    else
-    rg -q BUILD01_STALE_ACCESS_VERSION "$out/stale-$i.log"
+    grep -q BUILD01_STALE_ACCESS_VERSION "$out/stale-$i.log"
     printf 'stale\n' >"$out/stale-$i.result"
    fi) &
   pids+=("$!")
 done
 wait_all
-[[ "$(rg -l '^applied$' "$out"/stale-*.result | wc -l)" -eq 1 ]]
-[[ "$(rg -l '^stale$' "$out"/stale-*.result | wc -l)" -eq 7 ]]
+[[ "$(grep -l '^applied$' "$out"/stale-*.result | wc -l)" -eq 1 ]]
+[[ "$(grep -l '^stale$' "$out"/stale-*.result | wc -l)" -eq 7 ]]
 # The owner holds the business row, then revokes the waiting Business Owner.
 # Initial authority is valid when the writer begins; post-wait authority is not.
 lock_app="build01_owner_lock_${BASHPID}"
@@ -76,7 +76,7 @@ done
 (if PGAPPNAME=$writer_app q "SET ROLE authenticated; SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false); SELECT c10_demo.build01_site_v1(101,'warehouse','Revoked waiting writer','build01-race-revoked-writer');" >"$out/writer.log" 2>&1; then
   printf 'unexpected-success\n' >"$out/writer.result"
  else
-  rg -q BUILD01_SITE_DENIED "$out/writer.log"
+  grep -q BUILD01_SITE_DENIED "$out/writer.log"
   printf 'denied\n' >"$out/writer.result"
  fi) &
 writer=$!
