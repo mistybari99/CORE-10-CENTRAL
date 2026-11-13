@@ -983,6 +983,10 @@ export const NAMED_MESSAGES = Object.freeze({
   "preview.languageHint": [
     "Change the display language on this page only.",
     "শুধু এই পেজের ভাষা বদলাবে।"
+  ],
+  "preview.approvalHelp": [
+    "Approval (review step): who can decide on a request.",
+    "Approval (অনুমোদনের ধাপ): কে কোন অনুরোধে সিদ্ধান্ত নিতে পারবেন।"
   ]
 });
 export const DEFAULT_LOCALE = "bn-BD";
