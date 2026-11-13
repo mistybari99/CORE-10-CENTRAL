@@ -1,0 +1,47 @@
+name: C10-A064 Bengali-first Preview i18n
+on:
+  push:
+    branches:
+      - feature/c10-a064-bn-first-i18n-preview
+  pull_request:
+    branches:
+      - preview/c10-integrated-20261111-v1
+    paths:
+      - 'preview/**'
+      - 'tests/core10-preview-i18n.test.mjs'
+      - 'tests/core10-preview-v1.test.mjs'
+      - 'tests/e2e/core10-preview-i18n-browser.cjs'
+      - 'docs/ux/C10_BN_FIRST_GLOSSARY.md'
+      - '.github/workflows/core10-a064-i18n-preview-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-safety:
+    name: Catalog and Preview security regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Node Preview and language safety tests
+        run: node --test tests/core10-preview-v1.test.mjs tests/core10-preview-i18n.test.mjs
+  browser-responsive:
+    name: Local synthetic Chromium 390/1440
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser test dependency
+        run: npm install --no-save --no-audit --no-fund playwright@1.56.1
+      - name: Install browser for CI only
+        run: npx playwright install --with-deps chromium
+      - name: Local read-only Worker browser checks
+        run: node tests/e2e/core10-preview-i18n-browser.cjs

@@ -1,0 +1,42 @@
+name: CORE 10 - three-mode language governance
+on:
+  push:
+    branches:
+      - feature/c10-a064-bn-first-i18n-preview
+  pull_request:
+    branches:
+      - preview/c10-integrated-20261111-v1
+      - main
+    paths:
+      - 'AGENTS.md'
+      - 'docs/ux/**'
+      - 'preview/**'
+      - '**/*.html'
+      - '**/*.jsx'
+      - '**/*.tsx'
+      - '**/*.vue'
+      - '**/*.svelte'
+      - 'scripts/verify-language-contract.mjs'
+      - 'tests/core10-language-governance.test.mjs'
+      - '.github/workflows/core10-language-governance-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  language-contract:
+    name: Three locales + new frontend screen gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify owner language modes and new UI coverage
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/verify-language-contract.mjs
+      - name: Cross-check shared Preview copy and no-network boundaries
+        run: node --test tests/core10-preview-i18n.test.mjs tests/core10-language-governance.test.mjs
