@@ -1,0 +1,1062 @@
+{
+  "source_url": "https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit",
+  "source_range": "'REQUIREMENTS LOCK'!A1:F151",
+  "note": "Immutable planning input snapshot, NOT a second Decision Book. Live Book and latest Owner instructions take precedence. REV-010 permits Claude Code isolated simulation draft coding only; runtime release remains gated. Feature detail does not certify implementation.",
+  "rows": [
+    [
+      "CORE 10 | OWNER REQUIREMENTS LOCK"
+    ],
+    [
+      "R001–R114 | Owner corrections take priority | Approved scope is not implementation proof | PR #6 details"
+    ],
+    [],
+    [
+      "Requirement ID",
+      "Area",
+      "Requirement / Owner Rule",
+      "Master Decision(s)",
+      "Authority / Origin",
+      "Acceptance Criterion"
+    ],
+    [
+      "R001",
+      "Identity",
+      "CORE 10 Central is Master Owner control for owned portfolio, never an Islamia-only business.",
+      "D001,D002",
+      "Owner explicit",
+      "Central only for authorized Master Owner; staff cannot navigate it."
+    ],
+    [
+      "R002",
+      "Identity",
+      "Each selected business has its own FULL Business Owner Board, not only a Central-only control panel.",
+      "D003,D004,D033",
+      "Owner explicit",
+      "Change business context; same owner has full local control."
+    ],
+    [
+      "R003",
+      "Identity",
+      "Master Owner has centralized cross-business control AND business-local contextual control.",
+      "D002,D033",
+      "Owner explicit",
+      "Same business settings visible and editable from both authorized entry points."
+    ],
+    [
+      "R004",
+      "Identity",
+      "Legal Entity, Tenant, Business, Brand, Operating Unit, Physical Stock Location are not interchangeable.",
+      "D008,D036",
+      "Reconciled",
+      "Hierarchy documented, mapped to current schema, no implicit new legal entity."
+    ],
+    [
+      "R005",
+      "Identity",
+      "Location types include Branch/Showroom, Factory, Godown/Warehouse, Project/Site and later extensions.",
+      "D007,D008",
+      "Owner explicit",
+      "Can create multiple of every type under selected business."
+    ],
+    [
+      "R006",
+      "Identity",
+      "One operating site can hold several stock locations/bins; keep current location IDs and ledgers unchanged during migration.",
+      "D008,D024",
+      "Reconciled",
+      "Old 8 places continue to work with all FK/history."
+    ],
+    [
+      "R007",
+      "Identity",
+      "Central and Business Board Add Site buttons resolve to ONE server-validated creation service.",
+      "D007,D009,D032",
+      "Owner explicit",
+      "Same persisted business/location mapping regardless of entry point."
+    ],
+    [
+      "R008",
+      "Identity",
+      "Central may create new businesses under an existing legal entity; do not create a legal company for every store/brand.",
+      "D010,D032",
+      "Reconciled",
+      "Master business setup separates brand and legal identity."
+    ],
+    [
+      "R009",
+      "Identity",
+      "Existing Islamia brand/theme, items, stock, account balances and workflows must survive restructuring.",
+      "D024",
+      "Owner explicit",
+      "Non-destructive read-only baseline and regressions."
+    ],
+    [
+      "R010",
+      "Identity",
+      "Global Organization Mode UI must not be treated as an Islamia-specific toggle; preserve structure, migrate security flag safely.",
+      "D037",
+      "Owner correction",
+      "No accidental global flag ON/DELETE; backend transition proven."
+    ],
+    [
+      "R011",
+      "Identity",
+      "Business owner controls should not appear as global owner-only in a way that prevents local decision-making.",
+      "D033",
+      "Owner explicit",
+      "Owner can review/edit chosen business locally."
+    ],
+    [
+      "R012",
+      "Identity",
+      "No second competing ERP or My-tools source: single CORE-10-CENTRAL source repo.",
+      "D022",
+      "Prior approved",
+      "Changes based on main and approved PRs only."
+    ],
+    [
+      "R013",
+      "Permissions",
+      "Business staff sees its assigned branded app only; no CORE 10 origin, Master menu, sibling company names or logos.",
+      "D005,D006,D027,D033",
+      "Owner explicit",
+      "UI, history, search, API results contain no unauthorized company identity."
+    ],
+    [
+      "R014",
+      "Permissions",
+      "Staff access limited to the assigned Tenant, Business, Branch/Site, Action and Data Scope.",
+      "D006,D033,D036",
+      "Owner explicit",
+      "Authenticated negative API/RPC/export/storage access tests."
+    ],
+    [
+      "R015",
+      "Permissions",
+      "No explicit grant = no permission; optional UI visibility must never grant backend access.",
+      "D006,D033",
+      "Owner explicit",
+      "Direct API must deny ungranted actions."
+    ],
+    [
+      "R016",
+      "Permissions",
+      "Show/Allowed: visible and usable ONLY if effective permission and module availability both pass.",
+      "D033",
+      "Owner explicit",
+      "Authorized staff can perform exact granted action."
+    ],
+    [
+      "R017",
+      "Permissions",
+      "Locked: optionally visible with lock styling, cannot execute without permission.",
+      "D033",
+      "Owner explicit",
+      "Locked click, copied URL, REST request are denied if lacking grant."
+    ],
+    [
+      "R018",
+      "Permissions",
+      "Hidden: optionally not rendered in menus, navigation, search or favorites.",
+      "D033",
+      "Owner explicit",
+      "Hidden option absent from staff navigation; independent API grants still enforced."
+    ],
+    [
+      "R019",
+      "Permissions",
+      "Owner chooses Show/Locked/Hidden by user and by role and can later reverse choices.",
+      "D033",
+      "Owner explicit",
+      "Role and user effective visibility updated and audit tracked."
+    ],
+    [
+      "R020",
+      "Permissions",
+      "Operational feature switches can be ON/OFF at each business independently; optional features not globally forced.",
+      "D031,D033",
+      "Owner explicit",
+      "Paint-only toggle does not affect Sweets."
+    ],
+    [
+      "R021",
+      "Permissions",
+      "Central and local Owner boards update same authoritative permission/config records.",
+      "D033",
+      "Owner explicit",
+      "Single source of truth; no drifting parallel settings."
+    ],
+    [
+      "R022",
+      "Permissions",
+      "User-specific overrides, role inheritance, exceptions, conflicts and permission expiry need explicit effective-permission preview.",
+      "D033",
+      "Reconciled",
+      "Owner can explain exactly why a permission is granted/denied."
+    ],
+    [
+      "R023",
+      "Permissions",
+      "Master/global security/tenant isolation cannot be disabled by an ordinary Business Settings toggle.",
+      "D006,D037",
+      "Safety reconciliation",
+      "Security tests remain enforced regardless of optional UX choices."
+    ],
+    [
+      "R024",
+      "Permissions",
+      "Authentication/session switch, inactive/revoked staff, offline caches and direct deep links must fail closed.",
+      "D006,D013,D014,D033",
+      "Reconciled",
+      "Revoked identity cannot retrieve cross-business or stale private data."
+    ],
+    [
+      "R025",
+      "Permissions",
+      "Master, Tenant Owner, Business Owner, Manager, Staff, Partner and Investor are distinct permission identities.",
+      "D033,D034,D036",
+      "Owner explicit",
+      "Equity percentage does not automatically give software access."
+    ],
+    [
+      "R026",
+      "Permissions",
+      "Business-level modules, rules and setup controls can be owner-editable in normal operation without developer intervention.",
+      "D033",
+      "Owner explicit",
+      "Owner changes and audit trail persist across sessions."
+    ],
+    [
+      "R027",
+      "Configuration",
+      "Easy/Quick Setup does NOT reduce ERP features, capacity, report catalog, controls or enterprise completeness.",
+      "D030,D032",
+      "Owner correction",
+      "Same underlying enterprise engine as Advanced Setup."
+    ],
+    [
+      "R028",
+      "Configuration",
+      "Advanced Setup exposes full configuration of the same engine; Quick uses proven defaults that remain editable.",
+      "D030,D032",
+      "Owner explicit",
+      "No hidden permanent feature ceiling after Quick Setup."
+    ],
+    [
+      "R029",
+      "Configuration",
+      "New business requires only sensible initial inputs and auto-creates identity, branding, locations and full applicable module config.",
+      "D032",
+      "Owner explicit",
+      "Wizard setup yields complete supported business profile."
+    ],
+    [
+      "R030",
+      "Configuration",
+      "Future new branch, factory, warehouse, paint store or business using implemented templates needs no code edits.",
+      "D032",
+      "Owner explicit",
+      "Owner UI/API tests with zero source changes."
+    ],
+    [
+      "R031",
+      "Configuration",
+      "Provisioning is atomic OR idempotent and recoverable, without duplicate/orphan entities from retries.",
+      "D032",
+      "Reconciled",
+      "Crash step four, resume once, no duplicate site."
+    ],
+    [
+      "R032",
+      "Configuration",
+      "Business data/config state must distinguish Draft, Setup Pending/Blocked, Ready and Active.",
+      "D032",
+      "Reconciled",
+      "Activation blocked until prerequisites pass."
+    ],
+    [
+      "R033",
+      "Configuration",
+      "10+ business templates are the baseline, NOT a fixed upper limit.",
+      "D031",
+      "Owner explicit",
+      "New template pack registered without rewriting common ERP."
+    ],
+    [
+      "R034",
+      "Configuration",
+      "Ten templates: Sweets/Bakery, Restaurant/Kitchen, Paint/Hardware, Retail/Wholesale, General Manufacturing, Construction, Import–Export, E-Commerce, Technology/Digital Products, Services/Agency.",
+      "D031",
+      "Owner explicit / accepted selection",
+      "Template catalog lists and scopes all ten."
+    ],
+    [
+      "R035",
+      "Configuration",
+      "Common ERP Engine is shared, while industry-specific features are composable packs (e.g. sweets with e-commerce).",
+      "D031",
+      "Owner agreed",
+      "Module compatibility and dependencies enforced per business."
+    ],
+    [
+      "R036",
+      "Configuration",
+      "Do not delete an irrelevant industry feature: simply hide/not-enable it for that business while retaining shared code.",
+      "D031,D033",
+      "Owner correction",
+      "Paint staff see no unrelated confectionery production menus."
+    ],
+    [
+      "R037",
+      "Configuration",
+      "Every module has support/readiness status: tested, implemented-unverified, partial, not-implemented, not-applicable.",
+      "D031",
+      "Reconciled",
+      "No empty switch misleadingly claims feature operational."
+    ],
+    [
+      "R038",
+      "Configuration",
+      "Full capability catalog must cover stock, purchasing, inventory, finance, accounting, HR, production, QA, audit, approvals, automation, integrations and extensive reports.",
+      "D030,D031",
+      "Owner explicit",
+      "Catalog and test coverage show all required use cases."
+    ],
+    [
+      "R039",
+      "Configuration",
+      "Industry packs must include domain workflows (e.g. Paint tinting/dealers; Food recipes/batches; Construction BOQ/projects; Digital subscriptions; Import/Export shipment/landed cost).",
+      "D031",
+      "Owner agreed",
+      "Template-to-workflow acceptance matrix."
+    ],
+    [
+      "R040",
+      "Configuration",
+      "Business-specific reporting and permission defaults apply immediately on setup but remain Owner-customizable.",
+      "D031,D032,D033",
+      "Owner explicit",
+      "Owner can override without code changes."
+    ],
+    [
+      "R041",
+      "Scale",
+      "One business must be designed for 100+ branches, 100+ factories and 100+ warehouses, potentially many businesses.",
+      "D030",
+      "Owner correction",
+      "300+ site staging load benchmark; not claimed verified today."
+    ],
+    [
+      "R042",
+      "Scale",
+      "Site-level bulk operations, filters, permissions, identity, stock and transfers must scale beyond fixed lists.",
+      "D030",
+      "Reconciled",
+      "Bulk setup and paginated APIs pass test dataset."
+    ],
+    [
+      "R043",
+      "Scale",
+      "No arbitrary 8-site constraints or all-location global aggregation fallbacks allowed in multi-business systems.",
+      "D030,D037",
+      "Reconciled",
+      "Scoped query and large-site tests."
+    ],
+    [
+      "R044",
+      "Scale",
+      "Enterprise operations must support concurrent transactions, reliable ledgers, offline sync and recovery.",
+      "D030",
+      "Owner agreed",
+      "Load/retry/restore drill completed."
+    ],
+    [
+      "R045",
+      "Scale",
+      "Large business use must not silently lose invoices, stock, permissions, approvals or historical location references.",
+      "D024,D030",
+      "Owner explicit",
+      "Reconciliation and integrity alerts."
+    ],
+    [
+      "R046",
+      "Reporting",
+      "Every business Owner Board includes branch/site/factory/godown/brand/product/project/drilldown reports.",
+      "D025,D035",
+      "Owner explicit",
+      "Business-scoped reports reconcile to ledgers."
+    ],
+    [
+      "R047",
+      "Reporting",
+      "Central automatically counts each newly activated owned business and its sites, contributions, sales, expenses, profits and dues.",
+      "D035",
+      "Owner explicit",
+      "Central KPIs update from canonical sources."
+    ],
+    [
+      "R048",
+      "Reporting",
+      "Consolidated portfolio report must not mix independent customers, unauthorized businesses or sister brands.",
+      "D006,D035,D036",
+      "Reconciled",
+      "Scoped rollup to owned/authorized tenant only."
+    ],
+    [
+      "R049",
+      "Reporting",
+      "Internal transfers are not external sales and cannot double-count portfolio turnover/profit.",
+      "D035",
+      "Reconciled",
+      "Cross-site movements reconcile without duplication."
+    ],
+    [
+      "R050",
+      "Reporting",
+      "Missing prices, periods, cost/valuation or accounting inputs must show incomplete metrics, not invented profits.",
+      "D035",
+      "Reconciled",
+      "Data quality flag accompanies each KPI."
+    ],
+    [
+      "R051",
+      "Reporting",
+      "All critical finance, stock, workforce, investment, operational, exception, audit and management reports must be inventoried.",
+      "D030,D035",
+      "Owner explicit",
+      "Report catalog and data lineage acceptance."
+    ],
+    [
+      "R052",
+      "Ownership",
+      "Partner equity, capital contribution, profit/loss sharing, voting/control and ERP access are distinct records.",
+      "D034",
+      "Owner explicit",
+      "Cap table, capital ledger and role grants remain separate."
+    ],
+    [
+      "R053",
+      "Ownership",
+      "An agreement may have two, four, five or more Partner/Investor parties with differing percentages and access.",
+      "D034",
+      "Owner explicit",
+      "Multi-party ownership and payout tests."
+    ],
+    [
+      "R054",
+      "Ownership",
+      "Non-equity funding must exist for one selected business/project/site and a fixed contract term.",
+      "D034",
+      "Owner explicit",
+      "No automatic equity issuance from funding agreement."
+    ],
+    [
+      "R055",
+      "Ownership",
+      "Support percentage of ACTUAL business profit distinct from annual percentage on PRINCIPAL and fixed monetary payouts.",
+      "D034",
+      "Owner explicit",
+      "Three bases produce clearly differentiated ledgers."
+    ],
+    [
+      "R056",
+      "Ownership",
+      "Support monthly, quarterly, semiannual, annual and custom payout calendars; maturity, principal return, partial repayment.",
+      "D034",
+      "Owner explicit",
+      "Due/payable/paid/overdue and principal ledger tests."
+    ],
+    [
+      "R057",
+      "Ownership",
+      "Partner/Investor contracts support amendments, start/end date, capped returns, carry-forward and configurable settlement rules.",
+      "D034",
+      "Owner agreed",
+      "Versioned agreement, no overlapping settlement."
+    ],
+    [
+      "R058",
+      "Ownership",
+      "Each Investor may optionally get restricted portal to own agreement/payments, not full ERP operations by default.",
+      "D034",
+      "Owner agreed",
+      "Real signed-in investor sees only own contracts."
+    ],
+    [
+      "R059",
+      "Ownership",
+      "Partnership/Investor ledger must be scoped by tenant AND business/project; never calculate whole-database profit.",
+      "D034,D037",
+      "Required from audit",
+      "Fix existing partner_calculate business-scope all-locations selection before live multi-business."
+    ],
+    [
+      "R060",
+      "Ownership",
+      "Multiple agreements must not duplicate the same allocated profit or pay twice, with traceable payout reconciliation.",
+      "D034",
+      "Reconciled",
+      "Multi-investor funded pool/period and exact repayment tests."
+    ],
+    [
+      "R061",
+      "Ownership",
+      "Financial legal/tax/sharia classification requires reviewed contract terms; software must distinguish fixed obligation from variable actual-profit sharing.",
+      "D034",
+      "Reconciled",
+      "Owner reviews agreement classification; no automatic compliance guarantees."
+    ],
+    [
+      "R062",
+      "Tenant",
+      "Friend/external customer can create a fully independent Tenant with their own Tenant Owner, brand, staff, data and full ERP.",
+      "D036",
+      "Owner explicit",
+      "Independent onboarding and per-tenant data model."
+    ],
+    [
+      "R063",
+      "Tenant",
+      "CORE 10 operator does not automatically inherit customer data-reading access merely by providing software.",
+      "D036",
+      "Owner explicit",
+      "Cross-tenant negative API and operator tests."
+    ],
+    [
+      "R064",
+      "Tenant",
+      "Owner-approved, scoped, revocable, audited support access can be granted when the customer desires.",
+      "D036",
+      "Owner explicit",
+      "Consent, expiry and audit of support impersonation/delegation."
+    ],
+    [
+      "R065",
+      "Tenant",
+      "Platform Admin, Tenant Owner, Business Owner, Staff and Investor are separate roles; global is_owner must be migrated.",
+      "D033,D036,D037",
+      "Safety reconciliation",
+      "Staff/customers cannot gain a global role."
+    ],
+    [
+      "R066",
+      "Tenant",
+      "Independent Tenant's reports never appear in owner's own portfolio unless explicitly authorized within agreed scope.",
+      "D035,D036",
+      "Owner explicit",
+      "No third-party financial aggregation."
+    ],
+    [
+      "R067",
+      "Tenant",
+      "Future commercial SaaS may provide subscriptions, billing, plans, licensing, branding, support and optionally dedicated deployment.",
+      "D036",
+      "Owner explicit / accepted scope",
+      "Platform billing separate from operational ERP."
+    ],
+    [
+      "R068",
+      "Tenant",
+      "Implement tenant-safe foundation early, but external SaaS sales/commercial rollout LAST after ERP readiness.",
+      "D036",
+      "Owner explicit",
+      "Separate late-phase task, no current SaaS release."
+    ],
+    [
+      "R069",
+      "Security",
+      "Legacy org_scope_on OFF underpins many policies/functions: preserve until audited safe replacement; do not simply switch ON/remove.",
+      "D037",
+      "Audit + owner agreement",
+      "Security preflight and rollback to be tested."
+    ],
+    [
+      "R070",
+      "Security",
+      "Business membership, site grants and tenant identity are verified at backend/RLS/RPC/storage/report boundaries.",
+      "D006,D021,D037",
+      "Owner explicit",
+      "Live signed JWT denial matrix verified."
+    ],
+    [
+      "R071",
+      "Change",
+      "Owner's latest explicit correction supersedes an earlier assistant suggestion or interim formulation.",
+      "D028,D029",
+      "Owner explicit",
+      "Revision history retains old wording and documents replacement."
+    ],
+    [
+      "R072",
+      "Change",
+      "Unchallenged assistant ideas the Owner states agreement with may become design baseline, but remain differentiated from explicit Owner instructions and cannot authorize deployment.",
+      "D028,D029",
+      "Owner explicit",
+      "Source/authority labels and no silent implementation claims."
+    ],
+    [
+      "R073",
+      "Change",
+      "Every important feature is traceable from Master Decision → detailed requirement → planned work → test evidence.",
+      "D028,D029",
+      "Owner explicit",
+      "Coverage audit reveals unlinked requirements."
+    ],
+    [
+      "R074",
+      "Change",
+      "Decision Approved means product SCOPE approved, never that feature is implemented, tested or live.",
+      "D028,D029",
+      "Prior approved",
+      "Status columns remain separate."
+    ],
+    [
+      "R075",
+      "Change",
+      "No code removal, schema rewrite, SaaS sales activation, production writes, PR merge or live flag switch without explicit separate release authorization.",
+      "D029,D037",
+      "Existing governance",
+      "Draft-first, staging/test/backup gates."
+    ],
+    [
+      "R076",
+      "Change",
+      "Complete enterprise capability must not omit real-use workflow or reports; discoveries during operations flow into versioned registry and planned tests.",
+      "D030,D031",
+      "Owner explicit",
+      "Gap log + documented capability lifecycle; no false guarantees."
+    ],
+    [
+      "R077",
+      "Change",
+      "Development begins with canonical entity/security/business scope, not isolated industry dashboards or SaaS sales.",
+      "D032,D036,D037",
+      "Owner agreed",
+      "A018 then A019, A020 etc."
+    ],
+    [
+      "R078",
+      "Change",
+      "Preserve already built Islamia ERP modules; audit actual mixed Paint/Construction screens before relocating or changing any code.",
+      "D024,D031",
+      "Owner explicit",
+      "No premature module deletion; mapping table first."
+    ],
+    [
+      "R079",
+      "Change",
+      "Owner controls can be comprehensive even though the setup wizard is short; default feature toggles must be revisitable per business.",
+      "D030,D033",
+      "Owner repeated",
+      "Full option registry present in Owner business board."
+    ],
+    [
+      "R080",
+      "Change",
+      "10 industry packs must attain full end-to-end workflows/reports/permissions before marked ready; no template-only sales promises.",
+      "D031,D030",
+      "Owner explicit",
+      "Capability registry proof and staging template checklist."
+    ],
+    [
+      "R081",
+      "Simulation / Architecture",
+      "Provide one reusable Business Simulation Engine and central Business Simulation Lab within existing CORE-10-CENTRAL; no new app or duplicate ERP.",
+      "D039",
+      "Owner explicit",
+      "Central lab discoverable; unified typed engine, reusable contextual components and tests."
+    ],
+    [
+      "R082",
+      "Simulation / Context",
+      "Expose Quick Simulation in relevant business workflow menus (inventory, purchasing, production, sales, pricing, staffing, logistics, projects, funding, finance, cashflow, expansion) only when supported by valid inputs.",
+      "D039",
+      "Owner explicit",
+      "Context correctly prefilled and scoped; unsupported contexts do not show invented calculations."
+    ],
+    [
+      "R083",
+      "Simulation / Financial integrity",
+      "Use deterministic typed quantities/units/currency/periods and versioned, tested formulas; show assumptions, missing data, tax/cost basis, uncertainty and sensitivity. Estimates never masquerade as guaranteed profit.",
+      "D039,D035",
+      "Owner explicit + design specification",
+      "Reference calculation fixtures and reconciliation to authoritative sources; unknown never coerced to 0."
+    ],
+    [
+      "R084",
+      "Simulation / Safety",
+      "Keep scenarios, historical snapshots and comparisons separate from REAL stock, accounting, payroll, ledger, invoice and investor history. Any Apply-to-Plan uses explicit diff, role-authorized approval, transactional workflow and audit.",
+      "D039,D033",
+      "Owner explicit + design specification",
+      "No simulation writes operational ledger/state; approved actions auditable, reversible where permitted, idempotent."
+    ],
+    [
+      "R085",
+      "Simulation / Security",
+      "Enforce platform/tenant/business/site/user permission, RLS/API boundaries, scenario visibility, audit and exports; independently licensed tenant owners keep control of their own operational data; vendor has no covert global data read.",
+      "D039,D036,D037",
+      "Owner explicit",
+      "Cross-tenant negative tests, role visibility tests, legal data boundaries and no global-bypass privileges."
+    ],
+    [
+      "R086",
+      "Simulation / Commercial",
+      "Master Platform Owner controls proprietary software, license issuance, capability packs, entitlements and optional future sales; separate platform IP control from each customer's legal operational data and tenant ownership.",
+      "D039,D036",
+      "Owner explicit",
+      "Owner-governed licensing with explicit grants; tenant ownership independent; billing/SaaS rollout remains separate deferred task."
+    ],
+    [
+      "R087",
+      "Simulation / Sequencing",
+      "REV-010 latest Owner correction: Claude Code may START isolated Simulation Engine DRAFT coding immediately in the SAME repository on a separate branch/Draft PR; no merging, deployment, actual customer data or production integration. Original two-to-three fully verified major packages and all A018–A023/P0 security gates remain prerequisites before main/production activation.",
+      "D039,D029",
+      "Owner explicit",
+      "Separate Claude Code implementation Draft PR with genuine code/tests, versioned model registry, decision log and handover; remains UNMERGED/NOT DEPLOYED. Release remains BLOCKED until named milestone and security evidence. Docs-only mandate PR #75 is not a completed module."
+    ],
+    [
+      "R088",
+      "Simulation / Enterprise UX",
+      "Provide configurable industry-specific templates, mobile/desktop responsive UX, localization BN/Bng-Eng/EN, save/compare/export scenario snapshots, charts, permissions and reliable offline/online behavior where supported.",
+      "D039,D031,D030",
+      "Owner vision + design specification",
+      "All enabled industry modules covered by QA, simulation types and role-scoped reports; no template marked ready before E2E tests."
+    ],
+    [
+      "R089",
+      "Simulation v2 / Data",
+      "U01 — Trusted Baseline Engine (P0): Pull only authorized tenant/business/site/period operational snapshots, preserve source record IDs and transaction cutoffs; prevent accidental mixture of stale sources.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Given same authorized source snapshot and scope, baselines are reproducible and inaccessible to other businesses."
+    ],
+    [
+      "R090",
+      "Simulation v2 / Data",
+      "U02 — Data Quality & Readiness (P0): Identify missing, stale, incomplete, estimated and unverified inventory/cost/sales/finance data; add explicit data readiness flags and corrective prompts.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Unknown is not zero; incomplete financial results cannot masquerade as certified profit/cashflow."
+    ],
+    [
+      "R091",
+      "Simulation v2 / Data",
+      "U03 — Certified Model Registry (P0): Register typed formulas, numeric units, supported business packs, dependencies, versions, tested/partial/unavailable status and fixture certification.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Unverified models cannot be tagged Ready, and saved outputs retain the exact original formula version."
+    ],
+    [
+      "R092",
+      "Simulation v2 / Data",
+      "U04 — Financial Definition Engine (P0): Canonical revenue, contribution, cost, margin, net profit, cashflow, debt/equity/interest, returns, taxes, fiscal periods, currency and accounting basis definitions.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Different pages using the same canonical business data and period agree or explain the difference."
+    ],
+    [
+      "R093",
+      "Simulation v2 / Data",
+      "U05 — Scenario Provenance (P0): Capture model ID/version, data snapshot hash/ref, inputs/overrides, units, author, source time, business/location/period, warnings and history.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Saved scenarios can be reproduced without changing historical interpretation when live ERP data later changes."
+    ],
+    [
+      "R094",
+      "Simulation v2 / Feasibility",
+      "U06 — Cross-Module Impact Engine (P0): Link effects on stock, purchasing, recipes/BOM, manufacturing, delivery, sales, staff, cash, financial obligations and approvals; apply explicit dependency graph without implicit double counting.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Branch expansion example shows upstream production/supply/cash effects and explains missing links."
+    ],
+    [
+      "R095",
+      "Simulation v2 / Feasibility",
+      "U07 — Feasibility & Constraint Engine (P0): Budget, cash buffer, supplier lead time, transport, plant/warehouse capacity, staff hours, machine throughput, space, project limits and availability windows.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "An infeasible decision is identified with exact breached constraint; it is not shown as readily executable."
+    ],
+    [
+      "R096",
+      "Simulation v2 / Finance",
+      "U08 — Integrated Financial Modeling (P0): Link profit-and-loss, timing of receipts/payments, working capital, assets/liabilities, loans, principal, investor distribution and restricted cash; staged balance-sheet logic only where ledger contracts support it.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Illustrative profitable-but-cash-negative scenario reconciles, no principal repayment counted as operating expense by mistake."
+    ],
+    [
+      "R097",
+      "Simulation v2 / Feasibility",
+      "U09 — Sensitivity & Driver Analysis (P0): One-way, multi-variable and break-even threshold impact of price, volume, cost, lead time, discount, FX, rent, staff and term length.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Top drivers and exact assumption deltas reconcile to base scenario; all variable bounds validated."
+    ],
+    [
+      "R098",
+      "Simulation v2 / Risk",
+      "U10 — Risk & Stress Testing (P1): Named shocks and combined stress cases: demand fall, inflation, interest/return obligation, vendor delay, breakdown, staffing shortage and project slippage.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Every stress result displays assumptions and range, not a claimed guaranteed future outcome."
+    ],
+    [
+      "R099",
+      "Simulation v2 / Optimization",
+      "U11 — Reverse Goal Planning (P1): Target profit, cash reserve, sales, working capital, service level or capacity with inverse calculation of feasible price/volume/cost and resource requirements.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Shows when target is impossible under existing constraints instead of inventing unattainable numbers."
+    ],
+    [
+      "R100",
+      "Simulation v2 / Optimization",
+      "U12 — Constraint-Based Optimization (P1): Compare feasible resource/budget/capacity/stock/production allocation choices against owner-selected objective (cash, margin, service, risk).",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Result declares objective and tradeoffs; honors all hard constraints and never substitutes recommendation for owner approval."
+    ],
+    [
+      "R101",
+      "Simulation v2 / Optimization",
+      "U13 — Multi-Scenario Portfolio (P1): Combine owner-authorized scenarios across same portfolio/business/period and expose concurrent capex, cash, people, stock and machine contention.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Two individually feasible branch expansions with joint cash shortage are flagged; no independent tenant blending."
+    ],
+    [
+      "R102",
+      "Simulation v2 / Risk",
+      "U14 — Advanced Uncertainty Models (P2): Optional probability/range or Monte Carlo only with validated input distributions, correlations, model suitability and documented confidence limits.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Missing statistical basis disables probability claims; output clearly distinguishes illustration from calibrated probability."
+    ],
+    [
+      "R103",
+      "Simulation v2 / Governance",
+      "U15 — Decision Lifecycle Register (P0): Draft → Simulated → Reviewed → Approved/Rejected → Eligible-to-Apply → Applied → Monitored → Closed with actor/role/timestamp and state history.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "No direct skipping of required approval gates; approved decisions remain traceable to exact scenario/version."
+    ],
+    [
+      "R104",
+      "Simulation v2 / Governance",
+      "U16 — Approval Workflow Integration (P0): Reuse canonical ERP request/approval service with financial/operational authority, segregation of duties and delegated thresholds.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "No new parallel approval engine; rejected/unauthorized execution is blocked at server."
+    ],
+    [
+      "R105",
+      "Simulation v2 / Outcome",
+      "U17 — Actual vs Plan Tracking (P0): Store baseline plan from approved simulation and reconcile future real P&L, volumes, stock, staff, capital and cash outcomes with period/location scopes.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "After 30/90 days actuals, variance is derived from verifiable records and planned assumptions."
+    ],
+    [
+      "R106",
+      "Simulation v2 / Outcome",
+      "U18 — Decision Performance Review (P0): Owner sees actual net benefit, liquidity impact, constraint incidence, ROI/payback when valid, variance reasons and retrospective decision notes.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Reviewed case shows realized vs projected outcome without rewriting the historical simulation."
+    ],
+    [
+      "R107",
+      "Simulation v2 / Outcome",
+      "U19 — Forecast Accuracy & Bias (P1): Track comparable forecast-vs-actual accuracy by model, input data period, business, category and horizon; identify persistent bias.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Quality checks handle missing actuals, data leakage, changed definitions and incomparable periods."
+    ],
+    [
+      "R108",
+      "Simulation v2 / Outcome",
+      "U20 — Early Warning & Replanning (P1): Detect cash gaps, stockout, capacity bottlenecks, financing due, large variance and delays; propose refresh/replan, optional authorized alert workflows.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Owner sees evidence and threshold; no automation silently modifies the operational plan."
+    ],
+    [
+      "R109",
+      "Simulation v2 / Governance",
+      "U21 — Collaborative Scenario Review (P1): Role-scoped scenario comments, reviewer roles, business manager/accountant/production advice, attachments and review evidence.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Staff cannot retrieve restricted finance details/other businesses through collaboration or exported reports."
+    ],
+    [
+      "R110",
+      "Simulation v2 / Integration",
+      "U22 — Multi-Business Consolidation (P0): Business/brand/site/factory/warehouse/project comparisons with tenant boundaries, elimination of internal movements, compatible currency/period/accounting bases.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Portfolio summary reconciles without double counting internal transfer or external tenant data."
+    ],
+    [
+      "R111",
+      "Simulation v2 / Integration",
+      "U23 — Investment & Financing Integration (P0): Draw on verified partner/loan agreement definitions: equity, actual-profit shares, principal-based contractual return, loan, repayment/interest, maturity, investor liquidity claims.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Financing cases show cash obligations and classification accurately; no global all-locations aggregation bug."
+    ],
+    [
+      "R112",
+      "Simulation v2 / Integration",
+      "U24 — Secure Scenario Application (P0): Separate simulation read sandbox from proposals; explicit before/after diff, permission and approvals, only domain-validated transactional action, idempotency and audit/recovery; unsupported Apply remains advisory-only.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "No unapproved changes to sales/stock/payroll/accounting; direct RPC bypass attempts denied."
+    ],
+    [
+      "R113",
+      "Simulation v2 / Integration",
+      "U25 — Enterprise UX & Reporting (P0): One Simulation Lab + Contextual Quick Simulation, BN/EN support, mobile/tablet/desktop, charts, comparative tables, saved search/export, usable accessibility and safe errors.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Same model yields same result in both entry points; responsive role-scoped UI and exported reports work end-to-end."
+    ],
+    [
+      "R114",
+      "Simulation v2 / Integration",
+      "U26 — Security, Licensing & Scale (P0): RLS/RPC/backend tenant/business/site/user action gates, scenario entitlements, access revocation, authorized cache/offline, bounded compute and 300+ site performance tests.",
+      "D039,D040",
+      "Owner-approved upgrade v2.0",
+      "Real signed-in cross-tenant negatives and 300+ site benchmark must pass before claiming enterprise-ready."
+    ],
+    [
+      "R115",
+      "Go-Live / Implementation",
+      "No Decision-Book-only completion. Every required live-use ERP feature is coded in the same CORE-10-CENTRAL repo and integrated from UI through backend to durable storage, full permissions, workflows and reports; preserve existing modules.",
+      "D041,D030,D031,D038",
+      "Owner latest explicit directive",
+      "Feature-level evidence includes code, migrations, real API/RPC, UI, audit and reports; missing implementation stays blocked; no artificial percent-ready claim."
+    ],
+    [
+      "R116",
+      "Go-Live / QA",
+      "Use multiple reproducible demo identities for Master/Tenant Owner, Business Owner, Manager, Staff per branch/site, Investor, revoked staff, independent tenant, software operator and anonymous; test positive and denied flows.",
+      "D041,D033,D036,D037",
+      "Owner latest explicit directive",
+      "Real signed-in staging E2E and direct REST/RPC/RLS/report/storage/export negative tests, cross-tenant and cross-business isolation, role switch/revocation; demo-only SQL fixtures are preliminary."
+    ],
+    [
+      "R117",
+      "Go-Live / Reliability",
+      "Before releasing, dry-run business/site onboarding, inventory movement, stock balance, accounting, finance, finance-related reports, backup/restore, idempotent retries, offline and concurrency cases with error correction/re-testing.",
+      "D041,D032,D035",
+      "Owner latest explicit directive",
+      "Versioned test run with exact data fixtures, expected-vs-actual results, edge cases, rollback/recovery, mobile/desktop checks and owner sign-off; P0 failures block release."
+    ],
+    [
+      "R118",
+      "Legacy Islamia / Non-regression",
+      "Existing Islamia operational ERP is a distinct current business implementation. Verify all existing operational modules, fix defects/security, and safely enhance them without changing valid data, historical location IDs, inventory/stock/finance semantics, owner and staff workflows.",
+      "D042,D041,R009",
+      "Owner latest explicit directive",
+      "Real core Islamia workflow regression (POS, purchase, stock, production, finance, permissions, reports), valid snapshot/backup and role/API tests before release; no unexpected behavior or history change."
+    ],
+    [
+      "R119",
+      "Central and Industry / Build",
+      "Central Owner platform and other business/industry modules not present in Islamia must be genuinely coded and integrated, not assumed from existing sweets-business code or declared ready because the Decision Book says approved.",
+      "D042,D030,D041",
+      "Owner latest explicit directive",
+      "Independent tenant + business setup, security, branding, role, API and E2E test for each required industry with clear built/partial/missing status; preserve sole repository and no shadow app."
+    ],
+    [
+      "R120",
+      "Development / Version Control",
+      "All Core 10 source and intended database changes originate as reviewed GitHub code, tested schema and versioned migrations; create a safe legacy production schema baseline before any new migration adoption; use staging and explicit approval for actual Supabase production changes. Verify migration history and drift after deployment.",
+      "D043,D042,D041",
+      "Owner explicit latest directive",
+      "Trace any live database object change to an exact reviewed SHA, migration file and approved deployment receipt; no untracked SQL hotfix, missing historical baseline, or claim Git push implicitly deploys."
+    ],
+    [
+      "R121",
+      "Development / Cross-Agent Continuity",
+      "Claude and ChatGPT use shared repo-root instructions and one canonical GitHub-first protocol, plus an updated git-tracked CURRENT_HANDOFF.md. When usage ends, the next agent verifies latest PR branch SHA, CI, changed files, blockers, next exact action and Decision Book before continuing; agents must not concurrently overwrite one branch.",
+      "D043,D038,D041",
+      "Owner explicit latest directive",
+      "New agent can reproduce the actual development state from committed code, current GitHub PR/CI and a readable handoff; uncommitted work is never falsely assumed recoverable; verified coding progress not lost to separate chats."
+    ],
+    [
+      "R122",
+      "Development / Progressive Live QA",
+      "After actual code and role/regression testing, Claude Code must release small, safe, reversible frontend improvements to CORE-10-CENTRAL live website for the Owner's ongoing manual inspection, instead of indefinitely waiting for an entire ERP package. Follow verified GitHub Pages publishing process and provide owner-click smoke checklist and rollback.",
+      "D044,D043,D041,D042",
+      "Owner latest explicit correction",
+      "Exact Git PR/SHA, applicable CI PASS, known deployment mechanism, changed live URL/version and smoke PASS; owner informed what to test. Sensitive SQL/RLS/RPC/stock/financial changes remain separately gated with real auth/staging/backup and explicit owner go/no-go."
+    ],
+    [
+      "R123",
+      "Universal Control Studio / Placement",
+      "Owner may retain the universal Studio and independently place each supported control in Central only, selected Business App only, both, or hide from regular menus per business, and change placement later; apply separate business-specific setting values, edit delegation and approval policies without cloning authoritative controls or losing Owner discoverability.",
+      "D045,D033,D037",
+      "Owner explicit 2026-11-11",
+      "Two businesses in the same tenant can display/configure same canonical control differently; independent tenant cannot see them. Owner can move/control both views; role/business permissions, session/RLS, change audit and approval are enforced on signed server APIs. UI projection and OFF/ON never independently grant writes."
+    ],
+    [
+      "R124",
+      "Universal Owner Control Studio / Reusable Micro-Engine Lifecycle",
+      "Existing approved D033/A042 + D045 scope reaffirmed: the Owner has a permanently accessible cross-industry Universal Studio to configure all SUPPORTED safe operational controls (ON/OFF, visibility, role/user/site grants and explicit denial/expiry, approvals, rules/thresholds, notifications, automation/integrations); define/combine reusable small workflow, validator, calculator, report, rule, approval or automation/integration engine descriptors; version them and selectively make the SAME canonical control/engine available to one, several, or later different Business Apps, each with independent values, menu placement and delegated/request-only editing. Owner can revise/retract controlled configurations without programmer intervention where engine capabilities support it; new unsupported runtime code requires engineering and certification. No duplicated permission, storage, data, or history.",
+      "D033,D045,D037;R014-R026;R123",
+      "Owner explicit 2026-11-11; prior DISC-010/DISC-011 reaffirmed (not a new decision)",
+      "Acceptance: 1) Owner lists fixed AND newly registered eligible descriptors centrally, 2) creates/validates/version-controls a supported engine configuration, 3) chooses Business A/B independently with Central/Business/Both/Hidden placement, ON/OFF and scope-level values, 4) local Business Owner can edit only by delegated server authority or request approval, 5) effective-deny/signed RLS/Auth/tenant isolation and invariant gates, approvals, audit, stale version and config rollback tested, 6) never marks a descriptor operational before handler/finance/stock/security certified; 7) existing Islamia ERP unchanged."
+    ],
+    [
+      "R124-IMPL-NOTE-01",
+      "R124 implementation NOTE — C10-A045 first executable Micro-Engine slice (not a new requirement)",
+      "Under existing Owner-approved R124, Workshop + one canonical multi-business engine distribution now have an executable FIRST SLICE (Draft PR #42). Registered threshold_rule_v1 advisory handler only, tested Business A/B independent publish/config and versioned site overrides. The 8 remaining engine types remain inert DRAFT/NOT IMPLEMENTED until handler certified. Configuration-only rollback does NOT roll back site overrides; those are separately versioned. Production SQL/GoTrue signed stages not done.",
+      "REFERENCES ONLY: D033,D045,R014-R026,R123,R124,C10-A045, PR#42",
+      "Claude implementation evidence 2026-11-11; informational note, NOT new Owner mandate/policy",
+      "Acceptance evidence: tested code SHA 9ac74519795a2ec7004da12a50d8e8859203405a, dedicated workflow #43003257646 SUCCESS. Existing R124 original text remains unchanged; Owner can still require remaining supported engines later. Do not claim engine types not built."
+    ],
+    [
+      "R125",
+      "Test Identities / Pre-Go-Live QA & Safe Replacement",
+      "Owner gives standing permission to create and consistently reuse broad temporary DEMO staff/owner/role account profiles for ALL development tests without requesting actual personal Owner/Staff ID, including Master Owner, different Business Owners, Managers, Cashier, Factory/Branch Staff, Investor, Partner, Approver/Reviewer, Revoked, Unassigned, Software Operator, anonymous and unrelated tenant. Maintain a canonical alias/permissions/expected-scope register. For real signed tests use dedicated non-production GoTrue users in separate disposable stage with protected unique credentials and signed-token verification, never synthetic JWT in production. When deployment starts, deactivate/delete stage-only identities and data safely and use actual authorized users.",
+      "D046,D041,D033;R014-R026,R116,R123-R124",
+      "Owner explicit 2026-11-11; testing authorization, not unrestricted production identity creation",
+      "Acceptance: robust 2-tenant/2-business/4-site role matrix, stable IDs/aliases available to all agents and reused across E2E; staff actions and denials verified; stage-only GoTrue identities and live signed RLS/auth/revocation pass before certification; synthetic-only tests clearly labeled; no secrets in Git or production Supabase writes; demo logins and data safely removed before actual go-live without deleting real records."
+    ],
+    [
+      "R126",
+      "Demo-First End-to-End Structural Completion / Iterative Defect Register",
+      "Build nearly the entire approved operational ERP structure and fully connected normal business workflows using reusable DEMO Owner/Staff identities and synthetic tenants/businesses/sites; do not wait for real personal credentials to implement POS, purchase, inventory, production, costing, finance, accounting, reports, audit, permissions, partner/owner features, templates and branch/factory/godown structures. Structural model must be usable, business-specific, cross-module consistent and not merely mocked, catalogued or documented. At go-live, noncritical defects discovered during early field use are tracked and fixed incrementally.",
+      "D047,D041,D046,D030-D033;R115-R125",
+      "Owner explicit 2026-11-11 restatement (scope clarification, not new production authorization)",
+      "Acceptance: complete business/module/page/API/SQL/report matrix shows executable demo workflow and true status by module and role; 10 industry templates mapped with built vs missing, no fake readiness; 300+ site target remains separate measured readiness; blocked P0/security/correctness/recovery issues fixed before live, small UX/edge-case issues triaged by reproducibility/severity without hiding them; synthetic accounts eventually replaced/cleaned after signed staging."
+    ],
+    [
+      "R127",
+      "Build all three large ERP packages with safe future configurability",
+      "A048+A049+A050 are ALL required, not alternatives. Design supported configurable Owner/Business/Site policy, workflow mode, thresholds, approvals and module/navigation layout on shared canonical tenant/business/stock data. Allow future certified rule/engine extensions without redesigning the whole ERP; arbitrary new features still need safe handler and tests.",
+      "D048,D047,D046,D033,D045;R124-R126",
+      "Owner explicit 2026-11-11",
+      "Evidence must show connected inventory, purchase/production/sales/cost/report, Owner portfolio with demo users. Changes versioned/audited, permission/stock/finance invariants never disabled; status per handler not mocked, sensitive production auth gates preserved."
+    ],
+    [
+      "R128",
+      "MASTER ERP-WIDE Intent-to-Implementation + Explainable Guided UX / Recommendations / Safe Demo",
+      "Across the ENTIRE ERP (all modules, industries, fields, roles, workflows, screens, calculations and reports), Owner can articulate desired behavior/output in ordinary language without knowing code, business mechanics, DB or calculation. Engineering must infer and map canonical context/data, business logic, formula/version, unit/currency/rounding/date, permissions, approvals, cross-module dependencies, UI placement, report generation, audit and QA. Supported certified owner-configurable options must work; unsupported/unknown must visibly enter a secure handler-build/validation/release workflow, not pretend to function. EVERY significant button/field/settings/report must include concise inline WHAT / WHEN / WHY / WHAT HAPPENS / WHERE RESULT SHOWN, typical recommended action and its reason, allowed exception route, permissions/risks, formula/data trace and where practicable safe demo/example/preview; at minimum clear instructions. Contextual Bangla+English, accessible mobile/desktop; per-business/site/role values derive from server. No uncontrolled arbitrary code/SQL, fake completed results or bypass of tenant/stock/finance/role/audit invariants.",
+      "D049;D033;D045;D046;D047;D048;R123-R127;A042-A045;A048-A051;A052",
+      "Owner direct MASTER design requirement 2026-11-11. Cross-cutting mandatory on all new and existing supported features; additive to R124/R127, no production deployment authority.",
+      "Acceptance: capability graph + formal intent schema; certified handler and dependency/impact classifications; every feature metadata includes what/why/when/how/effect/normal recommendation/exception/example/result location/calculation trace and status; prove end-to-end two businesses and 4+ sites, role negative, stale/replay, unsupported handler blocked, report source reconciliation, safe examples/preview and locale/390px/1440px UX. GoTrue stage remains separate; app states NOT BUILT / CONFIGURABLE / NEEDS HANDLER / SOURCE TESTED / DEPLOYED truthfully. Detailed spec https://docs.google.com/document/d/1VNB-ub0V49fg1QAPqyALk-1P79eqgbHJZwAdbq5-mCg/edit"
+    ],
+    [
+      "R129",
+      "Owner-controlled HR/Payroll rules and carry-forward — complete configurable engine",
+      "Complete A054 ChatGPT-owned HR enhancement: configurable scoped direct/delegated HR+Reviewer+Payroll grants (or approval-based flow), fixed/% pay components with enable/off, effective-dated rates and tested calculation, overtime multiplier editable with explicit OFF option (1.00×=normal base rate, NOT 1%), configurable raw punch retention (36 months default adjustable with data-class/legal guards and dry-run), and cross-year annual leave carry-forward with balance/cap/expiry/audited reconciliation. Each has Owner-level guided UI, safe validation, reports, simulation/impact and verified server access; no new shadow payroll ledger, no finance payout.",
+      "D050,D049/R128,D048/R127,D046/R125,A051 PR#55,A053 Issue#56",
+      "Owner explicit 2026-11-11; does NOT approve any particular statutory/law-specific rate or retention purge",
+      "Acceptance: 2 tenant/3 business, Owner direct grant and delegated reviewer/expiry/revocation, policy history/versioning, OT factor compare 0/off/1/1.5 with legal guard and effective dates, custom percentage vs verified statutory distinction, 12–120 month existing setting clarified and safely extended if lawful, leave accrual/carry-forward/expiry/cap/cross-year approval; frozen payroll unchanged unless audited amendment; deny unauthorized edits; SQL+Node+Chromium CI and staging gate. Actual A054 build not yet done."
+    ]
+  ]
+}

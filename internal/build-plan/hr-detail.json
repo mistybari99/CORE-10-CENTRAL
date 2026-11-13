@@ -1,0 +1,1669 @@
+[
+  {
+    "feature_detail_id": "C10-HR-D001",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Employee lifecycle and canonical identity",
+    "title": "Employee master and stable number",
+    "workflow": "Owner creates scoped employee record, then directory and audit resolve the same identifier.",
+    "acceptance": "Duplicate employee number is refused within its defined business scope; employee reference is stable across reports.",
+    "negative_cases": "Duplicate code; foreign business; invalid join date",
+    "dependencies": "GOV-001 canonical identity; A018/A046/A053; REV-009",
+    "existing_evidence": "A051 employee/assignment source and A053 alias linking exist; combined PG17 workforce/integration regressions passed. Per-row staging certification remains pending.",
+    "gap": "Prove full create/edit/report UI journey and business-specific uniqueness contract.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D002",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Employee lifecycle and canonical identity",
+    "title": "Protected personal information",
+    "workflow": "Authorized HR enters permitted fields; ordinary manager reads a masked directory projection.",
+    "acceptance": "Manager export contains no phone/NID or salary; employee cannot enumerate peers' private fields.",
+    "negative_cases": "Manager salary read; cross-tenant field access; CSV injection",
+    "dependencies": "GOV-001 canonical identity; A018/A046/A053; REV-009",
+    "existing_evidence": "A051 employee/assignment source and A053 alias linking exist; combined PG17 workforce/integration regressions passed. Per-row staging certification remains pending.",
+    "gap": "Verify current role projection against canonical A021/A034 and staging policies.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D003",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Employee lifecycle and canonical identity",
+    "title": "Join date and contract type",
+    "workflow": "Owner records employment start and monthly/daily/hourly contract; calculation uses effective employment facts.",
+    "acceptance": "First-month earned days start at join date and contract switch is versioned rather than overwriting prior payroll basis.",
+    "negative_cases": "Future start misuse; invalid contract; overlapping history",
+    "dependencies": "GOV-001 canonical identity; A018/A046/A053; REV-009",
+    "existing_evidence": "A051 employee/assignment source and A053 alias linking exist; combined PG17 workforce/integration regressions passed. Per-row staging certification remains pending.",
+    "gap": "Finish lifecycle form guidance and deterministic boundary-date examples.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D004",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Employee lifecycle and canonical identity",
+    "title": "Employment status and exit",
+    "workflow": "Active employee transitions to supported inactive/exited state with effective date and reason.",
+    "acceptance": "Exit stops future authorized assignments and excludes future scheduled payroll days without rewriting frozen history.",
+    "negative_cases": "Exit inside frozen period; unauthorized backdate; deleted employee history",
+    "dependencies": "GOV-001 canonical identity; A018/A046/A053; REV-009",
+    "existing_evidence": "A051 employee/assignment source and A053 alias linking exist; combined PG17 workforce/integration regressions passed. Per-row staging certification remains pending.",
+    "gap": "A051 currently limits employment status changes to dates no later than today; future-dated workflow needs explicit design.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D005",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Employee lifecycle and canonical identity",
+    "title": "Effective-dated employment history",
+    "workflow": "Every change appends employment history; period calculations select the fact effective on that date.",
+    "acceptance": "Earlier approved payroll replays against original effective employment facts; history UPDATE/DELETE is rejected.",
+    "negative_cases": "History tamper; overlapping effective dates; stale amendment",
+    "dependencies": "GOV-001 canonical identity; A018/A046/A053; REV-009",
+    "existing_evidence": "A051 employee/assignment source and A053 alias linking exist; combined PG17 workforce/integration regressions passed. Per-row staging certification remains pending.",
+    "gap": "Verify lifecycle snapshots across join, transfer and exit month boundaries.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D006",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Employee lifecycle and canonical identity",
+    "title": "Department and organizational placement",
+    "workflow": "Owner maintains scoped department and attaches an employee to a canonical business/site.",
+    "acceptance": "Reports use canonical department/site IDs; a foreign business department is rejected.",
+    "negative_cases": "Orphan department; cross-business site; unauthorized manager edit",
+    "dependencies": "GOV-001 canonical identity; A018/A046/A053; REV-009",
+    "existing_evidence": "A051 employee/assignment source and A053 alias linking exist; combined PG17 workforce/integration regressions passed. Per-row staging certification remains pending.",
+    "gap": "Complete department/site UI and inactive-reference behavior without new organization authority.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D007",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Employee lifecycle and canonical identity",
+    "title": "Employee site assignment and transfer",
+    "workflow": "Owner assigns or transfers employee between existing sites using effective dates.",
+    "acceptance": "Site headcount totals equal eligible employee assignments with no double count; locked payroll blocks retroactive transfer.",
+    "negative_cases": "Two conflicting assignments; closed period; foreign site",
+    "dependencies": "GOV-001 canonical identity; A018/A046/A053; REV-009",
+    "existing_evidence": "A051 employee/assignment source and A053 alias linking exist; combined PG17 workforce/integration regressions passed. Per-row staging certification remains pending.",
+    "gap": "Certify multi-site transfer history and compare portfolio/site headcount.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D008",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Employee lifecycle and canonical identity",
+    "title": "Canonical demo persona linking",
+    "workflow": "Owner selects a registered A046/A053 alias and links it to one employee for self-service.",
+    "acceptance": "Unknown/revoked/foreign aliases are refused; same login cannot silently link to another employee; linking grants self-service only.",
+    "negative_cases": "Raw UUID bypass; investor/operator alias; duplicate link",
+    "dependencies": "GOV-001 canonical identity; A018/A046/A053; REV-009",
+    "existing_evidence": "A051 employee/assignment source and A053 alias linking exist; combined PG17 workforce/integration regressions passed. Per-row staging certification remains pending.",
+    "gap": "Existing A053 implementation must be exercised with real GoTrue-issued synthetic staging identities.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D009",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Employee lifecycle and canonical identity",
+    "title": "Immediate unlink and access termination",
+    "workflow": "Owner unlinks employee/login or revokes membership; next self-service call reevaluates current authority.",
+    "acceptance": "Unlinked or revoked user loses assignment, leave and payslip access on the next call while history remains intact.",
+    "negative_cases": "Stale browser tab; cached claim; queued request after revoke",
+    "dependencies": "GOV-001 canonical identity; A018/A046/A053; REV-009",
+    "existing_evidence": "A051 employee/assignment source and A053 alias linking exist; combined PG17 workforce/integration regressions passed. Per-row staging certification remains pending.",
+    "gap": "Add unified exit checklist linking identity revocation and delegated grant expiry.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D010",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Employee lifecycle and canonical identity",
+    "title": "Legacy workforce preservation",
+    "workflow": "New generic HR references immutable business-owned legacy crosswalks where approved; comparison runs are read-only.",
+    "acceptance": "Historical employee/payroll IDs and legacy source files remain unchanged; generic tenant cannot see another business's customized records.",
+    "negative_cases": "Crosswalk collision; legacy ID rewrite; broad data import",
+    "dependencies": "GOV-001 canonical identity; A018/A046/A053; REV-009",
+    "existing_evidence": "A051 employee/assignment source and A053 alias linking exist; combined PG17 workforce/integration regressions passed. Per-row staging certification remains pending.",
+    "gap": "Legacy migration/crosswalk remains a separately reviewed release task; synthetic examples only.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D011",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Shift definition and standard hours",
+    "workflow": "Owner/authorized manager defines shift start/end, breaks, grace and standard hours; roster references that version.",
+    "acceptance": "Worked time and hourly divisor derive from the selected shift parameters and are shown in the calculation trace.",
+    "negative_cases": "Negative duration; break longer than shift; unknown site",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Validate every shift field and effective-date constraints in real UI/API.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D012",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Effective-dated shift roster",
+    "workflow": "Authorized manager assigns a shift to an employee/site for an effective date.",
+    "acceptance": "Only one valid roster basis is selected for an employee work date; reviewed/frozen period edits are denied.",
+    "negative_cases": "Overlapping roster; foreign employee; locked period",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "A054 delegation does not currently widen roster access beyond original A051 manager rules.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D013",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Weekly-off and holiday calendar",
+    "workflow": "Owner/manager records business/site holiday and shift weekly-off; attendance classifies working/off-day consistently.",
+    "acceptance": "Holiday/off-day classification appears in day trace and distinct OT rate selection; locked periods cannot be changed.",
+    "negative_cases": "Duplicate holiday; cross-site calendar; frozen-month edit",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Per-employee weekly-off overrides beyond shift need explicit future implementation.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D014",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Punch import provenance",
+    "workflow": "Authorized actor imports employee, timestamp, device/source reference and retains immutable raw evidence.",
+    "acceptance": "Each accepted punch can be traced to its source reference and importer; unauthorized site import is rejected.",
+    "negative_cases": "Foreign employee; malformed timestamp; untrusted device identity",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Live device/provider ingestion requires registered signed adapter; no production punches in demo.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D015",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Punch idempotency and duplicate suppression",
+    "workflow": "Importer retries a source reference or near-duplicate timestamp; engine retains one accepted fact.",
+    "acceptance": "Same source replay creates no extra punch; configured duplicate-window boundaries are tested exactly.",
+    "negative_cases": "Same key changed payload; device reference collision; rapid retry",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Add documented distinction between ignored duplicate and failed malformed row in import UI.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D016",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Overnight work-date attribution",
+    "workflow": "Employee works a 22:00-to-06:00 shift; punches resolve to the shift-start work date.",
+    "acceptance": "A next-morning checkout belongs to the previous shift date; month/year boundary examples produce one attendance day.",
+    "negative_cases": "Midnight split; two adjacent shifts; out-of-window punch",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Certify overnight/timezone boundary examples on UI and stored report.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D017",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Break deduction and worked minutes",
+    "workflow": "Attendance pairs valid in/out punches and deducts configured break.",
+    "acceptance": "Worked minutes equal checkout minus checkin minus applicable break; never negative; trace displays components.",
+    "negative_cases": "Out before in; break exceeds span; invalid minute range",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Multiple variable break intervals need explicit supported-contract definition before being advertised.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D018",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Missing punch exception",
+    "workflow": "Unpaired in/out produces incomplete attendance and enters correction queue.",
+    "acceptance": "Incomplete attendance blocks payroll until correction or approved disposition; no automatic zero hours or normal day.",
+    "negative_cases": "Missing checkout; only duplicate punches; silent default",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Ensure payroll-blocking exception links directly to the affected day/correction action.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D019",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Late arrival and grace",
+    "workflow": "Shift grace is applied to checkin; approved pay policy converts late-days only where configured.",
+    "acceptance": "Arrival at grace boundary is handled consistently; late-to-absence conversion explains the threshold and version.",
+    "negative_cases": "Boundary second; policy not effective; invalid grace",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Jurisdiction review required before enabling legally consequential deductions.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D020",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Present half-day and absence classification",
+    "workflow": "Derived attendance compares worked minutes to scheduled time and half-day threshold.",
+    "acceptance": "Configured ratio boundary yields reproducible classification; scheduled day without punch becomes absent; paid leave is not absence.",
+    "negative_cases": "Unscheduled day; ratio outside supported range; mixed leave/punch",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Partial-day leave is not implemented by A051/A054 and must remain separately planned.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D021",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Attendance correction request",
+    "workflow": "Employee/supervisor submits correction with date, reason and proposed facts; original punches stay immutable.",
+    "acceptance": "Correction stores requester and prior evidence; supervisor cannot directly approve own-site correction by bypassing request flow.",
+    "negative_cases": "Self-correction approval; missing reason; stale original",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Attach optional supporting documents through governed provenance adapter; no unscoped uploads.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D022",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Attendance correction approval and lock",
+    "workflow": "Distinct authorized approver accepts/rejects request; affected derived day is recomputed.",
+    "acceptance": "Requester cannot approve own correction; reviewed/frozen period correction is denied; accepted change is audited.",
+    "negative_cases": "Wrong-site delegate; revoked approver; locked period",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Exercise delegated correction through canonical scope and immediate revocation.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D023",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Overtime eligibility approval",
+    "workflow": "Engine proposes OT from eligible worked minutes; authorized manager/owner approves eligible minutes.",
+    "acceptance": "Only approved minutes are paid under approval-required policy; rejected or pending OT blocks or excludes consistently.",
+    "negative_cases": "Minutes exceed proposal; self-approval; pending OT at payroll review",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Expose proposed, approved and payable OT separately in day/payroll UI.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D024",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Overtime multiplier semantics",
+    "workflow": "Owner configures weekday/off-day multipliers using times-base units; payroll displays exact formula.",
+    "acceptance": "At base hourly 100 and approved hour 1, multiplier1.00 yields100, not1; policy limits below1.00 or above5.00 fail as A054 specifies.",
+    "negative_cases": "Percent mistaken for multiplier; 0.01; 150 instead of1.50",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Statutory minimums remain jurisdiction-specific; do not infer a legal rate from technical defaults.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D025",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Overtime min/max and off-day rates",
+    "workflow": "Effective policy applies minimum minutes, daily cap and separate weekday/off-day factors.",
+    "acceptance": "Below-minimum or over-cap proposals are visibly handled; holiday/off-day chooses correct configured factor.",
+    "negative_cases": "Negative cap; cap overflow; policy effective-date mismatch",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Add table-driven cap/minimum/holiday examples and report trace reconciliation.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D026",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Overtime OFF legal gate",
+    "workflow": "Tenant owner requests OT-off configuration with legal-review reference and effective month.",
+    "acceptance": "Non-owner cannot turn OT OFF; missing legal reference is refused; prior frozen payroll remains unchanged.",
+    "negative_cases": "Business owner OFF; empty legal reference; retroactive lock",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Release-gated policy activation needs approved legal evidence; no default statutory conclusion.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "release-gated"
+  },
+  {
+    "feature_detail_id": "C10-HR-D027",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Shifts attendance and overtime",
+    "title": "Supervision scope and own attendance",
+    "workflow": "Supervisor views/imports only permitted site facts and submits corrections, while own-punch authority stays bounded.",
+    "acceptance": "Supervisor cannot edit own punches through site-supervisor route or see salary; manager rules remain original for roster/import.",
+    "negative_cases": "Own punch manipulation; foreign-site employee; salary projection",
+    "dependencies": "A051 attendance; A054 policy/bridge; GOV-001/002",
+    "existing_evidence": "A051 shift/punch/correction/OT engine and A054 policy hooks exist; original A051 E2E and six concurrency scenarios passed with combined schema.",
+    "gap": "Reconcile supervisor model with canonical effective permission service; avoid a separate role engine.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_attendance_leave_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D028",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Leave accrual balances and calendars",
+    "title": "Leave type and paid/unpaid basis",
+    "workflow": "Owner configures scoped leave type and whether approved days count as paid salary basis.",
+    "acceptance": "Type activation and payroll consequence are versioned; unsupported statutory assumptions stay inactive.",
+    "negative_cases": "Duplicate type code; changing used type without version; foreign scope",
+    "dependencies": "A051 leave; A054 leave policy; GOV-002 approvals",
+    "existing_evidence": "A054 adds monthly/upfront accrual, carry cap/expiry/grace, cross-year requests and quota hooks; these supersede stale A051 missing-feature notes. Single-day granularity remains a real limit.",
+    "gap": "Provide consequence preview for paid/unpaid choice and preserve prior request semantics.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D029",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Leave accrual balances and calendars",
+    "title": "Upfront annual entitlement",
+    "workflow": "Effective leave policy grants annual quota at policy-defined year start.",
+    "acceptance": "Balance shows entitlement, used/reserved/carry and available separately; only eligible year facts count.",
+    "negative_cases": "Negative quota; duplicate grant; no effective policy",
+    "dependencies": "A051 leave; A054 leave policy; GOV-002 approvals",
+    "existing_evidence": "A054 adds monthly/upfront accrual, carry cap/expiry/grace, cross-year requests and quota hooks; these supersede stale A051 missing-feature notes. Single-day granularity remains a real limit.",
+    "gap": "Certify join/exit-year entitlement basis explicitly; no unstated statutory prorating.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D030",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Leave accrual balances and calendars",
+    "title": "Monthly leave accrual",
+    "workflow": "Policy credits entitlement through supported monthly accrual rule.",
+    "acceptance": "Before/after month boundary balance differs by exactly the configured accrued increment; no double accrual on retry.",
+    "negative_cases": "Future month accrual; duplicate processing; off-by-one month",
+    "dependencies": "A051 leave; A054 leave policy; GOV-002 approvals",
+    "existing_evidence": "A054 adds monthly/upfront accrual, carry cap/expiry/grace, cross-year requests and quota hooks; these supersede stale A051 missing-feature notes. Single-day granularity remains a real limit.",
+    "gap": "Verify leap-year, joining month and month-end examples against approved policy.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D031",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Leave accrual balances and calendars",
+    "title": "Carry-forward cap",
+    "workflow": "Year close computes eligible unused days and caps next-year carried balance.",
+    "acceptance": "For unused8/cap5, exactly5 carries; existing requests and entitlement remain traceable; zero cap yields zero carry.",
+    "negative_cases": "Negative cap; carry above available; replayed year close",
+    "dependencies": "A051 leave; A054 leave policy; GOV-002 approvals",
+    "existing_evidence": "A054 adds monthly/upfront accrual, carry cap/expiry/grace, cross-year requests and quota hooks; these supersede stale A051 missing-feature notes. Single-day granularity remains a real limit.",
+    "gap": "A054 implementation exists; prove complete year-close UI and report with frozen policy version.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D032",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Leave accrual balances and calendars",
+    "title": "Carry expiry and grace",
+    "workflow": "Carried balance receives expiry month plus configured grace days.",
+    "acceptance": "Carry is available through defined expiry/grace boundary, then forfeited; current-year entitlement is retained.",
+    "negative_cases": "Invalid expiry month; grace overflow; time boundary",
+    "dependencies": "A051 leave; A054 leave policy; GOV-002 approvals",
+    "existing_evidence": "A054 adds monthly/upfront accrual, carry cap/expiry/grace, cross-year requests and quota hooks; these supersede stale A051 missing-feature notes. Single-day granularity remains a real limit.",
+    "gap": "Show expiring-days warning and legal policy reference before release.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D033",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Leave accrual balances and calendars",
+    "title": "Consume carried days first",
+    "workflow": "Approved leave consumes unexpired carry before current-year entitlement.",
+    "acceptance": "With carry3/current10 and leave4, remaining carry0/current9 is reproducible; expired carry cannot be spent.",
+    "negative_cases": "Mixed expiry cohorts; cancelled leave; double consumption",
+    "dependencies": "A051 leave; A054 leave policy; GOV-002 approvals",
+    "existing_evidence": "A054 adds monthly/upfront accrual, carry cap/expiry/grace, cross-year requests and quota hooks; these supersede stale A051 missing-feature notes. Single-day granularity remains a real limit.",
+    "gap": "Check cancellation/restoration behavior against the original source bucket and audit.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D034",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Leave accrual balances and calendars",
+    "title": "Cross-year request allocation",
+    "workflow": "Request spans December/January and allocates each work day to its own year's policy/balance.",
+    "acceptance": "Each year's debit equals its eligible requested days; one exhausted year prevents unauthorized overspend.",
+    "negative_cases": "One year lacks policy; recursion bound; overlap at year boundary",
+    "dependencies": "A051 leave; A054 leave policy; GOV-002 approvals",
+    "existing_evidence": "A054 adds monthly/upfront accrual, carry cap/expiry/grace, cross-year requests and quota hooks; these supersede stale A051 missing-feature notes. Single-day granularity remains a real limit.",
+    "gap": "A054 supports bounded cross-year simulation; larger spans beyond10years remain unsupported.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D035",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Leave accrual balances and calendars",
+    "title": "Balance preview and future carry",
+    "workflow": "Employee/HR reads current balance and permitted next-year carry preview.",
+    "acceptance": "Preview is clearly non-posting and uses the same policy calculation as quota enforcement.",
+    "negative_cases": "Foreign employee; stale policy; preview shown as guaranteed entitlement",
+    "dependencies": "A051 leave; A054 leave policy; GOV-002 approvals",
+    "existing_evidence": "A054 adds monthly/upfront accrual, carry cap/expiry/grace, cross-year requests and quota hooks; these supersede stale A051 missing-feature notes. Single-day granularity remains a real limit.",
+    "gap": "Expose policy version, as-of date and outstanding requests beside each balance.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D036",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Leave accrual balances and calendars",
+    "title": "Leave request and overlap detection",
+    "workflow": "Employee requests scoped full-day leave; server checks dates, quota and overlapping facts.",
+    "acceptance": "Overlapping or over-quota request is refused atomically; retry returns the same request without duplicate reservation.",
+    "negative_cases": "Concurrent requests; duplicate key changed dates; no shift/calendar",
+    "dependencies": "A051 leave; A054 leave policy; GOV-002 approvals",
+    "existing_evidence": "A054 adds monthly/upfront accrual, carry cap/expiry/grace, cross-year requests and quota hooks; these supersede stale A051 missing-feature notes. Single-day granularity remains a real limit.",
+    "gap": "Define request-reservation versus approved-consumption presentation precisely.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D037",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Leave accrual balances and calendars",
+    "title": "Leave maker-checker decision",
+    "workflow": "Distinct authorized approver approves/rejects within live business/site delegation scope.",
+    "acceptance": "Requester cannot approve self; revoked/expired delegate fails next call; decision records reason and actor.",
+    "negative_cases": "Self-approval; foreign-site delegate; decision replay conflict",
+    "dependencies": "A051 leave; A054 leave policy; GOV-002 approvals",
+    "existing_evidence": "A054 adds monthly/upfront accrual, carry cap/expiry/grace, cross-year requests and quota hooks; these supersede stale A051 missing-feature notes. Single-day granularity remains a real limit.",
+    "gap": "Verify end-to-end UI with separate real synthetic staging identities.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D038",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Leave accrual balances and calendars",
+    "title": "Leave cancellation and balance restoration",
+    "workflow": "Permitted request cancellation restores only affected quota without rewriting approved payroll history.",
+    "acceptance": "Cancel/retry cannot over-restore balance; locked payroll date changes are blocked or require governed amendment.",
+    "negative_cases": "Cancel after freeze; double cancel; cross-year restoration",
+    "dependencies": "A051 leave; A054 leave policy; GOV-002 approvals",
+    "existing_evidence": "A054 adds monthly/upfront accrual, carry cap/expiry/grace, cross-year requests and quota hooks; these supersede stale A051 missing-feature notes. Single-day granularity remains a real limit.",
+    "gap": "Publish state-specific cancellation rules and source-linked balance history.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D039",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Leave accrual balances and calendars",
+    "title": "Partial-day and advanced leave extension",
+    "workflow": "Design half-day/hourly leave, calendar-aware duration and employee exceptions before adding handlers.",
+    "acceptance": "No half-day/hourly selector is advertised until amount, quota and payroll tests agree on one unit and rounding rule.",
+    "negative_cases": "Fraction mistaken for days; concurrent partial overlap; paid/unpaid mix",
+    "dependencies": "A051 leave; A054 leave policy; GOV-002 approvals",
+    "existing_evidence": "A054 adds monthly/upfront accrual, carry cap/expiry/grace, cross-year requests and quota hooks; these supersede stale A051 missing-feature notes. Single-day granularity remains a real limit.",
+    "gap": "Current A051/A054 use whole-day granularity; this remains a proposed extension.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "proposed-extension"
+  },
+  {
+    "feature_detail_id": "C10-HR-D040",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Effective salary structure and review",
+    "workflow": "Owner changes base salary with effective date and reason; prior structure remains immutable.",
+    "acceptance": "Month calculation selects the effective structure; frozen salary basis is preserved; salary review has before/after trace.",
+    "negative_cases": "Overwrite history; unauthorized manager; retroactive frozen change",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "Define approval workflow for proposed salary reviews before operational release.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D041",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Monthly employed-day proration",
+    "workflow": "Payroll uses monthly base and eligible employed days divided by calendar days.",
+    "acceptance": "31,000 base with15eligible days in31-day month yields15,000 before other components; formula and dates are visible.",
+    "negative_cases": "Join/exit off-by-one; zero divisor; leap-month boundary",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "Reconcile proration to employment-history facts and configured divisor policy.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D042",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Daily contract calculation",
+    "workflow": "Daily employee pay uses eligible attendance and configured paid-leave treatment.",
+    "acceptance": "Paid-day units times daily base reconcile; half-day treatment is explicit and audited.",
+    "negative_cases": "Unapproved leave counted paid; absent day paid; duplicate attendance",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "Finish examples across present/half-day/paid-leave combinations.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D043",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Hourly contract calculation",
+    "workflow": "Hourly employee regular/approved OT minutes are separated and converted to hours once.",
+    "acceptance": "Regular minutes and hourly base produce deterministic pay; the same minute cannot enter regular and OT twice.",
+    "negative_cases": "Time double count; negative minutes; inconsistent shift divisor",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "Clarify supported regular-hour cap and cross-midnight allocation.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D044",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Fixed allowance",
+    "workflow": "Owner adds versioned fixed allowance with scope, eligibility and optional proration.",
+    "acceptance": "Eligible employee receives exact configured amount/proration; ineligible site/contract receives none; trace identifies rule.",
+    "negative_cases": "Duplicate component code; foreign site; stale policy",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "A054 codes must not collide with original A051 components; enforce through UI as well as SQL.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D045",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Percentage allowance and base choice",
+    "workflow": "Rule chooses basic_earned, gross_before_rule or contract_base and percentage units.",
+    "acceptance": "At base10,000 and percent10, allowance1,000; trace shows selected base, base value, percent and version.",
+    "negative_cases": "0.10 interpreted as10; circular gross basis; base missing",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "Show before/after sample and evaluation ordering for multiple allowance rules.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D046",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Fixed and percentage deductions",
+    "workflow": "Authorized rule applies deduction with documented basis and consent/legal evidence as needed.",
+    "acceptance": "Each deduction is separately visible, versioned and bounded; no hidden withholding or unapproved statutory deduction.",
+    "negative_cases": "Code collision; excessive rate; unauthorized deduction",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "Legally consequential activation remains jurisdiction-reviewed and release-gated.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "release-gated"
+  },
+  {
+    "feature_detail_id": "C10-HR-D047",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Rule minimum cap and eligibility",
+    "workflow": "Rule applies min/cap plus contract/site scope in deterministic order.",
+    "acceptance": "Raw calculation, min/cap adjustment and final amount are traceable; capped amount never silently changes formula version.",
+    "negative_cases": "Cap below minimum; invalid scope; null base",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "Add boundary fixtures for cap/min equality and per-rule rounding.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D048",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Deterministic rounding",
+    "workflow": "Policy selects supported half_up/down rounding to two decimal places per component.",
+    "acceptance": "0.005 boundary and aggregated totals follow the chosen rule; report totals equal stored rounded lines.",
+    "negative_cases": "Binary float drift; mixed currency precision; hidden rounding",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "Confirm currency minor-unit extension separately from current fixed2dp implementation.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D049",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Advance request and approval",
+    "workflow": "Employee requests advance; distinct approver approves a deduction schedule only.",
+    "acceptance": "Approval creates schedule/obligation evidence but never bank payout or paid status; self-approval is refused.",
+    "negative_cases": "Self-approval; duplicate request; negative amount",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "Connect advance UI to external-disbursement evidence without inventing payment execution.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D050",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Advance recovery headroom",
+    "workflow": "Frozen payroll recovers min(installment, remaining advance, deduction headroom).",
+    "acceptance": "Recovery never exceeds outstanding principal or makes net negative; two concurrent freezes recover once.",
+    "negative_cases": "Double freeze; remaining overflow; no headroom",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "Show skipped/partial recovery warnings and remaining schedule balance.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D051",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Amendment-safe advance recovery",
+    "workflow": "Amended payroll references original recovery rather than deducting principal a second time.",
+    "acceptance": "Original plus amendment recovery reconciles to one supported deduction basis; audit identifies superseded run.",
+    "negative_cases": "Repeated amendment; reversal without source; stale recovery",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "Add multi-amendment regression and source-linked recovery explanation.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D052",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Salary policies components and advances",
+    "title": "Statutory tax provident fund bonus gate",
+    "workflow": "Capture jurisdiction, source, effective period and review before implementing statutory component handlers.",
+    "acceptance": "Unknown rates remain NOT_CONFIGURED/OFF; no default legal rate or bonus obligation is invented.",
+    "negative_cases": "Missing source; expired jurisdiction policy; unapproved activation",
+    "dependencies": "A051 payroll; A054 pay rules; FIN-001 for future ledger",
+    "existing_evidence": "A051 has salary structures/components/advances; A054 adds versioned calculation rules, scoped bases, caps and per-line traces. No statutory rates or real payout are certified.",
+    "gap": "Current modules do not implement tax/PF/bonus statutory logic or payout files; release-gated build.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "release-gated"
+  },
+  {
+    "feature_detail_id": "C10-HR-D053",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Payroll runs approvals freeze and correction",
+    "title": "Non-posting payroll preview",
+    "workflow": "Authorized actor previews computed employee lines and explanatory warnings without storing a run.",
+    "acceptance": "Preview leaves run/line/liability/payment/ledger counts unchanged; missing source values show blocking exceptions.",
+    "negative_cases": "Preview mutates; missing salary treated zero; unauthorized role",
+    "dependencies": "A051 payroll lifecycle; A054 delegated maker-checker; immutable audit",
+    "existing_evidence": "A051 payroll lifecycle plus A054 policy hooks exist; unchanged workforce E2E/concurrency passed after hooks. Production payroll and real authentication remain uncertified.",
+    "gap": "Add report destinations and exact input-source trace in preview UI.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D054",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Payroll runs approvals freeze and correction",
+    "title": "Draft generation and recalculation",
+    "workflow": "Authorized preparer creates DRAFT for business/month and recalculates after resolving inputs.",
+    "acceptance": "Draft totals equal current deterministic lines; one idempotent request cannot create duplicate runs.",
+    "negative_cases": "Duplicate run; stale policy; period not ended",
+    "dependencies": "A051 payroll lifecycle; A054 delegated maker-checker; immutable audit",
+    "existing_evidence": "A051 payroll lifecycle plus A054 policy hooks exist; unchanged workforce E2E/concurrency passed after hooks. Production payroll and real authentication remain uncertified.",
+    "gap": "Expose recalculation diff and unresolved blocking count before submission.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D055",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Payroll runs approvals freeze and correction",
+    "title": "Payroll input completeness",
+    "workflow": "Engine checks salary, attendance, leave, OT and correction state before progression.",
+    "acceptance": "Missing salary/incomplete attendance/pending required decision prevents review with employee/day-specific reasons.",
+    "negative_cases": "Null cost/pay silently zero; pending leave hidden; absent source",
+    "dependencies": "A051 payroll lifecycle; A054 delegated maker-checker; immutable audit",
+    "existing_evidence": "A051 payroll lifecycle plus A054 policy hooks exist; unchanged workforce E2E/concurrency passed after hooks. Production payroll and real authentication remain uncertified.",
+    "gap": "Add linked exception-resolution queue with one retry path.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D056",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Payroll runs approvals freeze and correction",
+    "title": "Distinct review and approval",
+    "workflow": "Preparer submits; reviewer checks; approver authorizes amount owed under effective delegation.",
+    "acceptance": "Delegated preparer, reviewer and approver are distinct; employee in the run cannot decide its own run.",
+    "negative_cases": "Self-review; self-approval; out-of-period delegate",
+    "dependencies": "A051 payroll lifecycle; A054 delegated maker-checker; immutable audit",
+    "existing_evidence": "A051 payroll lifecycle plus A054 policy hooks exist; unchanged workforce E2E/concurrency passed after hooks. Production payroll and real authentication remain uncertified.",
+    "gap": "Preserve existing owner semantics while reconciling canonical segregation policy.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D057",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Payroll runs approvals freeze and correction",
+    "title": "Input fingerprint stale protection",
+    "workflow": "Review/approve/freeze recomputes input hash after attendance/policy/salary changes.",
+    "acceptance": "Changed inputs refuse stale transition and require recalculation; unchanged replay returns prior result.",
+    "negative_cases": "Hidden policy edit; race with punch import; same key altered action",
+    "dependencies": "A051 payroll lifecycle; A054 delegated maker-checker; immutable audit",
+    "existing_evidence": "A051 payroll lifecycle plus A054 policy hooks exist; unchanged workforce E2E/concurrency passed after hooks. Production payroll and real authentication remain uncertified.",
+    "gap": "Include fingerprint mismatch explanation and precise changed-source references.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D058",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Payroll runs approvals freeze and correction",
+    "title": "Freeze and immutable payslips",
+    "workflow": "Approved run freezes, records final line totals and issues immutable employee payslips.",
+    "acceptance": "One frozen run per allowed period; frozen lines/history cannot UPDATE/DELETE; payslip totals reconcile.",
+    "negative_cases": "Double freeze; direct SQL mutation; missing payslip line",
+    "dependencies": "A051 payroll lifecycle; A054 delegated maker-checker; immutable audit",
+    "existing_evidence": "A051 payroll lifecycle plus A054 policy hooks exist; unchanged workforce E2E/concurrency passed after hooks. Production payroll and real authentication remain uncertified.",
+    "gap": "Certify employee self-service retrieval and business/site summary against same frozen record.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D059",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Payroll runs approvals freeze and correction",
+    "title": "Locked-period upstream edits",
+    "workflow": "Reviewed/approved/frozen payroll constrains punch, holiday, employment, assignment and leave changes.",
+    "acceptance": "Every relevant upstream mutation is denied or routed to governed amendment rather than silently changing published pay.",
+    "negative_cases": "Backdated shift; correction after freeze; import race",
+    "dependencies": "A051 payroll lifecycle; A054 delegated maker-checker; immutable audit",
+    "existing_evidence": "A051 payroll lifecycle plus A054 policy hooks exist; unchanged workforce E2E/concurrency passed after hooks. Production payroll and real authentication remain uncertified.",
+    "gap": "Maintain enumerated mutation/lock matrix and re-run after every integration migration.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D060",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Payroll runs approvals freeze and correction",
+    "title": "Audited payroll amendment",
+    "workflow": "Owner creates reasoned amendment draft linked to frozen original, then follows full lifecycle.",
+    "acceptance": "Original stays immutable and visible as superseded; both payslips persist; correction difference is explainable.",
+    "negative_cases": "Short reason; rewrite original; duplicate amendment",
+    "dependencies": "A051 payroll lifecycle; A054 delegated maker-checker; immutable audit",
+    "existing_evidence": "A051 payroll lifecycle plus A054 policy hooks exist; unchanged workforce E2E/concurrency passed after hooks. Production payroll and real authentication remain uncertified.",
+    "gap": "Prove multiple amendments, reversal references and advance balance reconciliation.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D061",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Payroll runs approvals freeze and correction",
+    "title": "Return-to-draft and void controls",
+    "workflow": "Supported nonfrozen transitions return run for correction or owner-void with reason.",
+    "acceptance": "Illegal state transitions are refused; void cannot become payment or erase audit; owner-only void preserved.",
+    "negative_cases": "Void by delegate; freeze bypass; transition replay conflict",
+    "dependencies": "A051 payroll lifecycle; A054 delegated maker-checker; immutable audit",
+    "existing_evidence": "A051 payroll lifecycle plus A054 policy hooks exist; unchanged workforce E2E/concurrency passed after hooks. Production payroll and real authentication remain uncertified.",
+    "gap": "Document exact allowed state transition table in UI and API acceptance.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D062",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Payroll runs approvals freeze and correction",
+    "title": "Gross deductions net reconciliation",
+    "workflow": "Line and run reports reconcile basic, OT, allowance, deductions, advance and final net.",
+    "acceptance": "Net equals gross minus deductions and never negative; all line sums match run totals and payslips.",
+    "negative_cases": "Overflow; negative net; line/run mismatch",
+    "dependencies": "A051 payroll lifecycle; A054 delegated maker-checker; immutable audit",
+    "existing_evidence": "A051 payroll lifecycle plus A054 policy hooks exist; unchanged workforce E2E/concurrency passed after hooks. Production payroll and real authentication remain uncertified.",
+    "gap": "Add fixture screenshots and source-linked formula report for each contract type.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a051_workforce_payroll_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D063",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Delegation privacy audit retention",
+    "title": "Delegated HR scope",
+    "workflow": "Owner grants HR actions to active eligible manager/linked employee for permitted business/site and validity.",
+    "acceptance": "Site HR can decide only own-site supported leave/correction/employee edits; no payroll salary access is implied.",
+    "negative_cases": "Cross-site HR; inactive target; owner self-delegation",
+    "dependencies": "A018/A021/A034; A054 governance; D050/R129",
+    "existing_evidence": "A054 provides delegated hr/preparer/reviewer/approver/payment_recorder, live deny/expiry/revoke and legal holds. A051 audit chain remains canonical; no extra permission or audit store is planned.",
+    "gap": "Roster/shifts/import still use A051 manager rules; do not imply all HR operations are delegated.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D064",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Delegation privacy audit retention",
+    "title": "Delegated payroll period scope",
+    "workflow": "Owner delegates preparer/reviewer/approver for explicit business/month.",
+    "acceptance": "Grant permits only intended month and business; self-delegation and delegate-to-delegate grant are refused.",
+    "negative_cases": "Wrong month; foreign business; escalation by delegate",
+    "dependencies": "A018/A021/A034; A054 governance; D050/R129",
+    "existing_evidence": "A054 provides delegated hr/preparer/reviewer/approver/payment_recorder, live deny/expiry/revoke and legal holds. A051 audit chain remains canonical; no extra permission or audit store is planned.",
+    "gap": "Reconcile A054 effective access with central A021/A034 administration and audit view.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D065",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Delegation privacy audit retention",
+    "title": "Explicit deny precedence",
+    "workflow": "Owner records applicable deny alongside allow; every protected call resolves effective rights.",
+    "acceptance": "Deny overrides matching allow regardless of menu visibility or cached claim; no direct helper bypass.",
+    "negative_cases": "Conflicting allow; hidden menu treated auth; forged metadata",
+    "dependencies": "A018/A021/A034; A054 governance; D050/R129",
+    "existing_evidence": "A054 provides delegated hr/preparer/reviewer/approver/payment_recorder, live deny/expiry/revoke and legal holds. A051 audit chain remains canonical; no extra permission or audit store is planned.",
+    "gap": "Produce one effective-permission explanation across central and workforce surfaces.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D066",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Delegation privacy audit retention",
+    "title": "Expiry revoke and lock-queue race",
+    "workflow": "Delegation expires or is revoked while request waits on business lock.",
+    "acceptance": "Authority is reevaluated using current time after lock acquisition; queued stale request is refused.",
+    "negative_cases": "Long transaction; stale JWT; clock boundary",
+    "dependencies": "A018/A021/A034; A054 governance; D050/R129",
+    "existing_evidence": "A054 provides delegated hr/preparer/reviewer/approver/payment_recorder, live deny/expiry/revoke and legal holds. A051 audit chain remains canonical; no extra permission or audit store is planned.",
+    "gap": "Retain original parallel-session proof and repeat under signed GoTrue staging.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D067",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Delegation privacy audit retention",
+    "title": "Self-service salary and PII boundary",
+    "workflow": "Linked employee reads own limited payslip/leave/assignments; manager gets masked operational reports.",
+    "acceptance": "Employee cannot enumerate another employee salary; alias details remain owner-only; ordinary exports omit phone/NID.",
+    "negative_cases": "Changed employee ID; role dropdown spoof; payroll CSV leakage",
+    "dependencies": "A018/A021/A034; A054 governance; D050/R129",
+    "existing_evidence": "A054 provides delegated hr/preparer/reviewer/approver/payment_recorder, live deny/expiry/revoke and legal holds. A051 audit chain remains canonical; no extra permission or audit store is planned.",
+    "gap": "Verify server projections independently of UI hiding and row filters.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D068",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Delegation privacy audit retention",
+    "title": "Append-only audit and hash integrity",
+    "workflow": "Every workforce write uses original receipts and business hash-chained audit.",
+    "acceptance": "Audit actor/request/source/policy version are traceable; tampering breaks integrity check; no alternate audit log.",
+    "negative_cases": "Delete audit; reordered chain; missing request receipt",
+    "dependencies": "A018/A021/A034; A054 governance; D050/R129",
+    "existing_evidence": "A054 provides delegated hr/preparer/reviewer/approver/payment_recorder, live deny/expiry/revoke and legal holds. A051 audit chain remains canonical; no extra permission or audit store is planned.",
+    "gap": "Add export/retention/legal-hold events to same source-linked audit view.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D069",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Delegation privacy audit retention",
+    "title": "Punch retention dry run",
+    "workflow": "Tenant owner previews raw punches eligible for configured retention period; default36months applies only to punches.",
+    "acceptance": "Dry run changes no rows and distinguishes eligible, locked and held punches; payroll/payslips/audit are excluded.",
+    "negative_cases": "Retention applied to payroll history; timezone cutoff; wrong tenant",
+    "dependencies": "A018/A021/A034; A054 governance; D050/R129",
+    "existing_evidence": "A054 provides delegated hr/preparer/reviewer/approver/payment_recorder, live deny/expiry/revoke and legal holds. A051 audit chain remains canonical; no extra permission or audit store is planned.",
+    "gap": "Obtain applicable legal retention policy and show exact cutoff before any release purge.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D070",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Delegation privacy audit retention",
+    "title": "Legal hold placement and release",
+    "workflow": "Owner places legal hold; tenant owner alone releases it under audited reason.",
+    "acceptance": "Held punches survive purge regardless of age; business owner cannot release hold; history remains append-only.",
+    "negative_cases": "Unauthorized release; expired permission; purge race",
+    "dependencies": "A018/A021/A034; A054 governance; D050/R129",
+    "existing_evidence": "A054 provides delegated hr/preparer/reviewer/approver/payment_recorder, live deny/expiry/revoke and legal holds. A051 audit chain remains canonical; no extra permission or audit store is planned.",
+    "gap": "Surface hold reason/access carefully; no production hold or purge without release authority.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D071",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Delegation privacy audit retention",
+    "title": "Authorized retention purge",
+    "workflow": "Tenant owner executes approved scoped raw-punch purge after dry run while period/hold checks revalidate.",
+    "acceptance": "Only eligible unheld/unlocked raw punches are purged; no frozen period or payroll/audit record is removed.",
+    "negative_cases": "Changed hold after preview; revoked owner; cross-tenant purge",
+    "dependencies": "A018/A021/A034; A054 governance; D050/R129",
+    "existing_evidence": "A054 provides delegated hr/preparer/reviewer/approver/payment_recorder, live deny/expiry/revoke and legal holds. A051 audit chain remains canonical; no extra permission or audit store is planned.",
+    "gap": "Actual purge is release-gated; backup/restore and legal review precede operational activation.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "release-gated"
+  },
+  {
+    "feature_detail_id": "C10-HR-D072",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Delegation privacy audit retention",
+    "title": "Signed identity and direct-grant release matrix",
+    "workflow": "Validate auth.getUser session and database-derived memberships across owner/delegate/self/revoked/anon/foreign actors.",
+    "acceptance": "Real GoTrue-issued synthetic staging tokens pass/deny the same matrix; direct table/helper grants remain closed.",
+    "negative_cases": "Forged claims; expired token; service-role spoof; helper EXECUTE",
+    "dependencies": "A018/A021/A034; A054 governance; D050/R129",
+    "existing_evidence": "A054 provides delegated hr/preparer/reviewer/approver/payment_recorder, live deny/expiry/revoke and legal holds. A051 audit chain remains canonical; no extra permission or audit store is planned.",
+    "gap": "GoTrue staging is NOT TESTED in current evidence; production authorization stays gated.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_bridge_v1.sql"
+    ],
+    "scope_class": "release-gated"
+  },
+  {
+    "feature_detail_id": "C10-HR-D073",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Liability reporting integration and usable UI",
+    "title": "Approved liability versus draft estimate",
+    "workflow": "Portfolio/payroll reads classify draft/reviewed as estimate and approved/frozen as amount owed.",
+    "acceptance": "Draft values never enter approved liability; reports show source run/state and period.",
+    "negative_cases": "Draft summed as debt; missing approved run shown zero liability without label",
+    "dependencies": "A050/A051/A053/A054; REPORT-001; FIN-001; UX-001",
+    "existing_evidence": "A053 portfolio adapter and A054 approved-liability/external-payment record reports exist. Combined PG17 and original synthetic browser tests passed; actual money movement remains absent.",
+    "gap": "Reconcile displayed amount/state with canonical frozen/approved run and financial boundary.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a051_workforce_reads_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D074",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Liability reporting integration and usable UI",
+    "title": "External payment recording",
+    "workflow": "Authorized payment_recorder records payment made outside ERP with employee/month, amount and external reference.",
+    "acceptance": "Record is append-only, bounded by outstanding approved amount and explicitly payment_executed:false.",
+    "negative_cases": "No reference; payment above outstanding; wrong month; duplicate key",
+    "dependencies": "A050/A051/A053/A054; REPORT-001; FIN-001; UX-001",
+    "existing_evidence": "A053 portfolio adapter and A054 approved-liability/external-payment record reports exist. Combined PG17 and original synthetic browser tests passed; actual money movement remains absent.",
+    "gap": "This is recordkeeping only; bank/MFS execution requires separate certified integration.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a051_workforce_reads_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D075",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Liability reporting integration and usable UI",
+    "title": "Partial payment and outstanding reconciliation",
+    "workflow": "Approved liability is reduced only by valid external payment records/reversals.",
+    "acceptance": "Approved_unpaid, partly_paid_outstanding and recorded_paid stay separate; outstanding arithmetic reconciles per employee/site.",
+    "negative_cases": "Duplicate payment; negative outstanding; stale approval amount",
+    "dependencies": "A050/A051/A053/A054; REPORT-001; FIN-001; UX-001",
+    "existing_evidence": "A053 portfolio adapter and A054 approved-liability/external-payment record reports exist. Combined PG17 and original synthetic browser tests passed; actual money movement remains absent.",
+    "gap": "Complete source-linked drilldown and dispute correction without inferring bank settlement.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a051_workforce_reads_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D076",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Liability reporting integration and usable UI",
+    "title": "Payment-record reversal",
+    "workflow": "Permitted actor records source-linked reversal rather than editing or deleting paid evidence.",
+    "acceptance": "Reversal restores outstanding once, retains original external reference and never moves bank money.",
+    "negative_cases": "Double reversal; foreign record; excess reversal",
+    "dependencies": "A050/A051/A053/A054; REPORT-001; FIN-001; UX-001",
+    "existing_evidence": "A053 portfolio adapter and A054 approved-liability/external-payment record reports exist. Combined PG17 and original synthetic browser tests passed; actual money movement remains absent.",
+    "gap": "Connect reversal approval and future finance correction contract before live adoption.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a051_workforce_reads_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D077",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Liability reporting integration and usable UI",
+    "title": "Canonical portfolio workforce adapter",
+    "workflow": "A050 authorized businesses feed A053 workforce summaries from A051 guards and A054 liability projection.",
+    "acceptance": "Visible business/site headcount sums reconcile; salary figures stay owner-only; missing module returns NOT_CONNECTED with no invented numbers.",
+    "negative_cases": "Foreign tenant aggregate; contract mismatch; unsupported employee field",
+    "dependencies": "A050/A051/A053/A054; REPORT-001; FIN-001; UX-001",
+    "existing_evidence": "A053 portfolio adapter and A054 approved-liability/external-payment record reports exist. Combined PG17 and original synthetic browser tests passed; actual money movement remains absent.",
+    "gap": "Add staging read-model parity and large-portfolio query measurements.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a051_workforce_reads_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D078",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Liability reporting integration and usable UI",
+    "title": "Attendance headcount payroll reports",
+    "workflow": "Scoped operational reports expose attendance statuses, active staff, gross/net and frozen payslip register.",
+    "acceptance": "Filters business/site/month reconcile to source rows and role projection; zero/missing/stale states are distinct.",
+    "negative_cases": "Double-count assignment; stale month; salary leakage",
+    "dependencies": "A050/A051/A053/A054; REPORT-001; FIN-001; UX-001",
+    "existing_evidence": "A053 portfolio adapter and A054 approved-liability/external-payment record reports exist. Combined PG17 and original synthetic browser tests passed; actual money movement remains absent.",
+    "gap": "Complete drilldowns from summary to source day, employee and frozen line.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a051_workforce_reads_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D079",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Liability reporting integration and usable UI",
+    "title": "Safe export and document delivery",
+    "workflow": "Authorized actor exports role-projected workforce/attendance/payslip/liability CSV and optional governed documents.",
+    "acceptance": "CSV formula injection is neutralized; PII/salary scope enforced; export audited; no public attachment link without consent.",
+    "negative_cases": "=formula payload; foreign employee export; cached file after revoke",
+    "dependencies": "A050/A051/A053/A054; REPORT-001; FIN-001; UX-001",
+    "existing_evidence": "A053 portfolio adapter and A054 approved-liability/external-payment record reports exist. Combined PG17 and original synthetic browser tests passed; actual money movement remains absent.",
+    "gap": "PDF/email/Drive delivery require registered adapter and tenant consent; provider sends remain off until approved.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a051_workforce_reads_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D080",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Liability reporting integration and usable UI",
+    "title": "Bangla English guidance accessibility",
+    "workflow": "Same HR workflow renders in Bangla/English on390/1440 with keyboard controls and calculation explanations.",
+    "acceptance": "No overflow/dead buttons; statuses/errors explain next action;1.00× and approved-not-paid labels remain unambiguous.",
+    "negative_cases": "Translation changes units; keyboard trap; hidden fatal error",
+    "dependencies": "A050/A051/A053/A054; REPORT-001; FIN-001; UX-001",
+    "existing_evidence": "A053 portfolio adapter and A054 approved-liability/external-payment record reports exist. Combined PG17 and original synthetic browser tests passed; actual money movement remains absent.",
+    "gap": "Extend actual connected UI tests to every supported action, not just visible pages.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a051_workforce_reads_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D081",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Liability reporting integration and usable UI",
+    "title": "Offline attendance draft and conflict recovery",
+    "workflow": "Offline user captures bounded punch/correction proposal; server reauthorizes and validates on reconnect.",
+    "acceptance": "Draft is visibly stale/non-authoritative; duplicate/revoked/locked-period replay is rejected without payroll change.",
+    "negative_cases": "Offline self-approval; duplicate device replay; lost key; revoked user",
+    "dependencies": "A050/A051/A053/A054; REPORT-001; FIN-001; UX-001",
+    "existing_evidence": "A053 portfolio adapter and A054 approved-liability/external-payment record reports exist. Combined PG17 and original synthetic browser tests passed; actual money movement remains absent.",
+    "gap": "Device-bound encryption and PR23 typed-intent integration remain an unbuilt/certification gap.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a051_workforce_reads_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D082",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Liability reporting integration and usable UI",
+    "title": "Scale limits and operational recovery",
+    "workflow": "Measure workforce calculations, portfolio reads and encrypted restore against representative tenant/site volumes.",
+    "acceptance": "35-day list/92-day report/1000-employee current caps are explicit; measured larger target requires indexed/stored path and restore reconciliation.",
+    "negative_cases": "Unbounded report;10year leave recursion exceed; partial restore",
+    "dependencies": "A050/A051/A053/A054; REPORT-001; FIN-001; UX-001",
+    "existing_evidence": "A053 portfolio adapter and A054 approved-liability/external-payment record reports exist. Combined PG17 and original synthetic browser tests passed; actual money movement remains absent.",
+    "gap": "Do not advertise enterprise capacity from303structural-site seed alone; publish measured limits and recovery evidence.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A053_A054_WORKFORCE_INTEGRATION_POLICY.md",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql",
+      "internal/enterprise-sql/c10_a054_workforce_policy_v1.sql",
+      "internal/enterprise-sql/c10_a051_workforce_reads_v1.sql"
+    ],
+    "scope_class": "existing-mandate"
+  },
+  {
+    "feature_detail_id": "C10-HR-D083",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Proposed HR extensions requiring scoped specification",
+    "title": "Recruitment requisition to hire",
+    "workflow": "Proposed vacancy approval, applicant consent, interview/offer and conversion to one employee master.",
+    "acceptance": "Future acceptance must prove one employee created per accepted offer and restricted applicant retention/consent.",
+    "negative_cases": "Duplicate hire; applicant PII leak; offer without authority",
+    "dependencies": "GOV-001/002; existing HR master and audit; explicit extension scope",
+    "existing_evidence": "These are planning proposals, not claims of existing A051/A054 implementation or newly approved Owner policy.",
+    "gap": "Recruitment runtime not established by current HR mandate/source; retain as proposed extension.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "proposed-extension"
+  },
+  {
+    "feature_detail_id": "C10-HR-D084",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Proposed HR extensions requiring scoped specification",
+    "title": "Performance and salary-review proposal",
+    "workflow": "Proposed goals/review evidence routes a salary-change request through existing approval/history boundary.",
+    "acceptance": "Future approved review can propose versioned salary, never silently change a frozen payroll or expose peer reviews.",
+    "negative_cases": "Biased hidden rule; self-approved raise; retroactive pay overwrite",
+    "dependencies": "GOV-001/002; existing HR master and audit; explicit extension scope",
+    "existing_evidence": "These are planning proposals, not claims of existing A051/A054 implementation or newly approved Owner policy.",
+    "gap": "Performance-review workflow and policy require explicit specification and appropriate review.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "proposed-extension"
+  },
+  {
+    "feature_detail_id": "C10-HR-D085",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Proposed HR extensions requiring scoped specification",
+    "title": "Training qualifications and certification",
+    "workflow": "Proposed employee skill/certificate records track evidence, expiry and role-relevant training.",
+    "acceptance": "Future expiring certification creates advisory alert; it cannot automatically grant operational permissions.",
+    "negative_cases": "Forged certificate; expired evidence; skill record as auth grant",
+    "dependencies": "GOV-001/002; existing HR master and audit; explicit extension scope",
+    "existing_evidence": "These are planning proposals, not claims of existing A051/A054 implementation or newly approved Owner policy.",
+    "gap": "Training/qualification module is not an existing certified handler; source/document privacy design required.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "proposed-extension"
+  },
+  {
+    "feature_detail_id": "C10-HR-D086",
+    "capability_id": "C10-CAP-HR-001",
+    "area": "Proposed HR extensions requiring scoped specification",
+    "title": "Exit clearance and final-settlement proposal",
+    "workflow": "Proposed owner-approved exit checklist references assets/access/advances/leave and finance calculation.",
+    "acceptance": "Future final settlement preserves employment/payroll history and never invents lawful deduction or payment completion.",
+    "negative_cases": "Unlawful withholding; missing asset; cancelled exit; bank payment inferred",
+    "dependencies": "GOV-001/002; existing HR master and audit; explicit extension scope",
+    "existing_evidence": "These are planning proposals, not claims of existing A051/A054 implementation or newly approved Owner policy.",
+    "gap": "End-to-end clearance and jurisdiction-specific final-settlement calculation remain proposed/release-gated.",
+    "status": "PLANNED_DETAIL_NOT_CERTIFIED",
+    "source_paths": [
+      "docs/architecture/C10_A051_WORKFORCE_PAYROLL.md",
+      "internal/enterprise-sql/c10_a051_workforce_core_v1.sql",
+      "internal/enterprise-sql/c10_a053_workforce_integration_v1.sql"
+    ],
+    "scope_class": "proposed-extension"
+  }
+]

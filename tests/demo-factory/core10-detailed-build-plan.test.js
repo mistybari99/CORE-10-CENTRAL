@@ -1,0 +1,13 @@
+"use strict";
+const assert=require("node:assert/strict");
+const {build,validate}=require("../../internal/build-plan/build");
+const p=build();
+const clone=()=>structuredClone(p);
+assert(validate(p));
+let broken=clone();broken.source_trace.pop();assert.throws(()=>validate(broken));
+broken=clone();broken.details=broken.details.filter(x=>x.capability_id!=="C10-CAP-HR-001");assert.throws(()=>validate(broken),/Missing module detail/);
+broken=clone();broken.requirement_trace=broken.requirement_trace.filter(x=>x.requirement_id!=="R129");assert.throws(()=>validate(broken),/Owner requirement omitted/);
+broken=clone();broken.archive[0].chunks[0]+="tampered";assert.throws(()=>validate(broken),/archive truncated/);
+broken=clone();broken.details[0].status="COMPLETE";assert.throws(()=>validate(broken),/Planning is not implementation proof/);
+broken=clone();broken.revisions=broken.revisions.filter(x=>x[0]!=="REV-010");assert.throws(()=>validate(broken),/Latest revision omitted/);
+console.log("PASS detailed plan: lossless research/129 requirements/32 parents, HR atomic coverage, mutation guards and honest statuses");

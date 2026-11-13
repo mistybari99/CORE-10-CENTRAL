@@ -1,0 +1,109 @@
+name: CORE10 Build 01 business setup login permissions
+on:
+  push:
+    branches: ['codex/build-01-*']
+  pull_request:
+    paths:
+      - 'core10-build01*'
+      - 'internal/enterprise-sql/**'
+      - 'tests/build01/**'
+      - 'tests/api/core10-build01*'
+      - 'tests/e2e/core10-build01*'
+      - '.github/workflows/core10-build01-integration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  canonical-sql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [baseline, setup, industry, access, integration, concurrency]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: build01_disposable_only
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: build01_disposable_only
+      CORE10_BUILD01_DISPOSABLE_ACK: I_CONFIRM_BUILD01_DISPOSABLE
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: bash tests/build01/run-sql.sh '${{ matrix.suite }}'
+  actual-auth-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: build01_disposable_only
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: build01_disposable_only
+      CORE10_BUILD01_DISPOSABLE_ACK: I_CONFIRM_BUILD01_DISPOSABLE
+      CORE10_BUILD01_BROWSER: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Client and gateway security
+        run: |
+          node tests/build01/client.test.cjs
+          node tests/build01/gateway.test.cjs
+      - name: Install isolated Chromium
+        run: |
+          mkdir -p "$RUNNER_TEMP/build01-pw"
+          cd "$RUNNER_TEMP/build01-pw"
+          npm init -y >/dev/null
+          npm install --save-dev playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/build01-pw/node_modules" >> "$GITHUB_ENV"
+      - name: Locked configuration cannot use legacy production settings
+        run: node tests/e2e/core10-build01-locked-browser.cjs
+      - name: Genuine local GoTrue password sessions and PostgreSQL browser journey
+        run: bash tests/build01/run-auth.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build01-browser-screenshots
+          path: /tmp/core10-build01-shots/*.png
+          if-no-files-found: ignore
+  existing-module-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [cross-module, operations, intent, crm, workforce, workforce-policy, assets]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: build01_disposable_only
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: build01_disposable_only
+      CORE10_PREVIEW_DISPOSABLE_ACK: I_CONFIRM_DISPOSABLE_PREVIEW
+      CORE10_PREVIEW_BUILD01: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: bash tests/preview-one/run-combined.sh '${{ matrix.suite }}'
