@@ -103,11 +103,14 @@ BEGIN
  INSERT INTO c10_demo.operation_profiles_v1(tenant_id,business_id,changed_by)
  VALUES(loc.tenant_id,p_business,c10_demo.actor_uid()) ON CONFLICT(business_id) DO NOTHING;
  SELECT * INTO policy FROM c10_demo.operation_profiles_v1 WHERE business_id=p_business;
+ -- PACK-01: inherited Owner/Manager rights may NOT override an explicit
+ -- site DENY or an expired/revoked grant. Reuse A048 -> Build01 can_site.
+ IF NOT c10_demo.inventory_action_authorized_v1(loc.tenant_id,p_business,p_location,'stock.post')
+ THEN RAISE EXCEPTION 'A049_ORDER_DENIED'; END IF;
  IF NOT c10_demo.can_manage(loc.tenant_id,p_business) AND
     (p_kind='production_plan' OR
     (p_kind='sale_issue' AND NOT policy.sales_staff_enabled) OR
-    (p_kind='purchase_receive' AND NOT policy.receiving_staff_enabled) OR
-    NOT c10_demo.inventory_action_authorized_v1(loc.tenant_id,p_business,p_location,'stock.post'))
+    (p_kind='purchase_receive' AND NOT policy.receiving_staff_enabled))
  THEN RAISE EXCEPTION 'A049_ORDER_DENIED'; END IF;
  INSERT INTO c10_demo.operation_orders_v1(tenant_id,business_id,site_id,location_id,item_id,kind,quantity,estimated_unit_value,external_ref,request_key,created_by)
  VALUES(loc.tenant_id,p_business,loc.site_id,p_location,p_item,p_kind,p_quantity,p_unit_value,p_external,p_request,c10_demo.actor_uid())
@@ -131,11 +134,14 @@ BEGIN
  SELECT * INTO o FROM c10_demo.operation_orders_v1 WHERE id=p_order FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'A049_ORDER_NOT_FOUND'; END IF;
  SELECT * INTO policy FROM c10_demo.operation_profiles_v1 WHERE business_id=o.business_id;
+ -- PACK-01: re-resolve effective site permission at EACH confirm/post.
+ -- A permission revoked after draft or confirm must block final stock mutation.
+ IF NOT c10_demo.inventory_action_authorized_v1(o.tenant_id,o.business_id,o.location_id,'stock.post')
+ THEN RAISE EXCEPTION 'A049_ACTION_DENIED'; END IF;
  IF NOT c10_demo.can_manage(o.tenant_id,o.business_id) AND
-   ((o.kind='production_plan') OR
+   (o.kind='production_plan' OR
    (o.kind='sale_issue' AND NOT policy.sales_staff_enabled) OR
-   (o.kind='purchase_receive' AND NOT policy.receiving_staff_enabled) OR
-   NOT c10_demo.inventory_action_authorized_v1(o.tenant_id,o.business_id,o.location_id,'stock.post'))
+   (o.kind='purchase_receive' AND NOT policy.receiving_staff_enabled))
  THEN RAISE EXCEPTION 'A049_ACTION_DENIED'; END IF;
  IF o.status='posted' AND p_action='post' AND o.post_request_key=p_request THEN
   RETURN jsonb_build_object('order_id',o.id,'status','posted','version',o.version,'replayed',true);

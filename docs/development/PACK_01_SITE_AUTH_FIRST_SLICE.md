@@ -18,3 +18,8 @@ bash tests/preview-one/run-combined.sh pack01-security
 
 ## Still open — not a major package completion
 Hosted signed GoTrue A/B sessions, A049 and other module adapter parity, direct HTTP/RLS/Storage/CSV permission negatives, real worker/browser proof, independent backup/restore, compatibility and approval release review. No SG migrations, production transactions, deploy, old Islamia source edits, or main merge. No operational release from CI alone.
+
+## Checkpoint 03 — A049 purchase/sale order permission parity (2026-11-15)
+- `create_operation_order_v1` and `advance_operation_order_v1` now ALWAYS invoke A048 effective location/site `stock.post` authorization before owner or staff policy checks. Site DENY, expiry and revocation override Owner/Manager inherited rights. Existing role-based sale/receiving/production configuration remains unchanged.
+- Added isolated PACK-01 SQL regression: business owner draft/confirmed orders then site-denied; new order/confirmation/post blocked and no stock movements; site read denies hidden records; manager deny, expired staff site grant, revoked business owner, unrelated tenant all denied.
+- Same 2-tenant disposable PG17 stack, A048, Build01/02A; unchanged legacy and actual live SG. No new production purchase/sale functionality approved. CI outcome and exact SHA must be appended only after observed success.

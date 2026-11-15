@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - 'internal/enterprise-sql/c10_a048_inventory_commands_v1.sql'
+      - 'internal/enterprise-sql/c10_a049_operation_workflow_v1.sql'
       - 'tests/preview-one/run-combined.sh'
       - 'tests/pack01/**'
       - '.github/workflows/core10-pack01-security-ci.yml'
