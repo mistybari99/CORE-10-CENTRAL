@@ -1,0 +1,113 @@
+diff --git a/core10-build01-client.js b/core10-build01-client.js
+index 427d2a7..633f77b 100644
+--- a/core10-build01-client.js
++++ b/core10-build01-client.js
+@@ -103,7 +103,10 @@
+    return {business_id:id(input.businessId),site_id:id(input.siteId),action:input.action,allowed:!!site&&Array.isArray(site.allowed_actions)&&site.allowed_actions.includes(input.action),source:"fresh_server_workspace"};
+   }
+   async function audit(business){return (await workspace(business)).audit;}
+-  return Object.freeze({signIn,signOut,context,workspace,setup,createSite,changeAccess,effectivePermission,audit});
++  // PACK-02 S2: read-only workspace RPCs reuse this client's fresh-getUser signed path.
++  const PACK02=new Set(["pack02_workspace_v1","pack02_controls_v1","pack02_business_report_v1","pack02_owner_report_v1","pack02_setup_readback_v1"]);
++  async function pack02(name,args){if(typeof name!=="string"||!PACK02.has(name))fail("BUILD01_RPC_NOT_ALLOWED");return rpc(name,args);}
++  return Object.freeze({signIn,signOut,context,workspace,setup,createSite,changeAccess,effectivePermission,audit,pack02});
+  }
+  return Object.freeze({create});
+ });
+diff --git a/core10-build01.html b/core10-build01.html
+index 33e53c0..867d66d 100644
+--- a/core10-build01.html
++++ b/core10-build01.html
+@@ -3,7 +3,7 @@
+ <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+ <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' http://127.0.0.1:* http://localhost:*; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
+ <title>CORE 10 CENTRAL · Build 01 — Business Setup, Login &amp; Permissions Integration</title>
+-<link rel="stylesheet" href="./core10-control-studio.css"><link rel="stylesheet" href="./core10-build01.css">
++<link rel="stylesheet" href="./core10-control-studio.css"><link rel="stylesheet" href="./core10-build01.css"><link rel="stylesheet" href="./core10-pack02-workspace.css">
+ </head><body><div class="studio-layout">
+ <aside class="studio-rail"><div class="brand">CORE <b>10</b><small>CENTRAL · BUILD 01</small></div><nav aria-label="Build 01 navigation"><a class="active" href="#b01-main" data-i18n="workspace">Setup &amp; access</a></nav><p class="rail-note">One canonical identity and permission service.<br>R014–R026 · R073 · R115–R128</p></aside>
+ <main id="b01-main"><div class="topline"><span>BUILD 01</span><button type="button" class="outline compact" id="b01-language" aria-label="Change language">English</button></div>
+@@ -23,6 +23,7 @@
+ <section class="approval-panel"><div class="panel-title"><h2 data-i18n="currentAccess">বর্তমান scope-এর access records</h2></div><div class="b01-table"><table><thead><tr><th data-i18n="subject">Staff / subject</th><th data-i18n="roleActions">Role / actions</th><th data-i18n="denyActions">Explicit deny</th><th data-i18n="expires">Expires at (optional)</th><th data-i18n="version">Version / state</th></tr></thead><tbody id="b01-current-access"></tbody></table></div></section>
+ <section class="approval-panel"><div class="panel-title"><h2 data-i18n="auditTitle">৫ · Audit ও সংযুক্ত ফল</h2><button class="outline compact" type="button" id="b01-audit-refresh" data-i18n="refreshAudit">Audit refresh</button></div><div class="b01-table"><table><thead><tr><th data-i18n="event">Event</th><th data-i18n="subject">Staff / subject</th><th data-i18n="time">Time</th><th data-i18n="result">Result</th></tr></thead><tbody id="b01-audit"></tbody></table></div><div class="b01-help" data-i18n="auditHelp">ফল কোথায়: একই canonical setup/site/access records ও server audit। খালি audit মানে সব কাজ সফল হয়েছে নয়; কোনো request করা না-ও হতে পারে। Setup ও access কোনো টাকা বা stock সরায় না।</div></section>
+ </div><footer>CORE 10 CENTRAL · Build 01 — Business Setup, Login &amp; Permissions Integration<br><span data-i18n="footer">Signed API ও real GoTrue/staging verification আলাদা evidence হিসেবে রিপোর্ট হবে। Production activation আলাদা gate।</span></footer>
++<section class="approval-panel" id="b01-pack02-panel"><div class="panel-title"><h2>ওয়ার্কস্পেস · Workspace</h2></div><div id="b01-pack02"></div></section>
+ </main></div>
+-<script src="./vendor/supabase.js"></script><script src="./core10-build01-config.js"></script><script src="./core10-enterprise-client.js"></script><script src="./core10-build01-client.js"></script><script src="./core10-build01.js"></script>
++<script src="./vendor/supabase.js"></script><script src="./core10-build01-config.js"></script><script src="./core10-enterprise-client.js"></script><script src="./core10-build01-client.js"></script><script src="./core10-pack02-workspace.js"></script><script src="./core10-pack02-controls.js"></script><script src="./core10-pack02-signed.js"></script><script src="./core10-pack02-app.js"></script><script src="./core10-build01.js"></script>
+ </body></html>
+diff --git a/core10-build01.js b/core10-build01.js
+index 7b8043f..bd90c35 100644
+--- a/core10-build01.js
++++ b/core10-build01.js
+@@ -31,7 +31,8 @@
+     for(const row of rows){const o=document.createElement("option");o.value=String(row[id]);o.textContent=String(label(row));select.append(o);}
+     if(rows.some(row=>String(row[id])===old))select.value=old;
+   }
+-  function clearPrivate(){S.epoch++;S.context=null;S.workspace=null;S.requests.clear();$("b01-workspace").hidden=true;$("b01-login").hidden=false;for(const id of["b01-business","b01-site","b01-legal","b01-template","b01-audit","b01-current-access"])$(id).replaceChildren();for(const id of["b01-effective-result","b01-setup-result","b01-site-result","b01-access-result","b01-actor","b01-session"])$(id).textContent="";for(const id of["b01-login-form","b01-setup-form","b01-site-form","b01-access-form","b01-effective-form"])$(id).reset();mode();}
++  function pack02(c){const el=$("b01-pack02"),A=window.CORE10_PACK02_APP,G=window.CORE10_PACK02_SIGNED;if(!el||!A||!G||!S.api||typeof S.api.pack02!=="function")return;try{if(S.pack02)S.pack02.refresh(c);else S.pack02=A.mount(el,{rpc:G.fromRpc(S.api.pack02).rpc,context:c});}catch{el.replaceChildren();S.pack02=null;}}
++  function clearPrivate(){if(S.pack02)S.pack02.reset();S.epoch++;S.context=null;S.workspace=null;S.requests.clear();$("b01-workspace").hidden=true;$("b01-login").hidden=false;for(const id of["b01-business","b01-site","b01-legal","b01-template","b01-audit","b01-current-access"])$(id).replaceChildren();for(const id of["b01-effective-result","b01-setup-result","b01-site-result","b01-access-result","b01-actor","b01-session"])$(id).textContent="";for(const id of["b01-login-form","b01-setup-form","b01-site-form","b01-access-form","b01-effective-form"])$(id).reset();mode();}
+   function clearBusiness(){S.workspace=null;for(const id of["b01-site","b01-audit","b01-current-access"])$(id).replaceChildren();for(const id of["b01-effective-result","b01-site-result","b01-access-result"])$(id).textContent="";}
+   function formEnabled(form,enabled){for(const el of $(form).querySelectorAll("button,input,select,textarea"))el.disabled=!enabled||S.busy;}
+   function controls(){
+@@ -64,7 +65,7 @@
+     drawAudit(w.audit||[]);controls();
+   }
+   async function workspace(){const id=selectedBusiness(),epoch=S.epoch;try{const w=await S.api.workspace(id);if(epoch!==S.epoch||String(id)!==$("b01-business").value)return;S.workspace=w;$("b01-effective-result").textContent="";drawWorkspace(w);}catch(error){if(epoch===S.epoch)clearBusiness();throw error;}}
+-  async function context(wanted){const epoch=S.epoch,c=await S.api.context();if(epoch!==S.epoch)return;if(!c||!c.actor_uid||!Array.isArray(c.businesses))throw Error("INVALID_CONTEXT_RESPONSE");S.context=c;$("b01-actor").textContent=c.actor_uid;$("b01-session").textContent=say("Server থেকে যাচাইকৃত business scope; session প্রতিটি API action-এ পুনরায় যাচাই হয়।","Server-derived business scope; the session is revalidated for every API action.");options($("b01-business"),c.businesses,"id",x=>x.label||x.slug);options($("b01-legal"),c.legal_entities||[],"id",x=>x.label||x.id);options($("b01-template"),c.templates||[],"code",x=>x.label||x.code);if(wanted&&c.businesses.some(x=>Number(x.id)===Number(wanted)))$("b01-business").value=String(wanted);$("b01-login").hidden=true;$("b01-workspace").hidden=false;if(c.businesses.length)await workspace();else{clearBusiness();drawAudit([]);}controls();}
++  async function context(wanted){const epoch=S.epoch,c=await S.api.context();if(epoch!==S.epoch)return;if(!c||!c.actor_uid||!Array.isArray(c.businesses))throw Error("INVALID_CONTEXT_RESPONSE");S.context=c;pack02(c);$("b01-actor").textContent=c.actor_uid;$("b01-session").textContent=say("Server থেকে যাচাইকৃত business scope; session প্রতিটি API action-এ পুনরায় যাচাই হয়।","Server-derived business scope; the session is revalidated for every API action.");options($("b01-business"),c.businesses,"id",x=>x.label||x.slug);options($("b01-legal"),c.legal_entities||[],"id",x=>x.label||x.id);options($("b01-template"),c.templates||[],"code",x=>x.label||x.code);if(wanted&&c.businesses.some(x=>Number(x.id)===Number(wanted)))$("b01-business").value=String(wanted);$("b01-login").hidden=true;$("b01-workspace").hidden=false;if(c.businesses.length)await workspace();else{clearBusiness();drawAudit([]);}controls();}
+   function manifest(){return $("b01-sites").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(line=>{const parts=line.split("|");if(parts.length!==2||!parts[1].trim())throw Error("INVALID_SITE_MANIFEST");return{kind:parts[0].trim(),label:parts[1].trim()};});}
+   function version(input){const access=S.workspace?.access||{},list=input.command.startsWith("business_member")?access.business_members:access.site_grants;const row=(list||[]).find(x=>String(x.user_id||x.subject_uid)===input.subjectUid&&(input.siteId===null||Number(x.site_id)===input.siteId));return row?.version??0;}
+   $("b01-language").addEventListener("click",()=>{S.lang=S.lang==="bn"?"en":"bn";language();});
+diff --git a/tests/build01/gateway.cjs b/tests/build01/gateway.cjs
+index 829a844..4e61ba3 100644
+--- a/tests/build01/gateway.cjs
++++ b/tests/build01/gateway.cjs
+@@ -4,7 +4,9 @@
+ const http=require("node:http"),fs=require("node:fs"),path=require("node:path"),os=require("node:os");
+ const {build,verify,isAllowed}=require("../../internal/core10-pages-package");
+ const AUTH=new Map([["/token","POST"],["/user","GET"],["/logout","POST"],["/health","GET"]]);
+-const RPC=new Set(["build01_context_v1","build01_workspace_v1","build01_setup_v1","build01_site_v1","build01_set_access_v1"]);
++const RPC=new Set(["build01_context_v1","build01_workspace_v1","build01_setup_v1","build01_site_v1","build01_set_access_v1",
++ // PACK-02 S2 read-only projections; pack02_setup_business_v1 stays unreachable.
++ "pack02_workspace_v1","pack02_controls_v1","pack02_business_report_v1","pack02_owner_report_v1","pack02_setup_readback_v1"]);
+ const TYPES={".html":"text/html; charset=utf-8",".js":"application/javascript; charset=utf-8",".css":"text/css; charset=utf-8"};
+ function loopback(value){const u=new URL(value);if(u.protocol!=="http:"||!["localhost","127.0.0.1","[::1]"].includes(u.hostname)||u.username||u.password||u.pathname!=="/"||u.search||u.hash)throw Error("LOOPBACK_TARGET_REQUIRED");return u.origin;}
+ function createGateway(options){
+@@ -48,7 +50,8 @@ function createGateway(options){
+    if(!["GET","HEAD"].includes(req.method))return respond(405,"Method denied");
+    const file=p==="/"?"core10-build01.html":p.slice(1);
+    // Only this surface and its explicit original dependencies are reachable.
+-   const allowed=new Set(["core10-build01.html","core10-build01.js","core10-build01.css","core10-build01-client.js","core10-enterprise-client.js","core10-control-studio.css","vendor/supabase.js"]);
++   const allowed=new Set(["core10-build01.html","core10-build01.js","core10-build01.css","core10-build01-client.js","core10-enterprise-client.js","core10-control-studio.css","vendor/supabase.js",
++    "core10-pack02-workspace.js","core10-pack02-controls.js","core10-pack02-signed.js","core10-pack02-app.js","core10-pack02-workspace.css"]);
+    if(!allowed.has(file)||!isAllowed(file))return respond(404,"Not found");
+    const full=path.join(publicRoot,file);
+    if(fs.realpathSync(full)!==full)return respond(404,"Not found");
+diff --git a/tests/build01/run-auth.sh b/tests/build01/run-auth.sh
+index e5ba598..418b7f1 100644
+--- a/tests/build01/run-auth.sh
++++ b/tests/build01/run-auth.sh
+@@ -75,5 +75,6 @@ if [[ "${CORE10_BUILD01_BROWSER:-0}" == 1 ]]; then
+   node tests/build01/gateway.cjs >"$runtime/gateway.log" 2>&1 & gateway_pid=$!
+   node -e '(async()=>{for(let i=0;i<30;i++){try{if((await fetch(process.env.BUILD01_BASE_URL+"/")).ok)return}catch{}await new Promise(r=>setTimeout(r,200))}throw Error("Gateway readiness failed")})().catch(e=>{console.error(e.message);process.exitCode=1})'
+   node tests/e2e/core10-build01-live-browser.cjs
++  node tests/pack02/live-auth-browser.cjs
+ fi
+ echo 'PASS actual local GoTrue v2.197.0 password sessions + PostgREST 12.2.12 Build01 journey; hosted staging/production NOT certified'
+diff --git a/tests/build01/run-load.sh b/tests/build01/run-load.sh
+index 8b4ba7a..cd7d23e 100644
+--- a/tests/build01/run-load.sh
++++ b/tests/build01/run-load.sh
+@@ -15,7 +15,10 @@ for file in \
+  internal/enterprise-sql/c10_a020_industry_draft_v2.sql \
+  internal/enterprise-sql/c10_a021_owner_controls_v1.sql \
+  internal/enterprise-sql/c10_a034_access_governance_v1.sql \
+- internal/enterprise-sql/c10_build01_access_integration_v1.sql; do
++ internal/enterprise-sql/c10_build01_access_integration_v1.sql \
++ internal/enterprise-sql/c10_pack02_workspace_v1.sql \
++ internal/enterprise-sql/c10_a044_control_settings_v1.sql \
++ internal/enterprise-sql/c10_pack02_controls_v1.sql; do
+   printf 'LOAD %s\n' "$file"
+   "${psql[@]}" -f "$file"
+ done

@@ -9,10 +9,10 @@ Decisions: D030, D032, D033, D045, D049, D051, D054. PACK-01 (ChatGPT, PR #104) 
 | Slice | Content | State |
 |---|---|---|
 | S1 (PR #105, CI 26/26 on `ee70cfb`) | Setup readback + integrity, Quick/Advanced via existing `build01_setup_v1`, one workspace resolver (Universal Owner / Business Owner / Staff), business + owner scoped reports, Bangla-first client, 390/1440 browser check | **CODED, local tests PASS** (this checkpoint) |
-| S2 | Wire client into Build01 signed page (`core10-build01.html`) as workspace switcher; real GoTrue journey via `tests/build01/run-auth.sh` gateway allowlist | Needs PACK-01 gateway coordination (Build01 files are PACK-01 owned) |
+| S2 | **PACK-02 side CODED**: `core10-pack02-signed.js`, `core10-pack02-app.js`, real-SQL browser journey (`app`), PACK-01 agreement suite, real-GoTrue journey `tests/pack02/live-auth-browser.cjs`. Build01-owned wiring is a **patch proposal for ChatGPT** (`PACK02_S2_BUILD01_PATCH_PROPOSAL.patch`); verified in a scratch worktree with actual local GoTrue, not applied here. See `PACK02_S2_INTEGRATION_CONTRACT.md` | WAITING: ChatGPT applies patch |
 | S3 | D045 control placement projection (A043/A044 `control_settings`) inside Business Owner workspace; staff-hidden controls | **CODED**: `pack02_controls_v1` read-only projection over canonical A044 settings; central registry lists all 18, business surface only Business Only/Both, hidden/central-only undisclosed to delegated owner; manager/staff/investor/other tenant denied; client + 390/1440 browser tests |
 | S4 | **CODED**: 303-site (100/100/100/3) Advanced setup through the canonical engine with identical replay, integrity readback, owner/staff workspaces and reports (`scale`; disposable local timing only, not a capacity claim); owner-wide report reconciled row-for-row with existing A050 `read_portfolio_workspace_v1` (`portfolio`) | 
-| S5 | Signed hosted A/B negative E2E, Drive + Sheet readback, Owner preview pair P01 | Blocked on PACK-01 signed staging |
+| S5 | Hosted signed A/B staging: requirements listed in `PACK02_S2_INTEGRATION_CONTRACT.md` §5 | BLOCKED: separate staging project (Owner) + PACK-01 |
 
 ## Reuse, not rebuild
 

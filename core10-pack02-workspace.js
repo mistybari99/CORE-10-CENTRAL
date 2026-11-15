@@ -110,7 +110,8 @@
  // DOM rendering uses textContent only; server strings never become markup.
  // Without an onNavigate handler, nav items render disabled: no inert button
  // may look like a working function (AGENTS.md / D049).
- function render(rootEl,v,onNavigate){
+ // wiredKeys (optional array) limits live items to those the host has connected.
+ function render(rootEl,v,onNavigate,wiredKeys){
   const doc=rootEl.ownerDocument;
   rootEl.replaceChildren();
   rootEl.style.setProperty("--c10-brand",v.theme.brand);
@@ -123,7 +124,7 @@
   const navEl=el(doc,"nav","p2-nav");navEl.setAttribute("aria-label","প্রধান মেনু");
   for(const n of v.nav){
    const b=el(doc,"button","p2-nav-item");b.type="button";b.dataset.key=n.key;
-   if(typeof onNavigate==="function")b.addEventListener("click",()=>onNavigate(n.key));
+   if(typeof onNavigate==="function"&&(!Array.isArray(wiredKeys)||wiredKeys.includes(n.key)))b.addEventListener("click",()=>onNavigate(n.key));
    else{b.disabled=true;b.setAttribute("aria-disabled","true");b.title="এই অংশটি এখনো সংযুক্ত হয়নি (not connected yet)";}
    b.append(el(doc,"span","p2-bn",n.bn),el(doc,"span","p2-en",n.en),el(doc,"small","p2-hint",n.hint));
    navEl.append(b);

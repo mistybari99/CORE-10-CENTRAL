@@ -17,6 +17,7 @@ case "$suite" in workspace) tests=(tests/pack02/workspace-e2e.sql);;
  scale) tests=(tests/pack02/scale-e2e.sql);;
  portfolio) tests=(tests/pack02/portfolio-e2e.sql);;
  agreement) tests=(tests/pack02/agreement-e2e.sql);;
+ app) tests=(tests/pack02/app-browser.cjs);;
  *) exit 2;; esac
 database="core10_preview_pack02_${BASHPID}"
 extra=()
@@ -54,6 +55,6 @@ for file in \
 done
 for test in "${tests[@]}"; do
   printf 'TEST %s\n' "$test"
-  "${psql[@]}" -f "$test"
+  if [[ "$test" == *.cjs ]]; then node "$test"; else "${psql[@]}" -f "$test"; fi
 done
 echo "PASS PACK-02 $suite; synthetic claim fixtures only"

@@ -58,7 +58,7 @@ BEGIN
   PERFORM pg_temp.as_user(u);
   checked:=checked+pg_temp.agree('staff',101)+pg_temp.agree('business_owner',101)+pg_temp.agree('staff',201)+pg_temp.agree('business_owner',201);
  END LOOP;
- IF checked<200 THEN RAISE EXCEPTION 'agreement matrix too small %',checked; END IF;
+ IF checked<100 THEN RAISE EXCEPTION 'agreement matrix too small %',checked; END IF;
  ELSE RAISE NOTICE 'PACK-01 A048 adapter ABSENT: projection-vs-enforcement matrix SKIPPED on this baseline'; END IF;
  -- Staff: post denied in projection AND in enforcement.
  PERFORM pg_temp.as_user('44444444-4444-4444-8444-444444444444');

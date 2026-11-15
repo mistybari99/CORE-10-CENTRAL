@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [workspace, regression, controls, scale, portfolio]
+        suite: [workspace, regression, controls, scale, portfolio, agreement]
     services:
       postgres:
         image: postgres:17
@@ -42,6 +42,37 @@ jobs:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
       - run: bash tests/pack02/run-sql.sh '${{ matrix.suite }}'
+  app-journey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pack02_disposable_only
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: pack02_disposable_only
+      CORE10_PACK02_DISPOSABLE_ACK: I_CONFIRM_PACK02_DISPOSABLE
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Install isolated Chromium
+        run: |
+          mkdir -p "$RUNNER_TEMP/pack02-pw"
+          cd "$RUNNER_TEMP/pack02-pw"
+          npm init -y >/dev/null
+          npm install --save-dev playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/pack02-pw/node_modules" >> "$GITHUB_ENV"
+      - name: Browser host journey over real disposable SQL
+        run: bash tests/pack02/run-sql.sh app
   client-browser:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -54,10 +85,12 @@ jobs:
         run: |
           node --check core10-pack02-workspace.js
           node --check core10-pack02-controls.js
+          node --check core10-pack02-signed.js
+          node --check core10-pack02-app.js
           node --test tests/pack02/*.test.cjs
       - name: Static safety
         run: |
-          ! grep -nE '(service_role|sb_secret_|innerHTML|eval\(|new Function)' core10-pack02-workspace.js core10-pack02-controls.js
+          ! grep -nE '(service_role|sb_secret_|innerHTML|eval\(|new Function)' core10-pack02-workspace.js core10-pack02-controls.js core10-pack02-signed.js core10-pack02-app.js
           ! grep -niE '(CREATE TABLE|INSERT INTO|UPDATE c10_demo|DELETE FROM|GRANT .* ON c10_demo\.)' internal/enterprise-sql/c10_pack02_workspace_v1.sql internal/enterprise-sql/c10_pack02_controls_v1.sql
       - name: Install isolated Chromium
         run: |
