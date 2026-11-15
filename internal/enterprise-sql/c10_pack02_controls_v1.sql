@@ -6,7 +6,7 @@
 -- Writes stay with A044 write_control_setting_v1 / decide_control_setting_v1.
 -- Placement is presentation, NOT permission: nothing here grants an action.
 DO $guard$ BEGIN
- IF current_database() !~ '^core10_(build01|preview|pack02)' OR
+ IF current_database() !~ '^core10_(build01|build02a|a[0-9]+|preview|pack02)' OR
     to_regclass('c10_demo.control_settings_v1') IS NULL OR
     to_regprocedure('c10_demo.pack02_workspace_v1(text,bigint)') IS NULL THEN
   RAISE EXCEPTION 'PACK02_DISPOSABLE_A044_AND_WORKSPACE_REQUIRED';

@@ -8,6 +8,9 @@ on:
       - 'internal/enterprise-sql/c10_pack02_*'
       - 'internal/enterprise-sql/c10_build01_access_integration_v1.sql'
       - 'internal/enterprise-sql/c10_a044_control_settings_v1.sql'
+      - 'internal/enterprise-sql/c10_a048_inventory_commands_v1.sql'
+      - 'internal/enterprise-sql/c10_a049_operation_workflow_v1.sql'
+      - 'internal/enterprise-sql/c10_a050_owner_portfolio_v1.sql'
       - 'tests/pack02/**'
       - 'docs/development/PACK02_*'
       - '.github/workflows/core10-pack02-workspace-ci.yml'
@@ -21,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [workspace, regression, controls]
+        suite: [workspace, regression, controls, scale, portfolio]
     services:
       postgres:
         image: postgres:17

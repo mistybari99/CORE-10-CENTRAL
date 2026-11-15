@@ -12,7 +12,7 @@
 --  * performs no stock, money, payroll or customer-data write;
 --  * is NOT a hosted/production migration and must never be applied to IMG-ERP-SG.
 DO $guard$ BEGIN
- IF current_database() !~ '^core10_(build01|preview|pack02)' OR
+ IF current_database() !~ '^core10_(build01|build02a|a[0-9]+|preview|pack02)' OR
     to_regprocedure('c10_demo.build01_setup_v1(bigint,text,text,text,text,jsonb,text,text)') IS NULL OR
     to_regprocedure('c10_demo.can_site(bigint,bigint,bigint,text)') IS NULL OR
     to_regclass('c10_demo.business_configuration_v1') IS NULL THEN
