@@ -64,3 +64,57 @@ jobs:
         with: {node-version: '22'}
       - name: Signed disposable PostgREST cross-tenant permission negatives
         run: bash tests/preview-one/run-combined.sh pack01-signed
+
+  pack02-s2-build01-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pack01_disposable_only
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: pack01_disposable_only
+      CORE10_BUILD01_DISPOSABLE_ACK: I_CONFIRM_BUILD01_DISPOSABLE
+      CORE10_BUILD01_BROWSER: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Read exact separate PR105 snapshot (no merge or source edit)
+        uses: actions/checkout@v4
+        with:
+          repository: mistybari99/CORE-10-CENTRAL
+          ref: 2dcb4133b3751987faf04e443b1f776445c0bd11
+          path: pack02-input
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Compose three PR105-owned S2 contract files in disposable CI worktree
+        run: |
+          set -euo pipefail
+          test "$(git -C pack02-input rev-parse HEAD)" = "2dcb4133b3751987faf04e443b1f776445c0bd11"
+          for file in core10-pack02-workspace.js core10-pack02-workspace.css internal/enterprise-sql/c10_pack02_workspace_v1.sql; do
+            if [[ -e "$file" ]]; then echo "PACK02_OWNERSHIP_OVERLAP:$file"; exit 1; fi
+            test -f "pack02-input/$file"
+            cp "pack02-input/$file" "$file"
+          done
+          node tests/build01/client.test.cjs
+          node tests/build01/pack02-contract.test.cjs
+          node tests/build01/gateway.test.cjs
+      - name: Install pinned Chromium for actual signed local Build01+PR105 journey
+        run: |
+          mkdir -p "$RUNNER_TEMP/build01-s2-pw"
+          cd "$RUNNER_TEMP/build01-s2-pw"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/build01-s2-pw/node_modules" >> "$GITHUB_ENV"
+      - name: Actual local GoTrue -> signed Build01 -> PR105 workspace and back
+        run: bash tests/build01/run-auth.sh
+      - name: Proof boundary
+        run: echo 'PACK01 S2 contract: code-composed disposable PR105 exact SHA, local GoTrue, NOT MERGED or hosted/production certified'
