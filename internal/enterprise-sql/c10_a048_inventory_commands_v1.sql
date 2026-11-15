@@ -74,12 +74,12 @@ REVOKE ALL ON ALL SEQUENCES IN SCHEMA c10_demo FROM PUBLIC,authenticated,anon;
 -- active tenant, current signed actor, explicit deny, expiry and revocation.
 -- Resolve stock location -> site on the server; never trust a caller's site ID.
 CREATE FUNCTION c10_demo.inventory_action_authorized_v1(p_tenant bigint,p_business bigint,p_location bigint,p_action text)
-RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog,c10_demo AS $
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog,c10_demo AS $pack01_site$
  SELECT c10_demo.actor_uid() IS NOT NULL AND p_action=ANY(ARRAY['stock.read','stock.post']::text[])
  AND EXISTS(SELECT 1 FROM c10_demo.stock_locations l
    WHERE l.id=p_location AND l.tenant_id=p_tenant AND l.business_id=p_business
      AND c10_demo.can_site(l.tenant_id,l.business_id,l.site_id,p_action))
-$;
+$pack01_site$;
 
 CREATE FUNCTION c10_demo.configure_inventory_flow_v1(
  p_business bigint,p_staff_issue boolean,p_staff_transfer boolean,p_max numeric,p_version bigint)
