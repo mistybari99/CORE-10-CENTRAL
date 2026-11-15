@@ -345,4 +345,101 @@ DO $wf_foreign$ BEGIN
 END $wf_foreign$;
 ROLLBACK;
 
-\echo PASS PACK-01 A048/A049/Workforce tenant + role expiry/revocation negative cases (synthetic PG17)
+
+-- PACK-01 A054 effective delegate authorization: real RPC grant/read checks
+-- plus a privileged WHITE-BOX internal helper negative; no extra helper GRANT.
+-- All delegation/membership changes roll back on disposable PostgreSQL.
+BEGIN;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+DO $a054_owner_grant$
+DECLARE res jsonb;
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(c10_demo.a054_eligible_delegates_v1(101)->'items') x
+    WHERE x->>'uid'='33333333-3333-4333-8333-333333333333')
+ THEN RAISE EXCEPTION 'PACK01_A054_ACTIVE_MANAGER_NOT_ELIGIBLE'; END IF;
+ res:=c10_demo.a054_grant_delegation_v1(
+    101,'pack01-a054-hr-001','33333333-3333-4333-8333-333333333333',
+    'hr','allow',NULL,NULL,NULL,NULL,'temporary synthetic HR delegation');
+ IF res->>'status'<>'granted' THEN RAISE EXCEPTION 'PACK01_A054_GRANT_BASELINE_FAILED'; END IF;
+END $a054_owner_grant$;
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+DO $a054_manager_authorized$ BEGIN
+ IF NOT c10_demo.a054_my_access_v1(101)->'delegated_roles' ? 'hr'
+ THEN RAISE EXCEPTION 'PACK01_A054_VALID_DELEGATION_NOT_VISIBLE'; END IF;
+END $a054_manager_authorized$;
+RESET ROLE;
+UPDATE c10_demo.business_members SET valid_until=statement_timestamp()-interval '1 second'
+ WHERE business_id=101 AND user_id='33333333-3333-4333-8333-333333333333';
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+DO $a054_internal_after_expiry$ BEGIN
+ IF c10_demo.a054i_deleg(101,'hr',NULL,NULL,'any')<>'none'
+ THEN RAISE EXCEPTION 'PACK01_A054_EXPIRED_MEMBER_DELEGATION_STILL_EFFECTIVE'; END IF;
+END $a054_internal_after_expiry$;
+SET LOCAL ROLE authenticated;
+DO $a054_manager_after_expiry$ BEGIN
+ BEGIN
+  PERFORM c10_demo.a054_my_access_v1(101);
+  RAISE EXCEPTION 'PACK01_A054_EXPIRED_MANAGER_RPC_ALLOWED';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'wf_denied' THEN RAISE; END IF;
+ END;
+END $a054_manager_after_expiry$;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+DO $a054_owner_after_expiry$ BEGIN
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(c10_demo.a054_eligible_delegates_v1(101)->'items') x
+    WHERE x->>'uid'='33333333-3333-4333-8333-333333333333')
+ THEN RAISE EXCEPTION 'PACK01_A054_EXPIRED_MEMBER_STILL_ELIGIBLE'; END IF;
+ BEGIN
+  PERFORM c10_demo.a054_grant_delegation_v1(
+    101,'pack01-a054-grant-denied','33333333-3333-4333-8333-333333333333',
+    'payroll_reviewer','allow',NULL,NULL,NULL,NULL,'expired manager ineligible');
+  RAISE EXCEPTION 'PACK01_A054_EXPIRED_MANAGER_REGRANTED';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'a054_delegate_not_eligible' THEN RAISE; END IF;
+ END;
+END $a054_owner_after_expiry$;
+ROLLBACK;
+
+-- Revoked manager still ineligible; active employee links are a distinct
+-- authorization source and must not be implicitly revoked with a stock grant.
+BEGIN;
+UPDATE c10_demo.business_members SET active=false WHERE business_id=101
+ AND user_id='33333333-3333-4333-8333-333333333333';
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+DO $a054_revoked_mgr$ BEGIN
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(c10_demo.a054_eligible_delegates_v1(101)->'items') x
+    WHERE x->>'uid'='33333333-3333-4333-8333-333333333333')
+ THEN RAISE EXCEPTION 'PACK01_A054_REVOKED_MANAGER_ELIGIBLE'; END IF;
+END $a054_revoked_mgr$;
+ROLLBACK;
+
+-- Separate employee link (without business membership) retains intended
+-- employee delegation eligibility; unrelated-tenant user stays invisible.
+BEGIN;
+INSERT INTO c10_demo.wf_employees(tenant_id,business_id,employee_no,full_name,user_id,joined_on,status,contract_type,created_by)
+VALUES(1,101,'P01-A054-E01','Synthetic HR Link','44444444-4444-4444-8444-444444444444',
+'2026-01-01','active','permanent','11111111-1111-4111-8111-111111111111');
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+DO $a054_linked_employee$
+DECLARE res jsonb;
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(c10_demo.a054_eligible_delegates_v1(101)->'items') x
+    WHERE x->>'uid'='44444444-4444-4444-8444-444444444444' AND x->>'source'='employee')
+ THEN RAISE EXCEPTION 'PACK01_A054_EMPLOYEE_ONLY_LINK_LOST'; END IF;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(c10_demo.a054_eligible_delegates_v1(101)->'items') x
+    WHERE x->>'uid'='77777777-7777-4777-8777-777777777777')
+ THEN RAISE EXCEPTION 'PACK01_A054_FOREIGN_TENANT_ELIGIBLE'; END IF;
+ res:=c10_demo.a054_grant_delegation_v1(101,'pack01-a054-e01',
+  '44444444-4444-4444-8444-444444444444','hr','allow',
+  NULL,NULL,NULL,NULL,'employee only synthetic delegation');
+ IF res->>'status'<>'granted' THEN RAISE EXCEPTION 'PACK01_A054_EMPLOYEE_GRANT_FAILED'; END IF;
+END $a054_linked_employee$;
+SELECT set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
+DO $a054_employee_access$ BEGIN
+ IF NOT c10_demo.a054_my_access_v1(101)->'delegated_roles' ? 'hr'
+ THEN RAISE EXCEPTION 'PACK01_A054_VALID_EMPLOYEE_GRANT_NOT_EFFECTIVE'; END IF;
+END $a054_employee_access$;
+ROLLBACK;
+
+\echo PASS PACK-01 A048/A049/A051/A054 effective delegation expiry, revoked member, tenant scope and linked employee tests; synthetic PG17 only

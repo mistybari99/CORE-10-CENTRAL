@@ -103,9 +103,14 @@ LANGUAGE sql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
   FROM a054_delegations d
   WHERE d.business_id=p_business AND d.delegate_uid=actor_uid() AND d.role=p_role AND d.revoked_at IS NULL
    AND d.effective_from<=clock_timestamp() AND (d.expires_at IS NULL OR d.expires_at>clock_timestamp())
-   AND (EXISTS(SELECT 1 FROM business_members bm WHERE bm.user_id=d.delegate_uid AND bm.business_id=d.business_id AND bm.active
-         AND bm.role IN('manager','business_owner'))
-        OR EXISTS(SELECT 1 FROM wf_employees e WHERE e.user_id=d.delegate_uid AND e.business_id=d.business_id AND e.status='active')))
+   AND (EXISTS(SELECT 1 FROM business_members bm WHERE bm.user_id=d.delegate_uid
+          AND bm.business_id=d.business_id AND bm.tenant_id=d.tenant_id AND bm.active
+          AND bm.role IN('manager','business_owner')
+          -- Build01 valid_until may not exist in pre-Build01 A054 CI installs.
+          AND (to_jsonb(bm)->>'valid_until' IS NULL OR
+               (to_jsonb(bm)->>'valid_until')::timestamptz>statement_timestamp()))
+        OR EXISTS(SELECT 1 FROM wf_employees e WHERE e.user_id=d.delegate_uid
+           AND e.business_id=d.business_id AND e.tenant_id=d.tenant_id AND e.status='active')))
  SELECT CASE WHEN EXISTS(SELECT 1 FROM m WHERE effect='deny' AND hit AND (p_mode<>'any' OR unscoped)) THEN 'deny'
   WHEN EXISTS(SELECT 1 FROM m WHERE effect='allow' AND hit) THEN 'allow' ELSE 'none' END $$;
 
@@ -371,8 +376,13 @@ BEGIN
  IF b.o_replay IS NOT NULL THEN RETURN b.o_replay; END IF;
  c:=b.o_ctx; PERFORM wfi_need(wfi_is_owner(c),'a054_owner_required');
  IF p_delegate=c.user_id THEN RAISE EXCEPTION 'a054_self_delegation_denied'; END IF;
- IF NOT (EXISTS(SELECT 1 FROM business_members m WHERE m.user_id=p_delegate AND m.business_id=p_business AND m.active AND m.role IN('manager','business_owner'))
-   OR EXISTS(SELECT 1 FROM wf_employees e WHERE e.user_id=p_delegate AND e.business_id=p_business AND e.status='active'))
+ IF NOT (EXISTS(SELECT 1 FROM business_members m WHERE m.user_id=p_delegate
+    AND m.business_id=p_business AND m.tenant_id=c.tenant_id AND m.active
+    AND m.role IN('manager','business_owner')
+    AND (to_jsonb(m)->>'valid_until' IS NULL OR
+         (to_jsonb(m)->>'valid_until')::timestamptz>statement_timestamp()))
+   OR EXISTS(SELECT 1 FROM wf_employees e WHERE e.user_id=p_delegate AND
+     e.business_id=p_business AND e.tenant_id=c.tenant_id AND e.status='active'))
  THEN RAISE EXCEPTION 'a054_delegate_not_eligible'; END IF;
  BEGIN
   INSERT INTO a054_delegations(tenant_id,business_id,delegate_uid,role,effect,site_id,period_from,period_to,expires_at,granted_by,reason,request_key)
@@ -421,8 +431,13 @@ DECLARE c wf_ctx_t;
 BEGIN
  c:=wfi_ctx(p_business); PERFORM wfi_need(wfi_is_owner(c),'a054_owner_required');
  RETURN jsonb_build_object('server_authorized',true,'items',(SELECT COALESCE(jsonb_agg(jsonb_build_object('uid',u,'ref',left(u::text,8),'source',s) ORDER BY s,u),'[]')
-  FROM (SELECT m.user_id u,'member_'||m.role s FROM business_members m WHERE m.business_id=p_business AND m.active AND m.role IN('manager','business_owner') AND m.user_id<>c.user_id
-   UNION SELECT e.user_id,'employee' FROM wf_employees e WHERE e.business_id=p_business AND e.status='active' AND e.user_id IS NOT NULL AND e.user_id<>c.user_id) x));
+  FROM (SELECT m.user_id u,'member_'||m.role s FROM business_members m
+    WHERE m.business_id=p_business AND m.tenant_id=c.tenant_id
+      AND m.active AND m.role IN('manager','business_owner') AND m.user_id<>c.user_id
+      AND (to_jsonb(m)->>'valid_until' IS NULL OR
+           (to_jsonb(m)->>'valid_until')::timestamptz>statement_timestamp())
+   UNION SELECT e.user_id,'employee' FROM wf_employees e WHERE e.business_id=p_business AND
+     e.tenant_id=c.tenant_id AND e.status='active' AND e.user_id IS NOT NULL AND e.user_id<>c.user_id) x));
 END$$;
 CREATE FUNCTION c10_demo.a054_my_access_v1(p_business bigint) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$

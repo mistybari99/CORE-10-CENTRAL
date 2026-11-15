@@ -26,3 +26,9 @@ Hosted signed GoTrue A/B sessions, A049 and other module adapter parity, direct 
 
 ## Checkpoint 04 — Workforce effective authority
 A051 `wfi_ctx` now rejects inactive tenants and ignores expired Build01 business owner/manager membership. A051 `wf_my_businesses_v1` matches effective membership expiry and tenant.active. Because Build01 is loaded after A051, `to_jsonb(m)->>'valid_until'` is used so the original isolated A051 installs without a non-existent column. A distinct active employee login still has its own workforce access after stock grant removal. Added transaction-rollback tests for manager/owner expiry, inactive tenant, employee independence and cross-tenant discovery/read. This is PACK-01 scope only, not hosted GoTrue or production approval.
+
+## Checkpoint 05 — A054 delegated HR/Payroll eligibility expiry
+- A054 `a054i_deleg`, grant RPC and eligible-list now reject expired business manager/owner membership, while preserving separately active employee authorization and explicit delegation records. No permission store added or helper GRANT widened.
+- `business_members.valid_until` is conditionally read through `to_jsonb(m)` to preserve original A054 installs before Build01 adds the validity column.
+- New transactional synthetic PG17 tests cover granted manager before/after expiry, denied renewal and eligible list, revoked membership, foreign tenant, and employee-only authorized delegation.
+- No production Supabase, original Islamia, live money/stock, deploy or main merge. Exact-head CI outcome must be confirmed before marking the slice tested.
