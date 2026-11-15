@@ -132,3 +132,30 @@ jobs:
       - name: Proof boundary
         run: |
           echo "PACK01 S2 contract verified with disposable PR105 source; NO MERGE or production deployment"
+
+  legacy-route-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Open exact D051 main protected snapshot separately, with no integration
+        run: |
+          set -euo pipefail
+          git cat-file -e c39052910758ca285a7a4d56e9c4f4873cb7d99c^{commit}
+          mkdir -p "$RUNNER_TEMP/d051-original"
+          git worktree add --detach "$RUNNER_TEMP/d051-original/main" c39052910758ca285a7a4d56e9c4f4873cb7d99c
+          test "$(git -C "$RUNNER_TEMP/d051-original/main" rev-parse HEAD)" = c39052910758ca285a7a4d56e9c4f4873cb7d99c
+          echo "CORE10_D051_ORIGINAL_ROOT=$RUNNER_TEMP/d051-original/main" >> "$GITHUB_ENV"
+      - name: Install isolated Chromium and PNG reader
+        run: |
+          mkdir -p "$RUNNER_TEMP/d051-pw"
+          cd "$RUNNER_TEMP/d051-pw"
+          npm init -y >/dev/null
+          npm install --save-dev playwright@1.63.0 pngjs@7.0.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/d051-pw/node_modules" >> "$GITHUB_ENV"
+      - name: D051 original/main versus candidate anonymous home, stock and reports browser parity
+        run: node tests/pack01/legacy-route-visual.cjs
