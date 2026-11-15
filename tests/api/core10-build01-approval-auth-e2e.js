@@ -97,6 +97,12 @@ const p=(subject,actions,deniedActions,until,request)=>({
    new Date(Date.now()+300000).toISOString(),"pack01-local-gov-renewal");
  pass(await rpc(o,"build02a_set_approval_policy_v1",long),"owner renewed delegation");
  assert.equal(await check(m,1,101,"approval.decide"),true);
+ // Business owner may update an ACTIVE manager's policy; never reactivate
+ // membership by writing a new approval policy after revocation.
+ const businessPolicy=p(U.manager,["approval.decide"],[],
+  new Date(Date.now()+300000).toISOString(),"pack01-local-gov-biz-write");
+ pass(await rpc(biz,"build02a_set_approval_policy_v1",businessPolicy),
+  "business owner allowed policy write to active manager");
  const revoke={
   p_business:101,p_subject:U.manager,p_command:"business_member.revoke",
   p_role:null,p_site:null,p_actions:[],p_denied_actions:[],
@@ -109,12 +115,13 @@ const p=(subject,actions,deniedActions,until,request)=>({
   "revoke must remove baseline manager submit");
  pass(await http(AUTH+"/user",{token:m}),"GoTrue signed user remains logged in after DB revoke");
  deny(await rpc(m,"build02a_set_approval_policy_v1",long),"revoked member policy mutation");
- const businessPolicy=p(U.manager,["approval.decide"],[],
-  new Date(Date.now()+300000).toISOString(),"pack01-local-gov-biz-write");
- pass(await rpc(biz,"build02a_set_approval_policy_v1",businessPolicy),
-  "business owner allowed to manage local approval policy");
+ const afterRevoke=p(U.manager,["approval.decide"],[],
+  new Date(Date.now()+300000).toISOString(),"pack01-local-gov-biz-denied");
+ const blocked=await rpc(biz,"build02a_set_approval_policy_v1",afterRevoke);
+ deny(blocked,"revoked member must not receive a new delegated policy");
+ assert.equal(blocked.data?.message,"BUILD02A_SUBJECT_NOT_ELIGIBLE");
  assert.equal(await check(m,1,101,"approval.decide"),false,
-  "grant to revoked member never restores access");
+  "policy write cannot restore revoked membership");
  deny(await rpc(null,"can_approval_action_v1",{
   p_tenant:1,p_business:101,p_action:"approval.decide"}),"anonymous approval resolver");
  pass(await http(AUTH+"/logout?scope=local",{token:m,method:"POST"}),"GoTrue logout");
