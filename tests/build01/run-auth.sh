@@ -39,6 +39,10 @@ bash tests/build01/run-load.sh
 # an ephemeral test checkout. No requirement to merge either draft PR.
 if [[ -f internal/enterprise-sql/c10_pack02_workspace_v1.sql ]]; then
   psql -X -q -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_pack02_workspace_v1.sql
+  if [[ -f internal/enterprise-sql/c10_pack02_controls_v1.sql ]]; then
+    psql -X -q -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a044_control_settings_v1.sql
+    psql -X -q -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_pack02_controls_v1.sql
+  fi
 fi
 psql -X -q -v ON_ERROR_STOP=1 -c 'CREATE SCHEMA auth'
 export CORE10_BUILD01_TEST_SECRET=core10_build01_disposable_auth_signer_2026_not_production
@@ -80,5 +84,6 @@ if [[ "${CORE10_BUILD01_BROWSER:-0}" == 1 ]]; then
   node tests/build01/gateway.cjs >"$runtime/gateway.log" 2>&1 & gateway_pid=$!
   node -e '(async()=>{for(let i=0;i<30;i++){try{if((await fetch(process.env.BUILD01_BASE_URL+"/")).ok)return}catch{}await new Promise(r=>setTimeout(r,200))}throw Error("Gateway readiness failed")})().catch(e=>{console.error(e.message);process.exitCode=1})'
   node tests/e2e/core10-build01-live-browser.cjs
+  if [[ -f tests/pack02/live-auth-browser.cjs ]]; then node tests/pack02/live-auth-browser.cjs; fi
 fi
 echo 'PASS actual local GoTrue v2.197.0 password sessions + PostgREST 12.2.12 Build01 journey; hosted staging/production NOT certified'

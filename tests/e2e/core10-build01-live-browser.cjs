@@ -21,19 +21,17 @@ const shots=process.env.BUILD01_SCREENSHOTS||path.join(os.tmpdir(),"core10-build
    const submit=async(form,allowError=false)=>{await page.locator(form+' button[type="submit"]').click();await page.waitForFunction(()=>!document.querySelector("#b01-status").textContent.includes("Checking with the server")&&!document.querySelector("#b01-status").textContent.includes("Server যাচাই করছে"),{timeout:30000});if(!allowError)assert.notEqual(await page.locator("#b01-status").getAttribute("data-tone"),"error",await page.locator("#b01-status").innerText());};
    const login=async email=>{await page.goto(base+"/core10-build01.html",{waitUntil:"load"});await page.locator("#b01-email").fill(email);await page.locator("#b01-password").fill(password);await submit("#b01-login-form");await ready();assert.equal(await page.locator("#b01-password").inputValue(),"");};
    const signout=async()=>{await page.locator("#b01-signout").click();await page.locator("#b01-login").waitFor({state:"visible"});assert.equal(await page.locator("#b01-workspace").isVisible(),false);assert.equal(await page.locator("#b01-current-access tr").count(),0);
-     assert.equal(await page.locator("#b01-pack02").isVisible(),false,"S2 content cleared on signout");
-     assert.equal(await page.locator("#b01-pack02-view").innerText(),"","S2 private projection cleared");for(const id of["#b01-email","#b01-password","#b01-subject","#b01-name","#b01-site-name"])assert.equal(await page.locator(id).inputValue(),"","signout clears "+id);};
+     assert.equal(await page.locator("#b01-pack02-panel").isVisible(),false,"S2 content cleared on signout");
+     assert.equal(await page.locator("#b01-pack02").innerText(),"","S2 private projection cleared");for(const id of["#b01-email","#b01-password","#b01-subject","#b01-name","#b01-site-name"])assert.equal(await page.locator(id).inputValue(),"","signout clears "+id);};
    const okay=async label=>{assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=2,label+" overflow "+width);assert.deepEqual(errors,[],label+" page errors");};
    await login(ownerEmail);
    const s2Available=await page.evaluate(()=>window.CORE10_BUILD01_CONFIG?.pack02Enabled===true);
    if(s2Available){
-     await page.locator("#b01-pack02").waitFor({state:"visible",timeout:30000});
-     assert.equal(await page.locator("#b01-pack02-view").getAttribute("data-mode"),"universal_owner");
-     assert.ok(await page.locator("#b01-pack02-view .p2-nav-item").count()>0,"S2 signed owner nav projection");
-     assert.equal(await page.locator("#b01-pack02-view .p2-nav-item:not([disabled])").count(),0,"S2 unwired nav disabled");
-     await page.locator("#b01-pack02-mode").selectOption("business_owner");
-     await page.waitForFunction(()=>document.querySelector("#b01-pack02-view")?.dataset.mode==="business_owner");
-   }else assert.equal(await page.locator("#b01-pack02").isVisible(),false,"PACK-02 unavailable: Build01 stays safe");
+     await page.locator("#b01-pack02-panel").waitFor({state:"visible",timeout:30000});
+     await page.locator("#b01-pack02 .p2-title").waitFor({state:"visible",timeout:30000});
+     assert.equal(await page.locator("#b01-pack02 .p2-title").textContent(),"CORE 10");
+     assert.ok(await page.locator("#b01-pack02 .p2-nav-item").count()>0,"signed owner nav");
+   }else assert.equal(await page.locator("#b01-pack02-panel").isVisible(),false,"PACK-02 unavailable: Build01 stays safe");
    await page.locator("#b01-language").click();assert.equal(await page.locator("html").getAttribute("lang"),"en");
    const suffix=width+"-"+Date.now(),slug="build01-ui-"+suffix;
    await page.locator("#b01-name").fill("Synthetic Build 01 "+suffix);

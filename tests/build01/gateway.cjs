@@ -15,7 +15,8 @@ function createGateway(options){
  const temporary=fs.mkdtempSync(path.join(os.tmpdir(),"core10-build01-gateway-"));
  const publicRoot=path.join(temporary,"public");
  build(path.resolve(__dirname,"../.."),publicRoot);verify(publicRoot);
- const pack02Ready=["core10-pack02-workspace.js","core10-pack02-workspace.css"].every(f=>fs.existsSync(path.join(publicRoot,f)));
+ const pack02Ready=["core10-pack02-workspace.js","core10-pack02-workspace.css",
+  "core10-pack02-controls.js","core10-pack02-signed.js","core10-pack02-app.js"].every(f=>fs.existsSync(path.join(publicRoot,f)));
  const server=http.createServer(async(req,res)=>{
   const headers={"cache-control":"no-store","x-content-type-options":"nosniff","referrer-policy":"no-referrer","content-security-policy":"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'; object-src 'none'; frame-ancestors 'none'"};
   function respond(status,body,type="text/plain; charset=utf-8"){res.writeHead(status,{...headers,"content-type":type});res.end(body);}
@@ -34,7 +35,8 @@ function createGateway(options){
     target=auth+suffix+url.search;
    }else if(p.startsWith("/rest/v1/rpc/")){
     if(req.method!=="POST"||url.search||
-      !(RPC.has(p.slice("/rest/v1/rpc/".length))||(pack02Ready&&p==="/rest/v1/rpc/pack02_workspace_v1")))return respond(404,"RPC unavailable");
+      !(RPC.has(p.slice("/rest/v1/rpc/".length))||(pack02Ready&&new Set(["pack02_workspace_v1","pack02_controls_v1","pack02_business_report_v1",
+        "pack02_owner_report_v1","pack02_setup_readback_v1"]).has(p.slice("/rest/v1/rpc/".length)))))return respond(404,"RPC unavailable");
     target=rest+p.slice("/rest/v1".length);
    }
    if(target){
@@ -51,7 +53,8 @@ function createGateway(options){
    const file=p==="/"?"core10-build01.html":p.slice(1);
    // Only this surface and its explicit original dependencies are reachable.
    const allowed=new Set(["core10-build01.html","core10-build01.js","core10-build01-pack02.js","core10-build01.css","core10-build01-client.js","core10-enterprise-client.js","core10-control-studio.css","vendor/supabase.js",
-    "core10-pack02-workspace.js","core10-pack02-workspace.css"]);
+    "core10-pack02-workspace.js","core10-pack02-workspace.css","core10-pack02-controls.js",
+    "core10-pack02-signed.js","core10-pack02-app.js"]);
    if(!allowed.has(file)||!isAllowed(file))return respond(404,"Not found");
    if(file.startsWith("core10-pack02-")&&!pack02Ready)return respond(404,"Not found");
    const full=path.join(publicRoot,file);
