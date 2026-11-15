@@ -266,4 +266,83 @@ DO $a049_cross_tenant$ BEGIN
 END $a049_cross_tenant$;
 ROLLBACK;
 
-\echo PASS PACK-01 A048/A049 canonical DENY/expiry/revocation, transition readback and no denied stock posting; synthetic PG17 only
+
+-- PACK-01 Workforce effective roles. These are disposable synthetic identities.
+-- No role/permission is widened; individual employee link stays independent.
+BEGIN;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+DO $wf_manager_ok$ BEGIN
+ IF c10_demo.wf_read_overview_v1(101)->>'level'<>'manager' THEN RAISE EXCEPTION 'PACK01_WF_MANAGER_BASELINE'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(c10_demo.wf_my_businesses_v1()->'items') b WHERE b->>'id'='101')
+ THEN RAISE EXCEPTION 'PACK01_WF_MANAGER_DISCOVERY_BASELINE'; END IF;
+END $wf_manager_ok$;
+RESET ROLE;
+UPDATE c10_demo.business_members SET valid_until=statement_timestamp()-interval '1 second'
+ WHERE business_id=101 AND user_id='33333333-3333-4333-8333-333333333333';
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+DO $wf_expired_mgr$ BEGIN
+ BEGIN
+  PERFORM c10_demo.wf_read_overview_v1(101); RAISE EXCEPTION 'PACK01_WF_EXPIRED_MANAGER_ALLOWED';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'wf_denied' THEN RAISE; END IF; END;
+ BEGIN
+  PERFORM c10_demo.wf_list_employees_v1(101,NULL,NULL,NULL,10,0); RAISE EXCEPTION 'PACK01_WF_EXPIRED_MANAGER_DIRECTORY';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'wf_denied' THEN RAISE; END IF; END;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(c10_demo.wf_my_businesses_v1()->'items') b WHERE b->>'id'='101')
+ THEN RAISE EXCEPTION 'PACK01_WF_EXPIRED_MANAGER_DISCOVERY'; END IF;
+END $wf_expired_mgr$;
+ROLLBACK;
+
+BEGIN;
+UPDATE c10_demo.business_members SET valid_until=statement_timestamp()-interval '1 second'
+ WHERE business_id=101 AND user_id='22222222-2222-4222-8222-222222222222';
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+DO $wf_expired_bo$ BEGIN
+ BEGIN
+  PERFORM c10_demo.wf_read_overview_v1(101); RAISE EXCEPTION 'PACK01_WF_EXPIRED_OWNER_ALLOWED';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'wf_denied' THEN RAISE; END IF; END;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(c10_demo.wf_my_businesses_v1()->'items') b WHERE b->>'id'='101')
+ THEN RAISE EXCEPTION 'PACK01_WF_EXPIRED_OWNER_DISCOVERY'; END IF;
+END $wf_expired_bo$;
+ROLLBACK;
+
+BEGIN;
+UPDATE c10_demo.site_grants SET active=false WHERE site_id=1001 AND user_id='44444444-4444-4444-8444-444444444444';
+INSERT INTO c10_demo.wf_employees(tenant_id,business_id,employee_no,full_name,user_id,joined_on,status,contract_type,created_by)
+VALUES(1,101,'P01-EMP-01','Synthetic Test Worker','44444444-4444-4444-8444-444444444444',
+'2026-01-01','active','permanent','11111111-1111-4111-8111-111111111111');
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
+DO $wf_link$ BEGIN
+ IF c10_demo.wf_read_overview_v1(101)->>'level'<>'employee'
+ OR NOT EXISTS(SELECT 1 FROM jsonb_array_elements(c10_demo.wf_my_businesses_v1()->'items') b WHERE b->>'id'='101')
+ THEN RAISE EXCEPTION 'PACK01_WF_INDEPENDENT_EMPLOYEE_DENIED'; END IF;
+END $wf_link$;
+RESET ROLE;
+UPDATE c10_demo.tenants SET active=false WHERE id=1;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
+DO $wf_inactive$ BEGIN
+ BEGIN
+  PERFORM c10_demo.wf_read_overview_v1(101); RAISE EXCEPTION 'PACK01_WF_INACTIVE_TENANT_READ';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'wf_denied' THEN RAISE; END IF; END;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(c10_demo.wf_my_businesses_v1()->'items') b WHERE b->>'id'='101')
+ THEN RAISE EXCEPTION 'PACK01_WF_INACTIVE_TENANT_DISCOVERY'; END IF;
+END $wf_inactive$;
+ROLLBACK;
+
+BEGIN;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','77777777-7777-4777-8777-777777777777',true);
+DO $wf_foreign$ BEGIN
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(c10_demo.wf_my_businesses_v1()->'items') b WHERE b->>'id'='101')
+ THEN RAISE EXCEPTION 'PACK01_WF_FOREIGN_DISCOVERY'; END IF;
+ BEGIN
+  PERFORM c10_demo.wf_read_overview_v1(101); RAISE EXCEPTION 'PACK01_WF_FOREIGN_READ';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'wf_denied' THEN RAISE; END IF; END;
+END $wf_foreign$;
+ROLLBACK;
+
+\echo PASS PACK-01 A048/A049/Workforce tenant + role expiry/revocation negative cases (synthetic PG17)

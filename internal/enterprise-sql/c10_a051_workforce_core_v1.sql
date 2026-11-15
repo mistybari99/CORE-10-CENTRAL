@@ -178,14 +178,19 @@ LANGUAGE plpgsql AS $$
 DECLARE c c10_demo.wf_ctx_t; uid uuid:=c10_demo.actor_uid(); a record;
 BEGIN
  IF uid IS NULL OR p_business IS NULL THEN RAISE EXCEPTION 'wf_denied'; END IF;
- SELECT tenant_id INTO c.tenant_id FROM c10_demo.businesses WHERE id=p_business;
+ -- Inactive tenant blocks workforce authority, including employee-only access.
+ SELECT b.tenant_id INTO c.tenant_id FROM c10_demo.businesses b
+ JOIN c10_demo.tenants t ON t.id=b.tenant_id AND t.active WHERE b.id=p_business;
  IF c.tenant_id IS NULL THEN RAISE EXCEPTION 'wf_denied'; END IF;
  c.user_id:=uid;
  c.is_tenant_owner:=c10_demo.can_tenant(c.tenant_id);
  c.is_business_owner:=EXISTS(SELECT 1 FROM c10_demo.business_members m WHERE m.user_id=uid
-   AND m.tenant_id=c.tenant_id AND m.business_id=p_business AND m.active AND m.role='business_owner');
+   AND m.tenant_id=c.tenant_id AND m.business_id=p_business AND m.active AND m.role='business_owner'
+   -- Build01 adds valid_until AFTER A051 installation; missing field stays NULL.
+   AND (to_jsonb(m)->>'valid_until' IS NULL OR (to_jsonb(m)->>'valid_until')::timestamptz>statement_timestamp()));
  c.is_manager:=EXISTS(SELECT 1 FROM c10_demo.business_members m WHERE m.user_id=uid
-   AND m.tenant_id=c.tenant_id AND m.business_id=p_business AND m.active AND m.role='manager');
+   AND m.tenant_id=c.tenant_id AND m.business_id=p_business AND m.active AND m.role='manager'
+   AND (to_jsonb(m)->>'valid_until' IS NULL OR (to_jsonb(m)->>'valid_until')::timestamptz>statement_timestamp()));
  SELECT id INTO c.employee_id FROM c10_demo.wf_employees
   WHERE business_id=p_business AND user_id=uid AND status='active';
  c.supervised_sites:='{}';

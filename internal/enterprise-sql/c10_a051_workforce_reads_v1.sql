@@ -29,9 +29,10 @@ DECLARE uid uuid:=actor_uid();
 BEGIN
  IF uid IS NULL THEN RAISE EXCEPTION 'wf_denied'; END IF;
  RETURN jsonb_build_object('server_authorized',true,'items',(SELECT COALESCE(jsonb_agg(jsonb_build_object('id',b.id,'tenant_id',b.tenant_id,
-  'slug',b.slug) ORDER BY b.id),'[]') FROM businesses b WHERE
+  'slug',b.slug) ORDER BY b.id),'[]') FROM businesses b JOIN tenants t ON t.id=b.tenant_id AND t.active WHERE
    can_tenant(b.tenant_id)
-   OR EXISTS(SELECT 1 FROM business_members m WHERE m.user_id=uid AND m.business_id=b.id AND m.tenant_id=b.tenant_id AND m.active AND m.role IN('business_owner','manager'))
+   OR EXISTS(SELECT 1 FROM business_members m WHERE m.user_id=uid AND m.business_id=b.id AND m.tenant_id=b.tenant_id AND m.active AND m.role IN('business_owner','manager')
+    AND (to_jsonb(m)->>'valid_until' IS NULL OR (to_jsonb(m)->>'valid_until')::timestamptz>statement_timestamp()))
    OR EXISTS(SELECT 1 FROM wf_employees e WHERE e.user_id=uid AND e.business_id=b.id AND e.status='active')));
 END$$;
 
