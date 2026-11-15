@@ -1,0 +1,35 @@
+name: CORE10 PACK-01 canonical site access regression
+on:
+  push:
+    branches: ['feature/c10-pack01-*']
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a048_inventory_commands_v1.sql'
+      - 'tests/preview-one/run-combined.sh'
+      - 'tests/pack01/**'
+      - '.github/workflows/core10-pack01-security-ci.yml'
+permissions:
+  contents: read
+jobs:
+  site-permission:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pack01_disposable_only
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: pack01_disposable_only
+      CORE10_PREVIEW_DISPOSABLE_ACK: I_CONFIRM_DISPOSABLE_PREVIEW
+      CORE10_PREVIEW_BUILD01: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Build01 + Build02A + A048 security interoperability
+        run: bash tests/preview-one/run-combined.sh pack01-security

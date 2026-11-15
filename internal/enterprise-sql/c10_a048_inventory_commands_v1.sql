@@ -70,15 +70,17 @@ ALTER TABLE c10_demo.inventory_command_audit_v1 ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON c10_demo.inventory_flow_policy_v1,c10_demo.inventory_commands_v1,c10_demo.inventory_command_audit_v1 FROM PUBLIC,authenticated,anon;
 REVOKE ALL ON ALL SEQUENCES IN SCHEMA c10_demo FROM PUBLIC,authenticated,anon;
 
+-- PACK-01: one effective site permission source shared with Build01, including
+-- active tenant, current signed actor, explicit deny, expiry and revocation.
+-- Resolve stock location -> site on the server; never trust a caller's site ID.
 CREATE FUNCTION c10_demo.inventory_action_authorized_v1(p_tenant bigint,p_business bigint,p_location bigint,p_action text)
-RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
- SELECT c10_demo.actor_uid() IS NOT NULL AND (
- c10_demo.can_manage(p_tenant,p_business) OR EXISTS (
- SELECT 1 FROM c10_demo.stock_locations l JOIN c10_demo.site_grants g
- ON g.tenant_id=l.tenant_id AND g.business_id=l.business_id AND g.site_id=l.site_id
- WHERE l.id=p_location AND l.tenant_id=p_tenant AND l.business_id=p_business
- AND g.user_id=c10_demo.actor_uid() AND g.active AND p_action=ANY(g.actions)))
-$$;
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog,c10_demo AS $
+ SELECT c10_demo.actor_uid() IS NOT NULL AND p_action=ANY(ARRAY['stock.read','stock.post']::text[])
+ AND EXISTS(SELECT 1 FROM c10_demo.stock_locations l
+   WHERE l.id=p_location AND l.tenant_id=p_tenant AND l.business_id=p_business
+     AND c10_demo.can_site(l.tenant_id,l.business_id,l.site_id,p_action))
+$;
+
 CREATE FUNCTION c10_demo.configure_inventory_flow_v1(
  p_business bigint,p_staff_issue boolean,p_staff_transfer boolean,p_max numeric,p_version bigint)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
@@ -127,12 +129,14 @@ BEGIN
  VALUES(t,p_business,c10_demo.actor_uid()) ON CONFLICT(business_id) DO NOTHING;
  SELECT * INTO p FROM c10_demo.inventory_flow_policy_v1 WHERE business_id=p_business;
  IF p_quantity>p.max_single_quantity THEN RAISE EXCEPTION 'A048_QUANTITY_LIMIT'; END IF;
+ -- Site-level DENY must take precedence even for inherited owner/manager access.
+ IF (p_source IS NOT NULL AND NOT c10_demo.inventory_action_authorized_v1(t,p_business,p_source,'stock.post')) OR
+    (p_destination IS NOT NULL AND NOT c10_demo.inventory_action_authorized_v1(t,p_business,p_destination,'stock.post'))
+ THEN RAISE EXCEPTION 'A048_PERMISSION_DENIED'; END IF;
  IF NOT c10_demo.can_manage(t,p_business) THEN
   IF p_kind IN('adjust_in','adjust_out') OR
     (p_kind='issue' AND NOT p.allow_staff_issue) OR
-    (p_kind='transfer' AND NOT p.allow_staff_transfer) OR
-    (p_source IS NOT NULL AND NOT c10_demo.inventory_action_authorized_v1(t,p_business,p_source,'stock.post')) OR
-    (p_destination IS NOT NULL AND NOT c10_demo.inventory_action_authorized_v1(t,p_business,p_destination,'stock.post'))
+    (p_kind='transfer' AND NOT p.allow_staff_transfer)
   THEN RAISE EXCEPTION 'A048_PERMISSION_DENIED'; END IF;
  END IF;
  INSERT INTO c10_demo.inventory_commands_v1(
@@ -162,13 +166,16 @@ BEGIN
  SELECT * INTO c FROM c10_demo.inventory_commands_v1 WHERE id=p_command FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'A048_NOT_FOUND'; END IF;
  t:=c.tenant_id;
+ -- A previously drafted command cannot be confirmed/posted after a site deny,
+ -- membership expiry or revocation, including by an inherited business owner.
+ IF (c.source_location IS NOT NULL AND NOT c10_demo.inventory_action_authorized_v1(t,c.business_id,c.source_location,'stock.post')) OR
+    (c.destination_location IS NOT NULL AND NOT c10_demo.inventory_action_authorized_v1(t,c.business_id,c.destination_location,'stock.post'))
+ THEN RAISE EXCEPTION 'A048_PERMISSION_DENIED'; END IF;
  IF NOT c10_demo.can_manage(t,c.business_id) AND (
-    (c.kind IN('adjust_in','adjust_out')) OR
+    c.kind IN('adjust_in','adjust_out') OR
     NOT (SELECT CASE WHEN c.kind='issue' THEN allow_staff_issue
                       WHEN c.kind='transfer' THEN allow_staff_transfer
                       ELSE true END FROM c10_demo.inventory_flow_policy_v1 WHERE business_id=c.business_id)
-    OR (c.source_location IS NOT NULL AND NOT c10_demo.inventory_action_authorized_v1(t,c.business_id,c.source_location,'stock.post'))
-    OR (c.destination_location IS NOT NULL AND NOT c10_demo.inventory_action_authorized_v1(t,c.business_id,c.destination_location,'stock.post'))
  ) THEN RAISE EXCEPTION 'A048_PERMISSION_DENIED'; END IF;
  SELECT * INTO existing FROM c10_demo.inventory_command_audit_v1
  WHERE business_id=c.business_id AND request_key='advance-'||p_request;
@@ -211,11 +218,9 @@ BEGIN
  IF t IS NULL OR NOT c10_demo.can_see_business(t,p_business) THEN RAISE EXCEPTION 'A048_READ_DENIED'; END IF;
  SELECT COALESCE(jsonb_agg(to_jsonb(c) ORDER BY c.id DESC),'[]'::jsonb) INTO items
  FROM c10_demo.inventory_commands_v1 c WHERE c.business_id=p_business AND
- (c10_demo.can_manage(t,p_business) OR (
- (c.source_location IS NULL OR EXISTS(SELECT 1 FROM c10_demo.stock_locations l
- WHERE l.id=c.source_location AND c10_demo.can_site(t,p_business,l.site_id,'stock.read'))) AND
- (c.destination_location IS NULL OR EXISTS(SELECT 1 FROM c10_demo.stock_locations l
- WHERE l.id=c.destination_location AND c10_demo.can_site(t,p_business,l.site_id,'stock.read')))));
+ -- A broad owner role does not override an explicit site read denial.
+ (c.source_location IS NULL OR c10_demo.inventory_action_authorized_v1(t,p_business,c.source_location,'stock.read')) AND
+ (c.destination_location IS NULL OR c10_demo.inventory_action_authorized_v1(t,p_business,c.destination_location,'stock.read'));
  RETURN jsonb_build_object('business_id',p_business,'server_authorized',true,'items',items,'operationally_certified',false);
 END; $$;
 
