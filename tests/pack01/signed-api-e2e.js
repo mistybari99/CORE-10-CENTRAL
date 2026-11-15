@@ -51,6 +51,7 @@ function denied(result,what,expected){
 }
 (async()=>{
  const a=jwt(U.tenantA),b=jwt(U.tenantB),ownerA=jwt(U.businessA);
+ const mgr=jwt("33333333-3333-4333-8333-333333333333");
  assert.equal(pass(await rpc("can_tenant",a,{p_tenant:1}),"tenant A membership"),true);
  assert.equal(pass(await rpc("can_tenant",b,{p_tenant:2}),"tenant B membership"),true);
  assert.equal(pass(await rpc("can_tenant",b,{p_tenant:1}),"tenant B not A"),false);
@@ -80,6 +81,41 @@ function denied(result,what,expected){
    p_item:8001,p_kind:"purchase_receive",p_quantity:1,p_unit_value:1,
    p_external:"foreign",p_request:"pack01-b-order-denied"}),
    "foreign order create","A049_ORDER_DENIED");
+ // GOV002 prerequisite: canonical Build02A approval roles are server-resolved,
+ // not inferred from inventory/site grants or unsigned app_metadata.
+ const approval=(tok,tenant,business,action)=>rpc("can_approval_action_v1",tok,{
+  p_tenant:tenant,p_business:business,p_action:action
+ });
+ assert.equal(pass(await approval(a,1,101,"approval.decide"),"tenant owner approval"),true);
+ assert.equal(pass(await approval(ownerA,1,101,"approval.decide"),"business owner approval"),true);
+ assert.equal(pass(await approval(mgr,1,101,"approval.submit"),"manager submit role"),true);
+ assert.equal(pass(await approval(mgr,1,101,"approval.decide"),"manager not decision maker"),false);
+ assert.equal(pass(await approval(jwt(U.stockOnly),1,101,"approval.decide"),"stock role cannot decide"),false);
+ assert.equal(pass(await approval(b,1,101,"approval.decide"),"other tenant approval denied"),false);
+ assert.equal(pass(await approval(ownerA,2,101,"approval.decide"),"wrong tenant ID denied"),false);
+ assert.equal(pass(await approval(ownerA,1,201,"approval.decide"),"wrong business denied"),false);
+ assert.equal(pass(await approval(ownerA,1,101,"stock.post"),"stock action not approval"),false);
+ const writeApproval={
+  p_business:101,p_subject:"33333333-3333-4333-8333-333333333333",
+  p_actions:["approval.decide"],p_denied_actions:["approval.withdraw"],
+  p_valid_until:new Date(Date.now()+3600000).toISOString(),
+  p_request:"pack01-gov002-signed-grant",p_expected_version:null
+ };
+ denied(await rpc("build02a_set_approval_policy_v1",mgr,writeApproval),
+  "manager cannot write policy","BUILD02A_POLICY_DENIED");
+ denied(await rpc("build02a_set_approval_policy_v1",b,writeApproval),
+  "foreign tenant cannot write policy","BUILD02A_POLICY_DENIED");
+ pass(await rpc("build02a_set_approval_policy_v1",a,writeApproval),
+  "tenant owner can grant manager decision for synthetic test");
+ assert.equal(pass(await approval(mgr,1,101,"approval.decide"),"explicit manager decision now effective"),true);
+ assert.equal(pass(await approval(mgr,1,101,"approval.withdraw"),"explicit denial wins over baseline"),false);
+ const clearApproval={...writeApproval,p_actions:[],p_denied_actions:[],
+  p_valid_until:null,p_request:"pack01-gov002-signed-clear"};
+ pass(await rpc("build02a_set_approval_policy_v1",a,clearApproval),
+  "tenant owner removes explicit policy on synthetic fixture");
+ assert.equal(pass(await approval(mgr,1,101,"approval.decide"),"grant removal denies decision"),false);
+ assert.equal(pass(await approval(mgr,1,101,"approval.withdraw"),"baseline after policy removal"),true);
+
  // Role stuffing cannot override server memberships.
  const stuffed=jwt(U.stockOnly,{app_metadata:{role:"tenant_owner"},business_role:"business_owner",tenant_id:1,is_owner:true});
  denied(await rpc("am_whoami_v1",stuffed,{p_business:101}),"role stuffing asset","am_denied");

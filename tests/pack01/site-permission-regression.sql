@@ -505,4 +505,132 @@ DO $am_other_tenant$ BEGIN
 END $am_other_tenant$;
 ROLLBACK;
 
-\echo PASS PACK-01 A048/A049/A051/A054/A055 negative effective permissions, synthetic PG17 only
+
+-- PACK-01 GOV002 authorization prerequisite: only Build02A canonical
+-- effective approval resolver, NOT GOV002 posting workflow implementation.
+-- Independent from site/stock action grants; all mutations transaction-rolled back.
+BEGIN;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+DO $gov_biz_owner$ BEGIN
+ IF NOT c10_demo.can_approval_action_v1(1,101,'approval.decide')
+ OR NOT c10_demo.can_approval_action_v1(1,101,'approval.exception')
+ OR c10_demo.can_approval_action_v1(1,201,'approval.decide')
+ OR c10_demo.can_approval_action_v1(2,101,'approval.decide') THEN
+  RAISE EXCEPTION 'PACK01_GOV002_BUSINESS_OWNER_SCOPE'; END IF;
+END $gov_biz_owner$;
+RESET ROLE;
+UPDATE c10_demo.business_members
+ SET approval_denied_actions=ARRAY['approval.decide','approval.exception']
+ WHERE business_id=101 AND user_id='22222222-2222-4222-8222-222222222222';
+SET LOCAL ROLE authenticated;
+DO $gov_owner_deny$ BEGIN
+ IF c10_demo.can_approval_action_v1(1,101,'approval.decide')
+ OR c10_demo.can_approval_action_v1(1,101,'approval.exception')
+ THEN RAISE EXCEPTION 'PACK01_GOV002_OWNER_EXPLICIT_DENY_BYPASSED'; END IF;
+ IF NOT c10_demo.can_approval_action_v1(1,101,'approval.submit')
+ THEN RAISE EXCEPTION 'PACK01_GOV002_OWNER_UNDENIED_ACTION_LOST'; END IF;
+END $gov_owner_deny$;
+ROLLBACK;
+
+BEGIN;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+DO $gov_manager_base$ BEGIN
+ IF NOT c10_demo.can_approval_action_v1(1,101,'approval.submit')
+ OR NOT c10_demo.can_approval_action_v1(1,101,'approval.withdraw')
+ OR c10_demo.can_approval_action_v1(1,101,'approval.decide')
+ OR c10_demo.can_approval_action_v1(1,101,'approval.exception')
+ THEN RAISE EXCEPTION 'PACK01_GOV002_MANAGER_BASELINE'; END IF;
+ BEGIN
+  PERFORM c10_demo.build02a_set_approval_policy_v1(101,'22222222-2222-4222-8222-222222222222',
+   ARRAY['approval.decide'],ARRAY[]::text[],NULL,'pack01-gov-manager-write',NULL);
+  RAISE EXCEPTION 'PACK01_GOV002_MANAGER_WROTE_POLICY';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'BUILD02A_POLICY_DENIED' THEN RAISE; END IF; END;
+END $gov_manager_base$;
+RESET ROLE;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+DO $gov_owner_grant$
+DECLARE receipt jsonb;
+BEGIN
+ receipt:=c10_demo.build02a_set_approval_policy_v1(
+  101,'33333333-3333-4333-8333-333333333333',
+  ARRAY['approval.decide','approval.export'],ARRAY['approval.withdraw'],
+  statement_timestamp()+interval '1 hour','pack01-gov-owner-policy',NULL);
+ IF receipt->>'request_key'<>'pack01-gov-owner-policy'
+ THEN RAISE EXCEPTION 'PACK01_GOV002_POLICY_AUDIT_MISSING'; END IF;
+END $gov_owner_grant$;
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+DO $gov_manager_granted$ BEGIN
+ IF NOT c10_demo.can_approval_action_v1(1,101,'approval.decide')
+ OR NOT c10_demo.can_approval_action_v1(1,101,'approval.export')
+ OR c10_demo.can_approval_action_v1(1,101,'approval.withdraw')
+ THEN RAISE EXCEPTION 'PACK01_GOV002_EXPLICIT_GRANT_DENY_MISMATCH'; END IF;
+END $gov_manager_granted$;
+RESET ROLE;
+UPDATE c10_demo.business_members SET approval_valid_until=statement_timestamp()-interval '1 second'
+ WHERE business_id=101 AND user_id='33333333-3333-4333-8333-333333333333';
+SET LOCAL ROLE authenticated;
+DO $gov_policy_expiry$ BEGIN
+ IF c10_demo.can_approval_action_v1(1,101,'approval.decide')
+ OR c10_demo.can_approval_action_v1(1,101,'approval.export')
+ THEN RAISE EXCEPTION 'PACK01_GOV002_EXPIRED_EXPLICIT_GRANT_EFFECTIVE'; END IF;
+ IF NOT c10_demo.can_approval_action_v1(1,101,'approval.withdraw')
+ THEN RAISE EXCEPTION 'PACK01_GOV002_EXPIRED_POLICY_REMOVED_BASELINE_ROLE'; END IF;
+END $gov_policy_expiry$;
+RESET ROLE;
+UPDATE c10_demo.business_members SET valid_until=statement_timestamp()-interval '1 second'
+ WHERE business_id=101 AND user_id='33333333-3333-4333-8333-333333333333';
+SET LOCAL ROLE authenticated;
+DO $gov_membership_expiry$ BEGIN
+ IF c10_demo.can_approval_action_v1(1,101,'approval.submit')
+ OR c10_demo.can_approval_action_v1(1,101,'approval.withdraw')
+ THEN RAISE EXCEPTION 'PACK01_GOV002_EXPIRED_MEMBER_RETAINED_ROLE'; END IF;
+END $gov_membership_expiry$;
+ROLLBACK;
+
+BEGIN;
+UPDATE c10_demo.business_members SET active=false
+ WHERE business_id=101 AND user_id='33333333-3333-4333-8333-333333333333';
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+DO $gov_revoked$ BEGIN
+ IF c10_demo.can_approval_action_v1(1,101,'approval.submit')
+ OR c10_demo.can_approval_action_v1(1,101,'approval.decide')
+ THEN RAISE EXCEPTION 'PACK01_GOV002_REVOKED_MEMBER_ALLOWED'; END IF;
+END $gov_revoked$;
+ROLLBACK;
+
+BEGIN;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
+DO $gov_stock_only$ BEGIN
+ IF c10_demo.can_approval_action_v1(1,101,'approval.submit')
+ OR c10_demo.can_approval_action_v1(1,101,'approval.decide')
+ THEN RAISE EXCEPTION 'PACK01_GOV002_SITE_STOCK_ESCALATED_APPROVAL'; END IF;
+END $gov_stock_only$;
+SELECT set_config('request.jwt.claim.sub','55555555-5555-4555-8555-555555555555',true);
+DO $gov_investor$ BEGIN
+ IF c10_demo.can_approval_action_v1(1,101,'approval.decide')
+ THEN RAISE EXCEPTION 'PACK01_GOV002_INVESTOR_APPROVAL'; END IF;
+END $gov_investor$;
+SELECT set_config('request.jwt.claim.sub','77777777-7777-4777-8777-777777777777',true);
+DO $gov_other_tenant$ BEGIN
+ IF c10_demo.can_approval_action_v1(1,101,'approval.decide')
+ OR c10_demo.can_approval_action_v1(2,101,'approval.decide')
+ THEN RAISE EXCEPTION 'PACK01_GOV002_CROSS_TENANT'; END IF;
+END $gov_other_tenant$;
+ROLLBACK;
+
+BEGIN;
+UPDATE c10_demo.tenants SET active=false WHERE id=1;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+DO $gov_inactive_tenant$ BEGIN
+ IF c10_demo.can_approval_action_v1(1,101,'approval.decide')
+ THEN RAISE EXCEPTION 'PACK01_GOV002_INACTIVE_TENANT_ALLOWED'; END IF;
+END $gov_inactive_tenant$;
+ROLLBACK;
+
+\echo PASS PACK-01 A048/A049/A051/A054/A055 + GOV002 effective decision permission negatives (disposable PG17 only)
