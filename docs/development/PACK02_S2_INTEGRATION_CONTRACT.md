@@ -32,7 +32,27 @@ PACK-01/Build01 (ChatGPT) is asked to provide:
 
 Guarantees PACK-02 relies on from Build01: `getUser` before each RPC, `actor_uid()` session check against `auth.sessions`, CSP `script-src 'self'; style-src 'self'` (PACK-02 uses no inline script, `innerHTML` or `<style>`).
 
-## 3. Exact patch proposal for ChatGPT
+## 2a. Status update — PACK-01 implemented the Build01 side (review of PR #104 at `73a2f3e1ee3a637aec62baf317b27892ec558882`)
+
+ChatGPT did not apply the proposal below verbatim; PR #104 now carries its own, stricter Build01-owned implementation of the same contract. Reviewed result:
+
+| Contract item | PR #104 `73a2f3e` | Compatible |
+|---|---|---|
+| Signed read path `api.pack02(name,args)`, five read RPCs, argument check, actor poisoning | `core10-build01-client.js` + `tests/build01/pack02-contract.test.cjs` | Yes |
+| Gateway: five RPCs + five PACK-02 files, only when the files are packaged (`pack02Enabled`) | `tests/build01/gateway.cjs` | Yes |
+| Host `#b01-pack02`, `fromRpc(api.pack02)`, `mount`, `reset` on sign-out and business change | `core10-build01-pack02.js` (lazy loader, panel hidden until ready) | Yes |
+| Load order + real-auth hook (`tests/pack02/live-auth-browser.cjs` when present) | `run-load.sh`, `run-auth.sh`, `run-combined.sh` | Yes |
+| `pack02_setup_business_v1` unreachable from the browser | not on either allowlist | Yes |
+
+Coordination constraints that PACK-02 now follows:
+
+1. `tests/build01/stage-pack02-s2.sh` **pins the PR #105 SHA**. Every PACK-02 push needs ChatGPT to re-pin; the current PR #105 head is recorded in the Drive handoff for that purpose.
+2. The staging script copies a **fixed file list** (five `core10-pack02-*` assets, two SQL files, `tests/pack02/`). PACK-02 therefore adds no new asset or SQL file names without notice; later slices live inside these files.
+3. The browser can reach only the five read RPCs, so the workspace UI uses only those.
+
+The patch file in section 3 is kept for history and is **superseded**; do not apply it on top of `73a2f3e`.
+
+## 3. Exact patch proposal for ChatGPT (SUPERSEDED by section 2a)
 
 `docs/development/PACK02_S2_BUILD01_PATCH_PROPOSAL.patch` (6 Build01-owned files, +20/−8). It applies cleanly to Preview `e76cf8a` and to #104 head `5103730` (the six files are byte-identical on both). **Not applied in PR #105.** Apply with `git apply docs/development/PACK02_S2_BUILD01_PATCH_PROPOSAL.patch` on a branch that also contains PR #105.
 

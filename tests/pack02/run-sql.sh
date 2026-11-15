@@ -7,7 +7,7 @@ cd "$(dirname "$0")/../.."
 case "${PGHOST:-}" in localhost|127.0.0.1) ;; *) echo 'Loopback database required'; exit 2;; esac
 suite=${1:-all}
 if [[ "$suite" == all ]]; then
-  for area in workspace regression controls scale portfolio agreement; do bash tests/pack02/run-sql.sh "$area"; done
+  for area in workspace regression controls scale portfolio agreement concurrency; do bash tests/pack02/run-sql.sh "$area"; done
   exit 0
 fi
 case "$suite" in workspace) tests=(tests/pack02/workspace-e2e.sql);;
@@ -18,6 +18,7 @@ case "$suite" in workspace) tests=(tests/pack02/workspace-e2e.sql);;
  portfolio) tests=(tests/pack02/portfolio-e2e.sql);;
  agreement) tests=(tests/pack02/agreement-e2e.sql);;
  app) tests=(tests/pack02/app-browser.cjs);;
+ concurrency) tests=(tests/pack02/run-concurrency.sh);;
  *) exit 2;; esac
 database="core10_preview_pack02_${BASHPID}"
 extra=()
@@ -55,6 +56,6 @@ for file in \
 done
 for test in "${tests[@]}"; do
   printf 'TEST %s\n' "$test"
-  if [[ "$test" == *.cjs ]]; then node "$test"; else "${psql[@]}" -f "$test"; fi
+  if [[ "$test" == *.cjs ]]; then node "$test"; elif [[ "$test" == *.sh ]]; then bash "$test"; else "${psql[@]}" -f "$test"; fi
 done
 echo "PASS PACK-02 $suite; synthetic claim fixtures only"

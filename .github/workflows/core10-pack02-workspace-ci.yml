@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [workspace, regression, controls, scale, portfolio, agreement]
+        suite: [workspace, regression, controls, scale, portfolio, agreement, concurrency]
     services:
       postgres:
         image: postgres:17
