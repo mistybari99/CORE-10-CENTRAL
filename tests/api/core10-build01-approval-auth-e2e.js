@@ -125,7 +125,14 @@ const p=(subject,actions,deniedActions,until,request)=>({
  deny(await rpc(null,"can_approval_action_v1",{
   p_tenant:1,p_business:101,p_action:"approval.decide"}),"anonymous approval resolver");
  pass(await http(AUTH+"/logout?scope=local",{token:m,method:"POST"}),"GoTrue logout");
- deny(await rpc(m,"can_approval_action_v1",{
-  p_tenant:1,p_business:101,p_action:"approval.submit"}),"logged-out session reused");
+ // Read-only boolean permission resolver deliberately fails closed (200 false)
+ // when actor_uid() resolves to NULL after local session logout.
+ const afterLogout=await rpc(m,"can_approval_action_v1",{
+  p_tenant:1,p_business:101,p_action:"approval.submit"});
+ if(afterLogout.status>=200&&afterLogout.status<300){
+  assert.equal(afterLogout.data,false,"logged-out JWT must never allow approval");
+ }else deny(afterLogout,"logged-out approval resolver rejected");
+ // The protected Build01 context must refuse the old signed token entirely.
+ deny(await rpc(m,"build01_context_v1"),"logged-out JWT reused for protected context");
  console.log("PASS PACK01 ACTUAL LOCAL GOTRUE APPROVAL: signed roles, explicit DENY, TTL, immediate membership revoke, cross-tenant, logout; disposable only");
 })().catch(e=>{console.error(e);process.exitCode=1});
