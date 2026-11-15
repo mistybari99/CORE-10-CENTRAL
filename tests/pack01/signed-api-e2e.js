@@ -115,9 +115,16 @@ function denied(result,what,expected){
  assert.deepEqual(foreignRows,[],"foreign signed tenant must see no stock row");
  const stockOnlyRows=pass(await req(stockPath,jwt(U.stockOnly)),"site staff scoped stock");
  assert.ok(Array.isArray(stockOnlyRows),"site staff RLS response expected");
- // All remaining private tables must deny the direct HTTP SELECT surface.
+ // A018 site_grants SELECT is explicitly SELF-only RLS, not table-level 403.
+ const grantPath="/site_grants?select=site_id,user_id,business_id&site_id=eq.1001";
+ const ownGrant=pass(await req(grantPath,jwt(U.stockOnly)),"own site grant RLS");
+ assert.ok(ownGrant.some(g=>g.user_id===U.stockOnly&&g.business_id===101),
+  "stock staff must see its OWN seeded grant under self-only policy");
+ const otherGrant=pass(await req(grantPath,b),"other-tenant site grant RLS");
+ assert.deepEqual(otherGrant,[],"other-tenant token must not read stock staff grant");
+ // All remaining PRIVATE tables must deny the direct HTTP SELECT surface.
  for(const table of ["am_grants","am_assets","wf_employees","a054_delegations",
-   "operation_orders_v1","inventory_commands_v1","site_grants"]){
+   "operation_orders_v1","inventory_commands_v1"]){
   denied(await req("/"+table+"?select=*",a),"direct table read "+table);
   denied(await req("/"+table+"?select=*",b),"direct table read tenant B "+table);
  }
