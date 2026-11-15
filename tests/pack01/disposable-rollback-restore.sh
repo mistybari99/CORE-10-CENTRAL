@@ -72,7 +72,7 @@ PGDATABASE="$source_db" pg_dump -Fc --no-owner -f "$scratch/full.backup"
 test -s "$scratch/full.backup"
 admin "CREATE DATABASE \"$restore_db\""
 restore_owned=1
-PGDATABASE="$restore_db" pg_restore --no-owner --exit-on-error "$scratch/full.backup"
+pg_restore --dbname="$restore_db" --no-owner --exit-on-error "$scratch/full.backup"
 manifest "$restore_db" > "$scratch/after"
 diff -u "$scratch/before" "$scratch/after"
 PGDATABASE="$source_db" psql -X -q -v ON_ERROR_STOP=1 -c \
