@@ -93,7 +93,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: mistybari99/CORE-10-CENTRAL
-          ref: 7afe9ea9106286bea6391a58bbf7c52e9def67f9
+          ref: 5f2653c03b4ad9fa900988246fc6576d61ab4c77
           path: pack02-input
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -101,7 +101,7 @@ jobs:
       - name: Compose three PR105-owned S2 contract files in disposable CI worktree
         run: |
           set -euo pipefail
-          test "$(git -C pack02-input rev-parse HEAD)" = "7afe9ea9106286bea6391a58bbf7c52e9def67f9"
+          test "$(git -C pack02-input rev-parse HEAD)" = "5f2653c03b4ad9fa900988246fc6576d61ab4c77"
           for file in core10-pack02-workspace.js core10-pack02-workspace.css core10-pack02-controls.js \
             core10-pack02-signed.js core10-pack02-app.js \
             internal/enterprise-sql/c10_pack02_workspace_v1.sql internal/enterprise-sql/c10_pack02_controls_v1.sql \

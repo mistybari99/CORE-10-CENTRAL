@@ -38,7 +38,7 @@ jobs:
         with: {path: pack01, persist-credentials: false}
       - uses: actions/checkout@v4
         with:
-          ref: 7afe9ea9106286bea6391a58bbf7c52e9def67f9
+          ref: 5f2653c03b4ad9fa900988246fc6576d61ab4c77
           path: pack02-source
           persist-credentials: false
       - name: Pin PR105 source and stage only owned files
@@ -77,12 +77,13 @@ jobs:
       PGPASSWORD: pack01_pack02_disposable
       CORE10_BUILD01_DISPOSABLE_ACK: I_CONFIRM_BUILD01_DISPOSABLE
       CORE10_BUILD01_BROWSER: '1'
+      CORE10_PACK02_DISPOSABLE_ACK: I_CONFIRM_PACK02_DISPOSABLE
     steps:
       - uses: actions/checkout@v4
         with: {path: pack01, persist-credentials: false}
       - uses: actions/checkout@v4
         with:
-          ref: 7afe9ea9106286bea6391a58bbf7c52e9def67f9
+          ref: 5f2653c03b4ad9fa900988246fc6576d61ab4c77
           path: pack02-source
           persist-credentials: false
       - name: Verify source SHA and ownership isolation
@@ -100,5 +101,8 @@ jobs:
       - name: Real LOCAL GoTrue signed actor and 390px/1440px S2 browser
         working-directory: pack01
         run: bash tests/build01/run-auth.sh
+      - name: New PR105 S2 setup readback UI and permission matrix (isolated Chromium)
+        working-directory: pack01
+        run: bash tests/pack02/run-sql.sh app
       - name: Certification boundary
-        run: echo 'PASS local GoTrue/PostgREST only. NOT hosted staging, deployment, or production.'
+        run: echo 'PASS local GoTrue/PostgREST plus readback UI only. NOT hosted staging, deployment, or production.'

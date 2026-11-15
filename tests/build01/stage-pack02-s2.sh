@@ -5,7 +5,7 @@ set -euo pipefail
 dst=$(cd "$1" && pwd -P)
 src=$(cd "$2" && pwd -P)
 [[ "$dst" != "$src" ]] || { echo 'Separate checkouts required'; exit 2; }
-[[ "$(git -C "$src" rev-parse HEAD)" == "7afe9ea9106286bea6391a58bbf7c52e9def67f9" ]] || { echo 'PR105 SHA mismatch'; exit 2; }
+[[ "$(git -C "$src" rev-parse HEAD)" == "5f2653c03b4ad9fa900988246fc6576d61ab4c77" ]] || { echo 'PR105 SHA mismatch'; exit 2; }
 [[ -z "$(git -C "$dst" status --porcelain)" ]] || { echo 'Dirty PACK01 checkout'; exit 2; }
 for f in \
  core10-pack02-workspace.js core10-pack02-workspace.css \

@@ -20,6 +20,26 @@ for(const [file,wanted] of Object.entries(protectedBlobs)){
  assert.match(actual,/^[a-f0-9]{40}$/);
  assert.equal(actual,wanted,"D051 legacy source modified against frozen Preview base "+base+": "+file);
 }
+// D051 reconciliation: the original main/archive HTML and Preview HTML
+// differ by exactly ONE additive script tag (Control Studio entry).
+// Prove that removing that known Preview-only line recreates main's exact
+// original git blob. This is static-source evidence, NOT UI/run parity.
+const fs=require("node:fs"),crypto=require("node:crypto");
+const html=fs.readFileSync(path.join(root,"index.html"),"utf8");
+const extra='<script src="core10-control-studio-entry.js"></script>\n';
+assert.equal(html.split(extra).length,2,
+ "D051 index divergence changed: expected precisely one Preview Control Studio script");
+const originalHtml=html.replace(extra,"");
+const gitBlob=data=>crypto.createHash("sha1")
+ .update("blob "+Buffer.byteLength(data)+"\0").update(data).digest("hex");
+assert.equal(gitBlob(originalHtml),"fa1856bae67fed10764d7e797c6922378a209361",
+ "D051 original main HTML must be reconstructible with only known additive Preview script");
+assert.equal(gitBlob(html),protectedBlobs["index.html"],
+ "D051 Preview index Git blob unexpected");
+assert.ok(fs.existsSync(path.join(root,"core10-control-studio-entry.js")),
+ "D051 additive Preview script source must exist");
+console.log("PASS D051 main-vs-Preview index difference: only 1 additional Control Studio script tag; VISUAL PARITY NOT CERTIFIED");
+
 // IMPORTANT: main/archive protected index.html blob is DIFFERENT before PACK01
 // (fa1856bae... vs Preview f2f74144...). Do not label this a visual parity pass.
 assert.notEqual(protectedBlobs["index.html"],
