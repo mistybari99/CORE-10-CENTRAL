@@ -72,6 +72,8 @@ if [[ "$suite" == pack01-security ]]; then
     echo 'PACK-01 must load Build01 effective authorization'; exit 2;
   }
   load internal/enterprise-sql/c10_build02a_approval_permissions_v1.sql
+  # A055 test personas are isolated fixtures and add only artificial grants.
+  load tests/c10_a055_seed.sql
 fi
 # Each matrix job runs the COMPLETE migration stack in one database before its
 # unmodified module regression. Tests never borrow data from another job.

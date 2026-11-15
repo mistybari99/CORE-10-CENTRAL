@@ -625,14 +625,21 @@ CREATE FUNCTION c10_demo.ami_ctx(p_business bigint) RETURNS c10_demo.am_ctx_t LA
 DECLARE c c10_demo.am_ctx_t; uid uuid:=c10_demo.actor_uid(); is_mgr boolean;
 BEGIN
  IF uid IS NULL OR p_business IS NULL THEN RAISE EXCEPTION 'am_denied'; END IF;
- SELECT tenant_id INTO c.tenant_id FROM c10_demo.businesses WHERE id=p_business;
+ -- PACK-01: never resolve Asset ownership or stand-alone maintenance grants
+ -- under an inactive tenant (even when an am_grants row is still active).
+ SELECT b.tenant_id INTO c.tenant_id FROM c10_demo.businesses b
+ JOIN c10_demo.tenants t ON t.id=b.tenant_id AND t.active WHERE b.id=p_business;
  IF c.tenant_id IS NULL THEN RAISE EXCEPTION 'am_denied'; END IF;
  c.business_id:=p_business; c.user_id:=uid;
  c.is_tenant_owner:=c10_demo.can_tenant(c.tenant_id);
  c.is_business_owner:=EXISTS(SELECT 1 FROM c10_demo.business_members m WHERE m.user_id=uid AND m.tenant_id=c.tenant_id
-   AND m.business_id=p_business AND m.active AND m.role='business_owner');
+   AND m.business_id=p_business AND m.active AND m.role='business_owner'
+   AND (to_jsonb(m)->>'valid_until' IS NULL OR
+        (to_jsonb(m)->>'valid_until')::timestamptz>statement_timestamp()));
  is_mgr:=EXISTS(SELECT 1 FROM c10_demo.business_members m WHERE m.user_id=uid AND m.tenant_id=c.tenant_id
-   AND m.business_id=p_business AND m.active AND m.role='manager');
+   AND m.business_id=p_business AND m.active AND m.role='manager'
+   AND (to_jsonb(m)->>'valid_until' IS NULL OR
+        (to_jsonb(m)->>'valid_until')::timestamptz>statement_timestamp()));
  c.manager_as_supervisor:=is_mgr AND c10_demo.ami_cfg_bool(p_business,NULL,NULL,'access.manager_acts_as_supervisor');
  SELECT COALESCE(jsonb_agg(jsonb_build_object('role',role,'site_id',site_id)),'[]'::jsonb) INTO c.grants
   FROM c10_demo.am_grants WHERE business_id=p_business AND user_id=uid AND active;

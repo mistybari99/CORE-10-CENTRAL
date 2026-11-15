@@ -32,3 +32,6 @@ A051 `wfi_ctx` now rejects inactive tenants and ignores expired Build01 business
 - `business_members.valid_until` is conditionally read through `to_jsonb(m)` to preserve original A054 installs before Build01 adds the validity column.
 - New transactional synthetic PG17 tests cover granted manager before/after expiry, denied renewal and eligible list, revoked membership, foreign tenant, and employee-only authorized delegation.
 - No production Supabase, original Islamia, live money/stock, deploy or main merge. Exact-head CI outcome must be confirmed before marking the slice tested.
+
+## Checkpoint 06 — A055 Asset root authority
+A055 `ami_ctx` now rejects inactive tenants and expired Build01 business owner/manager membership while retaining separately granted active Asset technician permissions. When Build01 validity column is absent in original pre-Build01 PG17 CI, `to_jsonb(m)->>'valid_until'` permits the original baseline; after Build01, expiry is enforced. PACK01 suite loads disposable A055 synthetic seed and rolls back owner expiry, stock-only denial, independent technician positive, inactive tenant and foreign tenant negatives. No live asset/stock changes. All CI must be verified for exact SHA.

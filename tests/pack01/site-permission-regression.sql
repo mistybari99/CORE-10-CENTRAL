@@ -442,4 +442,67 @@ DO $a054_employee_access$ BEGIN
 END $a054_employee_access$;
 ROLLBACK;
 
-\echo PASS PACK-01 A048/A049/A051/A054 effective delegation expiry, revoked member, tenant scope and linked employee tests; synthetic PG17 only
+
+-- PACK-01 A055: Asset root role membership expiry and inactive-tenant
+-- containment, with all fixtures and changes rolled back in disposable PG.
+BEGIN;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+DO $am_active_owner$ BEGIN
+ IF c10_demo.am_whoami_v1(101)->>'level'<>'business_owner' THEN
+  RAISE EXCEPTION 'PACK01_A055_OWNER_BASELINE_FAILED'; END IF;
+END $am_active_owner$;
+RESET ROLE;
+UPDATE c10_demo.business_members SET valid_until=statement_timestamp()-interval '1 second'
+ WHERE business_id=101 AND user_id='22222222-2222-4222-8222-222222222222';
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+DO $am_expired_owner$ BEGIN
+ BEGIN
+  PERFORM c10_demo.am_whoami_v1(101);
+  RAISE EXCEPTION 'PACK01_A055_EXPIRED_OWNER_VISIBLE';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'am_denied' THEN RAISE; END IF; END;
+END $am_expired_owner$;
+ROLLBACK;
+
+-- Existing Asset-specific grant remains independent from stock/site rights.
+BEGIN;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
+DO $am_stock_only$ BEGIN
+ BEGIN
+  PERFORM c10_demo.am_whoami_v1(101);
+  RAISE EXCEPTION 'PACK01_A055_STOCK_USER_MAINTENANCE_ESCALATION';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'am_denied' THEN RAISE; END IF; END;
+END $am_stock_only$;
+RESET ROLE;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','d3333333-3333-4333-8333-333333333333',true);
+DO $am_asset_granted$ BEGIN
+ IF c10_demo.am_whoami_v1(101)->>'level'<>'staff'
+ THEN RAISE EXCEPTION 'PACK01_A055_ASSET_GRANT_NOT_PRESERVED'; END IF;
+END $am_asset_granted$;
+RESET ROLE;
+UPDATE c10_demo.tenants SET active=false WHERE id=1;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','d3333333-3333-4333-8333-333333333333',true);
+DO $am_tenant_inactive$ BEGIN
+ BEGIN
+  PERFORM c10_demo.am_whoami_v1(101);
+  RAISE EXCEPTION 'PACK01_A055_INACTIVE_TENANT_ASSET_GRANT_LEAK';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'am_denied' THEN RAISE; END IF; END;
+END $am_tenant_inactive$;
+ROLLBACK;
+
+BEGIN;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','77777777-7777-4777-8777-777777777777',true);
+DO $am_other_tenant$ BEGIN
+ BEGIN
+  PERFORM c10_demo.am_whoami_v1(101);
+  RAISE EXCEPTION 'PACK01_A055_CROSS_TENANT_READ';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'am_denied' THEN RAISE; END IF; END;
+END $am_other_tenant$;
+ROLLBACK;
+
+\echo PASS PACK-01 A048/A049/A051/A054/A055 negative effective permissions, synthetic PG17 only
