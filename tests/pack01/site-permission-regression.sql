@@ -159,6 +159,10 @@ BEGIN
  o:=c10_demo.create_operation_order_v1(101,5001,8001,'purchase_receive',8,15,'pack01-confirmed','pack01-a049-confirmed');
  id2:=(o->>'order_id')::bigint;
  IF id1 IS NULL OR id2 IS NULL OR id1=id2 THEN RAISE EXCEPTION 'PACK01_A049_SETUP_INVALID'; END IF;
+ -- Save only returned IDs as transaction-local test values, never expose the
+ -- private operation_orders table to the authenticated role.
+ PERFORM set_config('pack01.a049_draft_id',id1::text,true);
+ PERFORM set_config('pack01.a049_confirmed_id',id2::text,true);
  PERFORM c10_demo.advance_operation_order_v1(id2,'confirm',1,'pack01-a049-confirm-before-deny');
 END $a049_baseline$;
 RESET ROLE;
@@ -170,8 +174,8 @@ SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111'
 DO $a049_deny$
 DECLARE draft_id bigint; confirmed_id bigint;
 BEGIN
- SELECT id INTO draft_id FROM c10_demo.operation_orders_v1 WHERE business_id=101 AND request_key='pack01-a049-draft';
- SELECT id INTO confirmed_id FROM c10_demo.operation_orders_v1 WHERE business_id=101 AND request_key='pack01-a049-confirmed';
+ draft_id:=current_setting('pack01.a049_draft_id')::bigint;
+ confirmed_id:=current_setting('pack01.a049_confirmed_id')::bigint;
  IF c10_demo.can_site(1,101,1001,'stock.read') OR c10_demo.can_site(1,101,1001,'stock.post')
  THEN RAISE EXCEPTION 'PACK01_A049_OWNER_DENY_NOT_EFFECTIVE'; END IF;
  BEGIN
