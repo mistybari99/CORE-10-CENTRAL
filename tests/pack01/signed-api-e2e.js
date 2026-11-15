@@ -1,0 +1,103 @@
+// PACK-01: two real HMAC-signed synthetic JWTs over disposable PostgREST.
+// This is NOT GoTrue, hosted staging, Production, or an RLS/Storage certification.
+"use strict";
+const assert=require("node:assert/strict");
+const crypto=require("node:crypto");
+const secret=process.env.CORE10_CI_JWT_SECRET;
+const base=(process.env.CORE10_CI_REST_URL||"").replace(/\/$/,"");
+if(!secret || secret.length<32 || !/^http:\/\/127\.0\.0\.1:\d+$/.test(base))
+ throw Error("PACK01_DISPOSABLE_SIGNER_AND_LOOPBACK_POSTGREST_REQUIRED");
+const U={
+ tenantA:"11111111-1111-4111-8111-111111111111",
+ businessA:"22222222-2222-4222-8222-222222222222",
+ tenantB:"77777777-7777-4777-8777-777777777777",
+ stockOnly:"44444444-4444-4444-8444-444444444444",
+ revoked:"66666666-6666-4666-8666-666666666666"
+};
+const now=()=>Math.floor(Date.now()/1000);
+function jwt(sub,claims={},key=secret){
+ const b64=v=>Buffer.from(JSON.stringify(v)).toString("base64url");
+ const data=b64({alg:"HS256",typ:"JWT"})+"."+b64({
+  role:"authenticated",sub,aud:"authenticated",iat:now(),exp:now()+300,...claims
+ });
+ return data+"."+crypto.createHmac("sha256",key).update(data).digest("base64url");
+}
+async function req(path,token,method="GET",payload){
+ const headers={accept:"application/json"};
+ if(token)headers.authorization="Bearer "+token;
+ if(payload!==undefined)headers["content-type"]="application/json";
+ let response,raw;
+ for(let i=0;i<30;i++){
+  response=await fetch(base+path,{method,headers,
+   body:payload===undefined?undefined:JSON.stringify(payload),
+   signal:AbortSignal.timeout(16000),redirect:"error"});
+  raw=await response.text();
+  if(response.status!==503)break;
+  await new Promise(r=>setTimeout(r,400));
+ }
+ let data;try{data=JSON.parse(raw)}catch{data=raw}
+ return{status:response.status,data};
+}
+const rpc=(name,token,args)=>req("/rpc/"+name,token,"POST",args);
+function pass(result,what){
+ assert.ok(result.status>=200&&result.status<300,
+  what+" expected 2xx got "+result.status+" "+JSON.stringify(result.data));
+ return result.data;
+}
+function denied(result,what,expected){
+ assert.ok(result.status>=400,what+" unexpectedly returned "+result.status+" "+JSON.stringify(result.data));
+ if(expected)assert.equal(result.data&&result.data.message,expected,
+  what+" wrong denial: "+JSON.stringify(result.data));
+}
+(async()=>{
+ const a=jwt(U.tenantA),b=jwt(U.tenantB),ownerA=jwt(U.businessA);
+ assert.equal(pass(await rpc("can_tenant",a,{p_tenant:1}),"tenant A membership"),true);
+ assert.equal(pass(await rpc("can_tenant",b,{p_tenant:2}),"tenant B membership"),true);
+ assert.equal(pass(await rpc("can_tenant",b,{p_tenant:1}),"tenant B not A"),false);
+ assert.equal(pass(await rpc("can_tenant",a,{p_tenant:2}),"tenant A not B"),false);
+ // These same public RPCs must work for their own business before probing negatives.
+ pass(await rpc("wf_read_overview_v1",a,{p_business:101}),"A workforce");
+ pass(await rpc("wf_read_overview_v1",b,{p_business:201}),"B workforce");
+ pass(await rpc("read_operation_overview_v1",ownerA,{p_business:101}),"business A operations");
+ pass(await rpc("read_inventory_commands_v1",ownerA,{p_business:101}),"business A inventory");
+ pass(await rpc("am_whoami_v1",ownerA,{p_business:101}),"business A asset role");
+ pass(await rpc("a054_my_access_v1",ownerA,{p_business:101}),"business A HR role");
+ // Same-tenant business owner 101 cannot read business 102 or tenant B business 201.
+ denied(await rpc("wf_read_overview_v1",ownerA,{p_business:102}),"same-tenant business isolation","wf_denied");
+ denied(await rpc("wf_read_overview_v1",ownerA,{p_business:201}),"cross tenant from business A","wf_denied");
+ denied(await rpc("wf_read_overview_v1",b,{p_business:101}),"cross tenant workforce","wf_denied");
+ denied(await rpc("read_operation_overview_v1",b,{p_business:101}),"foreign operation report","A049_READ_DENIED");
+ denied(await rpc("read_inventory_commands_v1",b,{p_business:101}),"foreign inventory report","A048_READ_DENIED");
+ denied(await rpc("am_whoami_v1",b,{p_business:101}),"foreign asset role","am_denied");
+ denied(await rpc("a054_my_access_v1",b,{p_business:101}),"foreign workforce delegation","wf_denied");
+ denied(await rpc("am_export_csv_v1",b,{p_business:101,
+   p_request:"pack01-b-export-denied",p_kind:"work_orders",p_params:null}),
+   "foreign maintenance export","am_denied");
+ denied(await rpc("create_inventory_command_v1",b,{p_business:101,p_kind:"receive",
+   p_source:null,p_destination:5001,p_item:8001,p_quantity:1,p_request:"pack01-b-stock-denied"}),
+   "foreign inventory create","A048_PERMISSION_DENIED");
+ denied(await rpc("create_operation_order_v1",b,{p_business:101,p_location:5001,
+   p_item:8001,p_kind:"purchase_receive",p_quantity:1,p_unit_value:1,
+   p_external:"foreign",p_request:"pack01-b-order-denied"}),
+   "foreign order create","A049_ORDER_DENIED");
+ // Role stuffing cannot override server memberships.
+ const stuffed=jwt(U.stockOnly,{app_metadata:{role:"tenant_owner"},business_role:"business_owner",tenant_id:1,is_owner:true});
+ denied(await rpc("am_whoami_v1",stuffed,{p_business:101}),"role stuffing asset","am_denied");
+ denied(await rpc("wf_read_overview_v1",jwt(U.revoked,{app_metadata:{role:"owner"}}),{p_business:101}),
+  "revoked manager","wf_denied");
+ // HTTP auth/signature verification and expiry, never synthetic SQL sub claims.
+ denied(await rpc("am_whoami_v1",null,{p_business:101}),"anonymous");
+ denied(await rpc("am_whoami_v1",jwt(U.businessA,{},"wrong_disposable_signing_key_at_least_32_chars"),{p_business:101}),
+  "invalid HMAC signature");
+ denied(await rpc("am_whoami_v1",jwt(U.businessA,{exp:now()-30}),{p_business:101}),"expired signed JWT");
+ // RLS/private database tables and private helper must not be HTTP readable.
+ for(const table of ["am_grants","am_assets","wf_employees","a054_delegations",
+   "operation_orders_v1","inventory_commands_v1","stock_balances_v1","site_grants"]){
+  denied(await req("/"+table+"?select=*",a),"direct table read "+table);
+  denied(await req("/"+table+"?select=*",b),"direct table read tenant B "+table);
+ }
+ denied(await rpc("ami_ctx",ownerA,{p_business:101}),"private asset helper");
+ denied(await rpc("inventory_action_authorized_v1",ownerA,{
+  p_tenant:1,p_business:101,p_location:5001,p_action:"stock.read"}),"private inventory helper");
+ console.log("PACK01_SIGNED_TWO_TENANT_HTTP_PASS (HMAC JWT, disposable PG17/PostgREST ONLY)");
+})().catch(e=>{console.error(e);process.exit(1)});

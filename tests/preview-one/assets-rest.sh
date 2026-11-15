@@ -44,6 +44,11 @@ if ! node -e '
   tail -40 "$rest_log"
   exit 1
 fi
+if [[ "${CORE10_PACK01_SIGNED_ONLY:-0}" == 1 ]]; then
+  node tests/pack01/signed-api-e2e.js
+  echo 'PASS PACK-01 signed-HMAC two-tenant direct API negatives; NOT GoTrue/hosted staging'
+  exit 0
+fi
 node tests/api/core10-a055-asset-maintenance-rest-e2e.js
 node tests/e2e/core10-a055-asset-maintenance-browser.js
 echo 'PASS combined-schema A055 signed-HMAC HTTP + mobile/desktop browser; NOT GoTrue'

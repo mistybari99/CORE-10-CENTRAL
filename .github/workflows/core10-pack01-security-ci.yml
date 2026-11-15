@@ -38,3 +38,29 @@ jobs:
         with: {persist-credentials: false}
       - name: Build01 + Build02A + A048 security interoperability
         run: bash tests/preview-one/run-combined.sh pack01-security
+
+  signed-two-tenant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: pack01_disposable_only
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: pack01_disposable_only
+      CORE10_PREVIEW_DISPOSABLE_ACK: I_CONFIRM_DISPOSABLE_PREVIEW
+      CORE10_PREVIEW_BUILD01: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Signed disposable PostgREST cross-tenant permission negatives
+        run: bash tests/preview-one/run-combined.sh pack01-signed

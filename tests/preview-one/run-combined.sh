@@ -7,7 +7,7 @@ case "${PGHOST:-}" in localhost|127.0.0.1) ;; *) echo 'Loopback disposable Postg
   echo 'Set CORE10_PREVIEW_DISPOSABLE_ACK=I_CONFIRM_DISPOSABLE_PREVIEW'; exit 2;
 }
 suite=${1:-cross-module}
-case "$suite" in cross-module|operations|intent|crm|workforce|workforce-policy|assets|assets-policy|assets-registry|assets-planning|assets-workorders|assets-reports|assets-integrated|assets-http|pack01-security) ;; *) echo 'Unknown suite'; exit 2;; esac
+case "$suite" in cross-module|operations|intent|crm|workforce|workforce-policy|assets|assets-policy|assets-registry|assets-planning|assets-workorders|assets-reports|assets-integrated|assets-http|pack01-security|pack01-signed) ;; *) echo 'Unknown suite'; exit 2;; esac
 if [[ "$suite" == assets ]]; then
   # Original A055 CI runs each area on a fresh database. Preserve that isolation,
   # but install ALL merged preview modules before every original area test.
@@ -67,7 +67,7 @@ if [[ "${CORE10_PREVIEW_BUILD01:-0}" == 1 ]]; then
   load internal/enterprise-sql/c10_a034_access_governance_v1.sql
   load internal/enterprise-sql/c10_build01_access_integration_v1.sql
 fi
-if [[ "$suite" == pack01-security ]]; then
+if [[ "$suite" == pack01-security || "$suite" == pack01-signed ]]; then
   [[ "${CORE10_PREVIEW_BUILD01:-0}" == 1 ]] || {
     echo 'PACK-01 must load Build01 effective authorization'; exit 2;
   }
@@ -79,6 +79,11 @@ fi
 # unmodified module regression. Tests never borrow data from another job.
 case "$suite" in
  pack01-security) load tests/pack01/site-permission-regression.sql;;
+ pack01-signed)
+  # Two truly signed local-HMAC JWTs, not fabricated SQL claims; run with
+  # an active PostgREST HTTP endpoint on this exact disposable database.
+  load tests/c10_a055_seed.sql
+  CORE10_PACK01_SIGNED_ONLY=1 bash tests/preview-one/assets-rest.sh;;
  cross-module) load tests/preview-one/cross-module.sql;;
  operations) load tests/c10_a049_operation_workflow_e2e.sql;;
  intent)
