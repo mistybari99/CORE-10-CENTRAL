@@ -38,6 +38,10 @@ jobs:
         with: {persist-credentials: false}
       - name: Build01 + Build02A + A048 security interoperability
         run: bash tests/preview-one/run-combined.sh pack01-security
+      - name: D051 source blob guard and existing 193-report preservation regression
+        run: |
+          node tests/pack01/legacy-source-guard.cjs
+          node tests/core10-legacy-preservation.test.js
 
   signed-two-tenant:
     runs-on: ubuntu-latest

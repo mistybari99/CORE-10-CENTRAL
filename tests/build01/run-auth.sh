@@ -35,6 +35,10 @@ PGDATABASE=postgres psql -X -q -v ON_ERROR_STOP=1 -c "CREATE DATABASE \"$databas
 owned=$database
 export PGDATABASE=$database
 bash tests/build01/run-load.sh
+# PACK01-approved Build02A canonical approval resolver; local GoTrue-issued
+# sessions validate scope, expiry and revocation over real HTTP.
+# Database is disposable and removed by this runner's cleanup trap.
+psql -X -q -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_build02a_approval_permissions_v1.sql
 # Integration contract S2 is optional until the PACK-02 PR is combined in
 # an ephemeral test checkout. No requirement to merge either draft PR.
 if [[ -f internal/enterprise-sql/c10_pack02_workspace_v1.sql ]]; then
@@ -75,6 +79,7 @@ if ! node -e '
 fi
 node tests/api/core10-build01-auth-rest-e2e.js seed
 node tests/api/core10-build01-auth-rest-e2e.js test
+node tests/api/core10-build01-approval-auth-e2e.js
 if [[ "${CORE10_BUILD01_BROWSER:-0}" == 1 ]]; then
   export BUILD01_AUTH_URL=$CORE10_BUILD01_AUTH_URL BUILD01_REST_URL=$CORE10_BUILD01_REST_URL
   BUILD01_PUBLISHABLE_KEY=$(node -e 'const c=require("crypto"),b=x=>Buffer.from(JSON.stringify(x)).toString("base64url");const x=b({alg:"HS256",typ:"JWT"})+"."+b({role:"anon",aud:"authenticated",exp:Math.floor(Date.now()/1000)+3600});process.stdout.write(x+"."+c.createHmac("sha256",process.env.CORE10_BUILD01_TEST_SECRET).update(x).digest("base64url"))')
