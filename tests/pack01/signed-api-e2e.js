@@ -125,7 +125,7 @@ function denied(result,what,expected){
  denied(await rpc("am_whoami_v1",null,{p_business:101}),"anonymous");
  denied(await rpc("am_whoami_v1",jwt(U.businessA,{},"wrong_disposable_signing_key_at_least_32_chars"),{p_business:101}),
   "invalid HMAC signature");
- denied(await rpc("am_whoami_v1",jwt(U.businessA,{exp:now()-30}),{p_business:101}),"expired signed JWT");
+ denied(await rpc("am_whoami_v1",jwt(U.businessA,{iat:now()-900,exp:now()-900}) /* > 5 min PostgREST clock skew */,{p_business:101}),"expired signed JWT");
  // A018 deliberately GRANTs SELECT on stock_balances_v1 with server-side
  // can_site RLS: 200+[] for unauthorized B is the intended safe response,
  // unlike private tables that must return 4xx. Create a real disposable row
