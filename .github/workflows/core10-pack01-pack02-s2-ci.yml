@@ -1,0 +1,104 @@
+# PACK01-only bridge. PR105 is pinned; both checkouts are read-only for Git.
+# PACK02 files are copied to a disposable CI workspace, NEVER merged.
+name: CORE10 PACK01 PACK02 S2 local integration
+on:
+  push:
+    branches: ['feature/c10-pack01-*']
+  pull_request:
+    paths:
+      - 'core10-build01*'
+      - 'tests/build01/**'
+      - 'tests/preview-one/run-combined.sh'
+      - '.github/workflows/core10-pack01-pack02-s2-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  combined-sql-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pack01_pack02_disposable
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: pack01_pack02_disposable
+      CORE10_BUILD01_DISPOSABLE_ACK: I_CONFIRM_BUILD01_DISPOSABLE
+      CORE10_PACK02_DISPOSABLE_ACK: I_CONFIRM_PACK02_DISPOSABLE
+      CORE10_PREVIEW_DISPOSABLE_ACK: I_CONFIRM_DISPOSABLE_PREVIEW
+      CORE10_PREVIEW_BUILD01: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with: {path: pack01, persist-credentials: false}
+      - uses: actions/checkout@v4
+        with:
+          ref: 7afe9ea9106286bea6391a58bbf7c52e9def67f9
+          path: pack02-source
+          persist-credentials: false
+      - name: Pin PR105 source and stage only owned files
+        run: bash pack01/tests/build01/stage-pack02-s2.sh pack01 pack02-source
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Original Build01 canonical SQL (six suites)
+        working-directory: pack01
+        run: bash tests/build01/run-sql.sh all
+      - name: PACK02 combined canonical SQL including A048 agreement
+        working-directory: pack01
+        run: bash tests/pack02/run-sql.sh all
+      - name: Full PACK01 permission regression with PACK02 SQL loaded
+        working-directory: pack01
+        run: bash tests/preview-one/run-combined.sh pack01-security
+      - name: S2 actor checks, gateway denial, PACK02 client tests
+        working-directory: pack01
+        run: |
+          node --test tests/build01/pack02-contract.test.cjs
+          node --test tests/build01/gateway.test.cjs
+          node --test tests/pack02/*.test.cjs
+  local-gotrue-s2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pack01_pack02_disposable
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: pack01_pack02_disposable
+      CORE10_BUILD01_DISPOSABLE_ACK: I_CONFIRM_BUILD01_DISPOSABLE
+      CORE10_BUILD01_BROWSER: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with: {path: pack01, persist-credentials: false}
+      - uses: actions/checkout@v4
+        with:
+          ref: 7afe9ea9106286bea6391a58bbf7c52e9def67f9
+          path: pack02-source
+          persist-credentials: false
+      - name: Verify source SHA and ownership isolation
+        run: bash pack01/tests/build01/stage-pack02-s2.sh pack01 pack02-source
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Install isolated Chromium
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-s2-pw"
+          cd "$RUNNER_TEMP/core10-s2-pw"
+          npm init -y >/dev/null
+          npm install --save-dev playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-s2-pw/node_modules" >> "$GITHUB_ENV"
+      - name: Real LOCAL GoTrue signed actor and 390px/1440px S2 browser
+        working-directory: pack01
+        run: bash tests/build01/run-auth.sh
+      - name: Certification boundary
+        run: echo 'PASS local GoTrue/PostgREST only. NOT hosted staging, deployment, or production.'

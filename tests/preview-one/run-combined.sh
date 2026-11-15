@@ -66,6 +66,13 @@ if [[ "${CORE10_PREVIEW_BUILD01:-0}" == 1 ]]; then
   load internal/enterprise-sql/c10_a020_industry_draft_v2.sql
   load internal/enterprise-sql/c10_a034_access_governance_v1.sql
   load internal/enterprise-sql/c10_build01_access_integration_v1.sql
+  # PACK01-owned optional S2 projection: only when both PR105 source files
+  # exist in the disposable combined checkout; never download production SQL.
+  if [[ -f internal/enterprise-sql/c10_pack02_workspace_v1.sql &&
+        -f internal/enterprise-sql/c10_pack02_controls_v1.sql ]]; then
+    load internal/enterprise-sql/c10_pack02_workspace_v1.sql
+    load internal/enterprise-sql/c10_pack02_controls_v1.sql
+  fi
 fi
 if [[ "$suite" == pack01-security || "$suite" == pack01-signed ]]; then
   [[ "${CORE10_PREVIEW_BUILD01:-0}" == 1 ]] || {
