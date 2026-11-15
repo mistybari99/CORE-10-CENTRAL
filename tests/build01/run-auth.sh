@@ -35,6 +35,11 @@ PGDATABASE=postgres psql -X -q -v ON_ERROR_STOP=1 -c "CREATE DATABASE \"$databas
 owned=$database
 export PGDATABASE=$database
 bash tests/build01/run-load.sh
+# Integration contract S2 is optional until the PACK-02 PR is combined in
+# an ephemeral test checkout. No requirement to merge either draft PR.
+if [[ -f internal/enterprise-sql/c10_pack02_workspace_v1.sql ]]; then
+  psql -X -q -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_pack02_workspace_v1.sql
+fi
 psql -X -q -v ON_ERROR_STOP=1 -c 'CREATE SCHEMA auth'
 export CORE10_BUILD01_TEST_SECRET=core10_build01_disposable_auth_signer_2026_not_production
 export CORE10_BUILD01_AUTH_URL="http://127.0.0.1:${CORE10_BUILD01_AUTH_PORT:-59999}"

@@ -58,6 +58,22 @@
    }
    return result;
   }
+  async function pack02Workspace(mode,businessId){
+   if(!["universal_owner","business_owner","staff"].includes(mode))fail("BUILD01_PACK02_MODE_INVALID");
+   const business=mode==="universal_owner"?null:id(businessId);
+   if(mode==="universal_owner"&&businessId!=null)fail("BUILD01_PACK02_SCOPE_INVALID");
+   const who=await actor();
+   const d=await rpc("pack02_workspace_v1",{p_mode:mode,p_business:business});
+   if(d.contract!=="C10_PACK02_WORKSPACE_V1"||d.mode!==mode||d.production_certified!==false)fail("BUILD01_PACK02_CONTRACT_INVALID");
+   if(mode==="staff"){
+     if(Object.prototype.hasOwnProperty.call(d,"actor_uid")||Object.prototype.hasOwnProperty.call(d,"tenants")||
+      Object.prototype.hasOwnProperty.call(d,"businesses")||Object.prototype.hasOwnProperty.call(d,"legal_entities")||
+      d.umbrella?.visible!==false)fail("BUILD01_PACK02_STAFF_LEAK");
+   }else if(d.actor_uid!==who)fail("BUILD01_ACTOR_MISMATCH");
+   if(business!==null&&Number(d.business?.id)!==business)fail("BUILD01_SCOPE_MISMATCH");
+   if(business===null&&("business" in d))fail("BUILD01_PACK02_SCOPE_INVALID");
+   return d;
+  }
   async function context(){const d=await rpc("build01_context_v1");if(!Array.isArray(d.businesses)||!Array.isArray(d.legal_entities)||!Array.isArray(d.templates))fail("BUILD01_INVALID_CONTEXT");return d;}
   async function workspace(business){const n=id(business),d=await rpc("build01_workspace_v1",{p_business:n},n);if(!Array.isArray(d.sites)||!obj(d.access)||!Array.isArray(d.audit))fail("BUILD01_INVALID_WORKSPACE");return d;}
   async function signIn(email,password){
@@ -103,7 +119,7 @@
    return {business_id:id(input.businessId),site_id:id(input.siteId),action:input.action,allowed:!!site&&Array.isArray(site.allowed_actions)&&site.allowed_actions.includes(input.action),source:"fresh_server_workspace"};
   }
   async function audit(business){return (await workspace(business)).audit;}
-  return Object.freeze({signIn,signOut,context,workspace,setup,createSite,changeAccess,effectivePermission,audit});
+  return Object.freeze({signIn,signOut,context,workspace,pack02Workspace,setup,createSite,changeAccess,effectivePermission,audit});
  }
  return Object.freeze({create});
 });

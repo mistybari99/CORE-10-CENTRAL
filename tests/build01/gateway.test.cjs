@@ -15,14 +15,20 @@ test("gateway exposes only explicit loopback auth and RPC surfaces, never admin/
   assert.equal((await fetch(base+"/")).status,200);
   const config=await(await fetch(base+"/core10-build01-config.js")).text();
   assert(config.includes(base));assert(!config.includes("BOS_CONFIG"));
+  const pack02Ready=config.includes('"pack02Enabled":true');
+  assert.equal((await fetch(base+"/core10-build01-pack02.js")).status,200);
+  assert.equal((await fetch(base+"/core10-pack02-workspace.js")).status,pack02Ready?200:404);
+  assert.equal((await fetch(base+"/core10-pack02-workspace.css")).status,pack02Ready?200:404);
   for(const route of ["/auth/v1/admin/users","/auth/v1/signup","/rest/v1/business_members","/rest/v1/rpc/change_access_v1","/config.js","/AGENTS.md","/internal/enterprise-sql/c10_build01_access_integration_v1.sql"])
    assert.equal((await fetch(base+route)).status,404,route);
   assert.equal((await fetch(base+"/auth/v1/user")).status,200);
+  const s2=await fetch(base+"/rest/v1/rpc/pack02_workspace_v1",{method:"POST",headers:{"content-type":"application/json"},body:"{}"});
+  assert.equal(s2.status,pack02Ready?200:404,"S2 RPC gated by exact packaged files");
   assert.equal((await fetch(base+"/rest/v1/rpc/build01_context_v1",{method:"POST",headers:{"content-type":"application/json"},body:"{}"})).status,200);
-  assert.deepEqual(seen,["/user","/rpc/build01_context_v1"]);
+  assert.deepEqual(seen,pack02Ready?["/user","/rpc/pack02_workspace_v1","/rpc/build01_context_v1"]:["/user","/rpc/build01_context_v1"]);
   assert.equal((await fetch(base+"/auth/v1/user",{headers:{origin:"https://other.example"}})).status,403);
   assert.equal((await fetch(base+"/rest/v1/rpc/build01_context_v1",{method:"POST",body:"x".repeat(65537)})).status,413);
-  assert.equal(seen.length,2);
+  assert.equal(seen.length,pack02Ready?3:2);
  }finally{await close(gateway);await close(upstream);}
 });
 test("gateway constructor refuses remote services and secret/service keys",()=>{

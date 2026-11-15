@@ -15,6 +15,7 @@ function createGateway(options){
  const temporary=fs.mkdtempSync(path.join(os.tmpdir(),"core10-build01-gateway-"));
  const publicRoot=path.join(temporary,"public");
  build(path.resolve(__dirname,"../.."),publicRoot);verify(publicRoot);
+ const pack02Ready=["core10-pack02-workspace.js","core10-pack02-workspace.css"].every(f=>fs.existsSync(path.join(publicRoot,f)));
  const server=http.createServer(async(req,res)=>{
   const headers={"cache-control":"no-store","x-content-type-options":"nosniff","referrer-policy":"no-referrer","content-security-policy":"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'; object-src 'none'; frame-ancestors 'none'"};
   function respond(status,body,type="text/plain; charset=utf-8"){res.writeHead(status,{...headers,"content-type":type});res.end(body);}
@@ -24,7 +25,7 @@ function createGateway(options){
    const url=new URL(req.url,origin),p=decodeURIComponent(url.pathname);
    if(p==="/core10-build01-config.js"){
     if(!["GET","HEAD"].includes(req.method))return respond(405,"Method denied");
-    return respond(200,req.method==="HEAD"?null:"window.CORE10_BUILD01_CONFIG=Object.freeze("+JSON.stringify({enabled:true,mode:"isolated-development",url:origin,publishableKey:options.publishableKey})+");","application/javascript; charset=utf-8");
+    return respond(200,req.method==="HEAD"?null:"window.CORE10_BUILD01_CONFIG=Object.freeze("+JSON.stringify({enabled:true,mode:"isolated-development",url:origin,publishableKey:options.publishableKey,pack02Enabled:pack02Ready})+");","application/javascript; charset=utf-8");
    }
    let target;
    if(p.startsWith("/auth/v1/")){
@@ -32,7 +33,8 @@ function createGateway(options){
     if(AUTH.get(suffix)!==req.method)return respond(404,"Auth route unavailable");
     target=auth+suffix+url.search;
    }else if(p.startsWith("/rest/v1/rpc/")){
-    if(req.method!=="POST"||url.search||!RPC.has(p.slice("/rest/v1/rpc/".length)))return respond(404,"RPC unavailable");
+    if(req.method!=="POST"||url.search||
+      !(RPC.has(p.slice("/rest/v1/rpc/".length))||(pack02Ready&&p==="/rest/v1/rpc/pack02_workspace_v1")))return respond(404,"RPC unavailable");
     target=rest+p.slice("/rest/v1".length);
    }
    if(target){
@@ -48,10 +50,12 @@ function createGateway(options){
    if(!["GET","HEAD"].includes(req.method))return respond(405,"Method denied");
    const file=p==="/"?"core10-build01.html":p.slice(1);
    // Only this surface and its explicit original dependencies are reachable.
-   const allowed=new Set(["core10-build01.html","core10-build01.js","core10-build01.css","core10-build01-client.js","core10-enterprise-client.js","core10-control-studio.css","vendor/supabase.js"]);
+   const allowed=new Set(["core10-build01.html","core10-build01.js","core10-build01-pack02.js","core10-build01.css","core10-build01-client.js","core10-enterprise-client.js","core10-control-studio.css","vendor/supabase.js",
+    "core10-pack02-workspace.js","core10-pack02-workspace.css"]);
    if(!allowed.has(file)||!isAllowed(file))return respond(404,"Not found");
+   if(file.startsWith("core10-pack02-")&&!pack02Ready)return respond(404,"Not found");
    const full=path.join(publicRoot,file);
-   if(fs.realpathSync(full)!==full)return respond(404,"Not found");
+   if(!fs.existsSync(full)||fs.realpathSync(full)!==full)return respond(404,"Not found");
    return respond(200,req.method==="HEAD"?null:fs.readFileSync(full),TYPES[path.extname(file)]||"text/plain");
   }catch(e){
    if(!res.headersSent)respond(e instanceof URIError?400:502,"Isolated service unavailable");
