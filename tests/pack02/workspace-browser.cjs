@@ -5,7 +5,7 @@ const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("n
 const {chromium}=require("playwright");
 const root=path.join(__dirname,"../..");
 const css=fs.readFileSync(path.join(root,"core10-pack02-workspace.css"),"utf8");
-const js=fs.readFileSync(path.join(root,"core10-pack02-workspace.js"),"utf8");
+const js=fs.readFileSync(path.join(root,"core10-pack02-workspace.js"),"utf8")+";"+fs.readFileSync(path.join(root,"core10-pack02-controls.js"),"utf8");
 const fx=n=>fs.readFileSync(path.join(__dirname,"fixtures",n+".json"),"utf8");
 const html=`<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style></head><body style="margin:0"><div id="ws" class="p2-root"></div><script>${js}</script></body></html>`;
 const out=process.env.PACK02_SCREENSHOT_DIR||"";
@@ -43,6 +43,23 @@ const out=process.env.PACK02_SCREENSHOT_DIR||"";
      W.render(r,W.view(JSON.parse(p)),k=>got.push(k));r.querySelector(".p2-nav-item").click();return got;},fx(name));
     assert.equal(clicked.length,1);
     if(out){fs.mkdirSync(out,{recursive:true});await page.screenshot({path:path.join(out,`${name}-${width}.png`),fullPage:true});}
+    await page.close();
+   }
+  }
+  for(const width of [390,1440]){
+   for(const name of ["controls-central","controls-business"]){
+    const page=await browser.newPage({viewport:{width,height:900}});
+    const errors=[];page.on("pageerror",e=>errors.push(e.message));
+    await page.setContent(html,{waitUntil:"load"});
+    await page.evaluate(p=>{const C=window.CORE10_PACK02_CONTROLS;C.render(document.getElementById("ws"),C.view(JSON.parse(p)));},fx(name));
+    const m=await page.evaluate(()=>({sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth,
+     text:document.body.innerText,n:document.querySelectorAll("[data-control]").length}));
+    assert.ok(m.sw<=m.cw,`${name}@${width} overflow`);
+    assert.match(m.text,/অনুমতি নয়/);
+    if(name==="controls-business"){assert.equal(m.n,2);assert.ok(!/পেমেন্ট|ডেটা এক্সপোর্ট/.test(m.text),"hidden/central control shown to business owner");}
+    else assert.equal(m.n,18);
+    assert.deepEqual(errors,[]);
+    if(out)await page.screenshot({path:path.join(out,`${name}-${width}.png`),fullPage:true});
     await page.close();
    }
   }

@@ -1,0 +1,28 @@
+{
+    "items": [
+        {
+            "edit": "direct",
+            "group": "inventory",
+            "in_menu": true,
+            "version": 1,
+            "placement": "both",
+            "control_id": "inventory.count",
+            "preferred_enabled": true
+        },
+        {
+            "edit": "request",
+            "group": "sales",
+            "in_menu": true,
+            "version": 1,
+            "placement": "business_only",
+            "control_id": "sales.orders",
+            "preferred_enabled": false
+        }
+    ],
+    "surface": "business",
+    "contract": "C10_PACK02_CONTROLS_V1",
+    "business_id": 101,
+    "production_certified": false,
+    "operationally_certified": false,
+    "placement_is_not_permission": true
+}

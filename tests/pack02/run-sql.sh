@@ -7,12 +7,13 @@ cd "$(dirname "$0")/../.."
 case "${PGHOST:-}" in localhost|127.0.0.1) ;; *) echo 'Loopback database required'; exit 2;; esac
 suite=${1:-all}
 if [[ "$suite" == all ]]; then
-  for area in workspace regression; do bash tests/pack02/run-sql.sh "$area"; done
+  for area in workspace regression controls; do bash tests/pack02/run-sql.sh "$area"; done
   exit 0
 fi
 case "$suite" in workspace) tests=(tests/pack02/workspace-e2e.sql);;
  # Unchanged Build01 integration must still pass with PACK-02 loaded.
  regression) tests=(tests/build01/access-integration.sql);;
+ controls) tests=(tests/pack02/controls-e2e.sql);;
  *) exit 2;; esac
 database="core10_preview_pack02_${BASHPID}"
 owned=''
@@ -33,7 +34,9 @@ for file in \
  internal/enterprise-sql/c10_a021_owner_controls_v1.sql \
  internal/enterprise-sql/c10_a034_access_governance_v1.sql \
  internal/enterprise-sql/c10_build01_access_integration_v1.sql \
- internal/enterprise-sql/c10_pack02_workspace_v1.sql; do
+ internal/enterprise-sql/c10_pack02_workspace_v1.sql \
+ internal/enterprise-sql/c10_a044_control_settings_v1.sql \
+ internal/enterprise-sql/c10_pack02_controls_v1.sql; do
   printf 'LOAD %s\n' "$file"
   "${psql[@]}" -f "$file"
 done

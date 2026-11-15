@@ -8,9 +8,9 @@ Decisions: D030, D032, D033, D045, D049, D051, D054. PACK-01 (ChatGPT, PR #104) 
 
 | Slice | Content | State |
 |---|---|---|
-| S1 | Setup readback + integrity, Quick/Advanced via existing `build01_setup_v1`, one workspace resolver (Universal Owner / Business Owner / Staff), business + owner scoped reports, Bangla-first client, 390/1440 browser check | **CODED, local tests PASS** (this checkpoint) |
+| S1 (PR #105, CI 26/26 on `ee70cfb`) | Setup readback + integrity, Quick/Advanced via existing `build01_setup_v1`, one workspace resolver (Universal Owner / Business Owner / Staff), business + owner scoped reports, Bangla-first client, 390/1440 browser check | **CODED, local tests PASS** (this checkpoint) |
 | S2 | Wire client into Build01 signed page (`core10-build01.html`) as workspace switcher; real GoTrue journey via `tests/build01/run-auth.sh` gateway allowlist | Needs PACK-01 gateway coordination (Build01 files are PACK-01 owned) |
-| S3 | D045 control placement projection (A043/A044 `control_settings`) inside Business Owner workspace; staff-hidden controls | Next independent slice |
+| S3 | D045 control placement projection (A043/A044 `control_settings`) inside Business Owner workspace; staff-hidden controls | **CODED**: `pack02_controls_v1` read-only projection over canonical A044 settings; central registry lists all 18, business surface only Business Only/Both, hidden/central-only undisclosed to delegated owner; manager/staff/investor/other tenant denied; client + 390/1440 browser tests |
 | S4 | Owner-wide report reuse of A050 portfolio contract; 300-site load (D030 target) for readback/workspace | Pending |
 | S5 | Signed hosted A/B negative E2E, Drive + Sheet readback, Owner preview pair P01 | Blocked on PACK-01 signed staging |
 
@@ -48,15 +48,15 @@ Synthetic `request.jwt.claim.sub` only — not GoTrue/hosted signed proof. No pr
 |---|---|
 | MAJOR_BUILD | PACK-02 |
 | ASSIGNED_AGENT | Claude Code |
-| BRANCH | `claude/core10-pack02-build-8ii000` (session-assigned Claude branch) |
+| BRANCH | `claude/c10-pack02-s1-20261115` |
 | BASE_SHA | `e76cf8a3db1a385726a1637683c972e99a193fec` (`preview/c10-integrated-20261111-v1`) |
-| HEAD_SHA | see Draft PR head (recorded after push) |
+| HEAD_SHA | see PR #105 head |
 | OWNED_PATHS | `core10-pack02-*`, `internal/enterprise-sql/c10_pack02_*`, `tests/pack02/**`, `docs/development/PACK02_*`, `.github/workflows/core10-pack02-workspace-ci.yml` |
-| PR | Draft PR → `preview/c10-integrated-20261111-v1` |
+| PR | Draft #105 → `preview/c10-integrated-20261111-v1` |
 | CI | `CORE10 PACK-02 setup readback and workspaces` (verify on exact head) |
 | LAST_VERIFIED_AT | 2026-11-15 Asia/Dhaka (local) |
 | WAITING_DEPENDENCIES | PACK-01 signed gateway/allowlist for S2; hosted GoTrue staging for S5 |
-| HANDOFF | S3 control placement projection is next independent slice |
+| HANDOFF | S4 (owner report via A050 contract, 300-site load) is next independent slice; S2/S5 wait on PACK-01 |
 
 ## SHEET UPDATE REQUEST (for ChatGPT Orchestrator — Claude does not write the Sheet)
 

@@ -7,6 +7,7 @@ on:
       - 'core10-pack02-*'
       - 'internal/enterprise-sql/c10_pack02_*'
       - 'internal/enterprise-sql/c10_build01_access_integration_v1.sql'
+      - 'internal/enterprise-sql/c10_a044_control_settings_v1.sql'
       - 'tests/pack02/**'
       - 'docs/development/PACK02_*'
       - '.github/workflows/core10-pack02-workspace-ci.yml'
@@ -20,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [workspace, regression]
+        suite: [workspace, regression, controls]
     services:
       postgres:
         image: postgres:17
@@ -49,11 +50,12 @@ jobs:
       - name: Client projection contract
         run: |
           node --check core10-pack02-workspace.js
-          node --test tests/pack02/workspace-client.test.cjs
+          node --check core10-pack02-controls.js
+          node --test tests/pack02/*.test.cjs
       - name: Static safety
         run: |
-          ! grep -nE '(service_role|sb_secret_|innerHTML|eval\(|new Function)' core10-pack02-workspace.js
-          ! grep -niE '(CREATE TABLE|INSERT INTO|UPDATE c10_demo|DELETE FROM|GRANT .* ON c10_demo\.)' internal/enterprise-sql/c10_pack02_workspace_v1.sql
+          ! grep -nE '(service_role|sb_secret_|innerHTML|eval\(|new Function)' core10-pack02-workspace.js core10-pack02-controls.js
+          ! grep -niE '(CREATE TABLE|INSERT INTO|UPDATE c10_demo|DELETE FROM|GRANT .* ON c10_demo\.)' internal/enterprise-sql/c10_pack02_workspace_v1.sql internal/enterprise-sql/c10_pack02_controls_v1.sql
       - name: Install isolated Chromium
         run: |
           mkdir -p "$RUNNER_TEMP/pack02-pw"
