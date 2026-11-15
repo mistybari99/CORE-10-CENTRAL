@@ -80,9 +80,8 @@ fi
 case "$suite" in
  pack01-security) load tests/pack01/site-permission-regression.sql;;
  pack01-signed)
-  # Two truly signed local-HMAC JWTs, not fabricated SQL claims; run with
-  # an active PostgREST HTTP endpoint on this exact disposable database.
-  load tests/c10_a055_seed.sql
+  # The A055 fixture was loaded exactly once in the Build01 security section.
+  # Use signed JWT -> loopback HTTP on the SAME disposable combined stack.
   CORE10_PACK01_SIGNED_ONLY=1 bash tests/preview-one/assets-rest.sh;;
  cross-module) load tests/preview-one/cross-module.sql;;
  operations) load tests/c10_a049_operation_workflow_e2e.sql;;
