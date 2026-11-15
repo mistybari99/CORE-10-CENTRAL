@@ -90,9 +90,34 @@ function denied(result,what,expected){
  denied(await rpc("am_whoami_v1",jwt(U.businessA,{},"wrong_disposable_signing_key_at_least_32_chars"),{p_business:101}),
   "invalid HMAC signature");
  denied(await rpc("am_whoami_v1",jwt(U.businessA,{exp:now()-30}),{p_business:101}),"expired signed JWT");
- // RLS/private database tables and private helper must not be HTTP readable.
+ // A018 deliberately GRANTs SELECT on stock_balances_v1 with server-side
+ // can_site RLS: 200+[] for unauthorized B is the intended safe response,
+ // unlike private tables that must return 4xx. Create a real disposable row
+ // through signed owner RPCs so [] cannot be explained by an empty dataset.
+ const draft=pass(await rpc("create_inventory_command_v1",ownerA,{
+  p_business:101,p_kind:"receive",p_source:null,p_destination:5001,
+  p_item:8001,p_quantity:3,p_request:"pack01-signed-rls-stock-receive"
+ }),"signed synthetic stock draft");
+ assert.ok(draft.command_id,"stock draft ID required");
+ pass(await rpc("advance_inventory_command_v1",ownerA,{
+  p_command:draft.command_id,p_action:"confirm",p_version:1,
+  p_request:"pack01-signed-rls-stock-confirm"
+ }),"signed synthetic stock confirm");
+ pass(await rpc("advance_inventory_command_v1",ownerA,{
+  p_command:draft.command_id,p_action:"post",p_version:2,
+  p_request:"pack01-signed-rls-stock-post"
+ }),"signed synthetic stock post");
+ const stockPath="/stock_balances_v1?select=tenant_id,business_id,site_id,location_id,item_id,on_hand&location_id=eq.5001&item_id=eq.8001";
+ const ownRows=pass(await req(stockPath,ownerA),"own RLS-protected stock rows");
+ assert.ok(Array.isArray(ownRows)&&ownRows.some(row=>row.business_id===101&&Number(row.on_hand)>=3),
+  "owner must see a seeded stock row so tenant isolation proves something");
+ const foreignRows=pass(await req(stockPath,b),"other-tenant RLS-filtered stock");
+ assert.deepEqual(foreignRows,[],"foreign signed tenant must see no stock row");
+ const stockOnlyRows=pass(await req(stockPath,jwt(U.stockOnly)),"site staff scoped stock");
+ assert.ok(Array.isArray(stockOnlyRows),"site staff RLS response expected");
+ // All remaining private tables must deny the direct HTTP SELECT surface.
  for(const table of ["am_grants","am_assets","wf_employees","a054_delegations",
-   "operation_orders_v1","inventory_commands_v1","stock_balances_v1","site_grants"]){
+   "operation_orders_v1","inventory_commands_v1","site_grants"]){
   denied(await req("/"+table+"?select=*",a),"direct table read "+table);
   denied(await req("/"+table+"?select=*",b),"direct table read tenant B "+table);
  }
