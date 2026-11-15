@@ -1,0 +1,33 @@
+{
+    "nav": [
+        "staff.home",
+        "stock.view",
+        "staff.reports",
+        "stock.post"
+    ],
+    "mode": "staff",
+    "sites": [
+        {
+            "id": 1001,
+            "kind": "showroom",
+            "label": "A1",
+            "allowed_actions": [
+                "stock.read",
+                "stock.post"
+            ]
+        }
+    ],
+    "business": {
+        "id": 101,
+        "brand": {
+            "brand_hex": "#334155",
+            "display_name": "demo-sweets",
+            "setup_status": "draft"
+        }
+    },
+    "contract": "C10_PACK02_WORKSPACE_V1",
+    "umbrella": {
+        "visible": false
+    },
+    "production_certified": false
+}
