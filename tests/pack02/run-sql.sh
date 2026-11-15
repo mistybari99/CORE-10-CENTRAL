@@ -7,7 +7,7 @@ cd "$(dirname "$0")/../.."
 case "${PGHOST:-}" in localhost|127.0.0.1) ;; *) echo 'Loopback database required'; exit 2;; esac
 suite=${1:-all}
 if [[ "$suite" == all ]]; then
-  for area in workspace regression controls scale portfolio; do bash tests/pack02/run-sql.sh "$area"; done
+  for area in workspace regression controls scale portfolio agreement; do bash tests/pack02/run-sql.sh "$area"; done
   exit 0
 fi
 case "$suite" in workspace) tests=(tests/pack02/workspace-e2e.sql);;
@@ -16,10 +16,11 @@ case "$suite" in workspace) tests=(tests/pack02/workspace-e2e.sql);;
  controls) tests=(tests/pack02/controls-e2e.sql);;
  scale) tests=(tests/pack02/scale-e2e.sql);;
  portfolio) tests=(tests/pack02/portfolio-e2e.sql);;
+ agreement) tests=(tests/pack02/agreement-e2e.sql);;
  *) exit 2;; esac
 database="core10_preview_pack02_${BASHPID}"
 extra=()
-if [[ "$suite" == portfolio ]]; then
+if [[ "$suite" == portfolio || "$suite" == agreement ]]; then
   # A050 gates on its own disposable database prefix and the A048/A049 stack.
   database="core10_a048_local_pack02_${BASHPID}"
   extra=(internal/enterprise-sql/c10_a048_inventory_commands_v1.sql

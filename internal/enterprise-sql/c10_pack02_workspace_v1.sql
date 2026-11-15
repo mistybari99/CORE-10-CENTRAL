@@ -170,8 +170,13 @@ BEGIN
  owner:=c10_demo.can_manage(tenant,p_business);
  SELECT COALESCE(jsonb_agg(jsonb_build_object('site_id',s.id,'kind',s.kind,'label',s.label,
    'location_count',(SELECT count(*) FROM c10_demo.stock_locations l WHERE l.site_id=s.id),
-   'movement_count',(SELECT count(*) FROM c10_demo.stock_movements m WHERE m.site_id=s.id AND m.business_id=p_business),
-   'last_movement_at',(SELECT max(m.created_at) FROM c10_demo.stock_movements m WHERE m.site_id=s.id AND m.business_id=p_business)) ORDER BY s.id),'[]'::jsonb)
+   -- PACK-01 rule: an explicit site DENY outranks inherited owner/manager
+   -- rights, so stock figures are withheld (NULL) for a read-denied site.
+   'stock_read',c10_demo.can_site(tenant,p_business,s.id,'stock.read'),
+   'movement_count',CASE WHEN c10_demo.can_site(tenant,p_business,s.id,'stock.read') THEN
+     (SELECT count(*) FROM c10_demo.stock_movements m WHERE m.site_id=s.id AND m.business_id=p_business) END,
+   'last_movement_at',CASE WHEN c10_demo.can_site(tenant,p_business,s.id,'stock.read') THEN
+     (SELECT max(m.created_at) FROM c10_demo.stock_movements m WHERE m.site_id=s.id AND m.business_id=p_business) END) ORDER BY s.id),'[]'::jsonb)
   INTO rows FROM c10_demo.sites s
   WHERE s.business_id=p_business AND s.tenant_id=tenant
    AND (owner OR c10_demo.can_site(tenant,p_business,s.id,'stock.read'));
@@ -195,7 +200,8 @@ BEGIN
    'display_name',c10_demo.pack02_brand_v1(b.id)->>'display_name',
    'sites',(SELECT count(*) FROM c10_demo.sites s WHERE s.business_id=b.id),
    'locations',(SELECT count(*) FROM c10_demo.stock_locations l WHERE l.business_id=b.id),
-   'movements',(SELECT count(*) FROM c10_demo.stock_movements m WHERE m.business_id=b.id)) ORDER BY b.tenant_id,b.id),'[]'::jsonb)
+   'movements',(SELECT count(*) FROM c10_demo.stock_movements m WHERE m.business_id=b.id AND m.site_id IN(
+     SELECT s.id FROM c10_demo.sites s WHERE s.business_id=b.id AND c10_demo.can_site(s.tenant_id,s.business_id,s.id,'stock.read')))) ORDER BY b.tenant_id,b.id),'[]'::jsonb)
   INTO rows FROM c10_demo.businesses b JOIN c10_demo.tenants t ON t.id=b.tenant_id
   WHERE t.active AND c10_demo.can_tenant(b.tenant_id);
  RETURN jsonb_build_object('contract','C10_PACK02_OWNER_REPORT_V1','businesses',rows,
