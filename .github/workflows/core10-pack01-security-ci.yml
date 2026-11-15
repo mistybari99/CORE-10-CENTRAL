@@ -1,0 +1,161 @@
+name: CORE10 PACK-01 canonical site access regression
+on:
+  push:
+    branches: ['feature/c10-pack01-*']
+  pull_request:
+    paths:
+      - 'internal/enterprise-sql/c10_a048_inventory_commands_v1.sql'
+      - 'internal/enterprise-sql/c10_a049_operation_workflow_v1.sql'
+      - 'internal/enterprise-sql/c10_a051_workforce_core_v1.sql'
+      - 'internal/enterprise-sql/c10_a051_workforce_reads_v1.sql'
+      - 'internal/enterprise-sql/c10_a054_workforce_policy_v1.sql'
+      - 'internal/enterprise-sql/c10_a055_assets_core_v1.sql'
+      - 'tests/preview-one/run-combined.sh'
+      - 'tests/pack01/**'
+      - '.github/workflows/core10-pack01-security-ci.yml'
+permissions:
+  contents: read
+jobs:
+  site-permission:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pack01_disposable_only
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: pack01_disposable_only
+      CORE10_PREVIEW_DISPOSABLE_ACK: I_CONFIRM_DISPOSABLE_PREVIEW
+      CORE10_PREVIEW_BUILD01: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Build01 + Build02A + A048 security interoperability
+        run: bash tests/preview-one/run-combined.sh pack01-security
+      - name: D051 source blob guard and existing 193-report preservation regression
+        run: |
+          node tests/pack01/legacy-source-guard.cjs
+          node tests/core10-legacy-preservation.test.js
+      - name: PACK01 isolated transaction rollback and full PG17 backup restore
+        env:
+          CORE10_BUILD01_DISPOSABLE_ACK: I_CONFIRM_BUILD01_DISPOSABLE
+          PGDATABASE: postgres
+        run: bash tests/pack01/disposable-rollback-restore.sh
+
+  signed-two-tenant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: pack01_disposable_only
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: pack01_disposable_only
+      CORE10_PREVIEW_DISPOSABLE_ACK: I_CONFIRM_DISPOSABLE_PREVIEW
+      CORE10_PREVIEW_BUILD01: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Signed disposable PostgREST cross-tenant permission negatives
+        run: bash tests/preview-one/run-combined.sh pack01-signed
+
+  pack02-s2-build01-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pack01_disposable_only
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: pack01_disposable_only
+      CORE10_BUILD01_DISPOSABLE_ACK: I_CONFIRM_BUILD01_DISPOSABLE
+      CORE10_BUILD01_BROWSER: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Read exact separate PR105 snapshot (no merge or source edit)
+        uses: actions/checkout@v4
+        with:
+          repository: mistybari99/CORE-10-CENTRAL
+          ref: 5f2653c03b4ad9fa900988246fc6576d61ab4c77
+          path: pack02-input
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Compose three PR105-owned S2 contract files in disposable CI worktree
+        run: |
+          set -euo pipefail
+          test "$(git -C pack02-input rev-parse HEAD)" = "5f2653c03b4ad9fa900988246fc6576d61ab4c77"
+          for file in core10-pack02-workspace.js core10-pack02-workspace.css core10-pack02-controls.js \
+            core10-pack02-signed.js core10-pack02-app.js \
+            internal/enterprise-sql/c10_pack02_workspace_v1.sql internal/enterprise-sql/c10_pack02_controls_v1.sql \
+            tests/pack02/live-auth-browser.cjs; do
+            mkdir -p "$(dirname "$file")"
+            if [[ -e "$file" ]]; then echo "PACK02_OWNERSHIP_OVERLAP:$file"; exit 1; fi
+            test -f "pack02-input/$file"
+            cp "pack02-input/$file" "$file"
+          done
+          node tests/build01/client.test.cjs
+          node tests/build01/pack02-contract.test.cjs
+          node tests/build01/gateway.test.cjs
+      - name: Install pinned Chromium for actual signed local Build01+PR105 journey
+        run: |
+          mkdir -p "$RUNNER_TEMP/build01-s2-pw"
+          cd "$RUNNER_TEMP/build01-s2-pw"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/build01-s2-pw/node_modules" >> "$GITHUB_ENV"
+      - name: Actual local GoTrue -> signed Build01 -> PR105 workspace and back
+        run: bash tests/build01/run-auth.sh
+      - name: Proof boundary
+        run: |
+          echo "PACK01 S2 contract verified with disposable PR105 source; NO MERGE or production deployment"
+
+  legacy-route-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Open exact D051 main protected snapshot separately, with no integration
+        run: |
+          set -euo pipefail
+          git cat-file -e c39052910758ca285a7a4d56e9c4f4873cb7d99c^{commit}
+          mkdir -p "$RUNNER_TEMP/d051-original"
+          git worktree add --detach "$RUNNER_TEMP/d051-original/main" c39052910758ca285a7a4d56e9c4f4873cb7d99c
+          test "$(git -C "$RUNNER_TEMP/d051-original/main" rev-parse HEAD)" = c39052910758ca285a7a4d56e9c4f4873cb7d99c
+          echo "CORE10_D051_ORIGINAL_ROOT=$RUNNER_TEMP/d051-original/main" >> "$GITHUB_ENV"
+      - name: Install isolated Chromium and PNG reader
+        run: |
+          mkdir -p "$RUNNER_TEMP/d051-pw"
+          cd "$RUNNER_TEMP/d051-pw"
+          npm init -y >/dev/null
+          npm install --save-dev playwright@1.63.0 pngjs@7.0.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/d051-pw/node_modules" >> "$GITHUB_ENV"
+      - name: D051 original/main versus candidate anonymous home, stock and reports browser parity
+        run: node tests/pack01/legacy-route-visual.cjs

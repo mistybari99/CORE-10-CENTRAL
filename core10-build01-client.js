@@ -58,15 +58,31 @@
    }
    return result;
   }
+  const PACK02_READ=Object.freeze({
+   pack02_workspace_v1:["p_mode","p_business"],pack02_controls_v1:["p_surface","p_business"],
+   pack02_business_report_v1:["p_business"],pack02_owner_report_v1:[],pack02_setup_readback_v1:["p_business"]
+  });
+  let pack02Actor=null,pack02Poisoned=false;
+  async function pack02(name,args){
+   if(typeof name!=="string"||!Object.prototype.hasOwnProperty.call(PACK02_READ,name))fail("BUILD01_RPC_NOT_ALLOWED");
+   if(!obj(args||{})||Object.keys(args||{}).some(k=>!PACK02_READ[name].includes(k)))fail("BUILD01_RPC_ARGUMENTS_INVALID");
+   if(pack02Poisoned)fail("BUILD01_SESSION_CHANGED");
+   const who=await actor();
+   if(pack02Actor===null)pack02Actor=who;
+   else if(pack02Actor!==who){pack02Poisoned=true;fail("BUILD01_SESSION_CHANGED");}
+   const d=await rpc(name,args||{});
+   if(typeof d.actor_uid==="string"&&d.actor_uid.toLowerCase()!==who)fail("BUILD01_ACTOR_MISMATCH");
+   return d;
+  }
   async function context(){const d=await rpc("build01_context_v1");if(!Array.isArray(d.businesses)||!Array.isArray(d.legal_entities)||!Array.isArray(d.templates))fail("BUILD01_INVALID_CONTEXT");return d;}
   async function workspace(business){const n=id(business),d=await rpc("build01_workspace_v1",{p_business:n},n);if(!Array.isArray(d.sites)||!obj(d.access)||!Array.isArray(d.audit))fail("BUILD01_INVALID_WORKSPACE");return d;}
   async function signIn(email,password){
    if(typeof email!=="string"||!email.includes("@")||typeof password!=="string"||!password)fail("BUILD01_CREDENTIALS_REQUIRED");
    const r=await client.auth.signInWithPassword({email:email.trim(),password});
    if(!r||r.error||!r.data||!r.data.user)fail("BUILD01_LOGIN_FAILED");
-   return context();
+   pack02Actor=null;pack02Poisoned=false;return context();
   }
-  async function signOut(){const r=await client.auth.signOut({scope:"local"});if(r&&r.error)fail("BUILD01_SIGNOUT_FAILED");return {signed_out:true};}
+  async function signOut(){const r=await client.auth.signOut({scope:"local"});pack02Actor=null;pack02Poisoned=false;if(r&&r.error)fail("BUILD01_SIGNOUT_FAILED");return {signed_out:true};}
   async function setup(input){
    shape(input,["legalId","slug","template","displayName","mode","sites","requestKey","brandHex"]);
    if(!existing||typeof existing.validateSetup!=="function")fail("BUILD01_SETUP_VALIDATOR_UNAVAILABLE");
@@ -103,7 +119,7 @@
    return {business_id:id(input.businessId),site_id:id(input.siteId),action:input.action,allowed:!!site&&Array.isArray(site.allowed_actions)&&site.allowed_actions.includes(input.action),source:"fresh_server_workspace"};
   }
   async function audit(business){return (await workspace(business)).audit;}
-  return Object.freeze({signIn,signOut,context,workspace,setup,createSite,changeAccess,effectivePermission,audit});
+  return Object.freeze({signIn,signOut,context,workspace,pack02,setup,createSite,changeAccess,effectivePermission,audit});
  }
  return Object.freeze({create});
 });
