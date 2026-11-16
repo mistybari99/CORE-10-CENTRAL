@@ -6,6 +6,8 @@ on:
       - "tests/migrations/s1c-canonical-approval-e2e.sql"
       - "tests/migrations/s1c-routed-approval-e2e.sql"
       - "tests/migrations/s1c-reviewer-reports-e2e.sql"
+      - "internal/enterprise-client/c10_np01_canonical_review_client_v1.mjs"
+      - "tests/c10_np01_canonical_review_client_v1.test.mjs"
       - ".github/workflows/core10-s1c-canonical-approval-ci.yml"
   workflow_dispatch:
 permissions:
@@ -35,6 +37,8 @@ jobs:
           bash tests/migrations/run-updownup.sh
       - name: Canonical approval and audit security E2E
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/s1c-canonical-approval-e2e.sql
+      - name: Signed canonical reviewer client contract tests
+        run: node --test tests/c10_np01_canonical_review_client_v1.test.mjs
       - name: Canonical scoped reviewer report and audit E2E
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/s1c-reviewer-reports-e2e.sql
       - name: Canonical 2–5 stage approval, delegation and reviewer security E2E
