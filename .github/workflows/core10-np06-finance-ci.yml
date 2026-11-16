@@ -54,5 +54,6 @@ jobs:
         run: |
           internal/migrations/run.sh up
           psql -X -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+          bash tests/migrations/control-registry-evidence.sh
       - name: Synthetic canonical Finance E2E and negative security tests
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-e2e.sql
