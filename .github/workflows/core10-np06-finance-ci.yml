@@ -59,3 +59,14 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-e2e.sql
       - name: Independent-session journal posting race and idempotency
         run: bash tests/migrations/np06-finance-race.sh
+      - name: Rollback refuses data-bearing canonical Finance history
+        run: |
+          output="$(mktemp)"
+          if internal/migrations/run.sh down > "$output" 2>&1; then
+            cat "$output"
+            echo "FIN_ROLLBACK_UNEXPECTEDLY_ALLOWED"
+            exit 1
+          fi
+          grep -q "FIN_ROLLBACK_DENIED_PERSISTED_HISTORY" "$output" || { cat "$output"; exit 1; }
+          test "$(psql -X -At -c "SELECT count(*) FROM core10.finance_journals_v1 WHERE business_id=9711 AND status='posted'")" = "1"
+          echo "FIN_ROLLBACK_HISTORY_GUARD_PASS"
