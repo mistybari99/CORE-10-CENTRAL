@@ -129,9 +129,16 @@ GRANT SELECT ON core10.finance_journal_lines_v1 TO authenticated;
 -- A posted entry and *all* journal lines are immutable, including to accidental privileged DML.
 CREATE FUNCTION core10._finance_journal_immutable_v1() RETURNS trigger
  LANGUAGE plpgsql SET search_path=pg_catalog,core10 AS $body$
+DECLARE v_status text;
 BEGIN
  IF TG_OP='TRUNCATE' THEN RAISE EXCEPTION 'FIN_IMMUTABLE'; END IF;
  IF TG_TABLE_NAME='finance_journal_lines_v1' THEN
+  IF TG_OP='INSERT' THEN
+   SELECT status INTO v_status FROM core10.finance_journals_v1
+    WHERE id=NEW.journal_id FOR UPDATE;
+   IF v_status IS DISTINCT FROM 'draft' THEN RAISE EXCEPTION 'FIN_LINES_FROZEN'; END IF;
+   RETURN NEW;
+  END IF;
   RAISE EXCEPTION 'FIN_LINES_APPEND_ONLY';
  END IF;
  IF TG_OP='DELETE' OR OLD.status='posted' THEN RAISE EXCEPTION 'FIN_POSTED_IMMUTABLE'; END IF;
@@ -150,7 +157,7 @@ CREATE TRIGGER finance_journal_guard_v1 BEFORE UPDATE OR DELETE ON core10.financ
  FOR EACH ROW EXECUTE FUNCTION core10._finance_journal_immutable_v1();
 CREATE TRIGGER finance_journal_truncate_v1 BEFORE TRUNCATE ON core10.finance_journals_v1
  FOR EACH STATEMENT EXECUTE FUNCTION core10._finance_journal_immutable_v1();
-CREATE TRIGGER finance_lines_guard_v1 BEFORE UPDATE OR DELETE ON core10.finance_journal_lines_v1
+CREATE TRIGGER finance_lines_guard_v1 BEFORE INSERT OR UPDATE OR DELETE ON core10.finance_journal_lines_v1
  FOR EACH ROW EXECUTE FUNCTION core10._finance_journal_immutable_v1();
 CREATE TRIGGER finance_lines_truncate_v1 BEFORE TRUNCATE ON core10.finance_journal_lines_v1
  FOR EACH STATEMENT EXECUTE FUNCTION core10._finance_journal_immutable_v1();
