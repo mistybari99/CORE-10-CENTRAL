@@ -1,7 +1,7 @@
 # C10-A055 — Enterprise Assets & Maintenance: RPC contract (authoritative)
 
-Schema `c10_demo` (disposable only). Public API = `am_*_v1` / `read_asset_maintenance_business_summary_v1`, all
-`SECURITY DEFINER SET search_path=c10_demo,pg_catalog`, `GRANT EXECUTE ... TO authenticated` only (lockdown file).
+Schema `core10` (disposable only). Public API = `am_*_v1` / `read_asset_maintenance_business_summary_v1`, all
+`SECURITY DEFINER SET search_path=core10,pg_catalog`, `GRANT EXECUTE ... TO authenticated` only (lockdown file).
 Internal helpers `ami_*` are NOT executable by `authenticated`/`anon`. Direct table access is revoked.
 
 ## Conventions

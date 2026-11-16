@@ -7,15 +7,15 @@ CREATE FUNCTION pg_temp.as_user(p uuid) RETURNS void LANGUAGE sql AS
 -- A048's authorizer is internal (not granted to authenticated). This definer
 -- wrapper only exposes its boolean to the test; the signed-claim GUC is unchanged.
 CREATE FUNCTION pg_temp.enforced(t bigint,b bigint,l bigint,a text) RETURNS boolean
-LANGUAGE sql SECURITY DEFINER AS $$ SELECT c10_demo.inventory_action_authorized_v1(t,b,l,a) $$;
+LANGUAGE sql SECURITY DEFINER AS $$ SELECT core10.inventory_action_authorized_v1(t,b,l,a) $$;
 -- Compare projection vs enforcement for every site/location of a business.
 CREATE FUNCTION pg_temp.agree(p_mode text,p_business bigint) RETURNS integer LANGUAGE plpgsql AS $$
 DECLARE w jsonb; l record; shown text[]; n integer:=0; a text;
 BEGIN
- BEGIN w:=c10_demo.pack02_workspace_v1(p_mode,p_business);
+ BEGIN w:=core10.pack02_workspace_v1(p_mode,p_business);
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM<>'PACK02_WORKSPACE_DENIED' THEN RAISE; END IF; w:='{"sites":[]}'::jsonb; END;
- FOR l IN SELECT x.id,x.site_id,x.tenant_id FROM c10_demo.stock_locations_for_agreement x WHERE x.business_id=p_business LOOP
+ FOR l IN SELECT x.id,x.site_id,x.tenant_id FROM core10.stock_locations_for_agreement x WHERE x.business_id=p_business LOOP
   SELECT COALESCE(ARRAY(SELECT jsonb_array_elements_text(s->'allowed_actions')),'{}') INTO shown
    FROM jsonb_array_elements(w->'sites') s WHERE (s->>'id')::bigint=l.site_id;
   shown:=COALESCE(shown,'{}');
@@ -29,23 +29,23 @@ BEGIN
  RETURN n;
 END $$;
 -- Location list readable by the test under the authenticated role.
-CREATE VIEW c10_demo.stock_locations_for_agreement AS SELECT id,site_id,tenant_id,business_id FROM c10_demo.stock_locations;
-GRANT SELECT ON c10_demo.stock_locations_for_agreement TO authenticated;
+CREATE VIEW core10.stock_locations_for_agreement AS SELECT id,site_id,tenant_id,business_id FROM core10.stock_locations;
+GRANT SELECT ON core10.stock_locations_for_agreement TO authenticated;
 -- PACK-01's A048 adapter delegates to canonical can_site. The pre-PACK-01
 -- baseline A048 uses its own older rule (can_manage OR raw grant), which is
 -- stricter for managers and ignores owner DENY; the full matrix is only
 -- meaningful once the adapter is present.
 CREATE TEMP TABLE adapter AS SELECT p.prosrc !~ 'can_manage' AS pack01 FROM pg_proc p
- WHERE p.oid='c10_demo.inventory_action_authorized_v1(bigint,bigint,bigint,text)'::regprocedure;
+ WHERE p.oid='core10.inventory_action_authorized_v1(bigint,bigint,bigint,text)'::regprocedure;
 GRANT SELECT ON adapter TO authenticated;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA pg_temp TO authenticated;
 SET ROLE authenticated;
 
 -- Tenant owner: deny stock.post to staff 4444 on 1001; deny stock.read to business owner 2222 on 1002.
 SELECT pg_temp.as_user('11111111-1111-4111-8111-111111111111');
-SELECT c10_demo.build01_set_access_v1(101,'44444444-4444-4444-8444-444444444444','site_grant.grant',NULL,1001,
+SELECT core10.build01_set_access_v1(101,'44444444-4444-4444-8444-444444444444','site_grant.grant',NULL,1001,
  ARRAY['stock.read','stock.post'],ARRAY['stock.post'],NULL,'p2agree-staff-deny-01',NULL) IS NOT NULL;
-SELECT c10_demo.build01_set_access_v1(101,'22222222-2222-4222-8222-222222222222','site_grant.grant',NULL,1002,
+SELECT core10.build01_set_access_v1(101,'22222222-2222-4222-8222-222222222222','site_grant.grant',NULL,1002,
  '{}',ARRAY['stock.read'],NULL,'p2agree-owner-deny-01',NULL) IS NOT NULL;
 
 DO $t$
@@ -62,14 +62,14 @@ BEGIN
  ELSE RAISE NOTICE 'PACK-01 A048 adapter ABSENT: projection-vs-enforcement matrix SKIPPED on this baseline'; END IF;
  -- Staff: post denied in projection AND in enforcement.
  PERFORM pg_temp.as_user('44444444-4444-4444-8444-444444444444');
- w:=c10_demo.pack02_workspace_v1('staff',101);
+ w:=core10.pack02_workspace_v1('staff',101);
  IF (w->'nav') ? 'stock.post' OR (pack01 AND pg_temp.enforced(1,101,5001,'stock.post')) THEN RAISE EXCEPTION 'staff post deny disagreement'; END IF;
  IF NOT pg_temp.enforced(1,101,5001,'stock.read') THEN RAISE EXCEPTION 'staff read lost'; END IF;
  -- Business owner with explicit read DENY on 1002: PACK-02 withholds actions and stock figures.
  PERFORM pg_temp.as_user('22222222-2222-4222-8222-222222222222');
- w:=c10_demo.pack02_workspace_v1('business_owner',101);
+ w:=core10.pack02_workspace_v1('business_owner',101);
  IF (SELECT s->'allowed_actions' FROM jsonb_array_elements(w->'sites') s WHERE (s->>'id')::bigint=1002)<>'[]'::jsonb THEN RAISE EXCEPTION 'owner deny not projected'; END IF;
- r:=c10_demo.pack02_business_report_v1(101);
+ r:=core10.pack02_business_report_v1(101);
  IF (SELECT (s->>'stock_read')::boolean OR s->'movement_count'<>'null'::jsonb FROM jsonb_array_elements(r->'sites') s WHERE (s->>'site_id')::bigint=1002)
   THEN RAISE EXCEPTION 'report shows stock figures for read-denied site'; END IF;
  IF (SELECT NOT (s->>'stock_read')::boolean OR s->'movement_count'='null'::jsonb FROM jsonb_array_elements(r->'sites') s WHERE (s->>'site_id')::bigint=1001)

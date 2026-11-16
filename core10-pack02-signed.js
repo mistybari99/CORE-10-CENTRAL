@@ -56,7 +56,7 @@
    if(poisoned)fail("PACK02_SESSION_CHANGED");
    const who=await actor();
    if(pinned===null)pinned=who;else if(pinned!==who){poisoned=true;fail("PACK02_SESSION_CHANGED");}
-   const db=client.schema("c10_demo");
+   const db=client.schema("core10");
    if(!db||typeof db.rpc!=="function")fail("PACK02_API_UNAVAILABLE");
    let r;try{r=await db.rpc(name,a);}catch{fail("PACK02_RPC_DENIED_OR_UNAVAILABLE");}
    if(!r||r.error)fail(clean(r&&r.error));

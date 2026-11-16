@@ -91,7 +91,7 @@ jobs:
       - name: Static safety
         run: |
           ! grep -nE '(service_role|sb_secret_|innerHTML|eval\(|new Function)' core10-pack02-workspace.js core10-pack02-controls.js core10-pack02-signed.js core10-pack02-app.js
-          ! grep -niE '(CREATE TABLE|INSERT INTO|UPDATE c10_demo|DELETE FROM|GRANT .* ON c10_demo\.)' internal/enterprise-sql/c10_pack02_workspace_v1.sql internal/enterprise-sql/c10_pack02_controls_v1.sql
+          ! grep -niE '(CREATE TABLE|INSERT INTO|UPDATE core10|DELETE FROM|GRANT .* ON core10\.)' internal/enterprise-sql/c10_pack02_workspace_v1.sql internal/enterprise-sql/c10_pack02_controls_v1.sql
       - name: Install isolated Chromium
         run: |
           mkdir -p "$RUNNER_TEMP/pack02-pw"

@@ -12,7 +12,7 @@ function fixture(){
    signOut:async args=>{calls.push(args);actor=null;return {error:null};}
   },
   schema:s=>{
-   assert.equal(s,"c10_demo");
+   assert.equal(s,"core10");
    return {rpc:async(name,args)=>{
     calls.push({name,args});
     if(name==="build01_context_v1")return {data:{actor_uid:owner,businesses:[],legal_entities:[],templates:[]}};

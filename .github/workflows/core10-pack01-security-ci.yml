@@ -114,8 +114,8 @@ jobs:
             mkdir -p "$(dirname "$file")"
             test -f "pack02-input/$file"
             if [[ -e "$file" ]]; then
-              # S0: PR105 is merged for real; accept only a byte-identical copy of the pinned source.
-              cmp -s "pack02-input/$file" "$file" || { echo "PACK02_OWNERSHIP_OVERLAP:$file"; exit 1; }
+              # S0: PR105 is merged for real; accept only the pinned source with the S1 schema rename applied.
+              cmp -s <(sed "s/c10_demo/core10/g" "pack02-input/$file") "$file" || { echo "PACK02_OWNERSHIP_OVERLAP:$file"; exit 1; }
             else
               cp "pack02-input/$file" "$file"
             fi

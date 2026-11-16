@@ -1,5 +1,5 @@
 /* C10-A045 Micro-Engine Workshop signed-RPC adapter.
- * Same c10_demo schema RPCs as the A044 control service. No local permissions, no persisted tokens,
+ * Same core10 schema RPCs as the A044 control service. No local permissions, no persisted tokens,
  * no simulated success, no direct table access, no eval/Function, no outbound URL execution.
  * Client validation mirrors the server DSL for UX only: the SERVER is the authority.
  */
@@ -46,7 +46,7 @@
    if(!client||!client.auth||typeof client.auth.getUser!=="function"||typeof client.schema!=="function")fail("SIGNED_SUPABASE_CLIENT_REQUIRED");
    const r=await client.auth.getUser();
    if(!r||r.error||!r.data||!r.data.user||typeof r.data.user.id!=="string"||!r.data.user.id)fail("AUTHENTICATED_USER_REQUIRED");
-   const s=client.schema("c10_demo");
+   const s=client.schema("core10");
    if(!s||typeof s.rpc!=="function"||typeof s.from!=="function")fail("ENGINE_SCHEMA_NOT_AVAILABLE");
    return s;
   }

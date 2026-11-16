@@ -14,8 +14,8 @@ for f in \
  internal/enterprise-sql/c10_pack02_controls_v1.sql; do
   [[ -f "$src/$f" ]] || { echo "Owned path missing $f"; exit 2; }
   if [[ -e "$dst/$f" ]]; then
-    # S0: PR105 is merged for real. Accept only a byte-identical copy of the pinned source.
-    cmp -s "$src/$f" "$dst/$f" || { echo "Owned path differs from pinned PR105 source: $f"; exit 2; }
+    # PR105 is merged for real. Accept only the pinned source with the S1 schema rename (c10_demo -> core10) applied.
+    cmp -s <(sed "s/c10_demo/core10/g" "$src/$f") "$dst/$f" || { echo "Owned path differs from pinned PR105 source: $f"; exit 2; }
     merged=1
   else
     mkdir -p "$(dirname "$dst/$f")"
@@ -24,7 +24,9 @@ for f in \
 done
 [[ -d "$src/tests/pack02" ]] || { echo "Test path missing"; exit 2; }
 if [[ -e "$dst/tests/pack02" ]]; then
-  diff -rq "$src/tests/pack02" "$dst/tests/pack02" >/dev/null || { echo "tests/pack02 differs from pinned PR105 source"; exit 2; }
+  while IFS= read -r -d '' t; do
+    cmp -s <(sed "s/c10_demo/core10/g" "$t") "$dst/tests/pack02/${t#"$src/tests/pack02/"}" || { echo "tests/pack02 differs from pinned PR105 source: $t"; exit 2; }
+  done < <(find "$src/tests/pack02" -type f -print0)
   merged=1
 else
   cp -R "$src/tests/pack02" "$dst/tests/pack02"

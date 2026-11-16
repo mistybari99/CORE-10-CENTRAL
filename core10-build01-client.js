@@ -48,7 +48,7 @@
    return uid(r.data.user.id);
   }
   async function rpc(name,args,business){
-   const who=await actor(),db=client.schema("c10_demo");
+   const who=await actor(),db=client.schema("core10");
    if(!db||typeof db.rpc!=="function")fail("BUILD01_API_UNAVAILABLE");
    const result=unwrap(await db.rpc(name,args||{}));
    if(name==="build01_context_v1"&&result.actor_uid!==who)fail("BUILD01_ACTOR_MISMATCH");

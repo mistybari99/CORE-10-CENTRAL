@@ -63,8 +63,8 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a047_site_topology_e2e.sql
       - name: Confirm existing baseline IDs are unchanged
         run: |
-          [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.sites WHERE id IN(1001,1002,1003,2001)')" = 4 ]
-          [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.stock_locations WHERE id IN(5001,5002,5003,6001)')" = 4 ]
+          [ "$(psql -X -At -c 'SELECT count(*) FROM core10.sites WHERE id IN(1001,1002,1003,2001)')" = 4 ]
+          [ "$(psql -X -At -c 'SELECT count(*) FROM core10.stock_locations WHERE id IN(5001,5002,5003,6001)')" = 4 ]
       - name: Signed-session RPC client and negative contract suite
         run: node tests/c10_a047_topology_client.test.js
       - name: Install pinned Chromium for responsive real DOM checks

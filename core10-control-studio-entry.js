@@ -1,4 +1,4 @@
-/* A044 navigation only: backend c10_demo can_manage is source of authority. */
+/* A044 navigation only: backend core10 can_manage is source of authority. */
 (function(){"use strict";
 const app=document.getElementById("app");if(!app)return;
 let frame=false;

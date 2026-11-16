@@ -10,7 +10,7 @@ for _ in $(seq "$n1"); do "$R" down; done
   || { echo "core10 schema survived full rollback" >&2; exit 1; }
 "$R" up; "$R" up
 [ "$(count)" = "$n1" ] || { echo "re-apply mismatch" >&2; exit 1; }
-# c10_demo and public must be untouched by canonical migrations.
+# core10 and public must be untouched by canonical migrations.
 [ "$(psql -X -At ${DATABASE_URL:+"$DATABASE_URL"} -c "select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r'")" = "${PUBLIC_TABLES_EXPECTED:-0}" ] \
   || { echo "public schema changed" >&2; exit 1; }
 echo "MIGRATIONS_UP_DOWN_UP_OK $n1"

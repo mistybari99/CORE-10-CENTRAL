@@ -22,7 +22,7 @@ case "$MODE" in
   T=core10_a046_ci_a053_$MODE; N=core10_a048_ci_a053_$MODE
   F=core10_a053_ci; [ "$MODE" = base ] && F=core10_a053_ci_noa051
   mk $T; a018 $T
-  PGDATABASE=$T $P -v c10_demo_ack=I_CONFIRM_DISPOSABLE_A046 -f $SQL/c10_a046_demo_personas_v1.sql
+  PGDATABASE=$T $P -v core10_ack=I_CONFIRM_DISPOSABLE_A046 -f $SQL/c10_a046_demo_personas_v1.sql
   mv $T $N; a050chain $N
   if [ "$MODE" = full ]; then a051 $N
    for f in c10_a054_workforce_policy_v1 c10_a054_workforce_bridge_v1; do PGDATABASE=$N $P -f $SQL/$f.sql; done; fi

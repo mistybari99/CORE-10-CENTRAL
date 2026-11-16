@@ -98,7 +98,7 @@ async function fakeFetch(url,options){
  }
  if(uri.pathname.startsWith("/rest/v1/")){
   if(method!=="GET"){unapprovedWrites++;throw Error("Unexpected DB write");}
-  if(headers["Accept-Profile"]!=="c10_demo")throw Error("Missing isolated schema contract");
+  if(headers["Accept-Profile"]!=="core10")throw Error("Missing isolated schema contract");
   if(!role)return reply(401,{message:"not authenticated"});
   readCount++;
   const table=uri.pathname.split("/").pop();

@@ -1,6 +1,6 @@
 -- C10-A055 Enterprise Assets & Maintenance (3/7): REGISTRY - grants, categories, codes, assets, assemblies, status,
 -- site transfers, meters, warranties, warranty claims and every registry READ.
--- DISPOSABLE c10_demo ONLY. Load after core (and policy). Public API = am_*_v1 (see docs/architecture/C10_A055_RPC_CONTRACT.md);
+-- DISPOSABLE core10 ONLY. Load after core (and policy). Public API = am_*_v1 (see docs/architecture/C10_A055_RPC_CONTRACT.md);
 -- helpers ami_r_* are internal (lockdown file revokes them from authenticated/anon).
 -- Conventions: unknown / foreign / not-visible ids => am_denied (never reveals existence); capability missing at a visible site =>
 -- am_not_permitted; owner-only => am_owner_required. Money fields (acquisition_cost, claim amounts) are shown only to owner/supervisor/auditor.
@@ -12,7 +12,7 @@
 -- am_claim_outside_warranty am_claim_wo_mismatch am_maker_checker_violation.
 
 -- ===================== input helpers (strict, typed, no dynamic SQL) =====================
-CREATE FUNCTION c10_demo.ami_r_keys(p jsonb,p_allowed text[]) RETURNS void LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_r_keys(p jsonb,p_allowed text[]) RETURNS void LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE k text;
 BEGIN
  IF p IS NULL OR jsonb_typeof(p)<>'object' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
@@ -20,7 +20,7 @@ BEGIN
   IF NOT (k=ANY(p_allowed)) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  END LOOP;
 END$$;
-CREATE FUNCTION c10_demo.ami_r_text(p jsonb,k text,p_min int,p_max int,p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_r_text(p jsonb,k text,p_min int,p_max int,p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE v jsonb:=p->k; t text;
 BEGIN
  IF v IS NULL OR jsonb_typeof(v)='null' THEN
@@ -30,7 +30,7 @@ BEGIN
  IF length(t) NOT BETWEEN p_min AND p_max OR t ~ '[[:cntrl:]]' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN t;
 END$$;
-CREATE FUNCTION c10_demo.ami_r_num(p jsonb,k text,p_min numeric,p_max numeric,p_req boolean,p_scale int DEFAULT 2) RETURNS numeric
+CREATE FUNCTION core10.ami_r_num(p jsonb,k text,p_min numeric,p_max numeric,p_req boolean,p_scale int DEFAULT 2) RETURNS numeric
 LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE v jsonb:=p->k; n numeric;
 BEGIN
@@ -41,9 +41,9 @@ BEGIN
  IF n<p_min OR n>p_max OR n<>round(n,p_scale) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN n;
 END$$;
-CREATE FUNCTION c10_demo.ami_r_int(p jsonb,k text,p_min bigint,p_max bigint,p_req boolean) RETURNS bigint LANGUAGE plpgsql IMMUTABLE AS $$
-BEGIN RETURN c10_demo.ami_r_num(p,k,p_min,p_max,p_req,0)::bigint; END$$;
-CREATE FUNCTION c10_demo.ami_r_bool(p jsonb,k text,p_req boolean) RETURNS boolean LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_r_int(p jsonb,k text,p_min bigint,p_max bigint,p_req boolean) RETURNS bigint LANGUAGE plpgsql IMMUTABLE AS $$
+BEGIN RETURN core10.ami_r_num(p,k,p_min,p_max,p_req,0)::bigint; END$$;
+CREATE FUNCTION core10.ami_r_bool(p jsonb,k text,p_req boolean) RETURNS boolean LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE v jsonb:=p->k;
 BEGIN
  IF v IS NULL OR jsonb_typeof(v)='null' THEN
@@ -51,7 +51,7 @@ BEGIN
  IF jsonb_typeof(v)<>'boolean' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN (v#>>'{}')::boolean;
 END$$;
-CREATE FUNCTION c10_demo.ami_r_date(p jsonb,k text,p_req boolean) RETURNS date LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_r_date(p jsonb,k text,p_req boolean) RETURNS date LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE v jsonb:=p->k; d date;
 BEGIN
  IF v IS NULL OR jsonb_typeof(v)='null' THEN
@@ -61,15 +61,15 @@ BEGIN
  IF d<DATE '1990-01-01' OR d>DATE '2100-12-31' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN d;
 END$$;
-CREATE FUNCTION c10_demo.ami_r_enum(p jsonb,k text,p_allowed text[],p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
-DECLARE t text:=c10_demo.ami_r_text(p,k,1,40,p_req);
+CREATE FUNCTION core10.ami_r_enum(p jsonb,k text,p_allowed text[],p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+DECLARE t text:=core10.ami_r_text(p,k,1,40,p_req);
 BEGIN
  IF t IS NOT NULL AND NOT (t=ANY(p_allowed)) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN t;
 END$$;
 -- code-like identifiers: upper-cased, pattern checked
-CREATE FUNCTION c10_demo.ami_r_code(p jsonb,k text,p_max int,p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
-DECLARE t text:=c10_demo.ami_r_text(p,k,1,p_max,p_req);
+CREATE FUNCTION core10.ami_r_code(p jsonb,k text,p_max int,p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+DECLARE t text:=core10.ami_r_text(p,k,1,p_max,p_req);
 BEGIN
  IF t IS NULL THEN RETURN NULL; END IF;
  t:=upper(t);
@@ -77,14 +77,14 @@ BEGIN
  RETURN t;
 END$$;
 -- reference-like tokens (PO refs, custodian refs)
-CREATE FUNCTION c10_demo.ami_r_ref(p jsonb,k text,p_max int) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
-DECLARE t text:=c10_demo.ami_r_text(p,k,1,p_max,false);
+CREATE FUNCTION core10.ami_r_ref(p jsonb,k text,p_max int) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+DECLARE t text:=core10.ami_r_text(p,k,1,p_max,false);
 BEGIN
  IF t IS NOT NULL AND t !~ ('^[A-Za-z0-9][A-Za-z0-9._/-]{0,'||(p_max-1)||'}$') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN t;
 END$$;
 -- custom attributes: flat object, scalar values only, bounded size
-CREATE FUNCTION c10_demo.ami_r_attrs(p jsonb,k text) RETURNS jsonb LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_r_attrs(p jsonb,k text) RETURNS jsonb LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE v jsonb:=p->k; e record; n int:=0;
 BEGIN
  IF v IS NULL OR jsonb_typeof(v)='null' THEN RETURN '{}'::jsonb; END IF;
@@ -98,7 +98,7 @@ BEGIN
  IF pg_column_size(v)>4000 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN v;
 END$$;
-CREATE FUNCTION c10_demo.ami_r_reason(p text,p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_r_reason(p text,p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE t text;
 BEGIN
  IF p IS NULL THEN IF p_req THEN RAISE EXCEPTION 'am_invalid_input'; END IF; RETURN NULL; END IF;
@@ -106,62 +106,62 @@ BEGIN
  IF length(t) NOT BETWEEN 3 AND 500 OR t ~ '[[:cntrl:]]' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN t;
 END$$;
-CREATE FUNCTION c10_demo.ami_r_size(p jsonb) RETURNS void LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_r_size(p jsonb) RETURNS void LANGUAGE plpgsql IMMUTABLE AS $$
 BEGIN IF p IS NOT NULL AND length(p::text)>20000 THEN RAISE EXCEPTION 'am_invalid_input'; END IF; END$$;
 
 -- ===================== authority helpers =====================
 -- A site id that must belong to this business. Owners learn "invalid input"; everybody else learns nothing (am_denied).
-CREATE FUNCTION c10_demo.ami_r_site_chk(c c10_demo.am_ctx_t,p_site bigint) RETURNS void LANGUAGE plpgsql STABLE AS $$
+CREATE FUNCTION core10.ami_r_site_chk(c core10.am_ctx_t,p_site bigint) RETURNS void LANGUAGE plpgsql STABLE AS $$
 BEGIN
  IF p_site IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
- IF NOT EXISTS(SELECT 1 FROM c10_demo.sites WHERE id=p_site AND business_id=c.business_id AND tenant_id=c.tenant_id) THEN
-  IF c10_demo.ami_is_owner(c) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM core10.sites WHERE id=p_site AND business_id=c.business_id AND tenant_id=c.tenant_id) THEN
+  IF core10.ami_is_owner(c) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
   RAISE EXCEPTION 'am_denied'; END IF;
 END$$;
 -- Asset by id, hidden (am_denied) unless the caller holds 'view' at its site; optional capability check; optional row lock.
-CREATE FUNCTION c10_demo.ami_r_asset(c c10_demo.am_ctx_t,p_asset bigint,p_cap text,p_lock boolean) RETURNS c10_demo.am_assets
+CREATE FUNCTION core10.ami_r_asset(c core10.am_ctx_t,p_asset bigint,p_cap text,p_lock boolean) RETURNS core10.am_assets
 LANGUAGE plpgsql AS $$
-DECLARE a c10_demo.am_assets;
+DECLARE a core10.am_assets;
 BEGIN
  IF p_asset IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
- IF p_lock THEN SELECT * INTO a FROM c10_demo.am_assets WHERE id=p_asset AND business_id=c.business_id FOR UPDATE;
- ELSE SELECT * INTO a FROM c10_demo.am_assets WHERE id=p_asset AND business_id=c.business_id; END IF;
- IF NOT FOUND OR NOT c10_demo.ami_has(c,a.site_id,'view') THEN RAISE EXCEPTION 'am_denied'; END IF;
- IF p_cap IS NOT NULL THEN PERFORM c10_demo.ami_need_cap(c,a.site_id,p_cap); END IF;
+ IF p_lock THEN SELECT * INTO a FROM core10.am_assets WHERE id=p_asset AND business_id=c.business_id FOR UPDATE;
+ ELSE SELECT * INTO a FROM core10.am_assets WHERE id=p_asset AND business_id=c.business_id; END IF;
+ IF NOT FOUND OR NOT core10.ami_has(c,a.site_id,'view') THEN RAISE EXCEPTION 'am_denied'; END IF;
+ IF p_cap IS NOT NULL THEN PERFORM core10.ami_need_cap(c,a.site_id,p_cap); END IF;
  RETURN a;
 END$$;
-CREATE FUNCTION c10_demo.ami_r_asset_ro(c c10_demo.am_ctx_t,p_asset bigint) RETURNS c10_demo.am_assets LANGUAGE plpgsql STABLE AS $$
-DECLARE a c10_demo.am_assets;
+CREATE FUNCTION core10.ami_r_asset_ro(c core10.am_ctx_t,p_asset bigint) RETURNS core10.am_assets LANGUAGE plpgsql STABLE AS $$
+DECLARE a core10.am_assets;
 BEGIN
  IF p_asset IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
- SELECT * INTO a FROM c10_demo.am_assets WHERE id=p_asset AND business_id=c.business_id;
- IF NOT FOUND OR NOT c10_demo.ami_has(c,a.site_id,'view') THEN RAISE EXCEPTION 'am_denied'; END IF;
+ SELECT * INTO a FROM core10.am_assets WHERE id=p_asset AND business_id=c.business_id;
+ IF NOT FOUND OR NOT core10.ami_has(c,a.site_id,'view') THEN RAISE EXCEPTION 'am_denied'; END IF;
  RETURN a;
 END$$;
 -- true when meter_write at this site derives ONLY from technician grants (policy access.technician_can_record_meter applies).
-CREATE FUNCTION c10_demo.ami_r_tech_only(c c10_demo.am_ctx_t,p_site bigint) RETURNS boolean LANGUAGE plpgsql STABLE AS $$
+CREATE FUNCTION core10.ami_r_tech_only(c core10.am_ctx_t,p_site bigint) RETURNS boolean LANGUAGE plpgsql STABLE AS $$
 BEGIN
  IF c.is_tenant_owner OR c.is_business_owner OR c.manager_as_supervisor THEN RETURN false; END IF;
  RETURN NOT EXISTS(SELECT 1 FROM jsonb_array_elements(c.grants) g WHERE g->>'role'='supervisor'
    AND ((g->>'site_id') IS NULL OR (g->>'site_id')::bigint=p_site));
 END$$;
 -- money (cost / claim amounts) is visible to owner, supervisor and auditor only.
-CREATE FUNCTION c10_demo.ami_r_money(c c10_demo.am_ctx_t,p_site bigint) RETURNS boolean LANGUAGE sql STABLE AS $$
- SELECT 'claim_write'=ANY(c10_demo.ami_caps(c,p_site)) OR 'audit_read'=ANY(c10_demo.ami_caps(c,p_site)) $$;
-CREATE FUNCTION c10_demo.ami_r_money_sites(c c10_demo.am_ctx_t) RETURNS bigint[] LANGUAGE sql STABLE AS $$
- SELECT COALESCE(array_agg(s.id),ARRAY[]::bigint[]) FROM c10_demo.sites s WHERE s.business_id=c.business_id
-  AND ('claim_write'=ANY(c10_demo.ami_caps(c,s.id)) OR 'audit_read'=ANY(c10_demo.ami_caps(c,s.id))) $$;
+CREATE FUNCTION core10.ami_r_money(c core10.am_ctx_t,p_site bigint) RETURNS boolean LANGUAGE sql STABLE AS $$
+ SELECT 'claim_write'=ANY(core10.ami_caps(c,p_site)) OR 'audit_read'=ANY(core10.ami_caps(c,p_site)) $$;
+CREATE FUNCTION core10.ami_r_money_sites(c core10.am_ctx_t) RETURNS bigint[] LANGUAGE sql STABLE AS $$
+ SELECT COALESCE(array_agg(s.id),ARRAY[]::bigint[]) FROM core10.sites s WHERE s.business_id=c.business_id
+  AND ('claim_write'=ANY(core10.ami_caps(c,s.id)) OR 'audit_read'=ANY(core10.ami_caps(c,s.id))) $$;
 -- the asset plus all its descendants (assembly tree)
-CREATE FUNCTION c10_demo.ami_r_descendants(p_asset bigint) RETURNS bigint[] LANGUAGE sql STABLE AS $$
- WITH RECURSIVE d(id) AS (SELECT p_asset UNION SELECT a.id FROM c10_demo.am_assets a JOIN d ON a.parent_asset_id=d.id)
+CREATE FUNCTION core10.ami_r_descendants(p_asset bigint) RETURNS bigint[] LANGUAGE sql STABLE AS $$
+ WITH RECURSIVE d(id) AS (SELECT p_asset UNION SELECT a.id FROM core10.am_assets a JOIN d ON a.parent_asset_id=d.id)
  SELECT array_agg(id ORDER BY id) FROM d $$;
-CREATE FUNCTION c10_demo.ami_r_wstate(p_status text,p_expires date,p_today date,p_warn int) RETURNS text LANGUAGE sql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_r_wstate(p_status text,p_expires date,p_today date,p_warn int) RETURNS text LANGUAGE sql IMMUTABLE AS $$
  SELECT CASE WHEN p_status='void' THEN 'void' WHEN p_expires<p_today THEN 'expired'
   WHEN p_expires-p_today<=p_warn THEN 'expiring' ELSE 'active' END $$;
 
 -- ===================== grants =====================
-CREATE FUNCTION c10_demo.am_grant_role_v1(p_business bigint,p_request text,p_user uuid,p_role text,p_site bigint,p_note text,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_grant_role_v1(p_business bigint,p_request text,p_user uuid,p_role text,p_site bigint,p_note text,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; g am_grants; res jsonb; v_note text; v_reason text; v_id bigint; v_re boolean:=false; v_before jsonb;
 BEGIN
  pay:=jsonb_build_object('user',p_user,'role',p_role,'site',p_site,'note',p_note,'reason',p_reason);
@@ -189,8 +189,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'grant_role',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.am_revoke_role_v1(p_business bigint,p_request text,p_grant bigint,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_revoke_role_v1(p_business bigint,p_request text,p_grant bigint,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; g am_grants; res jsonb; v_reason text; v_before jsonb;
 BEGIN
  pay:=jsonb_build_object('grant',p_grant,'reason',p_reason);
@@ -210,7 +210,7 @@ BEGIN
 END$$;
 
 -- ===================== categories & codes =====================
-CREATE FUNCTION c10_demo.ami_r_cat_parent(c c10_demo.am_ctx_t,p_cat bigint,p_parent bigint) RETURNS void LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_r_cat_parent(c core10.am_ctx_t,p_cat bigint,p_parent bigint) RETURNS void LANGUAGE plpgsql SET search_path=core10,pg_catalog AS $$
 DECLARE par am_categories; cur bigint; d int:=0;
 BEGIN
  SELECT * INTO par FROM am_categories WHERE id=p_parent AND business_id=c.business_id;
@@ -225,8 +225,8 @@ BEGIN
  END LOOP;
 END$$;
 
-CREATE FUNCTION c10_demo.am_save_category_v1(p_business bigint,p_request text,p_id bigint,p_expected_version bigint,p_data jsonb,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_save_category_v1(p_business bigint,p_request text,p_id bigint,p_expected_version bigint,p_data jsonb,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; cat am_categories; n am_categories; res jsonb; v_reason text; v_before jsonb; v_create boolean;
 BEGIN
  PERFORM ami_r_size(p_data);
@@ -302,8 +302,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'save_category',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.am_save_code_v1(p_business bigint,p_request text,p_kind text,p_code text,p_label text,p_label_bn text,p_active boolean,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_save_code_v1(p_business bigint,p_request text,p_kind text,p_code text,p_label text,p_label_bn text,p_active boolean,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; cd am_codes; res jsonb; v_reason text; v_code text; v_label text; v_bn text; v_before jsonb; v_new boolean:=false;
 BEGIN
  pay:=jsonb_build_object('kind',p_kind,'code',p_code,'label',p_label,'bn',p_label_bn,'active',p_active,'reason',p_reason);
@@ -333,8 +333,8 @@ BEGIN
 END$$;
 
 -- ===================== meters (internal helper) & warranties (parse helper) =====================
-CREATE FUNCTION c10_demo.ami_r_meter_ins(c c10_demo.am_ctx_t,p_asset bigint,p_code text,p_unit text,p_reading numeric,p_request text)
-RETURNS bigint LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_r_meter_ins(c core10.am_ctx_t,p_asset bigint,p_code text,p_unit text,p_reading numeric,p_request text)
+RETURNS bigint LANGUAGE plpgsql SET search_path=core10,pg_catalog AS $$
 DECLARE m am_meters;
 BEGIN
  IF EXISTS(SELECT 1 FROM am_meters WHERE asset_id=p_asset AND code=p_code) THEN RAISE EXCEPTION 'am_duplicate_meter'; END IF;
@@ -352,8 +352,8 @@ BEGIN
 END$$;
 
 -- Parse warranty fields on top of an old row (NULL composite for create). Returns the new values (nothing is written).
-CREATE FUNCTION c10_demo.ami_r_warranty_parse(w jsonb,p_old c10_demo.am_warranties) RETURNS c10_demo.am_warranties
-LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_r_warranty_parse(w jsonb,p_old core10.am_warranties) RETURNS core10.am_warranties
+LANGUAGE plpgsql SET search_path=core10,pg_catalog AS $$
 DECLARE r am_warranties:=p_old;
 BEGIN
  PERFORM ami_r_keys(w,ARRAY['supplier_name','supplier_ref','coverage','starts_on','expires_on','status']);
@@ -369,8 +369,8 @@ BEGIN
 END$$;
 
 -- ===================== assets =====================
-CREATE FUNCTION c10_demo.am_create_asset_v1(p_business bigint,p_request text,p_data jsonb,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_create_asset_v1(p_business bigint,p_request text,p_data jsonb,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; d jsonb; res jsonb; cat am_categories; par am_assets; a am_assets; w am_warranties;
  v_site bigint; v_reason text; v_status text; v_serial text; v_manu text; v_parent bigint; v_attrs jsonb; v_meters jsonb; v_wj jsonb;
  v_crit smallint; v_qty numeric; v_acq date; v_com date; v_con text; v_mid bigint; v_mids bigint[]:=ARRAY[]::bigint[]; v_wid bigint;
@@ -465,8 +465,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'create_asset',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.am_update_asset_v1(p_business bigint,p_request text,p_asset bigint,p_expected_version bigint,p_changes jsonb,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_update_asset_v1(p_business bigint,p_request text,p_asset bigint,p_expected_version bigint,p_changes jsonb,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; d jsonb; res jsonb; a am_assets; n am_assets; cat am_categories; par am_assets; v_reason text; v_con text; v_before jsonb;
  v_cat bigint;
 BEGIN
@@ -545,8 +545,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'update_asset',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.am_set_asset_status_v1(p_business bigint,p_request text,p_asset bigint,p_expected_version bigint,p_status text,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_set_asset_status_v1(p_business bigint,p_request text,p_asset bigint,p_expected_version bigint,p_status text,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; res jsonb; a am_assets; n am_assets; v_reason text; v_ok boolean; v_before jsonb;
 BEGIN
  pay:=jsonb_build_object('asset',p_asset,'ver',p_expected_version,'status',p_status,'reason',p_reason);
@@ -586,8 +586,8 @@ BEGIN
 END$$;
 
 -- ===================== transfers =====================
-CREATE FUNCTION c10_demo.ami_r_transfer_blocks(p_business bigint,p_site bigint,p_ids bigint[]) RETURNS void
-LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_r_transfer_blocks(p_business bigint,p_site bigint,p_ids bigint[]) RETURNS void
+LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 BEGIN
  IF ami_cfg_bool(p_business,p_site,NULL,'asset.allow_transfer_with_active_wo') THEN RETURN; END IF;
  IF EXISTS(SELECT 1 FROM am_work_orders WHERE asset_id=ANY(p_ids) AND status='IN_PROGRESS')
@@ -595,8 +595,8 @@ BEGIN
 END$$;
 
 -- Applies a pending transfer row atomically (asset + all descendants, movements, open WOs follow). Returns moved asset count.
-CREATE FUNCTION c10_demo.ami_r_apply_transfer(c c10_demo.am_ctx_t,t c10_demo.am_transfers,p_request text) RETURNS int
-LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_r_apply_transfer(c core10.am_ctx_t,t core10.am_transfers,p_request text) RETURNS int
+LANGUAGE plpgsql SET search_path=core10,pg_catalog AS $$
 DECLARE a am_assets; ids bigint[];
 BEGIN
  SELECT * INTO a FROM am_assets WHERE id=t.asset_id AND business_id=t.business_id FOR UPDATE;
@@ -616,8 +616,8 @@ BEGIN
  RETURN cardinality(ids);
 END$$;
 
-CREATE FUNCTION c10_demo.am_request_transfer_v1(p_business bigint,p_request text,p_asset bigint,p_to_site bigint,p_include_children boolean,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_request_transfer_v1(p_business bigint,p_request text,p_asset bigint,p_to_site bigint,p_include_children boolean,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; res jsonb; a am_assets; t am_transfers; v_reason text; v_inc boolean; v_direct boolean; v_moved int:=0; ids bigint[];
 BEGIN
  pay:=jsonb_build_object('asset',p_asset,'to',p_to_site,'children',p_include_children,'reason',p_reason);
@@ -651,8 +651,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'request_transfer',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.am_decide_transfer_v1(p_business bigint,p_request text,p_transfer bigint,p_expected_version bigint,p_decision text,p_note text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_decide_transfer_v1(p_business bigint,p_request text,p_transfer bigint,p_expected_version bigint,p_decision text,p_note text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; res jsonb; t am_transfers; v_note text; v_moved int:=0; v_new text; v_before jsonb;
 BEGIN
  pay:=jsonb_build_object('transfer',p_transfer,'ver',p_expected_version,'decision',p_decision,'note',p_note);
@@ -689,8 +689,8 @@ BEGIN
 END$$;
 
 -- ===================== meters =====================
-CREATE FUNCTION c10_demo.am_add_meter_v1(p_business bigint,p_request text,p_asset bigint,p_code text,p_unit text,p_initial_reading numeric)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_add_meter_v1(p_business bigint,p_request text,p_asset bigint,p_code text,p_unit text,p_initial_reading numeric)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; res jsonb; a am_assets; v_code text; v_id bigint;
 BEGIN
  pay:=jsonb_build_object('asset',p_asset,'code',p_code,'unit',p_unit,'initial',p_initial_reading);
@@ -709,8 +709,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'add_meter',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.am_record_meter_reading_v1(p_business bigint,p_request text,p_meter bigint,p_reading numeric,p_read_at timestamptz,p_kind text,p_note text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_record_meter_reading_v1(p_business bigint,p_request text,p_meter bigint,p_reading numeric,p_read_at timestamptz,p_kind text,p_note text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; res jsonb; m am_meters; a am_assets; v_kind text; v_note text; v_at timestamptz; v_rid bigint; v_before jsonb;
 BEGIN
  pay:=jsonb_build_object('meter',p_meter,'reading',p_reading,'read_at',p_read_at,'kind',p_kind,'note',p_note);
@@ -746,8 +746,8 @@ BEGIN
 END$$;
 
 -- ===================== warranties & claims =====================
-CREATE FUNCTION c10_demo.am_save_warranty_v1(p_business bigint,p_request text,p_id bigint,p_expected_version bigint,p_data jsonb,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_save_warranty_v1(p_business bigint,p_request text,p_id bigint,p_expected_version bigint,p_data jsonb,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; res jsonb; a am_assets; w am_warranties; n am_warranties; v_reason text; v_before jsonb; v_asset bigint;
 BEGIN
  PERFORM ami_r_size(p_data);
@@ -789,8 +789,8 @@ BEGIN
 END$$;
 
 -- claim window check (shared by create / edit / submit)
-CREATE FUNCTION c10_demo.ami_r_claim_window(p_business bigint,w c10_demo.am_warranties,a c10_demo.am_assets,p_failure date) RETURNS void
-LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_r_claim_window(p_business bigint,w core10.am_warranties,a core10.am_assets,p_failure date) RETURNS void
+LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 DECLARE grace int;
 BEGIN
  IF w.status='void' THEN RAISE EXCEPTION 'am_warranty_void'; END IF;
@@ -798,8 +798,8 @@ BEGIN
  IF p_failure<w.starts_on OR p_failure>w.expires_on+grace THEN RAISE EXCEPTION 'am_claim_outside_warranty'; END IF;
 END$$;
 
-CREATE FUNCTION c10_demo.am_save_claim_v1(p_business bigint,p_request text,p_id bigint,p_expected_version bigint,p_data jsonb)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_save_claim_v1(p_business bigint,p_request text,p_id bigint,p_expected_version bigint,p_data jsonb)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; d jsonb; res jsonb; a am_assets; w am_warranties; cl am_warranty_claims; n am_warranty_claims; v_wo am_work_orders; v_before jsonb;
 BEGIN
  PERFORM ami_r_size(p_data);
@@ -863,8 +863,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'save_claim',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.am_claim_transition_v1(p_business bigint,p_request text,p_claim bigint,p_expected_version bigint,p_action text,p_data jsonb)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_claim_transition_v1(p_business bigint,p_request text,p_claim bigint,p_expected_version bigint,p_action text,p_data jsonb)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; d jsonb; res jsonb; a am_assets; w am_warranties; cl am_warranty_claims; v_before jsonb; v_new text; v_note text;
  v_ref text; v_amt numeric; v_set_amt boolean:=false; v_set_claimed boolean:=false; v_claimed numeric;
 BEGIN
@@ -915,8 +915,8 @@ BEGIN
 END$$;
 
 -- ===================== READS (STABLE, never write; filtered by sites where the caller holds 'view') =====================
-CREATE FUNCTION c10_demo.am_list_grants_v1(p_business bigint) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_list_grants_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; items jsonb;
 BEGIN
  c:=ami_read_ctx(p_business); PERFORM ami_need_owner(c);
@@ -926,8 +926,8 @@ BEGIN
  RETURN jsonb_build_object('items',items,'total',jsonb_array_length(items));
 END$$;
 
-CREATE FUNCTION c10_demo.am_list_catalog_v1(p_business bigint) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_list_catalog_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; sites bigint[]; cats jsonb; cds jsonb; ss jsonb; ab jsonb;
 BEGIN
  c:=ami_read_ctx(p_business); sites:=ami_sites_with(c,'view');
@@ -945,8 +945,8 @@ BEGIN
  RETURN jsonb_build_object('categories',cats,'codes',cds,'sites',ss,'assets_brief',ab);
 END$$;
 
-CREATE FUNCTION c10_demo.am_list_assets_v1(p_business bigint,p_filters jsonb,p_limit int,p_offset int) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_list_assets_v1(p_business bigint,p_filters jsonb,p_limit int,p_offset int) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; f jsonb:=COALESCE(p_filters,'{}'::jsonb); sites bigint[]; msites bigint[]; v_search text; v_like text; v_status text; v_cat bigint; v_site bigint;
  v_parent bigint; v_own text; ids bigint[]; v_lim int; v_off int; page bigint[]; items jsonb;
 BEGIN
@@ -978,8 +978,8 @@ BEGIN
  RETURN jsonb_build_object('items',items,'total',cardinality(ids),'limit',v_lim,'offset',v_off);
 END$$;
 
-CREATE FUNCTION c10_demo.am_get_asset_v1(p_business bigint,p_asset bigint) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_get_asset_v1(p_business bigint,p_asset bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; a am_assets; k am_categories; money boolean; today date; warn int; stale int; j_asset jsonb; j_children jsonb; j_meters jsonb; j_war jsonb;
  j_mov jsonb; j_wo jsonb; j_pt jsonb; j_dt jsonb; j_cal jsonb; j_claims jsonb; j_tr jsonb; j_parent jsonb; j_site jsonb;
 BEGIN
@@ -1031,8 +1031,8 @@ BEGIN
     'money',money));
 END$$;
 
-CREATE FUNCTION c10_demo.am_list_transfers_v1(p_business bigint,p_status text) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_list_transfers_v1(p_business bigint,p_status text) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; sites bigint[]; items jsonb; n int;
 BEGIN
  c:=ami_read_ctx(p_business); sites:=ami_sites_with(c,'view');
@@ -1048,8 +1048,8 @@ BEGIN
  RETURN jsonb_build_object('items',items,'total',n);
 END$$;
 
-CREATE FUNCTION c10_demo.am_list_claims_v1(p_business bigint,p_status text,p_limit int,p_offset int) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_list_claims_v1(p_business bigint,p_status text,p_limit int,p_offset int) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; sites bigint[]; msites bigint[]; items jsonb; n int; v_lim int; v_off int;
 BEGIN
  c:=ami_read_ctx(p_business); sites:=ami_sites_with(c,'view'); msites:=ami_r_money_sites(c);
@@ -1067,8 +1067,8 @@ BEGIN
  RETURN jsonb_build_object('items',items,'total',n,'limit',v_lim,'offset',v_off);
 END$$;
 
-CREATE FUNCTION c10_demo.am_list_warranties_v1(p_business bigint,p_asset bigint) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_list_warranties_v1(p_business bigint,p_asset bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; sites bigint[]; items jsonb; n int; today date; a0 am_assets;
 BEGIN
  c:=ami_read_ctx(p_business); sites:=ami_sites_with(c,'view'); today:=ami_today(p_business);

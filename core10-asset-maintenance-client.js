@@ -1,6 +1,6 @@
 /* C10-A055 Assets & Maintenance signed-session RPC client. One strict allow-list adapter for every A055 page.
  * - Auth pattern identical to A044/A051: needs a Supabase client whose auth.getUser() verifies the session with the Auth server,
- *   then calls ONLY client.schema('c10_demo').rpc(<allow-listed am_*_v1>, exactly the declared argument names/types).
+ *   then calls ONLY client.schema('core10').rpc(<allow-listed am_*_v1>, exactly the declared argument names/types).
  * - The client NEVER holds service keys, never reads tables, never persists tokens, never fakes success.
  * - Capability hints from am_whoami_v1 are advisory only: the database is the sole authority.
  * - Allow-list == the public RPC names of docs/architecture/C10_A055_RPC_CONTRACT.md (a test keeps them equal, argument by argument).
@@ -158,7 +158,7 @@
    if(!client||!client.auth||typeof client.auth.getUser!=="function"||typeof client.schema!=="function")fail("SIGNED_SUPABASE_CLIENT_REQUIRED");
    const r=await client.auth.getUser();
    if(!r||r.error||!r.data||!r.data.user||typeof r.data.user.id!=="string"||!r.data.user.id)fail("AUTHENTICATED_USER_REQUIRED");
-   const s=client.schema("c10_demo");
+   const s=client.schema("core10");
    if(!s||typeof s.rpc!=="function")fail("AM_SCHEMA_NOT_AVAILABLE");
    return s;
   }

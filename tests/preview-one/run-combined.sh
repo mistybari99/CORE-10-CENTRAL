@@ -38,7 +38,7 @@ load() { printf 'LOAD %s\n' "$1"; "${psql[@]}" -f "$1"; }
 "${psql[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF; IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF; END \$\$"
 load internal/enterprise-sql/c10_a018_demo_backend.sql
 load tests/c10_a018_demo_seed.sql
-"${psql[@]}" -v c10_demo_ack=I_CONFIRM_DISPOSABLE_A046 -f internal/enterprise-sql/c10_a046_demo_personas_v1.sql
+"${psql[@]}" -v core10_ack=I_CONFIRM_DISPOSABLE_A046 -f internal/enterprise-sql/c10_a046_demo_personas_v1.sql
 # Preserve original A046/A048 database guards; rename the same disposable DB.
 PGDATABASE=postgres "${psql[@]}" -c "ALTER DATABASE \"$seed_db\" RENAME TO \"$work_db\""
 owned_db=$work_db

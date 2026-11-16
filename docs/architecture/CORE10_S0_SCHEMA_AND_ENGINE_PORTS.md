@@ -9,7 +9,7 @@ authority; this file is the implementation contract agents build against.
 | Schema | Purpose |
 | --- | --- |
 | `core10` | Canonical engine: every real table and RPC. Created by `internal/migrations` |
-| `c10_demo` | Synthetic fixtures, seeds and disposable tests. No engine remains here once a module is ported |
+| `c10_demo` | Retired name. S1-a renamed the whole integrated line to `core10` in one step, because 35 loaders, 7 browser clients and about 8,600 SQL references share the access tables. Fixtures are test-loaded rows |
 | `c10_sim` | Simulation sandbox (PR #77), stays separate |
 | `public` (IMG-ERP-SG) | Protected legacy. Never created, altered or read by canonical migrations |
 
@@ -20,7 +20,7 @@ authority; this file is the implementation contract agents build against.
 Every feature, in every pack and every industry template, reaches an engine only through these
 ports. A feature may not own a second store of the same kind.
 
-| Port | Single engine | Entry points today (`c10_demo`, become `core10` in the named step) | A feature must not |
+| Port | Single engine | Entry points (`core10`; the named step is where the port is completed and verified) | A feature must not |
 | --- | --- | --- | --- |
 | Auth | Build01 canonical access | `actor_uid()`, `can_tenant`, `can_business`, `can_manage`, `can_site(tenant,business,site,action)`, `can_approval_action_v1` — S1 | keep its own grant/role table, or trust a submitted role |
 | Master | NP02 party / item / UOM / price | to be built — S2 | copy customers, suppliers or items into module tables |

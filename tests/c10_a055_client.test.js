@@ -10,7 +10,7 @@ let n=0;const pass=(m)=>{n++;console.log("PASS "+m)};
 
 // ---- 1. allow-list == live SQL signatures, argument by argument (names, order, nullability class via defaults ignored) ----
 const rows=psql(`SELECT p.proname, pg_get_function_arguments(p.oid) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
- WHERE n.nspname='c10_demo' AND (p.proname ~ '^am_.*_v1$' OR p.proname='read_asset_maintenance_business_summary_v1') ORDER BY 1`);
+ WHERE n.nspname='core10' AND (p.proname ~ '^am_.*_v1$' OR p.proname='read_asset_maintenance_business_summary_v1') ORDER BY 1`);
 const sql=new Map(rows.map(([name,args])=>[name,args.split(/,\s*(?![^()]*\))/).map(a=>a.trim().split(/\s+/)[0])]));
 const spec=new Set(API.NAMES);
 assert.deepEqual([...sql.keys()].filter(k=>!spec.has(k)),[],"SQL public RPCs missing from the client allow-list");
@@ -20,7 +20,7 @@ pass(API.NAMES.length+" RPCs: client allow-list == SQL signatures (names and arg
 
 // ---- 2. every allow-listed RPC is executable by authenticated, never by anon/PUBLIC; helpers are not ----
 const grants=psql(`SELECT p.proname, has_function_privilege('authenticated',p.oid,'EXECUTE'), has_function_privilege('anon',p.oid,'EXECUTE')
- FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='c10_demo' AND p.proname ~ '^(am_|ami_|read_asset_maintenance)'`);
+ FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='core10' AND p.proname ~ '^(am_|ami_|read_asset_maintenance)'`);
 for(const [name,auth,anon] of grants){
  assert.equal(anon,"f","anon must not execute "+name);
  if(spec.has(name))assert.equal(auth,"t","authenticated must execute "+name);
@@ -35,7 +35,7 @@ assert.deepEqual(API.NAMES.filter(x=>!docNames.has(x)),[],"RPC missing from the 
 pass("RPC contract document covers every allow-listed RPC");
 
 // ---- 4. catalog parity: help text for every policy key (and no stale keys); bilingual; all error codes labelled ----
-const keys=psql("SELECT key FROM c10_demo.am_policy_catalog ORDER BY key").map(r=>r[0]);
+const keys=psql("SELECT key FROM core10.am_policy_catalog ORDER BY key").map(r=>r[0]);
 const help=Object.keys(CAT.POLICY_HELP).sort();
 assert.deepEqual(keys.filter(k=>!help.includes(k)),[],"policy keys without help text");
 assert.deepEqual(help.filter(k=>!keys.includes(k)),[],"help text for unknown policy keys");
@@ -68,7 +68,7 @@ pass(pages.length+" pages: strict CSP, no inline script/handlers, viewport meta"
  const calls=[];
  const mk=(res)=>({auth:{getUser:async()=>({data:{user:{id:"11111111-1111-4111-8111-111111111111"}}})},schema:(s)=>({rpc:async(n,a)=>{calls.push([s,n,a]);return res(n,a)}})});
  const api=API.create({client:mk(()=>({data:{status:"applied"}}))});
- await api.call("am_whoami_v1",{p_business:101});assert.equal(calls[0][0],"c10_demo");
+ await api.call("am_whoami_v1",{p_business:101});assert.equal(calls[0][0],"core10");
  await assert.rejects(()=>api.call("am_drop_everything",{}),{code:"RPC_NOT_ALLOWED"});
  await assert.rejects(()=>api.call("am_whoami_v1",{p_business:101,p_evil:1}),{code:"UNKNOWN_ARGUMENT"});
  await assert.rejects(()=>api.call("am_whoami_v1",{p_business:"101"}),{code:"INVALID_ARGUMENT"});

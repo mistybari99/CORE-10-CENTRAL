@@ -56,7 +56,7 @@ function R(name,a){
  }
 }
 window.supabase={createClient:function(){return {auth:{getUser:async()=>({data:{user:{id:"signed-test-fixture-uuid"}},error:null})},
- schema:function(s){if(s!=="c10_demo")throw Error("SCHEMA_SCOPE");return {rpc:async(n,a)=>R(n,a),from:function(){throw Error("TABLE_SHADOW_ACCESS")}}}}}};
+ schema:function(s){if(s!=="core10")throw Error("SCHEMA_SCOPE");return {rpc:async(n,a)=>R(n,a),from:function(){throw Error("TABLE_SHADOW_ACCESS")}}}}}};
 })();`;
 (async()=>{
  const server=createServer();await new Promise(r=>server.listen(0,"127.0.0.1",r));

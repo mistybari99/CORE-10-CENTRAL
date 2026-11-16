@@ -7,7 +7,7 @@ cd "$(dirname "$0")/../.."
 [[ "${PGDATABASE:-}" =~ ^core10_a048_ci_preview_[0-9]+$ ]] || exit 2
 export CORE10_CI_JWT_SECRET=core10_preview_disposable_a055_hmac_signer_only_2026
 export PGRST_DB_URI="postgres://${PGUSER:-postgres}:${PGPASSWORD:-}@${PGHOST}:${PGPORT:-5432}/${PGDATABASE}"
-export PGRST_DB_SCHEMAS=c10_demo PGRST_DB_ANON_ROLE=anon
+export PGRST_DB_SCHEMAS=core10 PGRST_DB_ANON_ROLE=anon
 export PGRST_JWT_SECRET=$CORE10_CI_JWT_SECRET PGRST_JWT_AUD=authenticated
 export PGRST_SERVER_HOST=127.0.0.1
 export PGRST_SERVER_PORT=${CORE10_PREVIEW_REST_PORT:-55300}

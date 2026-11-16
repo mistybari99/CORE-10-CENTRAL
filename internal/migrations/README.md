@@ -1,7 +1,8 @@
 # CORE10 canonical migrations (DEC-01)
 
-Engine tables and RPCs live in schema `core10`. `c10_demo` is fixture/test only. The protected
-legacy IMG-ERP-SG `public` schema is never a target (D051).
+Engine tables and RPCs live in schema `core10`. The former `c10_demo` schema name was retired in
+S1-a (one mechanical rename of the whole integrated line); synthetic fixtures are rows loaded by
+tests, not a separate schema. The protected legacy IMG-ERP-SG `public` schema is never a target (D051).
 
 | Rule | Detail |
 | --- | --- |
@@ -19,6 +20,9 @@ node --test tests/migrations/migration-contract.test.js     # static contract
 PGHOST=… PGUSER=… PGDATABASE=… internal/migrations/run.sh up|down|status
 ```
 
-Porting a module from `c10_demo` to `core10` is one numbered migration per module, in wave order
-(S1 access → S2 master data → S3 stock → S4 sales → S5 finance), keeping the module prefix
-(`wf_`, `am_`, `a056_`) and re-running that module's existing test suite against `core10`.
+Converting engine files to numbered migrations: the engine SQL still loads from
+`internal/enterprise-sql/*.sql` in the order the test harness uses. Each file becomes a numbered
+migration with a rollback in wave order (S1 access → S2 master data → S3 stock → S4 sales →
+S5 finance); until then `0001` and the engine files are not applied to the same database
+(`c10_a018_demo_backend.sql` still creates the schema itself in disposable test databases).
+Side Draft PRs written against `c10_demo` apply the same rename when they are reconciled.

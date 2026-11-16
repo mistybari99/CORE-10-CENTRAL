@@ -21,7 +21,7 @@ function rejectsCode(p,code){return assert.rejects(p,e=>e&&e.code===code);}
   schema:function(schema){events.push(["schema",schema]);return db}
  };
  const disabled=create({client});
- assert.deepEqual(disabled.status(),{readEnabled:false,writeEnabled:false,schema:"c10_demo",certified:false});
+ assert.deepEqual(disabled.status(),{readEnabled:false,writeEnabled:false,schema:"core10",certified:false});
  await rejectsCode(disabled.listBusinesses(),"ENTERPRISE_BACKEND_NOT_RELEASED");
  await rejectsCode(disabled.setupBusiness(input),"ENTERPRISE_BACKEND_NOT_RELEASED");
  assert.equal(events.length,0,"disabled bridge must not call network");
@@ -40,7 +40,7 @@ function rejectsCode(p,code){return assert.rejects(p,e=>e&&e.code===code);}
   p_legal:11,p_slug:"test-sweets",p_template:"food_manufacturing",
   p_display_name:"Sweets",p_mode:"quick",p_sites:null,
   p_request:"test-create-001",p_brand_hex:"#6D1D2A"});
- assert.ok(events.some(x=>x[0]==="schema"&&x[1]==="c10_demo"));
+ assert.ok(events.some(x=>x[0]==="schema"&&x[1]==="core10"));
  await api.listSetupOverview();
  await api.listStockReconciliation(101);
  assert.ok(events.some(x=>x[0]==="from"&&x[1]==="inventory_reconciliation_v1"));

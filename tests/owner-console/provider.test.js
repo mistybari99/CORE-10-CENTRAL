@@ -37,7 +37,7 @@ async function denied(fn, code, label) { try { await fn(); } catch (e) { assert.
   const calls = [], mk = (user) => ({ auth: { getUser: async () => ({ data: { user } }) }, schema(s) { calls.push("schema:" + s); const self = this; return { from(v) { calls.push("from:" + v); return { select() { return { eq() { return this; }, then(r) { r({ data: [{ ok: 1 }], error: null }); } }; } }; } }; } });
   await denied(() => P.createSupabaseReadOnlyProvider({ experimentalRead: true, client: mk(null) }).getSession(), "AUTHENTICATED_USER_REQUIRED", "bridge needs a real authenticated user");
   const bridge = P.createSupabaseReadOnlyProvider({ experimentalRead: true, client: mk({ id: "u-1" }) });
-  assert.equal((await bridge.getKpis(101))?.ok, 1); assert.deepEqual(calls.slice(0, 2), ["schema:c10_demo", "from:owner_business_kpi_v1"]); ok("bridge reads only an allowlisted view from c10_demo");
+  assert.equal((await bridge.getKpis(101))?.ok, 1); assert.deepEqual(calls.slice(0, 2), ["schema:core10", "from:owner_business_kpi_v1"]); ok("bridge reads only an allowlisted view from core10");
   P.WRITE_METHODS.forEach(m => assert.equal(typeof bridge[m], "undefined", "bridge exposes write method " + m)); ok("bridge exposes no write/RPC method");
   await denied(() => bridge.getSetupSummary(101), "SETUP_SUMMARY_NOT_AVAILABLE_IN_READ_BRIDGE", "bridge cannot invent unsupported data");
   // i18n parity

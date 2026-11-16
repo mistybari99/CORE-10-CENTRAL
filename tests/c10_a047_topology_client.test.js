@@ -13,7 +13,7 @@ let denied=false,wrong=false;
 const client={
  auth:{getUser:async()=>denied?{data:{user:null},error:{message:"DENIED"}}:{data:{user:{id:"synthetic-session-sub"}},error:null}},
  schema:(name)=>{
-  assert.equal(name,"c10_demo");
+  assert.equal(name,"core10");
   return {
    from:(table)=>{
     assert.equal(table,"businesses");

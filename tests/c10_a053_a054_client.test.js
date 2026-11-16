@@ -10,7 +10,7 @@ const sql=sqlFiles.map(f=>fs.readFileSync(path.join(sqlDir,f),"utf8")).join("\n"
 
 // 1) allow-list == real SQL signatures (rpc name AND argument names in order); every new public RPC is reachable
 const sigs={};
-for(const m of sql.matchAll(/CREATE FUNCTION c10_demo\.((?:wf|a053|a054)_[a-z_0-9]+_v1)\(([^)]*)\)/g))
+for(const m of sql.matchAll(/CREATE FUNCTION core10\.((?:wf|a053|a054)_[a-z_0-9]+_v1)\(([^)]*)\)/g))
  sigs[m[1]]=m[2].split(",").map(x=>x.trim().split(/\s+/)[0]).filter(Boolean);
 for(const [name,spec] of Object.entries(API.SPEC)){
  assert.ok(sigs[spec.rpc],"allow-list entry has no SQL function: "+spec.rpc);
@@ -49,7 +49,7 @@ const mk=(over={})=>({auth:{getUser:async()=>({data:{user:{id:"u"}},error:null})
 (async()=>{
  const api=API.create({client:mk()});
  await api.call("liability_report",{p_business:102,p_period:"2026-10-01"});
- assert.deepEqual(calls[0],["c10_demo","a054_liability_report_v1",{p_business:102,p_period:"2026-10-01"}]);
+ assert.deepEqual(calls[0],["core10","a054_liability_report_v1",{p_business:102,p_period:"2026-10-01"}]);
  for(const [label,fn,code] of [
   ["unknown rpc",()=>api.call("pay_salary",{}),"RPC_NOT_ALLOWED"],
   ["prototype",()=>api.call("constructor",{}),"RPC_NOT_ALLOWED"],

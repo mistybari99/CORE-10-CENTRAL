@@ -11,7 +11,7 @@
   if (root) { root.C10CONSOLE = root.C10CONSOLE || {}; root.C10CONSOLE.providers = api; }
 })(typeof window !== "undefined" ? window : (typeof globalThis !== "undefined" ? globalThis : null), function (F) {
   "use strict";
-  var SCHEMA = "c10_demo";
+  var SCHEMA = "core10";
   var VIEW_ALLOWLIST = ["tenant_consolidated_kpi_v1", "owner_business_kpi_v1", "owner_business_control_board_v1",
     "business_module_settings_v1", "business_inventory_report_v1", "operational_business_report_v1", "owner_module_requests_v1",
     "sites", "businesses"];

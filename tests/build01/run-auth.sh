@@ -65,7 +65,7 @@ export GOTRUE_MAILER_AUTOCONFIRM=true GOTRUE_DISABLE_SIGNUP=true
 export GOTRUE_DB_MIGRATIONS_PATH="$auth_dir/migrations"
 "$auth_dir/auth" >"$runtime/auth.log" 2>&1 & auth_pid=$!
 export PGRST_DB_URI="postgres://${PGUSER:-postgres}:${PGPASSWORD:-}@${PGHOST}:${PGPORT:-5432}/${PGDATABASE}"
-export PGRST_DB_SCHEMAS=c10_demo PGRST_DB_ANON_ROLE=anon
+export PGRST_DB_SCHEMAS=core10 PGRST_DB_ANON_ROLE=anon
 export PGRST_JWT_SECRET=$CORE10_BUILD01_TEST_SECRET PGRST_JWT_AUD=authenticated
 export PGRST_SERVER_HOST=127.0.0.1 PGRST_SERVER_PORT=${CORE10_BUILD01_REST_PORT:-55300}
 "$rest_binary" >"$runtime/rest.log" 2>&1 & rest_pid=$!

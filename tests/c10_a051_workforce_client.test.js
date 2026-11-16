@@ -8,7 +8,7 @@ const sql=fs.readdirSync(sqlDir).filter(f=>/^c10_a051_workforce_.*\.sql$/.test(f
 
 // 1) allow-list == real SQL signatures (names AND argument names, in order)
 const sigs={};
-for(const m of sql.matchAll(/CREATE FUNCTION c10_demo\.(wf_[a-z_]+_v1)\(([^)]*)\)/g))
+for(const m of sql.matchAll(/CREATE FUNCTION core10\.(wf_[a-z_]+_v1)\(([^)]*)\)/g))
  sigs[m[1]]=m[2].split(",").map(x=>x.trim().split(/\s+/)[0]).filter(Boolean);
 for(const name of API.NAMES){
  const fn="wf_"+name+"_v1";
@@ -31,7 +31,7 @@ const mk=(over={})=>({auth:{getUser:async()=>({data:{user:{id:"u"}},error:null})
 (async()=>{
  const api=API.create({client:mk()});
  await api.call("read_overview",{p_business:101});
- assert.deepEqual(calls[0],["c10_demo","wf_read_overview_v1",{p_business:101}]);
+ assert.deepEqual(calls[0],["core10","wf_read_overview_v1",{p_business:101}]);
  for(const [label,fn,code] of [
   ["unknown rpc",()=>api.call("drop_everything",{}),"RPC_NOT_ALLOWED"],
   ["prototype name",()=>api.call("constructor",{}),"RPC_NOT_ALLOWED"],

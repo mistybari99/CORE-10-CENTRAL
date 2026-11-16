@@ -1,20 +1,20 @@
 # C10-A051 — Multi-business Workforce, Attendance, Leave & Payroll Engine
-Status: **BUILT and isolated-CI tested (disposable `c10_demo`)**. NOT applied to IMG-ERP-SG, NOT real-GoTrue tested, NOT released.
+Status: **BUILT and isolated-CI tested (disposable `core10`)**. NOT applied to IMG-ERP-SG, NOT real-GoTrue tested, NOT released.
 Owner of this package: Claude (new `c10_a051_*` / `core10-workforce-*` files only). Draft PR, never merged to `main`.
 
 ## 1. What exists (real code)
 | Layer | Files |
 |---|---|
 | SQL (apply in order, after A018) | `internal/enterprise-sql/c10_a051_workforce_core_v1.sql`, `..._attendance_leave_v1.sql`, `..._payroll_v1.sql`, `..._reads_v1.sql` |
-| Signed API client | `core10-workforce-client.js` (strict allow-list of 49 RPCs, argument typing, `auth.getUser()` each call, `schema('c10_demo').rpc`) |
+| Signed API client | `core10-workforce-client.js` (strict allow-list of 49 RPCs, argument typing, `auth.getUser()` each call, `schema('core10').rpc`) |
 | UI (390px mobile + 1440px desktop) | `core10-workforce-{directory,attendance,leave,payroll,reports,self}.html`, `core10-workforce-app.js`, `core10-workforce.css` |
 | Tests | `tests/c10_a051_workforce_e2e.sql` (PG), `..._concurrency.sh` (parallel sessions), `..._client.test.js`, `tests/api/core10-a051-workforce-rest-e2e.js` (signed HMAC → PostgREST), `tests/e2e/core10-a051-workforce-browser.js` (Chromium) |
 | CI | `.github/workflows/core10-a051-workforce-ci.yml` |
 
-Flow for every feature: **UI → signed `auth.getUser()` client → `c10_demo.wf_*_v1` SECURITY DEFINER RPC → business rules + DB-derived authority → deterministic calculation → append-only hash-chained audit → reports/exports.**
+Flow for every feature: **UI → signed `auth.getUser()` client → `core10.wf_*_v1` SECURITY DEFINER RPC → business rules + DB-derived authority → deterministic calculation → append-only hash-chained audit → reports/exports.**
 
 ## 2. Reuse, not duplication
-* Identity/tenancy: only existing `c10_demo.tenants / businesses / sites / tenant_members / business_members` and `can_tenant()`. **No new login, no new site_grants, no new role table.** An optional `wf_employees.user_id` link (owner-created) gives *self-service only*.
+* Identity/tenancy: only existing `core10.tenants / businesses / sites / tenant_members / business_members` and `can_tenant()`. **No new login, no new site_grants, no new role table.** An optional `wf_employees.user_id` link (owner-created) gives *self-service only*.
 * No finance ledger, stock movement, bank file or payout. "Approved/Frozen" ≠ "Paid" (`paid:false`, `money_movement:false`, `ledger_posted:false` in every contract response; payslip says `payment_status: not_tracked_in_this_module`).
 * Legacy `employees.js / attendance.js / shifts.js / salary.js / payroll.js / staffreports.js / v2/**` are untouched (git diff shows only new A051 files). No real staff data is read or migrated.
 
@@ -51,8 +51,8 @@ Maker-checker (default ON): payroll preparer cannot review or approve; correctio
 Attendance summary by site, headcount (site/status/contract), payroll gross/net by site, frozen payslip register, CSV exports (`employees`, `attendance`, `payslip_register`) with PII-safe role projection (no phone/NID ever; managers get masked names; formula-injection neutralised; every export audited), integrity report (audit chain, frozen totals vs lines, payslip per line, no negative net, one frozen run per period, advance not over-recovered), audit list, retention preview/purge for expired punches (tenant owner, never inside locked/frozen periods).
 
 ## 8. Integration contract (read-only; for A050 Portfolio / future finance)
-* `c10_demo.read_workforce_business_summary_v1(p_business bigint, p_period date)` → active headcount, by-site headcount, frozen payroll totals; owner-level only.
-* `c10_demo.read_payroll_liability_preview_v1(p_business bigint, p_period date)` → `state: approved_not_paid | no_approved_run`, gross/deductions/net preview; always `paid:false, money_movement:false, ledger_posted:false`.
+* `core10.read_workforce_business_summary_v1(p_business bigint, p_period date)` → active headcount, by-site headcount, frozen payroll totals; owner-level only.
+* `core10.read_payroll_liability_preview_v1(p_business bigint, p_period date)` → `state: approved_not_paid | no_approved_run`, gross/deductions/net preview; always `paid:false, money_movement:false, ledger_posted:false`.
 * Future finance posting must consume the **frozen run id** and own its own ledger/payout; A051 will not write any money movement. Navigation: expose routes `core10-workforce-*.html?biz=<id>`; `owner.html`/`index.html` are intentionally not edited.
 * Persona keys: this branch uses the A018 fixture UUIDs plus six inert employee ids (a1…, a2…, a3…, a5…, a6…, c2…). Re-map to A046 persona aliases when PR #44 lands (data-only change in `tests/c10_a051_workforce_seed.sql`).
 

@@ -1,5 +1,5 @@
 /* PACK-02 — Universal Owner / Business Owner / Staff workspace client.
- * Renders ONLY server projections from c10_demo.pack02_workspace_v1 (which
+ * Renders ONLY server projections from core10.pack02_workspace_v1 (which
  * derives authority from the canonical PACK-01/Build01 predicates). This file
  * is presentation: it never grants, widens or infers permission, and it fails
  * closed when a projection is malformed or would leak umbrella/sister data.

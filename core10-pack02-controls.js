@@ -1,5 +1,5 @@
 /* PACK-02 S3 — control placement list for Owner / Business Owner workspaces.
- * Renders c10_demo.pack02_controls_v1 projections only. Placement is
+ * Renders core10.pack02_controls_v1 projections only. Placement is
  * presentation, not permission; edits go through the canonical A044 writer.
  */
 (function(root,factory){

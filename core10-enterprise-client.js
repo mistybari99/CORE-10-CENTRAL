@@ -11,7 +11,7 @@
  if(root)root.CORE10_ENTERPRISE_CLIENT=api;
 })(typeof window!=="undefined"?window:(typeof globalThis!=="undefined"?globalThis:null),function(){
  "use strict";
- var SCHEMA="c10_demo";
+ var SCHEMA="core10";
  var SITE_TYPES={showroom:true,factory:true,godown:true,warehouse:true,project:true};
  function text(v){return String(v==null?"":v).trim()}
  function fail(code){var err=new Error(code);err.code=code;throw err}
@@ -93,7 +93,7 @@
     .eq("business_id",Number(businessId)).limit(200));
   }
   // C10-A038: signed-session stocktake READ models. Authorization is always
-  // evaluated by c10_demo RLS; a browser role tab is never a permission check.
+  // evaluated by core10 RLS; a browser role tab is never a permission check.
   // Never POST stocktake, approval, adjustment or ledger from this bridge until
   // real Supabase Auth staging + OWNER release gates have been completed.
   function positiveId(value,code){

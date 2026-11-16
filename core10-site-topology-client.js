@@ -27,7 +27,7 @@
    const a=await client.auth.getUser();
    if(!a||a.error||!a.data||!a.data.user||typeof a.data.user.id!=="string"||!a.data.user.id)
      fail("AUTHENTICATED_USER_REQUIRED");
-   const s=client.schema("c10_demo");
+   const s=client.schema("core10");
    if(!s||typeof s.rpc!=="function"||typeof s.from!=="function")fail("TOPOLOGY_SCHEMA_NOT_AVAILABLE");
    return s;
   }

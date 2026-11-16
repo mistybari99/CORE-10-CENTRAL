@@ -8,12 +8,12 @@ const {chromium}=require("playwright");
 const root=path.join(__dirname,"../..");
 if(!/^core10_(preview_pack02|a048_local_pack02)_\d+$/.test(process.env.PGDATABASE||"")||!["127.0.0.1","localhost"].includes(process.env.PGHOST||""))throw Error("DISPOSABLE_PACK02_DATABASE_REQUIRED");
 const SQL={
- build01_context_v1:"SELECT c10_demo.build01_context_v1()",
- pack02_workspace_v1:"SELECT c10_demo.pack02_workspace_v1(:'p_mode',NULLIF(:'p_business','')::bigint)",
- pack02_controls_v1:"SELECT c10_demo.pack02_controls_v1(:'p_surface',NULLIF(:'p_business','')::bigint)",
- pack02_business_report_v1:"SELECT c10_demo.pack02_business_report_v1(NULLIF(:'p_business','')::bigint)",
- pack02_setup_readback_v1:"SELECT c10_demo.pack02_setup_readback_v1(NULLIF(:'p_business','')::bigint)",
- pack02_owner_report_v1:"SELECT c10_demo.pack02_owner_report_v1()"};
+ build01_context_v1:"SELECT core10.build01_context_v1()",
+ pack02_workspace_v1:"SELECT core10.pack02_workspace_v1(:'p_mode',NULLIF(:'p_business','')::bigint)",
+ pack02_controls_v1:"SELECT core10.pack02_controls_v1(:'p_surface',NULLIF(:'p_business','')::bigint)",
+ pack02_business_report_v1:"SELECT core10.pack02_business_report_v1(NULLIF(:'p_business','')::bigint)",
+ pack02_setup_readback_v1:"SELECT core10.pack02_setup_readback_v1(NULLIF(:'p_business','')::bigint)",
+ pack02_owner_report_v1:"SELECT core10.pack02_owner_report_v1()"};
 function pg(uid,name,args){
  if(!SQL[name])throw Object.assign(Error("TEST_RPC_UNKNOWN"),{code:"TEST_RPC_UNKNOWN"});
  const v=[];for(const k of ["p_mode","p_business","p_surface"])v.push("-v",k+"="+(args&&args[k]!=null?String(args[k]):""));
@@ -30,11 +30,11 @@ const html=`<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta nam
 const OWNER="11111111-1111-4111-8111-111111111111",BIZ="22222222-2222-4222-8222-222222222222",STAFF="44444444-4444-4444-8444-444444444444",OPERATOR="99999999-9999-4999-8999-999999999999";
 // Owner-configured control placement through the canonical A044 writer.
 execFileSync("psql",["-X","-q","-v","ON_ERROR_STOP=1"],{input:`SET ROLE authenticated;SELECT set_config('request.jwt.claim.sub','${OWNER}',false);
-SELECT c10_demo.write_control_setting_v1(101,'inventory.count','both','business_owner',true,0,'p2app_both_0001','PACK-02 app journey');
-SELECT c10_demo.write_control_setting_v1(101,'finance.payments','hidden_from_menus','central_only',false,0,'p2app_hidden_01','PACK-02 app journey');`,stdio:["pipe","ignore","inherit"]});
+SELECT core10.write_control_setting_v1(101,'inventory.count','both','business_owner',true,0,'p2app_both_0001','PACK-02 app journey');
+SELECT core10.write_control_setting_v1(101,'finance.payments','hidden_from_menus','central_only',false,0,'p2app_hidden_01','PACK-02 app journey');`,stdio:["pipe","ignore","inherit"]});
 // One business created through the canonical Quick/Advanced engine (owner only).
 execFileSync("psql",["-X","-q","-v","ON_ERROR_STOP=1"],{input:`SET ROLE authenticated;SELECT set_config('request.jwt.claim.sub','${OWNER}',false);
-SELECT c10_demo.pack02_setup_business_v1(11,'pack02-app-demo','paint_hardware','রঙ ঘর ডেমো','advanced','[{"kind":"showroom","label":"ধানমন্ডি শোরুম"},{"kind":"warehouse","label":"তেজগাঁও গুদাম"}]','pack02-app-setup-01','#0055AA');`,stdio:["pipe","ignore","inherit"]});
+SELECT core10.pack02_setup_business_v1(11,'pack02-app-demo','paint_hardware','রঙ ঘর ডেমো','advanced','[{"kind":"showroom","label":"ধানমন্ডি শোরুম"},{"kind":"warehouse","label":"তেজগাঁও গুদাম"}]','pack02-app-setup-01','#0055AA');`,stdio:["pipe","ignore","inherit"]});
 (async()=>{
  const browser=await chromium.launch(process.env.CORE10_CHROMIUM_PATH?{executablePath:process.env.CORE10_CHROMIUM_PATH}:{});
  async function open(uid,width,forged){

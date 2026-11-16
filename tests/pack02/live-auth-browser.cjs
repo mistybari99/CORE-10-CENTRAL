@@ -11,7 +11,7 @@ if(!/^http:\/\/(?:127\.0\.0\.1|localhost):\d+$/.test(base)||!password)throw Erro
  const cfg=await (await fetch(base+"/core10-build01-config.js")).text();
  const key=JSON.parse(cfg.slice(cfg.indexOf("(")+1,cfg.lastIndexOf(")"))).publishableKey;
  const token=async email=>{const r=await fetch(base+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:key,"content-type":"application/json"},body:JSON.stringify({email,password})});assert.equal(r.status,200,"password login "+email);return (await r.json()).access_token;};
- const rpc=async(name,body,tok)=>{const h={apikey:key,"content-type":"application/json","content-profile":"c10_demo"};if(tok)h.authorization="Bearer "+tok;const r=await fetch(base+"/rest/v1/rpc/"+name,{method:"POST",headers:h,body:JSON.stringify(body)});return {status:r.status,text:await r.text()};};
+ const rpc=async(name,body,tok)=>{const h={apikey:key,"content-type":"application/json","content-profile":"core10"};if(tok)h.authorization="Bearer "+tok;const r=await fetch(base+"/rest/v1/rpc/"+name,{method:"POST",headers:h,body:JSON.stringify(body)});return {status:r.status,text:await r.text()};};
  // Direct signed API, no browser.
  const owner=await token(ownerEmail),staff=await token(staffEmail);
  let r=await rpc("pack02_workspace_v1",{p_mode:"universal_owner",p_business:null},owner);

@@ -5,7 +5,7 @@ const A="11111111-1111-4111-8111-111111111111",B="22222222-2222-4222-8222-222222
 const rej=(p,c)=>assert.rejects(p,e=>e&&e.code===c,c);
 function client(state){
  return {auth:{getUser:async()=>{state.calls.push("getUser");return state.user?{data:{user:{id:state.user}}}:{data:{user:null}};}},
-  schema:s=>{assert.equal(s,"c10_demo");return {rpc:async(n,a)=>{state.calls.push([n,a]);return state.reply?state.reply(n,a):{data:{ok:true}};}};}};
+  schema:s=>{assert.equal(s,"core10");return {rpc:async(n,a)=>{state.calls.push([n,a]);return state.reply?state.reply(n,a):{data:{ok:true}};}};}};
 }
 test("only the six PACK-02 RPCs with known argument names are reachable",async()=>{
  const st={user:A,calls:[]},x=S.fromClient(client(st));
@@ -34,7 +34,7 @@ test("actor switch poisons the adapter; forged actor in response is refused",asy
 test("server errors are reduced to safe codes; non-object data refused",async()=>{
  const mk=reply=>S.fromClient(client({user:A,calls:[],reply}));
  await rej(mk(()=>({error:{message:"PACK02_WORKSPACE_DENIED"}})).rpc("pack02_owner_report_v1"),"PACK02_WORKSPACE_DENIED");
- await rej(mk(()=>({error:{message:"relation \"c10_demo.tenants\" <script>"}})).rpc("pack02_owner_report_v1"),"PACK02_RPC_DENIED_OR_UNAVAILABLE");
+ await rej(mk(()=>({error:{message:"relation \"core10.tenants\" <script>"}})).rpc("pack02_owner_report_v1"),"PACK02_RPC_DENIED_OR_UNAVAILABLE");
  await rej(mk(()=>({data:[1]})).rpc("pack02_owner_report_v1"),"PACK02_INVALID_RESPONSE");
  await rej(mk(()=>{throw new Error("net");}).rpc("pack02_owner_report_v1"),"PACK02_RPC_DENIED_OR_UNAVAILABLE");
 });

@@ -4,7 +4,7 @@ const {create}=require("../../core10-build01-client.js"),U="11111111-1111-4111-8
 function fixture(){
  let actor=U,response={actor_uid:U,contract:"C10_PACK02_WORKSPACE_V1"};
  const calls=[],client={auth:{getUser:async()=>({data:{user:actor?{id:actor}:null}}),signOut:async()=>({error:null})},
- schema:s=>{assert.equal(s,"c10_demo");return{rpc:async(name,args)=>{calls.push([name,args]);return{data:response};}}}};
+ schema:s=>{assert.equal(s,"core10");return{rpc:async(name,args)=>{calls.push([name,args]);return{data:response};}}}};
  return{api:create({config:{enabled:true,mode:"isolated-development",url:"http://127.0.0.1:58081",publishableKey:"fake-publishable"},client}),calls,setActor:x=>actor=x,setResponse:x=>response=x};
 }
 test("five read-only S2 RPCs recheck signed user; all write and unknown names denied",async()=>{
