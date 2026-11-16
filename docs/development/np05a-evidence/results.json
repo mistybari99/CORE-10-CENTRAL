@@ -1,0 +1,8 @@
+{
+  "checks": 22,
+  "passed": 22,
+  "synthetic_claims": true,
+  "master_adapter": "TEST_ONLY",
+  "stock": "NOT_CONNECTED",
+  "finance": "NOT_CONNECTED"
+}

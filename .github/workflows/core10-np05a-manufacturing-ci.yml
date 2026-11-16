@@ -1,0 +1,59 @@
+name: core10-np05a-manufacturing-ci
+on:
+  push:
+    branches: [build/codex-np05a-sweets]
+  pull_request:
+    paths:
+      - 'internal/migrations/**'
+      - 'modules/manufacturing/**'
+      - 'tests/np05a/**'
+      - '.github/workflows/core10-np05a-manufacturing-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  manufacturing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env: {POSTGRES_PASSWORD: np05a_disposable_only}
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd 'pg_isready -U postgres' --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: np05a_disposable_only
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Disposable API roles
+        run: psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN;'
+      - name: Static migration and signed context client contracts
+        run: node --test tests/migrations/migration-contract.test.js tests/np05a/client.test.mjs
+      - name: PostgreSQL 17 all migrations up down up
+        run: bash tests/migrations/run-updownup.sh
+      - name: Manufacturing lifecycle and disabled Control negatives
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/manufacturing-e2e.sql
+      - name: Canonical Control registry and evidence
+        run: |
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+          bash tests/migrations/control-registry-evidence.sh
+      - name: Real two-session replay and safe rollback with history
+        run: bash tests/np05a/concurrency.sh
+      - name: Install browser
+        run: |
+          npm install --prefix /tmp/np05a-browser playwright@1.63.0
+          /tmp/np05a-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Browser at 390 and 1440 with disposable SQL
+        env: {NODE_PATH: /tmp/np05a-browser/node_modules, MFG_SHOTS: np05a-shots}
+        run: node tests/np05a/browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: np05a-evidence, path: np05a-shots, if-no-files-found: ignore}
