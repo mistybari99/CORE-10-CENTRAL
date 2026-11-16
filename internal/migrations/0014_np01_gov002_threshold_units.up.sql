@@ -22,7 +22,7 @@ ALTER TABLE core10.approval_thresholds_v1 ENABLE ROW LEVEL SECURITY;
 CREATE POLICY approval_threshold_owner_read_v1
  ON core10.approval_thresholds_v1 FOR SELECT TO authenticated
  USING(core10.can_manage(tenant_id,business_id));
-REVOKE ALL ON core10.approval_thresholds_v1 FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON core10.approval_thresholds_v1 FROM PUBLIC,authenticated;
 GRANT SELECT ON core10.approval_thresholds_v1 TO authenticated;
 
 CREATE FUNCTION core10.assert_approval_threshold_v1(
@@ -219,11 +219,11 @@ BEGIN
 END $fn$;
 
 REVOKE ALL ON FUNCTION core10.assert_approval_threshold_v1(bigint,jsonb)
-  FROM PUBLIC,anon,authenticated;
+  FROM PUBLIC,authenticated;
 REVOKE ALL ON FUNCTION core10.assess_approval_threshold_v1(bigint,jsonb)
-  FROM PUBLIC,anon;
+  FROM PUBLIC;
 REVOKE ALL ON FUNCTION core10.configure_approval_threshold_v1(bigint,text,text,numeric,integer,text)
-  FROM PUBLIC,anon;
+  FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION core10.assess_approval_threshold_v1(bigint,jsonb)
   TO authenticated;
 GRANT EXECUTE ON FUNCTION core10.configure_approval_threshold_v1(bigint,text,text,numeric,integer,text)
@@ -231,7 +231,7 @@ GRANT EXECUTE ON FUNCTION core10.configure_approval_threshold_v1(bigint,text,tex
 -- The earlier authenticated grant on submit_typed_approval_v1 survives REPLACE.
 
 REVOKE ALL ON FUNCTION core10.assess_current_approval_threshold_v1(bigint,text,text,jsonb)
-  FROM PUBLIC,anon;
+  FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION core10.assess_current_approval_threshold_v1(bigint,text,text,jsonb)
   TO authenticated;
 
