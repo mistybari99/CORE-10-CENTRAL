@@ -103,11 +103,14 @@ Ranges are in `docs/coordination/MIGRATION_RESERVATIONS.json`. Consequences:
 
 ### Registry state today
 
-| | trunk (no PR #107) | trunk + PR #107 (verified locally) |
+`0106` promotes `decide_approval` and `withdraw_typed_approval_v1` (your `0019`, proof
+`tests/migrations/np01-control-decision-e2e.sql`) under the same evidence rule.
+
+| | trunk (no PR #107) | trunk + PR #107 at `32dfb63` (verified locally) |
 | --- | --- | --- |
-| enforced | 0 | 1 (`publish_approval_policy_v1`) |
+| enforced | 0 | 3 (`publish_approval_policy_v1`, `decide_approval`, `withdraw_typed_approval_v1`) |
 | exempt | 7 | 7 |
-| pending | 14 | 13 |
+| pending | 14 | 11 |
 
 The six RPCs your `0017` fenced (no `authenticated` execute) are not API-callable, so they need no row until you re-grant
 them; re-granting requires a row in the same migration range, `enforced` with evidence or `pending` with a board row.
