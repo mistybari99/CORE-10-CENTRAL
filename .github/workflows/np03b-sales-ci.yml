@@ -30,6 +30,12 @@ jobs:
         with: { node-version: 22 }
       - name: Static migration contract
         run: node --test tests/migrations/migration-contract.test.js
+      - name: Disposable API roles
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+          END \$\$;"
       - name: Full up down up PostgreSQL17
         run: bash tests/migrations/run-updownup.sh
       - name: Synthetic Sales security, approvals, idempotency, RLS and rollback
