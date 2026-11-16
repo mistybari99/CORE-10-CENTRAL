@@ -27,6 +27,11 @@ Known limitations carried in from NP01 (ChatGPT lane, still theirs to finish): B
 - **B-009 drift gate** (`ee9e85c`, all PR #106 checks green): `tests/migrations/b009-legacy-drift.sh` compares old installer chain vs numbered migrations (tables, columns, constraints, indexes, policies, grants, functions, triggers); reviewed list `tests/migrations/b009-accepted-drift.tsv` = 61: 53 GAP_B012 (A018 inventory engine never ported, NOT_CONNECTED until B-012; remove lines when ported), 7 HARDENED, 1 EXTENDED. CI self-test proves unrecorded drift fails. (Commit message says 62/8; 61/7 is correct.)
 - **B-011 master data**: contract `docs/coordination/NP02_B011_MASTER_DATA_CONTRACT.md` (`54607f1`, CI green). Next: 0150 tables extending `core10.items`.
 
+- **B-011 0150** (`fe1c6b6`, CI green): master tables extending `core10.items`; e2e `tests/migrations/np02-master-tables-e2e.sql` (18 negatives).
+- **B-026 / GO-F1**: Finance PR #108 (@ `88a2964`, migration 0400) merged into trunk at `de67402` (code only). Combined PG17 trunk + #108 + NP01 #111 (0110/0111) passed before merge. B-013 pack NOT complete (ChatGPT Build 2 owns Increment 2).
+
+**Hosted-apply order blocker:** no 0150/0400 on any persistent DB until NP01 0110–0149 are integrated + applied in order or formally closed (`run.sh` refuses OUT_OF_ORDER). NP01 #111 currently holds 0110–0111.
+
 ## Tests to rerun
 
 ```
