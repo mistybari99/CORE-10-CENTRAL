@@ -1,5 +1,7 @@
 # NP05A / B-015 — manufacturing increment, 2026-11-16
 
+Latest continuation: [increment 2 — material requirements, source envelopes and lock-wait enforcement](NP05A_B015_INCREMENT2.md). The original increment below is retained as its audit/history.
+
 Status: **CODED / locally TESTED**, isolated domain foundation. **BLOCKED for full S6 integration**, not VERIFIED_COMPLETE. Branch `build/codex-np05a-sweets`, Draft into `ccr-15ed11dd-n3hw5h`; migration block 0500–0599. No hosted mutation or deployment authorization is used.
 
 ## Reuse and dependency audit

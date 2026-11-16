@@ -16,7 +16,14 @@ const {start,psql}=require('./gateway.cjs');
   await page.screenshot({path:path.join(shots,'recipes-'+width+'.png'),fullPage:true});
   // Default approval remains maker/checker-controlled and visible, even on a test adapter.
   await page.locator('[data-approve]:visible').first().click();await page.waitForFunction(()=>document.querySelector('[role=status]').textContent.includes('MFG_MAKER_CHECKER'));checks++;
+  await page.locator('[data-materials]').first().click();await page.fill('[name=multiplier]','2');await page.click('#mfg-content form button');await page.waitForSelector('#mfg-material-report');
+  assert.match(await page.locator('#mfg-material-report').textContent(),/20 fixture:kg/);checks++;
+  assert.match(await page.locator('#mfg-material-report').textContent(),/অজানা.*NOT_CONNECTED/);checks++;
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));checks++;
+  await page.screenshot({path:path.join(shots,'materials-'+width+'.png'),fullPage:true});
   await page.click('[data-tab=batches]');await page.locator('[data-handoff]').first().click();await page.waitForFunction(()=>document.querySelector('[role=status]').textContent.includes('NOT_CONNECTED'));checks++;
+  assert.match(await page.locator('#mfg-handoff').textContent(),/Source fingerprint|সূত্রের পরিচায়ক/);checks++;
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'source fingerprint wraps');checks++;
   await page.screenshot({path:path.join(shots,'batches-'+width+'.png'),fullPage:true});
   await page.click('[data-tab=reports]');assert.match(await page.locator('#mfg-content').textContent(),/95/);checks++;
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');checks++;

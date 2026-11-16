@@ -5,6 +5,7 @@
 #manufacturing button[aria-pressed=true]{border-color:var(--sea);color:var(--sea)}#manufacturing button:disabled{opacity:.5;cursor:wait}
 #manufacturing button:focus-visible,#manufacturing input:focus-visible,#manufacturing textarea:focus-visible{outline:3px solid var(--sea);outline-offset:3px}
 .mfg-pills{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.mfg-pills span{padding:6px 10px;border:1px solid #b78c42;border-radius:6px;color:#f2ca83;font-size:12px}
+#mfg-handoff small{display:block;overflow-wrap:anywhere}
 #manufacturing textarea{min-height:140px;width:100%;background:var(--panel2);color:var(--fg);border:1px solid var(--edge);border-radius:8px;padding:10px;resize:vertical;font-family:monospace}
 #manufacturing input{box-sizing:border-box}#manufacturing details{margin-top:12px}#manufacturing summary{cursor:pointer;min-height:36px}.mfg-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.mfg-kpis strong{font-size:26px}.mfg-kpis small{display:block;color:var(--muted)}
 #manufacturing pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}#manufacturing .op-record button{margin-right:6px}#manufacturing [hidden]{display:none}

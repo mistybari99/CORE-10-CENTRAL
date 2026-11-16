@@ -5,6 +5,7 @@ export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic =
   const api = manufacturingClient(rpc, context);
   let active = true, data = {recipes:[],batches:[]}, tab = 'recipes', generation = 0, busy = false;
   const t = (bn,en) => lang === 'en' ? en : bn;
+  const errorText=e=>e.message==='MFG_CONTROL_CHANGED_RETRY'?t('Owner-এর সেটিং বদলেছে। হালনাগাদ করে আবার চেষ্টা করুন।','Owner settings changed. Refresh and retry.')+' [MFG_CONTROL_CHANGED_RETRY]':e.message;
   const $ = q => root.querySelector(q);
   const status = (msg,error=false) => {if (!active) return; $('[role=status]').textContent=msg; $('[role=status]').dataset.error=String(error);};
   function render() {
@@ -18,7 +19,7 @@ export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic =
     $('[data-refresh]').onclick=load;
     const content = $('#mfg-content');
     if (tab==='recipes') {
-      content.innerHTML=`<div class="op-grid"><section class="op-panel"><h2>${t('রেসিপি ও সংস্করণ','Recipes & versions')}</h2>${data.recipes.length ? data.recipes.map(r=>`<article class="op-record"><strong>${esc(r.recipe_code)} · v${r.version}</strong><small>${esc(r.status)} · ${r.yield_quantity} ${esc(r.yield_uom_ref)} · ID ${r.id}</small><details><summary>${t('উপাদান ও প্যাকেজিং','Ingredients & packaging')}</summary><pre>${esc(JSON.stringify(r.ingredients_payload,null,2))}</pre></details><button data-approve="${r.id}" ${r.status!=='draft'?'hidden':''}>${t('অনুমোদন অনুরোধ','Request approval')}</button><button data-plan="${r.id}" ${r.status!=='approved'?'hidden':''}>${t('ব্যাচ পরিকল্পনা','Plan batch')}</button></article>`).join('') : `<p>${t('রেসিপি নেই। নতুন সংস্করণ তৈরি করুন।','No recipes yet. Create a version.')}</p>`}</section>
+      content.innerHTML=`<div class="op-grid"><section class="op-panel"><h2>${t('রেসিপি ও সংস্করণ','Recipes & versions')}</h2>${data.recipes.length ? data.recipes.map(r=>`<article class="op-record"><strong>${esc(r.recipe_code)} · v${r.version}</strong><small>${esc(r.status)} · ${r.yield_quantity} ${esc(r.yield_uom_ref)} · ID ${r.id}</small><details><summary>${t('উপাদান ও প্যাকেজিং','Ingredients & packaging')}</summary><pre>${esc(JSON.stringify(r.ingredients_payload,null,2))}</pre></details><button data-materials="${r.id}">${t('উপকরণ চাহিদা','Material requirements')}</button><button data-approve="${r.id}" ${r.status!=='draft'?'hidden':''}>${t('অনুমোদন অনুরোধ','Request approval')}</button><button data-plan="${r.id}" ${r.status!=='approved'?'hidden':''}>${t('ব্যাচ পরিকল্পনা','Plan batch')}</button></article>`).join('') : `<p>${t('রেসিপি নেই। নতুন সংস্করণ তৈরি করুন।','No recipes yet. Create a version.')}</p>`}</section>
       <section class="op-panel"><h2>${t('নতুন রেসিপি সংস্করণ','New recipe version')}</h2><form class="op-form" id="mfg-recipe-form">
       <label>${t('রেসিপি কোড','Recipe code')}<input name="code" required minlength="2" maxlength="80"></label>
       <label>${t('পণ্যের Master ID','Finished item Master ID')}<input name="item" required type="number" min="1" step="1"></label>
@@ -29,6 +30,7 @@ export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic =
       <button type="submit">${t('খসড়া সংস্করণ সংরক্ষণ','Save draft version')}</button></form></section></div>`;
       $('#mfg-recipe-form').onsubmit = e => {e.preventDefault();const f=new FormData(e.target);command('mfg_create_recipe_v1',()=>({p_finished_item:Number(f.get('item')),p_code:f.get('code'),p_yield:Number(f.get('yield')),p_uom:f.get('uom'),p_lines:JSON.parse(f.get('lines')),p_overhead:Number(f.get('overhead'))}));};
       root.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>command('mfg_approve_recipe_v1',()=>({p_recipe:Number(b.dataset.approve),p_effective:new Date().toISOString()})));
+      root.querySelectorAll('[data-materials]').forEach(b=>b.onclick=()=>materialsForm(Number(b.dataset.materials)));
       root.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>planForm(Number(b.dataset.plan)));
     } else if (tab==='batches') {
       content.innerHTML=`<section class="op-panel"><h2>${t('ব্যাচের অগ্রগতি','Batch progress')}</h2>${data.batches.map(b=>`<article class="op-record"><strong>${t('ব্যাচ','Batch')} #${b.id} · ${esc(b.status)}</strong><small>${t('পরিকল্পিত','Planned')} ${b.expected_output} ${esc(b.yield_uom_ref)} · BOM ${b.bom_id}</small><button data-release="${b.id}" ${b.status!=='planned'?'hidden':''}>${t('ছাড়পত্র অনুরোধ','Request release')}</button><button data-cancel="${b.id}" ${b.status!=='planned'?'hidden':''}>${t('বাতিল','Cancel')}</button><button data-record="${b.id}" ${b.status!=='released'?'hidden':''}>${t('ফলন লিখুন','Record output')}</button><button data-handoff="${b.id}">${t('সংযোগ পরীক্ষা','Check handoff')}</button></article>`).join('') || t('কোনো ব্যাচ নেই।','No batches.')}</section>`;
@@ -41,14 +43,33 @@ export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic =
     }
   }
   function inlineForm(title,html,submit) {$('#mfg-content').innerHTML=`<section class="op-panel"><h2>${title}</h2><form class="op-form">${html}<button type="submit">${t('জমা দিন','Submit')}</button></form></section>`;$('#mfg-content form').onsubmit=e=>{e.preventDefault();submit(new FormData(e.target));};}
+  function materialsForm(id) {
+    inlineForm(t('উপকরণ ও প্যাকেজিং চাহিদা','Material & packaging requirements'),`<label>${t('ব্যাচের গুণক','Batch multiplier')}<input name="multiplier" type="number" min="0.000001" step="0.000001" value="1" required></label>`, async f=>{
+      if(busy||!active)return;busy=true;root.querySelectorAll('button').forEach(b=>b.disabled=true);
+      try {
+        const r=await api.call('mfg_material_requirements_v1',{p_recipe:id,p_multiplier:Number(f.get('multiplier'))});
+        if(!active)return;
+        $('#mfg-content').innerHTML=`<section class="op-panel" id="mfg-material-report"><h2>${t('উপকরণ ও প্যাকেজিং চাহিদা','Material & packaging requirements')}</h2><p>${esc(r.recipe_code)} · v${r.recipe_version} · ${esc(r.recipe_status)}</p><p>${t('প্রত্যাশিত উৎপাদন','Expected output')}: ${esc(r.output.quantity)} ${esc(r.output.uom_ref)}</p>
+        <p class="safety">${t('শুধু পরিকল্পনা। Stock/UOM সংযোগ বাকি; মজুত ও ঘাটতি অজানা। এখানে কোনো স্টক কাটা হয় না।','Planning only. Stock/UOM disconnected; available stock and shortage are unknown. No stock is issued here.')}</p>
+        ${r.lines.map(l=>`<article class="op-record"><strong>${esc(l.sku)} · ${l.kind==='packaging'?t('প্যাকেজিং','Packaging'):t('উপকরণ','Ingredient')}</strong><p>${t('চাহিদা','Required')}: ${esc(l.quantity)} ${esc(l.uom_ref)}</p><small>${t('প্রত্যাশিত অপচয়','Expected waste')}: ${esc(l.expected_waste_quantity)} ${esc(l.uom_ref)} (${esc(l.expected_waste_pct)}%)</small><small>${t('মজুত ও ঘাটতি','Available & shortage')}: ${t('অজানা','Unknown')} · ${esc(l.availability_status)}</small><small>${t('পরিকল্পিত ব্যয়','Planning cost')}: ${esc(l.estimated_line_cost)} BDT</small></article>`).join('')}
+        <p>${t('আনুমানিক মোট ব্যয়','Estimated total cost')}: ${esc(r.estimated_total_cost)} BDT · UNVERIFIED_PLANNING_ESTIMATE</p></section>`;
+        status(t('চাহিদার হিসাব প্রস্তুত • কোনো লেনদেন হয়নি','Requirements ready • no transaction posted'));
+      }catch(e){status(t('অনুমতি বা যাচাই ত্রুটি: ','Permission or validation error: ')+errorText(e),true);}
+      finally{busy=false;if(active)root.querySelectorAll('button').forEach(b=>b.disabled=false);}
+    });
+  }
+  function showHandoff(r) {
+    const e=r.source_envelope;
+    $('#mfg-content').insertAdjacentHTML('beforeend',`<section class="op-panel" id="mfg-handoff"><h2>${t('সংযোগের জন্য প্রস্তুত সূত্র','Prepared handoff source')}</h2><p>NOT_CONNECTED · ${t('কোনো স্টক বা অর্থ পোস্ট হয়নি','No Stock or Money posted')}</p><p>${t('ব্যাচ','Batch')} #${esc(e.source.batch_id)} · ${t('রেসিপি সংস্করণ','Recipe version')} ${esc(e.source.recipe_version)}</p><details><summary>${t('পরিমাণ, লট ও Audit সূত্র দেখুন','Inspect quantities, lots & Audit source')}</summary><pre>${esc(JSON.stringify(e,null,2))}</pre></details><small>${t('সূত্রের পরিচায়ক','Source fingerprint')}: ${esc(e.source_fingerprint)}</small></section>`);
+  }
   function planForm(id) {inlineForm(t('ব্যাচ পরিকল্পনা','Plan batch'),`<label>${t('Stock location ID','Stock location ID')}<input name="location" required type="number" min="1"></label><label>${t('গুণক','Multiplier')}<input name="multiplier" required type="number" min="0.000001" step="0.000001" value="1"></label>`,f=>command('mfg_plan_batch_v1',()=>({p_recipe:id,p_location:Number(f.get('location')),p_multiplier:Number(f.get('multiplier'))})));}
   function reasonForm(id) {inlineForm(t('বাতিলের কারণ','Cancellation reason'),'<label>কারণ / Reason<input name="reason" required minlength="5" maxlength="500"></label>',f=>command('mfg_cancel_batch_v1',()=>({p_batch:id,p_reason:f.get('reason')})));}
   function outputForm(id) {inlineForm(t('ফলন নথি • পরিকল্পিত মোটের সাথে মেলাতে হবে','Record output • categories must reconcile to planned total'),'<label>Output JSON<textarea name="output" required></textarea></label>',f=>command('mfg_record_output_v1',()=>({p_batch:id,p_output:JSON.parse(f.get('output'))})));}
-  async function load() {const current=++generation;try {const r=await api.call('mfg_inspect_v1');if (!active||current!==generation)return;data=r;render();}catch(e){if(active&&current===generation)status(t('অনুমতি বা সংযোগ ত্রুটি: ','Permission or connection error: ')+e.message,true);}}
+  async function load() {const current=++generation;try {const r=await api.call('mfg_inspect_v1');if (!active||current!==generation)return;data=r;render();}catch(e){if(active&&current===generation)status(t('অনুমতি বা সংযোগ ত্রুটি: ','Permission or connection error: ')+errorText(e),true);}}
   async function command(name,args) {
     if(busy||!active)return;busy=true;root.querySelectorAll('button').forEach(b=>b.disabled=true);
-    try {const r=await api.call(name,{...args(),p_key:key()});await load();if(active)status(r.status==='NOT_CONNECTED'?'NOT_CONNECTED · '+r.reason:t('সংরক্ষিত • Audit #','Saved • Audit #')+r.audit_event_id);}
-    catch(e){status(t('অনুমতি বা যাচাই ত্রুটি: ','Permission or validation error: ')+e.message,true);}
+    try {const r=await api.call(name,{...args(),p_key:key()});await load();if(active&&r.source_envelope)showHandoff(r);if(active)status(r.status==='NOT_CONNECTED'?'NOT_CONNECTED · '+r.reason:t('সংরক্ষিত • Audit #','Saved • Audit #')+r.audit_event_id);}
+    catch(e){status(t('অনুমতি বা যাচাই ত্রুটি: ','Permission or validation error: ')+errorText(e),true);}
     finally {busy=false;if(active)root.querySelectorAll('button').forEach(b=>b.disabled=false);}
   }
   render();load();

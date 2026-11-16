@@ -19,3 +19,11 @@ test('RPC permission errors remain visible',async()=>{
  const c=manufacturingClient(async()=>({error:{message:'MFG_SCOPE_DENIED'}}),{tenant_id:1,business_id:2,site_id:3});
  await assert.rejects(c.call('mfg_inspect_v1'),/MFG_SCOPE_DENIED/);
 });
+
+test('material requirements uses the same signed scope and remains a read RPC',async()=>{
+ let captured;
+ const c=manufacturingClient(async(n,a)=>{captured={n,a};return {data:{planning_only:true,lines:[]}};},{tenant_id:951,business_id:9511,site_id:9521});
+ assert.equal((await c.call('mfg_material_requirements_v1',{p_recipe:12,p_multiplier:2,p_site:999})).planning_only,true);
+ assert.equal(captured.n,'mfg_material_requirements_v1');assert.equal(captured.a.p_site,9521);assert.equal(captured.a.p_multiplier,2);
+ assert.equal(captured.a.p_key,undefined);
+});
