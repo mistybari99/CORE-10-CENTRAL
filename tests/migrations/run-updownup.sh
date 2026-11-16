@@ -3,6 +3,13 @@
 set -euo pipefail
 R="$(cd "$(dirname "$0")/../.." && pwd)/internal/migrations/run.sh"
 count(){ "$R" status | wc -l; }
+# The disposable runner is bare PostgreSQL, not Supabase. Create the synthetic
+# PostgREST role required by access RLS/grants; never provision real users here.
+psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
+ IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN
+  CREATE ROLE authenticated NOLOGIN;
+ END IF;
+END \$\$;" >/dev/null
 "$R" up; n1="$(count)"
 [ "$n1" -gt 0 ] || { echo "no migrations applied" >&2; exit 1; }
 for _ in $(seq "$n1"); do "$R" down; done
