@@ -65,7 +65,10 @@ DO $t$
 DECLARE r jsonb; v jsonb;
 BEGIN
  r := core10.control_read_v1(9101);
- PERFORM t_c10.ok(jsonb_array_length(r)=9, 'catalog has 9 features');
+ -- Baseline features must be present with their defaults; other packs may add their own catalog rows.
+ PERFORM t_c10.ok((SELECT count(*) FROM jsonb_array_elements(r) x WHERE x->>'feature_key' = ANY(ARRAY['audit.immutability','tenant.isolation','access.expiry_revocation','gov002.approval_policy','gov002.review','gov003.review_export','setup001.profile_preview','setup001.provision','inventory.stock_event']))=9, 'all 9 baseline features present');
+ PERFORM t_c10.ok(jsonb_array_length(r)>=9, 'catalog has at least the baseline');
+ PERFORM t_c10.ok((SELECT count(*) FROM jsonb_array_elements(r) x WHERE (x->>'invariant')::boolean)>=3, 'invariants present');
  PERFORM t_c10.ok((SELECT bool_and((x->>'source')='default') FROM jsonb_array_elements(r) x), 'all default at start');
  PERFORM t_c10.ok((t_c10.eff(9101,'audit.immutability')->>'enabled')::boolean, 'invariant on');
  PERFORM t_c10.ok(NOT (t_c10.eff(9101,'gov003.review_export')->>'enabled')::boolean, 'export default off');
@@ -220,7 +223,7 @@ BEGIN
  FOREACH u IN ARRAY ARRAY['93333333-3333-4333-8333-333333333333','95555555-5555-4555-8555-555555555555'] LOOP
   PERFORM t_c10.as_user(u);
   FOR i IN 1..5 LOOP PERFORM t_c10.expect(sqls[i],'CONTROL_FORBIDDEN'); END LOOP;
-  PERFORM t_c10.ok(jsonb_array_length(core10.control_read_v1(9101))=9, 'members may read');
+  PERFORM t_c10.ok((SELECT count(*) FROM jsonb_array_elements(core10.control_read_v1(9101)) x WHERE x->>'feature_key' = ANY(ARRAY['audit.immutability','tenant.isolation','access.expiry_revocation','gov002.approval_policy','gov002.review','gov003.review_export','setup001.profile_preview','setup001.provision','inventory.stock_event']))=9, 'members may read');
  END LOOP;
  -- an investor has no operational access in the Auth port, so the Control port shows them nothing
  FOREACH u IN ARRAY ARRAY['94444444-4444-4444-8444-444444444444','96666666-6666-4666-8666-666666666666','97777777-7777-4777-8777-777777777777'] LOOP
