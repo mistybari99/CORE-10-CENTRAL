@@ -10,7 +10,9 @@ BEGIN
   FOREACH v_table IN ARRAY ARRAY['audit_chain_heads_v1','canonical_audit_events_v1','access_change_events_v1','approval_requests','approval_events','approval_policy_versions_v1','approval_routes_v1','approval_stage_receipts_v1','approval_delegations_v1'] LOOP
     v_blocked := false;
     BEGIN
-      EXECUTE format('TRUNCATE TABLE core10.%I',v_table);
+      -- CASCADE reaches our trigger even where PostgreSQL rejects FK-blocked plain TRUNCATE first.
+      -- The trigger rejects the whole statement; no cascaded data is removed.
+      EXECUTE format('TRUNCATE TABLE core10.%I CASCADE',v_table);
     EXCEPTION WHEN SQLSTATE '42501' THEN
       GET STACKED DIAGNOSTICS v_error = MESSAGE_TEXT;
       IF v_error NOT LIKE 'core10_journal_truncate_denied:%' THEN
