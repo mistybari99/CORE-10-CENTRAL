@@ -7,6 +7,7 @@ on:
       - "internal/migrations/0014*"
       - "internal/migrations/0015*"
       - "internal/migrations/0016*"
+      - "internal/migrations/0019*"
       - "tests/migrations/np01*"
       - "tests/setup001/**"
       - "tests/gov003/np01*"
@@ -50,5 +51,7 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-governance-e2e.sql
       - name: B-020 enforce Owner Control on approval-policy publishing (disposable PG17)
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-publish-e2e.sql
+      - name: B-020 Owner Control decision, withdrawal and tenant negatives (disposable PG17)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-decision-e2e.sql
       - name: B-006 real two-session PostgreSQL policy/request/exception races
         run: bash tests/migrations/np01-governance-concurrency.sh
