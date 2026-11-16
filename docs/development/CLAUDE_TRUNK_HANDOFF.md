@@ -30,6 +30,8 @@ Known limitations carried in from NP01 (ChatGPT lane, still theirs to finish): B
 - **B-011 0150** (`fe1c6b6`, CI green): master tables extending `core10.items`; e2e `tests/migrations/np02-master-tables-e2e.sql` (18 negatives).
 - **B-026 / GO-F1**: Finance PR #108 (@ `88a2964`, migration 0400) merged into trunk at `de67402` (code only). Combined PG17 trunk + #108 + NP01 #111 (0110/0111) passed before merge. B-013 pack NOT complete (ChatGPT Build 2 owns Increment 2).
 
+- **B-011 0151** (`0c959b7`): 9 Control-enforced master writers (`master_save_*_v1`; can_manage = tenant/business owner only; version 0=create; request-key replay; canonical audit) + internal ports `master_validate_sales_order_v1` (NP03B), `master_uom_convert_v1` / `master_item_usable_v1` (NP05A). Test `tests/migrations/np02-master-rpc-e2e.sql`. Remaining B-011: scoped read RPCs for UI, two-session race script, Master UI.
+
 **Hosted-apply order blocker:** no 0150/0400 on any persistent DB until NP01 0110–0149 are integrated + applied in order or formally closed (`run.sh` refuses OUT_OF_ORDER). NP01 #111 currently holds 0110–0111.
 
 ## Tests to rerun
