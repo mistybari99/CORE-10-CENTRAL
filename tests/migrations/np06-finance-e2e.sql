@@ -95,6 +95,13 @@ SELECT np06_test.ok(core10.finance_validate_journal_v1(:journal_id)=:journal_id,
 SELECT np06_test.ok((SELECT status='validated' FROM core10.finance_journals_v1 WHERE id=:journal_id),
  'validated state persisted');
 
+SELECT np06_test.expect(format(
+ $q$INSERT INTO core10.finance_journal_lines_v1
+ (journal_id,tenant_id,business_id,line_no,account_id,side,amount)
+ VALUES(%s,951,9511,3,%s,'debit',1)$q$,:journal_id,:cash_id),
+ 'FIN_LINES_FROZEN');
+
+
 -- Default Owner approval stages = 1: no finance approval adapter exists, so posting DENIED.
 SELECT np06_test.expect(format(
  'SELECT core10.finance_post_journal_v1(%s,%L)',:journal_id,'postkey0001'),
@@ -115,6 +122,13 @@ SELECT np06_test.ok((SELECT status='posted' AND audit_event_id IS NOT NULL
   FROM core10.finance_journals_v1 WHERE id=:journal_id),'posted journal has canonical audit receipt');
 SELECT np06_test.ok((SELECT count(*)=2 FROM core10.finance_journal_lines_v1
  WHERE journal_id=:journal_id),'exactly two immutable lines');
+
+SELECT np06_test.expect(format(
+ $q$INSERT INTO core10.finance_journal_lines_v1
+ (journal_id,tenant_id,business_id,line_no,account_id,side,amount)
+ VALUES(%s,951,9511,3,%s,'debit',1)$q$,:journal_id,:cash_id),
+ 'FIN_LINES_FROZEN');
+
 
 SELECT core10.finance_draft_journal_v1(
  9511,NULL,'BDT','2026-11-16','manual','amount-limit-001','draft0003',
