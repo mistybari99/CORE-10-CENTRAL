@@ -44,3 +44,5 @@ jobs:
         run: bash tests/migrations/run-updownup.sh
       - name: B-005 owner-equivalent TRUNCATE negative proof
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-truncate-guard.sql
+      - name: B-006 and B-007 synthetic Owner/Manager/Cross-tenant PostgreSQL proof
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-governance-e2e.sql
