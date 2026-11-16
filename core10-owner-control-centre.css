@@ -1,0 +1,49 @@
+/* CORE 10 CENTRAL | B-021 Owner Control Centre. Same palette as the Control Studio. */
+:root{color-scheme:dark;--bg:#101722;--panel:#1a2635;--panel2:#202f40;--edge:#334557;--fg:#eef3f8;--muted:#9bacbc;
+ --highlight:#ddb47f;--sea:#77d5be;--err:#f5a6a2;--on:#5fd3a3;--off:#f2a07b;font:15px/1.55 "Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg)}
+button,select,input,textarea{font:inherit;color:inherit}
+button,select{cursor:pointer}button:disabled,select:disabled,input:disabled,textarea:disabled{opacity:.55;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--sea);outline-offset:3px}
+.occ{max-width:1440px;margin:0 auto;padding:20px clamp(14px,3vw,40px) 48px}
+.occ-top{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--edge);padding-bottom:16px}
+.occ-brand h1{margin:0;font-size:clamp(20px,2.4vw,28px);letter-spacing:.01em}.occ-brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.occ-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.occ-controls label{font-size:12px;color:var(--muted)}
+select,input[type=text],input[type=search],input[type=number],input[type=datetime-local],textarea{background:var(--panel2);border:1px solid var(--edge);border-radius:9px;padding:9px 11px;min-height:44px;max-width:100%}
+textarea{width:100%;resize:vertical}
+.occ-status{min-height:24px;margin:12px 0;color:var(--sea)}.occ-status[data-kind=error]{color:var(--err)}
+.occ-banner{background:#2b2a1c;border:1px solid #6b5a2c;color:#f3dfae;border-radius:10px;padding:10px 14px;margin:0 0 14px}
+.occ-main{display:grid;grid-template-columns:minmax(260px,380px) minmax(0,1fr);gap:20px;align-items:start}
+.occ-list,.occ-detail{background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:14px}
+.occ-list input[type=search]{width:100%;margin-bottom:10px}
+.occ-group h3{font-size:11px;letter-spacing:.14em;color:var(--muted);margin:12px 4px 6px}
+.occ-list-plain{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.occ-row{width:100%;text-align:left;background:var(--panel2);border:1px solid var(--edge);border-radius:11px;padding:10px 12px;display:grid;gap:4px;min-height:44px}
+.occ-row.is-active{border-color:var(--highlight);box-shadow:inset 3px 0 0 var(--highlight)}
+.occ-row-title{font-weight:700}.occ-row-key{font:12px/1.3 ui-monospace,Menlo,monospace;color:var(--muted);overflow-wrap:anywhere}
+.occ-chips{display:flex;flex-wrap:wrap;gap:6px}
+.occ-chip{font-size:12px;border-radius:999px;padding:2px 9px;border:1px solid var(--edge);background:#152030}
+.occ-chip-on{color:var(--on);border-color:#2f6f57}.occ-chip-off{color:var(--off);border-color:#7a4a35}.occ-chip-lock{color:var(--highlight)}
+.occ-chip-sched,.occ-chip-open{color:var(--sea)}.occ-chip-consumed,.occ-chip-revoked,.occ-chip-expired{color:var(--muted)}
+.occ-detail h2{margin:0 0 4px;font-size:20px}.occ-meta{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.occ-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.occ-tabs button{background:transparent;border:1px solid var(--edge);border-radius:9px;padding:8px 12px;min-height:44px}
+.occ-tabs button.is-active{background:#2b3c4f;border-color:var(--highlight)}
+.occ-panel{display:grid;gap:14px}.occ-field{display:grid;gap:6px;border:0;padding:0;margin:0}
+fieldset.occ-field{border:1px solid var(--edge);border-radius:10px;padding:10px 12px}legend{color:var(--muted);font-size:13px;padding:0 4px}
+.occ-switch{display:flex;align-items:center;gap:10px}.occ-switch input{width:22px;height:22px}
+.occ-radio{display:flex;align-items:center;gap:8px;min-height:36px}
+.occ-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+.occ-primary,.occ-secondary{border-radius:10px;padding:10px 16px;min-height:44px;font-weight:700}
+.occ-primary{background:var(--highlight);color:#1b1408;border:0}.occ-secondary{background:transparent;border:1px solid var(--edge)}
+.occ-hist{background:var(--panel2);border:1px solid var(--edge);border-radius:10px;padding:10px 12px;display:grid;gap:4px}
+.occ-hist .occ-secondary{justify-self:start}.occ-reason-text{font-style:italic;overflow-wrap:anywhere}
+.occ-lock{border:1px solid #6b5a2c;border-radius:10px;padding:12px;background:#2b2a1c}
+.occ-note{color:var(--sea)}.occ-empty{color:var(--muted)}.occ-field-error{color:var(--err);margin:0;font-size:13px}
+.occ-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+code{font:12px ui-monospace,Menlo,monospace;color:var(--muted)}
+.occ-backdrop{position:fixed;inset:0;background:rgba(6,10,16,.72);display:grid;place-items:center;padding:16px;z-index:50}
+.occ-dialog{background:var(--panel);border:1px solid var(--highlight);border-radius:14px;padding:18px;width:min(560px,100%);max-height:90vh;overflow:auto;display:grid;gap:10px}
+.occ-dialog h3{margin:0}.occ-summary{margin:0;padding-left:18px;overflow-wrap:anywhere}
+@media (max-width:760px){.occ-main{grid-template-columns:1fr}.occ-top{align-items:stretch}.occ-controls{display:grid;grid-template-columns:1fr;width:100%}.occ-controls select,.occ-controls button{width:100%}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}

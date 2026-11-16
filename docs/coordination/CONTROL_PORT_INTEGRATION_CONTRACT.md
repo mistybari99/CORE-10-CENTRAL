@@ -76,8 +76,57 @@ Rows for `build01_set_access_v1`, `change_access_v1`, `build02a_set_approval_pol
 administration, not a business feature. New RPCs from your `0014`–`0016` that are VOLATILE and API-callable need a row
 (`enforced` once bound, or `pending` with a board row). The `0013` TRUNCATE guard stays an invariant, not a setting.
 
+## Registry evidence and migration order (B-020 coordination, 0103)
+
+An RPC becomes `enforced` only when both hold:
+
+1. Its current definition calls `core10.control_check_v1(<business>, '<its feature key>', ...)` with the exact mapped
+   key (`core10._control_rpc_calls_check_v1`), and
+2. Its registry row names a proof test (`test_ref`) that exists, calls the RPC, asserts `CONTROL_DISABLED`, and is run
+   by a CI workflow (`tests/migrations/control-registry-evidence.sh`).
+
+Order matters. Migrations `0013`–`0099` run before the registry exists (`0100`), so an NP01 migration cannot change
+registry rows. Promotion therefore happens in a migration numbered after `0102`, through
+`core10._control_registry_promote_v1(rpc, test_ref)`, which promotes only when the evidence holds and otherwise leaves the
+row `pending` and says why. `0103` does this for `publish_approval_policy_v1` (your `0018`, proof
+`tests/migrations/np01-control-publish-e2e.sql`): on trunk without `0018` it stays pending; with PR #107 integrated it is
+enforced. The gate prints `PROMOTE_READY` for a pending RPC that already calls the check.
+
+Numeric order is apply order, and `run.sh` now refuses `OUT_OF_ORDER` on a database that already holds a higher version.
+Ranges are in `docs/coordination/MIGRATION_RESERVATIONS.json`. Consequences:
+
+- PR #107 (`0013`–`0018`) must be integrated into trunk **before** `0100`+ reaches any persistent database (B-022).
+- NP01 work that depends on the Control port, including registry promotions for your next bindings, uses the new NP01
+  range `0110`–`0149` (after the Control port), not `0019`+.
+- A file whose number is below a persistent database's maximum is renumbered by the trunk owner at integration
+  (rename only; content and checksum unchanged).
+
+### Registry state today
+
+`0106` promotes `decide_approval` and `withdraw_typed_approval_v1` (your `0019`, proof
+`tests/migrations/np01-control-decision-e2e.sql`) under the same evidence rule.
+
+| | trunk (no PR #107) | trunk + PR #107 at `32dfb63` (verified locally) |
+| --- | --- | --- |
+| enforced | 0 | 3 (`publish_approval_policy_v1`, `decide_approval`, `withdraw_typed_approval_v1`) |
+| exempt | 7 | 7 |
+| pending | 14 | 11 |
+
+The six RPCs your `0017` fenced (no `authenticated` execute) are not API-callable, so they need no row until you re-grant
+them; re-granting requires a row in the same migration range, `enforced` with evidence or `pending` with a board row.
+
+## Owner Control Centre (B-021)
+
+`core10-owner-control-centre.html` (linked from the Owner header in the Central shell next to Control Studio) uses only
+`build01_context_v1` and the `control_*` RPCs, including `control_audit_v1` (`0104`). Business and site selection,
+on/off, approval stages, typed parameters with bilingual labels (`0105`), effective date, site override or follow-business,
+history with revert, one-time exceptions, and the Control audit with chain status. Non-owners get view-only controls and no
+history/exception/audit tabs; the server refuses them anyway. The page accepts only the CORE10 staging project or a loopback
+test backend (`core10-control-centre-config.js`; key left empty until the Owner approves Level 2) and never the legacy
+IMG-ERP-SG or a live business project. A044 Control Studio (menu placement) remains separate; folding placement into this
+catalog is a later task.
+
 ## Not in this slice
 
-The Owner Control Centre screen in the Central shell (read: `control_read_v1`; write: `control_set_v1`), the natural-language
-request path (A052 owner intent) and the first real consumers beyond NP01 (Master Data, NP02) follow in B-010b/B-011.
+The natural-language request path (A052 owner intent) and the first real consumers beyond NP01 (Master Data, NP02) follow in B-011.
 No hosted database has been changed by this slice.

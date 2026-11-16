@@ -22,6 +22,12 @@ case "${1:-}" in
       || { echo "CHECKSUM_DRIFT $n: an applied migration was edited" >&2; exit 1; }
     continue
    fi
+   top="$(applied | tail -1)"
+   if [ -n "$top" ] && [ "$v" -lt "$top" ]; then
+    echo "OUT_OF_ORDER $n: version $v is lower than applied version $top. Numeric order is apply order;" >&2
+    echo "  renumber the file above $top on trunk before it reaches this database (see docs/coordination/MIGRATION_RESERVATIONS.json)." >&2
+    exit 1
+   fi
    "${PSQL[@]}" -1 -f "$f" -c "insert into core10.schema_migrations(version,name,checksum) values($v,'$n','$(sum "$f")')"
    echo "applied $n"
   done;;

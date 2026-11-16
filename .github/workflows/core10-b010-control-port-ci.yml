@@ -6,13 +6,18 @@ on:
       - "tests/migrations/**"
       - "docs/coordination/**"
       - ".github/workflows/core10-b010-control-port-ci.yml"
+      - "core10-owner-control*"
+      - "core10-control-centre-config.js"
+      - "core10-control-studio-entry.js"
+      - "tests/control-centre/**"
+      - "tests/c10_np02_*"
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   control-port:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:17
@@ -57,3 +62,23 @@ jobs:
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Concurrent sessions (stale writers, replays, one-time exception)
         run: bash tests/migrations/control-race.sh
+      - name: Registry evidence (each enforced RPC names an existing CI-run proof test)
+        run: bash tests/migrations/control-registry-evidence.sh
+      - name: Owner Control Centre client contract
+        run: node --test tests/c10_np02_owner_control_client_v1.test.js
+      - name: Install pinned Chromium for the browser test
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Owner Control Centre in a real browser against the real SQL functions (390 and 1440 px)
+        env: { OCC_SHOTS: occ-shots }
+        run: |
+          psql -X -q -c "CREATE DATABASE occ"
+          PGDATABASE=occ internal/migrations/run.sh up
+          PGDATABASE=occ psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/seed.sql
+          PGDATABASE=occ node tests/control-centre/owner-control-centre-browser.cjs
+      - name: Owner Control Centre screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: owner-control-centre-screenshots, path: occ-shots, if-no-files-found: ignore }

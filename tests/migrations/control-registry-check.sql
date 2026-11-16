@@ -19,10 +19,15 @@ BEGIN
                    AND p.provolatile='v' AND has_function_privilege('authenticated', p.oid, 'execute'));
  IF bad IS NOT NULL THEN RAISE EXCEPTION 'STALE_RPC_MAP_ROW (no such state-changing RPC): %', bad; END IF;
 
+ -- enforced = the RPC calls control_check_v1 with exactly its mapped feature key, and names its proof test
  SELECT string_agg(m.rpc_name, ', ' ORDER BY m.rpc_name) INTO bad FROM core10.control_rpc_map_v1 m
- WHERE m.status='enforced' AND NOT EXISTS (SELECT 1 FROM pg_proc p WHERE p.pronamespace='core10'::regnamespace
-   AND p.proname=m.rpc_name AND pg_get_functiondef(p.oid) ~ 'control_check_v1\(');
+ WHERE m.status='enforced' AND (m.test_ref IS NULL OR NOT core10._control_rpc_calls_check_v1(m.rpc_name, m.feature_key));
  IF bad IS NOT NULL THEN RAISE EXCEPTION 'ENFORCED_RPC_DOES_NOT_CALL_CONTROL_CHECK: %', bad; END IF;
+
+ -- pending rows that already carry the evidence are reported (promote them in a post-0102 migration)
+ SELECT string_agg(m.rpc_name, ', ' ORDER BY m.rpc_name) INTO bad FROM core10.control_rpc_map_v1 m
+ WHERE m.status='pending' AND core10._control_rpc_calls_check_v1(m.rpc_name, m.feature_key);
+ IF bad IS NOT NULL THEN RAISE NOTICE 'PROMOTE_READY (calls the check; add the proof test and promote): %', bad; END IF;
 
  -- no callable core10 function for anon or PUBLIC
  SELECT string_agg(DISTINCT p.proname, ', ') INTO bad FROM pg_proc p
