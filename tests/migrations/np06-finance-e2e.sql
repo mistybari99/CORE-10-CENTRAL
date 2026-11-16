@@ -99,7 +99,7 @@ SELECT np06_test.expect(format(
  $q$INSERT INTO core10.finance_journal_lines_v1
  (journal_id,tenant_id,business_id,line_no,account_id,side,amount)
  VALUES(%s,951,9511,3,%s,'debit',1)$q$,:journal_id,:cash_id),
- 'FIN_LINES_FROZEN');
+ 'permission denied for table finance_journal_lines_v1');
 
 
 -- Default Owner approval stages = 1: no finance approval adapter exists, so posting DENIED.
@@ -127,7 +127,7 @@ SELECT np06_test.expect(format(
  $q$INSERT INTO core10.finance_journal_lines_v1
  (journal_id,tenant_id,business_id,line_no,account_id,side,amount)
  VALUES(%s,951,9511,3,%s,'debit',1)$q$,:journal_id,:cash_id),
- 'FIN_LINES_FROZEN');
+ 'permission denied for table finance_journal_lines_v1');
 
 
 SELECT core10.finance_draft_journal_v1(
@@ -210,6 +210,12 @@ SELECT np06_test.ok((SELECT count(*)>=1 FROM core10.canonical_audit_events_v1
 
 -- Immutable posted journal and all lines even to privileged accidental DML.
 RESET ROLE;
+-- PostgreSQL owner context reaches the trigger; permission denial alone is not enough.
+SELECT np06_test.expect(format(
+ $q$INSERT INTO core10.finance_journal_lines_v1
+ (journal_id,tenant_id,business_id,line_no,account_id,side,amount)
+ VALUES(%s,951,9511,3,%s,'debit',1)$q$,:journal_id,:cash_id),
+ 'FIN_LINES_FROZEN');
 SELECT np06_test.expect(format('UPDATE core10.finance_journals_v1 SET status=%L WHERE id=%s',
  'validated',:journal_id),'FIN_POSTED_IMMUTABLE');
 SELECT np06_test.expect(format('DELETE FROM core10.finance_journal_lines_v1 WHERE journal_id=%s',
