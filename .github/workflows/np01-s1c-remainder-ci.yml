@@ -59,5 +59,7 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-submit-delegation-e2e.sql
       - name: B-020 0111 route stages 0-5, version pinning, disabled replay, isolation (PG17)
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-route-stages-e2e.sql
+      - name: B-020 0111 two-session route configuration and 0/3-stage submission replays
+        run: bash tests/migrations/np01-control-route-concurrency.sh
       - name: B-006 real two-session PostgreSQL policy/request/exception races
         run: bash tests/migrations/np01-governance-concurrency.sh
