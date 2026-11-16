@@ -113,7 +113,6 @@ BEGIN
  PERFORM core10.revoke_approval_delegation_v1(qr,'route-revoke-original');
  IF (SELECT revoked_at FROM core10.approval_delegations_v1 WHERE request_id=qr) IS NULL
  THEN RAISE EXCEPTION 'S1C_DELEGATE_REVOCATION_MISSING'; END IF;
- PERFORM core10.decide_approval(qr,'approve','route-revoke-owner-vote');
  PERFORM core10.decide_approval(qtwo,'approve','route-two-owner-vote');
  PERFORM core10.decide_approval(qexpiry,'approve','route-expiry-owner-vote');
 END $t$;
@@ -181,6 +180,15 @@ BEGIN
  WHERE request_id=q5 AND stage_no=4)<>1
  THEN RAISE EXCEPTION 'S1C_FIVE_STAGE4_TASK_MISSING'; END IF;
  PERFORM core10.decide_approval(q5,'approve','route-vote-stage-04');
+END $t$;
+
+-- Original business owner can take over stage one only AFTER revocation.
+SELECT set_config('request.jwt.claims','{"sub":"92222222-2222-4222-8222-222222222222"}',true);
+SELECT set_config('request.jwt.claim.sub','92222222-2222-4222-8222-222222222222',true);
+DO $t$
+BEGIN
+ PERFORM core10.decide_approval(current_setting('core10.route_qr')::bigint,
+  'approve','route-revoke-owner-vote');
 END $t$;
 
 -- Cross-tenant forged metadata cannot read or approve any request or route.
