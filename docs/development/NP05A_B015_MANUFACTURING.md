@@ -56,12 +56,14 @@ Fictional Sandesh QA uses milk, sugar and boxes; synthetic BDT estimates, not ta
 
 Executed locally on PostgreSQL 17:
 
-- All migrations up → full down → up, repeated idempotent up: PASS (20 migrations before current NP01 trunk integration; rerun on latest trunk recorded with CI).
+- All migrations up → full down → up, repeated idempotent up: PASS (27 migrations including latest NP01 trunk at `5598795`; full down and idempotent up).
 - `tests/np05a/manufacturing-e2e.sql`: PASS; drafts, immutable versions, future effectivity, planning math/variance, output reconciliation, variance limits, safe cancellation, default maker/checker, approval/Master fail closed, every Control switch-off, direct mutation/helper denial, cross-tenant/business/site, manager/investor/operator/revoked/expired/unassigned negatives, zero stock mutation, canonical audit verification.
 - `tests/np05a/concurrency.sh`: PASS; two real sessions same-key output command -> one source receipt/Audit event; competing late key refused; rollback with history refused.
 - Canonical registry and evidence scripts: PASS (7 new enforced RPCs; baseline pending debt preserved).
 - Static migration and `tests/np05a/client.test.mjs`: PASS; injected scope cannot be overridden, stale in-flight response invalidation and permission errors.
 - `tests/np05a/browser.cjs`: PASS, 22 checks at 390/1440; real SQL behind a loopback test gateway; draft creation, maker/checker error, disconnected handoff, report, English toggle, no overflow, disposal and revoked-role error. Screenshots in `np05a-evidence/` and CI artifacts. A hidden-button selector failure was corrected and the browser suite rerun.
+
+Draft PR: https://github.com/mistybari99/CORE-10-CENTRAL/pull/112. Initial CI at `48868f2` failed during container setup because the health command used single quotes; corrected to the established double-quoted Docker option and rerun. No SQL/security test was bypassed.
 
 CI workflow: `.github/workflows/core10-np05a-manufacturing-ci.yml`. Exact-head links/results belong to the PR and Board; do not infer CI success from this document.
 
