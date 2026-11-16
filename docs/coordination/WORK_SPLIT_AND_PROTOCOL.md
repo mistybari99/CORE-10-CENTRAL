@@ -111,3 +111,20 @@ control and an approval binding (which may be "none"). A feature without its con
 
 - Board: see `docs/coordination/BOARD_LINK.md`
 - Plan: Final Decisions, Change Register, 520-row sheet, Code Gap Audit (links in `docs/development/HANDOFF_S1_2026-11-16.md`)
+
+## 8. DEC-10 — push and preview cadence (Owner instruction 2026-11-16)
+
+1. **No held work.** Every builder pushes to its own branch at the end of each working step, and
+   at the latest after two to four substantial pieces of work. Unpushed local work does not count
+   as done and is not reported as done. The board row gets the pushed SHA the same day.
+2. **Integration follows quickly.** A green lane PR marked `READY_FOR_INTEGRATION` is verified and
+   merged into trunk before the trunk owner starts new work of its own.
+3. **Preview for the Owner after every two to four substantial pieces of integrated work** (this
+   tightens the earlier "every two verified major builds" rhythm). Each preview states exactly
+   what is real and what is synthetic, and comes with a short Bangla "where to click, what to
+   see" list.
+4. Preview levels, in the order they become available:
+   - Level 1 — synthetic click-through of the trunk UI, no sign-in, no database.
+   - Level 2 — Owner signs in with the Owner ID against a separate staging database that holds
+     synthetic data only. Needs a staging project that is not IMG-ERP-SG.
+   Publishing either level outside GitHub is a deployment and needs the Owner's GO for that level once.
