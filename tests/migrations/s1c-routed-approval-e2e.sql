@@ -73,8 +73,12 @@ BEGIN
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM<>'approval_not_authorized' THEN RAISE; END IF;
  END;
- IF (SELECT count(*) FROM core10.my_routed_review_tasks_v1(9101))<>0
- THEN RAISE EXCEPTION 'S1C_MAKER_TASK_LEAK'; END IF;
+ BEGIN
+  PERFORM core10.my_routed_review_tasks_v1(9101);
+  RAISE EXCEPTION 'S1C_MAKER_REVIEW_PERMISSION_GRANTED';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM<>'reviewer_task_access_denied' THEN RAISE; END IF;
+ END;
 END $t$;
 
 -- Business owner: approve stage 1 on 5-step route and delegate a different
