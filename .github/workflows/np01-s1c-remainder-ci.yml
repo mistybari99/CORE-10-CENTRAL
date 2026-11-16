@@ -42,6 +42,8 @@ jobs:
           node --test tests/setup001/setup-profile-engine.test.cjs tests/gov003/np01-canonical-csv.test.mjs
       - name: Canonical migrations up-down-up
         run: bash tests/migrations/run-updownup.sh
+      - name: B-020 fail-closed RPC exposure while Control bindings are pending
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-unbound-rpc-fence.sql
       - name: B-005 owner-equivalent TRUNCATE negative proof
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-truncate-guard.sql
       - name: B-006 and B-007 synthetic Owner/Manager/Cross-tenant PostgreSQL proof
