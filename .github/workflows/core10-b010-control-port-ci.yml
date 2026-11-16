@@ -11,6 +11,8 @@ on:
       - "core10-control-studio-entry.js"
       - "tests/control-centre/**"
       - "tests/c10_np02_*"
+      - "internal/enterprise-sql/**"
+      - "tests/c10_a018_demo_seed.sql"
   workflow_dispatch:
 permissions:
   contents: read
@@ -50,6 +52,8 @@ jobs:
         run: internal/migrations/run.sh up
       - name: Owner Control end to end (8 personas, negatives, scheduling, exceptions, audit)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-control-e2e.sql
+      - name: B-011 master tables (scope, isolation, constraints, no direct API-role access)
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-tables-e2e.sql
       - name: DEC-08 registry gate (every state-changing RPC is mapped)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Registry gate self-test (an unmapped RPC must fail the gate)
@@ -64,6 +68,15 @@ jobs:
         run: bash tests/migrations/control-race.sh
       - name: Registry evidence (each enforced RPC names an existing CI-run proof test)
         run: bash tests/migrations/control-registry-evidence.sh
+      - name: B-009 legacy installer vs numbered migrations drift (reviewed list, no silent ignores)
+        run: bash tests/migrations/b009-legacy-drift.sh
+      - name: B-009 self-test (an unrecorded legacy-only object must fail the drift test)
+        run: |
+          cp internal/enterprise-sql/c10_a034_access_governance_v1.sql /tmp/a034.bak
+          echo "CREATE TABLE core10.b009_selftest(x int);" >> internal/enterprise-sql/c10_a034_access_governance_v1.sql
+          if bash tests/migrations/b009-legacy-drift.sh; then echo "drift test did not catch an unrecorded object"; exit 1; fi
+          cp /tmp/a034.bak internal/enterprise-sql/c10_a034_access_governance_v1.sql
+          bash tests/migrations/b009-legacy-drift.sh
       - name: Owner Control Centre client contract
         run: node --test tests/c10_np02_owner_control_client_v1.test.js
       - name: Install pinned Chromium for the browser test

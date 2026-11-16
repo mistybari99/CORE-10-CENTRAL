@@ -47,8 +47,10 @@ async function step(name, fn) {
   const rowHas = (page, key, cls) => page.$(`[data-feature="${key}"] .${cls}`);
 
   const own = await open(P.own, 1440, "en");
-  await step("owner sees the business, its sites and 9 features", async () => {
-    assert.strictEqual(await own.$$eval(".occ-row", (r) => r.length), 9);
+  await step("owner sees the business, its sites and the 9 baseline features", async () => {
+    const keys = await own.$$eval(".occ-row", (r) => r.map((x) => x.dataset.feature));
+    for (const k of ["audit.immutability", "tenant.isolation", "access.expiry_revocation", "gov002.approval_policy", "gov002.review",
+      "gov003.review_export", "setup001.profile_preview", "setup001.provision", "inventory.stock_event"]) assert.ok(keys.includes(k), "missing " + k);
     assert.ok((await own.$$eval("#occ-business option", (o) => o.map((x) => x.value))).includes("9101"));
     assert.deepStrictEqual(await own.$$eval("#occ-site option", (o) => o.map((x) => x.value)), ["", "9201", "9202"]);
   });
