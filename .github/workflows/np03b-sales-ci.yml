@@ -1,0 +1,42 @@
+name: NP03B Sales Order Foundation PG17
+on:
+  push:
+    branches: ['build/codex-np03b-sales']
+  pull_request:
+    paths: ['internal/migrations/**','tests/np03b/**','.github/workflows/np03b-sales-ci.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sales:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_PASSWORD: np03b_disposable, POSTGRES_DB: core10_np03b_ci }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd 'pg_isready -U postgres' --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGUSER: postgres
+      PGDATABASE: core10_np03b_ci
+      PGPASSWORD: np03b_disposable
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Static migration contract
+        run: node --test tests/migrations/migration-contract.test.js
+      - name: Full up down up PostgreSQL17
+        run: bash tests/migrations/run-updownup.sh
+      - name: Synthetic Sales security, approvals, idempotency, RLS and rollback
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/np03b/sales-orders.sql
+      - name: Every mutation mapped to Control with evidence
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+          bash tests/migrations/control-registry-evidence.sh
+      - name: Independent session duplicate and amendment races
+        run: bash tests/np03b/concurrency.sh
