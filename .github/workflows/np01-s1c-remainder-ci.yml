@@ -9,6 +9,7 @@ on:
       - "internal/migrations/0016*"
       - "internal/migrations/0019*"
       - "internal/migrations/0110*"
+      - "internal/migrations/0111*"
       - "tests/migrations/np01*"
       - "tests/setup001/**"
       - "tests/gov003/np01*"
@@ -56,5 +57,7 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-decision-e2e.sql
       - name: B-020 0110 submission, delegation and revocation canonical Control negatives (PG17)
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-submit-delegation-e2e.sql
+      - name: B-020 0111 route stages 0-5, version pinning, disabled replay, isolation (PG17)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-route-stages-e2e.sql
       - name: B-006 real two-session PostgreSQL policy/request/exception races
         run: bash tests/migrations/np01-governance-concurrency.sh
