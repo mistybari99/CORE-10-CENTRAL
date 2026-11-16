@@ -1,0 +1,26 @@
+# CORE-10-CENTRAL — FOUR CLAUDE FULL-BUILD COORDINATION REGISTER
+
+**Prepared:** 2026-11-11 · **Status:** four work assignments, not an automated launch or four finished runtime builds.
+**Main policy:** One Master Decision Book: https://docs.google.com/spreadsheets/d/1IYzGBtUVNjah31cPVSFHkzgO7P093jTfZS0CopWrDxs/edit
+**Preview/Codex context:** https://github.com/mistybari99/CORE-10-CENTRAL/pull/60 and https://github.com/mistybari99/CORE-10-CENTRAL/issues/61
+**Owner latest instruction:** Claude is responsible for selecting the BEST safe engineering decisions independently, **without waiting for every Owner microdecision**; all substantial actual internal code, UI, backend, calculations, reports and tests should be finished, not partial/scaffolding. Use disposable demo accounts and test before claiming completion. Final integration must use the **post-Codex verified canonical source**.
+
+| Package | Existing source / task | Current truthful status | Ownership |
+|---|---|---|---|
+| **#1 A055 Assets/Maintenance** | [Issue #58](https://github.com/mistybari99/CORE-10-CENTRAL/issues/58), [Draft PR #59](https://github.com/mistybari99/CORE-10-CENTRAL/pull/59) | Partial source; last observed CI FAILED due missing `tests/c10_a055_registry_e2e.sql`. Continue existing code, not rebuild | `claude/c10-a055-enterprise-assets-maintenance-v1` |
+| **#2 A052 Owner Intent Runtime** | [Issue #53](https://github.com/mistybari99/CORE-10-CENTRAL/issues/53), [Draft PR #62](https://github.com/mistybari99/CORE-10-CENTRAL/pull/62) | Architecture and work-order only; no completed runtime | `claude/c10-a052-owner-intent-runtime-v1` |
+| **#3 A053+A054 Workforce Integration/Policy** | [Issues #56](https://github.com/mistybari99/CORE-10-CENTRAL/issues/56), [#57](https://github.com/mistybari99/CORE-10-CENTRAL/issues/57), [Draft PR #63](https://github.com/mistybari99/CORE-10-CENTRAL/pull/63) | A051 payroll source built separately; A053/A054 new integrations still assignment-only | `claude/c10-a053-a054-workforce-integration-policy-v1` |
+| **#4 A057 NEW Cross-Industry CRM + Omnichannel** | [Issue #64](https://github.com/mistybari99/CORE-10-CENTRAL/issues/64), [Draft PR #65](https://github.com/mistybari99/CORE-10-CENTRAL/pull/65), [full A057 build order](CLAUDE_A057_POST_CODEX_FULL_BUILD_ORDER.md) | Fresh package, code not built. Final integration explicitly **ON TOP OF CODEX** | `claude/c10-a057-universal-crm-commerce-v1` |
+
+## Autonomous full-build protocol — ALL FOUR
+
+1. Do not wait for Owner to choose implementation defaults, UI layouts, SQL structures, workflow sequence, test coverage or tooling. Lead engineer makes best **safe, reversible, recorded technical decisions** constrained by the Master Decision Book and existing contracts, with built-in Owner-configurable options where certified. Translate the Owner's intent into dependable software.
+2. Reuse A046 16 synthetic personas across separate test tenants/businesses/sites. Build disposable SQL/RPC/API/Node/Chromium fixtures. Test realistic complete workflows and denied/revoked/anon/out-of-scope users. **No actual Owner/Staff IDs needed before isolated development.** Synthetic JWT cannot substitute for actual GoTrue certification.
+3. Do not call a module `COMPLETE` with missing actual UI↔RPC↔data↔report↔audit link, dead buttons, pending internal CI files, fabricated finance results, or known critical negative-test failures. Build and resolve defects in iterative complete vertical slices, and provide exact-head CI + Draft PR.
+4. Distinguish missing **external production credentials or release authorizations** from missing internal implementation. Build sandbox/no-op adapters and full tested internal workflows even if real bank, domain, outbound marketing, database staging or real signed GoTrue are not authorized. External live activation must be gated, fail closed and never misrepresented as complete.
+5. Avoid overlapping files: A055 assets; A052 Owner-intent; A053/054 workforce policy; A057 customer/commerce. Existing A045 Owner Workshop, A046 personas, A048 stock, A049 operation, A050 portfolio, A051 workforce, Codex preview Worker and legacy Islamiya customer/website scripts are **read-only shared contracts**, unless a separate reviewed nonconflicting integration adapter is prepared.
+6. Claude may do independent work immediately. For **final stitched integration**, consume the **latest real verified Codex result** and run full combined regression and browser smoke before claiming integrated. Never overwrite Codex code or push a parallel generic ERP.
+7. **No main merge, production Supabase/IMG-ERP-SG, live bank/payroll/stock/website/public messaging or production staff data change without specific release gate/Owner approval.** These production gates are not permission to leave internally buildable work unfinished.
+8. Report to Owner in Bangla: modules truly functional; sample/demo-only; exact branch + SHA + PR + CI; remaining external certification; one next concrete engineering action. Do not send repetitive clarification requests.
+
+**Codex task instructions beyond existing Preview V1 are reserved for the Owner's next message.** This coordination note shares dependencies only, not authorization to start or direct Codex.
