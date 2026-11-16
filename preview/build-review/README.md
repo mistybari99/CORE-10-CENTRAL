@@ -47,3 +47,21 @@ migrations 0001–0150 from the pin), Playwright 1.63.0 Chromium. CI uses Postgr
 ## Bangla Owner checklist
 
 See the "কোথায় ক্লিক করে কী দেখবেন" section on the hub page.
+
+## Deployment record (2026-11-16 UTC)
+
+| Item | Value |
+|---|---|
+| URL | https://core10-build-review.mistybari99.workers.dev/ |
+| Account | `382a468cf1bde26b7b3c480acc409732` |
+| Worker | `core10-build-review` (new; name was free) · zero bindings · no schedules · workers.dev on, previews off |
+| Active deployment / version | `308c8b13-dd5b-4581-b4c7-37bc11cb4936` / `52b86bc5-4b2b-40d5-89b0-650a378b5147` (100%) |
+| Script content | `dist/worker.mjs` sha256 `42952fdfefba3db3743be16bc7d47eefafed17307e365a25b5e78ef76c8c435f` (rebuild from package commit `7b10936`, verified server-side before upload) |
+| Public verify | `REVIEW_BASE=<URL> node preview/build-review/verify.cjs` → **27/27 PASS** (incl. 405 on all writes, CSP-blocked fetch to staging, 404 for config.js / SQL gateway / harness) |
+| `core10-central` | untouched: deployment `a6d6629f-3004-4720-8b32-6fc5c45d4bd2`, version `b1d80c36-cb9b-4547-ab16-2821eb50e4fa`, etag `336ab7e1…` before and after |
+| `trillionaire-me` | untouched (modified_on 2026-11-13) |
+
+Upload path (the Cloudflare API sandbox cannot fetch GitHub): `core10-build-review` was briefly deployed as a
+token-protected uploader bound to a temporary KV namespace; the container POSTed `dist/worker.mjs`; the stored
+bytes were hash-checked, the script was replaced with the final build, the KV namespace deleted and the
+carried-over upload secret deleted (deployment `308c8b13…`, triggered_by `secret`). Old upload endpoint now → 405.
