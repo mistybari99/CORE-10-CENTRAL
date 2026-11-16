@@ -27,11 +27,18 @@ function token(sub,extra={}){
 async function http(route,t,method="GET",payload){
  const headers={"content-type":"application/json"};
  if(t)headers.authorization="Bearer "+t;
- const response=await fetch(base+route,{method,headers,
-  body:payload===undefined?undefined:JSON.stringify(payload)});
- const raw=await response.text();let data;
- try{data=JSON.parse(raw)}catch{data=raw}
- return{status:response.status,data};
+ // PostgREST can accept TCP connections before its schema cache is ready.
+ // Retry only PGRST002 (temporary schema-cache startup), never permission
+ // denials or business assertions. Persistent 503 still fails the test.
+ for(let attempt=0;attempt<40;attempt++){
+  const response=await fetch(base+route,{method,headers,
+   body:payload===undefined?undefined:JSON.stringify(payload)});
+  const raw=await response.text();let data;
+  try{data=JSON.parse(raw)}catch{data=raw}
+  if(response.status!==503||data?.code!=="PGRST002"||attempt===39)
+   return{status:response.status,data};
+  await new Promise(resolve=>setTimeout(resolve,250));
+ }
 }
 const jwt=Object.fromEntries(Object.entries(people).map(([k,id])=>[k,token(id)]));
 async function list(path,t,n,label){
