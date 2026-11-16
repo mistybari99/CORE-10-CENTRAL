@@ -175,7 +175,7 @@ SELECT np06_test.expect(format('UPDATE core10.finance_journals_v1 SET status=%L 
  'validated',:journal_id),'FIN_POSTED_IMMUTABLE');
 SELECT np06_test.expect(format('DELETE FROM core10.finance_journal_lines_v1 WHERE journal_id=%s',
  :journal_id),'FIN_LINES_APPEND_ONLY');
-SELECT np06_test.expect('TRUNCATE core10.finance_journals_v1','FIN_IMMUTABLE');
+SELECT np06_test.expect('TRUNCATE core10.finance_journals_v1 CASCADE','FIN_IMMUTABLE');
 SELECT np06_test.expect('TRUNCATE core10.finance_journal_lines_v1','FIN_IMMUTABLE');
 
 SELECT 'NP06_PG17_SYNTHETIC_SECURITY_OK' AS result;
