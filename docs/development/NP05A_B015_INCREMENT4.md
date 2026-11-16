@@ -57,3 +57,13 @@ NP02/NP01 integration request (also recorded on B-015): supply verified active/v
 Safety: own-branch development, disposable testing and Draft PR/own Board fields only. No hosted Supabase apply, staging seed/users, Cloudflare deployment, PR merge or IMG-ERP-SG access. Decision Book NOT WRITTEN: existing scope implemented, no new Owner policy decision.
 
 Owner QA: রেসিপি → বিকল্প উপকরণ → পরিমাণ/একক/সর্বোচ্চ শতাংশসহ খসড়া নিয়ম দিন → preview-এ গুণক ও শতাংশ দিয়ে মূল/বিকল্প পরিমাণ এবং আনুমানিক খরচ দেখুন। এটি development surface; বাস্তব ব্যাচে বিকল্প বাছাই বা stock issue নয়।
+
+## Shared Finance CI integration request (outside NP05A ownership)
+
+At first increment-4 HEAD `c39cc63`, NP05A (push + PR), S0, Control/Master/B-009 and S1-c were PASS; shared Finance workflow run **43975813999 FAIL**. All Finance migrations, security assertions and posting races passed. Its last step calls generic `internal/migrations/run.sh down` expecting the 0400 Finance guard, but the highest migration is now 0503. It successfully rolls back unused 0503 and reports FIN_ROLLBACK_UNEXPECTEDLY_ALLOWED without ever invoking Finance rollback. This is a test-boundary assumption exposed by a later block, not permission to change rollback behavior or weaken a test.
+
+Owner request for NP06/trunk is recorded in B-015: apply the focused **one-line** proposal `NP05A_NP06_ROLLBACK_CI_PROPOSAL.patch` to the Finance-owned workflow. It calls the exact 0400 down file with `psql -X -q -v ON_ERROR_STOP=1 -1`, preserving the existing error-token and posted-journal assertions. The shared workflow file and shared runner are **unchanged** in this branch. `git apply --check` verifies the proposal applies.
+
+Independent executable proof is in NP05A's own `tests/np05a/finance-rollback-boundary.sh`, run by its own CI. It reuses the canonical NP06 posting-race fixture, verifies a higher NP05A block is installed, and proves 0400 rejects persisted Finance history atomically, preserving the posted journal and version-400 ledger row. Local result **NP05A_FINANCE_EXACT_ROLLBACK_HISTORY_GUARD_OK**. No alternative Money implementation, fake Finance error from NP05A rollback, test skip or protection change.
+
+Full PR remains BLOCKED until the shared owner applies that CI correction as well as the product dependencies above. Current exact-HEAD results (including the expected unresolved shared failure) are stated in PR #112 and B-015; do not substitute the locally passing targeted proof for a green shared workflow.

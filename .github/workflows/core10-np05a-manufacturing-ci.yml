@@ -61,6 +61,8 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/substitution-browser-seed.sql
       - name: Concurrent substitution definitions and waiting revocation
         run: bash tests/np05a/substitution-race.sh
+      - name: Finance history guard at the exact Finance rollback boundary
+        run: bash tests/np05a/finance-rollback-boundary.sh
       - name: Install browser
         run: |
           npm install --prefix /tmp/np05a-browser playwright@1.63.0
