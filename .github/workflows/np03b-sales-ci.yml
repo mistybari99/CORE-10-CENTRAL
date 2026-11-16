@@ -3,7 +3,7 @@ on:
   push:
     branches: ['build/codex-np03b-sales']
   pull_request:
-    paths: ['internal/migrations/**','tests/np03b/**','.github/workflows/np03b-sales-ci.yml']
+    paths: ['internal/migrations/**','tests/np03b/**','core10-sales-order*','.github/workflows/np03b-sales-ci.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,6 +30,8 @@ jobs:
         with: { node-version: 22 }
       - name: Static migration contract
         run: node --test tests/migrations/migration-contract.test.js
+      - name: Signed session-bound Sales client contracts (synthetic responses)
+        run: node tests/np03b/client.test.cjs
       - name: Disposable API roles
         run: |
           psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
@@ -39,10 +41,28 @@ jobs:
       - name: Full up down up PostgreSQL17
         run: bash tests/migrations/run-updownup.sh
       - name: Synthetic Sales security, approvals, idempotency, RLS and rollback
-        run: psql -X -v ON_ERROR_STOP=1 -f tests/np03b/sales-orders.sql
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f tests/np03b/sales-orders.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/np03b/audit-read.sql
       - name: Every mutation mapped to Control with evidence
         run: |
           psql -X -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
           bash tests/migrations/control-registry-evidence.sh
       - name: Independent session duplicate and amendment races
         run: bash tests/np03b/concurrency.sh
+      - name: Install pinned browser test tool
+        run: |
+          npm install --prefix "$RUNNER_TEMP/np03b-ui-tools" playwright@1.63.0
+          "$RUNNER_TEMP/np03b-ui-tools/node_modules/.bin/playwright" install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/np03b-ui-tools/node_modules" >> "$GITHUB_ENV"
+      - name: Existing shell Sales UI against real PG17 (390 and 1440)
+        env: { NP03B_SHOTS: artifacts/np03b }
+        run: |
+          createdb core10_np03b_ci_ui
+          PGDATABASE=core10_np03b_ci_ui internal/migrations/run.sh up
+          PGDATABASE=core10_np03b_ci_ui psql -X -v ON_ERROR_STOP=1 -f tests/np03b/ui-seed.sql
+          PGDATABASE=core10_np03b_ci_ui node tests/np03b/browser.cjs
+      - name: Sales UI screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: np03b-sales-order-screenshots, path: artifacts/np03b, if-no-files-found: ignore }
