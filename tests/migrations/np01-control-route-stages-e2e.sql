@@ -69,7 +69,7 @@ BEGIN
      WHERE request_id=q AND action='approve')<>1
   THEN RAISE EXCEPTION 'NP01_0111_ZERO_STAGE_RECEIPT'; END IF;
  END LOOP;
-END $test$;
+END; $test$;
 -- Deny even same-key replays when the review switch is off.
 SELECT set_config('request.jwt.claims','{"sub":"99711111-1111-4111-8111-111111111111"}',true);
 SELECT set_config('request.jwt.claim.sub','99711111-1111-4111-8111-111111111111',true);
@@ -85,7 +85,7 @@ BEGIN
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM NOT LIKE 'CONTROL_DISABLED:gov002.review%' THEN RAISE; END IF;
  END;
-END $test$;
+END; $test$;
 SELECT set_config('request.jwt.claims','{"sub":"99733333-3333-4333-8333-333333333333"}',true);
 SELECT set_config('request.jwt.claim.sub','99733333-3333-4333-8333-333333333333',true);
 DO $test$
@@ -97,7 +97,7 @@ BEGIN
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM NOT LIKE 'CONTROL_DISABLED:gov002.review%' THEN RAISE; END IF;
  END;
-END $test$;
+END; $test$;
 -- Foreign tenant with forged JWT metadata must fail canonical Auth first.
 SELECT set_config('request.jwt.claims',
  '{"sub":"99799999-9999-4999-8999-999999999999","app_metadata":{"role":"tenant_owner"}}',true);
@@ -112,7 +112,7 @@ BEGIN
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM<>'approval_route_denied' THEN RAISE; END IF;
  END;
-END $test$;
+END; $test$;
 -- Reenable: pre-existing 1..5 requests retain their saved routes.
 SELECT set_config('request.jwt.claims','{"sub":"99711111-1111-4111-8111-111111111111"}',true);
 SELECT set_config('request.jwt.claim.sub','99711111-1111-4111-8111-111111111111',true);
@@ -163,7 +163,7 @@ BEGIN
  END LOOP;
  IF (core10.verify_canonical_audit_v1(99721)->>'ok')<>'true'
  THEN RAISE EXCEPTION 'NP01_0111_CANONICAL_AUDIT'; END IF;
-END $test$;
+END; $test$;
 RESET ROLE;
 DO $test$
 BEGIN
@@ -172,5 +172,5 @@ BEGIN
   AND test_ref='tests/migrations/np01-control-route-stages-e2e.sql')
  THEN RAISE EXCEPTION 'NP01_0111_REGISTRY_UNPROVEN'; END IF;
  RAISE NOTICE 'NP01_0111_PG17_ROUTE_0_TO_5_AND_PINNING_OK';
-END $test$;
+END; $test$;
 ROLLBACK;
