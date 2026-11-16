@@ -9,11 +9,21 @@ const body=f=>fs.readFileSync(path.join(dir,f),"utf8").replace(/--.*$/gm,"");
 test("every file is NNNN_name.(up|down).sql",()=>{
  for(const f of files)assert.match(f,/^[0-9]{4}_[a-z0-9_]+\.(up|down)\.sql$/,f);
 });
-test("versions are contiguous from 0001 and each has a rollback",()=>{
- ups.forEach((f,i)=>{
-  assert.strictEqual(Number(f.slice(0,4)),i+1,`gap or duplicate at ${f}`);
+// Pack blocks let two builders add migrations in parallel without number collisions:
+// 0001-0099 NP01, 0100-0199 NP02, 0200-0299 NP03A, 0300-0399 NP03B, 0400-0499 NP06, ... (see docs/coordination).
+// Blocks are in dependency order, so numeric order stays a valid apply order.
+test("versions are unique, contiguous inside each pack block, and each has a rollback",()=>{
+ const seen=new Set(),blocks=new Map();
+ for(const f of ups){
+  const v=Number(f.slice(0,4));
+  assert.ok(!seen.has(v),`duplicate version ${f}`); seen.add(v);
   assert.ok(files.includes(f.replace(".up.sql",".down.sql")),`no down for ${f}`);
- });
+  const b=Math.floor(v/100); if(!blocks.has(b))blocks.set(b,[]); blocks.get(b).push(v);
+ }
+ for(const [b,list] of blocks){
+  const first=b===0?1:b*100;
+  list.sort((x,y)=>x-y).forEach((v,i)=>assert.strictEqual(v,first+i,`gap in pack block ${b}: expected ${first+i}, found ${v}`));
+ }
  assert.ok(ups.length>=1);
 });
 test("canonical migrations never create or alter objects outside core10",()=>{
