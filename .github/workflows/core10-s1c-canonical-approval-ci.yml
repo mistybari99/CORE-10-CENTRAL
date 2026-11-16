@@ -5,6 +5,7 @@ on:
       - "internal/migrations/**"
       - "tests/migrations/s1c-canonical-approval-e2e.sql"
       - "tests/migrations/s1c-routed-approval-e2e.sql"
+      - "tests/migrations/s1c-reviewer-reports-e2e.sql"
       - ".github/workflows/core10-s1c-canonical-approval-ci.yml"
   workflow_dispatch:
 permissions:
@@ -34,5 +35,7 @@ jobs:
           bash tests/migrations/run-updownup.sh
       - name: Canonical approval and audit security E2E
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/s1c-canonical-approval-e2e.sql
+      - name: Canonical scoped reviewer report and audit E2E
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/s1c-reviewer-reports-e2e.sql
       - name: Canonical 2–5 stage approval, delegation and reviewer security E2E
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/s1c-routed-approval-e2e.sql
