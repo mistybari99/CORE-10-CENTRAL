@@ -48,5 +48,7 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-truncate-guard.sql
       - name: B-006 and B-007 synthetic Owner/Manager/Cross-tenant PostgreSQL proof
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-governance-e2e.sql
+      - name: B-020 enforce Owner Control on approval-policy publishing (disposable PG17)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-publish-e2e.sql
       - name: B-006 real two-session PostgreSQL policy/request/exception races
         run: bash tests/migrations/np01-governance-concurrency.sh
