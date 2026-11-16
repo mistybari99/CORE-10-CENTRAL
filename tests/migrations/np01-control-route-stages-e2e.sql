@@ -63,7 +63,8 @@ BEGIN
   SELECT status INTO q_status FROM core10.approval_requests WHERE id=q;
   IF (SELECT route_stages_pinned_v1 FROM core10.approval_requests WHERE id=q)<>n
     OR (SELECT route_control_version_v1 FROM core10.approval_requests WHERE id=q)<>n+1
-    OR q_status<>CASE WHEN n=0 THEN 'approved' ELSE 'pending' END
+    OR (n=0 AND q_status<>'approved')
+    OR (n>0 AND q_status<>'pending')
   THEN RAISE EXCEPTION 'NP01_0111_PIN_OR_STATUS:%',n; END IF;
   IF n=0 AND (SELECT count(*) FROM core10.approval_events
      WHERE request_id=q AND action='approve')<>1
