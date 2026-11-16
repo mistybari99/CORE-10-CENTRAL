@@ -43,6 +43,8 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/manufacturing-e2e.sql
       - name: Material requirements and immutable source handoff
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/material-handoff-e2e.sql
+      - name: Reason-coded material waste and consumption bounds
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/material-waste-e2e.sql
       - name: Canonical Control registry and evidence
         run: |
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
@@ -51,6 +53,8 @@ jobs:
         run: bash tests/np05a/concurrency.sh
       - name: Lock-wait Control change and immediate revocation
         run: bash tests/np05a/lock-wait.sh
+      - name: Concurrent material waste cap and waiting revocation
+        run: bash tests/np05a/waste-race.sh
       - name: Install browser
         run: |
           npm install --prefix /tmp/np05a-browser playwright@1.63.0

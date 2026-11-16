@@ -25,6 +25,24 @@ const {start,psql}=require('./gateway.cjs');
   assert.match(await page.locator('#mfg-handoff').textContent(),/Source fingerprint|সূত্রের পরিচায়ক/);checks++;
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'source fingerprint wraps');checks++;
   await page.screenshot({path:path.join(shots,'batches-'+width+'.png'),fullPage:true});
+  await page.locator('[data-waste]:visible').first().click();await page.waitForSelector('#mfg-waste-form');
+  const note='Fictional UI spill '+width,calls=[];let loseFirst=true;
+  await page.fill('[name=waste_quantity]','0.1');await page.selectOption('[name=waste_reason]','SPILLAGE');await page.fill('[name=waste_note]',note);
+  await page.route('**/rpc/mfg_record_material_waste_v1',async route=>{
+    calls.push(route.request().postDataJSON());
+    if(loseFirst){loseFirst=false;const response=await route.fetch();assert.equal(response.status(),200);await route.abort('failed');}
+    else await route.continue();
+  });
+  // Commit real SQL, then lose the transport response. Retrying must reuse its original command key.
+  await page.click('#mfg-waste-form button');await page.waitForFunction(()=>document.querySelector('[role=status]').textContent.includes('ফল অজানা'));checks++;
+  await page.fill('[name=waste_quantity]','0.2');await page.click('#mfg-waste-form button');await page.waitForFunction(()=>document.querySelector('[role=status]').textContent.includes('আগের অনুরোধের ফল অজানা'));checks++;
+  assert.equal(calls.length,1,'uncertain changed payload must not create another request');checks++;
+  await page.fill('[name=waste_quantity]','0.1');await page.click('#mfg-waste-form button');await page.waitForFunction(()=>document.querySelector('[role=status]').textContent.includes('অপচয় সংরক্ষিত'));checks++;
+  assert.equal(calls.length,2);assert.equal(calls[0].p_key,calls[1].p_key,'same request key after ambiguous response');checks++;
+  assert.equal(await page.locator('#mfg-waste-events .op-record').filter({hasText:note}).count(),1,'one observation after retry');checks++;
+  assert.match(await page.locator('#mfg-waste-report').textContent(),/আবার stock কাটা বা খরচ যোগ হয় না/);checks++;
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'waste report fits');checks++;
+  await page.screenshot({path:path.join(shots,'waste-'+width+'.png'),fullPage:true});await page.unroute('**/rpc/mfg_record_material_waste_v1');
   await page.click('[data-tab=reports]');assert.match(await page.locator('#mfg-content').textContent(),/95/);checks++;
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');checks++;
   await page.screenshot({path:path.join(shots,'yield-'+width+'.png'),fullPage:true});
