@@ -152,6 +152,14 @@ BEGIN
 END $t$;
 SELECT set_config('request.jwt.claims','{"sub":"99811111-1111-4111-8111-111111111111"}',true);
 SELECT set_config('request.jwt.claim.sub','99811111-1111-4111-8111-111111111111',true);
+-- API role can verify canonical audit but must not inspect internal registry.
+DO $t$
+BEGIN
+ IF (core10.verify_canonical_audit_v1(99821)->>'ok')<>'true'
+ THEN RAISE EXCEPTION 'NP01_0110_AUDIT_CHAIN_BROKEN'; END IF;
+END $t$;
+-- Only the disposable database test runner may inspect internal registry metadata.
+RESET ROLE;
 DO $t$
 DECLARE rpc text;
 BEGIN
@@ -163,8 +171,6 @@ BEGIN
        AND test_ref='tests/migrations/np01-control-submit-delegation-e2e.sql')
   THEN RAISE EXCEPTION 'NP01_0110_REGISTRY_MISSING:%',rpc; END IF;
  END LOOP;
- IF (core10.verify_canonical_audit_v1(99821)->>'ok')<>'true'
- THEN RAISE EXCEPTION 'NP01_0110_AUDIT_CHAIN_BROKEN'; END IF;
  RAISE NOTICE 'NP01_0110_CONTROL_SUBMIT_DELEGATE_REVOKE_OK';
 END $t$;
 ROLLBACK;
