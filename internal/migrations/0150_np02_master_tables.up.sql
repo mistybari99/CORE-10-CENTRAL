@@ -169,4 +169,4 @@ CREATE POLICY master_price_items_scope_read ON core10.master_price_list_items_v1
 
 REVOKE ALL ON core10.master_uoms_v1, core10.master_uom_conversions_v1, core10.master_item_categories_v1,
  core10.master_item_variants_v1, core10.master_item_barcodes_v1, core10.master_parties_v1,
- core10.master_price_lists_v1, core10.master_price_list_items_v1 FROM PUBLIC, anon, authenticated;
+ core10.master_price_lists_v1, core10.master_price_list_items_v1 FROM PUBLIC, authenticated;
