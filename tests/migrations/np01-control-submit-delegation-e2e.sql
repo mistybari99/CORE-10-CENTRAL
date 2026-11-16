@@ -36,8 +36,8 @@ BEGIN
   '{"quantity":7}'::jsonb,'np01_0110_submit_01');
  q2:=core10.submit_typed_approval_v1(99821,'inventory','adjust','np01-0110-src2',1,
   '{"quantity":8}'::jsonb,'np01_0110_submit_02');
- PERFORM set_config('np01.0110.q1',q1::text,true);
- PERFORM set_config('np01.0110.q2',q2::text,true);
+ PERFORM set_config('np01.b020_q1',q1::text,true);
+ PERFORM set_config('np01.b020_q2',q2::text,true);
  IF core10.submit_typed_approval_v1(99821,'inventory','adjust','np01-0110-src1',1,
   '{"quantity":7}'::jsonb,'np01_0110_submit_01')<>q1
  THEN RAISE EXCEPTION 'NP01_0110_SUBMIT_REPLAY_CHANGED'; END IF;
@@ -48,7 +48,7 @@ SELECT set_config('request.jwt.claim.sub','99822222-2222-4222-8222-222222222222'
 DO $t$
 DECLARE ev bigint;
 BEGIN
- ev:=core10.delegate_approval_stage_v1(current_setting('np01.0110.q2')::bigint,
+ ev:=core10.delegate_approval_stage_v1(current_setting('np01.b020_q2')::bigint,
    '99844444-4444-4444-8444-444444444444',30,'np01_0110_delegate_02');
  IF ev IS NULL THEN RAISE EXCEPTION 'NP01_0110_DELEGATE_MISSING'; END IF;
 END $t$;
@@ -92,14 +92,14 @@ DECLARE event_count bigint;
 BEGIN
  SELECT count(*) INTO event_count FROM core10.approval_events WHERE business_id=99821;
  BEGIN
-  PERFORM core10.delegate_approval_stage_v1(current_setting('np01.0110.q1')::bigint,
+  PERFORM core10.delegate_approval_stage_v1(current_setting('np01.b020_q1')::bigint,
    '99844444-4444-4444-8444-444444444444',30,'np01_0110_blocked_delegate');
   RAISE EXCEPTION 'NP01_0110_DISABLED_DELEGATE_ACCEPTED';
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM NOT LIKE 'CONTROL_DISABLED:gov002.review%' THEN RAISE; END IF;
  END;
  BEGIN
-  PERFORM core10.revoke_approval_delegation_v1(current_setting('np01.0110.q2')::bigint,
+  PERFORM core10.revoke_approval_delegation_v1(current_setting('np01.b020_q2')::bigint,
    'np01_0110_blocked_revoke');
   RAISE EXCEPTION 'NP01_0110_DISABLED_REVOKE_ACCEPTED';
  EXCEPTION WHEN OTHERS THEN
@@ -108,7 +108,7 @@ BEGIN
  IF (SELECT count(*) FROM core10.approval_events WHERE business_id=99821)<>event_count
  THEN RAISE EXCEPTION 'NP01_0110_DISABLED_DELEGATION_EVENT'; END IF;
  IF (SELECT revoked_at FROM core10.approval_delegations_v1
-    WHERE request_id=current_setting('np01.0110.q2')::bigint) IS NOT NULL
+    WHERE request_id=current_setting('np01.b020_q2')::bigint) IS NOT NULL
  THEN RAISE EXCEPTION 'NP01_0110_DISABLED_REVOKE_MUTATED'; END IF;
 END $t$;
 -- Cross-tenant forged metadata must fail Auth before Control.
@@ -140,14 +140,14 @@ SELECT set_config('request.jwt.claim.sub','99822222-2222-4222-8222-222222222222'
 DO $t$
 DECLARE d bigint; r bigint;
 BEGIN
- d:=core10.delegate_approval_stage_v1(current_setting('np01.0110.q1')::bigint,
+ d:=core10.delegate_approval_stage_v1(current_setting('np01.b020_q1')::bigint,
    '99844444-4444-4444-8444-444444444444',30,'np01_0110_delegate_allowed');
- IF core10.delegate_approval_stage_v1(current_setting('np01.0110.q1')::bigint,
+ IF core10.delegate_approval_stage_v1(current_setting('np01.b020_q1')::bigint,
    '99844444-4444-4444-8444-444444444444',30,'np01_0110_delegate_allowed')<>d
  THEN RAISE EXCEPTION 'NP01_0110_DELEGATE_REPLAY_DRIFT'; END IF;
- r:=core10.revoke_approval_delegation_v1(current_setting('np01.0110.q2')::bigint,
+ r:=core10.revoke_approval_delegation_v1(current_setting('np01.b020_q2')::bigint,
    'np01_0110_revoke_allowed');
- IF core10.revoke_approval_delegation_v1(current_setting('np01.0110.q2')::bigint,
+ IF core10.revoke_approval_delegation_v1(current_setting('np01.b020_q2')::bigint,
    'np01_0110_revoke_allowed')<>r THEN RAISE EXCEPTION 'NP01_0110_REVOKE_REPLAY_DRIFT'; END IF;
 END $t$;
 SELECT set_config('request.jwt.claims','{"sub":"99811111-1111-4111-8111-111111111111"}',true);
