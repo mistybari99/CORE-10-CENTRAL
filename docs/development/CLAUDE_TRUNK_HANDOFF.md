@@ -6,7 +6,7 @@ Per Owner directive issue #110. Resume from the last pushed SHA without chat his
 |---|---|
 | Branch | `ccr-15ed11dd-n3hw5h` (trunk) |
 | Draft PR | #106 → `preview/c10-integrated-20261111-v1` |
-| Last code SHA before this file | `48d7895` — every check on PR #106 green |
+| Trunk head | `c4205e7` = merge of PR #107 (NP01 @ `32dfb63`) under Owner GO-1; exact-head CI: see Board B-025 |
 | Local-only / uncommitted work | none |
 | Deployed / hosted | **nothing new.** Staging `rhrqhbyzrhaafynfhdaf` holds 0001–0012 only. No Cloudflare publish, no merge. IMG-ERP-SG untouched. |
 
@@ -18,7 +18,11 @@ Per Owner directive issue #110. Resume from the last pushed SHA without chat his
 - **B-024**: NP02 e2e and browser tests check the 9 baseline feature keys, not catalog size (unblocks NP06 PR #108).
 - **CI infra**: A038 and A021–A023 PostgREST readiness loops now wait past the 503 schema-cache warm-up (fixed a race seen on run 43917399474).
 
-Registry state: trunk alone 0 enforced / 7 exempt / 14 pending. Trunk + PR #107 @ 32dfb63 (local simulation): 3 / 7 / 11, 26 migrations up/down/up, 7 SQL suites pass. Nothing is marked enforced without a real `control_check_v1` call and a passing CONTROL_DISABLED test.
+- **B-025 GO-1 integration**: PR #107 merged into trunk at `c4205e7` (GitHub marks #107 merged; `build/chatgpt-np01` left intact). Pre-merge gates on disposable PG17.12, combined tree: 27/27 CI-mirror steps; catalog 0 SECURITY DEFINER without search_path, 0 anon/PUBLIC execute, 0 tables without RLS, 0 authenticated direct DML.
+
+Registry state on trunk now: 3 enforced (publish_approval_policy_v1, decide_approval, withdraw_typed_approval_v1 — each calls control_check_v1) / 7 exempt / 11 pending.
+
+Known limitations carried in from NP01 (ChatGPT lane, still theirs to finish): B-006/B-007 signed GoTrue acceptance pending; B-008 five GOV-001 partials, host UI and signed setup activation open; 11 registry RPCs still pending Control binding (0110–0149). Nothing is marked enforced without a real `control_check_v1` call and a passing CONTROL_DISABLED test.
 
 ## Tests to rerun
 
@@ -37,9 +41,8 @@ CI source of truth: `.github/workflows/core10-b010-control-port-ci.yml`.
 Claude 0100–0109 (used to 0106) and 0150–0199 (B-011). ChatGPT NP01 0013–0099 + 0110–0149, NP06 0400–0499. Codex NP03B 0300–0399, NP05A 0500–0599.
 Hosted apply order when GO is given: 0013–0019, then 0100–0106.
 
-## Blocked / waiting on Owner GO
+## Blocked / waiting on Owner GO (GO-2, GO-3 not authorized)
 
-- Integrate PR #107 into trunk (NP01 0013–0019 bindings).
 - B-022: hosted staging apply + signed matrix rerun with Control scenarios.
 - Level 2 preview (anon key in config, Cloudflare link to staging).
 
