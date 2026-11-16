@@ -19,7 +19,7 @@ export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic =
     $('[data-refresh]').onclick=load;
     const content = $('#mfg-content');
     if (tab==='recipes') {
-      content.innerHTML=`<div class="op-grid"><section class="op-panel"><h2>${t('রেসিপি ও সংস্করণ','Recipes & versions')}</h2>${data.recipes.length ? data.recipes.map(r=>`<article class="op-record"><strong>${esc(r.recipe_code)} · v${r.version}</strong><small>${esc(r.status)} · ${r.yield_quantity} ${esc(r.yield_uom_ref)} · ID ${r.id}</small><details><summary>${t('উপাদান ও প্যাকেজিং','Ingredients & packaging')}</summary><pre>${esc(JSON.stringify(r.ingredients_payload,null,2))}</pre></details><button data-materials="${r.id}">${t('উপকরণ চাহিদা','Material requirements')}</button><button data-approve="${r.id}" ${r.status!=='draft'?'hidden':''}>${t('অনুমোদন অনুরোধ','Request approval')}</button><button data-plan="${r.id}" ${r.status!=='approved'?'hidden':''}>${t('ব্যাচ পরিকল্পনা','Plan batch')}</button></article>`).join('') : `<p>${t('রেসিপি নেই। নতুন সংস্করণ তৈরি করুন।','No recipes yet. Create a version.')}</p>`}</section>
+      content.innerHTML=`<div class="op-grid"><section class="op-panel"><h2>${t('রেসিপি ও সংস্করণ','Recipes & versions')}</h2>${data.recipes.length ? data.recipes.map(r=>`<article class="op-record"><strong>${esc(r.recipe_code)} · v${r.version}</strong><small>${esc(r.status)} · ${r.yield_quantity} ${esc(r.yield_uom_ref)} · ID ${r.id}</small><details><summary>${t('উপাদান ও প্যাকেজিং','Ingredients & packaging')}</summary><pre>${esc(JSON.stringify(r.ingredients_payload,null,2))}</pre></details><button data-substitution="${r.id}">${t('বিকল্প উপকরণ','Substitutions')}</button><button data-materials="${r.id}">${t('উপকরণ চাহিদা','Material requirements')}</button><button data-approve="${r.id}" ${r.status!=='draft'?'hidden':''}>${t('অনুমোদন অনুরোধ','Request approval')}</button><button data-plan="${r.id}" ${r.status!=='approved'?'hidden':''}>${t('ব্যাচ পরিকল্পনা','Plan batch')}</button></article>`).join('') : `<p>${t('রেসিপি নেই। নতুন সংস্করণ তৈরি করুন।','No recipes yet. Create a version.')}</p>`}</section>
       <section class="op-panel"><h2>${t('নতুন রেসিপি সংস্করণ','New recipe version')}</h2><form class="op-form" id="mfg-recipe-form">
       <label>${t('রেসিপি কোড','Recipe code')}<input name="code" required minlength="2" maxlength="80"></label>
       <label>${t('পণ্যের Master ID','Finished item Master ID')}<input name="item" required type="number" min="1" step="1"></label>
@@ -41,6 +41,7 @@ export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic =
     } else {
       content.innerHTML=`<section class="op-panel"><h2>${t('ফলন, অপচয় ও ব্যয় পার্থক্য','Yield, waste & planning variance')}</h2><p>${t('উপাদানের কেজি ও পণ্যের পিস যোগ করা হয় না। হিসাব সংশ্লিষ্ট UOM অনুযায়ী।','Ingredient kg and output pieces are never added. Quantities retain their UOM.')}</p>${data.batches.filter(b=>b.status==='recorded').map(b=>`<article class="op-record"><strong>${t('ব্যাচ','Batch')} #${b.id} · ${esc(b.output_payload.lot_ref)}</strong><div class="mfg-kpis"><div><strong>${b.yield_pct}%</strong><small>${t('ভাল পণ্যের ফলন','Good output yield')}</small></div><div><strong>${b.output_payload.loss} ${esc(b.yield_uom_ref)}</strong><small>${t('প্রক্রিয়াগত অপচয়','Process loss')}</small></div><div><strong>${b.planning_cost_variance} BDT</strong><small>${t('উদাহরণ • পরিকল্পিত ব্যয় পার্থক্য','Example • planning cost variance')}</small></div></div><p>${t('প্রত্যাখ্যাত','Rejected')}: ${b.output_payload.rejected} · ${t('পুনঃকাজ','Rework')}: ${b.output_payload.rework} · ${esc(b.output_payload.reason)}</p><details><summary>${t('ব্যবহার ও লট সূত্র','Consumption & lot references')}</summary><pre>${esc(JSON.stringify(b.output_payload.consumption,null,2))}</pre></details><small>NOT_CONNECTED · Stock / Finance · actual_cogs_certified=false</small><button data-waste="${b.id}">${t('উপকরণের অপচয়','Material waste')}</button></article>`).join('') || t('ফলন নথি নেই।','No output records.')}</section>`;
     }
+    root.querySelectorAll('[data-substitution]').forEach(b=>b.onclick=()=>substitutionForm(Number(b.dataset.substitution)));
     root.querySelectorAll('[data-waste]').forEach(b=>b.onclick=()=>wasteForm(Number(b.dataset.waste)));
   }
   function inlineForm(title,html,submit) {$('#mfg-content').innerHTML=`<section class="op-panel"><h2>${title}</h2><form class="op-form">${html}<button type="submit">${t('জমা দিন','Submit')}</button></form></section>`;$('#mfg-content form').onsubmit=e=>{e.preventDefault();submit(new FormData(e.target));};}
@@ -57,6 +58,41 @@ export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic =
         status(t('চাহিদার হিসাব প্রস্তুত • কোনো লেনদেন হয়নি','Requirements ready • no transaction posted'));
       }catch(e){status(t('অনুমতি বা যাচাই ত্রুটি: ','Permission or validation error: ')+errorText(e),true);}
       finally{busy=false;if(active)root.querySelectorAll('button').forEach(b=>b.disabled=false);}
+    });
+  }
+  async function substitutionForm(id) {
+    if(busy||!active)return;busy=true;root.querySelectorAll('button').forEach(b=>b.disabled=true);
+    try {const r=await api.call('mfg_recipe_substitutions_v1',{p_recipe:id});if(active)renderSubstitutions(r);}
+    catch(e){status(t('বিকল্পের নিয়ম দেখা যাচ্ছে না: ','Cannot inspect substitutions: ')+errorText(e),true);}
+    finally{busy=false;if(active)root.querySelectorAll('button').forEach(b=>b.disabled=false);}
+  }
+  function renderSubstitutions(r) {
+    const draftKey=key();
+    $('#mfg-content').innerHTML=`<section class="op-panel" id="mfg-substitutions"><h2>${t('বিকল্প উপকরণের প্রস্তাব','Substitution proposals')}</h2><p>${esc(r.recipe_code)} · v${r.recipe_version} · ${esc(r.recipe_status)}</p>
+    <p class="safety">${t('শুধু রেসিপির পরিকল্পনা। Master যাচাই বাকি; কোনো ব্যাচে বিকল্প বাছাই বা stock issue হয়নি। নিয়ম বদলাতে নতুন রেসিপি সংস্করণ করুন।','Recipe planning only. Master validation pending; no batch substitution selected or stock issued. Changes require a new recipe version.')}</p>
+    ${r.recipe_status==='draft'?`<form class="op-form" id="mfg-substitution-form">
+    <label>${t('মূল উপকরণ / প্যাকেজিং','Original component')}<select name="sub_line">${r.lines.map(l=>`<option value="${l.line_no}">${esc(l.sku)} · ${l.quantity} ${esc(l.uom_ref)}</option>`).join('')}</select></label>
+    <label>${t('বিকল্প পণ্যের Master ID','Alternative item Master ID')}<input name="sub_item" type="number" min="1" step="1" required></label>
+    <label>${t('মূল লাইন পুরো বদলালে বিকল্পের প্রস্তাবিত পরিমাণ','Declared alternative quantity for full line replacement')}<input name="sub_quantity" type="number" min="0.000001" step="0.000001" required></label>
+    <label>${t('বিকল্পের UOM reference (যাচাই বাকি)','Alternative UOM reference (pending validation)')}<input name="sub_uom" maxlength="80" required></label>
+    <label>${t('বিকল্পের আনুমানিক একক খরচ','Alternative estimated unit cost')}<input name="sub_cost" type="number" min="0" step="0.0001" required></label>
+    <label>${t('বিকল্পের প্রত্যাশিত অপচয় %','Alternative expected waste %')}<input name="sub_waste_pct" type="number" min="0" max="100" step="0.0001" value="0" required></label>
+    <label>${t('সর্বোচ্চ কত শতাংশ বদলানো যাবে','Maximum line replacement %')}<input name="sub_max_pct" type="number" min="0.0001" max="${r.policy.params.max_replacement_pct}" step="0.0001" value="${Math.min(50,r.policy.params.max_replacement_pct)}" required></label>
+    <label>${t('বিকল্পের কারণ ও ব্যাখ্যা','Reason and explanation')}<input name="sub_note" minlength="5" maxlength="500" required></label>
+    <button type="submit">${t('খসড়া নিয়ম সংরক্ষণ','Save draft rule')}</button></form>`:''}
+    <h3>${t('সংস্করণের নিয়ম ও Audit','Version rules & Audit')}</h3><div id="mfg-substitution-rules">${r.rules.map(rule=>`<article class="op-record" data-sub-rule="${rule.id}"><strong>#${rule.id} · ${t('লাইন','Line')} ${rule.line_no} → Master #${rule.alternative_item_id}</strong><p>${rule.alternative_qty_per_batch} ${esc(rule.uom_ref)} · ${t('সর্বোচ্চ','Maximum')} ${rule.max_replacement_pct}%</p><p>${esc(rule.note)}</p><small>Audit #${rule.audit_event_id} · NOT_CONNECTED</small><button data-sub-preview="${rule.id}">${t('পরিমাণ ও খরচের preview','Preview quantities & cost')}</button></article>`).join('')||t('এখনো বিকল্পের নিয়ম নেই।','No alternatives defined yet.')}</div></section>`;
+    const form=$('#mfg-substitution-form');
+    if(form)form.onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);command('mfg_define_substitution_v1',()=>({p_recipe:r.recipe_id,p_line:Number(f.get('sub_line')),p_alternative_item:Number(f.get('sub_item')),p_quantity:Number(f.get('sub_quantity')),p_uom:f.get('sub_uom'),p_estimated_cost:Number(f.get('sub_cost')),p_waste_pct:Number(f.get('sub_waste_pct')),p_max_pct:Number(f.get('sub_max_pct')),p_note:f.get('sub_note')}),async saved=>{const fresh=await api.call('mfg_recipe_substitutions_v1',{p_recipe:saved.recipe_id});if(active)renderSubstitutions(fresh);},draftKey);};
+    root.querySelectorAll('[data-sub-preview]').forEach(button=>button.onclick=()=>{
+      const rule=r.rules.find(x=>x.id===Number(button.dataset.subPreview));
+      inlineForm(t('বিকল্পের পরিকল্পনা preview','Substitution planning preview'),`<label>${t('ব্যাচের গুণক','Batch multiplier')}<input name="sub_multiplier" type="number" min="0.000001" step="0.000001" value="1" required></label><label>${t('কত শতাংশ বদলানোর হিসাব','Replacement percentage')}<input name="sub_percent" type="number" min="0.0001" max="${Math.min(rule.max_replacement_pct,r.policy.params.max_replacement_pct)}" step="0.0001" value="${Math.min(rule.max_replacement_pct,r.policy.params.max_replacement_pct)}" required></label>`,async f=>{
+        if(busy||!active)return;busy=true;root.querySelectorAll('button').forEach(b=>b.disabled=true);
+        try{const p=await api.call('mfg_preview_substitution_v1',{p_rule:rule.id,p_multiplier:Number(f.get('sub_multiplier')),p_replacement_pct:Number(f.get('sub_percent'))});if(!active)return;
+          $('#mfg-content').innerHTML=`<section class="op-panel" id="mfg-substitution-preview"><h2>${t('বিকল্পের পরিকল্পনা preview','Substitution planning preview')}</h2><p class="safety">${t('প্রস্তাবিত পরিমাণের হিসাব; UOM conversion নয়। Master যাচাই ও ব্যাচে বাছাই হয়নি।','Declared replacement quantities; not a UOM conversion. Master validation and batch selection pending.')}</p><article class="op-record"><strong>${t('মূল উপকরণ বাকি','Original component remaining')}</strong><p>${p.original_component.remaining_quantity} ${esc(p.original_component.uom_ref)}</p></article><article class="op-record"><strong>${t('বিকল্পের চাহিদা','Alternative required')}</strong><p>${p.alternative_component.quantity} ${esc(p.alternative_component.uom_ref)}</p></article><p>${t('আগের আনুমানিক খরচ','Baseline estimate')}: ${p.baseline_estimated_cost} BDT</p><p>${t('বিকল্পসহ আনুমানিক খরচ','Estimate with substitution')}: ${p.estimated_total_cost} BDT</p><p>${t('পরিকল্পিত পার্থক্য','Planning variance')}: ${p.planning_cost_variance} BDT</p><small>UNVERIFIED_PLANNING_ESTIMATE · NOT_CONNECTED · batch_selected=false · stock_issued=false</small></section>`;
+          status(t('হিসাব প্রস্তুত • কোনো ব্যাচ বা stock বদলায়নি','Preview ready • no batch or stock changed'));
+        }catch(error){status(t('যাচাই ত্রুটি: ','Validation error: ')+errorText(error),true);}
+        finally{busy=false;if(active)root.querySelectorAll('button').forEach(b=>b.disabled=false);}
+      });
     });
   }
   async function wasteForm(id) {
@@ -109,9 +145,9 @@ export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic =
   function reasonForm(id) {inlineForm(t('বাতিলের কারণ','Cancellation reason'),'<label>কারণ / Reason<input name="reason" required minlength="5" maxlength="500"></label>',f=>command('mfg_cancel_batch_v1',()=>({p_batch:id,p_reason:f.get('reason')})));}
   function outputForm(id) {inlineForm(t('ফলন নথি • পরিকল্পিত মোটের সাথে মেলাতে হবে','Record output • categories must reconcile to planned total'),'<label>Output JSON<textarea name="output" required></textarea></label>',f=>command('mfg_record_output_v1',()=>({p_batch:id,p_output:JSON.parse(f.get('output'))})));}
   async function load() {const current=++generation;try {const r=await api.call('mfg_inspect_v1');if (!active||current!==generation)return;data=r;render();}catch(e){if(active&&current===generation)status(t('অনুমতি বা সংযোগ ত্রুটি: ','Permission or connection error: ')+errorText(e),true);}}
-  async function command(name,args) {
+  async function command(name,args,onSaved,requestKey) {
     if(busy||!active)return;busy=true;root.querySelectorAll('button').forEach(b=>b.disabled=true);
-    try {const r=await api.call(name,{...args(),p_key:key()});await load();if(active&&r.source_envelope)showHandoff(r);if(active)status(r.status==='NOT_CONNECTED'?'NOT_CONNECTED · '+r.reason:t('সংরক্ষিত • Audit #','Saved • Audit #')+r.audit_event_id);}
+    try {const r=await api.call(name,{...args(),p_key:requestKey||key()});await load();let warning='';if(active&&onSaved){try{await onSaved(r);}catch(error){warning=t(' • ইতিহাস হালনাগাদ হয়নি: ',' • History refresh unavailable: ')+errorText(error);}}if(active&&r.source_envelope)showHandoff(r);if(active)status((r.status==='NOT_CONNECTED'?'NOT_CONNECTED · '+r.reason:t('সংরক্ষিত • Audit #','Saved • Audit #')+r.audit_event_id)+warning,Boolean(warning));}
     catch(e){status(t('অনুমতি বা যাচাই ত্রুটি: ','Permission or validation error: ')+errorText(e),true);}
     finally {busy=false;if(active)root.querySelectorAll('button').forEach(b=>b.disabled=false);}
   }

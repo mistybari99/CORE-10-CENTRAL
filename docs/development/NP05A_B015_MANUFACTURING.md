@@ -1,6 +1,8 @@
 # NP05A / B-015 — manufacturing increment, 2026-11-16
 
-Latest continuation: [increment 3 — reason-coded material waste and retry safety](NP05A_B015_INCREMENT3.md).
+Latest continuation: [increment 4 — immutable substitution proposals and planning preview](NP05A_B015_INCREMENT4.md).
+
+Previous continuation: [increment 3 — reason-coded material waste and retry safety](NP05A_B015_INCREMENT3.md).
 
 Previous continuation: [increment 2 — material requirements, source envelopes and lock-wait enforcement](NP05A_B015_INCREMENT2.md). The original increment below is retained as its audit/history.
 

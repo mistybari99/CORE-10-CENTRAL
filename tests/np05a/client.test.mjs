@@ -35,3 +35,11 @@ test('waste reads and writes keep signed scope and the supplied retry key',async
  await c.call('mfg_material_waste_report_v1',{p_business:999,p_site:999,p_batch:12});
  assert.equal(seen[0].a.p_business,9511);assert.equal(seen[0].a.p_site,9521);assert.equal(seen[0].a.p_key,'retry_stable_01');assert.equal(seen[1].a.p_site,9521);
 });
+
+test('substitution drafting and previews preserve signed scope and caller retry key',async()=>{
+ const seen=[];const c=manufacturingClient(async(n,a)=>{seen.push({n,a});return {data:{planning_only:true}};},{tenant_id:951,business_id:9511,site_id:9521});
+ await c.call('mfg_define_substitution_v1',{p_site:999,p_recipe:7,p_key:'sub_retry_01'});
+ await c.call('mfg_recipe_substitutions_v1',{p_recipe:7});
+ await c.call('mfg_preview_substitution_v1',{p_rule:8,p_multiplier:2,p_replacement_pct:50,p_business:999});
+ assert.equal(seen[0].a.p_site,9521);assert.equal(seen[0].a.p_key,'sub_retry_01');assert.equal(seen[2].a.p_business,9511);assert.equal(seen[2].a.p_key,undefined);
+});
