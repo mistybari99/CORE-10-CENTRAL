@@ -1,0 +1,59 @@
+name: core10-b010-control-port-ci
+on:
+  pull_request:
+    paths:
+      - "internal/migrations/**"
+      - "tests/migrations/**"
+      - "docs/coordination/**"
+      - ".github/workflows/core10-b010-control-port-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  control-port:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_PASSWORD: control_port_disposable }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: control_port_disposable
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: API roles of the disposable database
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+          END \$\$;"
+      - name: Static migration contract (naming, pack blocks, RLS, search_path, grants)
+        run: node --test tests/migrations/migration-contract.test.js
+      - name: All migrations up, full down, up on PostgreSQL 17
+        run: bash tests/migrations/run-updownup.sh
+      - name: Apply migrations for the behaviour tests
+        run: internal/migrations/run.sh up
+      - name: Owner Control end to end (8 personas, negatives, scheduling, exceptions, audit)
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-control-e2e.sql
+      - name: DEC-08 registry gate (every state-changing RPC is mapped)
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+      - name: Registry gate self-test (an unmapped RPC must fail the gate)
+        run: |
+          psql -X -q -c "CREATE FUNCTION core10.gate_selftest_v1() RETURNS void LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog,core10 AS 'SELECT 1'" \
+                  -c "GRANT EXECUTE ON FUNCTION core10.gate_selftest_v1() TO authenticated"
+          if psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql >/dev/null 2>&1; then
+            echo "gate accepted an unmapped state-changing RPC"; exit 1; fi
+          psql -X -q -c "DROP FUNCTION core10.gate_selftest_v1()"
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+      - name: Concurrent sessions (stale writers, replays, one-time exception)
+        run: bash tests/migrations/control-race.sh
