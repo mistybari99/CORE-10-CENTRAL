@@ -12,12 +12,24 @@ for f in \
  core10-pack02-controls.js core10-pack02-signed.js core10-pack02-app.js \
  internal/enterprise-sql/c10_pack02_workspace_v1.sql \
  internal/enterprise-sql/c10_pack02_controls_v1.sql; do
-  [[ -f "$src/$f" && ! -e "$dst/$f" ]] || { echo "Owned path collision/missing $f"; exit 2; }
-  mkdir -p "$(dirname "$dst/$f")"
-  cp "$src/$f" "$dst/$f"
+  [[ -f "$src/$f" ]] || { echo "Owned path missing $f"; exit 2; }
+  if [[ -e "$dst/$f" ]]; then
+    # S0: PR105 is merged for real. Accept only a byte-identical copy of the pinned source.
+    cmp -s "$src/$f" "$dst/$f" || { echo "Owned path differs from pinned PR105 source: $f"; exit 2; }
+    merged=1
+  else
+    mkdir -p "$(dirname "$dst/$f")"
+    cp "$src/$f" "$dst/$f"
+  fi
 done
-[[ -d "$src/tests/pack02" && ! -e "$dst/tests/pack02" ]] || { echo "Test path collision"; exit 2; }
-cp -R "$src/tests/pack02" "$dst/tests/pack02"
+[[ -d "$src/tests/pack02" ]] || { echo "Test path missing"; exit 2; }
+if [[ -e "$dst/tests/pack02" ]]; then
+  diff -rq "$src/tests/pack02" "$dst/tests/pack02" >/dev/null || { echo "tests/pack02 differs from pinned PR105 source"; exit 2; }
+  merged=1
+else
+  cp -R "$src/tests/pack02" "$dst/tests/pack02"
+fi
 git -C "$dst" diff --quiet
 git -C "$dst" diff --cached --quiet
-echo 'PASS PR105-owned files staged temporarily; no tracked PACK01 changes, no merge'
+if [[ "${merged:-0}" == 1 ]]; then echo 'PASS PR105-owned files already integrated and identical to the pinned source'
+else echo 'PASS PR105-owned files staged temporarily; no tracked PACK01 changes, no merge'; fi
