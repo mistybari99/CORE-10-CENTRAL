@@ -57,3 +57,5 @@ jobs:
           bash tests/migrations/control-registry-evidence.sh
       - name: Synthetic canonical Finance E2E and negative security tests
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-e2e.sql
+      - name: Independent-session journal posting race and idempotency
+        run: bash tests/migrations/np06-finance-race.sh
