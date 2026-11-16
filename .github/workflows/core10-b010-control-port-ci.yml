@@ -54,6 +54,8 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-control-e2e.sql
       - name: B-011 master tables (scope, isolation, constraints, no direct API-role access)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-tables-e2e.sql
+      - name: B-011 master RPCs (personas, Owner Control, versions, idempotency, audit, NP03B/NP05A ports)
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-rpc-e2e.sql
       - name: DEC-08 registry gate (every state-changing RPC is mapped)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Registry gate self-test (an unmapped RPC must fail the gate)
