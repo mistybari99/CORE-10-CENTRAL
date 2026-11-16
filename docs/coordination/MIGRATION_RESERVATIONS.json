@@ -1,0 +1,14 @@
+{
+  "rule": "Numeric order is apply order. A persistent database never receives a version lower than its highest applied version (internal/migrations/run.sh refuses with OUT_OF_ORDER). A range therefore only takes new files while no persistent database has applied a higher number; once that happens the board allocates the lane a new range above the persistent maximum, or the trunk owner renumbers an unapplied file at integration (file rename only, content and checksum unchanged).",
+  "persistent_databases": {"staging rhrqhbyzrhaafynfhdaf": "0001-0012 applied 2026-11-16"},
+  "ranges": [
+    {"from": 1, "to": 99, "lane": "NP01 access, approval, audit, setup", "owner": "ChatGPT", "note": "0013-0018 on build/chatgpt-np01; must reach staging before 0100 does"},
+    {"from": 100, "to": 109, "lane": "NP02 Owner Control port and registry", "owner": "Claude"},
+    {"from": 110, "to": 149, "lane": "NP01 Control bindings and later NP01 work that depends on the Control port", "owner": "ChatGPT"},
+    {"from": 150, "to": 199, "lane": "NP02 master data", "owner": "Claude"},
+    {"from": 200, "to": 299, "lane": "NP03A procurement, inventory, lot/QC", "owner": "Claude"},
+    {"from": 300, "to": 399, "lane": "NP03B sales core, POS", "owner": "open"},
+    {"from": 400, "to": 499, "lane": "NP06 finance", "owner": "ChatGPT"},
+    {"from": 500, "to": 599, "lane": "NP05A manufacturing", "owner": "open"}
+  ]
+}

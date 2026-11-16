@@ -9,22 +9,24 @@ const body=f=>fs.readFileSync(path.join(dir,f),"utf8").replace(/--.*$/gm,"");
 test("every file is NNNN_name.(up|down).sql",()=>{
  for(const f of files)assert.match(f,/^[0-9]{4}_[a-z0-9_]+\.(up|down)\.sql$/,f);
 });
-// Pack blocks let two builders add migrations in parallel without number collisions:
-// 0001-0099 NP01, 0100-0199 NP02, 0200-0299 NP03A, 0300-0399 NP03B, 0400-0499 NP06, ... (see docs/coordination).
-// Blocks are in dependency order, so numeric order stays a valid apply order.
-test("versions are unique, contiguous inside each pack block, and each has a rollback",()=>{
- const seen=new Set(),blocks=new Map();
+// Reserved ranges (docs/coordination/MIGRATION_RESERVATIONS.json) let two builders add migrations
+// without number collisions. Numeric order is apply order; run.sh refuses out-of-order application.
+const reservations=JSON.parse(fs.readFileSync(path.join(__dirname,"..","..","docs","coordination","MIGRATION_RESERVATIONS.json"),"utf8")).ranges;
+test("reserved ranges are ordered and do not overlap",()=>{
+ reservations.forEach((r,i)=>{
+  assert.ok(Number.isInteger(r.from)&&Number.isInteger(r.to)&&r.from>=1&&r.to>=r.from&&r.to<=9999,`bad range ${JSON.stringify(r)}`);
+  if(i)assert.ok(r.from>reservations[i-1].to,`range ${r.from}-${r.to} overlaps or is out of order`);
+ });
+});
+test("versions are unique, inside a reserved range, and each has a rollback",()=>{
+ const seen=new Set();
  for(const f of ups){
   const v=Number(f.slice(0,4));
   assert.ok(!seen.has(v),`duplicate version ${f}`); seen.add(v);
   assert.ok(files.includes(f.replace(".up.sql",".down.sql")),`no down for ${f}`);
-  const b=Math.floor(v/100); if(!blocks.has(b))blocks.set(b,[]); blocks.get(b).push(v);
+  assert.ok(reservations.some(r=>v>=r.from&&v<=r.to),`${f} is outside every reserved range`);
  }
- for(const [b,list] of blocks){
-  const first=b===0?1:b*100;
-  list.sort((x,y)=>x-y).forEach((v,i)=>assert.strictEqual(v,first+i,`gap in pack block ${b}: expected ${first+i}, found ${v}`));
- }
- assert.ok(ups.length>=1);
+ assert.ok(seen.has(1),"0001 must exist");
 });
 test("canonical migrations never create or alter objects outside core10",()=>{
  for(const f of files){
