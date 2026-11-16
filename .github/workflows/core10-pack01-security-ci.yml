@@ -112,9 +112,13 @@ jobs:
             internal/enterprise-sql/c10_pack02_workspace_v1.sql internal/enterprise-sql/c10_pack02_controls_v1.sql \
             tests/pack02/live-auth-browser.cjs; do
             mkdir -p "$(dirname "$file")"
-            if [[ -e "$file" ]]; then echo "PACK02_OWNERSHIP_OVERLAP:$file"; exit 1; fi
             test -f "pack02-input/$file"
-            cp "pack02-input/$file" "$file"
+            if [[ -e "$file" ]]; then
+              # S0: PR105 is merged for real; accept only a byte-identical copy of the pinned source.
+              cmp -s "pack02-input/$file" "$file" || { echo "PACK02_OWNERSHIP_OVERLAP:$file"; exit 1; }
+            else
+              cp "pack02-input/$file" "$file"
+            fi
           done
           node tests/build01/client.test.cjs
           node tests/build01/pack02-contract.test.cjs
