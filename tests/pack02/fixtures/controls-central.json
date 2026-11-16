@@ -1,0 +1,172 @@
+{
+    "items": [
+        {
+            "edit": "direct",
+            "group": "automation",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "ai.agent_proposals",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "notifications",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "alerts.notifications",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "approvals",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "approvals.delegation",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "approvals",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "approvals.owner_queue",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "automation",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "automation.events",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "data",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "data.export",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "finance",
+            "in_menu": false,
+            "version": 1,
+            "placement": "hidden_from_menus",
+            "control_id": "finance.payments",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "finance",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "finance.reports",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "integration",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "integration.connectors",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "inventory",
+            "in_menu": true,
+            "version": 1,
+            "placement": "both",
+            "control_id": "inventory.count",
+            "preferred_enabled": true
+        },
+        {
+            "edit": "direct",
+            "group": "inventory",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "inventory.transfer",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "offline",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "offline.drafts",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "operations",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "production.workflows",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "operations",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "projects.operations",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "purchasing",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "purchase.receiving",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "sales",
+            "in_menu": false,
+            "version": 1,
+            "placement": "business_only",
+            "control_id": "sales.orders",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "experience",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "ui.favorites",
+            "preferred_enabled": false
+        },
+        {
+            "edit": "direct",
+            "group": "workforce",
+            "in_menu": true,
+            "version": 0,
+            "placement": "central_only",
+            "control_id": "workforce.payroll",
+            "preferred_enabled": false
+        }
+    ],
+    "surface": "central",
+    "contract": "C10_PACK02_CONTROLS_V1",
+    "business_id": 101,
+    "production_certified": false,
+    "operationally_certified": false,
+    "placement_is_not_permission": true
+}

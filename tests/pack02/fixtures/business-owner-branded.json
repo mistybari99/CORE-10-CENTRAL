@@ -1,0 +1,48 @@
+{
+    "nav": [
+        "biz.dashboard",
+        "biz.sites",
+        "biz.site_create",
+        "biz.access",
+        "biz.reports",
+        "biz.controls"
+    ],
+    "mode": "business_owner",
+    "sites": [
+        {
+            "id": 1,
+            "kind": "showroom",
+            "label": "ধানমন্ডি শোরুম",
+            "allowed_actions": [
+                "stock.read",
+                "stock.post"
+            ]
+        },
+        {
+            "id": 2,
+            "kind": "warehouse",
+            "label": "তেজগাঁও গুদাম",
+            "allowed_actions": [
+                "stock.read",
+                "stock.post"
+            ]
+        }
+    ],
+    "business": {
+        "id": 1,
+        "brand": {
+            "brand_hex": "#0055AA",
+            "setup_mode": "advanced",
+            "brand_source": "business_configuration_v1",
+            "display_name": "রঙ ঘর ডেমো",
+            "setup_status": "draft"
+        }
+    },
+    "contract": "C10_PACK02_WORKSPACE_V1",
+    "umbrella": {
+        "visible": true
+    },
+    "actor_uid": "11111111-1111-4111-8111-111111111111",
+    "data_mode": "disposable-demo",
+    "production_certified": false
+}
