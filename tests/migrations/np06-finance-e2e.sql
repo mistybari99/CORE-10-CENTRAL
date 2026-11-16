@@ -142,6 +142,31 @@ SELECT core10.control_set_v1(9511,NULL,'finance.journal_post',false,0::smallint,
 SELECT np06_test.expect(format('SELECT core10.finance_post_journal_v1(%s,%L)',
  :closed_id,'disabledpost01'),'CONTROL_DISABLED:finance.journal_post');
 
+-- DEC-08 / 0103 evidence: ALL six mapped state-changing RPCs obey Owner switch-off.
+SELECT core10.control_set_v1(9511,NULL,'finance.coa',false,0::smallint,
+ '{}'::jsonb,NULL,false,0,'Owner disables account configuration','coaoff0001');
+SELECT np06_test.expect(
+ $$SELECT core10.finance_create_account_v1(9511,'8810','Disabled Account',NULL,'asset',NULL,'BDT')$$,
+ 'CONTROL_DISABLED:finance.coa');
+SELECT np06_test.expect(format('SELECT core10.finance_set_account_active_v1(%s,false)',:cash_id),
+ 'CONTROL_DISABLED:finance.coa');
+SELECT core10.control_set_v1(9511,NULL,'finance.period_manage',false,0::smallint,
+ '{}'::jsonb,NULL,false,0,'Owner disables period administration','periodoff0001');
+SELECT np06_test.expect(
+ $$SELECT core10.finance_set_period_v1(9511,'BDT','2026-11-01',true,'deniedperiod01')$$,
+ 'CONTROL_DISABLED:finance.period_manage');
+SELECT core10.control_set_v1(9511,NULL,'finance.journal_draft',false,0::smallint,
+ '{}'::jsonb,NULL,false,0,'Owner disables finance drafts','draftoff0001');
+SELECT np06_test.expect(format(
+ $$SELECT core10.finance_draft_journal_v1(9511,NULL,'BDT','2026-11-16',
+ 'manual','disabled-draft-001','denyDraft001',
+ '[{"account_id":%s,"side":"debit","amount":2},{"account_id":%s,"side":"credit","amount":2}]'::jsonb)$$,
+ :cash_id,:equity_id),'CONTROL_DISABLED:finance.journal_draft');
+SELECT core10.control_set_v1(9511,NULL,'finance.journal_validate',false,0::smallint,
+ '{}'::jsonb,NULL,false,0,'Owner disables journal validation','validateoff001');
+SELECT np06_test.expect(format('SELECT core10.finance_validate_journal_v1(%s)',:bad_id),
+ 'CONTROL_DISABLED:finance.journal_validate');
+
 -- Auth: manager, investor, foreign tenant, unassigned and signed-out all DENIED.
 SELECT np06_test.as_user('93333333-3333-4333-8333-333333333333');
 SELECT np06_test.expect(format('SELECT core10.finance_post_journal_v1(%s,%L)',
