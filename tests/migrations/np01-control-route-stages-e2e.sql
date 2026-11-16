@@ -51,12 +51,12 @@ BEGIN
   PERFORM core10.configure_approval_route_v1(p,a,'np01_0111_route_'||n);
   IF core10.configure_approval_route_v1(p,a,'np01_0111_route_'||n)<>p
   THEN RAISE EXCEPTION 'NP01_0111_ROUTE_REPLAY_CHANGED'; END IF;
-  PERFORM set_config('np01.0111.p'||n,p::text,true);
+  PERFORM set_config('np01.route0111.p'||n,p::text,true);
   PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',maker_id)::text,true);
   PERFORM set_config('request.jwt.claim.sub',maker_id,true);
   q:=core10.submit_typed_approval_v1(99721,'inventory','stage'||n,'src-'||n,1,
       jsonb_build_object('quantity',n+1),'np01_0111_submit_'||n);
-  PERFORM set_config('np01.0111.q'||n,q::text,true);
+  PERFORM set_config('np01.route0111.q'||n,q::text,true);
   IF core10.submit_typed_approval_v1(99721,'inventory','stage'||n,'src-'||n,1,
       jsonb_build_object('quantity',n+1),'np01_0111_submit_'||n)<>q
   THEN RAISE EXCEPTION 'NP01_0111_SUBMIT_REPLAY_CHANGED:%',n; END IF;
@@ -79,7 +79,7 @@ SELECT core10.control_set_v1(99721,NULL,'gov002.review',false,5::smallint,
 DO $test$
 BEGIN
  BEGIN
-  PERFORM core10.configure_approval_route_v1(current_setting('np01.0111.p5')::bigint,
+  PERFORM core10.configure_approval_route_v1(current_setting('np01.route0111.p5')::bigint,
     ARRAY['business_owner','manager','manager','manager','tenant_owner']::text[],
     'np01_0111_route_5');
   RAISE EXCEPTION 'NP01_0111_DISABLED_ROUTE_REPLAY';
@@ -106,7 +106,7 @@ SELECT set_config('request.jwt.claim.sub','99799999-9999-4999-8999-999999999999'
 DO $test$
 BEGIN
  BEGIN
-  PERFORM core10.configure_approval_route_v1(current_setting('np01.0111.p5')::bigint,
+  PERFORM core10.configure_approval_route_v1(current_setting('np01.route0111.p5')::bigint,
     ARRAY['business_owner','manager','manager','manager','tenant_owner']::text[],
     'np01_0111_forged_config');
   RAISE EXCEPTION 'NP01_0111_FOREIGN_ROUTE_ALLOWED';
@@ -128,14 +128,14 @@ BEGIN
    '{"sub":"99733333-3333-4333-8333-333333333333"}',true);
  PERFORM set_config('request.jwt.claim.sub','99733333-3333-4333-8333-333333333333',true);
  BEGIN
-  PERFORM core10.decide_approval(current_setting('np01.0111.q1')::bigint,
+  PERFORM core10.decide_approval(current_setting('np01.route0111.q1')::bigint,
     'approve','np01_0111_maker_vote');
   RAISE EXCEPTION 'NP01_0111_MAKER_APPROVED';
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM<>'approval_not_authorized' THEN RAISE; END IF;
  END;
  FOR n IN 1..5 LOOP
-  q:=current_setting('np01.0111.q'||n)::bigint;
+  q:=current_setting('np01.route0111.q'||n)::bigint;
   IF n>=2 THEN
    checker:='99722222-2222-4222-8222-222222222222';
    PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',checker)::text,true);
