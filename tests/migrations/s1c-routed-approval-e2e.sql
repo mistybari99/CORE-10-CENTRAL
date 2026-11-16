@@ -53,7 +53,7 @@ SELECT set_config('request.jwt.claims',
  '{"sub":"93333333-3333-4333-8333-333333333333","app_metadata":{"is_owner":true,"role":"tenant_owner"}}',true);
 SELECT set_config('request.jwt.claim.sub','93333333-3333-4333-8333-333333333333',true);
 DO $t$
-DECLARE q5 bigint;q3 bigint;q2 bigint;qr bigint;
+DECLARE q5 bigint;q3 bigint;q2 bigint;qr bigint;qtwo bigint;qexpiry bigint;
 BEGIN
  q5:=core10.submit_typed_approval_v1(9101,'inventory','adjust',
   'five-stage-stock-01',1,'{"quantity_milli":"4000"}'::jsonb,'route-request-five');
@@ -63,6 +63,12 @@ BEGIN
   'two-stage-stock-03',1,'{"quantity_milli":"6000"}'::jsonb,'route-request-two');
  qr:=core10.submit_typed_approval_v1(9101,'inventory','transfer',
   'revoke-stage-stock-04',1,'{"quantity_milli":"7000"}'::jsonb,'route-request-revoke');
+ qtwo:=core10.submit_typed_approval_v1(9101,'inventory','count',
+  'two-accepted-stock-05',1,'{"quantity_milli":"8000"}'::jsonb,'route-request-two-ok');
+ qexpiry:=core10.submit_typed_approval_v1(9101,'inventory','transfer',
+  'expiry-stock-06',1,'{"quantity_milli":"9000"}'::jsonb,'route-request-expiry');
+ PERFORM set_config('core10.route_qtwo',qtwo::text,true);
+ PERFORM set_config('core10.route_qexpiry',qexpiry::text,true);
  PERFORM set_config('core10.route_q5',q5::text,true);
  PERFORM set_config('core10.route_q3',q3::text,true);
  PERFORM set_config('core10.route_q2',q2::text,true);
@@ -89,9 +95,11 @@ DO $t$
 DECLARE q5 bigint:=current_setting('core10.route_q5')::bigint;
  q3 bigint:=current_setting('core10.route_q3')::bigint;
  qr bigint:=current_setting('core10.route_qr')::bigint;
+ qtwo bigint:=current_setting('core10.route_qtwo')::bigint;
+ qexpiry bigint:=current_setting('core10.route_qexpiry')::bigint;
  event_id bigint;
 BEGIN
- IF (SELECT count(*) FROM core10.my_routed_review_tasks_v1(9101))<>4
+ IF (SELECT count(*) FROM core10.my_routed_review_tasks_v1(9101))<>6
  THEN RAISE EXCEPTION 'S1C_OWNER_STAGE_TASK_COUNT'; END IF;
  event_id:=core10.decide_approval(q5,'approve','route-vote-stage-01');
  IF core10.decide_approval(q5,'approve','route-vote-stage-01')<>event_id
@@ -105,6 +113,9 @@ BEGIN
  PERFORM core10.revoke_approval_delegation_v1(qr,'route-revoke-original');
  IF (SELECT revoked_at FROM core10.approval_delegations_v1 WHERE request_id=qr) IS NULL
  THEN RAISE EXCEPTION 'S1C_DELEGATE_REVOCATION_MISSING'; END IF;
+ PERFORM core10.decide_approval(qr,'approve','route-revoke-owner-vote');
+ PERFORM core10.decide_approval(qtwo,'approve','route-two-owner-vote');
+ PERFORM core10.decide_approval(qexpiry,'approve','route-expiry-owner-vote');
 END $t$;
 
 -- Explicit manager reviewer: 5-step stage 2.
@@ -203,12 +214,17 @@ SELECT set_config('request.jwt.claim.sub','91111111-1111-4111-8111-111111111111'
 DO $t$
 DECLARE q5 bigint:=current_setting('core10.route_q5')::bigint;
  q3 bigint:=current_setting('core10.route_q3')::bigint;
+ qtwo bigint:=current_setting('core10.route_qtwo')::bigint;
  v_check jsonb;
 BEGIN
  IF (SELECT status FROM core10.approval_requests WHERE id=q5)<>'pending'
  THEN RAISE EXCEPTION 'S1C_FIVE_STAGE_EARLY_FINAL'; END IF;
  PERFORM core10.decide_approval(q5,'approve','route-vote-stage-05');
  PERFORM core10.decide_approval(q3,'approve','route-vote-three-03');
+ PERFORM core10.decide_approval(qtwo,'approve','route-two-tenant-vote');
+ IF (SELECT status FROM core10.approval_requests WHERE id=qtwo)<>'approved'
+  OR (SELECT count(*) FROM core10.approval_stage_receipts_v1 WHERE request_id=qtwo)<>2
+ THEN RAISE EXCEPTION 'S1C_TWO_STAGE_FINAL_COUNTS'; END IF;
  IF (SELECT status FROM core10.approval_requests WHERE id=q5)<>'approved'
  OR (SELECT count(*) FROM core10.approval_stage_receipts_v1 WHERE request_id=q5)<>5
  OR (SELECT count(DISTINCT actor_id) FROM core10.approval_stage_receipts_v1 WHERE request_id=q5)<>5
@@ -226,6 +242,7 @@ SELECT set_config('request.jwt.claim.sub','93333333-3333-4333-8333-333333333333'
 DO $t$
 DECLARE q2 bigint:=current_setting('core10.route_q2')::bigint;
  q5 bigint:=current_setting('core10.route_q5')::bigint;
+ qr bigint:=current_setting('core10.route_qr')::bigint;
  receipt bigint;
 BEGIN
  receipt:=core10.withdraw_typed_approval_v1(q2,'route-maker-withdraw-01');
@@ -234,10 +251,44 @@ BEGIN
  IF (SELECT status FROM core10.approval_requests WHERE id=q2)<>'withdrawn'
  THEN RAISE EXCEPTION 'S1C_WITHDRAW_STATUS'; END IF;
  BEGIN
+  PERFORM core10.withdraw_typed_approval_v1(qr,'route-maker-after-stage1');
+  RAISE EXCEPTION 'S1C_PARTIALLY_APPROVED_WITHDRAWN';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM<>'withdraw_invalid_transition' THEN RAISE; END IF;
+ END;
+ BEGIN
   PERFORM core10.withdraw_typed_approval_v1(q5,'route-maker-withdraw-after-vote');
   RAISE EXCEPTION 'S1C_APPROVED_REQUEST_WITHDRAWN';
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM<>'withdraw_invalid_transition' THEN RAISE; END IF;
+ END;
+END $t$;
+
+-- Revoke the effective Build02A decision permission (not the user's login).
+-- The signed-context claim remains the same; the live database policy wins.
+RESET ROLE;
+UPDATE core10.business_members
+ SET approval_valid_until=clock_timestamp()-interval '1 minute'
+ WHERE business_id=9101 AND user_id='94444444-4444-4444-8444-444444444444';
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claims','{"sub":"94444444-4444-4444-8444-444444444444"}',true);
+SELECT set_config('request.jwt.claim.sub','94444444-4444-4444-8444-444444444444',true);
+DO $t$
+DECLARE qexpiry bigint:=current_setting('core10.route_qexpiry')::bigint;
+BEGIN
+ IF core10.can_approval_action_v1(901,9101,'approval.decide')
+ THEN RAISE EXCEPTION 'S1C_EXPIRED_REVIEWER_PERMISSION_STILL_ACTIVE'; END IF;
+ BEGIN
+  PERFORM core10.my_routed_review_tasks_v1(9101);
+  RAISE EXCEPTION 'S1C_EXPIRED_REVIEWER_TASKS';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM<>'reviewer_task_access_denied' THEN RAISE; END IF;
+ END;
+ BEGIN
+  PERFORM core10.decide_approval(qexpiry,'approve','route-expired-reviewer-vote');
+  RAISE EXCEPTION 'S1C_EXPIRED_REVIEWER_APPROVED';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM<>'approval_not_authorized' THEN RAISE; END IF;
  END;
 END $t$;
 
