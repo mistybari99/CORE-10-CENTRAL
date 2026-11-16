@@ -17,7 +17,7 @@ DECLARE pol bigint; cfg jsonb; latest bigint;
 BEGIN
  pol:=core10.publish_approval_policy_v1(99621,'stock','adjust',30,'np01_b020_allowed_01');
  IF pol IS NULL THEN RAISE EXCEPTION 'NP01_CONTROL_INITIAL_PUBLISH_MISSING'; END IF;
- cfg:=core10.control_set_v1(99621,NULL,'gov002.approval_policy',false,0,'{}',NULL,
+ cfg:=core10.control_set_v1(99621,NULL,'gov002.approval_policy',false,0::smallint,'{}',NULL,
        false,0,'Owner disables policy publishing now','np01_b020_disable_01');
  IF (cfg->>'version')::int<>1 THEN RAISE EXCEPTION 'NP01_CONTROL_DISABLE_VERSION'; END IF;
  BEGIN
@@ -30,7 +30,7 @@ BEGIN
     WHERE business_id=99621 AND request_key='np01_b020_denied_01') THEN
    RAISE EXCEPTION 'NP01_CONTROL_DISABLED_CREATED_POLICY';
  END IF;
- cfg:=core10.control_set_v1(99621,NULL,'gov002.approval_policy',true,0,
+ cfg:=core10.control_set_v1(99621,NULL,'gov002.approval_policy',true,0::smallint,
        '{"ttl_minutes":55}'::jsonb,NULL,false,1,
        'Owner restores publishing with new default','np01_b020_enable_02');
  IF (cfg->>'version')::int<>2 THEN RAISE EXCEPTION 'NP01_CONTROL_ENABLE_VERSION'; END IF;
