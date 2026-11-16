@@ -113,10 +113,42 @@ test("legacy import dry-run refuses other business, missing target, duplicate so
     {legacy_id:"IMG-4",business_id:10,target_site_id:null,label:"Unknown"}
   ],10,[1,2]);
   assert.deepEqual(r.results.map(x=>x.status),[
-    "MAPPED_ID_REVIEW_REQUIRED","BLOCKED_FOREIGN_BUSINESS",
+    "BLOCKED_DUPLICATE_SOURCE","BLOCKED_FOREIGN_BUSINESS",
     "BLOCKED_UNKNOWN_TARGET_ID","BLOCKED_DUPLICATE_SOURCE",
     "UNMAPPED_NEEDS_EXPLICIT_CROSSWALK"]);
   assert.equal(r.can_import,false);assert.equal(r.write_count,0);
+});
+test("legacy dry run blocks all competing source IDs targeting a single site, independent of order",()=>{
+  const rows=[
+    {legacy_id:"LEGACY-A",business_id:10,target_site_id:101,label:"Showroom A"},
+    {legacy_id:"LEGACY-B",business_id:10,target_site_id:101,label:"Showroom B"},
+    {legacy_id:"LEGACY-C",business_id:10,target_site_id:102,label:"Factory"},
+    {legacy_id:"LEGACY-D",business_id:10,target_site_id:null,label:"Unknown"}
+  ];
+  for (const input of [rows,[...rows].reverse()]) {
+    const preview=engine.legacyImportPreview(input,10,[101,102]);
+    const byId=Object.fromEntries(preview.results.map(x=>[x.legacy_id,x.status]));
+    assert.equal(byId["LEGACY-A"],"BLOCKED_DUPLICATE_TARGET");
+    assert.equal(byId["LEGACY-B"],"BLOCKED_DUPLICATE_TARGET");
+    assert.equal(byId["LEGACY-C"],"MAPPED_ID_REVIEW_REQUIRED");
+    assert.equal(byId["LEGACY-D"],"UNMAPPED_NEEDS_EXPLICIT_CROSSWALK");
+    assert.equal(preview.can_import,false);
+    assert.equal(preview.write_count,0);
+  }
+});
+test("legacy dry run blocks all normalized duplicate IDs and foreign business mappings",()=>{
+  const preview=engine.legacyImportPreview([
+    {legacy_id:" SOURCE-1 ",business_id:10,target_site_id:101,label:"A"},
+    {legacy_id:"SOURCE-1",business_id:10,target_site_id:102,label:"B"},
+    {legacy_id:"FOREIGN",business_id:20,target_site_id:101,label:"Outside business"}
+  ],10,[101,102]);
+  assert.deepEqual(preview.results.map(x=>x.status),[
+    "BLOCKED_DUPLICATE_SOURCE","BLOCKED_DUPLICATE_SOURCE","BLOCKED_FOREIGN_BUSINESS"]);
+  assert.equal(preview.can_import,false);
+  assert.equal(preview.write_count,0);
+  code(()=>engine.legacyImportPreview([
+    {legacy_id:"X",business_id:10,target_site_id:101,label:"X"}
+  ],10,[101,"invalid"]), "SETUP_LEGACY_SITE_ID_INVALID");
 });
 test("registry tampering and profile 'ready' claim fail",()=>{
   const bad=structuredClone(registry);

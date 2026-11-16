@@ -155,18 +155,32 @@ function legacyImportPreview(rows, knownBusinessId, knownSiteIds = []) {
     fail("SETUP_LEGACY_PREVIEW_INVALID");
   const business = identifier(knownBusinessId,"SETUP_LEGACY_BUSINESS_INVALID");
   const ids = new Set(knownSiteIds.map(x => identifier(x,"SETUP_LEGACY_SITE_ID_INVALID")));
-  const seen = new Set();
-  const results = rows.map((r, index) => {
+  // Normalize the complete batch before calling any row a mapping candidate.
+  // Repeated source IDs and many-to-one target mappings are ambiguous even if
+  // the first occurrence looked valid; this preview never authorizes import.
+  const normalized = rows.map((r, index) => {
     only(r, ["legacy_id","business_id","target_site_id","label"],"SETUP_LEGACY_ROW_INVALID");
-    const source = nonempty(r.legacy_id, 120,"SETUP_LEGACY_ROW_INVALID");
-    const id = r.target_site_id == null ? null : identifier(r.target_site_id,"SETUP_LEGACY_ROW_INVALID");
-    const rowBusiness = identifier(r.business_id,"SETUP_LEGACY_ROW_INVALID");
+    return {
+      index,
+      source:nonempty(r.legacy_id,120,"SETUP_LEGACY_ROW_INVALID"),
+      id:r.target_site_id == null ? null : identifier(r.target_site_id,"SETUP_LEGACY_ROW_INVALID"),
+      rowBusiness:identifier(r.business_id,"SETUP_LEGACY_ROW_INVALID")
+    };
+  });
+  const sourceCounts = new Map(), targetSources = new Map();
+  for (const row of normalized) {
+    sourceCounts.set(row.source,(sourceCounts.get(row.source) || 0)+1);
+    if (row.rowBusiness !== business || row.id === null || !ids.has(row.id)) continue;
+    if (!targetSources.has(row.id)) targetSources.set(row.id,new Set());
+    targetSources.get(row.id).add(row.source);
+  }
+  const results = normalized.map(({index,source,id,rowBusiness}) => {
     let status = "UNMAPPED_NEEDS_EXPLICIT_CROSSWALK";
-    if (seen.has(source)) status = "BLOCKED_DUPLICATE_SOURCE";
-    else if (rowBusiness !== business) status = "BLOCKED_FOREIGN_BUSINESS";
-    else if (id !== null && ids.has(id)) status = "MAPPED_ID_REVIEW_REQUIRED";
-    else if (id !== null) status = "BLOCKED_UNKNOWN_TARGET_ID";
-    seen.add(source);
+    if (rowBusiness !== business) status = "BLOCKED_FOREIGN_BUSINESS";
+    else if (sourceCounts.get(source) > 1) status = "BLOCKED_DUPLICATE_SOURCE";
+    else if (id !== null && !ids.has(id)) status = "BLOCKED_UNKNOWN_TARGET_ID";
+    else if (id !== null && targetSources.get(id).size > 1) status = "BLOCKED_DUPLICATE_TARGET";
+    else if (id !== null) status = "MAPPED_ID_REVIEW_REQUIRED";
     return {index,legacy_id:source,target_site_id:id,status};
   });
   return {contract:"C10_SETUP001_LEGACY_DRY_RUN_V1",business_id:business,
