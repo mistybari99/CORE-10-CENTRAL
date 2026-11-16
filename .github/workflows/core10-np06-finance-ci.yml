@@ -1,0 +1,58 @@
+name: core10-np06-finance-ci
+on:
+  push:
+    branches:
+      - build/chatgpt-np06-finance
+    paths:
+      - "internal/migrations/**"
+      - "tests/migrations/**"
+      - ".github/workflows/core10-np06-finance-ci.yml"
+  pull_request:
+    paths:
+      - "internal/migrations/**"
+      - "tests/migrations/**"
+      - ".github/workflows/core10-np06-finance-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  finance-pg17:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: np06_disposable
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: np06_disposable
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Create only disposable API roles
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+          END \$\$;"
+      - name: Static migration contract
+        run: node --test tests/migrations/migration-contract.test.js
+      - name: Full migrations Up / Down / Up / idempotent reapply on PG17
+        run: bash tests/migrations/run-updownup.sh
+      - name: Verify exact migration head and registry
+        run: |
+          internal/migrations/run.sh up
+          psql -X -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+      - name: Synthetic canonical Finance E2E and negative security tests
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-e2e.sql
