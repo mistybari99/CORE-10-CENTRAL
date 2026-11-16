@@ -369,13 +369,13 @@ BEGIN
 END $body$;
 
 -- Registry gate must see each API-callable state-changing function and a real check call.
-INSERT INTO core10.control_rpc_map_v1(rpc_name,status,feature_key,reason,lane,board_row) VALUES
- ('finance_create_account_v1','enforced','finance.coa','Owner-only COA creation checked by canonical control and audit','ChatGPT','B-013'),
- ('finance_set_account_active_v1','enforced','finance.coa','Owner-only account state checks canonical control and audit','ChatGPT','B-013'),
- ('finance_set_period_v1','enforced','finance.period_manage','Owner-only period transition checks canonical control and audit','ChatGPT','B-013'),
- ('finance_draft_journal_v1','enforced','finance.journal_draft','Scoped draft creation checks canonical control and audit','ChatGPT','B-013'),
- ('finance_validate_journal_v1','enforced','finance.journal_validate','Balanced validation checks canonical control and audit','ChatGPT','B-013'),
- ('finance_post_journal_v1','enforced','finance.journal_post','Posting checks canonical Owner Control, accounting period and audit','ChatGPT','B-013');
+INSERT INTO core10.control_rpc_map_v1(rpc_name,status,feature_key,reason,lane,board_row,test_ref) VALUES
+ ('finance_create_account_v1','enforced','finance.coa','Owner-only COA creation checked by canonical control and audit','ChatGPT','B-013','tests/migrations/np06-finance-e2e.sql'),
+ ('finance_set_account_active_v1','enforced','finance.coa','Owner-only account state checks canonical control and audit','ChatGPT','B-013','tests/migrations/np06-finance-e2e.sql'),
+ ('finance_set_period_v1','enforced','finance.period_manage','Owner-only period transition checks canonical control and audit','ChatGPT','B-013','tests/migrations/np06-finance-e2e.sql'),
+ ('finance_draft_journal_v1','enforced','finance.journal_draft','Scoped draft creation checks canonical control and audit','ChatGPT','B-013','tests/migrations/np06-finance-e2e.sql'),
+ ('finance_validate_journal_v1','enforced','finance.journal_validate','Balanced validation checks canonical control and audit','ChatGPT','B-013','tests/migrations/np06-finance-e2e.sql'),
+ ('finance_post_journal_v1','enforced','finance.journal_post','Posting checks canonical Owner Control, accounting period and audit','ChatGPT','B-013','tests/migrations/np06-finance-e2e.sql');
 
 REVOKE EXECUTE ON FUNCTION
  core10.finance_create_account_v1(bigint,text,text,text,text,bigint,text),
