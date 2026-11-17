@@ -3,7 +3,7 @@ on:
   push:
     branches: ['build/codex-np03b-sales']
   pull_request:
-    paths: ['internal/migrations/**','tests/np03b/**','core10-sales-order*','.github/workflows/np03b-sales-ci.yml']
+    paths: ['internal/migrations/**','tests/np03b/**','core10-sales*','.github/workflows/np03b-sales-ci.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -31,7 +31,9 @@ jobs:
       - name: Static migration contract
         run: node --test tests/migrations/migration-contract.test.js
       - name: Signed session-bound Sales client contracts (synthetic responses)
-        run: node tests/np03b/client.test.cjs
+        run: |
+          node tests/np03b/client.test.cjs
+          node --test tests/np03b/master-catalog.test.cjs tests/np03b/entry.test.cjs
       - name: Disposable API roles
         run: |
           psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
@@ -40,10 +42,11 @@ jobs:
           END \$\$;"
       - name: Full up down up PostgreSQL17
         run: bash tests/migrations/run-updownup.sh
-      - name: Synthetic Sales security, approvals, idempotency, RLS and rollback
+      - name: Canonical Master Sales security, approvals, idempotency, RLS and rollback
         run: |
           psql -X -v ON_ERROR_STOP=1 -f tests/np03b/sales-orders.sql
           psql -X -v ON_ERROR_STOP=1 -f tests/np03b/audit-read.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/np03b/master-integration.sql
       - name: Every mutation mapped to Control with evidence
         run: |
           psql -X -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql

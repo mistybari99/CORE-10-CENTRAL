@@ -4,6 +4,11 @@
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {spawnSync}=require('node:child_process');const ROOT=path.resolve(__dirname,'../..');
 const RPCS={
+ master_list_items_v1:[['p_business','bigint'],['p_search','text'],['p_status','text'],['p_category','bigint'],['p_limit','integer'],['p_after_id','bigint']],
+ master_list_parties_v1:[['p_business','bigint'],['p_kind','text'],['p_search','text'],['p_status','text'],['p_limit','integer'],['p_after_id','bigint']],
+ master_list_uoms_v1:[['p_business','bigint']],
+ master_list_price_lists_v1:[['p_business','bigint'],['p_kind','text']],
+ master_get_price_list_v1:[['p_business','bigint'],['p_price_list','bigint'],['p_limit','integer'],['p_after_id','bigint']],
  build01_context_v1:[],control_read_v1:[['p_business','bigint'],['p_site','bigint']],
  read_sales_orders_v1:[['p_business','bigint'],['p_site','bigint'],['p_order','bigint']],
  read_sales_order_audit_v1:[['p_business','bigint'],['p_site','bigint'],['p_order','bigint']],
@@ -22,13 +27,13 @@ function start(port=0){
   function send(status,body,type='application/json'){res.writeHead(status,{'content-type':type,'cache-control':'no-store','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'"});res.end(typeof body==='string'?body:JSON.stringify(body));}
   if(req.method==='GET'&&url.pathname==='/harness.html'){
    let html=fs.readFileSync(path.join(ROOT,'core10-build01.html'),'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
-   html=html.replace(/<main\b[^>]*>[\s\S]*?<\/main>/i,'<main id="b01-main"><p class="muted">LOCAL TEST HARNESS · inert UUID claims, synthetic Master fixture; not GoTrue or hosted backend</p><div id="sales-host"></div></main>')
+   html=html.replace(/<main\b[^>]*>[\s\S]*?<\/main>/i,'<main id="b01-main"><p class="muted">LOCAL TEST HARNESS · inert UUID claims, canonical Master + synthetic fixtures; not GoTrue or hosted backend</p><div id="sales-host"></div></main>')
     .replace('</head>','<link rel="stylesheet" href="/core10-sales-order.css"></head>')
-    .replace('</body>','<script src="/core10-sales-order-client.js"></script><script src="/core10-sales-order-ui.js"></script><script src="/core10-sales-order-entry.js"></script><script src="/harness.js"></script></body>');
+    .replace('</body>','<script src="/core10-sales-master-catalog.js"></script><script src="/core10-sales-order-client.js"></script><script src="/core10-sales-order-ui.js"></script><script src="/core10-sales-order-entry.js"></script><script src="/harness.js"></script></body>');
    return send(200,html,'text/html; charset=utf-8');
   }
   if(req.method==='GET'&&url.pathname==='/harness.js')return send(200,fs.readFileSync(path.join(__dirname,'ui-harness.js'),'utf8'),'application/javascript');
-  const file=url.pathname.slice(1);if(req.method==='GET'&&FILES.includes(file))return send(200,fs.readFileSync(path.join(ROOT,file),'utf8'),file.endsWith('.css')?'text/css':'application/javascript');
+  const file=url.pathname.slice(1);if(req.method==='GET'&&(FILES.includes(file)||file==='core10-sales-master-catalog.js'))return send(200,fs.readFileSync(path.join(ROOT,file),'utf8'),file.endsWith('.css')?'text/css':'application/javascript');
   if(req.method==='POST'&&url.pathname.startsWith('/rpc/')){
    const name=url.pathname.slice(5),persona=String(req.headers['x-test-persona']||'');if(!Object.hasOwn(RPCS,name))return send(404,{message:'RPC_NOT_ALLOWED'});
    if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(persona))return send(403,{message:'SALES_SCOPE_DENIED'});

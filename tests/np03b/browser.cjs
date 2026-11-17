@@ -1,6 +1,6 @@
 'use strict';
 // Existing Build01 shell + NP03B module + real disposable SQL. Synthetic Auth
-// and Master are explicitly labelled; this is not hosted sign-in certification.
+// is explicitly labelled; real canonical Master functions and synthetic data, not hosted sign-in.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require('playwright');const {start,sql}=require('./ui-gateway.cjs');
 const ROOT=path.resolve(__dirname,'../..'),SHOTS=process.env.NP03B_SHOTS||path.join(ROOT,'artifacts/np03b');
@@ -9,7 +9,7 @@ let passed=0;
  const browser=await chromium.launch({...(process.env.NP03B_CHROMIUM?{executablePath:process.env.NP03B_CHROMIUM}:{}),args:['--no-sandbox']});
  const errors=[];
  async function check(name,fn){await fn();passed++;console.log('PASS '+name);}
- async function open(width,lang,extra=''){const page=await browser.newPage({viewport:{width,height:width<500?844:1000},deviceScaleFactor:1});page.setDefaultTimeout(12000);page.on('pageerror',e=>errors.push(e.message));await page.goto(base+'/harness.html?lang='+lang+extra);await page.waitForSelector('body[data-ready="1"]');return page;}
+ async function open(width,lang,extra='',setup){const page=await browser.newPage({viewport:{width,height:width<500?844:1000},deviceScaleFactor:1});page.setDefaultTimeout(12000);page.on('pageerror',e=>errors.push(e.message));if(setup)await setup(page);await page.goto(base+'/harness.html?lang='+lang+extra);await page.waitForSelector('body[data-ready="1"]');return page;}
  const idle=page=>page.waitForFunction(()=>document.querySelector('.so-workspace')?.getAttribute('aria-busy')==='false');
  try{
   for(const [width,lang] of [[1440,'en'],[390,'bn']]){
@@ -18,8 +18,9 @@ let passed=0;
    await check(width+' language toggle preserves keyboard position',async()=>{await p.locator('[data-so-focus="language"]').click();assert.equal(await p.locator('[data-so-focus="language"]').evaluate(x=>x===document.activeElement),true);await p.locator('[data-so-focus="language"]').click();assert.equal(await p.locator('.so-workspace').getAttribute('lang'),lang);});
    await p.locator('.so-list .primary').click();
    await check(width+' new order hands keyboard focus to the form',async()=>{assert.equal(await p.locator('[data-so-focus="customer"]').evaluate(x=>x===document.activeElement),true);});
+   await check(width+' language toggle updates canonical customer/product/UOM labels',async()=>{const before=await p.locator('[data-product="0"] option:checked').textContent();await p.locator('[data-so-focus="language"]').click();const after=await p.locator('[data-product="0"] option:checked').textContent();assert.notEqual(after,before);assert.match(after,lang==='en'?/রসগোল্লা/:/Rasgulla Box/);assert.match(await p.locator('[data-so-focus="customer"] option:checked').textContent(),lang==='en'?/ক্রেতা/:/Synthetic Bakery Customer/);await p.locator('[data-so-focus="language"]').click();assert.equal(await p.locator('[data-product="0"] option:checked').textContent(),before);});
    const qty=p.locator('[data-field="quantity"][data-line="0"]');
-   await check(width+' native accessible quantity constraint',async()=>{await qty.fill('0');assert.equal(await qty.evaluate(x=>x.checkValidity()),false);assert.equal(await p.locator('.so-form input').evaluateAll(a=>a.every(x=>!!x.closest('label'))),true);});
+   await check(width+' native accessible quantity constraint',async()=>{await qty.fill('0');assert.equal(await qty.evaluate(x=>x.checkValidity()),false);await qty.fill('0.5');assert.equal(await qty.evaluate(x=>x.checkValidity()),false);assert.equal(await qty.getAttribute('step'),'1');assert.equal(await p.locator('.so-form input').evaluateAll(a=>a.every(x=>!!x.closest('label'))),true);});
    await qty.fill('2');await p.locator('[data-field="discount_percent"][data-line="0"]').fill('5');
    await p.locator('.so-form>button.outline').click();await p.locator('[data-product="1"]').selectOption('3');
    await check(width+' product rerender preserves keyboard focus',async()=>{assert.equal(await p.locator('[data-product="1"]').evaluate(x=>x===document.activeElement),true);});
@@ -61,11 +62,15 @@ let passed=0;
   await check('uncertain command freezes edits and scope until exact retry',async()=>{assert.equal(await retry.locator('[data-action="save"]').isDisabled(),true);assert.equal(await retry.locator('[data-field="quantity"]').isDisabled(),true);assert.equal(await retry.locator('.so-scope select').first().isDisabled(),true);});
   await retry.locator('[data-retry="true"]').click();await idle(retry);
   await check('retry reuses key and creates only one server order',async()=>{assert.equal(keys.length,2);assert.equal(keys[0],keys[1]);const out=sql("SELECT count(*) FROM core10.sales_order_commands_v1 WHERE request_key='"+keys[0]+"';");assert.equal(out.status,0);assert.equal(out.stdout.trim(),'1');});await retry.close();
-  const absent=sql('DROP FUNCTION core10.master_validate_sales_order_v1(bigint,bigint,jsonb);');assert.equal(absent.status,0,absent.stderr);
-  const disconnected=await open(1440,'en');await disconnected.locator('.so-list .primary').click();await disconnected.locator('[data-action="save"]').click();await idle(disconnected);
-  await check('missing actual Master provider fails closed without success UI',async()=>{assert.match(await disconnected.locator('.so-status').textContent(),/required backend connection is unavailable/);assert.equal(await disconnected.locator('.so-order[aria-pressed=true]').count(),0);});await disconnected.close();
+  const disconnected=await open(1440,'en','',async p=>p.route('**/rpc/master_list_uoms_v1',r=>r.fulfill({status:404,contentType:'application/json',body:JSON.stringify({code:'PGRST202',message:'NOT_CONNECTED:MASTER_CATALOG'})})));
+  await check('missing actual Master reader fails closed without creation UI',async()=>{assert.equal(await disconnected.locator('.so-form').count(),0);assert.equal(await disconnected.locator('.so-list .primary').isDisabled(),true);});await disconnected.close();
+  const changed=await open(1440,'en');await changed.locator('.so-list .primary').click();
+  const inactive=sql("UPDATE core10.items SET status='inactive' WHERE id=8101;");assert.equal(inactive.status,0,inactive.stderr);
+  await changed.locator('[data-action="save"]').click();await idle(changed);
+  await check('Master change after catalog load rejects save without success UI',async()=>{assert.equal(await changed.locator('.so-order[aria-pressed=true]').count(),0);assert.match(await changed.locator('.so-status').textContent(),/rejected|Master/i);});await changed.close();
+  const active=sql("UPDATE core10.items SET status='active' WHERE id=8101;");assert.equal(active.status,0,active.stderr);
   const off=sql("SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false); SELECT core10.control_set_v1(101,NULL,'sales.order_draft',false,0::smallint,'{}',NULL,false,1,'Synthetic browser switch off','ui_disable_draft');");assert.equal(off.status,0,off.stderr);
   const disabled=await open(390,'bn');await check('actual Owner Control disabled state',async()=>{assert.equal(await disabled.locator('.so-list .primary').isDisabled(),true);assert.match(await disabled.locator('.so-note').last().textContent(),/বন্ধ রেখেছেন/);});await disabled.close();
-  assert.deepEqual(errors,[]);console.log('NP03B_BROWSER_PASS '+passed+'; synthetic Auth/Master, real PG17 RPCs');
+  assert.deepEqual(errors,[]);console.log('NP03B_BROWSER_PASS '+passed+'; synthetic Auth/data, canonical Master and real PG17 RPCs');
  }finally{await browser.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

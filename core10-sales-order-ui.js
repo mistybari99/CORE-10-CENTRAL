@@ -48,7 +48,7 @@
   function currentControl(key){return controls.find(c=>c.feature_key===key);}
   function allowed(key){return !busy&&!uncertain&&currentControl(key)?.enabled===true;}
   function validCatalog(c){
-   if(!obj(c)||c.businessId!==business||c.siteId!==site||c.source!==(mode==='synthetic'?'synthetic_fixture':'canonical_master'))return null;
+   if(!obj(c)||c.businessId!==business||c.siteId!==site||!(c.source==='canonical_master'||mode==='synthetic'&&c.source==='synthetic_fixture'))return null;
    if(!['customers','priceLists','items'].every(k=>Array.isArray(c[k])&&c[k].length&&c[k].every(r=>obj(r)&&id(r.id)&&typeof r.label==='string')))return null;
    if(c.priceLists.some(r=>!/^[A-Z]{3}$/.test(r.currency))||c.items.some(r=>!id(r.uomId)||!obj(r.prices)||r.variantId!=null&&!id(r.variantId)||c.priceLists.some(p=>typeof r.prices[p.id]!=='number'||!Number.isFinite(r.prices[p.id])||r.prices[p.id]<0)))return null;
    return structuredClone(c);
@@ -66,7 +66,9 @@
   function clearPrivate(){clearScope();context=null;business=null;site=null;}
   function keyFor(kind,input){const signature=JSON.stringify(input),old=requests.get(kind);if(old?.signature===signature)return old.key;
    if(!globalThis.crypto?.randomUUID)throw Error('SECURE_ID_REQUIRED');const key='sales-'+crypto.randomUUID().replaceAll('-','');requests.set(kind,{signature,key});return key;}
-  function selectBox(rows,value,onChange,focusId){const x=el('select');if(focusId)x.dataset.soFocus=focusId;for(const r of rows){const o=el('option',null,r.label);o.value=String(r.id);x.append(o);}x.value=String(value??'');x.disabled=busy||!!uncertain;x.addEventListener('change',()=>onChange(Number(x.value)));return x;}
+  function rowLabel(r){return r?(lang==='en'?r.labelEn:r.labelBn)||r.label:'';}
+  function uomLabel(r){return (lang==='en'?r.uomLabelEn:r.uomLabelBn)||r.uomLabel||String(r.uomId);}
+  function selectBox(rows,value,onChange,focusId){const x=el('select');if(focusId)x.dataset.soFocus=focusId;for(const r of rows){const o=el('option',null,rowLabel(r));o.value=String(r.id);x.append(o);}x.value=String(value??'');x.disabled=busy||!!uncertain;x.addEventListener('change',()=>onChange(Number(x.value)));return x;}
   function selectedPriceList(){return catalog?.priceLists.find(p=>p.id===draft?.price_list_id);}
   function itemFor(line){return catalog?.items.find(p=>p.id===line.item_id&&(p.variantId??null)===(line.variant_id??null)&&p.uomId===line.uom_id);}
   function newLine(item){return {item_id:item.id,variant_id:item.variantId??null,uom_id:item.uomId,quantity:1,unit_price:Number(item.prices[draft.price_list_id]),discount_percent:0,tax_percent:0};}
@@ -102,9 +104,9 @@
   function drawList(root){const head=el('div','so-section-heading');head.append(el('h3',null,t('orders')),button(t('newOrder'),()=>navigate(startDraft),!catalog||!allowed('sales.order_draft'),'primary'));root.append(head);
    if(!orders.length)root.append(el('p','so-empty',busy?t('loading'):t('empty')));
    const list=el('ul','so-orders');for(const o of orders){const li=el('li'),b=button('',()=>navigate(()=>openOrder(o)),busy||!!uncertain,'so-order');b.dataset.order=String(o.id);b.setAttribute('aria-pressed',String(selected?.id===o.id));
-    const line=el('span','so-order-top');line.append(el('strong',null,'#'+o.id),el('span','so-state',t(o.status)));b.append(line,el('span',null,catalog?.customers.find(c=>c.id===o.customer_id)?.label||t('customer')+' #'+o.customer_id),el('span','so-muted',money(o.total,o.currency)+' · '+t('revision')+' '+o.version));li.append(b);list.append(li);}root.append(list);
+    const line=el('span','so-order-top');line.append(el('strong',null,'#'+o.id),el('span','so-state',t(o.status)));b.append(line,el('span',null,rowLabel(catalog?.customers.find(c=>c.id===o.customer_id))||t('customer')+' #'+o.customer_id),el('span','so-muted',money(o.total,o.currency)+' · '+t('revision')+' '+o.version));li.append(b);list.append(li);}root.append(list);
   }
-  function numberField(key,line,index,min,max){const input=el('input');input.type='number';input.step='any';input.min=String(min);if(max!=null)input.max=String(max);input.required=true;input.value=String(line[key]);input.disabled=!canEdit()||(key==='tax_percent'&&currentControl('sales.order_draft')?.params?.tax_enabled!==true);
+  function numberField(key,line,index,min,max){const input=el('input');input.type='number';input.step='any';if(key==='quantity'){const item=itemFor(line),decimals=item?.quantityDecimals;if(Number.isInteger(decimals)&&decimals>=0&&decimals<=6){input.step=String(10**-decimals);min=Math.max(10**-decimals,item.minQuantity||0);}}input.min=String(min);if(max!=null)input.max=String(max);input.required=true;input.value=String(line[key]);input.disabled=!canEdit()||(key==='tax_percent'&&currentControl('sales.order_draft')?.params?.tax_enabled!==true);
    input.dataset.field=key;input.dataset.line=String(index);input.addEventListener('input',()=>{line[key]=input.value===''?null:Number(input.value);updateEstimate();markDirty();});return label(t({unit_price:'price',discount_percent:'discount',tax_percent:'tax'}[key]||key),input);}
   function estimate(){if(!draft)return null;let sum=0;for(const l of draft.lines){if(['quantity','unit_price','discount_percent','tax_percent'].some(k=>typeof l[k]!=='number'||!Number.isFinite(l[k])))return null;sum+=l.quantity*l.unit_price*(1-l.discount_percent/100)*(1+l.tax_percent/100);}return sum;}
   function updateEstimate(){const x=host.querySelector('.so-estimate-value');if(x){const v=estimate();x.textContent=v===null?'—':money(v,draft.currency);}}
@@ -117,7 +119,7 @@
    const pricelist=selectBox(catalog.priceLists,draft.price_list_id,v=>{draft.price_list_id=v;draft.currency=selectedPriceList().currency;for(const l of draft.lines){const p=itemFor(l);l.unit_price=Number(p?.prices[v]);}render();});pricelist.dataset.soFocus='priceList';pricelist.disabled=!canEdit();
    top.append(label(t('customer'),customer),label(t('priceList'),pricelist));form.append(top);
    draft.lines.forEach((line,index)=>{const group=el('fieldset','so-line');group.append(el('legend',null,t('product')+' '+(index+1)));
-    const pick=el('select');catalog.items.forEach((p,i)=>{const o=el('option',null,p.label+' · '+(p.uomLabel||String(p.uomId)));o.value=String(i);pick.append(o);});pick.value=String(catalog.items.indexOf(itemFor(line)));pick.required=true;pick.disabled=!canEdit();pick.dataset.product=String(index);
+    const pick=el('select');catalog.items.forEach((p,i)=>{const o=el('option',null,rowLabel(p)+' · '+uomLabel(p));o.value=String(i);pick.append(o);});pick.value=String(catalog.items.indexOf(itemFor(line)));pick.required=true;pick.disabled=!canEdit();pick.dataset.product=String(index);
     pick.addEventListener('change',()=>{draft.lines[index]=newLine(catalog.items[Number(pick.value)]);render();});group.append(label(t('product'),pick));
     const fields=el('div','so-line-numbers');fields.append(numberField('quantity',line,index,0.000001,currentControl('sales.order_draft')?.params?.max_quantity),numberField('unit_price',line,index,0),numberField('discount_percent',line,index,0,currentControl('sales.order_draft')?.params?.max_discount_percent??100),numberField('tax_percent',line,index,0,100));group.append(fields,button(t('remove'),()=>{draft.lines.splice(index,1);render();host.querySelector('[data-product="'+Math.min(index,draft.lines.length-1)+'"]')?.focus();},!canEdit()||draft.lines.length===1));form.append(group);
    });

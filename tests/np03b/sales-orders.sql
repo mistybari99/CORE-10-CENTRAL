@@ -165,9 +165,9 @@ SELECT np03b_test.ok((SELECT count(*)=0 FROM core10.sales_order_lines_v1),'RLS l
 SELECT np03b_test.ok((SELECT count(*)=0 FROM core10.sales_order_commands_v1),'RLS commands deny');
 RESET ROLE;
 -- Test the production missing-port boundary, not a speculative implementation.
-DROP FUNCTION core10.master_validate_sales_order_v1(bigint,bigint,jsonb);
+ALTER FUNCTION core10.master_validate_sales_order_v1(bigint,bigint,jsonb) RENAME TO np03b_test_absent_port;
 SET LOCAL ROLE authenticated;
 SELECT np03b_test.actor('11111111-1111-4111-8111-111111111111');
 SELECT np03b_test.expect($q$SELECT core10.save_sales_order_v1(101,1001,NULL,0,np03b_test.doc(),'missing_master')$q$,'NOT_CONNECTED:MASTER_SALES_VALIDATION');
 ROLLBACK;
-\echo NP03B_SALES_ORDER_TESTS_OK_SYNTHETIC_MASTER_ONLY
+\echo NP03B_SALES_ORDER_TESTS_OK_CANONICAL_MASTER_SYNTHETIC_DATA
