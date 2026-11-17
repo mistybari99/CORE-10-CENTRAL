@@ -61,17 +61,33 @@ DECLARE
  j core10.finance_journals_v1%ROWTYPE;
  prior record;
  v_actor uuid:=core10.actor_uid();
+ v_pre_tenant bigint;
+ v_pre_business bigint;
  v_lines jsonb;
  v_reverse bigint;
  v_receipt bigint;
  v_draft_key text;
  v_post_key text;
 BEGIN
- -- FOR UPDATE serializes competing reversals of the same posted source.
- -- Locked original is never updated or deleted.
- SELECT * INTO j FROM core10.finance_journals_v1 WHERE id=p_original FOR UPDATE;
- IF NOT FOUND OR v_actor IS NULL OR NOT core10.can_manage(j.tenant_id,j.business_id)
+ -- SECURITY DEFINER must not let an unauthorized caller row-lock a foreign
+ -- tenant's posted journal. Read only its scope WITHOUT acquiring any lock,
+ -- check canonical Auth, then take the serialization lock and REVALIDATE.
+ IF v_actor IS NULL THEN RAISE EXCEPTION 'FIN_AUTH_DENIED'; END IF;
+ SELECT tenant_id,business_id INTO v_pre_tenant,v_pre_business
+ FROM core10.finance_journals_v1 WHERE id=p_original;
+ IF NOT FOUND OR NOT core10.can_manage(v_pre_tenant,v_pre_business)
  THEN RAISE EXCEPTION 'FIN_AUTH_DENIED'; END IF;
+
+ -- The authorized row lock serializes concurrent reversals on one source.
+ -- A row changed or moved between the read and lock must fail closed even
+ -- though 0400 already prevents such changes to a posted journal.
+ SELECT * INTO j FROM core10.finance_journals_v1 WHERE id=p_original FOR UPDATE;
+ IF NOT FOUND OR j.tenant_id IS DISTINCT FROM v_pre_tenant
+ OR j.business_id IS DISTINCT FROM v_pre_business
+ OR NOT core10.can_manage(j.tenant_id,j.business_id)
+ THEN RAISE EXCEPTION 'FIN_AUTH_DENIED'; END IF;
+ -- Intentional: check live Owner Control BEFORE any idempotency replay.
+ -- A disabled switch must reject even exact-key retries of an old reversal.
  -- The Owner's reversal switch is independent of the existing draft,
  -- validation, post and period checks, all of which remain mandatory.
  PERFORM core10.control_check_v1(j.business_id,'finance.journal_reverse',j.site_id);
