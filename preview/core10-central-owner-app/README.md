@@ -50,3 +50,18 @@ zero bindings, compat 2026-11-16. Its script (30,547 B, sha256 `d31d53c9dc0d95a1
 equals `preview/clean-masterplan-level1.worker.mjs` @ `b8c1684` (PR #113) and is saved in `rollback/`.
 Roll back: `POST /accounts/382a468cf1bde26b7b3c480acc409732/workers/scripts/core10-central/deployments`
 body `{"strategy":"percentage","versions":[{"version_id":"b1d80c36-cb9b-4547-ab16-2821eb50e4fa","percentage":100}]}`.
+
+## Deployment record (2026-11-17 UTC)
+
+| Item | Value |
+|---|---|
+| URL | https://core10-central.mistybari99.workers.dev/ (same URL) |
+| Active deployment / version | `3c91d5a2-26c3-4f79-96ae-65c7ec197dbf` / `9a1c6aaa-395c-44d0-beae-46e1afccf292` (100%), bindings: none |
+| Script | `dist/worker.mjs` 571,957 B sha256 `67e7bdeceeda2109ddd374f83379490f0f5a049bb4a06f6789536ea706d24ca6`, built from branch commit `1ab1570` |
+| Public verify | 36/36 PASS (32 route×lang×width checks incl. developer-text scan, writes 405, backend/legacy 404, write refusal) · header `x-core10-source: 7c460aa…` |
+| Rollback | version `b1d80c36-cb9b-4547-ab16-2821eb50e4fa` confirmed present after deploy; procedure above |
+| Upload path | Cloudflare API sandbox cannot fetch GitHub and the env token is invalid, so `core10-central` briefly served a token-protected uploader (temporary KV); stored bytes hash-checked, final script deployed, KV and upload secret deleted (deployment `3c91d5a2…` triggered_by `secret`). Old upload path → 405. |
+| `core10-build-review` | not redeployed by this task; after this deploy it is no longer in the account Worker list and its URL returns 404 — removed outside this session. |
+| `trillionaire-me` | untouched (modified 2026-11-13) |
+
+Live screenshots (390/1440, BN/EN): `evidence/live-*.png` (GitHub only, not served by the Worker).
