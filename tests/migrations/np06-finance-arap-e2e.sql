@@ -145,7 +145,7 @@ SELECT np06_arap_test.expect(format(
  :ar_link,:ar_payment,21,'arapAllocKey003'),'FIN_ARAP_OVERALLOCATION');
 SELECT np06_arap_test.expect(format(
  'SELECT core10.finance_allocate_payment_v1(%s,%s,%s,%L)',
- :ar_link,:ap_payment,1,'arapAllocKey004'),'FIN_ARAP_OVERALLOCATION');
+ :ar_link,:ap_payment,1,'arapAllocKey004'),'FIN_ARAP_PAYMENT_PARTY_OR_ACCOUNT_MISMATCH');
 SELECT np06_arap_test.ok((SELECT count(*)=2 FROM core10.finance_arap_allocations_v1),
  'exactly two approved reference-only allocations');
 
