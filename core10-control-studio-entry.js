@@ -9,9 +9,10 @@ function sync(){
  const key="core10-studio-entry";
  const existing=document.getElementById(key);
  const centreKey="core10-owner-control-centre-entry",centre=document.getElementById(centreKey);
- if(!ctx||!ctx.profile||!ctx.profile.id){if(existing)existing.remove();if(centre)centre.remove();return}
+ const mdKey="core10-master-data-entry",md=document.getElementById(mdKey);
+ if(!ctx||!ctx.profile||!ctx.profile.id){if(existing)existing.remove();if(centre)centre.remove();if(md)md.remove();return}
  if(master){
-  if(ctx.is_owner!==true){if(existing)existing.remove();if(centre)centre.remove();return}
+  if(ctx.is_owner!==true){if(existing)existing.remove();if(centre)centre.remove();if(md)md.remove();return}
   const header=app.querySelector("header.top");if(!header)return;
   // B-021: canonical DEC-08 Owner Control Centre (core10.control_* RPCs on CORE10 staging only).
   if(!centre){
@@ -19,6 +20,13 @@ function sync(){
    c.href="./core10-owner-control-centre.html";c.setAttribute("aria-label","Open the Owner Control Centre: switch features, approvals, limits, schedules, history and exceptions");
    c.style.cssText="display:inline-flex;align-items:center;min-height:40px;margin:8px 4px;padding:8px 12px;border-radius:10px;border:1px solid #ddb47f;background:#2b3c4f;color:#f3e2c6;text-decoration:none;font:700 13px system-ui,sans-serif";
    header.appendChild(c)
+  }
+  // B-011: canonical NP02 Master Data (core10.master_* RPCs on CORE10 staging only).
+  if(!md){
+   const m=document.createElement("a");m.id=mdKey;m.textContent="মাস্টার ডেটা · Master Data";
+   m.href="./core10-master-data.html";m.setAttribute("aria-label","Open Master Data: items, customers and suppliers, price lists and units");
+   m.style.cssText=(document.getElementById(centreKey)||{style:{cssText:""}}).style.cssText;
+   header.appendChild(m)
   }
   if(!existing){
    const a=document.createElement("a");a.id=key;a.textContent="Control Studio";

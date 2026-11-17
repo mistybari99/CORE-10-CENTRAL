@@ -23,3 +23,14 @@ Status: DESIGN + IN_PROGRESS. Nothing hosted. REUSE FIRST → FIX SECOND → BUI
 
 ## Not in scope here
 Stock (B-012), Money (NP06), Sales/POS (NP03B), manufacturing (NP05A).
+
+## Delivered ports (trunk, CI green) — how NP03B / NP05A / NP06 bind
+
+| Port | Signature | Behaviour |
+|---|---|---|
+| Sales validation (NP03B) | `core10.master_validate_sales_order_v1(p_business bigint, p_site bigint, p_doc jsonb) RETURNS boolean` (0151) | Exactly the 0301 hook. FALSE (never raises) for unknown/other-business/inactive customer (must be `customer` or `both`), price list (sales, active, effective today, site null or = p_site), item, variant, UOM of another dimension than the item base UOM, quantity ≤ 0, malformed ids, or `unit_price` ≠ list price for the highest `min_quantity` tier ≤ quantity. |
+| UOM conversion (NP05A) | `core10.master_uom_convert_v1(p_business, p_from_uom, p_to_uom, p_quantity) RETURNS numeric` (0151) | Identity, direct or inverse factor inside one dimension; `MASTER_UOM_SCOPE` / `MASTER_UOM_NO_CONVERSION` / `MASTER_UOM_BAD_QUANTITY`; never guesses. |
+| Item status (NP05A) | `core10.master_item_usable_v1(p_business, p_item) RETURNS boolean` (0151) | Active item in that business. |
+| Parties (NP06 AR/AP) | FK `(id, tenant_id, business_id)` → `core10.master_parties_v1` (0150) | `party_kind` customer/supplier/both; `status` active/inactive/blocked/draft. |
+
+The three functions are internal (no API grant). Call them from your own SECURITY DEFINER code; replace only your own placeholder (`_mfg_master_check_v1`, NP03B `to_regprocedure` check already binds automatically). Writers (`master_save_*_v1`) are Owner-Control-enforced (`master.uom|item|party|price`); readers (`master_list_*_v1`, `master_get_*_v1`, `master_find_barcode_v1`) are STABLE, `can_see_business`-scoped.
