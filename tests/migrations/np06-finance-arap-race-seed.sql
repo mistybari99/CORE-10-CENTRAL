@@ -39,3 +39,25 @@ SELECT core10.control_set_v1(9631,NULL,'finance.arap_allocate',true,0::smallint,
  '{}'::jsonb,NULL,false,0,'Owner enables synthetic race allocation','arapRaceCtlAlloc');
 SELECT core10.finance_link_open_item_v1(:doc,:party_id,:ar_id,'ar','2026-11-20',
  'arapRaceLink001') link_id;
+
+-- Separate unpaid item and already-posted payment, for real reversal-vs-allocation race.
+-- This is a DIFFERENT journal pair from the shared-key/budget race above.
+SELECT core10.finance_set_period_v1(9631,'BDT','2026-12-01',true,'arapRacePeriod2');
+SELECT core10.control_set_v1(9631,NULL,'finance.journal_reverse',true,0::smallint,
+ '{}'::jsonb,NULL,false,0,'Owner enables synthetic reversal vs allocation race','arapRaceCtlRev01');
+SELECT core10.finance_draft_journal_v1(9631,NULL,'BDT','2026-11-17','manual',
+ 'arap-race-reverse-original','arapRaceDraft3',
+ jsonb_build_array(
+  jsonb_build_object('account_id',:ar_id,'side','debit','amount',60),
+  jsonb_build_object('account_id',:income_id,'side','credit','amount',60))) revdoc \gset
+SELECT core10.finance_validate_journal_v1(:revdoc);
+SELECT core10.finance_post_journal_v1(:revdoc,'arapRacePost03');
+SELECT core10.finance_draft_journal_v1(9631,NULL,'BDT','2026-11-18','manual',
+ 'arap-race-reverse-payment','arapRaceDraft4',
+ jsonb_build_array(
+  jsonb_build_object('account_id',:cash_id,'side','debit','amount',60),
+  jsonb_build_object('account_id',:ar_id,'side','credit','amount',60))) revpay \gset
+SELECT core10.finance_validate_journal_v1(:revpay);
+SELECT core10.finance_post_journal_v1(:revpay,'arapRacePost04');
+SELECT core10.finance_link_open_item_v1(:revdoc,:party_id,:ar_id,'ar','2026-11-25',
+ 'arapRaceRevLink01') revlink_id;
