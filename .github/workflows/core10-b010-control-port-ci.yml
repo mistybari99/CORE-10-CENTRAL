@@ -9,6 +9,7 @@ on:
       - "core10-owner-control*"
       - "core10-control-centre-config.js"
       - "core10-control-studio-entry.js"
+      - "core10-master-data*"
       - "tests/control-centre/**"
       - "tests/c10_np02_*"
       - "internal/enterprise-sql/**"
@@ -54,6 +55,10 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-control-e2e.sql
       - name: B-011 master tables (scope, isolation, constraints, no direct API-role access)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-tables-e2e.sql
+      - name: B-011 master RPCs (personas, Owner Control, versions, idempotency, audit, NP03B/NP05A ports)
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-rpc-e2e.sql
+      - name: "B-012 canonical inventory engine (0200 - internal posting and transfer, balances, reconciliation, API denial)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-e2e.sql
       - name: DEC-08 registry gate (every state-changing RPC is mapped)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Registry gate self-test (an unmapped RPC must fail the gate)
@@ -66,6 +71,8 @@ jobs:
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Concurrent sessions (stale writers, replays, one-time exception)
         run: bash tests/migrations/control-race.sh
+      - name: B-011 master data real concurrent sessions (replay, SKU, barcode, version, cross-tenant, Owner Control switch)
+        run: bash tests/migrations/np02-master-race.sh
       - name: Registry evidence (each enforced RPC names an existing CI-run proof test)
         run: bash tests/migrations/control-registry-evidence.sh
       - name: B-009 legacy installer vs numbered migrations drift (reviewed list, no silent ignores)
@@ -91,6 +98,19 @@ jobs:
           PGDATABASE=occ internal/migrations/run.sh up
           PGDATABASE=occ psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/seed.sql
           PGDATABASE=occ node tests/control-centre/owner-control-centre-browser.cjs
+      - name: B-011 Master Data screen in a real browser against the real SQL functions (390 and 1440 px, bn/en)
+        env: { MD_SHOTS: md-shots }
+        run: |
+          psql -X -q -c "CREATE DATABASE mdui"
+          PGDATABASE=mdui internal/migrations/run.sh up
+          PGDATABASE=mdui psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/md-seed.sql
+          PGDATABASE=mdui node tests/control-centre/master-data-browser.cjs
+      - name: B-011 Central shell navigation contract (Owner Control / Master Data links, 390 and 1440 px)
+        run: node tests/control-centre/shell-nav-browser.cjs
+      - name: Master Data screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: master-data-screenshots, path: md-shots, if-no-files-found: ignore }
       - name: Owner Control Centre screenshots
         if: always()
         uses: actions/upload-artifact@v4
