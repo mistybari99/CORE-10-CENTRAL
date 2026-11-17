@@ -57,8 +57,9 @@ BEGIN
  END;
  -- Per-business Control: tenant B's own business remains usable while A is disabled.
  PERFORM core10.build01_site_v1(99772,'showroom','Independent B','np01_0112_b_own_01');
+ -- RLS hides tenant A's row from B (the underlying row remains untouched).
  IF (SELECT count(*) FROM core10.sites WHERE business_id=99772)<>1
- OR (SELECT count(*) FROM core10.sites WHERE business_id=99771)<>1
+ OR (SELECT count(*) FROM core10.sites WHERE business_id=99771)<>0
  THEN RAISE EXCEPTION 'CROSS_BUSINESS_SITE_CONTROL_LEAK'; END IF;
  PERFORM set_config('request.jwt.claim.sub','99751111-1111-4111-8111-111111111111',true);
  v:=core10.control_set_v1(99771,NULL,'setup001.provision',true,0::smallint,
@@ -76,6 +77,11 @@ END $t$;
 RESET ROLE;
 DO $registry$
 BEGIN
+ -- Privileged verifier confirms both business inventories without bypassing
+ -- tenant RLS inside the user-facing request.
+ IF (SELECT count(*) FROM core10.sites WHERE business_id=99771)<>2
+ OR (SELECT count(*) FROM core10.sites WHERE business_id=99772)<>1
+ THEN RAISE EXCEPTION 'CROSS_BUSINESS_PERSISTENCE_LEAK'; END IF;
  IF NOT EXISTS(SELECT 1 FROM core10.control_rpc_map_v1
   WHERE rpc_name='build01_site_v1' AND status='enforced'
     AND test_ref='tests/migrations/np01-control-site-provision-e2e.sql')
