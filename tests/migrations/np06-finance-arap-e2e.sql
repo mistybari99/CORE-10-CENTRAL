@@ -164,18 +164,103 @@ SELECT np06_arap_test.ok((
  core10.finance_arap_aging_v1(9611,'2026-11-30','ar')->'rows') r),
  'AR 10 days overdue aged bucket');
 
--- Source reversal is posted in December and never changes original journal.
+-- Trace must retain the REAL posted source journal + canonical Audit IDs.
+-- No source adapter is claimed: manual is explicitly UNATTESTED invoice evidence.
+SELECT np06_arap_test.ok((
+ SELECT (t->>'document_source_domain')='manual'
+  AND (t->>'document_source_ref')='arap-original-ar-1'
+  AND (t->>'document_provenance')='manual_posted_journal_not_external_invoice_attested'
+  AND (t->>'document_post_audit_event_id') IS NOT NULL
+  AND (t->>'link_audit_event_id') IS NOT NULL
+  AND (t->>'posted_amount')::numeric=300
+  AND jsonb_array_length(t->'payment_allocations')=1
+  AND (t->'payment_allocations'->0->>'payment_source_ref')='arap-payment-ar-1'
+  AND (t->'payment_allocations'->0->>'amount')::numeric=100
+  AND (t->'payment_allocations'->0->>'allocation_audit_event_id') IS NOT NULL
+ FROM (SELECT core10.finance_arap_trace_v1(:ar_link) t) x
+), 'AR trace joins posted journal, Master party, payment and both audit receipts');
+
+SELECT np06_arap_test.ok((
+ (core10.finance_arap_trace_v1(:ap_link)->>'kind')='ap'
+ AND (core10.finance_arap_trace_v1(:ap_link)->>'party_id')=:supplier_id::text
+ AND (core10.finance_arap_trace_v1(:ap_link)->'payment_allocations'->0->>'amount')::numeric=70
+), 'AP trace keeps supplier identity and 70 partial payment');
+
+-- A malicious/manual caller can post a journal with source_domain=sales_invoice
+-- via the generic Money draft function. That is NOT an attested Sales invoice.
+-- Reject the ARAP link rather than laundering that source domain as authoritative.
+SELECT core10.finance_draft_journal_v1(9611,NULL,'BDT','2026-11-18',
+ 'sales_invoice','fake-sales-invoice-01','arapFakeInvoice1',
+ jsonb_build_array(
+  jsonb_build_object('account_id',:ar_account,'side','debit','amount',45),
+  jsonb_build_object('account_id',:income_account,'side','credit','amount',45))) fake_invoice \gset
+SELECT core10.finance_validate_journal_v1(:fake_invoice);
+SELECT core10.finance_post_journal_v1(:fake_invoice,'arapFakePostInv1');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_link_open_item_v1(%s,%s,%s,%L,%L,%L)',
+ :fake_invoice,:customer_id,:ar_account,'ar','2026-11-25','arapFakeLinkInv1'),
+ 'FIN_ARAP_EXTERNAL_SOURCE_NOT_ATTESTED');
+SELECT np06_arap_test.ok((SELECT count(*)=2 FROM core10.finance_arap_links_v1),
+ 'unattested invoice source cannot become an ARAP open item');
+
+SELECT core10.finance_draft_journal_v1(9611,NULL,'BDT','2026-11-18',
+ 'purchase_bill','fake-purchase-bill-01','arapFakeBill001',
+ jsonb_build_array(
+  jsonb_build_object('account_id',:expense_account,'side','debit','amount',25),
+  jsonb_build_object('account_id',:ap_account,'side','credit','amount',25))) fake_bill \gset
+SELECT core10.finance_validate_journal_v1(:fake_bill);
+SELECT core10.finance_post_journal_v1(:fake_bill,'arapFakePostBil1');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_link_open_item_v1(%s,%s,%s,%L,%L,%L)',
+ :fake_bill,:supplier_id,:ap_account,'ap','2026-11-25','arapFakeLinkBil1'),
+ 'FIN_ARAP_EXTERNAL_SOURCE_NOT_ATTESTED');
+
+-- A source or PAYMENT already allocated cannot be reversed by generic 0401
+-- without a future governed allocation-reversal reconciliation adapter.
 SELECT core10.control_set_v1(9611,NULL,'finance.journal_reverse',true,0::smallint,
- '{}'::jsonb,NULL,false,0,'Owner enables synthetic reversed-item report','arapRevCtrl01');
-SELECT core10.finance_reverse_posted_journal_v1(:ar_journal,'2026-12-01',
- 'correction','arapReverse001');
+ '{}'::jsonb,NULL,false,0,'Owner enables synthetic reversal validation','arapRevCtrl01');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_reverse_posted_journal_v1(%s,%L,%L,%L)',
+ :ar_journal,'2026-12-01','correction','arapReverse001'),
+ 'FIN_ARAP_ALLOCATED_REVERSAL_NOT_CONNECTED');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_reverse_posted_journal_v1(%s,%L,%L,%L)',
+ :ar_payment,'2026-12-01','correction','arapReverse002'),
+ 'FIN_ARAP_ALLOCATED_REVERSAL_NOT_CONNECTED');
+SELECT np06_arap_test.ok((SELECT count(*)=0 FROM core10.finance_reversals_v1
+ WHERE original_journal_id IN (:ar_journal,:ar_payment)),
+ 'denied allocated reversal rolls back 0401 posted reversal and Audit atomically');
+
+-- A separate UNALLOCATED, manual posted document can still be safely reversed.
+SELECT core10.finance_draft_journal_v1(9611,NULL,'BDT','2026-11-19','manual',
+ 'arap-unallocated-ar-1','arapDraftUnall1',
+ jsonb_build_array(
+  jsonb_build_object('account_id',:ar_account,'side','debit','amount',40),
+  jsonb_build_object('account_id',:income_account,'side','credit','amount',40))) unallocated_journal \gset
+SELECT core10.finance_validate_journal_v1(:unallocated_journal);
+SELECT core10.finance_post_journal_v1(:unallocated_journal,'arapPostUnall01');
+SELECT core10.finance_link_open_item_v1(:unallocated_journal,:customer_id,:ar_account,
+ 'ar','2026-11-25','arapLinkUnall01') unallocated_link \gset
+SELECT core10.finance_reverse_posted_journal_v1(:unallocated_journal,'2026-12-01',
+ 'correction','arapReverse003');
 SELECT np06_arap_test.ok((
  SELECT (r->>'outstanding')::numeric=0 AND (r->>'reversed')::boolean
- FROM jsonb_array_elements(core10.finance_arap_aging_v1(9611,'2026-12-10','ar')->'rows') r),
- 'reversed AR source flags and removes open amount only as-of reversal date');
-SELECT np06_arap_test.expect(format(
- 'SELECT core10.finance_allocate_payment_v1(%s,%s,%s,%L)',
- :ar_link,:ar_payment,1,'arapAllocKey005'),'FIN_ARAP_PAYMENT_SCOPE_OR_STATUS');
+ FROM jsonb_array_elements(core10.finance_arap_aging_v1(9611,'2026-12-10','ar')->'rows') r
+ WHERE (r->>'link_id')::bigint=:unallocated_link
+), 'unallocated source reversal leaves zero outstanding only as-of reversal date');
+SELECT np06_arap_test.ok((
+ SELECT (r->>'outstanding')::numeric=40 AND NOT (r->>'reversed')::boolean
+ FROM jsonb_array_elements(core10.finance_arap_aging_v1(9611,'2026-11-30','ar')->'rows') r
+ WHERE (r->>'link_id')::bigint=:unallocated_link
+), 'historical as-of report preserves 40 before subsequent reversal');
+SELECT np06_arap_test.ok((
+ SELECT (r->>'outstanding')::numeric=200 AND NOT (r->>'reversed')::boolean
+ FROM jsonb_array_elements(core10.finance_arap_aging_v1(9611,'2026-12-10','ar')->'rows') r
+ WHERE (r->>'link_id')::bigint=:ar_link
+), 'allocated original remains outstanding 300-100; cannot be reversed');
+SELECT np06_arap_test.ok(
+ (core10.finance_arap_trace_v1(:unallocated_link)->>'reversed')::boolean,
+ 'trace detects canonical 0401 reversal for unallocated document');
 
 -- Canonical role + tenant isolation. No cloned customer or supplier ACL.
 SELECT np06_arap_test.as_user('93333333-3333-4333-8333-333333333333');
@@ -188,20 +273,25 @@ SELECT np06_arap_test.ok((SELECT count(*)=0 FROM core10.finance_arap_links_v1),
 SELECT np06_arap_test.ok((SELECT count(*)=0 FROM core10.finance_arap_allocations_v1),
  'cross tenant RLS hides allocations');
 SELECT np06_arap_test.expect(
- $$SELECT core10.finance_arap_aging_v1(9611,'2026-11-30',NULL)$$,
+ $SELECT core10.finance_arap_aging_v1(9611,'2026-11-30',NULL)$,
  'FIN_ARAP_READ_DENIED');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_arap_trace_v1(%s)',:ar_link),'FIN_ARAP_READ_DENIED');
 SELECT np06_arap_test.as_user('91111111-1111-4111-8111-111111111111');
 SELECT np06_arap_test.ok((core10.verify_canonical_audit_v1(9611)->>'ok')::boolean,
  'canonical Master + Finance audit chain preserved');
-SELECT np06_arap_test.ok((SELECT count(*)=2 FROM core10.canonical_audit_events_v1
+SELECT np06_arap_test.ok((SELECT count(*)=3 FROM core10.canonical_audit_events_v1
  WHERE business_id=9611 AND action='finance.arap_link'),
- 'two immutable link receipts');
+ 'three immutable AR/AP links and no fake-invoice/bill audit receipts');
 SELECT np06_arap_test.ok((SELECT count(*)=2 FROM core10.canonical_audit_events_v1
  WHERE business_id=9611 AND action='finance.arap_allocate'),
  'two immutable allocation receipts');
 SELECT np06_arap_test.ok(NOT has_function_privilege('anon',
  'core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE'),
  'anon cannot allocate');
+SELECT np06_arap_test.ok(NOT has_function_privilege('anon',
+ 'core10.finance_arap_trace_v1(bigint)','EXECUTE'),
+ 'anon cannot access source provenance');
 SELECT np06_arap_test.ok(NOT has_function_privilege('public',
  'core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE'),
  'public cannot create AR/AP link');
