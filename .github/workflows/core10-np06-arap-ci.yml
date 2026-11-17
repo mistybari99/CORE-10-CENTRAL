@@ -7,6 +7,11 @@ on:
       - "internal/migrations/**"
       - "tests/migrations/np06-finance-arap*"
       - ".github/workflows/core10-np06-arap-ci.yml"
+  pull_request:
+    paths:
+      - "internal/migrations/**"
+      - "tests/migrations/np06-finance-arap*"
+      - ".github/workflows/core10-np06-arap-ci.yml"
   workflow_dispatch:
 permissions:
   contents: read
@@ -55,6 +60,12 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-e2e.sql
       - name: Finance 0401 reversal E2E
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-reversal-e2e.sql
+      - name: NP02 Master two independent PostgreSQL sessions
+        run: bash tests/migrations/np02-master-race.sh
+      - name: Finance 0401 two independent posting and reversal sessions
+        run: |
+          bash tests/migrations/np06-finance-race.sh
+          bash tests/migrations/np06-finance-reversal-race.sh
       - name: Finance 0402-0403 ARAP linking allocation aging source authenticity and negative security E2E
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-arap-e2e.sql
       - name: "Three real two-session races: replay, over-cap allocation, reversal vs allocation"
