@@ -57,7 +57,7 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-reversal-e2e.sql
       - name: Finance 0402-0403 ARAP linking allocation aging source authenticity and negative security E2E
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-arap-e2e.sql
-      - name: Three real two-session races: replay, over-cap allocation, reversal vs allocation
+      - name: "Three real two-session races: replay, over-cap allocation, reversal vs allocation"
         run: bash tests/migrations/np06-finance-arap-race.sh
       - name: Refuse data-bearing 0402 rollback and preserve canonical Finance history
         run: |
