@@ -36,6 +36,11 @@ Known limitations carried in from NP01 (ChatGPT lane, still theirs to finish): B
 
 - **B-011 0153 + race**: `tests/migrations/np02-master-race.sh` (real concurrent sessions released together by an advisory-lock barrier; 6 scenarios). It found a same-key replay race in 0151; 0153 adds a per-(business,key) advisory lock. Without 0153 the race test fails (verified).
 
+- **B-011 Master Data UI**: `core10-master-data.html` + `core10-master-data-client.js` / `-ui.js` / `.js` / `.css`, link in the Central shell (`core10-control-studio-entry.js`, Owner only). Tabs items/parties/prices/units, search, paging, detail, create/edit item and party (owner/business owner), stale-version and duplicate errors, manager read-only, NOT_CONNECTED banner (B-012 stock, NP03B, NP05A, NP06 AR/AP). Same CORE10-staging/loopback gate and empty key as the Control Centre (NOT_CONNECTED until GO-3). Browser test `tests/control-centre/master-data-browser.cjs` 9/9 at 390/1440, bn/en.
+
+- **B-012 increment 1** (`6396f54`): `0200_np03a_inventory_engine` ports the A018 inventory engine (balances, paired transfers, reconciliation view); `post_stock_event`/`transfer_stock_v1` internal-only, tables RPC-only, existing movements backfilled. Closes all 53 B-009 GAP_B012 lines. Test `tests/migrations/np03a-inventory-e2e.sql`. Next: 0201 A048 inventory command RPCs with Owner Control (`inventory.*`), registry, race.
+- **GO-F2**: Finance PR #115 (0401 reversal @ `1601518`) merged into trunk at `532bd36` (code only); combined trunk + #115 + NP01 #111 (0110–0112) 20/20 PASS before merge. F3 PR #117 (0402–0403) NOT integrated; Finance builder asked to re-sync it.
+
 **Hosted-apply order blocker:** no 0150/0400 on any persistent DB until NP01 0110–0149 are integrated + applied in order or formally closed (`run.sh` refuses OUT_OF_ORDER). NP01 #111 currently holds 0110–0111.
 
 ## Tests to rerun
@@ -52,7 +57,7 @@ CI source of truth: `.github/workflows/core10-b010-control-port-ci.yml`.
 
 ## Migration ranges (`docs/coordination/MIGRATION_RESERVATIONS.json`)
 
-Claude 0100–0109 (used to 0106), 0150–0199 (used to 0153) and 0150–0199 (B-011). ChatGPT NP01 0013–0099 + 0110–0149, NP06 0400–0499. Codex NP03B 0300–0399, NP05A 0500–0599.
+Claude 0100–0109 (used to 0106), 0150–0199 (used to 0153), 0200–0299 (used to 0200) and 0150–0199 (B-011). ChatGPT NP01 0013–0099 + 0110–0149, NP06 0400–0499. Codex NP03B 0300–0399, NP05A 0500–0599.
 Hosted apply order when GO is given: 0013–0019, then 0100–0106.
 
 ## Blocked / waiting on Owner GO (GO-2, GO-3 not authorized)
@@ -68,4 +73,4 @@ Hosted apply order when GO is given: 0013–0019, then 0100–0106.
 
 ## Next safe step
 
-B-011 next: Master Data UI in the Central shell (bn/en, 390/1440, NOT_CONNECTED markers). Before each increment: re-read the Board and open PRs (#109, #111, #112, #115) for overlaps.
+B-011 UI complete: forms for items, parties, units (+conversions), price lists (+prices), variants, barcodes; developer dependency banner removed (only a one-line stock note in item detail). Browser test 13/13. Shell navigation: owner header link (legacy `is_owner`) plus a per-business link in the business workspace (only for the validated current business in the user's own list), `core10-master-data.html?biz=N`. Both are navigation only: the page derives every permission from signed CORE10 `build01_context_v1`/`can_manage`; `?biz` only pre-selects among businesses CORE10 returns. Tests: `tests/control-centre/shell-nav-browser.cjs` 10/10, master-data browser 17/17 (owner, business owner, manager, other tenant, foreign ?biz). BLOCKED until GO-3: the shell itself still runs on the legacy BOS backend (`config.js`), so link visibility cannot yet use canonical CORE10 roles; this needs a signed CORE10 session in the shell. Next: B-012 stock port (0200+) on Owner direction. Before each increment: re-read the Board and open PRs (#109, #111, #112, #115) for overlaps.

@@ -5,12 +5,15 @@
 const http = require("node:http"), fs = require("node:fs"), path = require("node:path"), crypto = require("node:crypto");
 const { spawnSync } = require("node:child_process");
 const ROOT = path.resolve(__dirname, "../..");
-const RPCS = new Set(require(path.join(ROOT, "core10-owner-control-client.js")).RPCS);
+const RPCS = new Set(require(path.join(ROOT, "core10-owner-control-client.js")).RPCS.concat(require(path.join(ROOT, "core10-master-data-client.js")).RPCS));
 const FILES = {
   "/harness.html": "tests/control-centre/harness.html", "/harness.js": "tests/control-centre/harness.js",
   "/core10-owner-control-client.js": "core10-owner-control-client.js",
   "/core10-owner-control-centre-ui.js": "core10-owner-control-centre-ui.js",
-  "/core10-owner-control-centre.css": "core10-owner-control-centre.css"
+  "/core10-owner-control-centre.css": "core10-owner-control-centre.css",
+  "/md-harness.html": "tests/control-centre/md-harness.html", "/md-harness.js": "tests/control-centre/md-harness.js",
+  "/core10-master-data-client.js": "core10-master-data-client.js", "/core10-master-data-ui.js": "core10-master-data-ui.js",
+  "/core10-master-data.css": "core10-master-data.css"
 };
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8", ".css": "text/css; charset=utf-8" };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
