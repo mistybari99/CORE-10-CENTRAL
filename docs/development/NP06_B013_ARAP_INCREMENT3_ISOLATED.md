@@ -1,8 +1,8 @@
-# NP06 / B-013 — AR/AP increment F3 (0402), isolated development branch
+# NP06 / B-013 — AR/AP increment F3 (0402–0403), isolated stacked development
 
-**Status: preliminary implementation, CI validation required. NOT INTEGRATION-READY.**
+**Status: independent review candidate, disposable PostgreSQL 17 tests passed; NOT INTEGRATION-AUTHORIZED.**
 **Dedicated branch:** `build/chatgpt-np06-arap` (intentionally separated from PR #115).
-**Stack dependency:** branch starts at Finance PR #115 checkpoint `bb424623`; 0402 depends on the 0401 reversal and NP02 Master 0150–0153. This is a **stacked development branch only** and must NOT be merged to trunk while 0401 remains unintegrated.
+**Stack dependency:** Draft PR #117 targets the **Finance F2 branch** at `6945fc2`, never Claude trunk. F3 includes 0402 + 0403, depends on 0401 and NP02 Master 0150–0153. **Do not merge #117** until F2 PR #115 obtains independent Owner GO and is integrated; GO-2/GO-3 remain unauthorized.
 
 ## Canonical reuse and no duplicates
 
@@ -26,6 +26,17 @@
 - `tests/migrations/np06-finance-arap-e2e.sql`: Master parties, AR/AP category, source account control-line checks, disabled controls, idempotency, over-allocation, as-of/aging, reversal state, tenant isolation, immutable history, Auth/Audit.
 - `tests/migrations/np06-finance-arap-race.sh` and seed: two real PostgreSQL sessions, exact-key replay once, distinct-key over-cap race (one success, one denial), exact audit count.
 - `.github/workflows/core10-np06-arap-ci.yml`: disposable PG17, full migration Up→Down→Up, Master and 0400/0401 regressions, 0402 negative tests, race, rollback refusal.
+
+
+## F3 extra safeguards from 0403
+
+- Read-only `finance_arap_trace_v1(link_id)` returns the existing posted document source/domain/ref, canonical Money posting audit ID, NP02 Master party, allocation IDs/amounts, payment source refs and Audit receipts. Provenance explicitly states `manual_posted_journal_not_external_invoice_attested`; it does not invent a real invoice or bill provider.
+- A trigger rejects `sales_invoice`, `purchase_bill` or other externally named source domains if an actual canonical attestation adapter has not been connected. Linked AR/AP items therefore remain manual-Owner-governed evidence, NOT genuine automated Sales/Procurement invoice integration.
+- A settlement trigger requires an already-posted `manual` payment journal with a matching **asset-account-side** counterpart supporting its control-account amount. It explicitly labels the payment as `manual_asset_counterpart_not_bank_attested`; actual bank/receipt authenticity remains NOT_CONNECTED.
+- A transactionally evaluated guard blocks reversing an **allocated** document or settlement payment. The existing 0401 posting/reversal work and its Audit roll back together when there are historical allocations. This restriction remains until a canonical deallocation/reconciliation adapter exists.
+- F3's 0403 down migration refuses recorded F3 history; when only 0401 historical reversal receipts exist, it preserves the existing `FIN_REVERSAL_ROLLBACK_DENIED_HISTORY` fail-closed semantics without editing 0401.
+- Independent concurrency tests now include (1) exact-key allocation replay, (2) competing over-cap payments and (3) **allocated payment vs reversal of the same posted source**—one commit only.
+- Stacked Draft PR #117: https://github.com/mistybari99/CORE-10-CENTRAL/pull/117 . The earlier isolated 0402–0403 code/test checkpoint `884a9562` passed disposable PG17: https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/44171329414 . Check PR #117 exact-head shared CI separately before final integration review.
 
 **Hard integration rule:** No 0402 application/PR merge until PR #115's 0401 has separate Claude/Owner integration approval and is integrated. F3 can continue receiving isolated code/review/testing without touching PR #115.
 
