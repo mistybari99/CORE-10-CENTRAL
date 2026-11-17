@@ -4,6 +4,7 @@ Date: 2026-11-18. **Review candidate only; do not integrate or deploy.**
 ## Explicit Owner fences
 
 - Dedicated work branch: `build/chatgpt-np06-arap`; all F3 code is isolated from `build/chatgpt-np06-finance` and its Draft PR #115.
+- **Stacked Draft PR #117**: https://github.com/mistybari99/CORE-10-CENTRAL/pull/117; base `build/chatgpt-np06-finance`, not Claude trunk. The later F2 head `6945fc2` was merged to F3 by normal non-force two-parent commit `79482f6b` with **zero file overlap**. PR #115 remains separate; only F3 branch has 0402/0403.
 - Claude integration trunk: `ccr-15ed11dd-n3hw5h`; latest verified initial base `ba1ef9fbec8b46b1f28bfee30d5bc6ffde3e4c3e` with NP02 Master migrations 0150–0153 and the Master UI.
 - Finance 0400 is already integrated by Claude/Owner GO-F1. Finance **0401 is pending independent review and separate Owner GO** in Draft PR #115 (last seen F2 head `6945fc2`, all four shared CI success). F3 `0402–0403` is STACKED ON 0401; **must not merge/apply to trunk before 0401 integration**.
 - GO-2 staging migrations and GO-3 deploy remain **UNAUTHORIZED**. No Supabase hosted writes, Cloudflare/Worker operations, main, production, SG or IMG-ERP-SG changes.
@@ -37,6 +38,12 @@ Date: 2026-11-18. **Review candidate only; do not integrate or deploy.**
 3. E2E: active/wrong-kind/blocked/foreign-party scope; Control OFF and OFF-after-replay; no direct DML; income/expense and asset/liability accounts; partial AR/AP allocation, same-key replay, conflicting payload; no past/future journal leakage in dated aging; provenance and canonical Audit trace; unverified invoice/bill, collection and non-asset payment refusal; unsupported allocated reversal denial; unallocated reversal with as-of restoration; tenant RLS/unauthorized Manager; audit integrity.
 4. Three actual **independent PostgreSQL session** races: (i) exact-key allocation replay once, (ii) two distinct allocations competing for the last budget (one commit, one over-allocation denial), (iii) reversal versus allocation of the same open item (exactly one commits and both states are never simultaneously true).
 5. Data-bearing `0403` rollback must fail-closed while preserving 0402 and canonical Money history. It remains safe to apply Up→Down→Up on an **empty disposable PG17**.
+
+## CI evidence and integration-safety compatibility
+
+- Isolated F3 before latest F2 sync, exact code HEAD `884a956230c95d19c1ab3730614ae610b8a46459`: PG17 **SUCCESS** https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/44171329414 (0402/0403 + NP02 Master, finance 0400/0401, real 3-session-pair races, rollback history guard).
+- Stacked F3 PR #117 triggers **all four shared** PostgreSQL/Owner Control/Approval/Audit regression suites plus F3 PG17. Earlier combined shared Finance CI exposed an assumption that latest migration always equals 0401: with 0403 present, the generic down runner first dropped 0403. F3 fixed this without altering the 0401 migration or F2 PR #115: `0403.down.sql` refuses AR/AP history first, and also refuses standalone historical 0401 reversal receipts using the prior `FIN_REVERSAL_ROLLBACK_DENIED_HISTORY` error. It still permits empty-database Up→Down→Up.
+- **Read the actual latest head's checks before claiming PR117 is 5/5 PASS.** No hosted apply. Review `.github/workflows/core10-np06-arap-ci.yml`; F3 adds Master request-key and 0401 posted/reversal independent-session regression tests in its own job.
 
 ## Outstanding genuine integration blockers
 
