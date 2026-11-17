@@ -5,6 +5,8 @@ const assert = require("node:assert");
 const fs = require("node:fs"), path = require("node:path");
 const { chromium } = require("playwright");
 const { start } = require("./sql-gateway.cjs");
+const { spawnSync } = require("node:child_process");
+const sql = (q) => { const r = spawnSync("psql", ["-X", "-q", "-At", "-v", "ON_ERROR_STOP=1"], { input: q, encoding: "utf8", env: process.env }); if (r.status !== 0) throw Error(r.stderr); return r.stdout.trim(); };
 
 const P = { own: "c1111111-1111-4111-8111-111111111111", mgr: "c3333333-3333-4333-8333-333333333333",
   other: "c6666666-6666-4666-8666-666666666666", none: "c7777777-7777-4777-8777-777777777777" };
@@ -36,13 +38,14 @@ async function step(name, fn) {
     await step(`owner ${width}px bn: catalog, paging, detail, NOT_CONNECTED, no overflow`, async () => {
       const page = await open(P.own, width);
       assert.match(await page.textContent("h1"), /মাস্টার ডেটা/);
-      assert.match(await page.textContent("[data-state=NOT_CONNECTED]"), /B-012/);
+      assert.strictEqual(await page.$("[data-state=NOT_CONNECTED]"), null, "no developer dependency banner on the ERP screen");
+      assert.ok(!/NP0|B-0|PR #|CI /.test(await page.textContent("body")), "no internal build references on the screen");
       assert.strictEqual(await rows(page), 50, "first page is 50");
       await page.click("text=আরও দেখুন"); await page.waitForFunction(() => document.querySelectorAll(".occ-list .occ-row").length === 56);
       assert.strictEqual(await page.$("text=আরও দেখুন"), null, "no more pages");
       await page.click(".occ-row:has-text('রসগোল্লা')"); await page.waitForSelector(".occ-detail h2");
       const d = await page.textContent(".occ-detail");
-      assert.match(d, /8901234567890/); assert.match(d, /RETAIL/); assert.match(d, /LARGE/);
+      assert.match(d, /8901234567890/); assert.match(d, /RETAIL/); assert.match(d, /LARGE/); assert.match(d, /স্টক পরিমাণ/);
       await noOverflow(page);
       await page.screenshot({ path: path.join(SHOTS, `md-owner-${width}-bn.png`), fullPage: true });
       await page.context().close();
@@ -98,12 +101,98 @@ async function step(name, fn) {
     await a.context().close(); await b.context().close();
   });
 
+  const f = (page) => page.locator("form.occ-panel");
+  const submit = async (page) => f(page).locator("button[type=submit]").click();
+
+  await step("units: create, required-field and dimension validation, conversion, edit (390 en)", async () => {
+    const page = await open(P.own, 390, "en");
+    await page.click("[data-tab=units]"); await page.click("text=New unit");
+    await submit(page); await page.waitForSelector("form.occ-panel .occ-field-error:has-text('Please fill in this field')");
+    await f(page).getByLabel("Code *").fill("kg"); await f(page).getByLabel("Name (English) *").fill("Kilogram");
+    await f(page).getByLabel("Measure").selectOption("mass"); await f(page).getByLabel("Decimals *").fill("3");
+    await submit(page); await page.waitForSelector(".occ-detail h2:has-text('Kilogram')");
+    assert.match(await page.textContent(".occ-detail .occ-meta"), /KG · mass · Decimals 3/);
+    await page.click("text=New unit");
+    await f(page).getByLabel("Code *").fill("G"); await f(page).getByLabel("Name (English) *").fill("Gram");
+    await f(page).getByLabel("Measure").selectOption("mass"); await f(page).getByLabel("Decimals *").fill("0");
+    await submit(page); await page.waitForSelector(".occ-detail h2:has-text('Gram')");
+    await page.click("text=Add conversion");
+    assert.strictEqual(await f(page).getByLabel("To", { exact: true }).locator("option", { hasText: /^G · / }).count(), 0, "a unit cannot convert to itself");
+    await f(page).getByLabel("To", { exact: true }).selectOption({ label: "KG · Kilogram" });
+    await f(page).getByLabel(/Factor/).fill("abc"); await submit(page);
+    await page.waitForSelector("form.occ-panel .occ-field-error:has-text('INVALID_FACTOR')");
+    await f(page).getByLabel(/Factor/).fill("0.001"); await submit(page);
+    await page.waitForSelector(".occ-detail .md-table");
+    await page.click(".occ-row:has-text('Piece')"); await page.click("text=Add conversion");
+    assert.strictEqual(await f(page).getByLabel("To", { exact: true }).locator("option", { hasText: "KG" }).count(), 0, "cross-measure unit not offered");
+    await page.click("form.occ-panel button:has-text('Cancel')");
+    await page.click(".occ-detail > button:has-text('Edit')");
+    assert.ok(await f(page).getByLabel("Measure").isDisabled(), "measure locked after creation");
+    await f(page).getByLabel("Name (English) *").fill("Piece (single)"); await submit(page);
+    await page.waitForSelector(".occ-detail .occ-meta:has-text('Version 2')");
+    await noOverflow(page); await page.screenshot({ path: path.join(SHOTS, "md-units-390-en.png"), fullPage: true });
+    await page.context().close();
+  });
+
+  await step("variants and barcodes: add, edit, duplicate barcode refused (1440 bn)", async () => {
+    const page = await open(P.own, 1440);
+    await page.click(".occ-row:has-text('রসগোল্লা')"); await page.click("text=ধরন যোগ করুন");
+    await f(page).getByLabel("কোড *").fill("SMALL"); await f(page).getByLabel("নাম (ইংরেজি) *").fill("Small"); await submit(page);
+    await page.waitForSelector(".occ-detail td:has-text('SMALL')");
+    await page.click("text=বারকোড যোগ করুন");
+    await f(page).getByLabel("বারকোড *").fill("8901234567890"); await submit(page);
+    await page.waitForSelector("form.occ-panel .occ-field-error:has-text('MASTER_DUPLICATE')");
+    await f(page).getByLabel("বারকোড *").fill("8901234567999"); await f(page).getByLabel("ধরন").selectOption({ label: "SMALL · Small" }); await submit(page);
+    await page.waitForSelector(".occ-detail td:has-text('8901234567999')");
+    const row = page.locator(".occ-detail tr", { hasText: "8901234567999" }); await row.locator("button").click();
+    assert.ok(await f(page).getByLabel("বারকোড *").isDisabled(), "barcode value is the key");
+    await f(page).getByLabel("সক্রিয়").uncheck(); await submit(page);
+    await page.waitForSelector(".occ-detail tr:has-text('8901234567999') td:has-text('✗')");
+    await page.screenshot({ path: path.join(SHOTS, "md-item-1440-bn.png"), fullPage: true });
+    await page.context().close();
+  });
+
+  await step("price lists: create, add item price, edit price, invalid amount refused (390 en)", async () => {
+    const page = await open(P.own, 390, "en");
+    await page.click("[data-tab=prices]"); await page.click("text=New price list");
+    await f(page).getByLabel("Code *").fill("WHOLESALE"); await f(page).getByLabel("Name (English) *").fill("Wholesale"); await submit(page);
+    await page.waitForSelector(".occ-detail h2:has-text('Wholesale')");
+    await page.click("text=Add price");
+    await f(page).getByLabel("Item").selectOption({ label: "RASGULLA · Rasgulla" });
+    await f(page).getByLabel(/Unit price/).fill("-5"); await submit(page);
+    await page.waitForSelector("form.occ-panel .occ-field-error:has-text('INVALID_AMOUNT')");
+    await f(page).getByLabel(/Unit price/).fill("20.50"); await submit(page);
+    await page.waitForSelector(".occ-detail td:has-text('20.5')");
+    await page.locator(".occ-detail tr", { hasText: "RASGULLA" }).locator("button").click();
+    await f(page).getByLabel(/Unit price/).fill("21"); await submit(page);
+    await page.waitForSelector(".occ-detail td:has-text('21')");
+    await page.click(".occ-detail > button:has-text('Edit')");
+    assert.ok(await f(page).getByLabel("Currency *").isDisabled() && await f(page).getByLabel("List type").isDisabled(), "kind and currency locked");
+    await page.click("form.occ-panel button:has-text('Cancel')");
+    await noOverflow(page); await page.screenshot({ path: path.join(SHOTS, "md-prices-390-en.png"), fullPage: true });
+    await page.context().close();
+  });
+
+  await step("Owner Control switched off: save refused with a clear message, nothing written", async () => {
+    sql(`SET ROLE authenticated; SELECT set_config('request.jwt.claims','{"sub":"${P.own}"}',false);
+      SELECT core10.control_set_v1(9311,NULL,'master.price',false,0::smallint,'{}'::jsonb,NULL,false,0,'Owner pauses price edits in UI test','md-ui-ctl-off-01');`);
+    const before = sql("SELECT count(*) FROM core10.master_price_lists_v1 WHERE business_id=9311");
+    const page = await open(P.own, 1440, "en");
+    await page.click("[data-tab=prices]"); await page.click("text=New price list");
+    await f(page).getByLabel("Code *").fill("BLOCKED"); await f(page).getByLabel("Name (English) *").fill("Blocked"); await submit(page);
+    await page.waitForSelector("form.occ-panel .occ-field-error:has-text('switched this feature off')");
+    assert.strictEqual(sql("SELECT count(*) FROM core10.master_price_lists_v1 WHERE business_id=9311"), before);
+    await page.context().close();
+  });
+
   await step("manager reads but gets no create/edit controls", async () => {
     const page = await open(P.mgr, 390);
     assert.ok((await rows(page)) > 0);
     assert.strictEqual(await page.$("text=নতুন পণ্য"), null);
     await page.click(".occ-row:has-text('রসগোল্লা')"); await page.waitForSelector(".occ-detail h2");
-    assert.strictEqual(await page.$(".occ-detail button:has-text('সম্পাদনা')"), null);
+    assert.strictEqual(await page.$(".occ-detail button"), null, "no edit/add buttons for manager");
+    for (const tab of ["parties", "prices", "units"]) { await page.click(`[data-tab=${tab}]`); await page.waitForSelector(".occ-list .occ-meta");
+      assert.strictEqual(await page.$(".occ-list .occ-primary"), null, "no create button on " + tab); }
     await page.context().close();
   });
 

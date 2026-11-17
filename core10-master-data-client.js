@@ -12,7 +12,8 @@
   const RPCS = new Set([
     "build01_context_v1", "master_list_items_v1", "master_get_item_v1", "master_list_categories_v1", "master_list_uoms_v1",
     "master_list_parties_v1", "master_list_price_lists_v1", "master_get_price_list_v1", "master_find_barcode_v1",
-    "master_save_item_v1", "master_save_party_v1"
+    "master_save_item_v1", "master_save_party_v1", "master_save_uom_v1", "master_save_uom_conversion_v1",
+    "master_save_variant_v1", "master_save_barcode_v1", "master_save_price_list_v1", "master_save_price_v1"
   ]);
   function fail(code, detail) { const e = new Error(code); e.code = code; if (detail) e.detail = detail; throw e; }
   function posInt(x, code) {
@@ -26,6 +27,11 @@
     if (!s || s.length > max) fail(code); return s;
   }
   function optText(x, max) { const s = typeof x === "string" ? x.trim() : ""; return s ? s.slice(0, max) : null; }
+  function decimals(x) { const n = Number(x); if (!Number.isInteger(n) || n < 0 || n > 6) fail("INVALID_DECIMALS"); return n; }
+  function factor(x) { const s = String(x == null ? "" : x).trim(); if (!/^[0-9]+(\.[0-9]{1,12})?$/.test(s) || Number(s) <= 0) fail("INVALID_FACTOR"); return s; }
+  function amount(x, zeroOk) { const s = String(x == null ? "" : x).trim(); if (!/^[0-9]+(\.[0-9]{1,6})?$/.test(s) || (!zeroOk && s === "") ) fail("INVALID_AMOUNT"); return s; }
+  function isoDate(x, required) { const s = typeof x === "string" ? x.trim() : ""; if (!s) { if (required) fail("INVALID_DATE"); return null; }
+    if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(s) || isNaN(Date.parse(s + "T00:00:00Z"))) fail("INVALID_DATE"); return s; }
   function limit(x) { const n = Number(x || 50); return Number.isInteger(n) && n >= 1 && n <= 200 ? n : 50; }
   function newKey(prefix) {
     const c = globalThis.crypto;
@@ -34,6 +40,7 @@
   }
   function errorCode(message) {
     const m = String(message || "").match(/^((?:MASTER|CONTROL|SESSION|SIGNED|INVALID|RPC)_[A-Z_]+)(?::(.*))?$/);
+    if (/master_uom_conversions_v1_from_uom_id_tenant_id_business_id_dimension_fkey|master_uom_conversions_v1_to_uom/.test(String(message))) return { code: "MASTER_UOM_DIMENSION_MISMATCH", detail: null };
     if (m) return { code: m[1], detail: m[2] || null };
     if (/duplicate key/.test(String(message))) return { code: "MASTER_DUPLICATE", detail: null };
     if (/check constraint|violates|invalid input/.test(String(message))) return { code: "MASTER_INVALID_VALUE", detail: null };
@@ -76,7 +83,24 @@
         p_status: optText(o.status, 16), p_expected_version: version(o.expectedVersion), p_request_key: o.requestKey || newKey("item") }),
       saveParty: async (b, o) => call("master_save_party_v1", { p_business: B(b), p_code: text(o.code, 32, "INVALID_CODE"), p_party_kind: text(o.kind, 16, "INVALID_KIND"),
         p_name_en: text(o.nameEn, 160, "INVALID_NAME"), p_name_bn: optText(o.nameBn, 160), p_phone: optText(o.phone, 24), p_tax_id: optText(o.taxId, 40),
-        p_status: optText(o.status, 16), p_expected_version: version(o.expectedVersion), p_request_key: o.requestKey || newKey("party") })
+        p_status: optText(o.status, 16), p_expected_version: version(o.expectedVersion), p_request_key: o.requestKey || newKey("party") }),
+      saveUom: async (b, o) => call("master_save_uom_v1", { p_business: B(b), p_code: text(o.code, 16, "INVALID_CODE"), p_name_en: text(o.nameEn, 80, "INVALID_NAME"),
+        p_name_bn: optText(o.nameBn, 80), p_dimension: text(o.dimension, 16, "INVALID_DIMENSION"), p_decimals: decimals(o.decimals), p_active: o.active !== false,
+        p_expected_version: version(o.expectedVersion), p_request_key: o.requestKey || newKey("uom") }),
+      saveConversion: async (b, o) => call("master_save_uom_conversion_v1", { p_business: B(b), p_from_uom: posInt(o.from), p_to_uom: posInt(o.to),
+        p_factor: factor(o.factor), p_active: o.active !== false, p_expected_version: version(o.expectedVersion), p_request_key: o.requestKey || newKey("conv") }),
+      saveVariant: async (b, o) => call("master_save_variant_v1", { p_business: B(b), p_item: posInt(o.item), p_code: text(o.code, 64, "INVALID_CODE"),
+        p_name_en: text(o.nameEn, 160, "INVALID_NAME"), p_name_bn: optText(o.nameBn, 160), p_attributes: {}, p_status: optText(o.status, 16),
+        p_expected_version: version(o.expectedVersion), p_request_key: o.requestKey || newKey("var") }),
+      saveBarcode: async (b, o) => call("master_save_barcode_v1", { p_business: B(b), p_barcode: text(o.barcode, 64, "INVALID_BARCODE"), p_item: posInt(o.item),
+        p_variant: optInt(o.variant), p_uom: optInt(o.uom), p_active: o.active !== false, p_expected_version: version(o.expectedVersion), p_request_key: o.requestKey || newKey("bc") }),
+      savePriceList: async (b, o) => call("master_save_price_list_v1", { p_business: B(b), p_code: text(o.code, 32, "INVALID_CODE"), p_name_en: text(o.nameEn, 120, "INVALID_NAME"),
+        p_name_bn: optText(o.nameBn, 120), p_list_kind: text(o.kind, 16, "INVALID_KIND"), p_currency: text(o.currency, 3, "INVALID_CURRENCY"), p_site: optInt(o.site),
+        p_effective_from: isoDate(o.from, true), p_effective_to: isoDate(o.to, false), p_status: optText(o.status, 16),
+        p_expected_version: version(o.expectedVersion), p_request_key: o.requestKey || newKey("pl") }),
+      savePrice: async (b, o) => call("master_save_price_v1", { p_business: B(b), p_price_list: posInt(o.priceList), p_item: posInt(o.item), p_variant: optInt(o.variant),
+        p_uom: posInt(o.uom), p_min_quantity: amount(o.minQuantity, true), p_unit_price: amount(o.unitPrice, false), p_active: o.active !== false,
+        p_expected_version: version(o.expectedVersion), p_request_key: o.requestKey || newKey("price") })
     };
   }
   return { create, errorCode, newKey, RPCS: Array.from(RPCS) };

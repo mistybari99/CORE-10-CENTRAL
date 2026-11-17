@@ -70,4 +70,4 @@ Hosted apply order when GO is given: 0013–0019, then 0100–0106.
 
 ## Next safe step
 
-B-011 next: UI writers for UOM/price/variant/barcode (RPCs exist), then B-012 stock port (0200+) on Owner direction. Before each increment: re-read the Board and open PRs (#109, #111, #112, #115) for overlaps.
+B-011 UI complete: forms for items, parties, units (+conversions), price lists (+prices), variants, barcodes; developer dependency banner removed (only a one-line stock note in item detail). Browser test 13/13. Known gap: the Central shell link is shown only when the legacy shell says `is_owner`; Business Owners can open `core10-master-data.html` directly (server-authorised) but get no shell link until the shell exposes a canonical business-owner flag. Next: B-012 stock port (0200+) on Owner direction. Before each increment: re-read the Board and open PRs (#109, #111, #112, #115) for overlaps.

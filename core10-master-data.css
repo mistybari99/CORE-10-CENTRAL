@@ -6,3 +6,11 @@
 .occ-detail h3{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px}
 .occ-list .occ-primary{width:100%;margin:0 0 10px}
 .occ-banner ul{margin:6px 0 0}
+.md-sec{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.md-sec h3{margin:10px 0 4px}
+.md-mini{min-height:36px;padding:6px 10px;font-size:13px}
+.md-note{margin-top:14px}
+.occ-detail .occ-panel input,.occ-detail .occ-panel select{width:100%}
+.occ-switch input{flex:none}
+.occ-detail,.occ-list,.md-sec{min-width:0}
+@media (max-width:760px){.occ-main{grid-template-columns:minmax(0,1fr)}}
