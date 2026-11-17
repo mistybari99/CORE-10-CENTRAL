@@ -128,6 +128,16 @@ SELECT np06_rev_test.expect(format(
 SELECT np06_rev_test.ok((SELECT count(*)=1 FROM core10.finance_reversals_v1),
  'idempotency conflict has no second reversal');
 
+-- Even an exact-key retry must not bypass a newly disabled Owner Control switch.
+SELECT core10.control_set_v1(9811,NULL,'finance.journal_reverse',false,0::smallint,
+ '{}'::jsonb,NULL,false,1,'Owner suspends Finance reversals','revcontroloff02');
+SELECT np06_rev_test.expect(format(
+ 'SELECT core10.finance_reverse_posted_journal_v1(%s,%L,%L,%L)',
+ :original,'2026-12-01','correction','reversalkey01'),
+ 'CONTROL_DISABLED:finance.journal_reverse');
+SELECT np06_rev_test.ok((SELECT count(*)=1 FROM core10.finance_reversals_v1),
+ 'disabled replay cannot alter immutable reversal history');
+
 -- Role isolation is canonical Auth / RLS, not a duplicated Finance permissions table.
 SELECT np06_rev_test.as_user('93333333-3333-4333-8333-333333333333');
 SELECT np06_rev_test.expect(format(
