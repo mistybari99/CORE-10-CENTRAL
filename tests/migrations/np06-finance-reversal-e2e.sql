@@ -101,6 +101,16 @@ SELECT np06_rev_test.ok((SELECT count(*)=1 FROM core10.finance_reversals_v1
  AND reason_code='correction' AND audit_event_id IS NOT NULL),
  'one immutable reversal pointer + audit receipt');
 
+-- Link evidence MUST resolve to the canonical immutable Audit receipt and exact reversal.
+SELECT np06_rev_test.ok((
+ SELECT ae.action='finance.journal_reverse'
+  AND (ae.payload->>'original_journal_id')=r.original_journal_id::text
+  AND (ae.payload->>'reversal_journal_id')=r.reversal_journal_id::text
+ FROM core10.finance_reversals_v1 r
+ JOIN core10.canonical_audit_events_v1 ae ON ae.id=r.audit_event_id
+ WHERE r.original_journal_id=:original
+), 'reversal link refers to exact canonical Audit event and both journal IDs');
+
 SELECT np06_rev_test.ok(core10.finance_reverse_posted_journal_v1(
  :original,'2026-12-01','correction','reversalkey01')=:reversed,
  'exact-key, same-actor, same-payload replay returns same reversal');
