@@ -8,7 +8,7 @@ const { start } = require("./sql-gateway.cjs");
 const { spawnSync } = require("node:child_process");
 const sql = (q) => { const r = spawnSync("psql", ["-X", "-q", "-At", "-v", "ON_ERROR_STOP=1"], { input: q, encoding: "utf8", env: process.env }); if (r.status !== 0) throw Error(r.stderr); return r.stdout.trim(); };
 
-const P = { own: "c1111111-1111-4111-8111-111111111111", mgr: "c3333333-3333-4333-8333-333333333333",
+const P = { own: "c1111111-1111-4111-8111-111111111111", bo: "c2222222-2222-4222-8222-222222222222", mgr: "c3333333-3333-4333-8333-333333333333",
   other: "c6666666-6666-4666-8666-666666666666", none: "c7777777-7777-4777-8777-777777777777" };
 const SHOTS = process.env.MD_SHOTS || path.join(require("node:os").tmpdir(), "md-shots");
 const results = [];
@@ -22,12 +22,12 @@ async function step(name, fn) {
   const server = await start(0);
   const base = "http://127.0.0.1:" + server.address().port;
   const browser = await chromium.launch();
-  async function open(persona, width, lang) {
+  async function open(persona, width, lang, biz) {
     const ctx = await browser.newContext({ viewport: { width, height: width < 500 ? 844 : 900 }, deviceScaleFactor: 1 });
     const page = await ctx.newPage(); page.setDefaultTimeout(8000);
     page.on("pageerror", (e) => results.push(["FAIL", "page error: " + e.message]));
     page.on("console", (m) => { if (m.type() === "error" && !/status of 400/.test(m.text())) results.push(["FAIL", "console error: " + m.text()]); });
-    await page.goto(base + "/md-harness.html?persona=" + persona + (lang ? "&lang=" + lang : ""));
+    await page.goto(base + "/md-harness.html?persona=" + persona + (lang ? "&lang=" + lang : "") + (biz ? "&biz=" + biz : ""));
     await page.waitForSelector("body[data-ready='1']", { timeout: 15000 });
     return page;
   }
@@ -182,6 +182,30 @@ async function step(name, fn) {
     await f(page).getByLabel("Code *").fill("BLOCKED"); await f(page).getByLabel("Name (English) *").fill("Blocked"); await submit(page);
     await page.waitForSelector("form.occ-panel .occ-field-error:has-text('switched this feature off')");
     assert.strictEqual(sql("SELECT count(*) FROM core10.master_price_lists_v1 WHERE business_id=9311"), before);
+    await page.context().close();
+  });
+
+  await step("direct page with ?biz: owner preselects own second business; param is only a preference", async () => {
+    const page = await open(P.own, 1440, "en", 9312);
+    assert.strictEqual(await page.$eval(".occ-controls select", (s) => s.value), "9312");
+    assert.ok(!/RASGULLA/.test(await page.textContent(".occ-list")), "9312 starts empty");
+    await page.context().close();
+  });
+
+  for (const width of [390, 1440]) await step(`business owner ${width}px: edits own business; foreign ?biz ignored, no leak`, async () => {
+    const page = await open(P.bo, width, "en", 9311);
+    const opts = await page.$$eval(".occ-controls select option", (o) => o.map((x) => x.value));
+    assert.deepStrictEqual(opts, ["9312"], "business owner sees only the business CORE10 returns");
+    assert.ok(!/RASGULLA|Rasgulla|8901234567890/.test(await page.textContent("body")), "foreign business data leaked");
+    await page.click("text=New item");
+    await f(page).getByLabel("SKU *").fill("BO-" + width); await f(page).getByLabel("Name (English) *").fill("Business owner item " + width); await submit(page);
+    await page.waitForSelector(`.occ-detail h2:has-text('Business owner item ${width}')`);
+    await noOverflow(page); await page.context().close();
+  });
+
+  await step("other tenant with ?biz of a foreign business sees none of it", async () => {
+    const page = await open(P.other, 390, "en", 9311);
+    assert.ok(!/RASGULLA|Rasgulla|md-sweets/.test(await page.textContent("body")));
     await page.context().close();
   });
 

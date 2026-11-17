@@ -315,8 +315,9 @@
       say(t("loading")); rootEl.replaceChildren(status);
       st.ctx = await guard(() => api.context());
       if (!st.ctx) { render(); return; }
-      const first = (st.ctx.businesses || [])[0];
-      if (first) await selectBusiness(first.id); else render();
+      // A preferred business (from the shell link) is honoured only if the signed CORE10 context returns it.
+      const list = st.ctx.businesses || [], pick = list.find((b) => b.id === opts.preferBusiness) || list[0];
+      if (pick) await selectBusiness(pick.id); else render();
     }
     return { start, state: () => st };
   }

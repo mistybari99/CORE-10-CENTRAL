@@ -103,6 +103,8 @@ jobs:
           PGDATABASE=mdui internal/migrations/run.sh up
           PGDATABASE=mdui psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/md-seed.sql
           PGDATABASE=mdui node tests/control-centre/master-data-browser.cjs
+      - name: B-011 Central shell navigation contract (Owner Control / Master Data links, 390 and 1440 px)
+        run: node tests/control-centre/shell-nav-browser.cjs
       - name: Master Data screenshots
         if: always()
         uses: actions/upload-artifact@v4

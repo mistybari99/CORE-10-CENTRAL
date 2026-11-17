@@ -10,6 +10,7 @@
       return r.ok ? { data: j, error: null } : { data: null, error: { message: j.message } };
     } })
   };
-  const ui = window.CORE10_MASTER_DATA_UI.mount(document.getElementById("md-root"), { api: window.CORE10_MASTER_DATA_API.create({ client }), lang });
+  const pb = Number(qs.get("biz")) || null;
+  const ui = window.CORE10_MASTER_DATA_UI.mount(document.getElementById("md-root"), { api: window.CORE10_MASTER_DATA_API.create({ client }), lang, preferBusiness: pb });
   ui.start().then(() => { document.body.dataset.ready = "1"; });
 })();

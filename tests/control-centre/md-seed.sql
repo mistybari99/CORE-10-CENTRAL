@@ -7,7 +7,9 @@ INSERT INTO core10.businesses(id,tenant_id,legal_entity_id,slug,template_code,re
  VALUES (9311,931,9310,'md-sweets','sweets_bakery','md-seed-a'),(9321,932,9320,'md-other','sweets_bakery','md-seed-b');
 INSERT INTO core10.tenant_members(tenant_id,user_id,role) VALUES
  (931,'c1111111-1111-4111-8111-111111111111','tenant_owner'),(932,'c6666666-6666-4666-8666-666666666666','tenant_owner');
-INSERT INTO core10.business_members(tenant_id,business_id,user_id,role) VALUES (931,9311,'c3333333-3333-4333-8333-333333333333','manager');
+INSERT INTO core10.businesses(id,tenant_id,legal_entity_id,slug,template_code,request_key) VALUES (9312,931,9310,'md-bakery-two','sweets_bakery','md-seed-a2');
+INSERT INTO core10.business_members(tenant_id,business_id,user_id,role) VALUES (931,9311,'c3333333-3333-4333-8333-333333333333','manager'),
+ (931,9312,'c2222222-2222-4222-8222-222222222222','business_owner');
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims','{"sub":"c1111111-1111-4111-8111-111111111111"}',false);
 SELECT core10.master_save_uom_v1(9311,'PCS','Piece','পিস','count',0::smallint,true,0,'md-seed-uom-pcs') pcs \gset

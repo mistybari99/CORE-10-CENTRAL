@@ -29,7 +29,8 @@
     const lib = win.supabase;
     if (!lib || typeof lib.createClient !== "function") return msg("সাইন-ইন লাইব্রেরি পাওয়া যায়নি।", "Sign-in library missing.");
     const client = lib.createClient(cfg.url, cfg.key);
-    const start = () => win.CORE10_MASTER_DATA_UI.mount(rootEl, { api: win.CORE10_MASTER_DATA_API.create({ client }), lang }).start();
+    const pm = /^[1-9][0-9]{0,15}$/.exec(new URLSearchParams(win.location.search).get("biz") || "");
+    const start = () => win.CORE10_MASTER_DATA_UI.mount(rootEl, { api: win.CORE10_MASTER_DATA_API.create({ client }), lang, preferBusiness: pm ? Number(pm[0]) : null }).start();
     client.auth.getUser().then((r) => {
       if (r && r.data && r.data.user) return start();
       return msg("সাইন-ইন প্রয়োজন — আগে মালিক নিয়ন্ত্রণ কেন্দ্রে সাইন-ইন করুন।", "Sign-in required — sign in through the Owner Control Centre first.");
