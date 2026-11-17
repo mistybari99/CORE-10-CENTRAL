@@ -55,7 +55,7 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-e2e.sql
       - name: Finance 0401 reversal E2E
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-reversal-e2e.sql
-      - name: Finance 0402 ARAP linking allocation aging permissions and denial E2E
+      - name: Finance 0402-0403 ARAP linking allocation aging source authenticity and negative security E2E
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-arap-e2e.sql
       - name: Race seed and two-session allocations / idempotency
         run: bash tests/migrations/np06-finance-arap-race.sh
@@ -67,7 +67,7 @@ jobs:
             echo "FIN_ARAP_ROLLBACK_UNEXPECTEDLY_ALLOWED"
             exit 1
           fi
-          grep -q "FIN_ARAP_ROLLBACK_DENIED_HISTORY" "$output" || { cat "$output"; exit 1; }
+          grep -q "FIN_ARAP_INTEGRITY_ROLLBACK_DENIED_HISTORY" "$output" || { cat "$output"; exit 1; }
           test "$(psql -X -At -c "SELECT count(*) FROM core10.finance_arap_links_v1 WHERE business_id=9631")" = "1"
           test "$(psql -X -At -c "SELECT count(*) FROM core10.finance_journals_v1 WHERE business_id=9631 AND status='posted'")" = "2"
           echo FIN_ARAP_HISTORY_ROLLBACK_GUARD_PASS
