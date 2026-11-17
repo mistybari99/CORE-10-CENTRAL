@@ -8,13 +8,11 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 source_journal="$(psql -X -At -v ON_ERROR_STOP=1 -c "SELECT id FROM core10.finance_journals_v1 WHERE business_id=9711 AND source_ref='np06-race-journal' AND status='posted'")"
 if [[ -z "$source_journal" ]]; then
-  # No dependency on np06-finance-race.sh: seed + post in this script itself.
+  # No dependency on the posting-race test/seed: use this reversal test's OWN fixture and post it here.
   # Refuse partially prepared/colliding fixtures rather than masking defects.
   conflict="$(psql -X -At -v ON_ERROR_STOP=1 -c "SELECT count(*) FROM core10.businesses WHERE id=9711")"
   [[ "$conflict" == "0" ]] || { echo "REVERSAL_RACE_INCOMPLETE_SOURCE_FIXTURE" >&2; exit 1; }
-  psql -X -q -v ON_ERROR_STOP=1 -c "INSERT INTO core10.templates(code,source_status,demo_allowed)
-     VALUES('sweets_bakery','available',true) ON CONFLICT(code) DO NOTHING" >"$tmp/template"
-  psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-race-seed.sql >"$tmp/self-seed"
+  psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-reversal-race-seed.sql >"$tmp/self-seed"
   source_journal="$(psql -X -At -v ON_ERROR_STOP=1 -c "SELECT id FROM core10.finance_journals_v1 WHERE business_id=9711 AND source_ref='np06-race-journal'")"
   [[ "$source_journal" =~ ^[0-9]+$ ]] || { echo "REVERSAL_RACE_SELF_SEED_JOURNAL_MISSING" >&2; exit 1; }
   psql -X -q -v ON_ERROR_STOP=1 >"$tmp/self-post" <<'SQL'
