@@ -47,12 +47,15 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f tests/np03b/sales-orders.sql
           psql -X -v ON_ERROR_STOP=1 -f tests/np03b/audit-read.sql
           psql -X -v ON_ERROR_STOP=1 -f tests/np03b/master-integration.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/np03b/invoice-drafts.sql
       - name: Every mutation mapped to Control with evidence
         run: |
           psql -X -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
           bash tests/migrations/control-registry-evidence.sh
       - name: Independent session duplicate and amendment races
-        run: bash tests/np03b/concurrency.sh
+        run: |
+          bash tests/np03b/concurrency.sh
+          bash tests/np03b/invoice-concurrency.sh
       - name: Install pinned browser test tool
         run: |
           npm install --prefix "$RUNNER_TEMP/np03b-ui-tools" playwright@1.63.0
