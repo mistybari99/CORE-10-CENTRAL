@@ -57,6 +57,8 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-tables-e2e.sql
       - name: B-011 master RPCs (personas, Owner Control, versions, idempotency, audit, NP03B/NP05A ports)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-rpc-e2e.sql
+      - name: B-012 canonical inventory engine (0200: internal posting/transfer, balances, reconciliation, API denial)
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-e2e.sql
       - name: DEC-08 registry gate (every state-changing RPC is mapped)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Registry gate self-test (an unmapped RPC must fail the gate)
