@@ -25,12 +25,14 @@ Registry state on trunk now: 3 enforced (publish_approval_policy_v1, decide_appr
 Known limitations carried in from NP01 (ChatGPT lane, still theirs to finish): B-006/B-007 signed GoTrue acceptance pending; B-008 five GOV-001 partials, host UI and signed setup activation open; 11 registry RPCs still pending Control binding (0110–0149). Nothing is marked enforced without a real `control_check_v1` call and a passing CONTROL_DISABLED test.
 
 - **B-009 drift gate** (`ee9e85c`, all PR #106 checks green): `tests/migrations/b009-legacy-drift.sh` compares old installer chain vs numbered migrations (tables, columns, constraints, indexes, policies, grants, functions, triggers); reviewed list `tests/migrations/b009-accepted-drift.tsv` = 61: 53 GAP_B012 (A018 inventory engine never ported, NOT_CONNECTED until B-012; remove lines when ported), 7 HARDENED, 1 EXTENDED. CI self-test proves unrecorded drift fails. (Commit message says 62/8; 61/7 is correct.)
-- **B-011 master data**: contract `docs/coordination/NP02_B011_MASTER_DATA_CONTRACT.md` (`54607f1`, CI green). Next: 0150 tables extending `core10.items`.
+- **B-011 master data**: contract `docs/coordination/NP02_B011_MASTER_DATA_CONTRACT.md` (`54607f1`, CI green).
 
 - **B-011 0150** (`fe1c6b6`, CI green): master tables extending `core10.items`; e2e `tests/migrations/np02-master-tables-e2e.sql` (18 negatives).
 - **B-026 / GO-F1**: Finance PR #108 (@ `88a2964`, migration 0400) merged into trunk at `de67402` (code only). Combined PG17 trunk + #108 + NP01 #111 (0110/0111) passed before merge. B-013 pack NOT complete (ChatGPT Build 2 owns Increment 2).
 
 - **B-011 0151** (`0c959b7`): 9 Control-enforced master writers (`master_save_*_v1`; can_manage = tenant/business owner only; version 0=create; request-key replay; canonical audit) + internal ports `master_validate_sales_order_v1` (NP03B), `master_uom_convert_v1` / `master_item_usable_v1` (NP05A). Test `tests/migrations/np02-master-rpc-e2e.sql`. Remaining B-011: scoped read RPCs for UI, two-session race script, Master UI.
+
+- **B-011 0152**: scoped read RPCs (`master_list_items_v1`, `master_get_item_v1`, `master_list_categories_v1`, `master_list_uoms_v1`, `master_list_parties_v1`, `master_list_price_lists_v1`, `master_get_price_list_v1`, `master_find_barcode_v1`): STABLE, can_see_business, MASTER_SCOPE for hidden/missing business, keyset pages ≤200, literal search. Tests in `np02-master-rpc-e2e.sql`.
 
 **Hosted-apply order blocker:** no 0150/0400 on any persistent DB until NP01 0110–0149 are integrated + applied in order or formally closed (`run.sh` refuses OUT_OF_ORDER). NP01 #111 currently holds 0110–0111.
 
@@ -48,7 +50,7 @@ CI source of truth: `.github/workflows/core10-b010-control-port-ci.yml`.
 
 ## Migration ranges (`docs/coordination/MIGRATION_RESERVATIONS.json`)
 
-Claude 0100–0109 (used to 0106) and 0150–0199 (B-011). ChatGPT NP01 0013–0099 + 0110–0149, NP06 0400–0499. Codex NP03B 0300–0399, NP05A 0500–0599.
+Claude 0100–0109 (used to 0106), 0150–0199 (used to 0152) and 0150–0199 (B-011). ChatGPT NP01 0013–0099 + 0110–0149, NP06 0400–0499. Codex NP03B 0300–0399, NP05A 0500–0599.
 Hosted apply order when GO is given: 0013–0019, then 0100–0106.
 
 ## Blocked / waiting on Owner GO (GO-2, GO-3 not authorized)
@@ -58,10 +60,10 @@ Hosted apply order when GO is given: 0013–0019, then 0100–0106.
 
 ## NOT_CONNECTED
 
-- Master data port (B-011, 0150+) — not started.
+- Master data port (B-011): tables 0150 + writers/ports 0151 CODE_INTEGRATED on trunk (CI green at `0c959b7`); read RPCs, race test and Master UI in progress. NP03B/NP05A must still rebind their placeholders to the 0151 ports in their own lanes.
 - Stock port for NP03A (B-012) — planned.
 - Control bindings for NP03B/NP05A/NP06 RPCs — their lanes register them as `pending` until bound.
 
 ## Next safe step
 
-B-011 master data in 0150–0199. Before each increment: re-read the Board and open PRs (#107, #108, #109) for overlaps.
+B-011 next: two-session race script, Master UI. Before each increment: re-read the Board and open PRs (#109, #111, #112, #115) for overlaps.

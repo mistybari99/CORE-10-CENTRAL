@@ -50,6 +50,34 @@ SELECT core10.master_save_price_list_v1(9611,'RETAIL','Retail','খুচরা'
 SELECT core10.master_save_price_v1(9611,:pl,:ras,:large,:pcs,0,25,true,0,'np02m-price-1') \gset
 SELECT core10.master_save_price_v1(9611,:pl,:ras,:large,:pcs,10,22,true,0,'np02m-price-2') \gset
 
+-- 0152 read RPCs: owner view, pagination, search, detail, no cross-business leak
+SELECT np02m_test.ok((core10.master_list_items_v1(9611,NULL,NULL,NULL,1,NULL)->'rows'->0->>'sku')='RASGULLA','page 1');
+SELECT np02m_test.ok((core10.master_list_items_v1(9611,NULL,NULL,NULL,1,NULL)->>'next_after_id')::bigint=:ras,'cursor');
+SELECT np02m_test.ok((core10.master_list_items_v1(9611,NULL,NULL,NULL,1,:ras)->'rows'->0->>'sku')='SUGAR','page 2');
+SELECT np02m_test.ok(core10.master_list_items_v1(9611,NULL,NULL,NULL,1,:sugar)->>'next_after_id' IS NULL,'last page');
+SELECT np02m_test.ok(jsonb_array_length(core10.master_list_items_v1(9611,'চিনি')->'rows')=1,'bangla search');
+SELECT np02m_test.ok((core10.master_list_items_v1(9611,'890123456')->'rows'->0->>'id')::bigint=:ras,'barcode search');
+SELECT np02m_test.ok(jsonb_array_length(core10.master_list_items_v1(9611,'%')->'rows')=0,'LIKE wildcard is literal');
+SELECT np02m_test.ok(jsonb_array_length(core10.master_get_item_v1(9611,:ras)->'variants')=1
+ AND jsonb_array_length(core10.master_get_item_v1(9611,:ras)->'prices')=2,'item detail');
+SELECT np02m_test.ok(jsonb_array_length(core10.master_list_uoms_v1(9611)->'conversions')=2,'uoms+conversions');
+SELECT np02m_test.ok(jsonb_array_length(core10.master_list_parties_v1(9611,'supplier')->'rows')=1,'supplier filter');
+SELECT np02m_test.ok(jsonb_array_length(core10.master_get_price_list_v1(9611,:pl)->'rows')=2,'price list detail');
+SELECT np02m_test.ok((core10.master_find_barcode_v1(9611,'8901234567890')->>'item_id')::bigint=:ras,'barcode lookup');
+SELECT np02m_test.ok(jsonb_array_length(core10.master_list_categories_v1(9611))=1
+ AND jsonb_array_length(core10.master_list_price_lists_v1(9611,'sales'))=1,'categories/price lists');
+SELECT np02m_test.expect(format('SELECT core10.master_get_item_v1(9621,%s)',:ras),'MASTER_SCOPE');
+SELECT np02m_test.expect('SELECT core10.master_find_barcode_v1(9611,''0000000000'')','MASTER_NOT_FOUND');
+SELECT np02m_test.as_user('a3333333-3333-4333-8333-333333333333');
+SELECT np02m_test.ok(jsonb_array_length(core10.master_list_items_v1(9611)->'rows')=2,'manager can read');
+SELECT np02m_test.as_user('a5555555-5555-4555-8555-555555555555');
+SELECT np02m_test.expect('SELECT core10.master_list_items_v1(9611)','MASTER_SCOPE');
+SELECT np02m_test.expect(format('SELECT core10.master_get_item_v1(9611,%s)',:ras),'MASTER_SCOPE');
+SELECT np02m_test.ok(jsonb_array_length(core10.master_list_items_v1(9621)->'rows')=0,'own empty business');
+SELECT np02m_test.as_user('');
+SELECT np02m_test.expect('SELECT core10.master_list_parties_v1(9611)','MASTER_SCOPE');
+SELECT np02m_test.as_user('a1111111-1111-4111-8111-111111111111');
+
 -- Idempotency: same key + same actor returns the same id and writes nothing new
 SELECT np02m_test.ok(core10.master_save_item_v1(9611,'RASGULLA','Rasgulla','রসগোল্লা','finished_good',:cat,:pcs,'active',0,'np02m-item-ras')=:ras,'replay returns same item');
 -- Optimistic version: update at v1 succeeds, stale v1 again is refused
