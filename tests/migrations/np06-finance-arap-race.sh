@@ -49,7 +49,7 @@ if ((s2 != 0)); then grep -q 'FIN_ARAP_OVERALLOCATION' "$tmp/cap2.err" || { cat 
 test "$(psql -X -At -c "SELECT count(*) FROM core10.finance_arap_allocations_v1 WHERE business_id=9631")" = 2 || {
  echo "ARAP_RACE_UNEXPECTED_ALLOCATION_COUNT"; exit 1;
 }
-test "$(psql -X -At -c "SELECT sum(amount) FROM core10.finance_arap_allocations_v1 WHERE business_id=9631")" = 85 || {
+test "$(psql -X -At -c "SELECT sum(amount)::integer FROM core10.finance_arap_allocations_v1 WHERE business_id=9631")" = 85 || {
  echo "ARAP_RACE_BUDGET_BREACHED"; exit 1;
 }
 test "$(psql -X -At -c "SELECT count(*) FROM core10.canonical_audit_events_v1 WHERE business_id=9631 AND action='finance.arap_allocate'")" = 2 || {
