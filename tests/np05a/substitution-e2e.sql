@@ -69,8 +69,9 @@ SELECT mfg_sub_test.expect(format('SELECT core10.mfg_approve_recipe_v1(9511,9521
 RESET ROLE;
 \ir master-fixture.sql
 SET LOCAL ROLE authenticated;
-SELECT mfg_sub_test.expect(format('SELECT core10.mfg_approve_recipe_v1(9511,9521,%s,now(),%L)',:recipe_id,'sub_missing_alternative_master'),'NOT_CONNECTED:MASTER_SUBSTITUTION');
+SELECT mfg_sub_test.expect(format('SELECT core10.mfg_approve_recipe_v1(9511,9521,%s,now(),%L)',:recipe_id,'sub_missing_alternative_master'),'NOT_CONNECTED:MASTER_ITEM_BASE_UOM');
 RESET ROLE;
+-- Canonical alternatives validator above refuses missing base UOM on the legacy fixture.
 -- Only approval/immutability/source tests below load an explicitly synthetic alternatives guard.
 \ir substitution-fixture.sql
 SET LOCAL ROLE authenticated;

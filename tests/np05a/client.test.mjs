@@ -43,3 +43,8 @@ test('substitution drafting and previews preserve signed scope and caller retry 
  await c.call('mfg_preview_substitution_v1',{p_rule:8,p_multiplier:2,p_replacement_pct:50,p_business:999});
  assert.equal(seen[0].a.p_site,9521);assert.equal(seen[0].a.p_key,'sub_retry_01');assert.equal(seen[2].a.p_business,9511);assert.equal(seen[2].a.p_key,undefined);
 });
+test('canonical Master report and v2 preview retain shell business/site scope',async()=>{
+ const calls=[];const c=manufacturingClient(async(n,a)=>{calls.push([n,a]);return {data:{master:'VERIFIED_CANONICAL'}};},{tenant_id:951,business_id:9511,site_id:9521});
+ for(const name of ['mfg_master_validation_v1','mfg_preview_substitution_v2'])await c.call(name,{p_business:9512,p_site:9522});
+ assert.equal(calls.length,2);for(const [,args] of calls){assert.equal(args.p_business,9511);assert.equal(args.p_site,9521);}
+});

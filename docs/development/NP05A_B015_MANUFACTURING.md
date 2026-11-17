@@ -1,3 +1,5 @@
+Current continuation: [Increment 5 — real canonical Master binding and restartable evidence](NP05A_B015_INCREMENT5.md). Earlier checkpoint statements below are historical.
+
 # NP05A / B-015 — manufacturing increment, 2026-11-16
 
 Latest continuation: [increment 4 — immutable substitution proposals and planning preview](NP05A_B015_INCREMENT4.md).
