@@ -11,6 +11,8 @@ DO $guard$ BEGIN
 END $guard$;
 
 DROP FUNCTION core10.finance_arap_trace_v1(bigint);
+DROP TRIGGER finance_arap_settlement_integrity_v1 ON core10.finance_arap_allocations_v1;
+DROP FUNCTION core10._finance_arap_settlement_integrity_v1();
 DROP TRIGGER finance_arap_no_allocated_reversal_v1 ON core10.finance_reversals_v1;
 DROP FUNCTION core10._finance_arap_reversal_allocation_guard_v1();
 DROP TRIGGER finance_arap_source_integrity_v1 ON core10.finance_arap_links_v1;
