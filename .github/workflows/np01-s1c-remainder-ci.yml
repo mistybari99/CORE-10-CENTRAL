@@ -11,6 +11,7 @@ on:
       - "internal/migrations/0110*"
       - "internal/migrations/0111*"
       - "internal/migrations/0112*"
+      - "internal/migrations/0113*"
       - "tests/migrations/np01*"
       - "tests/setup001/**"
       - "tests/gov003/np01*"
@@ -66,5 +67,9 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-site-provision-e2e.sql
       - name: B-020 0112 two independent site writers race
         run: bash tests/migrations/np01-control-site-provision-concurrency.sh
+      - name: B-020 0113 GOV003 Owner Control Auth, default OFF, export limit and registry (PG17)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-gov003-e2e.sql
+      - name: B-020 0113 concurrent GOV003 override consumes exactly one event (PG17)
+        run: bash tests/migrations/np01-control-gov003-concurrency.sh
       - name: B-006 real two-session PostgreSQL policy/request/exception races
         run: bash tests/migrations/np01-governance-concurrency.sh
