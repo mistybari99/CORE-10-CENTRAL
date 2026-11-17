@@ -63,6 +63,14 @@ jobs:
         run: bash tests/migrations/np06-finance-race.sh
       - name: Independent-session reversal race and one canonical audit receipt
         run: bash tests/migrations/np06-finance-reversal-race.sh
+      - name: Standalone reversal race in a separately migrated empty PostgreSQL 17 database
+        run: |
+          createdb np06_rev_standalone
+          PGDATABASE=np06_rev_standalone internal/migrations/run.sh up
+          PGDATABASE=np06_rev_standalone bash tests/migrations/np06-finance-reversal-race.sh
+          test "$(PGDATABASE=np06_rev_standalone psql -X -At -c "SELECT count(*) FROM core10.finance_reversals_v1 WHERE business_id=9711")" = "1"
+          test "$(PGDATABASE=np06_rev_standalone psql -X -At -c "SELECT count(*) FROM core10.finance_journals_v1 WHERE business_id=9711 AND status='posted'")" = "2"
+          echo NP06_REVERSAL_STANDALONE_FRESH_DB_PASS
       - name: Rollback refuses data-bearing canonical Finance history
         run: |
           output="$(mktemp)"
