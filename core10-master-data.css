@@ -1,0 +1,8 @@
+/* CORE 10 CENTRAL | B-011 Master Data — additions on top of the Owner Control Centre styles. */
+.md-table{overflow-x:auto;max-width:100%;border:1px solid var(--edge);border-radius:10px}
+.md-table table{border-collapse:collapse;width:100%;font-size:13px}
+.md-table th,.md-table td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--edge);white-space:nowrap}
+.md-table th{color:var(--muted);font-weight:600}
+.occ-detail h3{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px}
+.occ-list .occ-primary{width:100%;margin:0 0 10px}
+.occ-banner ul{margin:6px 0 0}

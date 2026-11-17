@@ -9,6 +9,7 @@ on:
       - "core10-owner-control*"
       - "core10-control-centre-config.js"
       - "core10-control-studio-entry.js"
+      - "core10-master-data*"
       - "tests/control-centre/**"
       - "tests/c10_np02_*"
       - "internal/enterprise-sql/**"
@@ -95,6 +96,17 @@ jobs:
           PGDATABASE=occ internal/migrations/run.sh up
           PGDATABASE=occ psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/seed.sql
           PGDATABASE=occ node tests/control-centre/owner-control-centre-browser.cjs
+      - name: B-011 Master Data screen in a real browser against the real SQL functions (390 and 1440 px, bn/en)
+        env: { MD_SHOTS: md-shots }
+        run: |
+          psql -X -q -c "CREATE DATABASE mdui"
+          PGDATABASE=mdui internal/migrations/run.sh up
+          PGDATABASE=mdui psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/md-seed.sql
+          PGDATABASE=mdui node tests/control-centre/master-data-browser.cjs
+      - name: Master Data screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: master-data-screenshots, path: md-shots, if-no-files-found: ignore }
       - name: Owner Control Centre screenshots
         if: always()
         uses: actions/upload-artifact@v4
