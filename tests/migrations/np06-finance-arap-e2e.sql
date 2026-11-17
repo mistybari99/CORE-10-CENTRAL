@@ -273,7 +273,7 @@ SELECT np06_arap_test.ok((SELECT count(*)=0 FROM core10.finance_arap_links_v1),
 SELECT np06_arap_test.ok((SELECT count(*)=0 FROM core10.finance_arap_allocations_v1),
  'cross tenant RLS hides allocations');
 SELECT np06_arap_test.expect(
- $SELECT core10.finance_arap_aging_v1(9611,'2026-11-30',NULL)$,
+ 'SELECT core10.finance_arap_aging_v1(9611,''2026-11-30'',NULL)',
  'FIN_ARAP_READ_DENIED');
 SELECT np06_arap_test.expect(format(
  'SELECT core10.finance_arap_trace_v1(%s)',:ar_link),'FIN_ARAP_READ_DENIED');
