@@ -64,9 +64,16 @@ BEGIN
  THEN RAISE EXCEPTION 'SITE_COUNT_OR_REPLAY_SIDE_EFFECT'; END IF;
  IF (core10.verify_canonical_audit_v1(99771)->>'ok')::boolean IS DISTINCT FROM true
  THEN RAISE EXCEPTION 'SITE_AUDIT_INVALID'; END IF;
- IF NOT EXISTS(SELECT 1 FROM core10.control_rpc_map_v1 WHERE rpc_name='build01_site_v1'
- AND status='enforced' AND test_ref='tests/migrations/np01-control-site-provision-e2e.sql')
- THEN RAISE EXCEPTION 'SITE_REGISTRY_NOT_ENFORCED'; END IF;
  RAISE NOTICE 'NP01_0112_SITE_PROVISION_PASS';
 END $t$;
+-- The registry is deliberately not readable by authenticated clients.
+-- Verify mapping with privileged test-runner context, never grant it to API roles.
+RESET ROLE;
+DO $registry$
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM core10.control_rpc_map_v1
+  WHERE rpc_name='build01_site_v1' AND status='enforced'
+    AND test_ref='tests/migrations/np01-control-site-provision-e2e.sql')
+ THEN RAISE EXCEPTION 'SITE_REGISTRY_NOT_ENFORCED'; END IF;
+END $registry$;
 ROLLBACK;
