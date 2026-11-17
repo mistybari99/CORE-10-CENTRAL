@@ -55,6 +55,11 @@ BEGIN
  EXCEPTION WHEN OTHERS THEN
   IF SQLERRM<>'BUILD01_SITE_DENIED' THEN RAISE; END IF;
  END;
+ -- Per-business Control: tenant B's own business remains usable while A is disabled.
+ PERFORM core10.build01_site_v1(99772,'showroom','Independent B','np01_0112_b_own_01');
+ IF (SELECT count(*) FROM core10.sites WHERE business_id=99772)<>1
+ OR (SELECT count(*) FROM core10.sites WHERE business_id=99771)<>1
+ THEN RAISE EXCEPTION 'CROSS_BUSINESS_SITE_CONTROL_LEAK'; END IF;
  PERFORM set_config('request.jwt.claim.sub','99751111-1111-4111-8111-111111111111',true);
  v:=core10.control_set_v1(99771,NULL,'setup001.provision',true,0::smallint,
  '{"max_sites":2}',NULL,false,2,'Owner permits two sites now','np01_0112_cfg_03');
