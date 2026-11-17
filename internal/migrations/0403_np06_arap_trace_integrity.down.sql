@@ -8,6 +8,13 @@ DO $guard$ BEGIN
  OR EXISTS (SELECT 1 FROM core10.control_setting_versions_v1
    WHERE feature_key IN ('finance.arap_link','finance.arap_allocate'))
  THEN RAISE EXCEPTION 'FIN_ARAP_INTEGRITY_ROLLBACK_DENIED_HISTORY'; END IF;
+ -- 0403 also protects 0401 reversals from being made unsafe by removing the
+ -- allocated-reversal fence. Preserve the existing Finance rollback error for
+ -- an already-posted reversal, without modifying 0401 or shared CI history.
+ IF EXISTS(SELECT 1 FROM core10.finance_reversals_v1)
+ OR EXISTS(SELECT 1 FROM core10.canonical_audit_events_v1
+           WHERE action='finance.journal_reverse')
+ THEN RAISE EXCEPTION 'FIN_REVERSAL_ROLLBACK_DENIED_HISTORY'; END IF;
 END $guard$;
 
 DROP FUNCTION core10.finance_arap_trace_v1(bigint);
