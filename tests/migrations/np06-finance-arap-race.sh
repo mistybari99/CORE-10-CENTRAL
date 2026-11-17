@@ -5,7 +5,7 @@ set -euo pipefail
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-arap-race-seed.sql >"$tmp/seed"
-link="$(psql -X -At -c "SELECT id FROM core10.finance_arap_links_v1 WHERE business_id=9631")"
+link="$(psql -X -At -c "SELECT l.id FROM core10.finance_arap_links_v1 l JOIN core10.finance_journals_v1 j ON j.id=l.journal_id WHERE l.business_id=9631 AND j.source_ref='arap-race-original'")"
 payment="$(psql -X -At -c "SELECT id FROM core10.finance_journals_v1 WHERE business_id=9631 AND source_ref='arap-race-payment'")"
 [[ "$link" =~ ^[0-9]+$ && "$payment" =~ ^[0-9]+$ ]] || { echo "ARAP_RACE_SEED_MISSING" >&2; exit 1; }
 
