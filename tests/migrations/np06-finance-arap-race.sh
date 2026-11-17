@@ -56,3 +56,60 @@ test "$(psql -X -At -c "SELECT count(*) FROM core10.canonical_audit_events_v1 WH
  echo "ARAP_RACE_UNEXPECTED_AUDIT_COUNT"; exit 1;
 }
 echo "NP06_ARAP_RACE_PASS replay_once=1 capped_commit=1 capped_reject=1 total=85"
+
+# Third race: an unpaid AR source is reversed while its separate posted
+# payment is being allocated. The 0401 journal lock + 0403 BEFORE INSERT guard
+# must make exactly ONE outcome commit. Never permit paid-and-reversed.
+rev_doc="$(psql -X -At -c "SELECT id FROM core10.finance_journals_v1 WHERE business_id=9631 AND source_ref='arap-race-reverse-original'")"
+rev_pay="$(psql -X -At -c "SELECT id FROM core10.finance_journals_v1 WHERE business_id=9631 AND source_ref='arap-race-reverse-payment'")"
+rev_link="$(psql -X -At -c "SELECT id FROM core10.finance_arap_links_v1 WHERE business_id=9631 AND journal_id=$rev_doc")"
+[[ "$rev_doc" =~ ^[0-9]+$ && "$rev_pay" =~ ^[0-9]+$ && "$rev_link" =~ ^[0-9]+$ ]] || {
+ echo "ARAP_REVERSE_RACE_FIXTURE_MISSING" >&2; exit 1;
+}
+
+reverse_concurrent() {
+ psql -X -qAt -v ON_ERROR_STOP=1 >"$tmp/reverse.out" 2>"$tmp/reverse.err" <<SQL
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims',
+ '{"sub":"91111111-1111-4111-8111-111111111111"}',false);
+SELECT core10.finance_reverse_posted_journal_v1($rev_doc,'2026-12-01','correction','arapRaceRevPost01');
+SQL
+}
+allocate_concurrent() {
+ psql -X -qAt -v ON_ERROR_STOP=1 >"$tmp/allocate.out" 2>"$tmp/allocate.err" <<SQL
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims',
+ '{"sub":"91111111-1111-4111-8111-111111111111"}',false);
+SELECT core10.finance_allocate_payment_v1($rev_link,$rev_pay,60,'arapRaceRevAlloc01');
+SQL
+}
+reverse_concurrent & r1=$!
+allocate_concurrent & r2=$!
+rc1=0; rc2=0
+wait "$r1" || rc1=$?
+wait "$r2" || rc2=$?
+if [[ "$rc1" == "$rc2" ]]; then
+ echo "ARAP_REVERSAL_ALLOCATION_RACE_MUST_HAVE_ONE_WINNER rc_reverse=$rc1 rc_allocate=$rc2" >&2
+ cat "$tmp/reverse.err" "$tmp/allocate.err" >&2
+ exit 1
+fi
+if ((rc1 != 0)); then
+ grep -q "FIN_ARAP_ALLOCATED_REVERSAL_NOT_CONNECTED" "$tmp/reverse.err" || {
+  cat "$tmp/reverse.err" >&2; exit 1;
+ }
+fi
+if ((rc2 != 0)); then
+ grep -q "FIN_ARAP_PAYMENT_SCOPE_OR_STATUS" "$tmp/allocate.err" || {
+  cat "$tmp/allocate.err" >&2; exit 1;
+ }
+fi
+rev_done="$(psql -X -At -c "SELECT count(*) FROM core10.finance_reversals_v1 WHERE original_journal_id=$rev_doc")"
+alloc_done="$(psql -X -At -c "SELECT count(*) FROM core10.finance_arap_allocations_v1 WHERE link_id=$rev_link")"
+if [[ "$rev_done:$alloc_done" != "1:0" && "$rev_done:$alloc_done" != "0:1" ]]; then
+ echo "ARAP_REVERSAL_ALLOCATION_RACE_BAD_STATE reverse=$rev_done allocation=$alloc_done" >&2; exit 1
+fi
+audit_rev="$(psql -X -At -c "SELECT count(*) FROM core10.canonical_audit_events_v1 WHERE business_id=9631 AND action='finance.journal_reverse'")"
+if [[ "$audit_rev" != "$rev_done" ]]; then
+ echo "ARAP_REVERSAL_ALLOCATION_AUDIT_INCONSISTENT" >&2; exit 1
+fi
+echo "ARAP_REVERSAL_ALLOCATION_RACE_PASS reverse=$rev_done allocation=$alloc_done"
