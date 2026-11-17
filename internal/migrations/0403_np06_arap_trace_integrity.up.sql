@@ -50,6 +50,44 @@ CREATE TRIGGER finance_arap_no_allocated_reversal_v1
  BEFORE INSERT ON core10.finance_reversals_v1 FOR EACH ROW
  EXECUTE FUNCTION core10._finance_arap_reversal_allocation_guard_v1();
 
+-- A manually posted AR/AP settlement needs a positive asset counterpart.
+-- "asset" is structural COA evidence, NOT signed bank/receipt authenticity;
+-- genuine bank collection/disbursement adapters remain fail-closed/deferred.
+CREATE FUNCTION core10._finance_arap_settlement_integrity_v1()
+RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,core10 AS $body$
+DECLARE l core10.finance_arap_links_v1%ROWTYPE;
+ pay core10.finance_journals_v1%ROWTYPE;
+ v_side text; v_control_total numeric; v_asset_total numeric;
+BEGIN
+ SELECT * INTO l FROM core10.finance_arap_links_v1 WHERE id=NEW.link_id;
+ SELECT * INTO pay FROM core10.finance_journals_v1 WHERE id=NEW.payment_journal_id;
+ IF l.id IS NULL OR pay.id IS NULL OR pay.status<>'posted'
+  OR pay.business_id<>l.business_id OR pay.tenant_id<>l.tenant_id
+ THEN RAISE EXCEPTION 'FIN_ARAP_PAYMENT_SOURCE_NOT_POSTED'; END IF;
+ IF pay.source_domain<>'manual'
+ THEN RAISE EXCEPTION 'FIN_ARAP_PAYMENT_SOURCE_NOT_ATTESTED'; END IF;
+
+ v_side:=CASE WHEN l.kind='ar' THEN 'debit' ELSE 'credit' END;
+ v_control_total:=core10._finance_arap_net_v1(pay.id,l.account_id,
+   CASE WHEN l.kind='ar' THEN 'credit' ELSE 'debit' END);
+ SELECT coalesce(sum(line.amount),0) INTO v_asset_total
+ FROM core10.finance_journal_lines_v1 line
+ JOIN core10.finance_accounts_v1 a ON a.id=line.account_id
+ WHERE line.journal_id=pay.id
+   AND line.account_id<>l.account_id
+   AND line.side=v_side
+   AND a.category='asset'
+   AND a.business_id=l.business_id AND a.tenant_id=l.tenant_id
+   AND a.currency=pay.currency AND a.legal_entity_id=pay.legal_entity_id;
+ IF v_control_total<=0 OR v_asset_total<v_control_total
+ THEN RAISE EXCEPTION 'FIN_ARAP_SETTLEMENT_ASSET_COUNTERPART_MISSING'; END IF;
+ RETURN NEW;
+END $body$;
+
+CREATE TRIGGER finance_arap_settlement_integrity_v1
+ BEFORE INSERT ON core10.finance_arap_allocations_v1 FOR EACH ROW
+ EXECUTE FUNCTION core10._finance_arap_settlement_integrity_v1();
+
 -- Audit/source trace is derived from the SAME posted Money journal (both sides)
 -- and the canonical NP02 party. It is NOT an invoice/bill mirror or posting API.
 CREATE FUNCTION core10.finance_arap_trace_v1(p_link bigint)
@@ -71,6 +109,7 @@ BEGIN
    'allocation_id',a.id,'amount',a.amount,
    'payment_journal_id',pay.id,'payment_source_domain',pay.source_domain,
    'payment_source_ref',pay.source_ref,'payment_effective_on',pay.effective_on,
+   'payment_provenance','manual_asset_counterpart_not_bank_attested',
    'payment_post_audit_event_id',pay.audit_event_id,
    'allocation_audit_event_id',a.audit_event_id
   ) ORDER BY a.id),'[]'::jsonb) INTO v_payment_refs
@@ -99,5 +138,6 @@ END $body$;
 REVOKE EXECUTE ON FUNCTION
  core10._finance_arap_source_integrity_v1(),
  core10._finance_arap_reversal_allocation_guard_v1(),
+ core10._finance_arap_settlement_integrity_v1(),
  core10.finance_arap_trace_v1(bigint) FROM PUBLIC,authenticated;
 GRANT EXECUTE ON FUNCTION core10.finance_arap_trace_v1(bigint) TO authenticated;
