@@ -34,6 +34,8 @@ Known limitations carried in from NP01 (ChatGPT lane, still theirs to finish): B
 
 - **B-011 0152**: scoped read RPCs (`master_list_items_v1`, `master_get_item_v1`, `master_list_categories_v1`, `master_list_uoms_v1`, `master_list_parties_v1`, `master_list_price_lists_v1`, `master_get_price_list_v1`, `master_find_barcode_v1`): STABLE, can_see_business, MASTER_SCOPE for hidden/missing business, keyset pages ≤200, literal search. Tests in `np02-master-rpc-e2e.sql`.
 
+- **B-011 0153 + race**: `tests/migrations/np02-master-race.sh` (real concurrent sessions released together by an advisory-lock barrier; 6 scenarios). It found a same-key replay race in 0151; 0153 adds a per-(business,key) advisory lock. Without 0153 the race test fails (verified).
+
 **Hosted-apply order blocker:** no 0150/0400 on any persistent DB until NP01 0110–0149 are integrated + applied in order or formally closed (`run.sh` refuses OUT_OF_ORDER). NP01 #111 currently holds 0110–0111.
 
 ## Tests to rerun
@@ -50,7 +52,7 @@ CI source of truth: `.github/workflows/core10-b010-control-port-ci.yml`.
 
 ## Migration ranges (`docs/coordination/MIGRATION_RESERVATIONS.json`)
 
-Claude 0100–0109 (used to 0106), 0150–0199 (used to 0152) and 0150–0199 (B-011). ChatGPT NP01 0013–0099 + 0110–0149, NP06 0400–0499. Codex NP03B 0300–0399, NP05A 0500–0599.
+Claude 0100–0109 (used to 0106), 0150–0199 (used to 0153) and 0150–0199 (B-011). ChatGPT NP01 0013–0099 + 0110–0149, NP06 0400–0499. Codex NP03B 0300–0399, NP05A 0500–0599.
 Hosted apply order when GO is given: 0013–0019, then 0100–0106.
 
 ## Blocked / waiting on Owner GO (GO-2, GO-3 not authorized)
@@ -66,4 +68,4 @@ Hosted apply order when GO is given: 0013–0019, then 0100–0106.
 
 ## Next safe step
 
-B-011 next: two-session race script, Master UI. Before each increment: re-read the Board and open PRs (#109, #111, #112, #115) for overlaps.
+B-011 next: Master Data UI in the Central shell (bn/en, 390/1440, NOT_CONNECTED markers). Before each increment: re-read the Board and open PRs (#109, #111, #112, #115) for overlaps.

@@ -68,6 +68,8 @@ jobs:
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Concurrent sessions (stale writers, replays, one-time exception)
         run: bash tests/migrations/control-race.sh
+      - name: B-011 master data real concurrent sessions (replay, SKU, barcode, version, cross-tenant, Owner Control switch)
+        run: bash tests/migrations/np02-master-race.sh
       - name: Registry evidence (each enforced RPC names an existing CI-run proof test)
         run: bash tests/migrations/control-registry-evidence.sh
       - name: B-009 legacy installer vs numbered migrations drift (reviewed list, no silent ignores)
