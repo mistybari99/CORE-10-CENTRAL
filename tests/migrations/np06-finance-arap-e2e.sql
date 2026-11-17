@@ -149,6 +149,84 @@ SELECT np06_arap_test.expect(format(
 SELECT np06_arap_test.ok((SELECT count(*)=2 FROM core10.finance_arap_allocations_v1),
  'exactly two approved reference-only allocations');
 
+-- Current-state Owner Control is checked BEFORE an idempotent replay. No cached GO.
+SELECT core10.control_set_v1(9611,NULL,'finance.arap_allocate',false,0::smallint,
+ '{}'::jsonb,NULL,false,1,'Owner suspends ARAP allocation replays','arapAllocOff001');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_allocate_payment_v1(%s,%s,%s,%L)',
+ :ar_link,:ar_payment,100,'arapAllocKey001'),'CONTROL_DISABLED:finance.arap_allocate');
+SELECT core10.control_set_v1(9611,NULL,'finance.arap_allocate',true,0::smallint,
+ '{}'::jsonb,NULL,false,2,'Owner resumes manual allocations','arapAllocOn0002');
+SELECT core10.control_set_v1(9611,NULL,'finance.arap_link',false,0::smallint,
+ '{}'::jsonb,NULL,false,1,'Owner suspends ARAP link replay','arapLinkOff001');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_link_open_item_v1(%s,%s,%s,%L,%L,%L)',
+ :ar_journal,:customer_id,:ar_account,'ar','2026-11-20','arapLinkKey001'),
+ 'CONTROL_DISABLED:finance.arap_link');
+SELECT core10.control_set_v1(9611,NULL,'finance.arap_link',true,0::smallint,
+ '{}'::jsonb,NULL,false,2,'Owner resumes manual ARAP linking','arapLinkOn0002');
+SELECT np06_arap_test.ok((SELECT count(*)=2 FROM core10.finance_arap_allocations_v1),
+ 'disabled exact-key retries append no additional allocation or Audit receipt');
+
+-- An active customer party from another business/tenant must not be reusable.
+SELECT np06_arap_test.as_user('95555555-5555-4555-8555-555555555555');
+SELECT core10.master_save_party_v1(9621,'C901','customer','Foreign Customer',NULL,
+ NULL,NULL,'active',0,'arapForeignCust1') foreign_party \gset
+SELECT np06_arap_test.as_user('91111111-1111-4111-8111-111111111111');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_link_open_item_v1(%s,%s,%s,%L,%L,%L)',
+ :ar_payment,:foreign_party,:ar_account,'ar','2026-11-28','arapForeignParty01'),
+ 'FIN_ARAP_MASTER_PARTY_INVALID');
+
+-- A posted journal with a noncash debit/credit cannot masquerade as a manual
+-- payment. Account.category='asset' is required structurally; BANK proof remains
+-- an explicitly unconnected upstream adapter (no invented cash receipts).
+SELECT core10.finance_draft_journal_v1(9611,NULL,'BDT','2026-11-18','manual',
+ 'arap-noncash-ar-1','arapNoCashDraft1',
+ jsonb_build_array(
+  jsonb_build_object('account_id',:expense_account,'side','debit','amount',10),
+  jsonb_build_object('account_id',:ar_account,'side','credit','amount',10))) no_cash_ar \gset
+SELECT core10.finance_validate_journal_v1(:no_cash_ar);
+SELECT core10.finance_post_journal_v1(:no_cash_ar,'arapNoCashPost1');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_allocate_payment_v1(%s,%s,%s,%L)',
+ :ar_link,:no_cash_ar,5,'arapNoCashAll01'),
+ 'FIN_ARAP_SETTLEMENT_ASSET_COUNTERPART_MISSING');
+
+SELECT core10.finance_draft_journal_v1(9611,NULL,'BDT','2026-11-18','manual',
+ 'arap-noncash-ap-1','arapNoCashDraft2',
+ jsonb_build_array(
+  jsonb_build_object('account_id',:ap_account,'side','debit','amount',10),
+  jsonb_build_object('account_id',:income_account,'side','credit','amount',10))) no_cash_ap \gset
+SELECT core10.finance_validate_journal_v1(:no_cash_ap);
+SELECT core10.finance_post_journal_v1(:no_cash_ap,'arapNoCashPost2');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_allocate_payment_v1(%s,%s,%s,%L)',
+ :ap_link,:no_cash_ap,5,'arapNoCashAll02'),
+ 'FIN_ARAP_SETTLEMENT_ASSET_COUNTERPART_MISSING');
+
+-- Generic Money can post a journal with a misleading collection domain.
+-- Without a canonical collection provider, reject that payment provenance.
+SELECT core10.finance_draft_journal_v1(9611,NULL,'BDT','2026-11-18','sales_collection',
+ 'fake-collection-01','arapFakeCollDr1',
+ jsonb_build_array(
+  jsonb_build_object('account_id',:cash_account,'side','debit','amount',10),
+  jsonb_build_object('account_id',:ar_account,'side','credit','amount',10))) fake_collection \gset
+SELECT core10.finance_validate_journal_v1(:fake_collection);
+SELECT core10.finance_post_journal_v1(:fake_collection,'arapFakeCollPs1');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_allocate_payment_v1(%s,%s,%s,%L)',
+ :ar_link,:fake_collection,5,'arapFakeCollAl1'),
+ 'FIN_ARAP_PAYMENT_SOURCE_NOT_ATTESTED');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_allocate_payment_v1(%s,%s,%s,%L)',
+ :ar_link,:ar_payment,0,'arapZeroAmount01'),'FIN_ARAP_INVALID_AMOUNT_OR_KEY');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_allocate_payment_v1(%s,%s,%s,%L)',
+ :ar_link,:ar_payment,1.12345,'arapTooPrecise1'),'FIN_ARAP_INVALID_AMOUNT_OR_KEY');
+
+
+
 SELECT np06_arap_test.ok((
  (core10.finance_arap_aging_v1(9611,'2026-11-30',NULL)->'rows'->0->>'outstanding')::numeric=200),
  'AR aged balance is derived 300-100');
@@ -159,6 +237,11 @@ SELECT np06_arap_test.ok((
 SELECT np06_arap_test.ok((
  core10.finance_arap_aging_v1(9611,'2026-11-15',NULL)->'rows')='[]'::jsonb,
  'no future journal included in earlier as-of date');
+SELECT np06_arap_test.ok((
+ SELECT (r->>'outstanding')::numeric=300 AND (r->>'allocated_amount')::numeric=0
+ FROM jsonb_array_elements(core10.finance_arap_aging_v1(9611,'2026-11-17','ar')->'rows') r
+ WHERE (r->>'link_id')::bigint=:ar_link
+), 'historical AR balance before payment effective date remains 300');
 SELECT np06_arap_test.ok((
  SELECT r->>'age_bucket'='1_30' FROM jsonb_array_elements(
  core10.finance_arap_aging_v1(9611,'2026-11-30','ar')->'rows') r),
@@ -175,6 +258,7 @@ SELECT np06_arap_test.ok((
   AND (t->>'posted_amount')::numeric=300
   AND jsonb_array_length(t->'payment_allocations')=1
   AND (t->'payment_allocations'->0->>'payment_source_ref')='arap-payment-ar-1'
+  AND (t->'payment_allocations'->0->>'payment_provenance')='manual_asset_counterpart_not_bank_attested'
   AND (t->'payment_allocations'->0->>'amount')::numeric=100
   AND (t->'payment_allocations'->0->>'allocation_audit_event_id') IS NOT NULL
  FROM (SELECT core10.finance_arap_trace_v1(:ar_link) t) x
