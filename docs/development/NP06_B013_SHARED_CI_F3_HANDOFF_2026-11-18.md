@@ -8,7 +8,7 @@
 - Finance F2 `0401` **integrated** by Claude: PR #115, merge commit `532bd36`. Never re-implement or amend the applied 0400/0401 migrations.
 - Shared CI correction **Draft PR #118**: `build/chatgpt-np06-shared-ci-fix` against live trunk.
 - Finance F3 `0402/0403` **Draft PR #117**: `build/chatgpt-np06-arap`, last verified head `3d128dc4df1b8860ce46a3aaae9960843d382c0f`. F3 is not integrated; F3 authorization is separate.
-- Cross-lane exact heads reviewed at initial checkpoint: NP01 PR #111 `69143ffb82667b6f81b3667288af54a86b597698` with 0113 GOV003 + 0114 GOV002 threshold/exception, Sales PR #109 `c7165af0162123c39154445b07d1b730c048519c` with 0304 invoice drafts, Manufacturing PR #112 `86851dc4a09bb71c051e3fb82b8fddc9d0b4ec1b` with 0504 canonical Master. **Pins are intentionally hard-fail guards** if any PR advances.
+- Cross-lane exact heads reviewed at initial checkpoint: NP01 PR #111 `69143ffb82667b6f81b3667288af54a86b597698` with 0113 GOV003 + 0114 GOV002 threshold/exception, Sales PR #109 `aa45845c4f7310824ae81dacbaff08660e4fc701` with 0304 invoice drafts, Manufacturing PR #112 `86851dc4a09bb71c051e3fb82b8fddc9d0b4ec1b` with 0504 canonical Master. **Pins are intentionally hard-fail guards** if any PR advances.
 
 ## Exact CI-fix scope
 
@@ -46,3 +46,7 @@ Never apply hosted Supabase migrations, deploy Cloudflare/Workers, alter main/pr
 ### NP01 active-head verification note (2026-11-18)
 
 NP01 PR111 advanced from d9a1659 to 22bc275 (migration 0114), then ce83108 (correct canonical Owner Audit claim in 0114 race) and finally 69143ff (documentation-only). A real combined Finance PG17 run at 22bc275 exposed NP01 0114 race's `canonical_audit_read_denied`; the builder's ce83108 change corrected the test, independently inspected by NP06. The move from ce83108 to 69143ff changes **only the NP01 handoff documentation** and no SQL or test executable. Finance's exact SHA pin now requires precisely 69143ff and will fail closed if it moves again. Coordination comment: https://github.com/mistybari99/CORE-10-CENTRAL/pull/111#issuecomment-6987585623 . Always verify the new exact-head combined PG17 run before requesting CI integration; do not misreport older green runs.
+
+### Sales PR109 additional UI-only advance
+
+Sales PR109 advanced from `c7165af0` to `aa45845c4f7310824ae81dacbaff08660e4fc701`, adding draft-invoice UI/client tests but **no new Sales database migrations**. Reviewed the diff; matrix SHA guard now pins this exact head and runs `node --test tests/np03b/invoice-client.test.cjs` in addition to previously verified combined 0304 Finance/rollback and separate Sales PG17 invoice/concurrency tests. Latest exact-head run must verify success before claiming the pin compatible.

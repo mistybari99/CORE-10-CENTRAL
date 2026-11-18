@@ -21,7 +21,7 @@ jobs:
         include:
           - lane: sales
             pr: 109
-            head_sha: c7165af0162123c39154445b07d1b730c048519c
+            head_sha: aa45845c4f7310824ae81dacbaff08660e4fc701
           - lane: manufacturing
             pr: 112
             head_sha: 86851dc4a09bb71c051e3fb82b8fddc9d0b4ec1b
@@ -96,6 +96,7 @@ jobs:
             # unchanged Sales suite on a separately migrated PG17 database.
             # Finance + Sales coexisting with actual Money history is proven
             # above in the primary combined database, including rollback.
+            node --test tests/np03b/invoice-client.test.cjs
             createdb core10_np03b_ci_domain
             PGDATABASE=core10_np03b_ci_domain internal/migrations/run.sh up
             for file in sales-orders.sql audit-read.sql master-integration.sql invoice-drafts.sql; do
