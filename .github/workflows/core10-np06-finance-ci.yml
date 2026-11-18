@@ -75,7 +75,7 @@ jobs:
         run: bash tests/migrations/np06-finance-rollback-boundary.sh
 
   np01-compat-pg17:
-    name: "F2 + NP01 0113 PR111 compatibility (disposable PG17)"
+    name: "F2 + NP01 0114 PR111 compatibility (disposable PG17)"
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
@@ -105,7 +105,7 @@ jobs:
           git fetch --no-tags origin refs/pull/111/head:refs/remotes/np01/pr111
           np01_sha="$(git rev-parse refs/remotes/np01/pr111)"
           echo "NP01_COMPAT_REVIEWED_SHA=$np01_sha"
-          test "$np01_sha" = "d9a1659af5a62940b719fca3b443fe7b6e3c9a52" || {
+          test "$np01_sha" = "22bc2752c43c5ae1e7684241e7256a5420ec6d1c" || {
             echo "NP01_REVIEW_HEAD_MOVED_REVERIFY_BEFORE_COMPAT"; exit 1;
           }
           git -c user.name='NP06 CI Reviewer' -c user.email='ci-review@example.invalid' merge --no-commit --no-ff refs/remotes/np01/pr111
@@ -122,7 +122,7 @@ jobs:
           node --test tests/migrations/migration-contract.test.js
           node --test tests/migrations/np01-*.test.js
           node --test tests/setup001/setup-profile-engine.test.cjs tests/gov003/np01-canonical-csv.test.mjs
-      - name: Combined NP01 0110-0113 and Finance 0400-0401 Up Down Up
+      - name: Combined NP01 0110-0114 and Finance 0400-0401 Up Down Up
         run: |
           bash tests/migrations/run-updownup.sh
           internal/migrations/run.sh up
@@ -135,6 +135,7 @@ jobs:
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-route-stages-e2e.sql
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-site-provision-e2e.sql
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-gov003-e2e.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-threshold-exception-e2e.sql
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-rpc-e2e.sql
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-e2e.sql
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-reversal-e2e.sql
@@ -143,6 +144,7 @@ jobs:
           bash tests/migrations/np01-control-route-concurrency.sh
           bash tests/migrations/np01-control-site-provision-concurrency.sh
           bash tests/migrations/np01-control-gov003-concurrency.sh
+          bash tests/migrations/np01-control-threshold-exception-concurrency.sh
           bash tests/migrations/np06-finance-race.sh
           bash tests/migrations/np06-finance-reversal-race.sh
           echo FINANCE_NP01_PR111_PG17_COMBINED_PASS
