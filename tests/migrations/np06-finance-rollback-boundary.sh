@@ -66,19 +66,19 @@ guard() {
   if psql -X -q -v ON_ERROR_STOP=1 \
        -c 'BEGIN READ ONLY' -f "$path" -c 'ROLLBACK' >"$log" 2>&1; then
     cat "$log" >&2
-    echo "FIN_ROLLBACK_$version_UNEXPECTEDLY_ALLOWED" >&2
+    echo "FIN_ROLLBACK_${version}_UNEXPECTEDLY_ALLOWED" >&2
     exit 1
   fi
   if ! grep -Fq "$expected" "$log"; then
     cat "$log" >&2
-    echo "FIN_ROLLBACK_$version_GUARD_NOT_REACHED" >&2
+    echo "FIN_ROLLBACK_${version}_GUARD_NOT_REACHED" >&2
     exit 1
   fi
   [[ "$(snapshot)" == "$before" ]] || {
-    echo "FIN_ROLLBACK_$version_HISTORY_OR_SCHEMA_MIGRATION_CHANGED" >&2
+    echo "FIN_ROLLBACK_${version}_HISTORY_OR_SCHEMA_MIGRATION_CHANGED" >&2
     exit 1
   }
-  echo "FIN_ROLLBACK_$version_EXACT_GUARD_PASS"
+  echo "FIN_ROLLBACK_${version}_EXACT_GUARD_PASS"
 }
 guard 0401 internal/migrations/0401_np06_journal_reversal.down.sql FIN_REVERSAL_ROLLBACK_DENIED_HISTORY
 guard 0400 internal/migrations/0400_np06_finance_foundation.down.sql FIN_ROLLBACK_DENIED_PERSISTED_HISTORY
