@@ -25,6 +25,9 @@ jobs:
           - lane: manufacturing
             pr: 112
             head_sha: 86851dc4a09bb71c051e3fb82b8fddc9d0b4ec1b
+          - lane: f3
+            pr: 117
+            head_sha: 3d128dc4df1b8860ce46a3aaae9960843d382c0f
     services:
       postgres:
         image: postgres:17
@@ -85,10 +88,12 @@ jobs:
           echo "FINANCE_${{ matrix.lane }}_HIGHEST_MIGRATION=$highest"
           if [[ "${{ matrix.lane }}" == "sales" ]]; then
             [[ "$highest" -ge 304 ]] || { echo "SALES_0304_NOT_INSTALLED"; exit 1; }
-          else
+          elif [[ "${{ matrix.lane }}" == "manufacturing" ]]; then
             [[ "$highest" -ge 504 ]] || { echo "MANUFACTURING_0504_NOT_INSTALLED"; exit 1; }
+          else
+            [[ "$highest" -ge 403 ]] || { echo "F3_0403_NOT_INSTALLED"; exit 1; }
           fi
-      - name: Verify actual Sales/Manufacturing canonical business logic
+      - name: Verify actual Sales Manufacturing or F3 canonical domain logic
         run: |
           if [[ "${{ matrix.lane }}" == "sales" ]]; then
             # Sales draft-invoice negative proof correctly requires ZERO Money
@@ -104,6 +109,24 @@ jobs:
             done
             PGDATABASE=core10_np03b_ci_domain bash tests/np03b/concurrency.sh
             PGDATABASE=core10_np03b_ci_domain bash tests/np03b/invoice-concurrency.sh
+          elif [[ "${{ matrix.lane }}" == "f3" ]]; then
+            # F3 PR117 is fetched read-only into the CURRENT F2-integrated trunk
+            # + shared CI fix; never alter F3 branch or append its files to PR118.
+            psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-arap-e2e.sql
+            bash tests/migrations/np06-finance-arap-race.sh
+            evidence="$(mktemp)"
+            if psql -X -q -v ON_ERROR_STOP=1 -c 'BEGIN READ ONLY' \
+                -f internal/migrations/0403_np06_arap_trace_integrity.down.sql \
+                -c 'ROLLBACK' >"$evidence" 2>&1; then
+              cat "$evidence"
+              echo "F3_0403_ROLLBACK_UNEXPECTEDLY_ALLOWED" >&2
+              exit 1
+            fi
+            grep -Fq FIN_ARAP_INTEGRITY_ROLLBACK_DENIED_HISTORY "$evidence" || {
+              cat "$evidence"; echo "F3_0403_ROLLBACK_GUARD_NOT_REACHED" >&2; exit 1;
+            }
+            test "$(psql -X -At -c "SELECT count(*) FROM core10.finance_arap_links_v1 WHERE business_id=9631")" = "2"
+            echo "FINANCE_F3_TRUNK_PREFLIGHT_0402_0403_PASS"
           else
             psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/manufacturing-e2e.sql
             psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/material-handoff-e2e.sql
