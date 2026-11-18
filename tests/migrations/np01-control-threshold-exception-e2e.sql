@@ -230,6 +230,10 @@ BEGIN
   RAISE EXCEPTION 'NP01_0114_DISABLED_WITHDRAW_REPLAY';
  EXCEPTION WHEN OTHERS THEN IF SQLERRM NOT LIKE 'CONTROL_DISABLED:gov002.review%' THEN RAISE; END IF;
  END;
+ -- The canonical Audit RLS permits Owner reads only; a manager cannot
+ -- observe the Owner's chain. Restore the Owner identity for audit counters.
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',owner_uid)::text,true);
+ PERFORM set_config('request.jwt.claim.sub',owner_uid,true);
  IF (SELECT count(*) FROM core10.approval_exception_events_v1 WHERE business_id=99921)<>before_exc
  OR (SELECT count(*) FROM core10.canonical_audit_events_v1 WHERE business_id=99921)<>before_audit+1
  THEN RAISE EXCEPTION 'NP01_0114_DISABLED_MUTATED_EXCEPTION_JOURNAL'; END IF;
