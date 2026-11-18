@@ -75,3 +75,18 @@ body `{"strategy":"percentage","versions":[{"version_id":"b1d80c36-cb9b-4547-ab1
 | `trillionaire-me` | untouched (modified 2026-11-13) |
 
 Live screenshots (390/1440, BN/EN): `evidence/live-*.png` (GitHub only, not served by the Worker).
+
+## GO-P1 live deployment (2026-11-18 UTC)
+
+| Item | Value |
+|---|---|
+| URL | https://core10-central.mistybari99.workers.dev/ |
+| Source | preview branch `a88bb8ad60f8d003c46cafcfe1d567d02b929560` (pins trunk `a82ae99`, PR #109 `c7165af`, PR #112 `86851dc`) |
+| Script | `dist/worker.mjs` 885,424 B sha256 `b65cc8e1dfaf070c6005ce2408b7cd64c4c96b12630c884088341f9c66ab0a7a` |
+| Deploy path | authenticated Cloudflare API `PUT /accounts/…/workers/scripts/core10-central` (account token). No uploader, no KV, no extra Worker. |
+| Active | deployment `da61f276-816c-49a1-bf97-a5c1eb0bfd0f` / version `025cf3a1-8d91-45ba-bd4f-e2f77ee24ac1` (100%), bindings: none |
+| Replaced | deployment `3c91d5a2…` / version `9a1c6aaa-395c-44d0-beae-46e1afccf292` |
+| Live verify | 48/48: 46 in the suite run + 2 routes (bn 1440 `#/manufacturing`, `#/features`) that hit a 30 s `page.goto` network timeout and passed on rerun (content, no overflow, no errors, no foreign requests) |
+| Rollback | versions `9a1c6aaa…` and `b1d80c36…` both return 200 from the versions API |
+
+Live screenshots: `evidence/live-go-p1/`. Test labels (`BROWSER-1440`, `fixture:kg`) in Draft modules were NOT relabelled (would require editing recorded server output); listed as a limitation.
