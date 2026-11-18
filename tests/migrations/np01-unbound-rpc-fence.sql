@@ -18,9 +18,14 @@ BEGIN
            ELSE 'gov002.approval_policy' END;
   IF NOT has_function_privilege('authenticated',sig,'EXECUTE') THEN
    RAISE EXCEPTION 'NP01_0114_AUTHENTICATED_GRANT_MISSING:%',sig; END IF;
-  IF has_function_privilege('anon',sig,'EXECUTE')
-    OR has_function_privilege('public',sig,'EXECUTE') THEN
+  -- Bare disposable PG17 need not create the Supabase anon role. When
+  -- present its permission remains strictly denied; PUBLIC is always checked.
+  IF has_function_privilege('public',sig,'EXECUTE') THEN
    RAISE EXCEPTION 'NP01_0114_UNSAFE_PUBLIC_EXECUTE:%',sig; END IF;
+  IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname='anon') THEN
+   IF has_function_privilege('anon',sig,'EXECUTE') THEN
+    RAISE EXCEPTION 'NP01_0114_UNSAFE_ANON_EXECUTE:%',sig; END IF;
+  END IF;
   IF NOT EXISTS(SELECT 1 FROM core10.control_rpc_map_v1 m
     WHERE m.rpc_name=name AND m.feature_key=f AND m.status='enforced'
       AND m.test_ref='tests/migrations/np01-control-threshold-exception-e2e.sql')
