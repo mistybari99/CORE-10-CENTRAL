@@ -28,7 +28,7 @@ jobs:
     services:
       postgres:
         image: postgres:17
-        env: { POSTGRES_PASSWORD: np06_crosslane_disposable }
+        env: { POSTGRES_PASSWORD: np06_crosslane_disposable, POSTGRES_DB: core10_np03b_ci }
         ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
@@ -37,7 +37,7 @@ jobs:
       PGPORT: "5432"
       PGUSER: postgres
       PGPASSWORD: np06_crosslane_disposable
-      PGDATABASE: postgres
+      PGDATABASE: ${{ matrix.lane == 'sales' && 'core10_np03b_ci' || 'postgres' }}
     steps:
       - uses: actions/checkout@v4
         with:
