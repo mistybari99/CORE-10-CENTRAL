@@ -91,12 +91,18 @@ jobs:
       - name: Verify actual Sales/Manufacturing canonical business logic
         run: |
           if [[ "${{ matrix.lane }}" == "sales" ]]; then
-            psql -X -q -v ON_ERROR_STOP=1 -f tests/np03b/sales-orders.sql
-            psql -X -q -v ON_ERROR_STOP=1 -f tests/np03b/audit-read.sql
-            psql -X -q -v ON_ERROR_STOP=1 -f tests/np03b/master-integration.sql
-            psql -X -q -v ON_ERROR_STOP=1 -f tests/np03b/invoice-drafts.sql
-            bash tests/np03b/concurrency.sh
-            bash tests/np03b/invoice-concurrency.sh
+            # Sales draft-invoice negative proof correctly requires ZERO Money
+            # posting in its own fixture. Keep that assertion intact: run the
+            # unchanged Sales suite on a separately migrated PG17 database.
+            # Finance + Sales coexisting with actual Money history is proven
+            # above in the primary combined database, including rollback.
+            createdb core10_np03b_ci_domain
+            PGDATABASE=core10_np03b_ci_domain internal/migrations/run.sh up
+            for file in sales-orders.sql audit-read.sql master-integration.sql invoice-drafts.sql; do
+              PGDATABASE=core10_np03b_ci_domain psql -X -q -v ON_ERROR_STOP=1 -f "tests/np03b/$file"
+            done
+            PGDATABASE=core10_np03b_ci_domain bash tests/np03b/concurrency.sh
+            PGDATABASE=core10_np03b_ci_domain bash tests/np03b/invoice-concurrency.sh
           else
             psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/manufacturing-e2e.sql
             psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/material-handoff-e2e.sql
