@@ -105,7 +105,7 @@ jobs:
           git fetch --no-tags origin refs/pull/111/head:refs/remotes/np01/pr111
           np01_sha="$(git rev-parse refs/remotes/np01/pr111)"
           echo "NP01_COMPAT_REVIEWED_SHA=$np01_sha"
-          test "$np01_sha" = "ce83108d30b3d8c2a407e0d4e4d780b5ccc795be" || {
+          test "$np01_sha" = "69143ffb82667b6f81b3667288af54a86b597698" || {
             echo "NP01_REVIEW_HEAD_MOVED_REVERIFY_BEFORE_COMPAT"; exit 1;
           }
           git -c user.name='NP06 CI Reviewer' -c user.email='ci-review@example.invalid' merge --no-commit --no-ff refs/remotes/np01/pr111
