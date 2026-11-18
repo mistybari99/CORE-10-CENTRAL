@@ -33,6 +33,7 @@ jobs:
       - name: Signed session-bound Sales client contracts (synthetic responses)
         run: |
           node tests/np03b/client.test.cjs
+          node tests/np03b/invoice-client.test.cjs
           node --test tests/np03b/master-catalog.test.cjs tests/np03b/entry.test.cjs
       - name: Disposable API roles
         run: |
@@ -68,6 +69,10 @@ jobs:
           PGDATABASE=core10_np03b_ci_ui internal/migrations/run.sh up
           PGDATABASE=core10_np03b_ci_ui psql -X -v ON_ERROR_STOP=1 -f tests/np03b/ui-seed.sql
           PGDATABASE=core10_np03b_ci_ui node tests/np03b/browser.cjs
+          createdb core10_np03b_ci_invoice_ui
+          PGDATABASE=core10_np03b_ci_invoice_ui internal/migrations/run.sh up
+          PGDATABASE=core10_np03b_ci_invoice_ui psql -X -v ON_ERROR_STOP=1 -f tests/np03b/invoice-ui-seed.sql
+          PGDATABASE=core10_np03b_ci_invoice_ui node tests/np03b/invoice-browser.cjs
       - name: Sales UI screenshot evidence
         if: always()
         uses: actions/upload-artifact@v4

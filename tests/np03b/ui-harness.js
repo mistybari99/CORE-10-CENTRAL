@@ -5,7 +5,7 @@
  const lang=q.get('lang')==='en'?'en':'bn';
  const provider=q.has('missing')?async()=>null:undefined;
  const initialScope=q.has('scope')?{businessId:Number(q.get('scope')),siteId:Number(q.get('site'))}:undefined;
- const controller=window.CORE10_SALES_ORDER_ENTRY.attach(document.getElementById('sales-host'),{client,backendMode:'synthetic',lang,catalogProvider:provider,initialScope});
+ const controller=window.CORE10_SALES_ORDER_ENTRY.attach(document.getElementById('sales-host'),{client,backendMode:'synthetic',lang,catalogProvider:provider,initialScope,initialView:q.get('view'),initialOrderId:q.has('order')?Number(q.get('order')):undefined});
  window.NP03B_TEST={controller,signOut(){for(const e of [...events])e('SIGNED_OUT',null);}};
  await controller.ready;document.body.dataset.ready='1';
 })().catch(e=>{document.body.dataset.error=String(e.code||e.message);});

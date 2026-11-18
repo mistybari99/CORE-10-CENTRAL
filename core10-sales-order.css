@@ -38,3 +38,15 @@
 @media(max-width:1050px){.so-line-numbers{grid-template-columns:repeat(2,minmax(0,1fr))}.so-layout{grid-template-columns:minmax(200px,.7fr) minmax(0,1.5fr);gap:18px}.so-detail{padding-left:18px}}
 @media(max-width:700px){.so-layout{grid-template-columns:minmax(0,1fr)}.so-detail{border-left:0;border-top:1px solid var(--edge,#334557);padding:24px 0 0}.so-scope{grid-template-columns:1fr 1fr}.so-scope>button{grid-column:1/-1;justify-self:start}.so-form-grid{grid-template-columns:minmax(0,1fr)}.so-heading{gap:10px}.so-section-heading{align-items:center}.so-orders{max-height:320px;overflow:auto}.so-estimate{display:grid;gap:5px}}
 @media(prefers-reduced-motion:no-preference){.so-order{transition:background-color .15s ease-out}}
+/* Draft invoice is a task in the same Sales surface, with the same tokens. */
+.so-sales-nav{display:flex;flex-wrap:wrap;gap:10px;padding-bottom:18px;margin-bottom:24px;border-bottom:1px solid var(--edge,#334557)}
+.so-sales-nav button{font:inherit;min-height:44px;padding:10px 16px;color:var(--fg,#eef3f8);border:1px solid #697f94;border-radius:8px;background:#152130;cursor:pointer}
+.so-sales-nav button[aria-pressed=true]{color:var(--sea,#77d5be);border-color:var(--sea,#77d5be);background:#1d343e}
+.so-sales-nav button:disabled{opacity:.58;cursor:not-allowed}.so-sales-nav button:focus-visible{outline:2px solid var(--sea,#77d5be);outline-offset:3px}
+.si-workspace textarea{width:100%;min-width:0;min-height:100px;padding:12px;border:1px solid #697f94;border-radius:8px;background:#152130;color:var(--fg,#eef3f8);font:inherit;line-height:1.6;resize:vertical;caret-color:var(--sea,#77d5be)}
+.si-workspace input[type=checkbox]{width:20px;height:20px;min-height:20px;accent-color:var(--sea,#77d5be)}
+.si-workspace .so-label:has(input[type=checkbox]){grid-template-columns:20px 1fr;align-items:center;min-height:44px}.si-workspace .so-label:has(input[type=checkbox]) input{grid-column:1;grid-row:1}.si-workspace .so-label:has(input[type=checkbox]) span{grid-column:2;grid-row:1}
+.si-snapshot{margin:18px 0;border-block:1px solid var(--edge,#334557);padding:10px 0}.si-snapshot summary{min-height:44px;display:list-item;align-content:center;cursor:pointer;color:var(--sea,#77d5be)}
+.si-facts{display:grid;grid-template-columns:minmax(100px,.6fr) minmax(0,1.4fr);gap:10px 18px;line-height:1.6;font-size:13px}.si-facts dt{color:var(--so-muted)}.si-facts dd{margin:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.si-connections{margin-top:28px}.si-connections p{margin:8px 0}.si-state{overflow-wrap:anywhere}.si-invoice .so-state{max-width:55%;text-align:right}
+@media(max-width:700px){.si-facts{grid-template-columns:minmax(0,1fr);gap:5px}.si-facts dd{margin-bottom:10px}.so-sales-nav{gap:8px}.so-sales-nav button{flex:1 1 auto}}

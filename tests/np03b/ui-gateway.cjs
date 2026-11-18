@@ -4,6 +4,9 @@
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {spawnSync}=require('node:child_process');const ROOT=path.resolve(__dirname,'../..');
 const RPCS={
+ read_sales_invoice_drafts_v1:[['p_business','bigint'],['p_site','bigint'],['p_invoice','bigint']],
+ save_sales_invoice_draft_v1:[['p_business','bigint'],['p_site','bigint'],['p_invoice','bigint'],['p_expected','bigint'],['p_order','bigint'],['p_order_version','bigint'],['p_lines','jsonb'],['p_memo','text'],['p_key','text']],
+ validate_sales_invoice_draft_v1:[['p_business','bigint'],['p_site','bigint'],['p_invoice','bigint'],['p_expected','bigint'],['p_approval','bigint'],['p_key','text']],
  master_list_items_v1:[['p_business','bigint'],['p_search','text'],['p_status','text'],['p_category','bigint'],['p_limit','integer'],['p_after_id','bigint']],
  master_list_parties_v1:[['p_business','bigint'],['p_kind','text'],['p_search','text'],['p_status','text'],['p_limit','integer'],['p_after_id','bigint']],
  master_list_uoms_v1:[['p_business','bigint']],
@@ -15,7 +18,7 @@ const RPCS={
  save_sales_order_v1:[['p_business','bigint'],['p_site','bigint'],['p_order','bigint'],['p_expected','bigint'],['p_document','jsonb'],['p_key','text']],
  transition_sales_order_v1:[['p_business','bigint'],['p_site','bigint'],['p_order','bigint'],['p_action','text'],['p_expected','bigint'],['p_approval','bigint'],['p_key','text']]
 };
-const FILES=['core10-control-studio.css','core10-build01.css','core10-sales-order.css','core10-sales-order-client.js','core10-sales-order-ui.js','core10-sales-order-entry.js'];
+const FILES=['core10-control-studio.css','core10-build01.css','core10-sales-order.css','core10-sales-order-client.js','core10-sales-order-ui.js','core10-sales-order-entry.js','core10-sales-invoice-ui.js'];
 function sql(s){const box=process.env.NP03B_TEST_CONTAINER;if(box&&!/^core10-np03b-[a-z0-9-]+$/.test(box))throw Error('BAD_TEST_CONTAINER');
  const args=box?['exec','-i','-e','PGUSER=postgres','-e','PGDATABASE='+process.env.PGDATABASE,box,'psql','-X','-q','-At','-v','ON_ERROR_STOP=1']:['-X','-q','-At','-v','ON_ERROR_STOP=1'];
  return spawnSync(box?'docker':'psql',args,{input:s,encoding:'utf8',env:process.env});}
@@ -29,7 +32,7 @@ function start(port=0){
    let html=fs.readFileSync(path.join(ROOT,'core10-build01.html'),'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
    html=html.replace(/<main\b[^>]*>[\s\S]*?<\/main>/i,'<main id="b01-main"><p class="muted">LOCAL TEST HARNESS · inert UUID claims, canonical Master + synthetic fixtures; not GoTrue or hosted backend</p><div id="sales-host"></div></main>')
     .replace('</head>','<link rel="stylesheet" href="/core10-sales-order.css"></head>')
-    .replace('</body>','<script src="/core10-sales-master-catalog.js"></script><script src="/core10-sales-order-client.js"></script><script src="/core10-sales-order-ui.js"></script><script src="/core10-sales-order-entry.js"></script><script src="/harness.js"></script></body>');
+    .replace('</body>','<script src="/core10-sales-master-catalog.js"></script><script src="/core10-sales-order-client.js"></script><script src="/core10-sales-order-ui.js"></script><script src="/core10-sales-invoice-ui.js"></script><script src="/core10-sales-order-entry.js"></script><script src="/harness.js"></script></body>');
    return send(200,html,'text/html; charset=utf-8');
   }
   if(req.method==='GET'&&url.pathname==='/harness.js')return send(200,fs.readFileSync(path.join(__dirname,'ui-harness.js'),'utf8'),'application/javascript');
