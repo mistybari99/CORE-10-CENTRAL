@@ -123,5 +123,13 @@ SELECT set_config('request.jwt.claim.sub','$maker',false);
 SELECT core10.request_approval_exception_v1($req,'Previously authorized maker is revoked','urgent',30,'np01_0114_race_revoked_01');
 SQL
 grep -q exception_request_denied "$tmp/revoked" || { echo 'NP01_0114_REVOKED_MAKER_NOT_DENIED';cat "$tmp/revoked";exit 1; }
-[ "$(psql -X -At -c "SELECT (core10.verify_canonical_audit_v1(99985)->>'ok')::boolean")" = t ] || { echo 'NP01_0114_AUDIT_CHAIN_FAIL';exit 1; }
+# The canonical audit read is itself Owner-scoped; supply the synthetic Owner
+# claim rather than making a privileged runner bypass canonical Auth.
+audit_ok=$(psql -X -At -v ON_ERROR_STOP=1 <<SQL | tail -1
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','$owner',false);
+SELECT (core10.verify_canonical_audit_v1(99985)->>'ok')::boolean;
+SQL
+)
+[ "$audit_ok" = t ] || { echo 'NP01_0114_AUDIT_CHAIN_FAIL';exit 1; }
 echo "PASS NP01 0114: two-session threshold/exception replay, competing finals, four unauthorized lock probes, revoked maker, canonical Audit"
