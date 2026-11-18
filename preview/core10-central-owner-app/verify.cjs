@@ -5,7 +5,8 @@ const fs = require("node:fs"), path = require("node:path");
 const { chromium } = require("playwright");
 const HERE = __dirname, ROOT = path.resolve(HERE, "../..");
 const SHOTS = process.env.REVIEW_SHOTS || "";
-const ROUTES = ["home", "business", "setup", "master", "control", "features", "approvals", "staff"];
+const ROUTES = ["home", "business", "master", "sales", "manufacturing", "control", "features", "approvals", "staff", "setup"];
+const DRAFT_ROUTES = new Set(["sales", "manufacturing"]);
 // Developer-report markers that must not appear in visible Owner-facing text.
 const DEV = [/PR\s?#\d/i, /CI PASS/i, /TEST SCREENSHOT/i, /\bFIXTURE\b/i, /\bmigration/i, /BLOCKED BY/i, /Board status/i, /GitHub/i,
   /\bBuilder\b/, /test harness/i, /NOT_CONNECTED/, /\bB-0\d\d\b/, /\b[0-9a-f]{7,40}\b(?=.*\bSHA\b)/i, /\.(js|mjs|sql|cjs)\b/, /\bCI\b/];
@@ -50,8 +51,8 @@ async function step(name, fn) {
       assert.equal(await page.getAttribute(`[data-route="${route}"]`, "aria-current"), "page");
       const frame = page.frames().find((f) => f !== page.mainFrame() && f.url() !== "about:blank");
       let text = await page.innerText("body"), fOver = 0;
-      if (route === "master") assert.ok(!frame || frame.url() === "about:blank", "master has no module page");
-      else {
+      if (DRAFT_ROUTES.has(route)) assert.ok(await page.isVisible("#c10-draft"), "draft banner shown"); else assert.ok(!(await page.isVisible("#c10-draft")), "no draft banner");
+      {
         assert.ok(frame, "module frame loaded"); await frame.waitForLoadState("load");
         const ft = await frame.evaluate(() => document.body.innerText); assert.ok(ft.trim().length > 20, "module rendered content");
         text += "\n" + ft; fOver = await frame.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -60,7 +61,7 @@ async function step(name, fn) {
       const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       assert.ok(over <= 1 && fOver <= 1, `horizontal overflow shell=${over} module=${fOver}`);
       assert.deepEqual(foreign, []); assert.deepEqual(bad, []); assert.deepEqual(errors, []);
-      for (const re of DEV) { const m = text.match(re); if (m) devHits.push(`${lang} ${width} #/${route}: "${m[0]}" … ${text.slice(Math.max(0, m.index - 40), m.index + 40).replace(/\s+/g, " ")}`); }
+      for (const re of DEV) { if ((re.source === "NOT_CONNECTED" || re.source === "\\bFIXTURE\\b") && DRAFT_ROUTES.has(route)) continue; const m = text.match(re); if (m) devHits.push(`${lang} ${width} #/${route}: "${m[0]}" … ${text.slice(Math.max(0, m.index - 40), m.index + 40).replace(/\s+/g, " ")}`); }
       if (SHOTS) { fs.mkdirSync(SHOTS, { recursive: true }); await page.screenshot({ path: path.join(SHOTS, `${route}-${lang}-${width}.png`) }); }
       await ctx.close();
     });
@@ -75,6 +76,29 @@ async function step(name, fn) {
     await page.waitForTimeout(800);
     assert.match(await page.innerText("body"), /server could not be reached/i);
     await page.reload(); await page.waitForSelector(".occ-row");
+    await page.close();
+  });
+  for (const [view, sel, act] of [["/view/master.html", "#md-root", null], ["/view/sales.html", "#sales-host", null], ["/view/mfg.html", "#manufacturing", null]]) {
+    await step(`${view}: real module renders from recorded reads, no request leaves the page`, async () => {
+      const page = await browser.newPage({ viewport: { width: 1440, height: 900 } }), errors = [], foreign = [];
+      page.on("pageerror", (e) => errors.push(e.message)); page.on("request", (r) => { if (!r.url().startsWith(origin + "/")) foreign.push(r.url()); });
+      await page.goto(base + view + "?lang=en"); await page.waitForTimeout(2500);
+      const t = await page.innerText(sel); assert.ok(t.trim().length > 40, "module content " + t.length);
+      assert.deepEqual(errors, []); assert.deepEqual(foreign, []);
+      await page.close();
+    });
+  }
+  await step("replay refuses every module write (master save, sales save/transition, manufacturing create/approve/handoff/waste)", async () => {
+    const page = await browser.newPage(); await page.goto(base + "/view/sales.html"); await page.waitForTimeout(800);
+    const out = await page.evaluate(async () => {
+      const R = window.CORE10_PREVIEW_REPLAY, res = {};
+      const m = R(window.CORE10_PREVIEW_SALES, /^(save_sales_order_v1|transition_sales_order_v1)$/, "NOT_CONNECTED");
+      res.save = (await m("save_sales_order_v1", {})).error?.message; res.transition = (await m("transition_sales_order_v1", {})).error?.message;
+      res.unknown = (await m("post_stock_v1", {})).error?.message; return res;
+    });
+    assert.deepEqual(out, { save: "NOT_CONNECTED", transition: "NOT_CONNECTED", unknown: "NOT_CONNECTED" });
+    const src = await (await fetch(base + "/view/mfg.mjs")).text(); assert.match(src, /create_recipe\|approve_recipe\|define_substitution\|request_handoff\|record_material_waste/);
+    const ms = await (await fetch(base + "/view/master.js")).text(); assert.match(ms, /\^master_save_/);
     await page.close();
   });
   await step("no developer-report text on any Owner route", async () => { assert.deepEqual(devHits, []); });

@@ -9,29 +9,39 @@ Read-only. Not VERIFIED_COMPLETE, not Level 2. GO-2 / GO-3 not used.
 | Target | existing Worker `core10-central` only · zero bindings · `connect-src 'none'` · GET/HEAD only |
 | Supersedes | `core10-build-review` (PR #114) — created under an earlier instruction; left unchanged, not redeployed, retirement awaits Owner approval |
 
-## Route inventory and audit
+## Refresh 2026-11-18 — route inventory (prepared, NOT yet deployed)
 
-| Owner route | What renders | Source | Data | Writes |
+Source pins (every `/live/` file is read straight from these commits; see `SOURCE_MANIFEST.json`):
+
+| Pin | Commit | Status |
+|---|---|---|
+| trunk `ccr-15ed11dd-n3hw5h` | `a82ae99` | TRUNK_INTEGRATED (Master Data UI, Owner Control, Stock 0200, Finance 0400–0401) |
+| PR #109 NP03B Sales | `c7165af` | DRAFT_NOT_INTEGRATED |
+| PR #112 NP05A Sweets Manufacturing | `86851dc` | DRAFT_NOT_INTEGRATED |
+| PR #111 NP01 Setup/Approval/Control | `d9a1659` | no UI files — nothing to show |
+| PR #117 Finance AR/AP | `3d128dc` | no UI files — nothing to show |
+
+| Owner route | Renders | Source | Data | Writes |
 |---|---|---|---|---|
-| `#/home` Owner home | real PACK-02 workspace (Universal Owner) | `core10-pack02-workspace.js/.css` | sample projection `tests/pack02/fixtures/universal-owner.json` | none (nav items disabled by the source: not wired) |
-| `#/business` Business | real PACK-02 workspace (business owner, branded) | same | `business-owner-branded.json` | none |
-| `#/setup` Setup & access | real Build01 page, locked by its own shipped config | `core10-build01.*`, `core10-enterprise-client.js`, `vendor/supabase.js` | none | sign-in disabled by source |
-| `#/master` Master data | one-line unavailable message | — (no UI on trunk yet; B-011 SQL 0150–0153 only) | — | — |
-| `#/control` Owner control | real Owner Control Centre UI + real API client | `core10-owner-control-centre-ui.js`, `core10-owner-control-client.js`, `.css` | read-only replay of responses recorded from the real core10 SQL functions (`data/occ-owner-replay.json`) | every write refused → UI's own "server could not be reached" |
-| `#/features` Feature permissions | real PACK-02 controls UI (Central) | `core10-pack02-controls.js` | `controls-central.json` | none |
-| `#/approvals` Approvals | existing NP01 reviewer page, unchanged | `docs/preview/c10-np01-canonical-reviewer-preview.html` + `internal/enterprise-client/c10_np01_*` | its own synthetic client, `allowMutations:false` | none |
-| `#/staff` Staff workspace | real PACK-02 workspace (staff, one site) | PACK-02 | `staff.json` | none |
+| `#/home`, `#/business`, `#/staff`, `#/features` | real PACK-02 workspace / controls | trunk | sample projections `tests/pack02/fixtures/*.json` | none |
+| `#/master` Master data | real Master Data UI + API client (items, variants, barcodes, categories, UOMs, conversions, parties, price lists) | trunk | recorded reads of the real `master_*` functions (`data/md-replay.json`) | every `master_save_*` refused → `MASTER_RPC_UNAVAILABLE` |
+| `#/sales` Sales orders | real Sales Order UI (+ banner "not yet part of the main system") | PR #109 | recorded reads (`data/sales-replay.json`) | save/transition refused → `NOT_CONNECTED` (UI's own disconnected state) |
+| `#/manufacturing` Manufacturing | real Sweets Manufacturing workbench (+ banner) | PR #112 | recorded reads (`data/mfg-replay.json`) | recipe/approve/substitution/handoff/waste refused → `NOT_CONNECTED` |
+| `#/control` Owner control | real Owner Control Centre UI + client | trunk | recorded reads (`data/occ-owner-replay.json`) | refused → UI's "server could not be reached" |
+| `#/approvals` | existing NP01 reviewer page, unchanged | trunk | its own synthetic client, `allowMutations:false` | none |
+| `#/setup` | real Build01 page, locked by its own config | trunk | none | sign-in disabled |
 
-Not published (blocker, not a fake substitute): `owner.html`, `index.html`, `core10-shell.js` and its legacy chain
-(they require the legacy BOS app and `config.js`, which points to a non-CORE10 Supabase project). The new shell
-(`site/index.html`, `app.js`, `app.css`) is presentation glue only: navigation + module frames, no engine, no data.
-Also not published: `core10-control-centre-config.js` / `core10-owner-control-centre.js` (real boot needs the
-staging key, GO-2/3), SQL gateway, persona harness, signed adapters.
+Stock and Finance: **no UI exists** on trunk or in PR #117 → not in navigation.
+Not published: legacy `owner.html`/`index.html`/`core10-shell.js`/`config.js`, staging boot/config files, every SQL/UI gateway and test harness.
 
-Replay provenance: trunk `7c460aa` migrations on disposable local PostgreSQL 16.15 → `tests/control-centre/seed.sql`
-→ the real 19-step `owner-control-centre-browser.cjs` (19/19 PASS) → recorded every read RPC
-(`build01_context_v1`, `control_read_v1`, `control_history_v1`, `control_audit_v1`, `control_overrides_v1`) as the
-synthetic owner. Writes were never recorded and are never answered.
+Recording provenance: each module's own repo browser test was run unchanged against disposable PostgreSQL 17.12
+(migrations + that test's seed) with a Playwright preload that only observes `/rpc/*` traffic:
+Master `master-data-browser.cjs` 17/17, Sales `tests/np03b/browser.cjs` 43/43, Manufacturing `tests/np05a/browser.cjs` 62/62,
+Owner Control `owner-control-centre-browser.cjs` 19/19. Only successful reads of the synthetic owner persona are kept.
+
+Known limitations: Draft module data shows the builders' own synthetic test labels (e.g. `BROWSER-1440`, `fixture:kg`) and their
+real `NOT_CONNECTED` Stock/Finance boundaries; filtering, paging or detail requests that the test never made answer "unavailable";
+the legacy Central shell is still not publishable.
 
 ## Verify
 

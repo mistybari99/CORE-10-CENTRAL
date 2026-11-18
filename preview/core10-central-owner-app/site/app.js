@@ -5,13 +5,16 @@
     home: "/view/workspace.html?v=universal-owner",
     business: "/view/workspace.html?v=business-owner-branded",
     setup: "/live/core10-build01.html",
-    master: null,
+    master: "/view/master.html",
+    sales: "/view/sales.html",
+    manufacturing: "/view/mfg.html",
     control: "/view/control.html",
     features: "/view/workspace.html?v=controls-central",
     approvals: "/live/docs/preview/c10-np01-canonical-reviewer-preview.html",
     staff: "/view/workspace.html?v=staff"
   };
-  var html = document.documentElement, frame = document.getElementById("c10-frame"), na = document.getElementById("c10-unavailable");
+  var html = document.documentElement, frame = document.getElementById("c10-frame"), draft = document.getElementById("c10-draft");
+  var DRAFT = { sales: true, manufacturing: true };
   var lang = "bn"; try { lang = localStorage.getItem("core10.preview.lang") === "en" ? "en" : "bn"; } catch (_) {}
   function route() {
     var r = (location.hash.replace(/^#\/?/, "") || "home").split("?")[0];
@@ -20,8 +23,8 @@
       if (a.dataset.route === r) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
     var src = ROUTES[r];
-    na.hidden = !!src; frame.hidden = !src;
-    if (src) {
+    draft.hidden = !DRAFT[r];
+    {
       var url = src + (src.indexOf("?") < 0 ? "?" : "&") + "lang=" + lang;
       if (frame.getAttribute("src") !== url) frame.setAttribute("src", url);
     }

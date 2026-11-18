@@ -17,11 +17,10 @@ html[data-lang="bn"] .en,html[data-lang="en"] .bn{display:none}
 .c10-nav a{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:8px;color:var(--ink);text-decoration:none}
 .c10-nav a:hover{background:var(--bg)}
 .c10-nav a[aria-current="page"]{background:var(--active);color:var(--active-ink);font-weight:600}
-.c10-main{flex:1;min-width:0;display:flex}
+.c10-main{flex:1;min-width:0;display:flex;flex-direction:column}
 #c10-frame{flex:1;width:100%;border:0;background:var(--bg)}
-.c10-unavailable{margin:24px 16px;max-width:640px}
-.c10-unavailable h1{font-size:20px;margin:0 0 8px}
-.c10-unavailable p{color:var(--muted);margin:0}
+.c10-draft{margin:0;padding:8px 16px;font-size:13px;background:#fff4d6;color:#5c4300;border-bottom:1px solid #ecd9a3}
+@media (prefers-color-scheme:dark){.c10-draft{background:#33270f;color:#f2d27b;border-color:#4d3b14}}
 @media (max-width:760px){
  .c10-body{flex-direction:column}
  .c10-nav{width:auto;flex-direction:row;overflow-x:auto;overflow-y:hidden;border-right:0;border-bottom:1px solid var(--line);padding:6px 8px;scrollbar-width:thin}
