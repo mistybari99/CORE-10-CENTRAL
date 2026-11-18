@@ -84,7 +84,14 @@ guard 0401 internal/migrations/0401_np06_journal_reversal.down.sql FIN_REVERSAL_
 guard 0400 internal/migrations/0400_np06_finance_foundation.down.sql FIN_ROLLBACK_DENIED_PERSISTED_HISTORY
 
 # The canonical audit checksum should still verify after both refused attempts.
-test "$(psql -X -At -v ON_ERROR_STOP=1 -c "SELECT (core10.verify_canonical_audit_v1(9711)->>'ok')::boolean")" = "t" || {
+audit_ok="$(psql -X -qAt -v ON_ERROR_STOP=1 <<'SQL' | tail -n 1
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims',
+ '{"sub":"91111111-1111-4111-8111-111111111111"}',false);
+SELECT (core10.verify_canonical_audit_v1(9711)->>'ok')::boolean;
+SQL
+)"
+[[ "$audit_ok" == "t" ]] || {
   echo FIN_ROLLBACK_CANONICAL_AUDIT_CHAIN_CHANGED >&2; exit 1;
 }
 echo "FIN_ROLLBACK_0400_0401_TARGETED_HISTORY_LEDGER_AUDIT_PASS"
