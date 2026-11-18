@@ -1,3 +1,5 @@
+Current Owner readiness: [Independent integration-review package and restart gate](NP05A_B015_INTEGRATION_REVIEW.md). Production0500–0504 remains the accepted86851dc implementation.
+
 Current continuation: [Increment 5 — real canonical Master binding and restartable evidence](NP05A_B015_INCREMENT5.md). Earlier checkpoint statements below are historical.
 
 # NP05A / B-015 — manufacturing increment, 2026-11-16

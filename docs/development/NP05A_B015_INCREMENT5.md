@@ -1,3 +1,5 @@
+Latest continuation: [Integration-readiness review package](NP05A_B015_INTEGRATION_REVIEW.md). The implementation checkpoint below is preserved; no Master rebuild or migration change.
+
 # B-015 / NP05A — canonical Master binding, restartable increment 5
 
 Owner continuation, 2026-11-18 (Asia/Dhaka). Own branch `build/codex-np05a-sweets`, Draft PR #112 into `ccr-15ed11dd-n3hw5h`. **CODED / locally TESTED; full S6 BLOCKED, NOT READY_FOR_INTEGRATION, NOT VERIFIED_COMPLETE.** Exact delivered SHA and current CI links are kept in PR #112 and B-015. No external release is authorized.

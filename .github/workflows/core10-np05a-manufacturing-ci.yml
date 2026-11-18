@@ -37,7 +37,7 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN;'
       - name: Static migration and signed context client contracts
         run: |
-          sha256sum -c tests/np05a/0500-0503.sha256
+          sha256sum -c tests/np05a/0500-0504.sha256
           node --test tests/migrations/migration-contract.test.js tests/np05a/client.test.mjs
       - name: PostgreSQL 17 all migrations up down up
         run: bash tests/migrations/run-updownup.sh
