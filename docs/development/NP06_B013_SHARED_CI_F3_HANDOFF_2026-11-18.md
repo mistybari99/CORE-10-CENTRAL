@@ -8,7 +8,7 @@
 - Finance F2 `0401` **integrated** by Claude: PR #115, merge commit `532bd36`. Never re-implement or amend the applied 0400/0401 migrations.
 - Shared CI correction **Draft PR #118**: `build/chatgpt-np06-shared-ci-fix` against live trunk.
 - Finance F3 `0402/0403` **Draft PR #117**: `build/chatgpt-np06-arap`, last verified head `3d128dc4df1b8860ce46a3aaae9960843d382c0f`. F3 is not integrated; F3 authorization is separate.
-- Cross-lane exact heads reviewed at initial checkpoint: NP01 PR #111 `69143ffb82667b6f81b3667288af54a86b597698` with 0113 GOV003 + 0114 GOV002 threshold/exception, Sales PR #109 `aa45845c4f7310824ae81dacbaff08660e4fc701` with 0304 invoice drafts, Manufacturing PR #112 `86851dc4a09bb71c051e3fb82b8fddc9d0b4ec1b` with 0504 canonical Master. **Pins are intentionally hard-fail guards** if any PR advances.
+- Cross-lane exact heads reviewed at initial checkpoint: NP01 PR #111 `69143ffb82667b6f81b3667288af54a86b597698` with 0113 GOV003 + 0114 GOV002 threshold/exception, Sales PR #109 `aa45845c4f7310824ae81dacbaff08660e4fc701` with 0304 invoice drafts, Manufacturing PR #112 `7e39b7517763e24c308b7f8316a3ac7219a84d2d` with 0504 canonical Master. **Pins are intentionally hard-fail guards** if any PR advances.
 
 ## Exact CI-fix scope
 
@@ -50,3 +50,12 @@ NP01 PR111 advanced from d9a1659 to 22bc275 (migration 0114), then ce83108 (corr
 ### Sales PR109 additional UI-only advance
 
 Sales PR109 advanced from `c7165af0` to `aa45845c4f7310824ae81dacbaff08660e4fc701`, adding draft-invoice UI/client tests but **no new Sales database migrations**. Reviewed the diff; matrix SHA guard now pins this exact head and runs `node --test tests/np03b/invoice-client.test.cjs` in addition to previously verified combined 0304 Finance/rollback and separate Sales PG17 invoice/concurrency tests. Latest exact-head run must verify success before claiming the pin compatible.
+
+## 2026-11-19 — Independent Sweets review P1 pin correction (no production change)
+
+- Review: PR #118 at previously tested `d54ca632278467fe01cb5f5444d5791c6e232a65`; reviewer requested changes at the **unresolved** inline thread on `.github/workflows/core10-np06-crosslane-ci.yml:27`: https://github.com/mistybari99/CORE-10-CENTRAL/pull/118#discussion_r4621378774 .
+- Verified current PR #112 HEAD: `7e39b7517763e24c308b7f8316a3ac7219a84d2d` (old pinned `86851dc4a09bb71c051e3fb82b8fddc9d0b4ec1b`). Compare reports **one fast-forward commit**, `7e39b751` (`test(np05a): prepare independent review and prove source-linked nonposting boundaries`). Complete delta is restricted to Manufacturing's own `.github/workflows/core10-np05a-manufacturing-ci.yml`, `tests/np05a/master-browser.cjs`, `tests/np05a/0500-0504.sha256`, its docs/evidence and source-handoff screenshots. **No production SQL, 0500–0504 migration changes, or other builder's source edits.** CI checksum check now includes 0504 instead of stopping at 0503.
+- Changed **only** the Manufacturing `matrix.include.head_sha` constant in Finance-owned crosslane workflow. The mandatory `actual_sha != matrix.head_sha` abort with `FINANCE_manufacturing_HEAD_MOVED_REVERIFY_BEFORE_COMPAT`, and identical exact-head checks for Sales/F3/NP01, remain untouched. No permissions or production runner changes.
+- Other actual PR HEADs were checked before update and still match pinned values: NP01 PR111 `69143ffb82667b6f81b3667288af54a86b597698`; Sales PR109 `aa45845c4f7310824ae81dacbaff08660e4fc701`; F3 PR117 `3d128dc4df1b8860ce46a3aaae9960843d382c0f`.
+- Independent reviewer supplied **supplemental, detached PostgreSQL 17.12** evidence with current PR112 and all other PR heads: 50 combined migrations Up→Down→Up; applied checksums; Finance posting/reversal, Owner Control and immutable history guards; NP01 GOV002/3; Sales invoice negative; Manufacturing 0500–0504; F3 source-linked AR/AP and three two-session races all PASS. This is **reviewer evidence**, not a substitute for a new exact-head PR118 GitHub Actions run. Source review: https://github.com/mistybari99/CORE-10-CENTRAL/pull/118#pullrequestreview-5965786230 .
+- Fresh GitHub exact-head CI proof (Finance+NP01, S0, NP02 Control, Sales/Mfg/F3 matrix) must be recorded in PR #118 once all jobs conclude. A separate focused reviewer re-review and then **separate Owner integration GO** are required; this handoff does not authorize merge, staging or deployment.
