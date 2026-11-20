@@ -1,4 +1,4 @@
-// C10-A053/A054: signed HMAC JWT -> PostgREST -> c10_demo RPC E2E. Disposable PostgreSQL ONLY.
+// C10-A053/A054: signed HMAC JWT -> PostgREST -> core10 RPC E2E. Disposable PostgreSQL ONLY.
 // NOT a Supabase-issued GoTrue token and NEVER a production release test. Run AFTER tests/c10_a054_policy_e2e.sql state (business 102).
 "use strict";
 const assert=require("node:assert/strict"),crypto=require("node:crypto");
@@ -35,7 +35,7 @@ const authFail=(r,m)=>assert.ok([401,403].includes(r.status),m+": expected auth 
  authFail(await rpc("a054_liability_report_v1",jwt(U.boB,{exp:now()-60}),{p_business:102,p_period:null}),"expired token");
  assert.ok((await rpc("a054_liability_report_v1",jwt(U.boB,{role:"service_role"}),{p_business:102,p_period:null})).status>=400,"unknown role claim must not succeed");
  for(const t of["a054_delegations","a054_payment_records","a054_policy_versions","a054_legal_holds","a053_persona_registry"]){
-  const res=await fetch(base+"/"+t,{headers:{authorization:"Bearer "+T.owner,"accept-profile":"c10_demo"}});
+  const res=await fetch(base+"/"+t,{headers:{authorization:"Bearer "+T.owner,"accept-profile":"core10"}});
   assert.ok(res.status>=400,"direct table "+t+" must not be exposed: "+res.status);
  }
  // internal helpers are not callable

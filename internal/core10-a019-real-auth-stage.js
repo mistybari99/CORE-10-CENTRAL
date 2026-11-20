@@ -124,7 +124,7 @@ async function auth(config,user,http) {
 async function read(config,token,path,http) {
   return send(config.url+"/rest/v1/"+path,{
     method:"GET",headers:{"apikey":config.key,"authorization":"Bearer "+token,
-      "Accept-Profile":"c10_demo","Accept":"application/json"}
+      "Accept-Profile":"core10","Accept":"application/json"}
   },http);
 }
 function corruptSignature(token) {

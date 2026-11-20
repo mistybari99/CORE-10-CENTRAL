@@ -1,23 +1,23 @@
 -- C10-A052 | Universal Owner Intent Engine: storage, certified capability catalog, pure evaluators.
--- DISPOSABLE c10_demo ONLY. Apply AFTER A018/A020/A021/A044/A045. NEVER apply to IMG-ERP-SG without
+-- DISPOSABLE core10 ONLY. Apply AFTER A018/A020/A021/A044/A045. NEVER apply to IMG-ERP-SG without
 -- snapshot, staging, real GoTrue auth/RLS tests and explicit Owner go/no-go.
--- Authority: reuses c10_demo.actor_uid()/can_tenant()/can_manage()/can_see_business() and the A045 micro-engine
+-- Authority: reuses core10.actor_uid()/can_tenant()/can_manage()/can_see_business() and the A045 micro-engine
 -- registry (handlers + engines + assignments). NO second auth, permission, stock, workflow or audit source.
 -- The NATURAL-LANGUAGE parse is a deterministic client-side rule parser (core10-owner-intent-engine.js).
 -- The SERVER never trusts it: it re-validates every structured interpretation against the certified allowlist
 -- below, recomputes preview/impact itself, and refuses anything else. No eval, no dynamic SQL, no permission grants.
 DO $gate$ BEGIN
  IF current_database() !~ '^core10_' OR
-  to_regprocedure('c10_demo.assign_engine_v1(bigint,bigint,integer,text,jsonb,text,text,bigint,text,text)') IS NULL OR
-  to_regprocedure('c10_demo.engine_eval_threshold_v1(jsonb,jsonb,jsonb)') IS NULL
+  to_regprocedure('core10.assign_engine_v1(bigint,bigint,integer,text,jsonb,text,text,bigint,text,text)') IS NULL OR
+  to_regprocedure('core10.engine_eval_threshold_v1(jsonb,jsonb,jsonb)') IS NULL
  THEN RAISE EXCEPTION 'A052_REQUIRES_A045_DISPOSABLE_STACK'; END IF;
 END; $gate$;
 
 -- ---------------------------------------------------------------- certified capability catalog
-CREATE TABLE c10_demo.intent_capabilities_v1(
+CREATE TABLE core10.intent_capabilities_v1(
  capability_key text PRIMARY KEY CHECK(capability_key ~ '^[a-z][a-z0-9_]{2,40}$'),
  route text NOT NULL CHECK(route IN('A045_ENGINE','A052_ADVISORY')),
- a045_handler_id text REFERENCES c10_demo.micro_engine_handlers_v1(handler_id),
+ a045_handler_id text REFERENCES core10.micro_engine_handlers_v1(handler_id),
  module_code text NOT NULL CHECK(module_code ~ '^[a-z][a-z0-9_]*$'),
  title jsonb NOT NULL,
  certified boolean NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE c10_demo.intent_capabilities_v1(
  impact jsonb NOT NULL,
  CHECK((route='A045_ENGINE')=(a045_handler_id IS NOT NULL))
 );
-INSERT INTO c10_demo.intent_capabilities_v1(capability_key,route,a045_handler_id,module_code,title,certified,sample_inputs,impact) VALUES
+INSERT INTO core10.intent_capabilities_v1(capability_key,route,a045_handler_id,module_code,title,certified,sample_inputs,impact) VALUES
 ('wastage_threshold','A052_ADVISORY',NULL,'production',
  '{"en":"Wastage threshold advisory","bn":"অপচয় সীমা সতর্কতা"}',true,
  '{"produced_qty":50,"wasted_qty":3}',
@@ -76,23 +76,23 @@ INSERT INTO c10_demo.intent_capabilities_v1(capability_key,route,a045_handler_id
    "downstream_modules":[{"module_code":"purchase","effect":"advisory flag only; no purchase order is posted or approved"}]}');
 
 -- ---------------------------------------------------------------- guidance catalog (rows generated; see seed file)
-CREATE TABLE c10_demo.intent_guidance_v1(
+CREATE TABLE core10.intent_guidance_v1(
  control_key text PRIMARY KEY CHECK(control_key ~ '^[a-z][a-z0-9_]*(\.[a-z0-9_]+)+$'),
  module_code text NOT NULL,
- capability_key text REFERENCES c10_demo.intent_capabilities_v1(capability_key),
+ capability_key text REFERENCES core10.intent_capabilities_v1(capability_key),
  content jsonb NOT NULL,
  CHECK(content ?& ARRAY['title','what','why','when','default','exception','consequence','data_formula_units','linked_report'])
 );
 
 -- ---------------------------------------------------------------- Owner intents (versioned lifecycle)
-CREATE TABLE c10_demo.owner_intents_v1(
+CREATE TABLE core10.owner_intents_v1(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
- tenant_id bigint NOT NULL REFERENCES c10_demo.tenants(id),
+ tenant_id bigint NOT NULL REFERENCES core10.tenants(id),
  business_id bigint NOT NULL,
  site_id bigint,
  raw_text text NOT NULL CHECK(length(btrim(raw_text)) BETWEEN 3 AND 1000),
  locale text NOT NULL CHECK(locale IN('bn','en','mixed')),
- capability_key text REFERENCES c10_demo.intent_capabilities_v1(capability_key),
+ capability_key text REFERENCES core10.intent_capabilities_v1(capability_key),
  status text NOT NULL CHECK(status IN('INTERPRETED','NEEDS_CLARIFICATION','PREVIEWED','VALIDATED','APPROVED','PUBLISHED',
    'REJECTED','UNSUPPORTED','ENGINEERING_REQUIRED')),
  params jsonb NOT NULL DEFAULT '{}'::jsonb,
@@ -107,18 +107,18 @@ CREATE TABLE c10_demo.owner_intents_v1(
  created_at timestamptz NOT NULL DEFAULT now(),
  updated_at timestamptz NOT NULL DEFAULT now(),
  UNIQUE(id,tenant_id),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id),
- FOREIGN KEY(site_id,tenant_id,business_id) REFERENCES c10_demo.sites(id,tenant_id,business_id),
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id),
+ FOREIGN KEY(site_id,tenant_id,business_id) REFERENCES core10.sites(id,tenant_id,business_id),
  CHECK(status NOT IN('PREVIEWED','VALIDATED','APPROVED','PUBLISHED') OR (capability_key IS NOT NULL AND preview_hash IS NOT NULL)),
  CHECK(status NOT IN('UNSUPPORTED','ENGINEERING_REQUIRED') OR capability_key IS NULL)
 );
-CREATE INDEX owner_intents_business_idx ON c10_demo.owner_intents_v1(business_id,id DESC);
+CREATE INDEX owner_intents_business_idx ON core10.owner_intents_v1(business_id,id DESC);
 
-CREATE TABLE c10_demo.intent_settings_v1(
+CREATE TABLE core10.intent_settings_v1(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL,
  business_id bigint NOT NULL,
- setting_key text NOT NULL REFERENCES c10_demo.intent_capabilities_v1(capability_key),
+ setting_key text NOT NULL REFERENCES core10.intent_capabilities_v1(capability_key),
  version int NOT NULL CHECK(version>0),
  state text NOT NULL CHECK(state IN('ACTIVE','SUPERSEDED')),
  params jsonb NOT NULL,
@@ -131,27 +131,27 @@ CREATE TABLE c10_demo.intent_settings_v1(
  created_at timestamptz NOT NULL DEFAULT now(),
  superseded_at timestamptz,
  UNIQUE(business_id,setting_key,version),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id),
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id),
  CHECK(payload_hash=md5(params::text))
 );
-CREATE UNIQUE INDEX intent_settings_one_active ON c10_demo.intent_settings_v1(business_id,setting_key) WHERE state='ACTIVE';
+CREATE UNIQUE INDEX intent_settings_one_active ON core10.intent_settings_v1(business_id,setting_key) WHERE state='ACTIVE';
 
-CREATE TABLE c10_demo.engineering_requirements_v1(
+CREATE TABLE core10.engineering_requirements_v1(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL,
  business_id bigint NOT NULL,
  intent_id bigint NOT NULL UNIQUE,
  status text NOT NULL CHECK(status IN('NEEDS_HANDLER_BUILD','NOT_ALLOWED_BY_POLICY')),
  category text NOT NULL CHECK(category ~ '^[a-z][a-z0-9_]{2,40}$'),
- a045_handler_id text REFERENCES c10_demo.micro_engine_handlers_v1(handler_id),
+ a045_handler_id text REFERENCES core10.micro_engine_handlers_v1(handler_id),
  requirement jsonb NOT NULL CHECK(length(requirement::text)<=6000),
  created_by uuid NOT NULL,
  created_at timestamptz NOT NULL DEFAULT now(),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id),
- FOREIGN KEY(intent_id,tenant_id) REFERENCES c10_demo.owner_intents_v1(id,tenant_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id),
+ FOREIGN KEY(intent_id,tenant_id) REFERENCES core10.owner_intents_v1(id,tenant_id)
 );
 
-CREATE TABLE c10_demo.owner_intent_events_v1(
+CREATE TABLE core10.owner_intent_events_v1(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL,
  business_id bigint NOT NULL,
@@ -163,11 +163,11 @@ CREATE TABLE c10_demo.owner_intent_events_v1(
  actor_uid uuid NOT NULL,
  request_key text NOT NULL,
  created_at timestamptz NOT NULL DEFAULT now(),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id)
 );
-CREATE INDEX owner_intent_events_biz_idx ON c10_demo.owner_intent_events_v1(business_id,id DESC);
+CREATE INDEX owner_intent_events_biz_idx ON core10.owner_intent_events_v1(business_id,id DESC);
 
-CREATE TABLE c10_demo.intent_receipts_v1(
+CREATE TABLE core10.intent_receipts_v1(
  tenant_id bigint NOT NULL,
  request_key text NOT NULL,
  actor_uid uuid NOT NULL,
@@ -177,14 +177,14 @@ CREATE TABLE c10_demo.intent_receipts_v1(
  PRIMARY KEY(tenant_id,request_key)
 );
 
-CREATE FUNCTION c10_demo.intent_events_immutable_v1() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE FUNCTION core10.intent_events_immutable_v1() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN RAISE EXCEPTION 'intent_audit_immutable'; END$$;
-CREATE TRIGGER intent_events_no_mutation_v1 BEFORE UPDATE OR DELETE ON c10_demo.owner_intent_events_v1
- FOR EACH ROW EXECUTE FUNCTION c10_demo.intent_events_immutable_v1();
-CREATE TRIGGER intent_events_no_truncate_v1 BEFORE TRUNCATE ON c10_demo.owner_intent_events_v1
- FOR EACH STATEMENT EXECUTE FUNCTION c10_demo.intent_events_immutable_v1();
+CREATE TRIGGER intent_events_no_mutation_v1 BEFORE UPDATE OR DELETE ON core10.owner_intent_events_v1
+ FOR EACH ROW EXECUTE FUNCTION core10.intent_events_immutable_v1();
+CREATE TRIGGER intent_events_no_truncate_v1 BEFORE TRUNCATE ON core10.owner_intent_events_v1
+ FOR EACH STATEMENT EXECUTE FUNCTION core10.intent_events_immutable_v1();
 -- published setting versions: payload immutable; only the supersede flag may flip.
-CREATE FUNCTION c10_demo.intent_settings_guard_v1() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE FUNCTION core10.intent_settings_guard_v1() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
  IF TG_OP='DELETE' THEN RAISE EXCEPTION 'intent_setting_immutable'; END IF;
  IF NEW.params IS DISTINCT FROM OLD.params OR NEW.version<>OLD.version OR NEW.business_id<>OLD.business_id OR
@@ -192,80 +192,80 @@ BEGIN
  THEN RAISE EXCEPTION 'intent_setting_immutable'; END IF;
  RETURN NEW;
 END$$;
-CREATE TRIGGER intent_settings_row_guard_v1 BEFORE UPDATE OR DELETE ON c10_demo.intent_settings_v1
- FOR EACH ROW EXECUTE FUNCTION c10_demo.intent_settings_guard_v1();
-CREATE TRIGGER intent_settings_no_truncate_v1 BEFORE TRUNCATE ON c10_demo.intent_settings_v1
- FOR EACH STATEMENT EXECUTE FUNCTION c10_demo.intent_events_immutable_v1();
+CREATE TRIGGER intent_settings_row_guard_v1 BEFORE UPDATE OR DELETE ON core10.intent_settings_v1
+ FOR EACH ROW EXECUTE FUNCTION core10.intent_settings_guard_v1();
+CREATE TRIGGER intent_settings_no_truncate_v1 BEFORE TRUNCATE ON core10.intent_settings_v1
+ FOR EACH STATEMENT EXECUTE FUNCTION core10.intent_events_immutable_v1();
 
 -- ---------------------------------------------------------------- RLS: defense in depth + no direct writes
-ALTER TABLE c10_demo.intent_capabilities_v1 ENABLE ROW LEVEL SECURITY;
-ALTER TABLE c10_demo.intent_guidance_v1 ENABLE ROW LEVEL SECURITY;
-ALTER TABLE c10_demo.owner_intents_v1 ENABLE ROW LEVEL SECURITY;
-ALTER TABLE c10_demo.intent_settings_v1 ENABLE ROW LEVEL SECURITY;
-ALTER TABLE c10_demo.engineering_requirements_v1 ENABLE ROW LEVEL SECURITY;
-ALTER TABLE c10_demo.owner_intent_events_v1 ENABLE ROW LEVEL SECURITY;
-ALTER TABLE c10_demo.intent_receipts_v1 ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON c10_demo.intent_capabilities_v1,c10_demo.intent_guidance_v1,c10_demo.owner_intents_v1,
- c10_demo.intent_settings_v1,c10_demo.engineering_requirements_v1,c10_demo.owner_intent_events_v1,
- c10_demo.intent_receipts_v1 FROM PUBLIC,authenticated,anon;
+ALTER TABLE core10.intent_capabilities_v1 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE core10.intent_guidance_v1 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE core10.owner_intents_v1 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE core10.intent_settings_v1 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE core10.engineering_requirements_v1 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE core10.owner_intent_events_v1 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE core10.intent_receipts_v1 ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON core10.intent_capabilities_v1,core10.intent_guidance_v1,core10.owner_intents_v1,
+ core10.intent_settings_v1,core10.engineering_requirements_v1,core10.owner_intent_events_v1,
+ core10.intent_receipts_v1 FROM PUBLIC,authenticated,anon;
 -- READ-ONLY direct access for tenant Owner / Business Owner of the same business only (RLS-scoped).
-GRANT SELECT ON c10_demo.owner_intents_v1,c10_demo.intent_settings_v1,c10_demo.engineering_requirements_v1,
- c10_demo.owner_intent_events_v1 TO authenticated;
-CREATE POLICY intents_manage_read ON c10_demo.owner_intents_v1 FOR SELECT TO authenticated
- USING(c10_demo.can_manage(tenant_id,business_id));
-CREATE POLICY settings_manage_read ON c10_demo.intent_settings_v1 FOR SELECT TO authenticated
- USING(c10_demo.can_manage(tenant_id,business_id));
-CREATE POLICY requirements_manage_read ON c10_demo.engineering_requirements_v1 FOR SELECT TO authenticated
- USING(c10_demo.can_manage(tenant_id,business_id));
-CREATE POLICY events_manage_read ON c10_demo.owner_intent_events_v1 FOR SELECT TO authenticated
- USING(c10_demo.can_manage(tenant_id,business_id));
+GRANT SELECT ON core10.owner_intents_v1,core10.intent_settings_v1,core10.engineering_requirements_v1,
+ core10.owner_intent_events_v1 TO authenticated;
+CREATE POLICY intents_manage_read ON core10.owner_intents_v1 FOR SELECT TO authenticated
+ USING(core10.can_manage(tenant_id,business_id));
+CREATE POLICY settings_manage_read ON core10.intent_settings_v1 FOR SELECT TO authenticated
+ USING(core10.can_manage(tenant_id,business_id));
+CREATE POLICY requirements_manage_read ON core10.engineering_requirements_v1 FOR SELECT TO authenticated
+ USING(core10.can_manage(tenant_id,business_id));
+CREATE POLICY events_manage_read ON core10.owner_intent_events_v1 FOR SELECT TO authenticated
+ USING(core10.can_manage(tenant_id,business_id));
 
 -- ---------------------------------------------------------------- pure validation / evaluation (no table writes)
-CREATE FUNCTION c10_demo.intent_num_v1(j jsonb,k text,lo numeric,hi numeric) RETURNS numeric
+CREATE FUNCTION core10.intent_num_v1(j jsonb,k text,lo numeric,hi numeric) RETURNS numeric
 LANGUAGE sql IMMUTABLE AS $$
  SELECT CASE WHEN j IS NOT NULL AND jsonb_typeof(j)='object' AND jsonb_typeof(j->k)='number'
    AND (j->>k)::numeric BETWEEN lo AND hi THEN (j->>k)::numeric END
 $$;
-CREATE FUNCTION c10_demo.intent_keys_ok_v1(j jsonb,allowed text[]) RETURNS boolean
+CREATE FUNCTION core10.intent_keys_ok_v1(j jsonb,allowed text[]) RETURNS boolean
 LANGUAGE sql IMMUTABLE AS $$
  SELECT j IS NOT NULL AND jsonb_typeof(j)='object'
    AND NOT EXISTS(SELECT 1 FROM jsonb_object_keys(j) k WHERE k<>ALL(allowed))
 $$;
-CREATE FUNCTION c10_demo.intent_params_valid_v1(p_cap text,p jsonb) RETURNS boolean
+CREATE FUNCTION core10.intent_params_valid_v1(p_cap text,p jsonb) RETURNS boolean
 LANGUAGE plpgsql IMMUTABLE AS $$
 BEGIN
  IF p_cap IS NULL OR p IS NULL OR jsonb_typeof(p)<>'object' THEN RETURN false; END IF;
  RETURN CASE p_cap
  WHEN 'wastage_threshold' THEN
-  c10_demo.intent_keys_ok_v1(p,ARRAY['threshold_pct','outcome','unit','item_group'])
-  AND c10_demo.intent_num_v1(p,'threshold_pct',0.0001,100) IS NOT NULL
+  core10.intent_keys_ok_v1(p,ARRAY['threshold_pct','outcome','unit','item_group'])
+  AND core10.intent_num_v1(p,'threshold_pct',0.0001,100) IS NOT NULL
   AND jsonb_typeof(p->'outcome')='string' AND p->>'outcome' IN('warn','approval_required')
   AND jsonb_typeof(p->'unit')='string' AND p->>'unit' IN('kg','pcs','l')
   AND (NOT p?'item_group' OR (jsonb_typeof(p->'item_group')='string' AND length(p->>'item_group')<=40
        AND p->>'item_group' ~ '^[A-Za-z0-9 _-]*$'))
  WHEN 'pack_discount_margin' THEN
-  c10_demo.intent_keys_ok_v1(p,ARRAY['pack_litres','min_margin_pct','outcome','currency'])
-  AND c10_demo.intent_num_v1(p,'pack_litres',0.001,1000) IS NOT NULL
-  AND c10_demo.intent_num_v1(p,'min_margin_pct',0,99.99) IS NOT NULL
+  core10.intent_keys_ok_v1(p,ARRAY['pack_litres','min_margin_pct','outcome','currency'])
+  AND core10.intent_num_v1(p,'pack_litres',0.001,1000) IS NOT NULL
+  AND core10.intent_num_v1(p,'min_margin_pct',0,99.99) IS NOT NULL
   AND jsonb_typeof(p->'outcome')='string' AND p->>'outcome' IN('warn','approval_required','block')
   AND jsonb_typeof(p->'currency')='string' AND p->>'currency' ~ '^[A-Z]{3}$'
  WHEN 'low_stock_alert' THEN
-  c10_demo.intent_keys_ok_v1(p,ARRAY['threshold','outcome'])
-  AND c10_demo.intent_num_v1(p,'threshold',0,1000000000) IS NOT NULL
+  core10.intent_keys_ok_v1(p,ARRAY['threshold','outcome'])
+  AND core10.intent_num_v1(p,'threshold',0,1000000000) IS NOT NULL
   AND jsonb_typeof(p->'outcome')='string' AND p->>'outcome' IN('allow','warn','block','approval_required')
  WHEN 'margin_floor_approval' THEN
-  c10_demo.intent_keys_ok_v1(p,ARRAY['threshold','outcome'])
-  AND c10_demo.intent_num_v1(p,'threshold',0,99.99) IS NOT NULL
+  core10.intent_keys_ok_v1(p,ARRAY['threshold','outcome'])
+  AND core10.intent_num_v1(p,'threshold',0,99.99) IS NOT NULL
   AND jsonb_typeof(p->'outcome')='string' AND p->>'outcome' IN('allow','warn','block','approval_required')
  WHEN 'order_total_approval' THEN
-  c10_demo.intent_keys_ok_v1(p,ARRAY['threshold','outcome','currency'])
-  AND c10_demo.intent_num_v1(p,'threshold',0.01,1000000000) IS NOT NULL
+  core10.intent_keys_ok_v1(p,ARRAY['threshold','outcome','currency'])
+  AND core10.intent_num_v1(p,'threshold',0.01,1000000000) IS NOT NULL
   AND jsonb_typeof(p->'outcome')='string' AND p->>'outcome' IN('allow','warn','block','approval_required')
   AND jsonb_typeof(p->'currency')='string' AND p->>'currency' ~ '^[A-Z]{3}$'
  ELSE false END;
 END$$;
 -- A045 threshold descriptor for the A045_ENGINE capabilities (data only, no code).
-CREATE FUNCTION c10_demo.intent_descriptor_v1(p_cap text,p jsonb) RETURNS jsonb
+CREATE FUNCTION core10.intent_descriptor_v1(p_cap text,p jsonb) RETURNS jsonb
 LANGUAGE sql IMMUTABLE AS $$
  SELECT CASE p_cap
   WHEN 'low_stock_alert' THEN jsonb_build_object('field','on_hand','op','lt','threshold',p->'threshold',
@@ -277,17 +277,17 @@ LANGUAGE sql IMMUTABLE AS $$
  END
 $$;
 -- ADVISORY evaluation only. Exact numeric arithmetic. canAuthorizeOperation is always false.
-CREATE FUNCTION c10_demo.intent_eval_v1(p_cap text,p jsonb,inp jsonb) RETURNS jsonb
+CREATE FUNCTION core10.intent_eval_v1(p_cap text,p jsonb,inp jsonb) RETURNS jsonb
 LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE r jsonb; a numeric; b numeric; c numeric; pct numeric; net numeric; cost numeric; mg numeric; maxd numeric; hit boolean; oc text;
  f text; e jsonb;
 BEGIN
- IF NOT c10_demo.intent_params_valid_v1(p_cap,p) THEN RAISE EXCEPTION 'invalid_params'; END IF;
+ IF NOT core10.intent_params_valid_v1(p_cap,p) THEN RAISE EXCEPTION 'invalid_params'; END IF;
  IF inp IS NULL OR jsonb_typeof(inp)<>'object' THEN RAISE EXCEPTION 'invalid_input'; END IF;
  IF p_cap='wastage_threshold' THEN
-  IF NOT c10_demo.intent_keys_ok_v1(inp,ARRAY['produced_qty','wasted_qty']) THEN RAISE EXCEPTION 'invalid_input'; END IF;
-  a:=c10_demo.intent_num_v1(inp,'produced_qty',0.0001,1000000000);
-  b:=c10_demo.intent_num_v1(inp,'wasted_qty',0,1000000000);
+  IF NOT core10.intent_keys_ok_v1(inp,ARRAY['produced_qty','wasted_qty']) THEN RAISE EXCEPTION 'invalid_input'; END IF;
+  a:=core10.intent_num_v1(inp,'produced_qty',0.0001,1000000000);
+  b:=core10.intent_num_v1(inp,'wasted_qty',0,1000000000);
   IF a IS NULL OR b IS NULL OR b>a THEN RAISE EXCEPTION 'invalid_input'; END IF;
   pct:=round(b/a*100,4); hit:=pct>(p->>'threshold_pct')::numeric; oc:=p->>'outcome';
   RETURN jsonb_build_object('capability_key',p_cap,'advisory',true,'mutates',false,'canAuthorizeOperation',false,
@@ -298,10 +298,10 @@ BEGIN
      'units',jsonb_build_object('quantity',p->>'unit','result','percent'),
      'steps',jsonb_build_array(format('%s ÷ %s × 100 = %s %%',b,a,pct),format('%s %% > %s %% → %s',pct,p->>'threshold_pct',hit))));
  ELSIF p_cap='pack_discount_margin' THEN
-  IF NOT c10_demo.intent_keys_ok_v1(inp,ARRAY['price_per_pack','cost_per_litre','discount_pct']) THEN RAISE EXCEPTION 'invalid_input'; END IF;
-  a:=c10_demo.intent_num_v1(inp,'price_per_pack',0.01,1000000000);
-  b:=c10_demo.intent_num_v1(inp,'cost_per_litre',0,1000000000);
-  c:=c10_demo.intent_num_v1(inp,'discount_pct',0,99.99);
+  IF NOT core10.intent_keys_ok_v1(inp,ARRAY['price_per_pack','cost_per_litre','discount_pct']) THEN RAISE EXCEPTION 'invalid_input'; END IF;
+  a:=core10.intent_num_v1(inp,'price_per_pack',0.01,1000000000);
+  b:=core10.intent_num_v1(inp,'cost_per_litre',0,1000000000);
+  c:=core10.intent_num_v1(inp,'discount_pct',0,99.99);
   IF a IS NULL OR b IS NULL OR c IS NULL THEN RAISE EXCEPTION 'invalid_input'; END IF;
   net:=a*(1-c/100); cost:=b*(p->>'pack_litres')::numeric;
   mg:=round((net-cost)/net*100,4);
@@ -320,8 +320,8 @@ BEGIN
        format('max discount keeping margin ≥ %s %% is %s %%',p->>'min_margin_pct',maxd))));
  ELSE
   f:=CASE p_cap WHEN 'low_stock_alert' THEN 'on_hand' WHEN 'margin_floor_approval' THEN 'margin_pct' WHEN 'order_total_approval' THEN 'order_total' END;
-  IF f IS NULL OR NOT c10_demo.intent_keys_ok_v1(inp,ARRAY[f]) THEN RAISE EXCEPTION 'invalid_input'; END IF;
-  e:=c10_demo.engine_eval_threshold_v1(c10_demo.intent_descriptor_v1(p_cap,p),'{}'::jsonb,inp);
+  IF f IS NULL OR NOT core10.intent_keys_ok_v1(inp,ARRAY[f]) THEN RAISE EXCEPTION 'invalid_input'; END IF;
+  e:=core10.engine_eval_threshold_v1(core10.intent_descriptor_v1(p_cap,p),'{}'::jsonb,inp);
   RETURN jsonb_build_object('capability_key',p_cap,'advisory',true,'mutates',false,'canAuthorizeOperation',false,
    'matched',e->'matched','outcome',e->'outcome','computed',jsonb_build_object(f,inp->f),'inputs',inp,'a045',e,
    'formula',jsonb_build_object('expression_en',f||' '||CASE p_cap WHEN 'order_total_approval' THEN '≥' ELSE '<' END||' threshold',

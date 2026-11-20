@@ -1,0 +1,26 @@
+name: core10-s0-migrations-ci
+on:
+  pull_request:
+    paths: ["internal/migrations/**", "tests/migrations/**", ".github/workflows/core10-s0-migrations-ci.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env: { PGHOST: localhost, PGPORT: "5432", PGUSER: postgres, PGPASSWORD: postgres, PGDATABASE: postgres }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Static migration contract
+        run: node --test tests/migrations/migration-contract.test.js
+      - name: Up, full down, up on disposable PostgreSQL 17
+        run: bash tests/migrations/run-updownup.sh

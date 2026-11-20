@@ -1,12 +1,12 @@
 -- C10-A051 Workforce (4/4): role-projected reads, reports, CSV export, integrity, integration contract, grants.
--- DISPOSABLE c10_demo ONLY. Apply AFTER payroll v1. Every read is a SECURITY DEFINER RPC that re-derives the
+-- DISPOSABLE core10 ONLY. Apply AFTER payroll v1. Every read is a SECURITY DEFINER RPC that re-derives the
 -- caller's authority from DB memberships; no table is directly readable. Salary/PII never leave owner-gated RPCs.
-CREATE FUNCTION c10_demo.wfi_level(c c10_demo.wf_ctx_t) RETURNS text LANGUAGE sql IMMUTABLE AS $$
+CREATE FUNCTION core10.wfi_level(c core10.wf_ctx_t) RETURNS text LANGUAGE sql IMMUTABLE AS $$
  SELECT CASE WHEN c.is_tenant_owner THEN 'tenant_owner' WHEN c.is_business_owner THEN 'business_owner' WHEN c.is_manager THEN 'manager'
   WHEN cardinality(c.supervised_sites)>0 THEN 'supervisor' ELSE 'employee' END $$;
 
-CREATE FUNCTION c10_demo.wf_read_overview_v1(p_business bigint) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_read_overview_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; cfg wf_business_settings; own boolean; mgr boolean;
 BEGIN
  c:=wfi_ctx(p_business); cfg:=wfi_cfg(p_business); own:=wfi_is_owner(c); mgr:=wfi_is_manager_plus(c);
@@ -23,20 +23,21 @@ BEGIN
 END$$;
 
 -- Businesses where the caller has ANY workforce authority (owner/manager/active employee link). Derived server-side.
-CREATE FUNCTION c10_demo.wf_my_businesses_v1() RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_my_businesses_v1() RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE uid uuid:=actor_uid();
 BEGIN
  IF uid IS NULL THEN RAISE EXCEPTION 'wf_denied'; END IF;
  RETURN jsonb_build_object('server_authorized',true,'items',(SELECT COALESCE(jsonb_agg(jsonb_build_object('id',b.id,'tenant_id',b.tenant_id,
-  'slug',b.slug) ORDER BY b.id),'[]') FROM businesses b WHERE
+  'slug',b.slug) ORDER BY b.id),'[]') FROM businesses b JOIN tenants t ON t.id=b.tenant_id AND t.active WHERE
    can_tenant(b.tenant_id)
-   OR EXISTS(SELECT 1 FROM business_members m WHERE m.user_id=uid AND m.business_id=b.id AND m.tenant_id=b.tenant_id AND m.active AND m.role IN('business_owner','manager'))
+   OR EXISTS(SELECT 1 FROM business_members m WHERE m.user_id=uid AND m.business_id=b.id AND m.tenant_id=b.tenant_id AND m.active AND m.role IN('business_owner','manager')
+    AND (to_jsonb(m)->>'valid_until' IS NULL OR (to_jsonb(m)->>'valid_until')::timestamptz>statement_timestamp()))
    OR EXISTS(SELECT 1 FROM wf_employees e WHERE e.user_id=uid AND e.business_id=b.id AND e.status='active')));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_list_employees_v1(p_business bigint,p_search text,p_status text,p_site bigint,p_limit int,p_offset int)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_list_employees_v1(p_business bigint,p_search text,p_status text,p_site bigint,p_limit int,p_offset int)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; own boolean; mgr boolean; v_total int; items jsonb; v_lim int:=LEAST(GREATEST(COALESCE(p_limit,50),1),200);
  v_off int:=GREATEST(COALESCE(p_offset,0),0); today date:=wfi_today(); q text:=NULLIF(btrim(COALESCE(p_search,'')),'');
 BEGIN
@@ -64,8 +65,8 @@ BEGIN
   FROM pg p);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_get_employee_v1(p_business bigint,p_employee bigint) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_get_employee_v1(p_business bigint,p_employee bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; own boolean; mgr boolean; e wf_employees;
 BEGIN
  c:=wfi_ctx(p_business); own:=wfi_is_owner(c); mgr:=wfi_is_manager_plus(c);
@@ -87,8 +88,8 @@ BEGIN
     FROM wf_salary_structures s JOIN wf_pay_policies p ON p.id=s.policy_id WHERE s.employee_id=e.id) END);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_read_catalog_v1(p_business bigint,p_year int) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_read_catalog_v1(p_business bigint,p_year int) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; own boolean; mgr boolean; y int:=COALESCE(p_year,extract(year FROM wfi_today())::int);
 BEGIN
  c:=wfi_ctx(p_business); own:=wfi_is_owner(c); mgr:=wfi_is_manager_plus(c);
@@ -108,8 +109,8 @@ BEGIN
   'components',CASE WHEN own THEN (SELECT COALESCE(jsonb_agg(to_jsonb(k)-'tenant_id'-'business_id' ORDER BY k.code),'[]') FROM wf_pay_components k WHERE k.business_id=p_business) END);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_list_attendance_v1(p_business bigint,p_from date,p_to date,p_employee bigint,p_site bigint)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_list_attendance_v1(p_business bigint,p_from date,p_to date,p_employee bigint,p_site bigint)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; e record; d date; dj jsonb; items jsonb:='[]'; n int:=0; today date:=wfi_today();
 BEGIN
  c:=wfi_ctx(p_business);
@@ -131,8 +132,8 @@ BEGIN
  RETURN jsonb_build_object('server_authorized',true,'from',p_from,'to',p_to,'items',items);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_list_punches_v1(p_business bigint,p_employee bigint,p_from date,p_to date) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_list_punches_v1(p_business bigint,p_employee bigint,p_from date,p_to date) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t;
 BEGIN
  c:=wfi_ctx(p_business);
@@ -144,8 +145,8 @@ BEGIN
     AND punched_at>=wfi_ts(p_from,'00:00') AND punched_at<wfi_ts(p_to+1,'00:00') ORDER BY punched_at LIMIT 300) p));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_list_corrections_v1(p_business bigint,p_status text) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_list_corrections_v1(p_business bigint,p_status text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t;
 BEGIN
  c:=wfi_ctx(p_business);
@@ -157,8 +158,8 @@ BEGIN
   JOIN wf_employees e ON e.id=r.employee_id WHERE wfi_can_see(c,r.employee_id) AND (wfi_is_manager_plus(c) OR r.requested_by=c.user_id)));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_list_leave_v1(p_business bigint,p_status text,p_employee bigint) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_list_leave_v1(p_business bigint,p_status text,p_employee bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t;
 BEGIN
  c:=wfi_ctx(p_business);
@@ -172,8 +173,8 @@ BEGIN
   JOIN wf_employees e ON e.id=r.employee_id JOIN wf_leave_types t ON t.id=r.leave_type_id WHERE wfi_can_see(c,r.employee_id)));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_leave_balance_v1(p_business bigint,p_employee bigint,p_year int) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_leave_balance_v1(p_business bigint,p_employee bigint,p_year int) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; v_emp bigint; y int:=COALESCE(p_year,extract(year FROM wfi_today())::int);
 BEGIN
  c:=wfi_ctx(p_business); v_emp:=COALESCE(p_employee,c.employee_id);
@@ -185,8 +186,8 @@ BEGIN
   ) ORDER BY t.code),'[]') FROM wf_leave_types t WHERE t.business_id=p_business AND t.active));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_list_advances_v1(p_business bigint) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_list_advances_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t;
 BEGIN
  c:=wfi_ctx(p_business);
@@ -197,8 +198,8 @@ BEGIN
   WHERE a.business_id=p_business AND (wfi_is_owner(c) OR a.employee_id=c.employee_id)));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_list_payroll_runs_v1(p_business bigint) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_list_payroll_runs_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t;
 BEGIN
  c:=wfi_ctx(p_business); PERFORM wfi_need(wfi_is_owner(c),'wf_payroll_access_denied');
@@ -209,8 +210,8 @@ BEGIN
   ORDER BY r.period_start DESC,r.version DESC),'[]') FROM (SELECT * FROM wf_payroll_runs WHERE business_id=p_business ORDER BY period_start DESC,version DESC LIMIT 60) r));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_get_payroll_run_v1(p_business bigint,p_run bigint) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_get_payroll_run_v1(p_business bigint,p_run bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; r wf_payroll_runs;
 BEGIN
  c:=wfi_ctx(p_business); PERFORM wfi_need(wfi_is_owner(c),'wf_payroll_access_denied');
@@ -223,8 +224,8 @@ BEGIN
   'lines',(SELECT COALESCE(jsonb_agg(to_jsonb(l)-'tenant_id'-'business_id' ORDER BY l.employee_no),'[]') FROM wf_payroll_lines l WHERE l.run_id=r.id));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_my_payslips_v1(p_business bigint) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_my_payslips_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t;
 BEGIN
  c:=wfi_ctx(p_business);
@@ -233,8 +234,8 @@ BEGIN
   'period_end',p.period_end,'net',p.net,'superseded',r.status='superseded','run_version',r.version) ORDER BY p.period_start DESC,r.version DESC),'[]')
   FROM wf_payslips p JOIN wf_payroll_runs r ON r.id=p.run_id WHERE p.employee_id=c.employee_id AND p.business_id=p_business));
 END$$;
-CREATE FUNCTION c10_demo.wf_get_my_payslip_v1(p_business bigint,p_payslip bigint) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_get_my_payslip_v1(p_business bigint,p_payslip bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; p wf_payslips; st text;
 BEGIN
  c:=wfi_ctx(p_business);
@@ -246,8 +247,8 @@ BEGIN
 END$$;
 
 -- ===== Reports =====
-CREATE FUNCTION c10_demo.wf_report_attendance_v1(p_business bigint,p_from date,p_to date) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_report_attendance_v1(p_business bigint,p_from date,p_to date) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; e record; d date; dj jsonb; agg jsonb:='{}'; k text; st text; cur jsonb; n int:=0;
 BEGIN
  c:=wfi_ctx(p_business);
@@ -274,8 +275,8 @@ BEGIN
   (SELECT label FROM sites WHERE id=(v->>'site_id')::bigint)) ORDER BY (v->>'site_id')::bigint),'[]') FROM jsonb_each(agg) j(k,v)));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_report_headcount_v1(p_business bigint) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_report_headcount_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; today date:=wfi_today();
 BEGIN
  c:=wfi_ctx(p_business);
@@ -286,8 +287,8 @@ BEGIN
     WHERE e.business_id=p_business AND wfi_can_see(c,e.id) GROUP BY 1,2,3) x));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_report_payroll_v1(p_business bigint,p_period date) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_report_payroll_v1(p_business bigint,p_period date) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; r wf_payroll_runs;
 BEGIN
  c:=wfi_ctx(p_business); PERFORM wfi_need(wfi_is_owner(c),'wf_payroll_access_denied');
@@ -301,8 +302,8 @@ BEGIN
     FROM wf_payroll_lines WHERE run_id=r.id GROUP BY site_id) x));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_payslip_register_v1(p_business bigint,p_period date) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_payslip_register_v1(p_business bigint,p_period date) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t;
 BEGIN
  c:=wfi_ctx(p_business); PERFORM wfi_need(wfi_is_owner(c),'wf_payroll_access_denied');
@@ -312,8 +313,8 @@ BEGIN
   FROM wf_payslips p JOIN wf_payroll_runs r ON r.id=p.run_id WHERE p.business_id=p_business AND (p_period IS NULL OR p.period_start=p_period)));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_audit_list_v1(p_business bigint,p_limit int) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_audit_list_v1(p_business bigint,p_limit int) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t;
 BEGIN
  c:=wfi_ctx(p_business); PERFORM wfi_need(wfi_is_owner(c),'wf_owner_required');
@@ -322,8 +323,8 @@ BEGIN
   FROM (SELECT * FROM wf_audit WHERE business_id=p_business ORDER BY id DESC LIMIT LEAST(GREATEST(COALESCE(p_limit,50),1),200)) a));
 END$$;
 
-CREATE FUNCTION c10_demo.wf_integrity_report_v1(p_business bigint) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_integrity_report_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; checks jsonb:='[]'; a wf_audit; prev text:=NULL; ok_chain boolean:=true; bad bigint; v int;
 BEGIN
  c:=wfi_ctx(p_business); PERFORM wfi_need(wfi_is_owner(c),'wf_owner_required');
@@ -349,11 +350,11 @@ BEGIN
  RETURN jsonb_build_object('server_authorized',true,'ok',NOT EXISTS(SELECT 1 FROM jsonb_array_elements(checks) x WHERE NOT (x->>'ok')::boolean),'checks',checks);
 END$$;
 
-CREATE FUNCTION c10_demo.wfi_csv(p text) RETURNS text LANGUAGE sql IMMUTABLE AS $$
+CREATE FUNCTION core10.wfi_csv(p text) RETURNS text LANGUAGE sql IMMUTABLE AS $$
  SELECT '"'||replace(CASE WHEN p ~ '^[=+@\t\r-]' THEN ''''||p ELSE COALESCE(p,'') END,'"','""')||'"' $$;
 
-CREATE FUNCTION c10_demo.wf_export_csv_v1(p_business bigint,p_request text,p_kind text,p_params jsonb) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_export_csv_v1(p_business bigint,p_request text,p_kind text,p_params jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; own boolean; out text; n int:=0; e record; d date; dj jsonb; v_from date; v_to date; v_period date; today date:=wfi_today();
 BEGIN
  IF p_kind NOT IN('employees','attendance','payslip_register') OR p_kind IS NULL THEN RAISE EXCEPTION 'wf_invalid_input'; END IF;
@@ -400,8 +401,8 @@ BEGIN
 END$$;
 
 -- ===== Future integration contract (read-only; never money movement) =====
-CREATE FUNCTION c10_demo.read_workforce_business_summary_v1(p_business bigint,p_period date) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.read_workforce_business_summary_v1(p_business bigint,p_period date) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; today date:=wfi_today(); v_p date:=COALESCE(p_period,date_trunc('month',wfi_today())::date); r wf_payroll_runs;
 BEGIN
  c:=wfi_ctx(p_business); PERFORM wfi_need(wfi_is_owner(c),'wf_summary_denied');
@@ -414,8 +415,8 @@ BEGIN
    'version',r.version,'employee_count',r.employee_count,'total_gross',r.total_gross,'total_deductions',r.total_deductions,'total_net',r.total_net) END,
   'paid',false,'money_movement',false,'ledger_posted',false);
 END$$;
-CREATE FUNCTION c10_demo.read_payroll_liability_preview_v1(p_business bigint,p_period date) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.read_payroll_liability_preview_v1(p_business bigint,p_period date) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; r wf_payroll_runs;
 BEGIN
  c:=wfi_ctx(p_business); PERFORM wfi_need(wfi_is_owner(c),'wf_summary_denied');
@@ -435,15 +436,15 @@ DO $$
 DECLARE t record; f record;
 BEGIN
  FOR t IN SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-   WHERE n.nspname='c10_demo' AND c.relkind='r' AND c.relname LIKE 'wf\_%' LOOP
-  EXECUTE format('ALTER TABLE c10_demo.%I ENABLE ROW LEVEL SECURITY',t.relname);
-  EXECUTE format('REVOKE ALL ON c10_demo.%I FROM PUBLIC,anon,authenticated',t.relname);
+   WHERE n.nspname='core10' AND c.relkind='r' AND c.relname LIKE 'wf\_%' LOOP
+  EXECUTE format('ALTER TABLE core10.%I ENABLE ROW LEVEL SECURITY',t.relname);
+  EXECUTE format('REVOKE ALL ON core10.%I FROM PUBLIC,anon,authenticated',t.relname);
  END LOOP;
  FOR f IN SELECT p.oid::regprocedure AS sig,p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-   WHERE n.nspname='c10_demo' AND (p.proname LIKE 'wf\_%' OR p.proname LIKE 'wfi\_%' OR p.proname LIKE 'read\_workforce\_%' OR p.proname LIKE 'read\_payroll\_%') LOOP
+   WHERE n.nspname='core10' AND (p.proname LIKE 'wf\_%' OR p.proname LIKE 'wfi\_%' OR p.proname LIKE 'read\_workforce\_%' OR p.proname LIKE 'read\_payroll\_%') LOOP
   EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated',f.sig);
   IF f.proname ~ '^wf_.*_v1$' OR f.proname IN('read_workforce_business_summary_v1','read_payroll_liability_preview_v1') THEN
    EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.sig); END IF;
  END LOOP;
 END$$;
-GRANT USAGE ON SCHEMA c10_demo TO authenticated;
+GRANT USAGE ON SCHEMA core10 TO authenticated;

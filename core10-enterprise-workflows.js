@@ -55,7 +55,7 @@
    var auth=await client.auth.getUser();
    if(!auth||auth.error||!auth.data||!auth.data.user||!clean(auth.data.user.id,128))
     fail("AUTHENTICATED_USER_REQUIRED");
-   var scoped=client.schema("c10_demo");
+   var scoped=client.schema("core10");
    if(!scoped||typeof scoped.from!=="function"||typeof scoped.rpc!=="function")
     fail("ENTERPRISE_API_SCHEMA_UNAVAILABLE");
    return scoped;
@@ -79,7 +79,7 @@
   function byId(id){if(!positive(id))fail("INVALID_DOCUMENT_ID");return id}
   function key(x){if(!request(x))fail("INVALID_REQUEST_KEY");return x}
   function business(x){if(!positive(x))fail("INVALID_BUSINESS_ID");return x}
-  // Owner read models are server-scoped by c10_demo.can_manage.
+  // Owner read models are server-scoped by core10.can_manage.
   function ownerBoard(){return listing("owner_business_kpi_v1",
    "business_id,slug,display_name,business_status,net_manual_profit,profit_entitlements,unpaid_investor_balance,sites,unreconciled_location_items,operationally_certified",null)}
   function businessOperations(b){return listing("operational_business_report_v1",
@@ -180,7 +180,7 @@
   return Object.freeze({
    status:function(){return Object.freeze({
      enabled:read,draftsEnabled:draft,postingEnabled:posting,
-     financeWritesEnabled:finance,schema:"c10_demo",productionCertified:false})},
+     financeWritesEnabled:finance,schema:"core10",productionCertified:false})},
    ownerBoard:ownerBoard,tenantDashboard:tenantDashboard,
    businessOperations:businessOperations,businessProduction:businessProduction,
    businessReturns:businessReturns,businessCostTax:businessCostTax,

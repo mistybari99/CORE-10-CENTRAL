@@ -4,7 +4,7 @@
   "description": "Inert UUIDs, not Supabase GoTrue accounts/credentials. No production IDs.",
   "lifecycle": {
     "status": "temporary_pre_go_live",
-    "namespace": "c10_demo",
+    "namespace": "core10",
     "stage": "disposable_database_only",
     "delete_before_real_go_live": true
   },

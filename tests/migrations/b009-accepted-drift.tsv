@@ -1,0 +1,15 @@
+# B-009 reviewed drift: old installer object -> numbered migrations. key<TAB>class<TAB>reason. Reviewed 2026-11-16, updated 2026-11-17 (0200).
+# The 53 GAP_B012 lines (A018 inventory engine) were closed by 0200_np03a_inventory_engine; remaining differences are deliberate hardening.
+constraint|access_change_events_v1.access_change_events_v1_command_check	EXTENDED	command list extended with setup.business, setup.site, approval_policy.apply (0004/0007)
+function|actor_uid()	HARDENED	Build01 (0006) replaced legacy helper: SECURITY DEFINER, pinned search_path, session + active-tenant checks
+function|can_business(p_tenant bigint, p_business bigint)	HARDENED	Build01 (0006) replaced legacy helper: SECURITY DEFINER, pinned search_path, session + active-tenant checks
+function|can_manage(p_tenant bigint, p_business bigint)	HARDENED	Build01 (0006) replaced legacy helper: SECURITY DEFINER, pinned search_path, session + active-tenant checks
+function|can_see_business(p_tenant bigint, p_business bigint)	HARDENED	Build01 (0006) replaced legacy helper: SECURITY DEFINER, pinned search_path, session + active-tenant checks
+function|can_site(p_tenant bigint, p_business bigint, p_site bigint, p_action text)	HARDENED	Build01 (0006) replaced legacy helper: SECURITY DEFINER, pinned search_path, session + active-tenant checks
+function|can_tenant(p_tenant bigint)	HARDENED	Build01 (0006) replaced legacy helper: SECURITY DEFINER, pinned search_path, session + active-tenant checks
+function|post_stock_event(p_location bigint, p_item bigint, p_delta numeric, p_request text)	HARDENED	0200: search_path pinned pg_catalog-first; internal only (no authenticated EXECUTE); API access via Owner-Control-checked inventory commands (0201+)
+function|transfer_stock_v1(p_source bigint, p_destination bigint, p_item bigint, p_quantity numeric, p_request text)	HARDENED	0200: search_path pinned pg_catalog-first; internal only (no authenticated EXECUTE)
+grant|inventory_reconciliation_v1.authenticated	HARDENED	0200: view is RPC-only (no direct SELECT)
+grant|stock_balances_v1.authenticated	HARDENED	0200: table is RPC-only (no direct SELECT); RLS policy kept
+grant|stock_transfers_v1.authenticated	HARDENED	0200: table is RPC-only (no direct SELECT); RLS policy kept
+table|templates	HARDENED	RLS enabled on templates in migrations (legacy had none)

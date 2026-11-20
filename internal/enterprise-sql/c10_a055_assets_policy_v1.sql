@@ -1,12 +1,12 @@
 -- C10-A055 (2/7): Configurable business rules. Versioned per Business/Site/Category policy with presets, impact preview
 -- (pure simulation: nothing real is changed) and schedule simulator. Owner-only writes; every change audited + historised.
--- DISPOSABLE c10_demo ONLY. Apply after core. Contract: docs/architecture/C10_A055_RPC_CONTRACT.md.
+-- DISPOSABLE core10 ONLY. Apply after core. Contract: docs/architecture/C10_A055_RPC_CONTRACT.md.
 
 -- Validates one value against the static catalog; returns the normalised jsonb value.
-CREATE FUNCTION c10_demo.ami_policy_validate(p_key text,p_value jsonb) RETURNS jsonb LANGUAGE plpgsql STABLE AS $$
-DECLARE k c10_demo.am_policy_catalog; n numeric; t text;
+CREATE FUNCTION core10.ami_policy_validate(p_key text,p_value jsonb) RETURNS jsonb LANGUAGE plpgsql STABLE AS $$
+DECLARE k core10.am_policy_catalog; n numeric; t text;
 BEGIN
- SELECT * INTO k FROM c10_demo.am_policy_catalog WHERE key=p_key;
+ SELECT * INTO k FROM core10.am_policy_catalog WHERE key=p_key;
  IF NOT FOUND THEN RAISE EXCEPTION 'am_unknown_policy_key'; END IF;
  IF p_value IS NULL OR jsonb_typeof(p_value)='null' THEN RAISE EXCEPTION 'am_invalid_policy_value'; END IF;
  IF k.vtype='bool' THEN
@@ -26,31 +26,31 @@ BEGIN
 END$$;
 
 -- Scope must belong to the business. Returns normalised scope_id.
-CREATE FUNCTION c10_demo.ami_policy_scope(p_business bigint,p_scope_type text,p_scope_id bigint) RETURNS bigint LANGUAGE plpgsql STABLE AS $$
+CREATE FUNCTION core10.ami_policy_scope(p_business bigint,p_scope_type text,p_scope_id bigint) RETURNS bigint LANGUAGE plpgsql STABLE AS $$
 BEGIN
  IF p_scope_type='business' THEN
   IF COALESCE(p_scope_id,0)<>0 THEN RAISE EXCEPTION 'am_invalid_input'; END IF; RETURN 0;
  ELSIF p_scope_type='site' THEN
-  IF p_scope_id IS NULL OR NOT EXISTS(SELECT 1 FROM c10_demo.sites WHERE id=p_scope_id AND business_id=p_business) THEN RAISE EXCEPTION 'am_denied'; END IF;
+  IF p_scope_id IS NULL OR NOT EXISTS(SELECT 1 FROM core10.sites WHERE id=p_scope_id AND business_id=p_business) THEN RAISE EXCEPTION 'am_denied'; END IF;
  ELSIF p_scope_type='category' THEN
-  IF p_scope_id IS NULL OR NOT EXISTS(SELECT 1 FROM c10_demo.am_categories WHERE id=p_scope_id AND business_id=p_business) THEN RAISE EXCEPTION 'am_denied'; END IF;
+  IF p_scope_id IS NULL OR NOT EXISTS(SELECT 1 FROM core10.am_categories WHERE id=p_scope_id AND business_id=p_business) THEN RAISE EXCEPTION 'am_denied'; END IF;
  ELSE RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN p_scope_id;
 END$$;
 
 -- Cross-key consistency evaluated on the EFFECTIVE values at a scope (after a change is staged).
-CREATE FUNCTION c10_demo.ami_policy_consistent(p_business bigint,p_scope_type text,p_scope_id bigint) RETURNS void LANGUAGE plpgsql STABLE AS $$
+CREATE FUNCTION core10.ami_policy_consistent(p_business bigint,p_scope_type text,p_scope_id bigint) RETURNS void LANGUAGE plpgsql STABLE AS $$
 DECLARE s bigint:=CASE WHEN p_scope_type='site' THEN p_scope_id END; cat bigint:=CASE WHEN p_scope_type='category' THEN p_scope_id END; pr text;
 BEGIN
  FOREACH pr IN ARRAY ARRAY['low','medium','high','critical'] LOOP
-  IF c10_demo.ami_cfg_int(p_business,s,cat,'sla.resolve_hours.'||pr) < c10_demo.ami_cfg_int(p_business,s,cat,'sla.response_hours.'||pr) THEN
+  IF core10.ami_cfg_int(p_business,s,cat,'sla.resolve_hours.'||pr) < core10.ami_cfg_int(p_business,s,cat,'sla.response_hours.'||pr) THEN
    RAISE EXCEPTION 'am_policy_inconsistent'; END IF;
  END LOOP;
- IF c10_demo.ami_cfg_int(p_business,NULL,NULL,'risk.critical_threshold') <= c10_demo.ami_cfg_int(p_business,NULL,NULL,'risk.high_threshold') THEN
+ IF core10.ami_cfg_int(p_business,NULL,NULL,'risk.critical_threshold') <= core10.ami_cfg_int(p_business,NULL,NULL,'risk.high_threshold') THEN
   RAISE EXCEPTION 'am_policy_inconsistent'; END IF;
 END$$;
 
-CREATE FUNCTION c10_demo.am_whoami_v1(p_business bigint) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_whoami_v1(p_business bigint) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t;
 BEGIN
  c:=ami_read_ctx(p_business);
@@ -66,7 +66,7 @@ BEGIN
      FROM sites s WHERE s.business_id=p_business AND cardinality(ami_caps(c,s.id))>0),'[]'::jsonb));
 END$$;
 
-CREATE FUNCTION c10_demo.am_policy_catalog_v1(p_business bigint) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_policy_catalog_v1(p_business bigint) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t;
 BEGIN
  c:=ami_read_ctx(p_business);
@@ -76,8 +76,8 @@ BEGIN
   'presets',COALESCE((SELECT jsonb_agg(DISTINCT preset) FROM am_policy_presets),'[]'::jsonb));
 END$$;
 
-CREATE FUNCTION c10_demo.am_get_policy_v1(p_business bigint,p_site bigint,p_category bigint) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_get_policy_v1(p_business bigint,p_site bigint,p_category bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; vals jsonb:='{}'::jsonb; k record; src text; v jsonb;
 BEGIN
  c:=ami_read_ctx(p_business);
@@ -99,8 +99,8 @@ BEGIN
 END$$;
 
 -- Shared by save / preset: validates + stages one key at one scope. Returns true when the stored value changed.
-CREATE FUNCTION c10_demo.ami_policy_put(c c10_demo.am_ctx_t,p_scope_type text,p_scope_id bigint,p_key text,p_value jsonb,
- p_rev bigint,p_reason text,p_request text) RETURNS boolean LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_policy_put(c core10.am_ctx_t,p_scope_type text,p_scope_id bigint,p_key text,p_value jsonb,
+ p_rev bigint,p_reason text,p_request text) RETURNS boolean LANGUAGE plpgsql SET search_path=core10,pg_catalog AS $$
 DECLARE k am_policy_catalog; old jsonb;
 BEGIN
  SELECT * INTO k FROM am_policy_catalog WHERE key=p_key;
@@ -118,8 +118,8 @@ BEGIN
  RETURN true;
 END$$;
 
-CREATE FUNCTION c10_demo.am_save_policy_v1(p_business bigint,p_request text,p_expected_rev bigint,p_scope_type text,p_scope_id bigint,
- p_changes jsonb,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_save_policy_v1(p_business bigint,p_request text,p_expected_rev bigint,p_scope_type text,p_scope_id bigint,
+ p_changes jsonb,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; sid bigint; cur bigint; k text; n int:=0; res jsonb;
 BEGIN
  IF p_changes IS NULL OR jsonb_typeof(p_changes)<>'object' OR p_changes='{}'::jsonb OR (SELECT count(*) FROM jsonb_object_keys(p_changes))>80
@@ -143,8 +143,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'save_policy',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.am_reset_policy_v1(p_business bigint,p_request text,p_expected_rev bigint,p_scope_type text,p_scope_id bigint,
- p_keys text[],p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_reset_policy_v1(p_business bigint,p_request text,p_expected_rev bigint,p_scope_type text,p_scope_id bigint,
+ p_keys text[],p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; sid bigint; cur bigint; k text; n int:=0; old jsonb; res jsonb; lvl text;
 BEGIN
  IF p_keys IS NULL OR cardinality(p_keys)=0 OR cardinality(p_keys)>80 OR p_reason IS NULL OR length(btrim(p_reason)) NOT BETWEEN 5 AND 500
@@ -176,8 +176,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'reset_policy',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.am_apply_preset_v1(p_business bigint,p_request text,p_expected_rev bigint,p_preset text,p_scope_type text,
- p_scope_id bigint,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_apply_preset_v1(p_business bigint,p_request text,p_expected_rev bigint,p_preset text,p_scope_type text,
+ p_scope_id bigint,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb; sid bigint; cur bigint; r record; n int:=0; skipped jsonb:='[]'::jsonb; res jsonb; k am_policy_catalog;
 BEGIN
  IF p_preset IS NULL OR p_expected_rev IS NULL OR p_reason IS NULL OR length(btrim(p_reason)) NOT BETWEEN 5 AND 500 THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
@@ -205,8 +205,8 @@ BEGIN
 END$$;
 
 -- Impact preview: pure SIMULATION. Reads current operational data and reports what WOULD change. Writes nothing.
-CREATE FUNCTION c10_demo.am_preview_policy_v1(p_business bigint,p_scope_type text,p_scope_id bigint,p_changes jsonb) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_preview_policy_v1(p_business bigint,p_scope_type text,p_scope_id bigint,p_changes jsonb) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; sid bigint; k text; v jsonb; kd am_policy_catalog; old jsonb; items jsonb:='[]'::jsonb; imp jsonb; today date; s bigint; cat bigint;
  a int; b2 int; oldn numeric; newn numeric; pr text; nowts timestamptz:=now();
 BEGIN
@@ -288,11 +288,11 @@ BEGIN
 END$$;
 
 -- Pure schedule simulator (no tables touched): "if I create a plan like this, when would it fall due?"
-CREATE FUNCTION c10_demo.ami_sim_step(p_from date,p_kind text,p_n int) RETURNS date LANGUAGE sql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_sim_step(p_from date,p_kind text,p_n int) RETURNS date LANGUAGE sql IMMUTABLE AS $$
  SELECT CASE p_kind WHEN 'daily' THEN p_from+p_n WHEN 'weekly' THEN p_from+7*p_n
   WHEN 'monthly' THEN (p_from+make_interval(months=>p_n))::date WHEN 'yearly' THEN (p_from+make_interval(years=>p_n))::date END $$;
-CREATE FUNCTION c10_demo.am_simulate_schedule_v1(p_business bigint,p_params jsonb) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_simulate_schedule_v1(p_business bigint,p_params jsonb) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; kind text; n int; start date; cnt int; delay int; anchor text; per int; out jsonb:='[]'::jsonb; due date:=NULL; i int; prev date; uint numeric; daily numeric; cur numeric; k text;
 BEGIN
  c:=ami_read_ctx(p_business);
@@ -325,7 +325,7 @@ BEGIN
   'message','SIMULATION — no plan, work order or asset is created. Nothing runs automatically.');
 END$$;
 
-CREATE FUNCTION c10_demo.am_policy_history_v1(p_business bigint,p_limit int) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_policy_history_v1(p_business bigint,p_limit int) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t;
 BEGIN
  c:=ami_read_ctx(p_business);
@@ -334,7 +334,7 @@ BEGIN
    (SELECT * FROM am_policy_history WHERE business_id=p_business ORDER BY id DESC LIMIT LEAST(GREATEST(COALESCE(p_limit,50),1),200)) h),'[]'::jsonb));
 END$$;
 
-CREATE FUNCTION c10_demo.am_bootstrap_v1(p_business bigint,p_request text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_bootstrap_v1(p_business bigint,p_request text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; pay jsonb:='{}'::jsonb; res jsonb;
 BEGIN
  SELECT * INTO b FROM ami_begin(p_business,p_request,'bootstrap',pay);

@@ -21,9 +21,9 @@ BEGIN
  RAISE EXCEPTION 'EXPECTED_DENIAL_DID_NOT_HAPPEN: %',p_sql;
 END$$;
 CREATE OR REPLACE FUNCTION c10_test.eid(p_business bigint,p_no text) RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER AS
-$$ DECLARE v bigint; BEGIN SELECT id INTO v FROM c10_demo.wf_employees WHERE business_id=p_business AND employee_no=p_no; RETURN v; END$$;
+$$ DECLARE v bigint; BEGIN SELECT id INTO v FROM core10.wf_employees WHERE business_id=p_business AND employee_no=p_no; RETURN v; END$$;
 CREATE OR REPLACE FUNCTION c10_test.line(p_run bigint,p_no text,p_col text) RETURNS text LANGUAGE plpgsql SECURITY DEFINER AS $$
-DECLARE v text; BEGIN EXECUTE format('SELECT %I::text FROM c10_demo.wf_payroll_lines WHERE run_id=$1 AND employee_no=$2',p_col) INTO v USING p_run,p_no; RETURN v; END$$;
+DECLARE v text; BEGIN EXECUTE format('SELECT %I::text FROM core10.wf_payroll_lines WHERE run_id=$1 AND employee_no=$2',p_col) INTO v USING p_run,p_no; RETURN v; END$$;
 CREATE OR REPLACE FUNCTION c10_test.q(p_sql text) RETURNS text LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE v text; BEGIN EXECUTE p_sql INTO v; RETURN v; END$$;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA c10_test TO authenticated,anon;

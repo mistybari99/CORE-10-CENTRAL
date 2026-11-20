@@ -46,7 +46,7 @@ function create(options){
   const result=await client.auth.getUser();
   if(result.error||!result.data||!result.data.user||!text(result.data.user.id))
     fail("AUTHENTICATED_USER_REQUIRED");
-  const scoped=client.schema("c10_demo");
+  const scoped=client.schema("core10");
   if(!scoped||typeof scoped.rpc!=="function"||typeof scoped.from!=="function")fail("BACKEND_SCHEMA_MISSING");
   return scoped;
  }

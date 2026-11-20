@@ -6,7 +6,7 @@ const { create, createPublic, hmacSign, hmacVerify, RPC_NAMES } = require("../co
 
 let signed = true, calls = [], respond = (n, a) => ({ data: { ok: true, n }, error: null });
 const client = { auth: { getUser: async () => signed ? { data: { user: { id: "u" } }, error: null } : { data: { user: null }, error: { code: "401" } } },
-  schema: (k) => { assert.equal(k, "c10_demo"); return { rpc: async (n, a) => { calls.push([n, a]); return respond(n, a); } }; } };
+  schema: (k) => { assert.equal(k, "core10"); return { rpc: async (n, a) => { calls.push([n, a]); return respond(n, a); } }; } };
 
 (async () => {
   const api = create({ client });
@@ -48,8 +48,8 @@ const client = { auth: { getUser: async () => signed ? { data: { user: { id: "u"
   // contract sync: every client RPC exists in SQL, is granted, and is documented
   const sql = ["core", "pipeline", "growth"].map((n) => fs.readFileSync(path.join(__dirname, "..", "internal/enterprise-sql", `c10_a056_${n}_v1.sql`), "utf8")).join("\n").toLowerCase();
   const doc = fs.readFileSync(path.join(__dirname, "..", "docs/architecture/C10_A056_RPC_CONTRACT.md"), "utf8").toLowerCase();
-  for (const n of RPC_NAMES) { assert.ok(sql.includes("function c10_demo." + n.toLowerCase() + "("), "missing in SQL: " + n); assert.ok(doc.includes(n.toLowerCase()), "missing in contract: " + n); }
+  for (const n of RPC_NAMES) { assert.ok(sql.includes("function core10." + n.toLowerCase() + "("), "missing in SQL: " + n); assert.ok(doc.includes(n.toLowerCase()), "missing in contract: " + n); }
   assert.ok(sql.includes("revoke all on function %s from public,anon,authenticated"), "functions are closed by default");
-  for (const bad of ["insert into c10_demo.operation_orders_v1", "update c10_demo.operation_orders_v1", "insert into c10_demo.stock_movements", "insert into c10_demo.inventory_"]) assert.ok(!sql.includes(bad), "direct A049/A048 write: " + bad);
+  for (const bad of ["insert into core10.operation_orders_v1", "update core10.operation_orders_v1", "insert into core10.stock_movements", "insert into core10.inventory_"]) assert.ok(!sql.includes(bad), "direct A049/A048 write: " + bad);
   console.log("PASS A056 signed client: arg validation, receipts, error codes, public intake, HMAC, SQL/contract sync, no direct A049 writes");
 })().catch((e) => { console.error(e); process.exitCode = 1; });

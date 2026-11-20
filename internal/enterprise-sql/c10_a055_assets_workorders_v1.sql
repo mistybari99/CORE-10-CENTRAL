@@ -1,5 +1,5 @@
 -- C10-A055 Enterprise Assets & Maintenance (5/7): WORK ORDERS, breakdown reporting, downtime windows, merge, SLA, reads.
--- DISPOSABLE c10_demo ONLY. Load after core + planning (needs ami_create_wo / ami_complete_target from planning; plpgsql => late bound).
+-- DISPOSABLE core10 ONLY. Load after core + planning (needs ami_create_wo / ami_complete_target from planning; plpgsql => late bound).
 -- Lifecycle DRAFT>SUBMITTED>APPROVED>IN_PROGRESS>COMPLETED>VERIFIED>CLOSED (+cancel/reopen). DB trigger am_wo_guard enforces edges;
 -- every RPC additionally re-derives authority from DB state at action time (revoked grants cannot act).
 -- Business rules are POLICY (ami_cfg_*). No stock/ledger/payroll/purchase side effects; money fields advisory; spares lines never move stock.
@@ -11,14 +11,14 @@
 -- am_downtime_end_invalid, am_downtime_already_ended, am_asset_retired, am_use_breakdown_report, am_target_has_open_wo, am_duplicate_attachment.
 
 -- ===================== input validators (pure) =====================
-CREATE FUNCTION c10_demo.ami_wk_keys(p jsonb,p_allowed text[]) RETURNS void LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_wk_keys(p jsonb,p_allowed text[]) RETURNS void LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE k text;
 BEGIN
  IF p IS NULL OR jsonb_typeof(p)<>'object' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  FOR k IN SELECT jsonb_object_keys(p) LOOP
   IF NOT k=ANY(p_allowed) THEN RAISE EXCEPTION 'am_invalid_input'; END IF; END LOOP;
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_txt(p jsonb,k text,p_min int,p_max int,p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_wk_txt(p jsonb,k text,p_min int,p_max int,p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE v text;
 BEGIN
  IF p->k IS NULL OR jsonb_typeof(p->k)='null' THEN
@@ -29,13 +29,13 @@ BEGIN
  IF length(v)<p_min OR length(v)>p_max THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN v;
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_re(p jsonb,k text,p_regex text,p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
-DECLARE v text:=c10_demo.ami_wk_txt(p,k,1,200,p_req);
+CREATE FUNCTION core10.ami_wk_re(p jsonb,k text,p_regex text,p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+DECLARE v text:=core10.ami_wk_txt(p,k,1,200,p_req);
 BEGIN
  IF v IS NOT NULL AND v !~ p_regex THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN v;
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_num(p jsonb,k text,p_min numeric,p_max numeric,p_req boolean) RETURNS numeric LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_wk_num(p jsonb,k text,p_min numeric,p_max numeric,p_req boolean) RETURNS numeric LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE v numeric;
 BEGIN
  IF p->k IS NULL OR jsonb_typeof(p->k)='null' THEN
@@ -45,61 +45,61 @@ BEGIN
  IF v<p_min OR v>p_max THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN v;
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_bool(p jsonb,k text,p_default boolean) RETURNS boolean LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_wk_bool(p jsonb,k text,p_default boolean) RETURNS boolean LANGUAGE plpgsql IMMUTABLE AS $$
 BEGIN
  IF p->k IS NULL OR jsonb_typeof(p->k)='null' THEN RETURN p_default; END IF;
  IF jsonb_typeof(p->k)<>'boolean' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN (p->>k)::boolean;
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_date(p jsonb,k text,p_req boolean) RETURNS date LANGUAGE plpgsql IMMUTABLE AS $$
-DECLARE v text:=c10_demo.ami_wk_txt(p,k,10,10,p_req);
+CREATE FUNCTION core10.ami_wk_date(p jsonb,k text,p_req boolean) RETURNS date LANGUAGE plpgsql IMMUTABLE AS $$
+DECLARE v text:=core10.ami_wk_txt(p,k,10,10,p_req);
 BEGIN
  IF v IS NULL THEN RETURN NULL; END IF;
  IF v !~ '^\d{4}-\d{2}-\d{2}$' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  BEGIN RETURN v::date; EXCEPTION WHEN others THEN RAISE EXCEPTION 'am_invalid_input'; END;
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_tsv(v text) RETURNS timestamptz LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_wk_tsv(v text) RETURNS timestamptz LANGUAGE plpgsql IMMUTABLE AS $$
 BEGIN
  IF v IS NULL THEN RETURN NULL; END IF;
  IF v !~ '^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d{1,6})?)?)?(Z|[+-]\d{2}(:?\d{2})?)?$' THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  BEGIN RETURN v::timestamptz; EXCEPTION WHEN others THEN RAISE EXCEPTION 'am_invalid_input'; END;
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_ts(p jsonb,k text,p_req boolean) RETURNS timestamptz LANGUAGE sql IMMUTABLE AS
-$$ SELECT c10_demo.ami_wk_tsv(c10_demo.ami_wk_txt(p,k,10,40,p_req)) $$;
+CREATE FUNCTION core10.ami_wk_ts(p jsonb,k text,p_req boolean) RETURNS timestamptz LANGUAGE sql IMMUTABLE AS
+$$ SELECT core10.ami_wk_tsv(core10.ami_wk_txt(p,k,10,40,p_req)) $$;
 -- Future timestamps: within a 5-minute clock skew they are clamped to now(); beyond that rejected.
-CREATE FUNCTION c10_demo.ami_wk_clamp(p_ts timestamptz,p_code text) RETURNS timestamptz LANGUAGE plpgsql STABLE AS $$
+CREATE FUNCTION core10.ami_wk_clamp(p_ts timestamptz,p_code text) RETURNS timestamptz LANGUAGE plpgsql STABLE AS $$
 BEGIN
  IF p_ts IS NULL THEN RETURN now(); END IF;
  IF p_ts>now()+interval '5 minutes' THEN RAISE EXCEPTION '%',p_code; END IF;
  RETURN LEAST(p_ts,now());
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_reason(p text,p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
+CREATE FUNCTION core10.ami_wk_reason(p text,p_req boolean) RETURNS text LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE v text:=NULLIF(btrim(COALESCE(p,'')),'');
 BEGIN
  IF v IS NULL THEN IF p_req THEN RAISE EXCEPTION 'am_invalid_input'; END IF; RETURN NULL; END IF;
  IF length(v)>500 OR (p_req AND length(v)<3) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
  RETURN v;
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_rank(p text) RETURNS int LANGUAGE sql IMMUTABLE AS
+CREATE FUNCTION core10.ami_wk_rank(p text) RETURNS int LANGUAGE sql IMMUTABLE AS
 $$ SELECT CASE p WHEN 'never' THEN 99 WHEN 'low' THEN 1 WHEN 'medium' THEN 2 WHEN 'high' THEN 3 WHEN 'critical' THEN 4 ELSE 0 END $$;
 
 -- ===================== policy / authority helpers =====================
-CREATE FUNCTION c10_demo.ami_wk_cat(p_asset bigint) RETURNS bigint LANGUAGE sql STABLE SET search_path=c10_demo,pg_catalog AS
+CREATE FUNCTION core10.ami_wk_cat(p_asset bigint) RETURNS bigint LANGUAGE sql STABLE SET search_path=core10,pg_catalog AS
 $$ SELECT category_id FROM am_assets WHERE id=p_asset $$;
-CREATE FUNCTION c10_demo.ami_wk_pb(w c10_demo.am_work_orders,k text) RETURNS boolean LANGUAGE sql STABLE SET search_path=c10_demo,pg_catalog AS
+CREATE FUNCTION core10.ami_wk_pb(w core10.am_work_orders,k text) RETURNS boolean LANGUAGE sql STABLE SET search_path=core10,pg_catalog AS
 $$ SELECT ami_cfg_bool(w.business_id,w.site_id,ami_wk_cat(w.asset_id),k) $$;
-CREATE FUNCTION c10_demo.ami_wk_pt(w c10_demo.am_work_orders,k text) RETURNS text LANGUAGE sql STABLE SET search_path=c10_demo,pg_catalog AS
+CREATE FUNCTION core10.ami_wk_pt(w core10.am_work_orders,k text) RETURNS text LANGUAGE sql STABLE SET search_path=core10,pg_catalog AS
 $$ SELECT ami_cfg_text(w.business_id,w.site_id,ami_wk_cat(w.asset_id),k) $$;
-CREATE FUNCTION c10_demo.ami_wk_pi(w c10_demo.am_work_orders,k text) RETURNS int LANGUAGE sql STABLE SET search_path=c10_demo,pg_catalog AS
+CREATE FUNCTION core10.ami_wk_pi(w core10.am_work_orders,k text) RETURNS int LANGUAGE sql STABLE SET search_path=core10,pg_catalog AS
 $$ SELECT ami_cfg_int(w.business_id,w.site_id,ami_wk_cat(w.asset_id),k) $$;
-CREATE FUNCTION c10_demo.ami_wk_pn(w c10_demo.am_work_orders,k text) RETURNS numeric LANGUAGE sql STABLE SET search_path=c10_demo,pg_catalog AS
+CREATE FUNCTION core10.ami_wk_pn(w core10.am_work_orders,k text) RETURNS numeric LANGUAGE sql STABLE SET search_path=core10,pg_catalog AS
 $$ SELECT ami_cfg_num(w.business_id,w.site_id,ami_wk_cat(w.asset_id),k) $$;
-CREATE FUNCTION c10_demo.ami_wk_maker_checker(p_business bigint) RETURNS boolean LANGUAGE sql STABLE SET search_path=c10_demo,pg_catalog AS
+CREATE FUNCTION core10.ami_wk_maker_checker(p_business bigint) RETURNS boolean LANGUAGE sql STABLE SET search_path=core10,pg_catalog AS
 $$ SELECT ami_cfg_bool(p_business,NULL,NULL,'wo.maker_checker') $$;
 
 -- Can this user be an assignee for work at p_site? (active technician/supervisor grant covering the site, or an owner)
-CREATE FUNCTION c10_demo.ami_wk_assignee_ok(p_business bigint,p_site bigint,p_uid uuid) RETURNS boolean
-LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_assignee_ok(p_business bigint,p_site bigint,p_uid uuid) RETURNS boolean
+LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 DECLARE t bigint;
 BEGIN
  IF p_uid IS NULL THEN RETURN false; END IF;
@@ -114,16 +114,16 @@ BEGIN
 END$$;
 
 -- Site gate: no 'view' at the site => am_denied (existence hidden); view but lacking cap => am_not_permitted.
-CREATE FUNCTION c10_demo.ami_wk_gate(c c10_demo.am_ctx_t,p_site bigint,p_cap text) RETURNS void
-LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_gate(c core10.am_ctx_t,p_site bigint,p_cap text) RETURNS void
+LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 BEGIN
  IF NOT ami_has(c,p_site,'view') THEN RAISE EXCEPTION 'am_denied'; END IF;
  IF NOT ami_has(c,p_site,p_cap) THEN RAISE EXCEPTION 'am_not_permitted'; END IF;
 END$$;
 
 -- Row visibility: supervisors/owners/auditors see all WOs at their sites, technicians assigned-to-self + unassigned, reporters their own.
-CREATE FUNCTION c10_demo.ami_wk_visible(c c10_demo.am_ctx_t,w c10_demo.am_work_orders) RETURNS boolean
-LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_visible(c core10.am_ctx_t,w core10.am_work_orders) RETURNS boolean
+LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 DECLARE caps text[]:=ami_caps(c,w.site_id);
 BEGIN
  IF NOT ('view'=ANY(caps)) THEN RETURN false; END IF;
@@ -134,8 +134,8 @@ END$$;
 
 -- Authority for one action on one WO (NULL = allowed, else the error code). State legality is checked separately.
 -- Actions: submit approve return start complete verify close cancel reopen + work(edit-in-progress) edit assign merge attachment.
-CREATE FUNCTION c10_demo.ami_wk_auth(c c10_demo.am_ctx_t,w c10_demo.am_work_orders,p_action text) RETURNS text
-LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_auth(c core10.am_ctx_t,w core10.am_work_orders,p_action text) RETURNS text
+LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 DECLARE caps text[]:=ami_caps(c,w.site_id); me uuid:=c.user_id; mine boolean; work boolean;
 BEGIN
  IF NOT ('view'=ANY(caps)) THEN RETURN 'am_denied'; END IF;
@@ -160,7 +160,7 @@ BEGIN
  RETURN 'am_not_permitted';
 END$$;
 
-CREATE FUNCTION c10_demo.ami_wk_state_ok(w c10_demo.am_work_orders,p_action text,p_verify_required boolean) RETURNS boolean
+CREATE FUNCTION core10.ami_wk_state_ok(w core10.am_work_orders,p_action text,p_verify_required boolean) RETURNS boolean
 LANGUAGE sql IMMUTABLE AS $$ SELECT CASE p_action
  WHEN 'submit' THEN w.status='DRAFT' WHEN 'approve' THEN w.status='SUBMITTED' WHEN 'return' THEN w.status='SUBMITTED'
  WHEN 'start' THEN w.status='APPROVED' WHEN 'complete' THEN w.status='IN_PROGRESS' WHEN 'verify' THEN w.status='COMPLETED'
@@ -168,15 +168,15 @@ LANGUAGE sql IMMUTABLE AS $$ SELECT CASE p_action
  WHEN 'cancel' THEN w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS')
  WHEN 'reopen' THEN w.status IN('COMPLETED','VERIFIED','CLOSED') ELSE false END $$;
 
-CREATE FUNCTION c10_demo.ami_wk_finished_at(w c10_demo.am_work_orders) RETURNS timestamptz LANGUAGE sql IMMUTABLE AS
+CREATE FUNCTION core10.ami_wk_finished_at(w core10.am_work_orders) RETURNS timestamptz LANGUAGE sql IMMUTABLE AS
 $$ SELECT COALESCE(GREATEST(w.completed_at,w.verified_at,w.closed_at),w.updated_at) $$;
-CREATE FUNCTION c10_demo.ami_wk_reopen_ok(w c10_demo.am_work_orders) RETURNS boolean LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_reopen_ok(w core10.am_work_orders) RETURNS boolean LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 DECLARE d int:=ami_wk_pi(w,'wo.reopen_window_days');
 BEGIN RETURN d>0 AND now()<=ami_wk_finished_at(w)+make_interval(days=>d); END$$;
 
 -- Computed per-caller action list (the UI never guesses).
-CREATE FUNCTION c10_demo.ami_wk_actions(c c10_demo.am_ctx_t,w c10_demo.am_work_orders) RETURNS text[]
-LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_actions(c core10.am_ctx_t,w core10.am_work_orders) RETURNS text[]
+LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 DECLARE a text; o text[]:=ARRAY[]::text[]; vr boolean; mc boolean; open boolean;
 BEGIN
  IF NOT ami_wk_visible(c,w) THEN RETURN o; END IF;
@@ -204,7 +204,7 @@ END$$;
 
 -- ===================== SLA / JSON builders =====================
 -- ok / at_risk (last 20% of the window) / breached. NULL when no SLA or WO cancelled.
-CREATE FUNCTION c10_demo.ami_wk_sla(p_due timestamptz,p_from timestamptz,p_done timestamptz,p_status text) RETURNS text
+CREATE FUNCTION core10.ami_wk_sla(p_due timestamptz,p_from timestamptz,p_done timestamptz,p_status text) RETURNS text
 LANGUAGE plpgsql STABLE AS $$
 BEGIN
  IF p_due IS NULL OR p_status='CANCELLED' THEN RETURN NULL; END IF;
@@ -213,11 +213,11 @@ BEGIN
  IF now()>=p_due-(p_due-p_from)*0.2 THEN RETURN 'at_risk'; END IF;
  RETURN 'ok';
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_needs_re(w c10_demo.am_work_orders) RETURNS boolean LANGUAGE sql STABLE SET search_path=c10_demo,pg_catalog AS
+CREATE FUNCTION core10.ami_wk_needs_re(w core10.am_work_orders) RETURNS boolean LANGUAGE sql STABLE SET search_path=core10,pg_catalog AS
 $$ SELECT w.assigned_to IS NOT NULL AND w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS')
    AND NOT ami_wk_assignee_ok(w.business_id,w.site_id,w.assigned_to) $$;
-CREATE FUNCTION c10_demo.ami_wk_json(c c10_demo.am_ctx_t,w c10_demo.am_work_orders) RETURNS jsonb
-LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_json(c core10.am_ctx_t,w core10.am_work_orders) RETURNS jsonb
+LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 DECLARE a record; ok boolean; open boolean:=w.status IN('DRAFT','SUBMITTED','APPROVED','IN_PROGRESS'); done boolean:=w.status IN('COMPLETED','VERIFIED','CLOSED');
 BEGIN
  SELECT asset_no,name INTO a FROM am_assets WHERE id=w.asset_id;
@@ -229,10 +229,10 @@ BEGIN
   'overdue',(open AND ((w.due_on IS NOT NULL AND w.due_on<ami_today(w.business_id)) OR (w.sla_resolve_due_at IS NOT NULL AND w.sla_resolve_due_at<now()))),
   'auto_approved',(w.approved_at IS NOT NULL AND w.approved_by IS NULL));
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_state(w c10_demo.am_work_orders) RETURNS jsonb LANGUAGE sql IMMUTABLE AS
+CREATE FUNCTION core10.ami_wk_state(w core10.am_work_orders) RETURNS jsonb LANGUAGE sql IMMUTABLE AS
 $$ SELECT jsonb_build_object('status',w.status,'version',w.version,'priority',w.priority,'assigned_to',w.assigned_to,'approved_by',w.approved_by,
    'started_at',w.started_at,'completed_at',w.completed_at,'verified_at',w.verified_at,'closed_at',w.closed_at,'reopen_count',w.reopen_count) $$;
-CREATE FUNCTION c10_demo.ami_wk_dt_json(d c10_demo.am_downtime) RETURNS jsonb LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_dt_json(d core10.am_downtime) RETURNS jsonb LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 DECLARE a record; cap int; raw numeric; eff numeric; isopen boolean:=d.ended_at IS NULL; minc int;
 BEGIN
  SELECT asset_no,name,category_id INTO a FROM am_assets WHERE id=d.asset_id;
@@ -246,14 +246,14 @@ BEGIN
 END$$;
 
 -- ===================== write-side helpers =====================
-CREATE FUNCTION c10_demo.ami_wk_hist(w c10_demo.am_work_orders,p_from text,p_to text,p_action text,p_reason text,p_request text) RETURNS void
+CREATE FUNCTION core10.ami_wk_hist(w core10.am_work_orders,p_from text,p_to text,p_action text,p_reason text,p_request text) RETURNS void
 LANGUAGE sql AS $$
- INSERT INTO c10_demo.am_wo_history(tenant_id,business_id,work_order_id,from_status,to_status,action,reason,actor_uid,request_key)
- VALUES(w.tenant_id,w.business_id,w.id,p_from,p_to,p_action,p_reason,c10_demo.actor_uid(),p_request) $$;
+ INSERT INTO core10.am_wo_history(tenant_id,business_id,work_order_id,from_status,to_status,action,reason,actor_uid,request_key)
+ VALUES(w.tenant_id,w.business_id,w.id,p_from,p_to,p_action,p_reason,core10.actor_uid(),p_request) $$;
 
 -- Move the asset between maintenance statuses only from the listed current statuses (audited).
-CREATE FUNCTION c10_demo.ami_wk_set_asset(p_asset bigint,p_to text,p_from text[],p_request text) RETURNS void
-LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_set_asset(p_asset bigint,p_to text,p_from text[],p_request text) RETURNS void
+LANGUAGE plpgsql SET search_path=core10,pg_catalog AS $$
 DECLARE a am_assets;
 BEGIN
  SELECT * INTO a FROM am_assets WHERE id=p_asset FOR UPDATE;
@@ -263,8 +263,8 @@ BEGIN
    jsonb_build_object('status',p_to,'version',a.version+1),'work order lifecycle',p_request);
 END$$;
 -- After a WO / downtime change: breakdown (open breakdown window) > under_maintenance (a WO in progress) > active.
-CREATE FUNCTION c10_demo.ami_wk_restore_asset(p_asset bigint,p_request text) RETURNS void
-LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_restore_asset(p_asset bigint,p_request text) RETURNS void
+LANGUAGE plpgsql SET search_path=core10,pg_catalog AS $$
 DECLARE a am_assets; ns text;
 BEGIN
  SELECT * INTO a FROM am_assets WHERE id=p_asset FOR UPDATE;
@@ -275,8 +275,8 @@ BEGIN
  PERFORM ami_wk_set_asset(p_asset,ns,ARRAY['breakdown','under_maintenance'],p_request);
 END$$;
 -- Close open windows linked to a WO (kinds filter) at p_at (never before their start). Returns count closed.
-CREATE FUNCTION c10_demo.ami_wk_close_windows(p_wo bigint,p_kinds text[],p_at timestamptz,p_request text) RETURNS int
-LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_close_windows(p_wo bigint,p_kinds text[],p_at timestamptz,p_request text) RETURNS int
+LANGUAGE plpgsql SET search_path=core10,pg_catalog AS $$
 DECLARE d am_downtime; n int:=0; e timestamptz;
 BEGIN
  FOR d IN SELECT * FROM am_downtime WHERE work_order_id=p_wo AND ended_at IS NULL AND kind=ANY(p_kinds) ORDER BY id FOR UPDATE LOOP
@@ -288,25 +288,25 @@ BEGIN
  END LOOP;
  RETURN n;
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_dt_overlap(p_asset bigint,p_start timestamptz,p_end timestamptz,p_except bigint) RETURNS boolean
-LANGUAGE sql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_dt_overlap(p_asset bigint,p_start timestamptz,p_end timestamptz,p_except bigint) RETURNS boolean
+LANGUAGE sql STABLE SET search_path=core10,pg_catalog AS $$
  SELECT EXISTS(SELECT 1 FROM am_downtime d WHERE d.asset_id=p_asset AND d.id IS DISTINCT FROM p_except
   AND d.started_at<COALESCE(p_end,'infinity'::timestamptz) AND COALESCE(d.ended_at,'infinity'::timestamptz)>p_start) $$;
-CREATE FUNCTION c10_demo.ami_wk_dt_code(p_business bigint,p_code text) RETURNS text LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_dt_code(p_business bigint,p_code text) RETURNS text LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 BEGIN
  IF p_code IS NULL THEN RETURN NULL; END IF;
  IF NOT EXISTS(SELECT 1 FROM am_codes WHERE business_id=p_business AND kind='downtime_reason' AND code=upper(p_code) AND active) THEN RAISE EXCEPTION 'am_invalid_code'; END IF;
  RETURN upper(p_code);
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_code(p_business bigint,p_kind text,p_code text) RETURNS text LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_code(p_business bigint,p_kind text,p_code text) RETURNS text LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 BEGIN
  IF p_code IS NULL THEN RETURN NULL; END IF;
  IF NOT EXISTS(SELECT 1 FROM am_codes WHERE business_id=p_business AND kind=p_kind AND code=upper(p_code) AND active) THEN RAISE EXCEPTION 'am_invalid_code'; END IF;
  RETURN upper(p_code);
 END$$;
-CREATE FUNCTION c10_demo.ami_wk_asset_open(p_asset bigint) RETURNS boolean LANGUAGE sql STABLE SET search_path=c10_demo,pg_catalog AS
+CREATE FUNCTION core10.ami_wk_asset_open(p_asset bigint) RETURNS boolean LANGUAGE sql STABLE SET search_path=core10,pg_catalog AS
 $$ SELECT status NOT IN('retired','disposed') FROM am_assets WHERE id=p_asset $$;
-CREATE FUNCTION c10_demo.ami_wk_resla(w c10_demo.am_work_orders) RETURNS c10_demo.am_work_orders LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_resla(w core10.am_work_orders) RETURNS core10.am_work_orders LANGUAGE plpgsql SET search_path=core10,pg_catalog AS $$
 DECLARE r am_work_orders; cat bigint:=ami_wk_cat(w.asset_id);
 BEGIN
  UPDATE am_work_orders SET
@@ -317,15 +317,15 @@ BEGIN
 END$$;
 
 -- Approval needed? (policy wo.approval_min_priority + wo.approval_cost_threshold; 'never' disables the priority rule, threshold 0 disables the cost rule)
-CREATE FUNCTION c10_demo.ami_wk_needs_approval(w c10_demo.am_work_orders) RETURNS boolean LANGUAGE plpgsql STABLE SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_needs_approval(w core10.am_work_orders) RETURNS boolean LANGUAGE plpgsql STABLE SET search_path=core10,pg_catalog AS $$
 DECLARE thr numeric:=ami_wk_pn(w,'wo.approval_cost_threshold');
 BEGIN
  IF ami_wk_rank(w.priority)>=ami_wk_rank(ami_wk_pt(w,'wo.approval_min_priority')) THEN RETURN true; END IF;
  RETURN thr>0 AND COALESCE(w.est_labor_cost,0)+COALESCE(w.est_spares_cost,0)>=thr;
 END$$;
 -- DRAFT -> SUBMITTED, then auto-approval by policy in the same transaction (approved_by stays NULL = approved by policy).
-CREATE FUNCTION c10_demo.ami_wk_do_submit(p_w c10_demo.am_work_orders,p_request text,p_breakdown boolean) RETURNS c10_demo.am_work_orders
-LANGUAGE plpgsql SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.ami_wk_do_submit(p_w core10.am_work_orders,p_request text,p_breakdown boolean) RETURNS core10.am_work_orders
+LANGUAGE plpgsql SET search_path=core10,pg_catalog AS $$
 DECLARE w am_work_orders; auto boolean; v text;
 BEGIN
  UPDATE am_work_orders SET status='SUBMITTED',submitted_at=now(),version=version+1,updated_at=now() WHERE id=p_w.id RETURNING * INTO w;
@@ -343,8 +343,8 @@ BEGIN
 END$$;
 
 -- ===================== create / update / assign =====================
-CREATE FUNCTION c10_demo.am_create_work_order_v1(p_business bigint,p_request text,p_data jsonb) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_create_work_order_v1(p_business bigint,p_request text,p_data jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; a am_assets; w am_work_orders; wid bigint; v_kind text; v_title text; v_desc text; v_prio text; v_due date;
  v_chk text; v_svc text; v_asg uuid; v_aref text; v_team text; v_elh numeric; v_elc numeric; v_esc numeric; v_submit boolean; v_asset bigint;
  mgr boolean; safety boolean;
@@ -397,8 +397,8 @@ BEGIN
    'wo_status',w.status,'version',w.version,'auto_approved',(w.approved_at IS NOT NULL AND w.approved_by IS NULL)));
 END$$;
 
-CREATE FUNCTION c10_demo.am_update_work_order_v1(p_business bigint,p_request text,p_wo bigint,p_expected_version bigint,p_changes jsonb,p_reason text) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_update_work_order_v1(p_business bigint,p_request text,p_wo bigint,p_expected_version bigint,p_changes jsonb,p_reason text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; w am_work_orders; n am_work_orders; pay jsonb; rsn text; k text; full_keys text[]:=ARRAY['title','description','priority','due_on','service_category','team_ref','assignee_ref'];
  est_keys text[]:=ARRAY['est_labor_hours','est_labor_cost','est_spares_cost','actual_labor_hours','actual_labor_cost','actual_spares_cost'];
  touched_full boolean:=false; touched_act boolean:=false;
@@ -462,9 +462,9 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_update',pay,jsonb_build_object('status','applied','id',n.id,'wo_status',n.status,'version',n.version));
 END$$;
 
-CREATE FUNCTION c10_demo.am_assign_work_order_v1(p_business bigint,p_request text,p_wo bigint,p_expected_version bigint,p_assigned_to uuid,
+CREATE FUNCTION core10.am_assign_work_order_v1(p_business bigint,p_request text,p_wo bigint,p_expected_version bigint,p_assigned_to uuid,
  p_assignee_ref text,p_team_ref text,p_reason text) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; w am_work_orders; n am_work_orders; pay jsonb; rsn text; v_aref text:=NULLIF(btrim(COALESCE(p_assignee_ref,'')),''); v_team text:=NULLIF(btrim(COALESCE(p_team_ref,'')),'');
 BEGIN
  IF p_wo IS NULL OR p_expected_version IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
@@ -494,9 +494,9 @@ BEGIN
 END$$;
 
 -- ===================== lifecycle transitions =====================
-CREATE FUNCTION c10_demo.am_wo_transition_v1(p_business bigint,p_request text,p_wo bigint,p_expected_version bigint,p_action text,
+CREATE FUNCTION core10.am_wo_transition_v1(p_business bigint,p_request text,p_wo bigint,p_expected_version bigint,p_action text,
  p_reason text DEFAULT NULL,p_data jsonb DEFAULT NULL) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; w am_work_orders; n am_work_orders; pay jsonb; rsn text; d jsonb:=COALESCE(p_data,'{}'::jsonb); err text;
  vr boolean; caps text[]; extra jsonb:='{}'::jsonb; a am_assets; cat bigint; meter numeric; need_safety boolean; ev text;
  v_fail text; v_cause text; v_actc text; v_corr text; v_restored timestamptz; v_alh numeric; v_alc numeric; v_asc numeric; v_meter numeric; cal jsonb;
@@ -692,8 +692,8 @@ BEGIN
 END$$;
 
 -- ===================== execution records: checklist / labour / spares / attachments / safety =====================
-CREATE FUNCTION c10_demo.am_wo_checklist_result_v1(p_business bigint,p_request text,p_wo bigint,p_seq int,p_result text,p_value numeric,p_note text) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_wo_checklist_result_v1(p_business bigint,p_request text,p_wo bigint,p_seq int,p_result text,p_value numeric,p_note text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; w am_work_orders; i am_wo_checklist; n am_wo_checklist; pay jsonb; v_note text:=NULLIF(btrim(COALESCE(p_note,'')),'');
 BEGIN
  IF p_wo IS NULL OR p_seq IS NULL OR p_seq NOT BETWEEN 1 AND 200 OR p_result IS NULL OR p_result NOT IN('pending','pass','fail','na') THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
@@ -723,8 +723,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_checklist',pay,jsonb_build_object('status','applied','id',w.id,'seq',n.seq,'result',n.result));
 END$$;
 
-CREATE FUNCTION c10_demo.am_wo_add_labor_v1(p_business bigint,p_request text,p_wo bigint,p_data jsonb) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_wo_add_labor_v1(p_business bigint,p_request text,p_wo bigint,p_data jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; w am_work_orders; pay jsonb; v_kind text; v_ref text; v_h numeric; v_rate numeric; v_note text; v_phase text; lid bigint;
 BEGIN
  IF p_wo IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
@@ -750,8 +750,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_labor',pay,jsonb_build_object('status','applied','id',lid,'work_order_id',w.id));
 END$$;
 
-CREATE FUNCTION c10_demo.am_wo_add_spares_v1(p_business bigint,p_request text,p_wo bigint,p_data jsonb) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_wo_add_spares_v1(p_business bigint,p_request text,p_wo bigint,p_data jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; w am_work_orders; pay jsonb; v_ref text; v_desc text; v_phase text; v_qty numeric; v_cost numeric; sid bigint;
 BEGIN
  IF p_wo IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
@@ -776,8 +776,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_spares',pay,jsonb_build_object('status','applied','id',sid,'work_order_id',w.id,'stock_effect',false));
 END$$;
 
-CREATE FUNCTION c10_demo.am_wo_add_attachment_v1(p_business bigint,p_request text,p_wo bigint,p_data jsonb) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_wo_add_attachment_v1(p_business bigint,p_request text,p_wo bigint,p_data jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; w am_work_orders; pay jsonb; v_name text; v_mime text; v_size numeric; v_sha text; v_ref text; v_kind text; v_cap text; aid bigint;
 BEGIN
  IF p_wo IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
@@ -810,8 +810,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'wo_attach',pay,jsonb_build_object('status','applied','id',aid,'work_order_id',w.id));
 END$$;
 
-CREATE FUNCTION c10_demo.am_acknowledge_safety_v1(p_business bigint,p_request text,p_wo bigint) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_acknowledge_safety_v1(p_business bigint,p_request text,p_wo bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; w am_work_orders; pay jsonb; fresh boolean:=false;
 BEGIN
  IF p_wo IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
@@ -833,8 +833,8 @@ BEGIN
 END$$;
 
 -- ===================== merge =====================
-CREATE FUNCTION c10_demo.am_merge_work_orders_v1(p_business bigint,p_request text,p_keep bigint,p_merge bigint,p_reason text) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_merge_work_orders_v1(p_business bigint,p_request text,p_keep bigint,p_merge bigint,p_reason text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; k am_work_orders; m am_work_orders; nm am_work_orders; nk am_work_orders; pay jsonb; rsn text; moved int;
 BEGIN
  IF p_keep IS NULL OR p_merge IS NULL OR p_keep=p_merge THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
@@ -866,8 +866,8 @@ BEGIN
 END$$;
 
 -- ===================== breakdown reporting & downtime windows =====================
-CREATE FUNCTION c10_demo.am_report_breakdown_v1(p_business bigint,p_request text,p_asset bigint,p_data jsonb) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_report_breakdown_v1(p_business bigint,p_request text,p_asset bigint,p_data jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; a am_assets; w am_work_orders; dw am_downtime; d jsonb:=COALESCE(p_data,'{}'::jsonb); pay jsonb; wid bigint; ex bigint; ex_st text;
  v_title text; v_desc text; v_prio text; v_occ timestamptz; v_impact text; v_fail text; v_rc text; v_chk text; adopt boolean:=false; did bigint; safety boolean;
 BEGIN
@@ -919,8 +919,8 @@ BEGIN
    'downtime_id',did,'auto_approved',(w.approved_at IS NOT NULL AND w.approved_by IS NULL),'adopted_open_window',adopt));
 END$$;
 
-CREATE FUNCTION c10_demo.am_start_downtime_v1(p_business bigint,p_request text,p_asset bigint,p_data jsonb) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_start_downtime_v1(p_business bigint,p_request text,p_asset bigint,p_data jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; a am_assets; d jsonb:=COALESCE(p_data,'{}'::jsonb); pay jsonb; v_kind text; v_rc text; v_impact text; v_start timestamptz; v_wo bigint; did bigint; w am_work_orders;
 BEGIN
  IF p_asset IS NULL THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
@@ -953,8 +953,8 @@ BEGIN
  RETURN ami_finish(p_business,c.tenant_id,p_request,'dt_start',pay,jsonb_build_object('status','applied','id',did,'started_at',v_start,'kind',v_kind));
 END$$;
 
-CREATE FUNCTION c10_demo.am_end_downtime_v1(p_business bigint,p_request text,p_downtime bigint,p_ended_at timestamptz,p_note text) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_end_downtime_v1(p_business bigint,p_request text,p_downtime bigint,p_ended_at timestamptz,p_note text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c am_ctx_t; d am_downtime; pay jsonb; v_note text:=NULLIF(btrim(COALESCE(p_note,'')),''); e timestamptz;
 BEGIN
  IF p_downtime IS NULL OR (v_note IS NOT NULL AND length(v_note)>300) THEN RAISE EXCEPTION 'am_invalid_input'; END IF;
@@ -979,8 +979,8 @@ BEGIN
 END$$;
 
 -- ===================== reads =====================
-CREATE FUNCTION c10_demo.am_list_work_orders_v1(p_business bigint,p_filters jsonb DEFAULT '{}',p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_list_work_orders_v1(p_business bigint,p_filters jsonb DEFAULT '{}',p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; f jsonb:=COALESCE(p_filters,'{}'::jsonb); vs bigint[]; fs bigint[]; es bigint[]; ids bigint[]; page bigint[]; items jsonb:='[]'::jsonb; w am_work_orders; woid bigint;
  v_status text[]; v_kind text; v_site bigint; v_asset bigint; v_prio text; v_mine boolean:=false; v_req boolean:=false; v_over boolean; v_re boolean; v_search text; lim int:=COALESCE(p_limit,50); off int:=COALESCE(p_offset,0);
 BEGIN
@@ -1023,8 +1023,8 @@ BEGIN
  RETURN jsonb_build_object('items',items,'total',COALESCE(cardinality(ids),0),'limit',lim,'offset',off);
 END$$;
 
-CREATE FUNCTION c10_demo.am_get_work_order_v1(p_business bigint,p_wo bigint) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_get_work_order_v1(p_business bigint,p_wo bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; w am_work_orders; res jsonb; ev text; need_safety boolean; vr boolean;
 BEGIN
  c:=ami_read_ctx(p_business);
@@ -1057,8 +1057,8 @@ BEGIN
  RETURN res;
 END$$;
 
-CREATE FUNCTION c10_demo.am_my_work_v1(p_business bigint) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_my_work_v1(p_business bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; w am_work_orders; vs bigint[]; es bigint[]; aps bigint[]; vfs bigint[]; fs bigint[];
  j_asg jsonb:='[]'; j_un jsonb:='[]'; j_apr jsonb:='[]'; j_ver jsonb:='[]'; j_req jsonb:='[]';
 BEGIN
@@ -1079,8 +1079,8 @@ BEGIN
     'to_verify',jsonb_array_length(j_ver),'my_requests',jsonb_array_length(j_req)));
 END$$;
 
-CREATE FUNCTION c10_demo.am_list_downtime_v1(p_business bigint,p_filters jsonb DEFAULT '{}',p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.am_list_downtime_v1(p_business bigint,p_filters jsonb DEFAULT '{}',p_limit int DEFAULT 50,p_offset int DEFAULT 0) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c am_ctx_t; f jsonb:=COALESCE(p_filters,'{}'::jsonb); vs bigint[]; ids bigint[]; page bigint[]; items jsonb:='[]'; d am_downtime; dtid bigint;
  v_asset bigint; v_site bigint; v_kind text; v_open boolean; v_wo bigint; v_from date; v_to date; lim int:=COALESCE(p_limit,50); off int:=COALESCE(p_offset,0);
 BEGIN

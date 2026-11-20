@@ -90,7 +90,7 @@ jobs:
         run: |
           docker run --rm -d --name core10-owner-finance-pgrst --network host \
             -e PGRST_DB_URI="postgres://postgres:demo_only@127.0.0.1:5432/core10_enterprise_engines" \
-            -e PGRST_DB_SCHEMAS=c10_demo \
+            -e PGRST_DB_SCHEMAS=core10 \
             -e PGRST_DB_ANON_ROLE=anon \
             -e PGRST_JWT_SECRET="$CORE10_CI_JWT_SECRET" \
             -e PGRST_JWT_AUD=authenticated \
@@ -98,7 +98,7 @@ jobs:
             postgrest/postgrest:v12.2.12
           for i in $(seq 1 30); do
             code=$(curl -s --max-time 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ || true)
-            if [ "$code" != 000 ]; then exit 0; fi
+            if [ "$code" != "000" ] && [ "$code" != "503" ]; then exit 0; fi
             sleep 1
           done
           docker logs core10-owner-finance-pgrst

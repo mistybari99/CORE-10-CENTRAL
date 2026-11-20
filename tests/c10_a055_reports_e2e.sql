@@ -34,14 +34,14 @@ CREATE FUNCTION c10_test.today() RETURNS date LANGUAGE sql STABLE AS $$ SELECT (
 CREATE FUNCTION c10_test.ts(k int,h numeric DEFAULT 0) RETURNS text LANGUAGE sql STABLE AS $$ SELECT (c10_test.t0()-k*interval '1 day'+h*interval '1 hour')::text $$;
 CREATE FUNCTION c10_test.dt(k int) RETURNS text LANGUAGE sql STABLE AS $$ SELECT (c10_test.today()-k)::text $$;
 CREATE FUNCTION c10_test.k(p text) RETURNS bigint LANGUAGE sql STABLE SECURITY DEFINER AS $$ SELECT id FROM c10_test.ids WHERE k=p $$;
-CREATE FUNCTION c10_test.catid(b bigint,p text) RETURNS bigint LANGUAGE sql STABLE SECURITY DEFINER AS $$ SELECT id FROM c10_demo.am_categories WHERE business_id=b AND code=p $$;
-CREATE FUNCTION c10_test.tid(b bigint) RETURNS bigint LANGUAGE sql STABLE AS $$ SELECT tenant_id FROM c10_demo.businesses WHERE id=b $$;
+CREATE FUNCTION c10_test.catid(b bigint,p text) RETURNS bigint LANGUAGE sql STABLE SECURITY DEFINER AS $$ SELECT id FROM core10.am_categories WHERE business_id=b AND code=p $$;
+CREATE FUNCTION c10_test.tid(b bigint) RETURNS bigint LANGUAGE sql STABLE AS $$ SELECT tenant_id FROM core10.businesses WHERE id=b $$;
 -- generic typed insert from jsonb (test fixtures only)
 CREATE FUNCTION c10_test.ins(p_tbl text,p_j jsonb) RETURNS bigint LANGUAGE plpgsql AS $$
 DECLARE cols text; v bigint;
 BEGIN
  SELECT string_agg(quote_ident(x),',') INTO cols FROM jsonb_object_keys(p_j) x;
- EXECUTE format('INSERT INTO c10_demo.%I(%s) SELECT %s FROM jsonb_populate_record(NULL::c10_demo.%I,$1) RETURNING id',p_tbl,cols,cols,p_tbl) INTO v USING p_j;
+ EXECUTE format('INSERT INTO core10.%I(%s) SELECT %s FROM jsonb_populate_record(NULL::core10.%I,$1) RETURNING id',p_tbl,cols,cols,p_tbl) INTO v USING p_j;
  RETURN v;
 END$$;
 CREATE FUNCTION c10_test.asset(b bigint,p_no text,p_name text,p_cat text,p_site bigint,p_status text,p_crit int,p_cost numeric DEFAULT NULL,
@@ -58,7 +58,7 @@ END$$;
 CREATE FUNCTION c10_test.wo(p_no text,p_kind text,p_status text,p_asset text,p_site bigint,p_extra jsonb DEFAULT '{}') RETURNS bigint LANGUAGE plpgsql AS $$
 DECLARE v bigint; b bigint;
 BEGIN
- SELECT business_id INTO b FROM c10_demo.am_assets WHERE id=c10_test.k(p_asset);
+ SELECT business_id INTO b FROM core10.am_assets WHERE id=c10_test.k(p_asset);
  v:=c10_test.ins('am_work_orders',jsonb_build_object('tenant_id',c10_test.tid(b),'business_id',b,'wo_no',p_no,'kind',p_kind,'status',p_status,
    'asset_id',c10_test.k(p_asset),'site_id',p_site,'title','Task '||p_no,'requested_by',c10_test.u('bo101'))||p_extra);
  INSERT INTO c10_test.ids VALUES(p_no,v); RETURN v;
@@ -66,7 +66,7 @@ END$$;
 CREATE FUNCTION c10_test.dtw(p_asset text,p_site bigint,p_kind text,p_start text,p_end text,p_wo text DEFAULT NULL,p_key text DEFAULT NULL) RETURNS bigint LANGUAGE plpgsql AS $$
 DECLARE v bigint; b bigint;
 BEGIN
- SELECT business_id INTO b FROM c10_demo.am_assets WHERE id=c10_test.k(p_asset);
+ SELECT business_id INTO b FROM core10.am_assets WHERE id=c10_test.k(p_asset);
  v:=c10_test.ins('am_downtime',jsonb_build_object('tenant_id',c10_test.tid(b),'business_id',b,'asset_id',c10_test.k(p_asset),'site_id',p_site,
    'kind',p_kind,'started_at',p_start,'ended_at',p_end,'started_by',c10_test.u('bo101'),
    'work_order_id',CASE WHEN p_wo IS NULL THEN NULL ELSE c10_test.k(p_wo) END));
@@ -75,7 +75,7 @@ END$$;
 CREATE FUNCTION c10_test.plan(p_key text,p_asset text,p_name text,p_freq text,p_active boolean,p_next date,p_extra jsonb DEFAULT '{}',p_tgt jsonb DEFAULT '{}') RETURNS bigint LANGUAGE plpgsql AS $$
 DECLARE pl bigint; tg bigint; b bigint;
 BEGIN
- SELECT business_id INTO b FROM c10_demo.am_assets WHERE id=c10_test.k(p_asset);
+ SELECT business_id INTO b FROM core10.am_assets WHERE id=c10_test.k(p_asset);
  pl:=c10_test.ins('am_plans',jsonb_build_object('tenant_id',c10_test.tid(b),'business_id',b,'name',p_name,'plan_type','preventive','asset_id',c10_test.k(p_asset),
    'frequency_kind',p_freq,'start_on',c10_test.dt(400),'active',p_active,'created_by',c10_test.u('bo101'))||p_extra);
  tg:=c10_test.ins('am_plan_targets',jsonb_build_object('tenant_id',c10_test.tid(b),'business_id',b,'plan_id',pl,'asset_id',c10_test.k(p_asset),
@@ -104,12 +104,12 @@ GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA c10_test TO authenticated,anon;
 
 -- ===================================================== S0 fixtures (superuser) =====================================================
 SELECT set_config('request.jwt.claim.sub',c10_test.u('bo101')::text,true);
-INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES
+INSERT INTO core10.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES
  (101,1,'business',0,'general.timezone','"UTC"',c10_test.u('bo101')),(102,1,'business',0,'general.timezone','"UTC"',c10_test.u('bo101')),
  (201,2,'business',0,'general.timezone','"UTC"',c10_test.u('owner2'));
-SELECT c10_demo.ami_ensure_business(101); SELECT c10_demo.ami_ensure_business(102);
+SELECT core10.ami_ensure_business(101); SELECT core10.ami_ensure_business(102);
 -- tenant 2 / business 201 intentionally NOT bootstrapped (reads must work and must not create settings)
-INSERT INTO c10_demo.am_categories(tenant_id,business_id,code,name) VALUES (2,201,'T2-CAT','Tenant two category');
+INSERT INTO core10.am_categories(tenant_id,business_id,code,name) VALUES (2,201,'T2-CAT','Tenant two category');
 SELECT c10_test.asset(101,'CHL-1','Chiller 1','COLD',1001,'active',5,100000);
 SELECT c10_test.asset(101,'OVN-1','Oven 1','PROD-EQ',1001,'breakdown',4);
 SELECT c10_test.asset(101,'POS-1','POS terminal 1','POS',1001,'active',2,4800,10);
@@ -122,7 +122,7 @@ SELECT c10_test.asset(101,'PRJ-1','Project tool','GENERAL',1004,'retired',3);
 SELECT c10_test.asset(101,'OLD-1','Old plant','GENERAL',1004,'breakdown',3);
 -- meters
 SELECT c10_test.ins('am_meters',jsonb_build_object('tenant_id',1,'business_id',101,'asset_id',c10_test.k('CHL-1'),'code','HRS','unit','hours','current_reading',30,'last_reading_at',c10_test.ts(2)));
-INSERT INTO c10_test.ids SELECT 'M-CHL',max(id) FROM c10_demo.am_meters;
+INSERT INTO c10_test.ids SELECT 'M-CHL',max(id) FROM core10.am_meters;
 SELECT c10_test.ins('am_meters',jsonb_build_object('tenant_id',1,'business_id',101,'asset_id',c10_test.k('CRN-1'),'code','HRS','unit','hours','current_reading',500,'last_reading_at',c10_test.ts(60)));
 SELECT c10_test.ins('am_meter_readings',jsonb_build_object('tenant_id',1,'business_id',101,'meter_id',c10_test.k('M-CHL'),'asset_id',c10_test.k('CHL-1'),
   'reading',v.r,'kind',v.kd,'read_at',c10_test.ts(v.d),'recorded_by',c10_test.u('bo101'),'request_key','seed-read-'||v.d))
@@ -222,85 +222,85 @@ SELECT c10_test.asset(201,'INJ-8',E'\tTab','T2-CAT',2001,'active',3);
 SELECT c10_test.asset(201,'OK-201','Plain asset','T2-CAT',2001,'active',3);
 SELECT c10_test.wo('O201','corrective','SUBMITTED','OK-201',2001);
 -- audit seed (hash chained through the real trigger)
-SELECT c10_demo.ami_log(1,101,'asset',c10_test.k('CHL-1')::text,'create',NULL,'{"name":"Chiller 1"}','seed','seed-audit-101-a');
-SELECT c10_demo.ami_log(1,101,'asset',c10_test.k('CHL-1')::text,'update','{"name":"Chiller 1"}','{"name":"Chiller One"}','rename','seed-audit-101-b');
-SELECT c10_demo.ami_log(1,101,'work_order',c10_test.k('BD1')::text,'complete',NULL,'{"status":"COMPLETED"}','done','seed-audit-101-c');
-SELECT c10_demo.ami_log(1,101,'asset',c10_test.k('CRN-1')::text,'create',NULL,'{"name":"Crane 1"}','seed','seed-audit-101-d');
-SELECT c10_demo.ami_log(1,101,'work_order',c10_test.k('O4')::text,'create',NULL,'{"status":"IN_PROGRESS"}','seed','seed-audit-101-e');
+SELECT core10.ami_log(1,101,'asset',c10_test.k('CHL-1')::text,'create',NULL,'{"name":"Chiller 1"}','seed','seed-audit-101-a');
+SELECT core10.ami_log(1,101,'asset',c10_test.k('CHL-1')::text,'update','{"name":"Chiller 1"}','{"name":"Chiller One"}','rename','seed-audit-101-b');
+SELECT core10.ami_log(1,101,'work_order',c10_test.k('BD1')::text,'complete',NULL,'{"status":"COMPLETED"}','done','seed-audit-101-c');
+SELECT core10.ami_log(1,101,'asset',c10_test.k('CRN-1')::text,'create',NULL,'{"name":"Crane 1"}','seed','seed-audit-101-d');
+SELECT core10.ami_log(1,101,'work_order',c10_test.k('O4')::text,'create',NULL,'{"status":"IN_PROGRESS"}','seed','seed-audit-101-e');
 SELECT set_config('request.jwt.claim.sub',c10_test.u('bo102')::text,true);
-SELECT c10_demo.ami_log(1,102,'asset',c10_test.k('GEN-102')::text,'create',NULL,'{"name":"Generator 102"}','seed','seed-audit-102-a');
-SELECT c10_demo.ami_log(1,102,'asset',c10_test.k('PMP-102')::text,'create',NULL,'{"name":"Pump 102"}','seed','seed-audit-102-b');
+SELECT core10.ami_log(1,102,'asset',c10_test.k('GEN-102')::text,'create',NULL,'{"name":"Generator 102"}','seed','seed-audit-102-a');
+SELECT core10.ami_log(1,102,'asset',c10_test.k('PMP-102')::text,'create',NULL,'{"name":"Pump 102"}','seed','seed-audit-102-b');
 SELECT set_config('request.jwt.claim.sub',c10_test.u('owner2')::text,true);
-SELECT c10_demo.ami_log(2,201,'asset',c10_test.k('OK-201')::text,'create',NULL,'{"name":"Plain asset"}','seed','seed-audit-201-a');
-CREATE TEMP TABLE c10_cnt AS SELECT (SELECT count(*) FROM c10_demo.am_audit) AS aud,(SELECT count(*) FROM c10_demo.am_receipts) AS rec,
- (SELECT count(*) FROM c10_demo.am_settings) AS setn,(SELECT count(*) FROM c10_demo.am_codes) AS cod;
+SELECT core10.ami_log(2,201,'asset',c10_test.k('OK-201')::text,'create',NULL,'{"name":"Plain asset"}','seed','seed-audit-201-a');
+CREATE TEMP TABLE c10_cnt AS SELECT (SELECT count(*) FROM core10.am_audit) AS aud,(SELECT count(*) FROM core10.am_receipts) AS rec,
+ (SELECT count(*) FROM core10.am_settings) AS setn,(SELECT count(*) FROM core10.am_codes) AS cod;
 GRANT SELECT ON c10_cnt TO PUBLIC;
 
 -- ===================================================== S1 authority matrix =====================================================
 SET LOCAL ROLE authenticated;
 DO $$
 DECLARE rp text[]:=ARRAY[
-  'SELECT c10_demo.am_overview_v1(101)','SELECT c10_demo.am_downtime_report_v1(101)','SELECT c10_demo.am_kpi_report_v1(101)',
-  'SELECT c10_demo.am_asset_health_report_v1(101)','SELECT c10_demo.am_warranty_report_v1(101)','SELECT c10_demo.am_reconciliation_v1(101)',
-  $q$SELECT c10_demo.am_export_csv_v1(101,'rq-authz-0001','assets','{}')$q$];
- own text[]:=ARRAY['SELECT c10_demo.am_integrity_report_v1(101)','SELECT c10_demo.am_audit_log_v1(101)'];
+  'SELECT core10.am_overview_v1(101)','SELECT core10.am_downtime_report_v1(101)','SELECT core10.am_kpi_report_v1(101)',
+  'SELECT core10.am_asset_health_report_v1(101)','SELECT core10.am_warranty_report_v1(101)','SELECT core10.am_reconciliation_v1(101)',
+  $q$SELECT core10.am_export_csv_v1(101,'rq-authz-0001','assets','{}')$q$];
+ own text[]:=ARRAY['SELECT core10.am_integrity_report_v1(101)','SELECT core10.am_audit_log_v1(101)'];
  s text; p text;
 BEGIN
  -- outsiders / revoked / other tenant / other business / stock-only / manager without grant / platform operator => am_denied on EVERYTHING
  FOREACH p IN ARRAY ARRAY['stock','investor','revoked','revtech','owner2','staff2','operator','mgr','bo102','sup201'] LOOP
   PERFORM c10_test.as_user(p);
-  FOREACH s IN ARRAY rp||own||ARRAY['SELECT c10_demo.read_asset_maintenance_business_summary_v1(101,NULL)'] LOOP
+  FOREACH s IN ARRAY rp||own||ARRAY['SELECT core10.read_asset_maintenance_business_summary_v1(101,NULL)'] LOOP
    PERFORM c10_test.denied(s,'am_denied'); END LOOP;
  END LOOP;
  -- unauthenticated claim fails closed; NULL business denied
  PERFORM set_config('request.jwt.claim.sub','',true);
  FOREACH s IN ARRAY rp||own LOOP PERFORM c10_test.denied(s,'am_denied'); END LOOP;
  PERFORM c10_test.as_user('bo101');
- PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(NULL)','am_denied');
- PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(102)','am_denied');
- PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(201)','am_denied');
- PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(999999)','am_denied');
+ PERFORM c10_test.denied('SELECT core10.am_overview_v1(NULL)','am_denied');
+ PERFORM c10_test.denied('SELECT core10.am_overview_v1(102)','am_denied');
+ PERFORM c10_test.denied('SELECT core10.am_overview_v1(201)','am_denied');
+ PERFORM c10_test.denied('SELECT core10.am_overview_v1(999999)','am_denied');
  PERFORM c10_test.as_user('owner');   -- tenant 1 owner cannot see tenant 2
- PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(201)','am_denied');
- PERFORM c10_test.denied('SELECT c10_demo.am_kpi_report_v1(201)','am_denied');
+ PERFORM c10_test.denied('SELECT core10.am_overview_v1(201)','am_denied');
+ PERFORM c10_test.denied('SELECT core10.am_kpi_report_v1(201)','am_denied');
  PERFORM c10_test.as_user('owner2');
- PERFORM c10_test.denied('SELECT c10_demo.am_downtime_report_v1(101)','am_denied');
- PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(102)','am_denied');
+ PERFORM c10_test.denied('SELECT core10.am_downtime_report_v1(101)','am_denied');
+ PERFORM c10_test.denied('SELECT core10.am_overview_v1(102)','am_denied');
  -- member without the 'reports' capability: technician / reporter => am_not_permitted (also audit/integrity), summary needs owner
  FOREACH p IN ARRAY ARRAY['tech1001','tech1002','reporter'] LOOP
   PERFORM c10_test.as_user(p);
   FOREACH s IN ARRAY rp||own LOOP PERFORM c10_test.denied(s,'am_not_permitted'); END LOOP;
-  PERFORM c10_test.denied('SELECT c10_demo.read_asset_maintenance_business_summary_v1(101,NULL)','am_owner_required');
+  PERFORM c10_test.denied('SELECT core10.read_asset_maintenance_business_summary_v1(101,NULL)','am_owner_required');
  END LOOP;
  -- supervisors: reports yes, audit/integrity no, A050 adapter owner-only
  FOREACH p IN ARRAY ARRAY['sup','sup1001','auditor'] LOOP
   PERFORM c10_test.as_user(p);
-  PERFORM c10_demo.am_overview_v1(101); PERFORM c10_demo.am_kpi_report_v1(101); PERFORM c10_demo.am_reconciliation_v1(101);
-  PERFORM c10_test.denied('SELECT c10_demo.read_asset_maintenance_business_summary_v1(101,NULL)','am_owner_required');
+  PERFORM core10.am_overview_v1(101); PERFORM core10.am_kpi_report_v1(101); PERFORM core10.am_reconciliation_v1(101);
+  PERFORM c10_test.denied('SELECT core10.read_asset_maintenance_business_summary_v1(101,NULL)','am_owner_required');
  END LOOP;
  FOREACH p IN ARRAY ARRAY['sup','sup1001'] LOOP
   PERFORM c10_test.as_user(p);
   FOREACH s IN ARRAY own LOOP PERFORM c10_test.denied(s,'am_not_permitted'); END LOOP;
-  PERFORM c10_test.denied($q$SELECT c10_demo.am_export_csv_v1(101,'rq-authz-0002','audit','{}')$q$,'am_not_permitted');
+  PERFORM c10_test.denied($q$SELECT core10.am_export_csv_v1(101,'rq-authz-0002','audit','{}')$q$,'am_not_permitted');
  END LOOP;
  PERFORM c10_test.as_user('auditor');
- PERFORM c10_demo.am_integrity_report_v1(101); PERFORM c10_demo.am_audit_log_v1(101);
+ PERFORM core10.am_integrity_report_v1(101); PERFORM core10.am_audit_log_v1(101);
  -- site filter arguments
  PERFORM c10_test.as_user('sup1001');
- PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(101,1002)','am_not_permitted');
- PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(101,1003)','am_denied');       -- site of another business
- PERFORM c10_test.denied('SELECT c10_demo.am_overview_v1(101,987654)','am_denied');
- PERFORM c10_test.denied('SELECT c10_demo.am_kpi_report_v1(101,NULL,NULL,1002)','am_not_permitted');
- PERFORM c10_test.denied('SELECT c10_demo.am_downtime_report_v1(101,NULL,NULL,1002)','am_not_permitted');
- PERFORM c10_test.denied('SELECT c10_demo.am_asset_health_report_v1(101,1002)','am_not_permitted');
- PERFORM c10_demo.am_overview_v1(101,1001);
+ PERFORM c10_test.denied('SELECT core10.am_overview_v1(101,1002)','am_not_permitted');
+ PERFORM c10_test.denied('SELECT core10.am_overview_v1(101,1003)','am_denied');       -- site of another business
+ PERFORM c10_test.denied('SELECT core10.am_overview_v1(101,987654)','am_denied');
+ PERFORM c10_test.denied('SELECT core10.am_kpi_report_v1(101,NULL,NULL,1002)','am_not_permitted');
+ PERFORM c10_test.denied('SELECT core10.am_downtime_report_v1(101,NULL,NULL,1002)','am_not_permitted');
+ PERFORM c10_test.denied('SELECT core10.am_asset_health_report_v1(101,1002)','am_not_permitted');
+ PERFORM core10.am_overview_v1(101,1001);
  -- input validation
  PERFORM c10_test.as_user('bo101');
- PERFORM c10_test.denied('SELECT c10_demo.am_downtime_report_v1(101,current_date,current_date-3)','am_invalid_input');
- PERFORM c10_test.denied('SELECT c10_demo.am_kpi_report_v1(101,DATE ''2000-01-01'',current_date)','am_invalid_input');
- PERFORM c10_test.denied('SELECT c10_demo.am_warranty_report_v1(101,-1)','am_invalid_input');
- PERFORM c10_test.denied('SELECT c10_demo.am_warranty_report_v1(101,4000)','am_invalid_input');
- PERFORM c10_test.denied('SELECT c10_demo.am_reconciliation_v1(101,current_date,current_date-1)','am_invalid_input');
+ PERFORM c10_test.denied('SELECT core10.am_downtime_report_v1(101,current_date,current_date-3)','am_invalid_input');
+ PERFORM c10_test.denied('SELECT core10.am_kpi_report_v1(101,DATE ''2000-01-01'',current_date)','am_invalid_input');
+ PERFORM c10_test.denied('SELECT core10.am_warranty_report_v1(101,-1)','am_invalid_input');
+ PERFORM c10_test.denied('SELECT core10.am_warranty_report_v1(101,4000)','am_invalid_input');
+ PERFORM c10_test.denied('SELECT core10.am_reconciliation_v1(101,current_date,current_date-1)','am_invalid_input');
 END $$;
 RESET ROLE;
 
@@ -309,7 +309,7 @@ SET LOCAL ROLE authenticated;
 DO $$
 DECLARE r jsonb;
 BEGIN
- PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_overview_v1(101);
+ PERFORM c10_test.as_user('bo101'); r:=core10.am_overview_v1(101);
  PERFORM c10_test.eq(r->'assets_by_status'->>'active','6','ov active'); PERFORM c10_test.eq(r->'assets_by_status'->>'breakdown','3','ov breakdown');
  PERFORM c10_test.eq(r->'assets_by_status'->>'retired','1','ov retired');
  PERFORM c10_test.eq((SELECT e->>'total' FROM jsonb_array_elements(r->'assets_by_site') e WHERE e->>'site_id'='1001'),'5','site 1001 assets');
@@ -327,18 +327,18 @@ BEGIN
  PERFORM c10_test.eq(r#>>'{capabilities,is_business_owner}','true','caps bo');
  PERFORM c10_test.chk(r#>'{capabilities,business_wide}' ? 'reports','caps list');
  -- tenant owner sees the same; owner of business 102 sees only 102 data (isolation)
- PERFORM c10_test.as_user('owner'); PERFORM c10_test.eq((c10_demo.am_overview_v1(101))#>>'{open_work_orders,total}','9','tenant owner 101');
- r:=c10_demo.am_overview_v1(102);
+ PERFORM c10_test.as_user('owner'); PERFORM c10_test.eq((core10.am_overview_v1(101))#>>'{open_work_orders,total}','9','tenant owner 101');
+ r:=core10.am_overview_v1(102);
  PERFORM c10_test.eq(r->'assets_by_status'->>'active','2','102 assets'); PERFORM c10_test.eq(r#>>'{open_work_orders,total}','1','102 open wo');
  PERFORM c10_test.eq(r#>>'{open_downtime,count}','0','102 open dt'); PERFORM c10_test.eq(r#>>'{plan_targets,total}','1','102 targets');
- PERFORM c10_test.as_user('bo102'); PERFORM c10_test.eq((c10_demo.am_overview_v1(102))#>>'{open_work_orders,total}','1','bo102');
- PERFORM c10_test.as_user('owner2'); r:=c10_demo.am_overview_v1(201);
+ PERFORM c10_test.as_user('bo102'); PERFORM c10_test.eq((core10.am_overview_v1(102))#>>'{open_work_orders,total}','1','bo102');
+ PERFORM c10_test.as_user('owner2'); r:=core10.am_overview_v1(201);
  PERFORM c10_test.eq(r->'assets_by_status'->>'active','9','201 assets'); PERFORM c10_test.eq(r#>>'{open_work_orders,total}','1','201 open wo');
- PERFORM c10_test.as_user('sup201'); PERFORM c10_test.eq((c10_demo.am_overview_v1(201))#>>'{open_work_orders,total}','1','sup201');
+ PERFORM c10_test.as_user('sup201'); PERFORM c10_test.eq((core10.am_overview_v1(201))#>>'{open_work_orders,total}','1','sup201');
  -- supervisor for all sites == owner view; supervisor(1001) sees only site 1001
- PERFORM c10_test.as_user('sup'); PERFORM c10_test.eq((c10_demo.am_overview_v1(101))#>>'{open_work_orders,total}','9','sup all');
- PERFORM c10_test.as_user('auditor'); PERFORM c10_test.eq((c10_demo.am_overview_v1(101))#>>'{open_work_orders,total}','9','auditor all');
- PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_overview_v1(101);
+ PERFORM c10_test.as_user('sup'); PERFORM c10_test.eq((core10.am_overview_v1(101))#>>'{open_work_orders,total}','9','sup all');
+ PERFORM c10_test.as_user('auditor'); PERFORM c10_test.eq((core10.am_overview_v1(101))#>>'{open_work_orders,total}','9','auditor all');
+ PERFORM c10_test.as_user('sup1001'); r:=core10.am_overview_v1(101);
  PERFORM c10_test.eq(r->'assets_by_status'->>'active','3','1001 active'); PERFORM c10_test.eq(r->'assets_by_status'->>'breakdown','2','1001 breakdown');
  PERFORM c10_test.eq(r->'assets_by_status'->>'retired',NULL,'1001 no retired');
  PERFORM c10_test.eq(r#>>'{open_work_orders,total}','3','1001 open'); PERFORM c10_test.eq(r#>>'{open_work_orders,by_status}','{"DRAFT": 1, "APPROVED": 0, "SUBMITTED": 1, "IN_PROGRESS": 1}','1001 by status');
@@ -347,8 +347,8 @@ BEGIN
  PERFORM c10_test.eq(r#>>'{plan_targets,by_state}','{"due": 3, "overdue": 0, "deferred": 0, "upcoming": 1, "has_open_wo": 1, "meter_missing": 0}','1001 targets');
  PERFORM c10_test.eq(jsonb_array_length(r->'assets_by_site')::text,'1','1001 only site');
  PERFORM c10_test.eq((r->'sites')::text,'[1001]','1001 scope'); PERFORM c10_test.chk(NOT (r#>'{capabilities,by_site,1002}' ? 'reports'),'no reports cap at 1002');
- r:=c10_demo.am_overview_v1(101,1001); PERFORM c10_test.eq(r#>>'{open_work_orders,total}','3','explicit site');
- PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_overview_v1(101,1002);
+ r:=core10.am_overview_v1(101,1001); PERFORM c10_test.eq(r#>>'{open_work_orders,total}','3','explicit site');
+ PERFORM c10_test.as_user('bo101'); r:=core10.am_overview_v1(101,1002);
  PERFORM c10_test.eq(r->'assets_by_status'->>'active','2','1002 filter'); PERFORM c10_test.eq(r#>>'{open_work_orders,total}','3','1002 open');  -- O5,O6,P4
 END $$;
 RESET ROLE;
@@ -362,7 +362,7 @@ DO $$
 DECLARE r jsonb; f text:=c10_test.dt(20); t text:=c10_test.dt(1);
 BEGIN
  PERFORM c10_test.as_user('bo101');
- r:=c10_demo.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ r:=core10.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
  -- overlapping windows merged (w1+w2 overlap -> 360 not 480), window straddling period start clipped (240), 3-minute window counted by default, planned excluded
  PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','downtime_minutes'),663,'CNV-1 merged minutes');
  PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','windows'),5,'CNV-1 counted windows'); PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','merged_windows'),4,'CNV-1 islands');
@@ -387,43 +387,43 @@ BEGIN
  PERFORM c10_test.eqn((SELECT e->>'downtime_minutes' FROM jsonb_array_elements(r->'per_site') e WHERE e->>'site_id'='1004'),14400,'site 1004 minutes');
  PERFORM c10_test.eq(jsonb_array_length(r->'open_windows')::text,'1','open window list');
  -- per-site filtering: supervisor(1001) never sees other sites; explicit p_site
- PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.as_user('sup1001'); r:=core10.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
  PERFORM c10_test.eqn(r#>>'{totals,downtime_minutes}',240,'1001 total'); PERFORM c10_test.eq(c10_test.pa(r,'CNV-1','downtime_minutes'),NULL,'no 1002 asset');
  PERFORM c10_test.eqn(r#>>'{totals,assets_considered}',5,'1001 assets');
- PERFORM c10_test.as_user('sup'); r:=c10_demo.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date,1002);
+ PERFORM c10_test.as_user('sup'); r:=core10.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date,1002);
  PERFORM c10_test.eqn(r#>>'{totals,downtime_minutes}',1383,'sup site 1002');
  -- isolation: 102 only sees its own window (120 min)
- PERFORM c10_test.as_user('bo102'); r:=c10_demo.am_downtime_report_v1(102,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.as_user('bo102'); r:=core10.am_downtime_report_v1(102,c10_test.dt(20)::date,c10_test.dt(1)::date);
  PERFORM c10_test.eqn(r#>>'{totals,downtime_minutes}',120,'102 minutes'); PERFORM c10_test.eqn(r#>>'{totals,assets_considered}',2,'102 assets');
- PERFORM c10_test.as_user('owner2'); r:=c10_demo.am_downtime_report_v1(201,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ PERFORM c10_test.as_user('owner2'); r:=core10.am_downtime_report_v1(201,c10_test.dt(20)::date,c10_test.dt(1)::date);
  PERFORM c10_test.eqn(r#>>'{totals,downtime_minutes}',0,'201 minutes'); PERFORM c10_test.eqn(r#>>'{totals,assets_considered}',9,'201 assets');
 END $$;
 RESET ROLE;
 -- policy: windows shorter than downtime.min_counted_minutes (5) are excluded
-INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'downtime.min_counted_minutes','5',c10_test.u('bo101'));
+INSERT INTO core10.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'downtime.min_counted_minutes','5',c10_test.u('bo101'));
 SET LOCAL ROLE authenticated;
 DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101');
- r:=c10_demo.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ r:=core10.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
  PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','downtime_minutes'),660,'min minutes excludes 3-minute window'); PERFORM c10_test.eqn(r#>>'{totals,excluded_below_min}',1,'excluded below min');
  PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','windows'),4,'windows after min'); END $$;
 RESET ROLE;
-DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='downtime.min_counted_minutes';
+DELETE FROM core10.am_policy WHERE business_id=101 AND key='downtime.min_counted_minutes';
 -- policy: planned downtime counted when downtime.planned_counts
-INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'downtime.planned_counts','true',c10_test.u('bo101'));
+INSERT INTO core10.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'downtime.planned_counts','true',c10_test.u('bo101'));
 SET LOCAL ROLE authenticated;
 DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101');
- r:=c10_demo.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+ r:=core10.am_downtime_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
  PERFORM c10_test.eqn(c10_test.pa(r,'CNV-1','downtime_minutes'),1263,'planned counted'); PERFORM c10_test.eqn(r#>>'{totals,excluded_planned}',0,'no planned exclusion'); END $$;
 RESET ROLE;
-DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='downtime.planned_counts';
+DELETE FROM core10.am_policy WHERE business_id=101 AND key='downtime.planned_counts';
 -- policy: lower max_open_hours caps the open window earlier (48h => 2880 minutes), scoped by SITE override too
-INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'site',1004,'downtime.max_open_hours','48',c10_test.u('bo101'));
+INSERT INTO core10.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'site',1004,'downtime.max_open_hours','48',c10_test.u('bo101'));
 SET LOCAL ROLE authenticated;
 DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101');
- r:=c10_demo.am_downtime_report_v1(101,c10_test.dt(45)::date,c10_test.dt(1)::date);
+ r:=core10.am_downtime_report_v1(101,c10_test.dt(45)::date,c10_test.dt(1)::date);
  PERFORM c10_test.eqn(c10_test.pa(r,'OLD-1','downtime_minutes'),2880,'site override caps open window'); END $$;
 RESET ROLE;
-DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='downtime.max_open_hours';
+DELETE FROM core10.am_policy WHERE business_id=101 AND key='downtime.max_open_hours';
 
 -- ===================================================== S4 KPI report =====================================================
 CREATE FUNCTION c10_test.ka(r jsonb,p_no text,p_f text) RETURNS text LANGUAGE sql IMMUTABLE AS
@@ -434,7 +434,7 @@ DO $$
 DECLARE r jsonb; d jsonb; f date:=c10_test.dt(20)::date; t date:=c10_test.dt(1)::date;
 BEGIN
  PERFORM c10_test.as_user('bo101');
- r:=c10_demo.am_kpi_report_v1(101,f,t); d:=c10_demo.am_downtime_report_v1(101,f,t);
+ r:=core10.am_kpi_report_v1(101,f,t); d:=core10.am_downtime_report_v1(101,f,t);
  PERFORM c10_test.eqn(r#>>'{mttr,hours}',3.6,'fleet MTTR'); PERFORM c10_test.eqn(r#>>'{mttr,sample_size}',5,'mttr sample'); PERFORM c10_test.eq(r#>>'{mttr,insufficient_sample}','false','mttr sufficient');
  PERFORM c10_test.eqn(r#>>'{mtbf,failures}',5,'failures');
  PERFORM c10_test.eqn(r#>>'{mtbf,operating_hours}',round(((d#>>'{totals,period_minutes}')::numeric-(d#>>'{totals,downtime_minutes}')::numeric)/60,2),'operating hours consistent');
@@ -466,48 +466,48 @@ BEGIN
  PERFORM c10_test.eqn(r#>>'{cost_rollup,totals,actual_spares_cost}',400,'act spares'); PERFORM c10_test.eqn(r#>>'{cost_rollup,by_kind,breakdown,actual_total}',1450,'cost by kind');
  PERFORM c10_test.chk(r#>>'{cost_rollup,label}' ILIKE 'ADVISORY%','cost label');
  -- site-limited supervisor: sample of 1 => insufficient (MTTR and MTBF null + flag)
- PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_kpi_report_v1(101,f,t);
+ PERFORM c10_test.as_user('sup1001'); r:=core10.am_kpi_report_v1(101,f,t);
  PERFORM c10_test.eq(r#>>'{mttr,hours}',NULL,'1001 MTTR null'); PERFORM c10_test.eq(r#>>'{mttr,insufficient_sample}','true','1001 mttr flag'); PERFORM c10_test.eqn(r#>>'{mttr,sample_size}',1,'1001 sample');
  PERFORM c10_test.eq(r#>>'{mtbf,hours}',NULL,'1001 MTBF null'); PERFORM c10_test.eq(r#>>'{mtbf,insufficient_sample}','true','1001 mtbf flag');
  PERFORM c10_test.eqn(r#>>'{pm_compliance,due}',3,'1001 pm due'); PERFORM c10_test.eqn(r#>>'{pm_compliance,compliance_pct}',66.67,'1001 pm pct');
  PERFORM c10_test.eqn(r#>>'{overdue_backlog,count}',1,'1001 backlog'); PERFORM c10_test.eqn(r#>>'{cost_rollup,totals,actual_total}',0,'1001 cost');
  PERFORM c10_test.eqn(r#>>'{risk_matrix,items,0,failures}',1,'1001 top risk is chiller');
  -- isolation
- PERFORM c10_test.as_user('bo102'); r:=c10_demo.am_kpi_report_v1(102,f,t);
+ PERFORM c10_test.as_user('bo102'); r:=core10.am_kpi_report_v1(102,f,t);
  PERFORM c10_test.eqn(r#>>'{mtbf,failures}',1,'102 failures'); PERFORM c10_test.eqn(r#>>'{pm_compliance,due}',1,'102 pm'); PERFORM c10_test.eqn(r#>>'{pm_compliance,compliance_pct}',100,'102 pm pct');
  PERFORM c10_test.eq(r#>>'{mttr,insufficient_sample}','true','102 mttr insufficient');
 END $$;
 RESET ROLE;
 -- policy-driven sample sizes: min sample 6 makes the fleet MTTR (5 samples) insufficient; min 1 makes chiller sufficient
-INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES
+INSERT INTO core10.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES
  (101,1,'business',0,'analytics.min_sample_mttr','6',c10_test.u('bo101')),(101,1,'business',0,'analytics.min_sample_mtbf','6',c10_test.u('bo101'));
 SET LOCAL ROLE authenticated;
-DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_kpi_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=core10.am_kpi_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
  PERFORM c10_test.eq(r#>>'{mttr,hours}',NULL,'MTTR null below policy sample'); PERFORM c10_test.eq(r#>>'{mttr,insufficient_sample}','true','flag'); PERFORM c10_test.eqn(r#>>'{mttr,min_sample}',6,'min sample echoed');
  PERFORM c10_test.eq(r#>>'{mtbf,hours}',NULL,'MTBF null'); PERFORM c10_test.eq(r#>>'{mtbf,insufficient_sample}','true','mtbf flag'); END $$;
 RESET ROLE;
-DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key IN('analytics.min_sample_mttr','analytics.min_sample_mtbf');
-INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'analytics.min_sample_mttr','1',c10_test.u('bo101'));
+DELETE FROM core10.am_policy WHERE business_id=101 AND key IN('analytics.min_sample_mttr','analytics.min_sample_mtbf');
+INSERT INTO core10.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'analytics.min_sample_mttr','1',c10_test.u('bo101'));
 SET LOCAL ROLE authenticated;
-DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_kpi_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('sup1001'); r:=core10.am_kpi_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
  PERFORM c10_test.eqn(r#>>'{mttr,hours}',3,'single sample sufficient when policy min is 1 (BD5: 3h)'); PERFORM c10_test.eq(r#>>'{mttr,insufficient_sample}','false','flag cleared'); END $$;
 RESET ROLE;
-DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='analytics.min_sample_mttr';
+DELETE FROM core10.am_policy WHERE business_id=101 AND key='analytics.min_sample_mttr';
 -- policy: risk thresholds
-INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES
+INSERT INTO core10.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES
  (101,1,'business',0,'risk.high_threshold','8',c10_test.u('bo101')),(101,1,'business',0,'risk.critical_threshold','10',c10_test.u('bo101'));
 SET LOCAL ROLE authenticated;
-DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_kpi_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=core10.am_kpi_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
  PERFORM c10_test.eq((SELECT e->>'band' FROM jsonb_array_elements(r#>'{risk_matrix,items}') e WHERE e->>'asset_no'='CHL-1'),'critical','chiller critical at threshold 10'); END $$;
 RESET ROLE;
-DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key LIKE 'risk.%';
+DELETE FROM core10.am_policy WHERE business_id=101 AND key LIKE 'risk.%';
 -- policy: PM grace (site override 1001: grace 7 makes P2 (4 days late) on time => 3 of 3 at site 1001)
-INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'site',1001,'schedule.grace_days','7',c10_test.u('bo101'));
+INSERT INTO core10.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'site',1001,'schedule.grace_days','7',c10_test.u('bo101'));
 SET LOCAL ROLE authenticated;
-DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_kpi_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=core10.am_kpi_report_v1(101,c10_test.dt(20)::date,c10_test.dt(1)::date);
  PERFORM c10_test.eqn(r#>>'{pm_compliance,on_time}',3,'grace policy by site'); PERFORM c10_test.eqn(r#>>'{pm_compliance,compliance_pct}',75,'pm pct with grace'); END $$;
 RESET ROLE;
-DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='schedule.grace_days';
+DELETE FROM core10.am_policy WHERE business_id=101 AND key='schedule.grace_days';
 
 -- ===================================================== S5 asset health + advisory depreciation =====================================================
 CREATE FUNCTION c10_test.hi(r jsonb,p_no text) RETURNS jsonb LANGUAGE sql IMMUTABLE AS $$ SELECT e FROM jsonb_array_elements(r->'items') e WHERE e->>'asset_no'=p_no $$;
@@ -517,7 +517,7 @@ SET LOCAL ROLE authenticated;
 DO $$
 DECLARE r jsonb; h jsonb; m int:=(SELECT (extract(year FROM age(c10_test.today()::timestamp,c10_test.dt(400)::timestamp))*12+extract(month FROM age(c10_test.today()::timestamp,c10_test.dt(400)::timestamp)))::int);
 BEGIN
- PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_asset_health_report_v1(101);
+ PERFORM c10_test.as_user('bo101'); r:=core10.am_asset_health_report_v1(101);
  PERFORM c10_test.eqn(r->>'total',9,'health total (retired excluded)'); PERFORM c10_test.eq(r->>'advisory','true','health advisory');
  PERFORM c10_test.eq(r#>>'{items,0,asset_no}','CRN-1','worst asset first');
  h:=c10_test.hi(r,'CRN-1'); PERFORM c10_test.eqn(h->>'health_score',50,'crane score');
@@ -538,31 +538,31 @@ BEGIN
  PERFORM c10_test.eq(r#>>'{summary,depreciation_advisory,posted}','false','summary not posted');
  PERFORM c10_test.eqn((r#>>'{summary,bands}')::jsonb->>'poor',1,'poor band count');
  -- site filtered
- PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_asset_health_report_v1(101); PERFORM c10_test.eqn(r->>'total',5,'1001 total'); PERFORM c10_test.eq(c10_test.hi(r,'CRN-1')::text,NULL,'no crane for 1001');
- PERFORM c10_test.as_user('bo102'); PERFORM c10_test.eqn((c10_demo.am_asset_health_report_v1(102))->>'total',2,'102 total');
+ PERFORM c10_test.as_user('sup1001'); r:=core10.am_asset_health_report_v1(101); PERFORM c10_test.eqn(r->>'total',5,'1001 total'); PERFORM c10_test.eq(c10_test.hi(r,'CRN-1')::text,NULL,'no crane for 1001');
+ PERFORM c10_test.as_user('bo102'); PERFORM c10_test.eqn((core10.am_asset_health_report_v1(102))->>'total',2,'102 total');
 END $$;
 RESET ROLE;
 -- policy: declining balance + category override 'none'
-INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'finance.depreciation_method','"declining_balance"',c10_test.u('bo101'));
+INSERT INTO core10.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'finance.depreciation_method','"declining_balance"',c10_test.u('bo101'));
 SET LOCAL ROLE authenticated;
 DO $$ DECLARE r jsonb; h jsonb; m int:=(SELECT (extract(year FROM age(c10_test.today()::timestamp,c10_test.dt(400)::timestamp))*12+extract(month FROM age(c10_test.today()::timestamp,c10_test.dt(400)::timestamp)))::int);
-BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_asset_health_report_v1(101); h:=c10_test.hi(r,'CHL-1');
+BEGIN PERFORM c10_test.as_user('bo101'); r:=core10.am_asset_health_report_v1(101); h:=c10_test.hi(r,'CHL-1');
  PERFORM c10_test.eq(h#>>'{depreciation,method}','declining_balance','DB method');
  PERFORM c10_test.eqn(h#>>'{depreciation,book_value}',round(GREATEST(10000,100000*power(0.8,m/12.0)),2),'DB book value'); END $$;
 RESET ROLE;
-INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'category',c10_test.catid(101,'COLD'),'finance.depreciation_method','"none"',c10_test.u('bo101'));
+INSERT INTO core10.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'category',c10_test.catid(101,'COLD'),'finance.depreciation_method','"none"',c10_test.u('bo101'));
 SET LOCAL ROLE authenticated;
-DO $$ DECLARE r jsonb; h jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_asset_health_report_v1(101); h:=c10_test.hi(r,'CHL-1');
+DO $$ DECLARE r jsonb; h jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=core10.am_asset_health_report_v1(101); h:=c10_test.hi(r,'CHL-1');
  PERFORM c10_test.eqn(h#>>'{depreciation,accumulated}',0,'none => 0'); PERFORM c10_test.eq(h#>>'{depreciation,reason}','method_none','none reason'); END $$;
 RESET ROLE;
-DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key LIKE 'finance.%';
+DELETE FROM core10.am_policy WHERE business_id=101 AND key LIKE 'finance.%';
 
 -- ===================================================== S6 warranty report =====================================================
 SET LOCAL ROLE authenticated;
 DO $$
 DECLARE r jsonb;
 BEGIN
- PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_warranty_report_v1(101);
+ PERFORM c10_test.as_user('bo101'); r:=core10.am_warranty_report_v1(101);
  PERFORM c10_test.eq(r#>>'{warranties,counts}','{"void": 1, "active": 2, "expired": 1, "expiring": 1}','warranty counts (policy horizon 60)');
  PERFORM c10_test.eq(r#>>'{warranties,expiring,0,asset_no}','CHL-1','expiring asset'); PERFORM c10_test.eqn(r#>>'{warranties,expiring,0,days_left}',20,'days left');
  PERFORM c10_test.eq(r#>>'{warranties,expired,0,asset_no}','CNV-1','expired asset');
@@ -571,24 +571,24 @@ BEGIN
  PERFORM c10_test.eqn(jsonb_array_length(r#>'{recurring_failures_in_warranty,items}')::text,1,'recurring in warranty');
  PERFORM c10_test.eq(r#>>'{recurring_failures_in_warranty,items,0,failure_code}','MECH','recurring code'); PERFORM c10_test.eqn(r#>>'{recurring_failures_in_warranty,items,0,count}',3,'recurring count');
  -- explicit horizon overrides policy
- PERFORM c10_test.eq((c10_demo.am_warranty_report_v1(101,10))#>>'{warranties,counts}','{"void": 1, "active": 3, "expired": 1, "expiring": 0}','horizon 10');
- PERFORM c10_test.eq((c10_demo.am_warranty_report_v1(101,120))#>>'{warranties,counts}','{"void": 1, "active": 1, "expired": 1, "expiring": 2}','horizon 120');
+ PERFORM c10_test.eq((core10.am_warranty_report_v1(101,10))#>>'{warranties,counts}','{"void": 1, "active": 3, "expired": 1, "expiring": 0}','horizon 10');
+ PERFORM c10_test.eq((core10.am_warranty_report_v1(101,120))#>>'{warranties,counts}','{"void": 1, "active": 1, "expired": 1, "expiring": 2}','horizon 120');
  -- per-site and isolation
- PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_warranty_report_v1(101);
+ PERFORM c10_test.as_user('sup1001'); r:=core10.am_warranty_report_v1(101);
  PERFORM c10_test.eq(r#>>'{warranties,counts}','{"void": 1, "active": 1, "expired": 0, "expiring": 1}','1001 counts'); PERFORM c10_test.eqn(r#>>'{claims,total}',1,'1001 claims');
  PERFORM c10_test.eqn(jsonb_array_length(r#>'{recurring_failures_in_warranty,items}')::text,0,'1001 no recurring');
- PERFORM c10_test.as_user('bo102'); r:=c10_demo.am_warranty_report_v1(102); PERFORM c10_test.eq(r#>>'{warranties,counts}','{"void": 0, "active": 1, "expired": 0, "expiring": 0}','102 counts');
+ PERFORM c10_test.as_user('bo102'); r:=core10.am_warranty_report_v1(102); PERFORM c10_test.eq(r#>>'{warranties,counts}','{"void": 0, "active": 1, "expired": 0, "expiring": 0}','102 counts');
  PERFORM c10_test.eqn(r#>>'{claims,total}',0,'102 claims');
- PERFORM c10_test.as_user('owner2'); PERFORM c10_test.eq((c10_demo.am_warranty_report_v1(201))#>>'{warranties,counts}','{"void": 0, "active": 0, "expired": 0, "expiring": 0}','201 counts');
+ PERFORM c10_test.as_user('owner2'); PERFORM c10_test.eq((core10.am_warranty_report_v1(201))#>>'{warranties,counts}','{"void": 0, "active": 0, "expired": 0, "expiring": 0}','201 counts');
 END $$;
 RESET ROLE;
 -- policy: asset.warranty_warn_days (site/category scoped)
-INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'asset.warranty_warn_days','10',c10_test.u('bo101'));
+INSERT INTO core10.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES(101,1,'business',0,'asset.warranty_warn_days','10',c10_test.u('bo101'));
 SET LOCAL ROLE authenticated;
 DO $$ BEGIN PERFORM c10_test.as_user('bo101');
- PERFORM c10_test.eq((c10_demo.am_warranty_report_v1(101))#>>'{warranties,counts}','{"void": 1, "active": 3, "expired": 1, "expiring": 0}','policy warn days 10'); END $$;
+ PERFORM c10_test.eq((core10.am_warranty_report_v1(101))#>>'{warranties,counts}','{"void": 1, "active": 3, "expired": 1, "expiring": 0}','policy warn days 10'); END $$;
 RESET ROLE;
-DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key='asset.warranty_warn_days';
+DELETE FROM core10.am_policy WHERE business_id=101 AND key='asset.warranty_warn_days';
 
 -- ===================================================== S7 reconciliation =====================================================
 CREATE FUNCTION c10_test.cls(r jsonb,p_code text,p_f text) RETURNS text LANGUAGE sql IMMUTABLE AS $$ SELECT c->>p_f FROM jsonb_array_elements(r->'classes') c WHERE c->>'code'=p_code $$;
@@ -598,7 +598,7 @@ SET LOCAL ROLE authenticated;
 DO $$
 DECLARE r jsonb;
 BEGIN
- PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_reconciliation_v1(101);
+ PERFORM c10_test.as_user('bo101'); r:=core10.am_reconciliation_v1(101);
  PERFORM c10_test.eq(r->>'ok','false','101 is inconsistent'); PERFORM c10_test.eqn(r->>'total_mismatches',9,'9 seeded mismatches'); PERFORM c10_test.eqn(jsonb_array_length(r->'classes')::text,9,'9 classes');
  PERFORM c10_test.eq(c10_test.cls_ids(r,'completed_breakdown_wo_without_ended_downtime'),'['||c10_test.k('BD4')||']','class1');
  PERFORM c10_test.eq(c10_test.cls_ids(r,'breakdown_downtime_without_wo'),'['||c10_test.k('DT-POS')||']','class2');
@@ -610,24 +610,24 @@ BEGIN
  PERFORM c10_test.eq(c10_test.cls_ids(r,'wo_site_differs_from_asset'),'['||c10_test.k('O8')||']','class8');
  PERFORM c10_test.eq(c10_test.cls_ids(r,'child_site_differs_from_parent'),'['||c10_test.k('CNV-1M')||']','class9');
  -- time scope excludes the old events; state-based classes remain
- r:=c10_demo.am_reconciliation_v1(101,c10_test.dt(3)::date,c10_test.dt(1)::date);
+ r:=core10.am_reconciliation_v1(101,c10_test.dt(3)::date,c10_test.dt(1)::date);
  PERFORM c10_test.eqn(c10_test.cls(r,'completed_breakdown_wo_without_ended_downtime','count'),0,'time scoped 1'); PERFORM c10_test.eqn(c10_test.cls(r,'breakdown_downtime_without_wo','count'),0,'time scoped 2');
  PERFORM c10_test.eqn(c10_test.cls(r,'meter_decrease_without_reset','count'),0,'time scoped 6'); PERFORM c10_test.eqn(c10_test.cls(r,'asset_breakdown_without_open_downtime','count'),1,'state class kept');
  -- site-limited supervisor sees only the 1001 slice
- PERFORM c10_test.as_user('sup1001'); r:=c10_demo.am_reconciliation_v1(101);
+ PERFORM c10_test.as_user('sup1001'); r:=core10.am_reconciliation_v1(101);
  PERFORM c10_test.eqn(r->>'total_mismatches',5,'1001 slice'); PERFORM c10_test.eqn(c10_test.cls(r,'completed_breakdown_wo_without_ended_downtime','count'),0,'1001 class1');
  PERFORM c10_test.eqn(c10_test.cls(r,'open_wo_on_retired_asset','count'),0,'1001 class5'); PERFORM c10_test.eqn(c10_test.cls(r,'child_site_differs_from_parent','count'),0,'1001 class9');
  -- clean business reports ok; other businesses/tenants unaffected
- PERFORM c10_test.as_user('bo102'); r:=c10_demo.am_reconciliation_v1(102); PERFORM c10_test.eq(r->>'ok','true','102 clean'); PERFORM c10_test.eqn(r->>'total_mismatches',0,'102 zero');
- PERFORM c10_test.as_user('owner2'); PERFORM c10_test.eq((c10_demo.am_reconciliation_v1(201))->>'ok','true','201 clean');
+ PERFORM c10_test.as_user('bo102'); r:=core10.am_reconciliation_v1(102); PERFORM c10_test.eq(r->>'ok','true','102 clean'); PERFORM c10_test.eqn(r->>'total_mismatches',0,'102 zero');
+ PERFORM c10_test.as_user('owner2'); PERFORM c10_test.eq((core10.am_reconciliation_v1(201))->>'ok','true','201 clean');
 END $$;
 RESET ROLE;
 -- policy downtime.end_on=verified: a merely COMPLETED breakdown WO is not expected to have an ended window yet; allow_decrease silences meter class
-INSERT INTO c10_demo.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES
+INSERT INTO core10.am_policy(business_id,tenant_id,scope_type,scope_id,key,value,updated_by) VALUES
  (101,1,'business',0,'downtime.end_on','"verified"',c10_test.u('bo101')),(101,1,'business',0,'meter.allow_decrease','true',c10_test.u('bo101'));
 SET LOCAL ROLE authenticated;
-DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=c10_demo.am_reconciliation_v1(101);
+DO $$ DECLARE r jsonb; BEGIN PERFORM c10_test.as_user('bo101'); r:=core10.am_reconciliation_v1(101);
  PERFORM c10_test.eqn(c10_test.cls(r,'completed_breakdown_wo_without_ended_downtime','count'),0,'end_on verified'); PERFORM c10_test.eqn(c10_test.cls(r,'meter_decrease_without_reset','count'),0,'allow_decrease');
  PERFORM c10_test.eqn(r->>'total_mismatches',7,'7 left'); END $$;
 RESET ROLE;
-DELETE FROM c10_demo.am_policy WHERE business_id=101 AND key IN('downtime.end_on','meter.allow_decrease');
+DELETE FROM core10.am_policy WHERE business_id=101 AND key IN('downtime.end_on','meter.allow_decrease');

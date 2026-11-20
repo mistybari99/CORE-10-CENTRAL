@@ -1,10 +1,10 @@
 -- C10-A051 Workforce core (1/3): settings, employees, assignments, shifts, holidays, audit.
--- DISPOSABLE c10_demo ONLY. Apply AFTER A018. NEVER apply to production IMG-ERP-SG.
+-- DISPOSABLE core10 ONLY. Apply AFTER A018. NEVER apply to production IMG-ERP-SG.
 -- Reuses A018 tenants/businesses/sites + can_tenant/can_manage/can_business. NO new login,
 -- NO duplicate site_grants, NO finance/stock ledger. All tables: RLS on, zero direct grants;
 -- every read/write goes through guarded SECURITY DEFINER RPCs (public API: wf_*_v1).
 -- Internal helpers are wfi_* and are NOT executable by authenticated/anon.
-CREATE TABLE c10_demo.wf_business_settings(
+CREATE TABLE core10.wf_business_settings(
  business_id bigint PRIMARY KEY,
  tenant_id bigint NOT NULL,
  timezone text NOT NULL DEFAULT 'Asia/Dhaka' CHECK(timezone='Asia/Dhaka'),
@@ -22,9 +22,9 @@ CREATE TABLE c10_demo.wf_business_settings(
  punch_retention_months int NOT NULL DEFAULT 36 CHECK(punch_retention_months BETWEEN 12 AND 120),
  version bigint NOT NULL DEFAULT 1,
  updated_by uuid, updated_at timestamptz NOT NULL DEFAULT now(),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id)
 );
-CREATE TABLE c10_demo.wf_departments(
+CREATE TABLE core10.wf_departments(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL,
  code text NOT NULL CHECK(code ~ '^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$'),
@@ -32,9 +32,9 @@ CREATE TABLE c10_demo.wf_departments(
  active boolean NOT NULL DEFAULT true,
  version bigint NOT NULL DEFAULT 1,
  UNIQUE(business_id,code), UNIQUE(id,tenant_id,business_id),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id)
 );
-CREATE TABLE c10_demo.wf_employees(
+CREATE TABLE core10.wf_employees(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL,
  employee_no text NOT NULL CHECK(employee_no ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$'),
@@ -49,12 +49,12 @@ CREATE TABLE c10_demo.wf_employees(
  created_by uuid NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),
  updated_at timestamptz NOT NULL DEFAULT now(),
  UNIQUE(business_id,employee_no), UNIQUE(id,tenant_id,business_id),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id)
 );
-CREATE UNIQUE INDEX wf_employees_user_uq ON c10_demo.wf_employees(business_id,user_id) WHERE user_id IS NOT NULL;
-CREATE INDEX wf_employees_user_ix ON c10_demo.wf_employees(user_id) WHERE user_id IS NOT NULL;
+CREATE UNIQUE INDEX wf_employees_user_uq ON core10.wf_employees(business_id,user_id) WHERE user_id IS NOT NULL;
+CREATE INDEX wf_employees_user_ix ON core10.wf_employees(user_id) WHERE user_id IS NOT NULL;
 -- Append-only effective-dated facts: the state on date D is the row with greatest effective_from<=D (ties: highest id).
-CREATE TABLE c10_demo.wf_employment_history(
+CREATE TABLE core10.wf_employment_history(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, employee_id bigint NOT NULL,
  effective_from date NOT NULL,
@@ -62,10 +62,10 @@ CREATE TABLE c10_demo.wf_employment_history(
  contract_type text NOT NULL CHECK(contract_type IN('permanent','contract','probation','daily','hourly','intern')),
  reason text NOT NULL CHECK(length(btrim(reason)) BETWEEN 3 AND 500),
  changed_by uuid NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id)
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id)
 );
-CREATE INDEX wf_hist_emp_ix ON c10_demo.wf_employment_history(employee_id,effective_from DESC,id DESC);
-CREATE TABLE c10_demo.wf_assignments(
+CREATE INDEX wf_hist_emp_ix ON core10.wf_employment_history(employee_id,effective_from DESC,id DESC);
+CREATE TABLE core10.wf_assignments(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, employee_id bigint NOT NULL,
  effective_from date NOT NULL,
@@ -74,13 +74,13 @@ CREATE TABLE c10_demo.wf_assignments(
  is_supervisor boolean NOT NULL DEFAULT false,
  reason text NOT NULL CHECK(length(btrim(reason)) BETWEEN 3 AND 500),
  changed_by uuid NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id),
- FOREIGN KEY(site_id,tenant_id,business_id) REFERENCES c10_demo.sites(id,tenant_id,business_id),
- FOREIGN KEY(department_id,tenant_id,business_id) REFERENCES c10_demo.wf_departments(id,tenant_id,business_id)
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id),
+ FOREIGN KEY(site_id,tenant_id,business_id) REFERENCES core10.sites(id,tenant_id,business_id),
+ FOREIGN KEY(department_id,tenant_id,business_id) REFERENCES core10.wf_departments(id,tenant_id,business_id)
 );
-CREATE INDEX wf_assign_emp_ix ON c10_demo.wf_assignments(employee_id,effective_from DESC,id DESC);
-CREATE INDEX wf_assign_site_ix ON c10_demo.wf_assignments(site_id);
-CREATE TABLE c10_demo.wf_shifts(
+CREATE INDEX wf_assign_emp_ix ON core10.wf_assignments(employee_id,effective_from DESC,id DESC);
+CREATE INDEX wf_assign_site_ix ON core10.wf_assignments(site_id);
+CREATE TABLE core10.wf_shifts(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL,
  code text NOT NULL CHECK(code ~ '^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$'),
@@ -94,19 +94,19 @@ CREATE TABLE c10_demo.wf_shifts(
  active boolean NOT NULL DEFAULT true,
  version bigint NOT NULL DEFAULT 1,
  UNIQUE(business_id,code), UNIQUE(id,tenant_id,business_id),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id)
 );
-CREATE TABLE c10_demo.wf_shift_assignments(
+CREATE TABLE core10.wf_shift_assignments(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, employee_id bigint NOT NULL,
  shift_id bigint NOT NULL, effective_from date NOT NULL,
  reason text NOT NULL CHECK(length(btrim(reason)) BETWEEN 3 AND 500),
  changed_by uuid NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id),
- FOREIGN KEY(shift_id,tenant_id,business_id) REFERENCES c10_demo.wf_shifts(id,tenant_id,business_id)
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id),
+ FOREIGN KEY(shift_id,tenant_id,business_id) REFERENCES core10.wf_shifts(id,tenant_id,business_id)
 );
-CREATE INDEX wf_shiftas_emp_ix ON c10_demo.wf_shift_assignments(employee_id,effective_from DESC,id DESC);
-CREATE TABLE c10_demo.wf_holidays(
+CREATE INDEX wf_shiftas_emp_ix ON core10.wf_shift_assignments(employee_id,effective_from DESC,id DESC);
+CREATE TABLE core10.wf_holidays(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL,
  holiday_date date NOT NULL,
@@ -115,20 +115,20 @@ CREATE TABLE c10_demo.wf_holidays(
  paid boolean NOT NULL DEFAULT true,
  site_id bigint, active boolean NOT NULL DEFAULT true,
  version bigint NOT NULL DEFAULT 1,
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id),
- FOREIGN KEY(site_id,tenant_id,business_id) REFERENCES c10_demo.sites(id,tenant_id,business_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id),
+ FOREIGN KEY(site_id,tenant_id,business_id) REFERENCES core10.sites(id,tenant_id,business_id)
 );
-CREATE UNIQUE INDEX wf_holidays_uq ON c10_demo.wf_holidays(business_id,holiday_date,COALESCE(site_id,0));
-CREATE TABLE c10_demo.wf_receipts(
+CREATE UNIQUE INDEX wf_holidays_uq ON core10.wf_holidays(business_id,holiday_date,COALESCE(site_id,0));
+CREATE TABLE core10.wf_receipts(
  tenant_id bigint NOT NULL, business_id bigint NOT NULL,
  request_key text NOT NULL CHECK(request_key ~ '^[A-Za-z0-9_-]{8,100}$'),
  actor_uid uuid NOT NULL, op text NOT NULL, payload jsonb NOT NULL, result jsonb NOT NULL,
  created_at timestamptz NOT NULL DEFAULT now(),
  PRIMARY KEY(business_id,request_key),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id)
 );
 -- Append-only hash-chained audit stream (per business). Never mutated, even by definer RPCs.
-CREATE TABLE c10_demo.wf_audit(
+CREATE TABLE core10.wf_audit(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL,
  entity text NOT NULL, entity_id text NOT NULL, event text NOT NULL,
@@ -136,61 +136,66 @@ CREATE TABLE c10_demo.wf_audit(
  actor_uid uuid NOT NULL, request_key text NOT NULL,
  created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
  prev_hash text, row_hash text NOT NULL,
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id)
 );
-CREATE INDEX wf_audit_biz_ix ON c10_demo.wf_audit(business_id,id);
-CREATE FUNCTION c10_demo.wfi_audit_hash(p_prev text,r c10_demo.wf_audit) RETURNS text
+CREATE INDEX wf_audit_biz_ix ON core10.wf_audit(business_id,id);
+CREATE FUNCTION core10.wfi_audit_hash(p_prev text,r core10.wf_audit) RETURNS text
 LANGUAGE sql IMMUTABLE AS $$
  SELECT encode(sha256(convert_to(concat_ws('|',COALESCE(p_prev,'GENESIS'),r.tenant_id,r.business_id,
   r.entity,r.entity_id,r.event,COALESCE(r.before_state::text,''),COALESCE(r.after_state::text,''),
   COALESCE(r.reason,''),r.actor_uid,r.request_key,r.created_at::text),'UTF8')),'hex') $$;
-CREATE FUNCTION c10_demo.wfi_audit_chain() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE FUNCTION core10.wfi_audit_chain() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
- SELECT row_hash INTO NEW.prev_hash FROM c10_demo.wf_audit WHERE business_id=NEW.business_id ORDER BY id DESC LIMIT 1;
- NEW.row_hash:=c10_demo.wfi_audit_hash(NEW.prev_hash,NEW);
+ SELECT row_hash INTO NEW.prev_hash FROM core10.wf_audit WHERE business_id=NEW.business_id ORDER BY id DESC LIMIT 1;
+ NEW.row_hash:=core10.wfi_audit_hash(NEW.prev_hash,NEW);
  RETURN NEW;
 END$$;
-CREATE TRIGGER wf_audit_chain BEFORE INSERT ON c10_demo.wf_audit FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_audit_chain();
-CREATE FUNCTION c10_demo.wfi_immutable() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE TRIGGER wf_audit_chain BEFORE INSERT ON core10.wf_audit FOR EACH ROW EXECUTE FUNCTION core10.wfi_audit_chain();
+CREATE FUNCTION core10.wfi_immutable() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN RAISE EXCEPTION 'wf_append_only_record'; END$$;
-CREATE TRIGGER wf_audit_no_row_mutation BEFORE UPDATE OR DELETE ON c10_demo.wf_audit FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_immutable();
-CREATE TRIGGER wf_audit_no_truncate BEFORE TRUNCATE ON c10_demo.wf_audit FOR EACH STATEMENT EXECUTE FUNCTION c10_demo.wfi_immutable();
-CREATE TRIGGER wf_hist_no_mutation BEFORE UPDATE OR DELETE ON c10_demo.wf_employment_history FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_immutable();
-CREATE TRIGGER wf_assign_no_mutation BEFORE UPDATE OR DELETE ON c10_demo.wf_assignments FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_immutable();
-CREATE TRIGGER wf_shiftas_no_mutation BEFORE UPDATE OR DELETE ON c10_demo.wf_shift_assignments FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_immutable();
-CREATE TRIGGER wf_receipts_no_mutation BEFORE UPDATE OR DELETE ON c10_demo.wf_receipts FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_immutable();
+CREATE TRIGGER wf_audit_no_row_mutation BEFORE UPDATE OR DELETE ON core10.wf_audit FOR EACH ROW EXECUTE FUNCTION core10.wfi_immutable();
+CREATE TRIGGER wf_audit_no_truncate BEFORE TRUNCATE ON core10.wf_audit FOR EACH STATEMENT EXECUTE FUNCTION core10.wfi_immutable();
+CREATE TRIGGER wf_hist_no_mutation BEFORE UPDATE OR DELETE ON core10.wf_employment_history FOR EACH ROW EXECUTE FUNCTION core10.wfi_immutable();
+CREATE TRIGGER wf_assign_no_mutation BEFORE UPDATE OR DELETE ON core10.wf_assignments FOR EACH ROW EXECUTE FUNCTION core10.wfi_immutable();
+CREATE TRIGGER wf_shiftas_no_mutation BEFORE UPDATE OR DELETE ON core10.wf_shift_assignments FOR EACH ROW EXECUTE FUNCTION core10.wfi_immutable();
+CREATE TRIGGER wf_receipts_no_mutation BEFORE UPDATE OR DELETE ON core10.wf_receipts FOR EACH ROW EXECUTE FUNCTION core10.wfi_immutable();
 
-CREATE TYPE c10_demo.wf_ctx_t AS(
+CREATE TYPE core10.wf_ctx_t AS(
  tenant_id bigint, user_id uuid, is_tenant_owner boolean, is_business_owner boolean,
  is_manager boolean, employee_id bigint, supervised_sites bigint[]);
 
-CREATE FUNCTION c10_demo.wfi_today() RETURNS date LANGUAGE sql STABLE AS
+CREATE FUNCTION core10.wfi_today() RETURNS date LANGUAGE sql STABLE AS
 $$ SELECT (now() AT TIME ZONE 'Asia/Dhaka')::date $$;
-CREATE FUNCTION c10_demo.wfi_ts(p_date date,p_time time) RETURNS timestamptz LANGUAGE sql IMMUTABLE AS
+CREATE FUNCTION core10.wfi_ts(p_date date,p_time time) RETURNS timestamptz LANGUAGE sql IMMUTABLE AS
 $$ SELECT (p_date+p_time) AT TIME ZONE 'Asia/Dhaka' $$;
-CREATE FUNCTION c10_demo.wfi_mask_name(p text) RETURNS text LANGUAGE sql IMMUTABLE AS $$
+CREATE FUNCTION core10.wfi_mask_name(p text) RETURNS text LANGUAGE sql IMMUTABLE AS $$
  SELECT CASE WHEN position(' ' IN btrim(p))=0 THEN btrim(p)
   ELSE split_part(btrim(p),' ',1)||' '||left(regexp_replace(btrim(p),'^\S+\s+',''),1)||'.' END $$;
 
 -- Server-derived authority. Stock grants/site_grants alone NEVER grant any workforce access.
-CREATE FUNCTION c10_demo.wfi_ctx(p_business bigint) RETURNS c10_demo.wf_ctx_t
+CREATE FUNCTION core10.wfi_ctx(p_business bigint) RETURNS core10.wf_ctx_t
 LANGUAGE plpgsql AS $$
-DECLARE c c10_demo.wf_ctx_t; uid uuid:=c10_demo.actor_uid(); a record;
+DECLARE c core10.wf_ctx_t; uid uuid:=core10.actor_uid(); a record;
 BEGIN
  IF uid IS NULL OR p_business IS NULL THEN RAISE EXCEPTION 'wf_denied'; END IF;
- SELECT tenant_id INTO c.tenant_id FROM c10_demo.businesses WHERE id=p_business;
+ -- Inactive tenant blocks workforce authority, including employee-only access.
+ SELECT b.tenant_id INTO c.tenant_id FROM core10.businesses b
+ JOIN core10.tenants t ON t.id=b.tenant_id AND t.active WHERE b.id=p_business;
  IF c.tenant_id IS NULL THEN RAISE EXCEPTION 'wf_denied'; END IF;
  c.user_id:=uid;
- c.is_tenant_owner:=c10_demo.can_tenant(c.tenant_id);
- c.is_business_owner:=EXISTS(SELECT 1 FROM c10_demo.business_members m WHERE m.user_id=uid
-   AND m.tenant_id=c.tenant_id AND m.business_id=p_business AND m.active AND m.role='business_owner');
- c.is_manager:=EXISTS(SELECT 1 FROM c10_demo.business_members m WHERE m.user_id=uid
-   AND m.tenant_id=c.tenant_id AND m.business_id=p_business AND m.active AND m.role='manager');
- SELECT id INTO c.employee_id FROM c10_demo.wf_employees
+ c.is_tenant_owner:=core10.can_tenant(c.tenant_id);
+ c.is_business_owner:=EXISTS(SELECT 1 FROM core10.business_members m WHERE m.user_id=uid
+   AND m.tenant_id=c.tenant_id AND m.business_id=p_business AND m.active AND m.role='business_owner'
+   -- Build01 adds valid_until AFTER A051 installation; missing field stays NULL.
+   AND (to_jsonb(m)->>'valid_until' IS NULL OR (to_jsonb(m)->>'valid_until')::timestamptz>statement_timestamp()));
+ c.is_manager:=EXISTS(SELECT 1 FROM core10.business_members m WHERE m.user_id=uid
+   AND m.tenant_id=c.tenant_id AND m.business_id=p_business AND m.active AND m.role='manager'
+   AND (to_jsonb(m)->>'valid_until' IS NULL OR (to_jsonb(m)->>'valid_until')::timestamptz>statement_timestamp()));
+ SELECT id INTO c.employee_id FROM core10.wf_employees
   WHERE business_id=p_business AND user_id=uid AND status='active';
  c.supervised_sites:='{}';
  IF c.employee_id IS NOT NULL THEN
-  SELECT * INTO a FROM c10_demo.wf_assignments WHERE employee_id=c.employee_id AND effective_from<=c10_demo.wfi_today()
+  SELECT * INTO a FROM core10.wf_assignments WHERE employee_id=c.employee_id AND effective_from<=core10.wfi_today()
    ORDER BY effective_from DESC,id DESC LIMIT 1;
   IF FOUND AND a.is_supervisor THEN c.supervised_sites:=ARRAY[a.site_id]; END IF;
  END IF;
@@ -198,85 +203,85 @@ BEGIN
   RAISE EXCEPTION 'wf_denied'; END IF;
  RETURN c;
 END$$;
-CREATE FUNCTION c10_demo.wfi_is_owner(c c10_demo.wf_ctx_t) RETURNS boolean LANGUAGE sql IMMUTABLE AS
+CREATE FUNCTION core10.wfi_is_owner(c core10.wf_ctx_t) RETURNS boolean LANGUAGE sql IMMUTABLE AS
 $$ SELECT c.is_tenant_owner OR c.is_business_owner $$;
-CREATE FUNCTION c10_demo.wfi_is_manager_plus(c c10_demo.wf_ctx_t) RETURNS boolean LANGUAGE sql IMMUTABLE AS
+CREATE FUNCTION core10.wfi_is_manager_plus(c core10.wf_ctx_t) RETURNS boolean LANGUAGE sql IMMUTABLE AS
 $$ SELECT c.is_tenant_owner OR c.is_business_owner OR c.is_manager $$;
-CREATE FUNCTION c10_demo.wfi_site_of(p_employee bigint,p_date date) RETURNS bigint LANGUAGE sql STABLE AS
-$$ SELECT site_id FROM c10_demo.wf_assignments WHERE employee_id=p_employee AND effective_from<=p_date
+CREATE FUNCTION core10.wfi_site_of(p_employee bigint,p_date date) RETURNS bigint LANGUAGE sql STABLE AS
+$$ SELECT site_id FROM core10.wf_assignments WHERE employee_id=p_employee AND effective_from<=p_date
    ORDER BY effective_from DESC,id DESC LIMIT 1 $$;
 -- Visibility: owner/manager = whole business; supervisor = employees on supervised site; employee = self.
-CREATE FUNCTION c10_demo.wfi_can_see(c c10_demo.wf_ctx_t,p_employee bigint) RETURNS boolean
+CREATE FUNCTION core10.wfi_can_see(c core10.wf_ctx_t,p_employee bigint) RETURNS boolean
 LANGUAGE plpgsql STABLE AS $$
 BEGIN
- IF c10_demo.wfi_is_manager_plus(c) THEN RETURN true; END IF;
+ IF core10.wfi_is_manager_plus(c) THEN RETURN true; END IF;
  IF c.employee_id IS NOT NULL AND c.employee_id=p_employee THEN RETURN true; END IF;
- RETURN c10_demo.wfi_site_of(p_employee,c10_demo.wfi_today())=ANY(c.supervised_sites);
+ RETURN core10.wfi_site_of(p_employee,core10.wfi_today())=ANY(c.supervised_sites);
 END$$;
-CREATE FUNCTION c10_demo.wfi_cfg(p_business bigint) RETURNS c10_demo.wf_business_settings
+CREATE FUNCTION core10.wfi_cfg(p_business bigint) RETURNS core10.wf_business_settings
 LANGUAGE plpgsql AS $$
-DECLARE s c10_demo.wf_business_settings;
+DECLARE s core10.wf_business_settings;
 BEGIN
- INSERT INTO c10_demo.wf_business_settings(business_id,tenant_id)
-  SELECT id,tenant_id FROM c10_demo.businesses WHERE id=p_business ON CONFLICT DO NOTHING;
- SELECT * INTO s FROM c10_demo.wf_business_settings WHERE business_id=p_business;
+ INSERT INTO core10.wf_business_settings(business_id,tenant_id)
+  SELECT id,tenant_id FROM core10.businesses WHERE id=p_business ON CONFLICT DO NOTHING;
+ SELECT * INTO s FROM core10.wf_business_settings WHERE business_id=p_business;
  RETURN s;
 END$$;
-CREATE FUNCTION c10_demo.wfi_status_on(p_employee bigint,p_date date) RETURNS text LANGUAGE sql STABLE AS
-$$ SELECT status FROM c10_demo.wf_employment_history WHERE employee_id=p_employee AND effective_from<=p_date
+CREATE FUNCTION core10.wfi_status_on(p_employee bigint,p_date date) RETURNS text LANGUAGE sql STABLE AS
+$$ SELECT status FROM core10.wf_employment_history WHERE employee_id=p_employee AND effective_from<=p_date
    ORDER BY effective_from DESC,id DESC LIMIT 1 $$;
-CREATE FUNCTION c10_demo.wfi_contract_on(p_employee bigint,p_date date) RETURNS text LANGUAGE sql STABLE AS
-$$ SELECT contract_type FROM c10_demo.wf_employment_history WHERE employee_id=p_employee AND effective_from<=p_date
+CREATE FUNCTION core10.wfi_contract_on(p_employee bigint,p_date date) RETURNS text LANGUAGE sql STABLE AS
+$$ SELECT contract_type FROM core10.wf_employment_history WHERE employee_id=p_employee AND effective_from<=p_date
    ORDER BY effective_from DESC,id DESC LIMIT 1 $$;
-CREATE FUNCTION c10_demo.wfi_log(p_tenant bigint,p_business bigint,p_entity text,p_entity_id text,
+CREATE FUNCTION core10.wfi_log(p_tenant bigint,p_business bigint,p_entity text,p_entity_id text,
  p_event text,p_before jsonb,p_after jsonb,p_reason text,p_request text) RETURNS void LANGUAGE sql AS
-$$ INSERT INTO c10_demo.wf_audit(tenant_id,business_id,entity,entity_id,event,before_state,after_state,reason,actor_uid,request_key)
-   VALUES(p_tenant,p_business,p_entity,p_entity_id,p_event,p_before,p_after,p_reason,c10_demo.actor_uid(),p_request) $$;
+$$ INSERT INTO core10.wf_audit(tenant_id,business_id,entity,entity_id,event,before_state,after_state,reason,actor_uid,request_key)
+   VALUES(p_tenant,p_business,p_entity,p_entity_id,p_event,p_before,p_after,p_reason,core10.actor_uid(),p_request) $$;
 
 -- Write envelope: validates key, serialises per business, resolves authority, replays idempotently.
-CREATE FUNCTION c10_demo.wfi_begin(p_business bigint,p_request text,p_op text,p_payload jsonb,
- OUT o_ctx c10_demo.wf_ctx_t,OUT o_replay jsonb) LANGUAGE plpgsql AS $$
-DECLARE r c10_demo.wf_receipts;
+CREATE FUNCTION core10.wfi_begin(p_business bigint,p_request text,p_op text,p_payload jsonb,
+ OUT o_ctx core10.wf_ctx_t,OUT o_replay jsonb) LANGUAGE plpgsql AS $$
+DECLARE r core10.wf_receipts;
 BEGIN
  IF p_request IS NULL OR p_request !~ '^[A-Za-z0-9_-]{8,100}$' THEN RAISE EXCEPTION 'wf_invalid_request_key'; END IF;
- IF c10_demo.actor_uid() IS NULL THEN RAISE EXCEPTION 'wf_denied'; END IF;
+ IF core10.actor_uid() IS NULL THEN RAISE EXCEPTION 'wf_denied'; END IF;
  -- Authorise BEFORE taking the per-business lock so outsiders cannot contend for it; re-derive after the lock (revocation race).
- PERFORM c10_demo.wfi_ctx(p_business);
- PERFORM 1 FROM c10_demo.businesses WHERE id=p_business FOR NO KEY UPDATE;
+ PERFORM core10.wfi_ctx(p_business);
+ PERFORM 1 FROM core10.businesses WHERE id=p_business FOR NO KEY UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'wf_denied'; END IF;
- o_ctx:=c10_demo.wfi_ctx(p_business);
- PERFORM c10_demo.wfi_cfg(p_business);
- SELECT * INTO r FROM c10_demo.wf_receipts WHERE business_id=p_business AND request_key=p_request;
+ o_ctx:=core10.wfi_ctx(p_business);
+ PERFORM core10.wfi_cfg(p_business);
+ SELECT * INTO r FROM core10.wf_receipts WHERE business_id=p_business AND request_key=p_request;
  IF FOUND THEN
-  IF r.actor_uid<>c10_demo.actor_uid() OR r.op<>p_op OR r.payload<>p_payload THEN
+  IF r.actor_uid<>core10.actor_uid() OR r.op<>p_op OR r.payload<>p_payload THEN
    RAISE EXCEPTION 'wf_idempotency_conflict'; END IF;
   o_replay:=r.result;
  END IF;
 END$$;
-CREATE FUNCTION c10_demo.wfi_finish(p_business bigint,p_tenant bigint,p_request text,p_op text,
+CREATE FUNCTION core10.wfi_finish(p_business bigint,p_tenant bigint,p_request text,p_op text,
  p_payload jsonb,p_result jsonb) RETURNS jsonb LANGUAGE plpgsql AS $$
 BEGIN
- INSERT INTO c10_demo.wf_receipts(tenant_id,business_id,request_key,actor_uid,op,payload,result)
- VALUES(p_tenant,p_business,p_request,c10_demo.actor_uid(),p_op,p_payload,p_result);
+ INSERT INTO core10.wf_receipts(tenant_id,business_id,request_key,actor_uid,op,payload,result)
+ VALUES(p_tenant,p_business,p_request,core10.actor_uid(),p_op,p_payload,p_result);
  RETURN p_result;
 END$$;
-CREATE FUNCTION c10_demo.wfi_need(p_ok boolean,p_code text) RETURNS void LANGUAGE plpgsql IMMUTABLE AS
+CREATE FUNCTION core10.wfi_need(p_ok boolean,p_code text) RETURNS void LANGUAGE plpgsql IMMUTABLE AS
 $$ BEGIN IF p_ok IS NOT TRUE THEN RAISE EXCEPTION '%',p_code; END IF; END$$;
 -- A period is locked while a run is reviewed/approved, or frozen with no open amendment draft.
 -- Changes to a frozen period therefore require an explicit, audited amendment draft (never silent).
-CREATE FUNCTION c10_demo.wfi_range_locked(p_business bigint,p_from date,p_to date) RETURNS boolean LANGUAGE plpgsql STABLE AS
+CREATE FUNCTION core10.wfi_range_locked(p_business bigint,p_from date,p_to date) RETURNS boolean LANGUAGE plpgsql STABLE AS
 $$ BEGIN
- RETURN EXISTS(SELECT 1 FROM c10_demo.wf_payroll_runs r WHERE r.business_id=p_business
+ RETURN EXISTS(SELECT 1 FROM core10.wf_payroll_runs r WHERE r.business_id=p_business
    AND r.period_start<=p_to AND r.period_end>=p_from AND (r.status IN('reviewed','approved')
-   OR (r.status='frozen' AND NOT EXISTS(SELECT 1 FROM c10_demo.wf_payroll_runs a WHERE a.business_id=p_business
+   OR (r.status='frozen' AND NOT EXISTS(SELECT 1 FROM core10.wf_payroll_runs a WHERE a.business_id=p_business
       AND a.period_start=r.period_start AND a.status='draft' AND a.amends_run_id IS NOT NULL))));
 END$$;
-CREATE FUNCTION c10_demo.wfi_period_locked(p_business bigint,p_date date) RETURNS boolean LANGUAGE sql STABLE AS
-$$ SELECT c10_demo.wfi_range_locked(p_business,p_date,p_date) $$;
+CREATE FUNCTION core10.wfi_period_locked(p_business bigint,p_date date) RETURNS boolean LANGUAGE sql STABLE AS
+$$ SELECT core10.wfi_range_locked(p_business,p_date,p_date) $$;
 
 -- ===== Settings / departments / employees =====
-CREATE FUNCTION c10_demo.wf_save_settings_v1(p_business bigint,p_request text,p_expected_version bigint,
- p_changes jsonb,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_save_settings_v1(p_business bigint,p_request text,p_expected_version bigint,
+ p_changes jsonb,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; s wf_business_settings; k text; pay jsonb; res jsonb;
  allowed text[]:=ARRAY['weekly_off_days','duplicate_window_seconds','overtime_requires_approval',
   'max_overtime_minutes_per_day','off_day_work_as_overtime','half_day_ratio','manager_can_approve_corrections',
@@ -317,8 +322,8 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'save_settings',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_save_department_v1(p_business bigint,p_request text,p_code text,p_name text,
- p_active boolean,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_save_department_v1(p_business bigint,p_request text,p_code text,p_name text,
+ p_active boolean,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; v_id bigint; res jsonb;
 BEGIN
  IF p_code IS NULL OR p_name IS NULL OR p_active IS NULL OR p_reason IS NULL OR length(btrim(p_reason)) NOT BETWEEN 3 AND 500
@@ -338,8 +343,8 @@ BEGIN
 END$$;
 
 -- Create (p_employee_id NULL) or update master data. Employee number is immutable.
-CREATE FUNCTION c10_demo.wf_save_employee_v1(p_business bigint,p_request text,p_employee_id bigint,
- p_expected_version bigint,p_data jsonb,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_save_employee_v1(p_business bigint,p_request text,p_employee_id bigint,
+ p_expected_version bigint,p_data jsonb,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; cfg wf_business_settings; pay jsonb; e wf_employees; v_id bigint; res jsonb;
  v_site bigint; v_dept bigint; v_join date; v_contract text; v_name text; v_super boolean;
 BEGIN
@@ -400,9 +405,9 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'save_employee',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_set_employment_v1(p_business bigint,p_request text,p_employee bigint,
+CREATE FUNCTION core10.wf_set_employment_v1(p_business bigint,p_request text,p_employee bigint,
  p_effective_from date,p_status text,p_contract_type text,p_reason text) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; e wf_employees; res jsonb; h wf_employment_history;
 BEGIN
  IF p_employee IS NULL OR p_effective_from IS NULL OR p_status NOT IN('active','inactive','terminated') OR p_status IS NULL
@@ -428,9 +433,9 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'set_employment',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_assign_employee_v1(p_business bigint,p_request text,p_employee bigint,
+CREATE FUNCTION core10.wf_assign_employee_v1(p_business bigint,p_request text,p_employee bigint,
  p_effective_from date,p_site bigint,p_department_code text,p_designation text,p_is_supervisor boolean,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; e wf_employees; v_dept bigint; res jsonb;
 BEGIN
  IF p_employee IS NULL OR p_effective_from IS NULL OR p_site IS NULL OR p_is_supervisor IS NULL
@@ -457,8 +462,8 @@ BEGIN
 END$$;
 
 -- ===== Shifts & holidays =====
-CREATE FUNCTION c10_demo.wf_save_shift_v1(p_business bigint,p_request text,p_expected_version bigint,p_shift jsonb,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_save_shift_v1(p_business bigint,p_request text,p_expected_version bigint,p_shift jsonb,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; sh wf_shifts; v_id bigint; res jsonb; v_len int; v_off smallint[];
 BEGIN
  IF p_shift IS NULL OR jsonb_typeof(p_shift)<>'object' OR p_expected_version IS NULL OR p_reason IS NULL
@@ -497,8 +502,8 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'save_shift',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_assign_shift_v1(p_business bigint,p_request text,p_employee bigint,p_shift_code text,
- p_effective_from date,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_assign_shift_v1(p_business bigint,p_request text,p_employee bigint,p_shift_code text,
+ p_effective_from date,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; e wf_employees; sh wf_shifts; res jsonb;
 BEGIN
  IF p_employee IS NULL OR p_shift_code IS NULL OR p_effective_from IS NULL OR p_reason IS NULL
@@ -520,9 +525,9 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'assign_shift',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_save_holiday_v1(p_business bigint,p_request text,p_date date,p_name text,p_kind text,
+CREATE FUNCTION core10.wf_save_holiday_v1(p_business bigint,p_request text,p_date date,p_name text,p_kind text,
  p_paid boolean,p_site bigint,p_active boolean,p_reason text) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; res jsonb; v_id bigint;
 BEGIN
  IF p_date IS NULL OR p_name IS NULL OR p_kind NOT IN('public','company') OR p_kind IS NULL OR p_paid IS NULL

@@ -7,7 +7,7 @@ cd "$(dirname "$0")/../.."
 [[ "${PGDATABASE:-}" =~ ^core10_a048_ci_preview_[0-9]+$ ]] || exit 2
 export CORE10_CI_JWT_SECRET=core10_preview_disposable_a055_hmac_signer_only_2026
 export PGRST_DB_URI="postgres://${PGUSER:-postgres}:${PGPASSWORD:-}@${PGHOST}:${PGPORT:-5432}/${PGDATABASE}"
-export PGRST_DB_SCHEMAS=c10_demo PGRST_DB_ANON_ROLE=anon
+export PGRST_DB_SCHEMAS=core10 PGRST_DB_ANON_ROLE=anon
 export PGRST_JWT_SECRET=$CORE10_CI_JWT_SECRET PGRST_JWT_AUD=authenticated
 export PGRST_SERVER_HOST=127.0.0.1
 export PGRST_SERVER_PORT=${CORE10_PREVIEW_REST_PORT:-55300}
@@ -43,6 +43,11 @@ if ! node -e '
 '; then
   tail -40 "$rest_log"
   exit 1
+fi
+if [[ "${CORE10_PACK01_SIGNED_ONLY:-0}" == 1 ]]; then
+  node tests/pack01/signed-api-e2e.js
+  echo 'PASS PACK-01 signed-HMAC two-tenant direct API negatives; NOT GoTrue/hosted staging'
+  exit 0
 fi
 node tests/api/core10-a055-asset-maintenance-rest-e2e.js
 node tests/e2e/core10-a055-asset-maintenance-browser.js

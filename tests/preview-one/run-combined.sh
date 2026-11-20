@@ -7,7 +7,7 @@ case "${PGHOST:-}" in localhost|127.0.0.1) ;; *) echo 'Loopback disposable Postg
   echo 'Set CORE10_PREVIEW_DISPOSABLE_ACK=I_CONFIRM_DISPOSABLE_PREVIEW'; exit 2;
 }
 suite=${1:-cross-module}
-case "$suite" in cross-module|operations|intent|crm|workforce|workforce-policy|assets|assets-policy|assets-registry|assets-planning|assets-workorders|assets-reports|assets-integrated|assets-http) ;; *) echo 'Unknown suite'; exit 2;; esac
+case "$suite" in cross-module|operations|intent|crm|workforce|workforce-policy|assets|assets-policy|assets-registry|assets-planning|assets-workorders|assets-reports|assets-integrated|assets-http|pack01-security|pack01-signed) ;; *) echo 'Unknown suite'; exit 2;; esac
 if [[ "$suite" == assets ]]; then
   # Original A055 CI runs each area on a fresh database. Preserve that isolation,
   # but install ALL merged preview modules before every original area test.
@@ -38,7 +38,7 @@ load() { printf 'LOAD %s\n' "$1"; "${psql[@]}" -f "$1"; }
 "${psql[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF; IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF; END \$\$"
 load internal/enterprise-sql/c10_a018_demo_backend.sql
 load tests/c10_a018_demo_seed.sql
-"${psql[@]}" -v c10_demo_ack=I_CONFIRM_DISPOSABLE_A046 -f internal/enterprise-sql/c10_a046_demo_personas_v1.sql
+"${psql[@]}" -v core10_ack=I_CONFIRM_DISPOSABLE_A046 -f internal/enterprise-sql/c10_a046_demo_personas_v1.sql
 # Preserve original A046/A048 database guards; rename the same disposable DB.
 PGDATABASE=postgres "${psql[@]}" -c "ALTER DATABASE \"$seed_db\" RENAME TO \"$work_db\""
 owned_db=$work_db
@@ -66,10 +66,30 @@ if [[ "${CORE10_PREVIEW_BUILD01:-0}" == 1 ]]; then
   load internal/enterprise-sql/c10_a020_industry_draft_v2.sql
   load internal/enterprise-sql/c10_a034_access_governance_v1.sql
   load internal/enterprise-sql/c10_build01_access_integration_v1.sql
+  # PACK01-owned optional S2 projection: only when both PR105 source files
+  # exist in the disposable combined checkout; never download production SQL.
+  if [[ -f internal/enterprise-sql/c10_pack02_workspace_v1.sql &&
+        -f internal/enterprise-sql/c10_pack02_controls_v1.sql ]]; then
+    load internal/enterprise-sql/c10_pack02_workspace_v1.sql
+    load internal/enterprise-sql/c10_pack02_controls_v1.sql
+  fi
+fi
+if [[ "$suite" == pack01-security || "$suite" == pack01-signed ]]; then
+  [[ "${CORE10_PREVIEW_BUILD01:-0}" == 1 ]] || {
+    echo 'PACK-01 must load Build01 effective authorization'; exit 2;
+  }
+  load internal/enterprise-sql/c10_build02a_approval_permissions_v1.sql
+  # A055 test personas are isolated fixtures and add only artificial grants.
+  load tests/c10_a055_seed.sql
 fi
 # Each matrix job runs the COMPLETE migration stack in one database before its
 # unmodified module regression. Tests never borrow data from another job.
 case "$suite" in
+ pack01-security) load tests/pack01/site-permission-regression.sql;;
+ pack01-signed)
+  # The A055 fixture was loaded exactly once in the Build01 security section.
+  # Use signed JWT -> loopback HTTP on the SAME disposable combined stack.
+  CORE10_PACK01_SIGNED_ONLY=1 bash tests/preview-one/assets-rest.sh;;
  cross-module) load tests/preview-one/cross-module.sql;;
  operations) load tests/c10_a049_operation_workflow_e2e.sql;;
  intent)

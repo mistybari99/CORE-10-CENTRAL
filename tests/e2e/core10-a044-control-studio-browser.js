@@ -39,7 +39,7 @@ function response(name,args){
 }
 window.supabase={createClient:function(){
  return {auth:{getUser:async()=>({data:{user:{id:"signed-test-fixture-uuid"}},error:null})},
-  schema:function(s){if(s!=="c10_demo")throw Error("SCHEMA_SCOPE");
+  schema:function(s){if(s!=="core10")throw Error("SCHEMA_SCOPE");
    return {rpc:async(name,args)=>response(name,args),
     from:function(table){
      if(table!=="businesses")throw Error("TABLE_SHADOW_ACCESS");

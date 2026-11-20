@@ -44,15 +44,15 @@ function sqlMatrix(data){
  for(const p of data.personas){
   s+="BEGIN;\nSET LOCAL ROLE authenticated;\nSELECT set_config('request.jwt.claim.sub',"+quote(p.uid)+",true);\n";
   s+="DO $check$ DECLARE bb bigint[]; ss bigint[]; pp bigint[]; BEGIN\n";
-  s+="SELECT COALESCE(array_agg(id ORDER BY id),'{}'::bigint[]) INTO bb FROM c10_demo.businesses;\n";
-  s+="SELECT COALESCE(array_agg(id ORDER BY id),'{}'::bigint[]) INTO ss FROM c10_demo.sites;\n";
-  s+="SELECT COALESCE(array_agg(id ORDER BY id),'{}'::bigint[]) INTO pp FROM c10_demo.sites WHERE c10_demo.can_site(tenant_id,business_id,id,'stock.post');\n";
+  s+="SELECT COALESCE(array_agg(id ORDER BY id),'{}'::bigint[]) INTO bb FROM core10.businesses;\n";
+  s+="SELECT COALESCE(array_agg(id ORDER BY id),'{}'::bigint[]) INTO ss FROM core10.sites;\n";
+  s+="SELECT COALESCE(array_agg(id ORDER BY id),'{}'::bigint[]) INTO pp FROM core10.sites WHERE core10.can_site(tenant_id,business_id,id,'stock.post');\n";
   s+="IF bb<>"+array(p.business_ids)+" OR ss<>"+array(p.read_site_ids)+" OR pp<>"+array(p.post_site_ids);
   s+=" THEN RAISE EXCEPTION 'C10_A046_SCOPE_FAIL "+p.key+" businesses % sites % post %',bb,ss,pp; END IF;\n";
   s+="END $check$;\nROLLBACK;\n";
  }
- s+="BEGIN;\nDO $check$ BEGIN IF has_schema_privilege('anon','c10_demo','USAGE') THEN RAISE EXCEPTION 'C10_A046_ANON_PRIVILEGE_LEAK'; END IF; END $check$;\n";
- s+="SET LOCAL ROLE anon;\nDO $check$ BEGIN BEGIN EXECUTE 'SELECT count(*) FROM c10_demo.businesses'; RAISE EXCEPTION 'C10_A046_ANON_PRIVILEGE_LEAK'; EXCEPTION WHEN insufficient_privilege THEN NULL; END; END $check$;\nROLLBACK;\n";
+ s+="BEGIN;\nDO $check$ BEGIN IF has_schema_privilege('anon','core10','USAGE') THEN RAISE EXCEPTION 'C10_A046_ANON_PRIVILEGE_LEAK'; END IF; END $check$;\n";
+ s+="SET LOCAL ROLE anon;\nDO $check$ BEGIN BEGIN EXECUTE 'SELECT count(*) FROM core10.businesses'; RAISE EXCEPTION 'C10_A046_ANON_PRIVILEGE_LEAK'; EXCEPTION WHEN insufficient_privilege THEN NULL; END; END $check$;\nROLLBACK;\n";
  s+="\\echo PASS: 16 synthetic persona scopes plus anon. REAL_GOTRUE_STAGE_NOT_TESTED\n";
  return s;
 }

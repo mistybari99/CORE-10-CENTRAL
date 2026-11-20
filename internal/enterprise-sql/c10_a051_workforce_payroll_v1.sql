@@ -1,8 +1,8 @@
 -- C10-A051 Workforce (3/3): pay policy, salary structure, components, advances, payroll runs, payslips.
--- DISPOSABLE c10_demo ONLY. Apply AFTER core + attendance_leave. NO payout, bank file, ledger or stock effect.
+-- DISPOSABLE core10 ONLY. Apply AFTER core + attendance_leave. NO payout, bank file, ledger or stock effect.
 -- "Approved/Frozen" never means "Paid". Statutory/ambiguous rules ship OFF (pending_owner_approval) and
 -- no Bangladesh-specific statutory rate is asserted: every multiplier/divisor is business configuration.
-CREATE TABLE c10_demo.wf_pay_policies(
+CREATE TABLE core10.wf_pay_policies(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL,
  code text NOT NULL CHECK(code ~ '^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$'),
@@ -19,21 +19,21 @@ CREATE TABLE c10_demo.wf_pay_policies(
  active boolean NOT NULL DEFAULT true,
  version bigint NOT NULL DEFAULT 1,
  UNIQUE(business_id,code), UNIQUE(id,tenant_id,business_id),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id)
 );
-CREATE TABLE c10_demo.wf_salary_structures(
+CREATE TABLE core10.wf_salary_structures(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, employee_id bigint NOT NULL, policy_id bigint NOT NULL,
  base_amount numeric(14,2) NOT NULL CHECK(base_amount>=0 AND base_amount<=99999999999.99),
  effective_from date NOT NULL,
  reason text NOT NULL CHECK(length(btrim(reason)) BETWEEN 3 AND 500),
  changed_by uuid NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id),
- FOREIGN KEY(policy_id,tenant_id,business_id) REFERENCES c10_demo.wf_pay_policies(id,tenant_id,business_id)
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id),
+ FOREIGN KEY(policy_id,tenant_id,business_id) REFERENCES core10.wf_pay_policies(id,tenant_id,business_id)
 );
-CREATE INDEX wf_salary_emp_ix ON c10_demo.wf_salary_structures(employee_id,effective_from DESC,id DESC);
-CREATE TRIGGER wf_salary_no_mutation BEFORE UPDATE OR DELETE ON c10_demo.wf_salary_structures FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_immutable();
-CREATE TABLE c10_demo.wf_pay_components(
+CREATE INDEX wf_salary_emp_ix ON core10.wf_salary_structures(employee_id,effective_from DESC,id DESC);
+CREATE TRIGGER wf_salary_no_mutation BEFORE UPDATE OR DELETE ON core10.wf_salary_structures FOR EACH ROW EXECUTE FUNCTION core10.wfi_immutable();
+CREATE TABLE core10.wf_pay_components(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL,
  code text NOT NULL CHECK(code ~ '^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$'),
@@ -48,9 +48,9 @@ CREATE TABLE c10_demo.wf_pay_components(
  version bigint NOT NULL DEFAULT 1,
  CHECK(calc_type<>'percent_of_base' OR amount<=100),
  UNIQUE(business_id,code), UNIQUE(id,tenant_id,business_id),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id)
 );
-CREATE TABLE c10_demo.wf_employee_components(
+CREATE TABLE core10.wf_employee_components(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, employee_id bigint NOT NULL, component_id bigint NOT NULL,
  enabled boolean NOT NULL DEFAULT true,
@@ -58,11 +58,11 @@ CREATE TABLE c10_demo.wf_employee_components(
  effective_from date NOT NULL,
  reason text NOT NULL CHECK(length(btrim(reason)) BETWEEN 3 AND 500),
  changed_by uuid NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id),
- FOREIGN KEY(component_id,tenant_id,business_id) REFERENCES c10_demo.wf_pay_components(id,tenant_id,business_id)
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id),
+ FOREIGN KEY(component_id,tenant_id,business_id) REFERENCES core10.wf_pay_components(id,tenant_id,business_id)
 );
-CREATE TRIGGER wf_empcomp_no_mutation BEFORE UPDATE OR DELETE ON c10_demo.wf_employee_components FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_immutable();
-CREATE TABLE c10_demo.wf_advances(
+CREATE TRIGGER wf_empcomp_no_mutation BEFORE UPDATE OR DELETE ON core10.wf_employee_components FOR EACH ROW EXECUTE FUNCTION core10.wfi_immutable();
+CREATE TABLE core10.wf_advances(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, employee_id bigint NOT NULL,
  amount numeric(14,2) NOT NULL CHECK(amount>0 AND amount<=99999999999.99),
@@ -73,9 +73,9 @@ CREATE TABLE c10_demo.wf_advances(
  requested_by uuid NOT NULL, decided_by uuid, decided_at timestamptz, decision_note text,
  request_key text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),
  CHECK(installment_amount<=amount), UNIQUE(business_id,request_key),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id)
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id)
 );
-CREATE TABLE c10_demo.wf_payroll_runs(
+CREATE TABLE core10.wf_payroll_runs(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL,
  period_start date NOT NULL CHECK(extract(day FROM period_start)=1),
@@ -91,11 +91,11 @@ CREATE TABLE c10_demo.wf_payroll_runs(
  request_key text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),
  UNIQUE(business_id,period_start,version), UNIQUE(business_id,request_key), UNIQUE(id,tenant_id,business_id),
  CHECK(period_end=(period_start+interval '1 month')::date-1),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id)
 );
-CREATE UNIQUE INDEX wf_runs_inprogress_uq ON c10_demo.wf_payroll_runs(business_id,period_start) WHERE status IN('draft','reviewed','approved');
-CREATE UNIQUE INDEX wf_runs_frozen_uq ON c10_demo.wf_payroll_runs(business_id,period_start) WHERE status='frozen';
-CREATE FUNCTION c10_demo.wfi_run_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE UNIQUE INDEX wf_runs_inprogress_uq ON core10.wf_payroll_runs(business_id,period_start) WHERE status IN('draft','reviewed','approved');
+CREATE UNIQUE INDEX wf_runs_frozen_uq ON core10.wf_payroll_runs(business_id,period_start) WHERE status='frozen';
+CREATE FUNCTION core10.wfi_run_guard() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
  IF TG_OP='DELETE' THEN RAISE EXCEPTION 'wf_payroll_run_not_deletable'; END IF;
  IF OLD.status IN('frozen','superseded','voided') THEN
@@ -107,8 +107,8 @@ BEGIN
  END IF;
  RETURN NEW;
 END$$;
-CREATE TRIGGER wf_runs_guard BEFORE UPDATE OR DELETE ON c10_demo.wf_payroll_runs FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_run_guard();
-CREATE TABLE c10_demo.wf_payroll_lines(
+CREATE TRIGGER wf_runs_guard BEFORE UPDATE OR DELETE ON core10.wf_payroll_runs FOR EACH ROW EXECUTE FUNCTION core10.wfi_run_guard();
+CREATE TABLE core10.wf_payroll_lines(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, run_id bigint NOT NULL, employee_id bigint NOT NULL,
  employee_no text NOT NULL, employee_name text NOT NULL, site_id bigint, department text, pay_basis text,
@@ -123,61 +123,61 @@ CREATE TABLE c10_demo.wf_payroll_lines(
  total_deductions numeric(16,2) NOT NULL DEFAULT 0, net numeric(16,2) NOT NULL DEFAULT 0,
  components jsonb NOT NULL DEFAULT '[]', advances jsonb NOT NULL DEFAULT '[]', warnings jsonb NOT NULL DEFAULT '[]',
  UNIQUE(run_id,employee_id), CHECK(net>=0), CHECK(net=gross-total_deductions),
- FOREIGN KEY(run_id,tenant_id,business_id) REFERENCES c10_demo.wf_payroll_runs(id,tenant_id,business_id),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id)
+ FOREIGN KEY(run_id,tenant_id,business_id) REFERENCES core10.wf_payroll_runs(id,tenant_id,business_id),
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id)
 );
-CREATE FUNCTION c10_demo.wfi_line_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE FUNCTION core10.wfi_line_guard() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE v_status text; v_run bigint:=COALESCE(NEW.run_id,OLD.run_id);
 BEGIN
- SELECT status INTO v_status FROM c10_demo.wf_payroll_runs WHERE id=v_run;
+ SELECT status INTO v_status FROM core10.wf_payroll_runs WHERE id=v_run;
  IF v_status IS DISTINCT FROM 'draft' THEN RAISE EXCEPTION 'wf_frozen_payroll_immutable'; END IF;
  RETURN COALESCE(NEW,OLD);
 END$$;
-CREATE TRIGGER wf_lines_guard BEFORE INSERT OR UPDATE OR DELETE ON c10_demo.wf_payroll_lines FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_line_guard();
-CREATE TABLE c10_demo.wf_payslips(
+CREATE TRIGGER wf_lines_guard BEFORE INSERT OR UPDATE OR DELETE ON core10.wf_payroll_lines FOR EACH ROW EXECUTE FUNCTION core10.wfi_line_guard();
+CREATE TABLE core10.wf_payslips(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, run_id bigint NOT NULL, employee_id bigint NOT NULL,
  period_start date NOT NULL, period_end date NOT NULL, snapshot jsonb NOT NULL,
  net numeric(16,2) NOT NULL, issued_at timestamptz NOT NULL DEFAULT now(), issued_by uuid NOT NULL,
  UNIQUE(run_id,employee_id),
- FOREIGN KEY(run_id,tenant_id,business_id) REFERENCES c10_demo.wf_payroll_runs(id,tenant_id,business_id),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id)
+ FOREIGN KEY(run_id,tenant_id,business_id) REFERENCES core10.wf_payroll_runs(id,tenant_id,business_id),
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id)
 );
-CREATE INDEX wf_payslips_emp_ix ON c10_demo.wf_payslips(employee_id,period_start DESC);
-CREATE TRIGGER wf_payslips_no_mutation BEFORE UPDATE OR DELETE ON c10_demo.wf_payslips FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_immutable();
-CREATE TABLE c10_demo.wf_advance_recoveries(
+CREATE INDEX wf_payslips_emp_ix ON core10.wf_payslips(employee_id,period_start DESC);
+CREATE TRIGGER wf_payslips_no_mutation BEFORE UPDATE OR DELETE ON core10.wf_payslips FOR EACH ROW EXECUTE FUNCTION core10.wfi_immutable();
+CREATE TABLE core10.wf_advance_recoveries(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, advance_id bigint NOT NULL, run_id bigint NOT NULL,
  amount numeric(14,2) NOT NULL CHECK(amount>0), created_at timestamptz NOT NULL DEFAULT now(),
  UNIQUE(advance_id,run_id),
- FOREIGN KEY(advance_id) REFERENCES c10_demo.wf_advances(id),
- FOREIGN KEY(run_id,tenant_id,business_id) REFERENCES c10_demo.wf_payroll_runs(id,tenant_id,business_id)
+ FOREIGN KEY(advance_id) REFERENCES core10.wf_advances(id),
+ FOREIGN KEY(run_id,tenant_id,business_id) REFERENCES core10.wf_payroll_runs(id,tenant_id,business_id)
 );
-CREATE TRIGGER wf_recov_no_mutation BEFORE UPDATE OR DELETE ON c10_demo.wf_advance_recoveries FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_immutable();
+CREATE TRIGGER wf_recov_no_mutation BEFORE UPDATE OR DELETE ON core10.wf_advance_recoveries FOR EACH ROW EXECUTE FUNCTION core10.wfi_immutable();
 
-CREATE FUNCTION c10_demo.wfi_rnd(p numeric,p_mode text) RETURNS numeric LANGUAGE sql IMMUTABLE AS
+CREATE FUNCTION core10.wfi_rnd(p numeric,p_mode text) RETURNS numeric LANGUAGE sql IMMUTABLE AS
 $$ SELECT CASE WHEN p_mode='down' THEN trunc(p,2) ELSE round(p,2) END $$;
-CREATE FUNCTION c10_demo.wfi_advance_remaining(p_advance bigint,p_exclude_run bigint) RETURNS numeric LANGUAGE sql STABLE AS
-$$ SELECT a.amount-COALESCE((SELECT sum(r.amount) FROM c10_demo.wf_advance_recoveries r JOIN c10_demo.wf_payroll_runs u ON u.id=r.run_id
+CREATE FUNCTION core10.wfi_advance_remaining(p_advance bigint,p_exclude_run bigint) RETURNS numeric LANGUAGE sql STABLE AS
+$$ SELECT a.amount-COALESCE((SELECT sum(r.amount) FROM core10.wf_advance_recoveries r JOIN core10.wf_payroll_runs u ON u.id=r.run_id
     WHERE r.advance_id=a.id AND u.status='frozen' AND u.id<>COALESCE(p_exclude_run,-1)),0)
-   FROM c10_demo.wf_advances a WHERE a.id=p_advance $$;
+   FROM core10.wf_advances a WHERE a.id=p_advance $$;
 
 -- ===== Deterministic per-employee calculation (pure) =====
-CREATE FUNCTION c10_demo.wfi_calc_line(p_business bigint,p_employee bigint,p_start date,p_end date,p_exclude_run bigint) RETURNS jsonb
+CREATE FUNCTION core10.wfi_calc_line(p_business bigint,p_employee bigint,p_start date,p_end date,p_exclude_run bigint) RETURNS jsonb
 LANGUAGE plpgsql AS $$
-DECLARE e c10_demo.wf_employees; ss c10_demo.wf_salary_structures; pol c10_demo.wf_pay_policies; d date; dj jsonb; st text;
+DECLARE e core10.wf_employees; ss core10.wf_salary_structures; pol core10.wf_pay_policies; d date; dj jsonb; st text;
  cal int:=p_end-p_start+1; emp int:=0; pres int:=0; half int:=0; absn int:=0; pl int:=0; ul int:=0; hol int:=0; hol_paid int:=0; late int:=0;
  inc int:=0; fut int:=0; pend_ot int:=0; wmin int:=0; rmin int:=0; otw int:=0; oto int:=0; otun int:=0;
  w jsonb:='[]'; basic numeric:=0; otpay numeric:=0; allow numeric:=0; absd numeric:=0; odr numeric:=0; od numeric:=0; adv numeric:=0;
  hourly numeric:=0; daily numeric:=0; divisor numeric; eq numeric; paid numeric; room numeric; gross numeric; comps jsonb:='[]'; advs jsonb:='[]';
  c record; v numeric; amt numeric; av record; rem numeric; take numeric; site bigint; dept text; mode text; pend int; v_name text;
 BEGIN
- SELECT * INTO e FROM c10_demo.wf_employees WHERE id=p_employee AND business_id=p_business;
- SELECT * INTO ss FROM c10_demo.wf_salary_structures WHERE employee_id=p_employee AND effective_from<=p_end ORDER BY effective_from DESC,id DESC LIMIT 1;
- IF ss.id IS NOT NULL THEN SELECT * INTO pol FROM c10_demo.wf_pay_policies WHERE id=ss.policy_id; END IF;
+ SELECT * INTO e FROM core10.wf_employees WHERE id=p_employee AND business_id=p_business;
+ SELECT * INTO ss FROM core10.wf_salary_structures WHERE employee_id=p_employee AND effective_from<=p_end ORDER BY effective_from DESC,id DESC LIMIT 1;
+ IF ss.id IS NOT NULL THEN SELECT * INTO pol FROM core10.wf_pay_policies WHERE id=ss.policy_id; END IF;
  mode:=COALESCE(pol.rounding_mode,'half_up');
  FOR d IN SELECT generate_series(p_start,p_end,interval '1 day')::date LOOP
-  dj:=c10_demo.wfi_calc_day(p_business,p_employee,d); st:=dj->>'status';
+  dj:=core10.wfi_calc_day(p_business,p_employee,d); st:=dj->>'status';
   IF st='not_employed' THEN CONTINUE; END IF;
   emp:=emp+1;
   IF st IN('present','half_day') THEN
@@ -196,37 +196,37 @@ BEGIN
   ELSIF st='incomplete' THEN inc:=inc+1;
   ELSIF st='future' THEN fut:=fut+1; END IF;
  END LOOP;
- site:=c10_demo.wfi_site_of(p_employee,p_end);
- SELECT dep.name INTO dept FROM c10_demo.wf_assignments a LEFT JOIN c10_demo.wf_departments dep ON dep.id=a.department_id
+ site:=core10.wfi_site_of(p_employee,p_end);
+ SELECT dep.name INTO dept FROM core10.wf_assignments a LEFT JOIN core10.wf_departments dep ON dep.id=a.department_id
   WHERE a.employee_id=p_employee AND a.effective_from<=p_end ORDER BY a.effective_from DESC,a.id DESC LIMIT 1;
  IF emp=0 THEN RETURN jsonb_build_object('employed_days',0); END IF;
  IF ss.id IS NULL THEN w:=w||jsonb_build_array(jsonb_build_object('code','no_salary_structure','blocking',true));
  ELSE
   IF pol.pay_basis='monthly' THEN
    divisor:=COALESCE(pol.monthly_divisor,cal);
-   basic:=c10_demo.wfi_rnd(ss.base_amount*emp/cal,mode);
+   basic:=core10.wfi_rnd(ss.base_amount*emp/cal,mode);
    daily:=ss.base_amount/divisor; hourly:=ss.base_amount/(divisor*pol.standard_hours_per_day);
    eq:=absn+ul+0.5*half+CASE WHEN pol.late_to_absent_days IS NOT NULL THEN floor(late::numeric/pol.late_to_absent_days) ELSE 0 END;
-   absd:=LEAST(c10_demo.wfi_rnd(daily*eq,mode),basic);
+   absd:=LEAST(core10.wfi_rnd(daily*eq,mode),basic);
   ELSIF pol.pay_basis='daily' THEN
    paid:=pres+0.5*half+CASE WHEN pol.paid_leave_non_monthly THEN pl ELSE 0 END+CASE WHEN pol.paid_holidays_non_monthly THEN hol_paid ELSE 0 END;
-   basic:=c10_demo.wfi_rnd(ss.base_amount*paid,mode); hourly:=ss.base_amount/pol.standard_hours_per_day;
+   basic:=core10.wfi_rnd(ss.base_amount*paid,mode); hourly:=ss.base_amount/pol.standard_hours_per_day;
   ELSE
    paid:=(rmin::numeric/60)+pol.standard_hours_per_day*(CASE WHEN pol.paid_leave_non_monthly THEN pl ELSE 0 END+CASE WHEN pol.paid_holidays_non_monthly THEN hol_paid ELSE 0 END);
-   basic:=c10_demo.wfi_rnd(ss.base_amount*paid,mode); hourly:=ss.base_amount;
+   basic:=core10.wfi_rnd(ss.base_amount*paid,mode); hourly:=ss.base_amount;
   END IF;
-  otpay:=c10_demo.wfi_rnd(hourly*(otw::numeric/60)*pol.ot_multiplier_weekday+hourly*(oto::numeric/60)*pol.ot_multiplier_offday,mode);
+  otpay:=core10.wfi_rnd(hourly*(otw::numeric/60)*pol.ot_multiplier_weekday+hourly*(oto::numeric/60)*pol.ot_multiplier_offday,mode);
   FOR c IN SELECT pc.*,ea.id AS ea_id,ea.enabled AS ea_enabled,ea.override_amount AS ea_amt
-    FROM c10_demo.wf_pay_components pc
-    LEFT JOIN LATERAL(SELECT * FROM c10_demo.wf_employee_components x WHERE x.employee_id=p_employee AND x.component_id=pc.id
+    FROM core10.wf_pay_components pc
+    LEFT JOIN LATERAL(SELECT * FROM core10.wf_employee_components x WHERE x.employee_id=p_employee AND x.component_id=pc.id
       AND x.effective_from<=p_end ORDER BY x.effective_from DESC,x.id DESC LIMIT 1) ea ON true
     WHERE pc.business_id=p_business AND pc.approval_status='active'
      AND CASE WHEN ea.id IS NOT NULL THEN ea.enabled ELSE pc.apply_to_all END ORDER BY pc.code LOOP
    amt:=COALESCE(c.ea_amt,c.amount);
    IF c.calc_type='fixed' THEN
     v:=amt; IF pol.pay_basis='monthly' AND c.prorate_partial_month AND emp<cal THEN v:=amt*emp/cal; END IF;
-    v:=c10_demo.wfi_rnd(v,mode);
-   ELSE v:=c10_demo.wfi_rnd(basic*amt/100,mode); END IF;
+    v:=core10.wfi_rnd(v,mode);
+   ELSE v:=core10.wfi_rnd(basic*amt/100,mode); END IF;
    IF c.kind='allowance' THEN allow:=allow+v; ELSE odr:=odr+v; END IF;
    comps:=comps||jsonb_build_array(jsonb_build_object('code',c.code,'name',c.name,'kind',c.kind,'amount',v));
   END LOOP;
@@ -237,9 +237,9 @@ BEGIN
  IF od<odr THEN w:=w||jsonb_build_array(jsonb_build_object('code','deduction_capped','blocking',false,'wanted',odr,'applied',od)); END IF;
  room:=room-od;
  IF ss.id IS NOT NULL THEN
-  FOR av IN SELECT * FROM c10_demo.wf_advances WHERE employee_id=p_employee AND business_id=p_business AND status='approved'
+  FOR av IN SELECT * FROM core10.wf_advances WHERE employee_id=p_employee AND business_id=p_business AND status='approved'
     AND start_period<=p_start ORDER BY id LOOP
-   rem:=c10_demo.wfi_advance_remaining(av.id,p_exclude_run);
+   rem:=core10.wfi_advance_remaining(av.id,p_exclude_run);
    IF rem<=0 THEN CONTINUE; END IF;
    take:=LEAST(av.installment_amount,rem,room);
    IF take<LEAST(av.installment_amount,rem) THEN
@@ -250,9 +250,9 @@ BEGIN
  IF inc>0 THEN w:=w||jsonb_build_array(jsonb_build_object('code','incomplete_attendance','blocking',true,'days',inc)); END IF;
  IF fut>0 THEN w:=w||jsonb_build_array(jsonb_build_object('code','period_not_ended','blocking',true,'days',fut)); END IF;
  IF pend_ot>0 THEN w:=w||jsonb_build_array(jsonb_build_object('code','overtime_decision_pending','blocking',true,'days',pend_ot)); END IF;
- SELECT count(*) INTO pend FROM c10_demo.wf_leave_requests WHERE employee_id=p_employee AND status='pending' AND from_date<=p_end AND to_date>=p_start;
+ SELECT count(*) INTO pend FROM core10.wf_leave_requests WHERE employee_id=p_employee AND status='pending' AND from_date<=p_end AND to_date>=p_start;
  IF pend>0 THEN w:=w||jsonb_build_array(jsonb_build_object('code','leave_decision_pending','blocking',true,'count',pend)); END IF;
- SELECT count(*) INTO pend FROM c10_demo.wf_attendance_corrections WHERE employee_id=p_employee AND status='pending' AND work_date BETWEEN p_start AND p_end;
+ SELECT count(*) INTO pend FROM core10.wf_attendance_corrections WHERE employee_id=p_employee AND status='pending' AND work_date BETWEEN p_start AND p_end;
  IF pend>0 THEN w:=w||jsonb_build_array(jsonb_build_object('code','correction_decision_pending','blocking',true,'count',pend)); END IF;
  IF otun>0 THEN w:=w||jsonb_build_array(jsonb_build_object('code','overtime_unapproved_not_paid','blocking',false,'minutes',otun)); END IF;
  RETURN jsonb_build_object('employee_id',p_employee,'employee_no',e.employee_no,'employee_name',e.full_name,'site_id',site,'department',dept,
@@ -263,14 +263,14 @@ BEGIN
   'total_deductions',absd+od+adv,'net',gross-absd-od-adv,'components',comps,'advances',advs,'warnings',w);
 END$$;
 
-CREATE FUNCTION c10_demo.wfi_calc_run(p_business bigint,p_start date,p_exclude_run bigint) RETURNS jsonb
+CREATE FUNCTION core10.wfi_calc_run(p_business bigint,p_start date,p_exclude_run bigint) RETURNS jsonb
 LANGUAGE plpgsql AS $$
 DECLARE v_end date:=(p_start+interval '1 month')::date-1; e record; l jsonb; lines jsonb:='[]'; g numeric:=0; dd numeric:=0; n numeric:=0;
  blk int:=0; wrn int:=0; h text:=''; cnt int:=0; x jsonb;
 BEGIN
- FOR e IN SELECT id FROM c10_demo.wf_employees WHERE business_id=p_business AND joined_on<=v_end ORDER BY id LOOP
+ FOR e IN SELECT id FROM core10.wf_employees WHERE business_id=p_business AND joined_on<=v_end ORDER BY id LOOP
   cnt:=cnt+1; IF cnt>1000 THEN RAISE EXCEPTION 'wf_too_many_employees'; END IF;
-  l:=c10_demo.wfi_calc_line(p_business,e.id,p_start,v_end,p_exclude_run);
+  l:=core10.wfi_calc_line(p_business,e.id,p_start,v_end,p_exclude_run);
   IF (l->>'employed_days')::int=0 THEN CONTINUE; END IF;
   lines:=lines||jsonb_build_array(l);
   g:=g+(l->>'gross')::numeric; dd:=dd+(l->>'total_deductions')::numeric; n:=n+(l->>'net')::numeric;
@@ -285,8 +285,8 @@ BEGIN
 END$$;
 
 -- ===== Policies, structures, components, advances =====
-CREATE FUNCTION c10_demo.wf_save_pay_policy_v1(p_business bigint,p_request text,p_expected_version bigint,p_policy jsonb,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_save_pay_policy_v1(p_business bigint,p_request text,p_expected_version bigint,p_policy jsonb,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; pp wf_pay_policies; v_id bigint; res jsonb;
 BEGIN
  IF p_policy IS NULL OR jsonb_typeof(p_policy)<>'object' OR p_expected_version IS NULL OR p_reason IS NULL
@@ -326,9 +326,9 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'save_pay_policy',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_set_salary_structure_v1(p_business bigint,p_request text,p_employee bigint,p_policy_code text,
+CREATE FUNCTION core10.wf_set_salary_structure_v1(p_business bigint,p_request text,p_employee bigint,p_policy_code text,
  p_base numeric,p_effective_from date,p_reason text) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; e wf_employees; pp wf_pay_policies; res jsonb;
 BEGIN
  IF p_employee IS NULL OR p_policy_code IS NULL OR p_base IS NULL OR p_base<0 OR p_base>99999999999.99
@@ -352,8 +352,8 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'set_salary',jsonb_build_object('e',p_employee,'p',p_policy_code,'d',p_effective_from),res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_save_component_v1(p_business bigint,p_request text,p_expected_version bigint,p_component jsonb,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_save_component_v1(p_business bigint,p_request text,p_expected_version bigint,p_component jsonb,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; pc wf_pay_components; v_id bigint; res jsonb; v_status text; v_stat boolean;
 BEGIN
  IF p_component IS NULL OR jsonb_typeof(p_component)<>'object' OR p_expected_version IS NULL OR p_reason IS NULL
@@ -393,9 +393,9 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'save_component',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_assign_component_v1(p_business bigint,p_request text,p_employee bigint,p_component_code text,
+CREATE FUNCTION core10.wf_assign_component_v1(p_business bigint,p_request text,p_employee bigint,p_component_code text,
  p_enabled boolean,p_override numeric,p_effective_from date,p_reason text) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; pc wf_pay_components; res jsonb;
 BEGIN
  IF p_employee IS NULL OR p_component_code IS NULL OR p_enabled IS NULL OR p_effective_from IS NULL OR p_reason IS NULL
@@ -417,9 +417,9 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'assign_component',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_request_advance_v1(p_business bigint,p_request text,p_employee bigint,p_amount numeric,
+CREATE FUNCTION core10.wf_request_advance_v1(p_business bigint,p_request text,p_employee bigint,p_amount numeric,
  p_installment numeric,p_start_period date,p_reason text) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; v_emp bigint; v_id bigint; res jsonb;
 BEGIN
  IF p_amount IS NULL OR p_amount<=0 OR p_amount>99999999999.99 OR scale(p_amount)>2 OR p_installment IS NULL OR p_installment<=0
@@ -439,8 +439,8 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'request_advance',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_decide_advance_v1(p_business bigint,p_request text,p_advance bigint,p_decision text,p_note text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_decide_advance_v1(p_business bigint,p_request text,p_advance bigint,p_decision text,p_note text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; cfg wf_business_settings; pay jsonb; a wf_advances; res jsonb; v_to text;
 BEGIN
  IF p_advance IS NULL OR p_decision NOT IN('approve','reject','cancel') OR p_decision IS NULL OR p_note IS NULL
@@ -462,12 +462,12 @@ BEGIN
 END$$;
 
 -- ===== Payroll workflow: preview -> DRAFT -> REVIEWED -> APPROVED -> FROZEN (amend/void/return) =====
-CREATE FUNCTION c10_demo.wfi_store_lines(p_run bigint,p_tenant bigint,p_business bigint,p_calc jsonb) RETURNS void LANGUAGE plpgsql AS $$
+CREATE FUNCTION core10.wfi_store_lines(p_run bigint,p_tenant bigint,p_business bigint,p_calc jsonb) RETURNS void LANGUAGE plpgsql AS $$
 DECLARE l jsonb;
 BEGIN
- DELETE FROM c10_demo.wf_payroll_lines WHERE run_id=p_run;
+ DELETE FROM core10.wf_payroll_lines WHERE run_id=p_run;
  FOR l IN SELECT * FROM jsonb_array_elements(p_calc->'lines') LOOP
-  INSERT INTO c10_demo.wf_payroll_lines(tenant_id,business_id,run_id,employee_id,employee_no,employee_name,site_id,department,pay_basis,
+  INSERT INTO core10.wf_payroll_lines(tenant_id,business_id,run_id,employee_id,employee_no,employee_name,site_id,department,pay_basis,
    base_amount,calendar_days,employed_days,present_days,half_days,absent_days,paid_leave_days,unpaid_leave_days,holiday_days,late_days,
    worked_minutes,overtime_minutes_approved,basic_earned,overtime_pay,allowances_total,gross,absence_deduction,other_deductions_total,
    advance_recovery,total_deductions,net,components,advances,warnings)
@@ -479,16 +479,16 @@ BEGIN
    (l->>'advance_recovery')::numeric,(l->>'total_deductions')::numeric,(l->>'net')::numeric,l->'components',l->'advances',l->'warnings');
  END LOOP;
 END$$;
-CREATE FUNCTION c10_demo.wfi_refresh_timesheet(p_business bigint,p_start date) RETURNS void LANGUAGE plpgsql AS $$
+CREATE FUNCTION core10.wfi_refresh_timesheet(p_business bigint,p_start date) RETURNS void LANGUAGE plpgsql AS $$
 DECLARE e record; d date; v_end date:=(p_start+interval '1 month')::date-1;
 BEGIN
- FOR e IN SELECT id FROM c10_demo.wf_employees WHERE business_id=p_business AND joined_on<=v_end LOOP
-  FOR d IN SELECT generate_series(p_start,LEAST(v_end,c10_demo.wfi_today()),interval '1 day')::date LOOP
-   PERFORM c10_demo.wfi_recompute_day(p_business,e.id,d); END LOOP; END LOOP;
+ FOR e IN SELECT id FROM core10.wf_employees WHERE business_id=p_business AND joined_on<=v_end LOOP
+  FOR d IN SELECT generate_series(p_start,LEAST(v_end,core10.wfi_today()),interval '1 day')::date LOOP
+   PERFORM core10.wfi_recompute_day(p_business,e.id,d); END LOOP; END LOOP;
 END$$;
 
-CREATE FUNCTION c10_demo.wf_payroll_preview_v1(p_business bigint,p_period date) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_payroll_preview_v1(p_business bigint,p_period date) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE c wf_ctx_t; r jsonb;
 BEGIN
  c:=wfi_ctx(p_business); PERFORM wfi_need(wfi_is_owner(c),'wf_payroll_access_denied');
@@ -497,8 +497,8 @@ BEGIN
  RETURN r||jsonb_build_object('server_authorized',true,'preview_only',true,'paid',false,'business_id',p_business);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_create_payroll_draft_v1(p_business bigint,p_request text,p_period date,p_amends_run bigint,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_create_payroll_draft_v1(p_business bigint,p_request text,p_period date,p_amends_run bigint,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; cfg wf_business_settings; pay jsonb; v_id bigint; calc jsonb; res jsonb; old wf_payroll_runs; v_ver int; v_end date;
 BEGIN
  IF p_period IS NULL OR extract(day FROM p_period)<>1 THEN RAISE EXCEPTION 'wf_invalid_period'; END IF;
@@ -532,8 +532,8 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'create_payroll_draft',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_recalculate_payroll_draft_v1(p_business bigint,p_request text,p_run bigint) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_recalculate_payroll_draft_v1(p_business bigint,p_request text,p_run bigint) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; r wf_payroll_runs; calc jsonb; res jsonb;
 BEGIN
  IF p_run IS NULL THEN RAISE EXCEPTION 'wf_invalid_input'; END IF;
@@ -555,8 +555,8 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'recalculate_payroll',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_payroll_transition_v1(p_business bigint,p_request text,p_run bigint,p_action text,p_note text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_payroll_transition_v1(p_business bigint,p_request text,p_run bigint,p_action text,p_note text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; cfg wf_business_settings; pay jsonb; r wf_payroll_runs; calc jsonb; res jsonb; l record; v_to text; adv jsonb;
  rem numeric; v_net bigint;
 BEGIN
@@ -625,8 +625,8 @@ BEGIN
 END$$;
 
 -- Retention: expired punch facts only (never inside a locked/frozen period), tenant owner only, audited.
-CREATE FUNCTION c10_demo.wf_purge_expired_punches_v1(p_business bigint,p_request text,p_dry_run boolean) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_purge_expired_punches_v1(p_business bigint,p_request text,p_dry_run boolean) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; cfg wf_business_settings; pay jsonb; v_cut timestamptz; v_n int; res jsonb;
 BEGIN
  IF p_dry_run IS NULL THEN RAISE EXCEPTION 'wf_invalid_input'; END IF;

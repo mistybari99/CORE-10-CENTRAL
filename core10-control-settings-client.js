@@ -1,5 +1,5 @@
 /* C10-A044 Shared Supabase signed-session config adapter.
- * Same c10_demo RPC for Central and Business. NO local permissions, session token
+ * Same core10 RPC for Central and Business. NO local permissions, session token
  * persistence, simulated success, stock, finance or production activation.
  */
 (function(root,factory){"use strict";
@@ -21,7 +21,7 @@
    const r=await client.auth.getUser();
    if(!r||r.error||!r.data||!r.data.user||typeof r.data.user.id!=="string"||!r.data.user.id)
     fail("AUTHENTICATED_USER_REQUIRED");
-   const schema=client.schema("c10_demo");
+   const schema=client.schema("core10");
    if(!schema||typeof schema.rpc!=="function"||typeof schema.from!=="function")
     fail("CONTROL_SCHEMA_NOT_AVAILABLE");
    return schema;

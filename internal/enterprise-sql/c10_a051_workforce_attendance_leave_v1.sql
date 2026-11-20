@@ -1,8 +1,8 @@
 -- C10-A051 Workforce (2/3): punches (source facts), derived attendance days (timesheet),
--- corrections, overtime approval, leave. DISPOSABLE c10_demo ONLY. Apply AFTER core v1.
+-- corrections, overtime approval, leave. DISPOSABLE core10 ONLY. Apply AFTER core v1.
 -- All times computed in Asia/Dhaka; overnight shifts supported. Source punches are never edited;
 -- approved corrections/leave/overtime are separate records the day calculation consumes.
-CREATE TABLE c10_demo.wf_punches(
+CREATE TABLE core10.wf_punches(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, site_id bigint NOT NULL, employee_id bigint NOT NULL,
  punched_at timestamptz NOT NULL,
@@ -12,21 +12,21 @@ CREATE TABLE c10_demo.wf_punches(
  status text NOT NULL DEFAULT 'accepted' CHECK(status IN('accepted','duplicate')),
  duplicate_of bigint,
  batch_key text NOT NULL, created_by uuid NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id),
- FOREIGN KEY(site_id,tenant_id,business_id) REFERENCES c10_demo.sites(id,tenant_id,business_id)
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id),
+ FOREIGN KEY(site_id,tenant_id,business_id) REFERENCES core10.sites(id,tenant_id,business_id)
 );
-CREATE UNIQUE INDEX wf_punches_ref_uq ON c10_demo.wf_punches(business_id,source_ref) WHERE source_ref IS NOT NULL;
-CREATE INDEX wf_punches_emp_ix ON c10_demo.wf_punches(employee_id,punched_at);
-CREATE FUNCTION c10_demo.wfi_punch_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE UNIQUE INDEX wf_punches_ref_uq ON core10.wf_punches(business_id,source_ref) WHERE source_ref IS NOT NULL;
+CREATE INDEX wf_punches_emp_ix ON core10.wf_punches(employee_id,punched_at);
+CREATE FUNCTION core10.wfi_punch_guard() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
  -- Source facts are immutable except authorised retention purge (flag set by the purge RPC only).
  IF TG_OP='UPDATE' OR (TG_OP='DELETE' AND COALESCE(current_setting('c10.wf_purge',true),'')<>'1') THEN
   RAISE EXCEPTION 'wf_append_only_record'; END IF;
  RETURN COALESCE(NEW,OLD);
 END$$;
-CREATE TRIGGER wf_punches_guard BEFORE UPDATE OR DELETE ON c10_demo.wf_punches FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_punch_guard();
+CREATE TRIGGER wf_punches_guard BEFORE UPDATE OR DELETE ON core10.wf_punches FOR EACH ROW EXECUTE FUNCTION core10.wfi_punch_guard();
 
-CREATE TABLE c10_demo.wf_leave_types(
+CREATE TABLE core10.wf_leave_types(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL,
  code text NOT NULL CHECK(code ~ '^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$'),
@@ -39,9 +39,9 @@ CREATE TABLE c10_demo.wf_leave_types(
  active boolean NOT NULL DEFAULT true,
  version bigint NOT NULL DEFAULT 1,
  UNIQUE(business_id,code), UNIQUE(id,tenant_id,business_id),
- FOREIGN KEY(business_id,tenant_id) REFERENCES c10_demo.businesses(id,tenant_id)
+ FOREIGN KEY(business_id,tenant_id) REFERENCES core10.businesses(id,tenant_id)
 );
-CREATE TABLE c10_demo.wf_leave_requests(
+CREATE TABLE core10.wf_leave_requests(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, employee_id bigint NOT NULL, leave_type_id bigint NOT NULL,
  from_date date NOT NULL, to_date date NOT NULL CHECK(to_date>=from_date),
@@ -51,11 +51,11 @@ CREATE TABLE c10_demo.wf_leave_requests(
  requested_by uuid NOT NULL, decided_by uuid, decided_at timestamptz, decision_note text,
  request_key text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),
  UNIQUE(business_id,request_key),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id),
- FOREIGN KEY(leave_type_id,tenant_id,business_id) REFERENCES c10_demo.wf_leave_types(id,tenant_id,business_id)
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id),
+ FOREIGN KEY(leave_type_id,tenant_id,business_id) REFERENCES core10.wf_leave_types(id,tenant_id,business_id)
 );
-CREATE INDEX wf_leave_emp_ix ON c10_demo.wf_leave_requests(employee_id,from_date,to_date);
-CREATE TABLE c10_demo.wf_attendance_corrections(
+CREATE INDEX wf_leave_emp_ix ON core10.wf_leave_requests(employee_id,from_date,to_date);
+CREATE TABLE core10.wf_attendance_corrections(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, employee_id bigint NOT NULL, work_date date NOT NULL,
  new_in timestamptz, new_out timestamptz, new_status text CHECK(new_status IN('present','absent')),
@@ -66,20 +66,20 @@ CREATE TABLE c10_demo.wf_attendance_corrections(
  created_at timestamptz NOT NULL DEFAULT now(),
  CHECK(new_in IS NOT NULL OR new_out IS NOT NULL OR new_status IS NOT NULL),
  CHECK(new_in IS NULL OR new_out IS NULL OR new_out>new_in),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id)
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id)
 );
-CREATE INDEX wf_corr_emp_ix ON c10_demo.wf_attendance_corrections(employee_id,work_date);
-CREATE TABLE c10_demo.wf_overtime_approvals(
+CREATE INDEX wf_corr_emp_ix ON core10.wf_attendance_corrections(employee_id,work_date);
+CREATE TABLE core10.wf_overtime_approvals(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, employee_id bigint NOT NULL, work_date date NOT NULL,
  minutes int NOT NULL CHECK(minutes BETWEEN 0 AND 720),
  note text, decided_by uuid NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id)
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id)
 );
-CREATE INDEX wf_ot_emp_ix ON c10_demo.wf_overtime_approvals(employee_id,work_date,id DESC);
-CREATE TRIGGER wf_ot_no_mutation BEFORE UPDATE OR DELETE ON c10_demo.wf_overtime_approvals FOR EACH ROW EXECUTE FUNCTION c10_demo.wfi_immutable();
+CREATE INDEX wf_ot_emp_ix ON core10.wf_overtime_approvals(employee_id,work_date,id DESC);
+CREATE TRIGGER wf_ot_no_mutation BEFORE UPDATE OR DELETE ON core10.wf_overtime_approvals FOR EACH ROW EXECUTE FUNCTION core10.wfi_immutable();
 -- Approved timesheet (derived). Rebuilt on every relevant event, frozen in effect when payroll locks the period.
-CREATE TABLE c10_demo.wf_attendance_days(
+CREATE TABLE core10.wf_attendance_days(
  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  tenant_id bigint NOT NULL, business_id bigint NOT NULL, employee_id bigint NOT NULL, work_date date NOT NULL,
  status text NOT NULL, site_id bigint, shift_id bigint, scheduled_minutes int NOT NULL DEFAULT 0,
@@ -89,65 +89,65 @@ CREATE TABLE c10_demo.wf_attendance_days(
  overtime_approved_minutes int NOT NULL DEFAULT 0, leave_request_id bigint, correction_id bigint,
  flags jsonb NOT NULL DEFAULT '[]', computed_at timestamptz NOT NULL DEFAULT now(),
  UNIQUE(employee_id,work_date),
- FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES c10_demo.wf_employees(id,tenant_id,business_id)
+ FOREIGN KEY(employee_id,tenant_id,business_id) REFERENCES core10.wf_employees(id,tenant_id,business_id)
 );
-CREATE INDEX wf_days_biz_ix ON c10_demo.wf_attendance_days(business_id,work_date);
+CREATE INDEX wf_days_biz_ix ON core10.wf_attendance_days(business_id,work_date);
 
 -- Shift definition effective for an employee on a date.
-CREATE FUNCTION c10_demo.wfi_shift_on(p_employee bigint,p_date date) RETURNS c10_demo.wf_shifts
+CREATE FUNCTION core10.wfi_shift_on(p_employee bigint,p_date date) RETURNS core10.wf_shifts
 LANGUAGE sql STABLE AS $$
- SELECT s.* FROM c10_demo.wf_shift_assignments a JOIN c10_demo.wf_shifts s ON s.id=a.shift_id
+ SELECT s.* FROM core10.wf_shift_assignments a JOIN core10.wf_shifts s ON s.id=a.shift_id
  WHERE a.employee_id=p_employee AND a.effective_from<=p_date ORDER BY a.effective_from DESC,a.id DESC LIMIT 1 $$;
-CREATE FUNCTION c10_demo.wfi_is_off_day(p_business bigint,p_employee bigint,p_date date) RETURNS boolean
+CREATE FUNCTION core10.wfi_is_off_day(p_business bigint,p_employee bigint,p_date date) RETURNS boolean
 LANGUAGE plpgsql AS $$
-DECLARE sh c10_demo.wf_shifts; cfg c10_demo.wf_business_settings; off smallint[];
+DECLARE sh core10.wf_shifts; cfg core10.wf_business_settings; off smallint[];
 BEGIN
- sh:=c10_demo.wfi_shift_on(p_employee,p_date); cfg:=c10_demo.wfi_cfg(p_business);
+ sh:=core10.wfi_shift_on(p_employee,p_date); cfg:=core10.wfi_cfg(p_business);
  off:=COALESCE(sh.weekly_off_days,cfg.weekly_off_days);
  RETURN extract(isodow FROM p_date)::smallint=ANY(off);
 END$$;
-CREATE FUNCTION c10_demo.wfi_holiday_on(p_business bigint,p_employee bigint,p_date date) RETURNS c10_demo.wf_holidays
+CREATE FUNCTION core10.wfi_holiday_on(p_business bigint,p_employee bigint,p_date date) RETURNS core10.wf_holidays
 LANGUAGE sql STABLE AS $$
- SELECT h.* FROM c10_demo.wf_holidays h WHERE h.business_id=p_business AND h.holiday_date=p_date AND h.active
-  AND (h.site_id IS NULL OR h.site_id=c10_demo.wfi_site_of(p_employee,p_date))
+ SELECT h.* FROM core10.wf_holidays h WHERE h.business_id=p_business AND h.holiday_date=p_date AND h.active
+  AND (h.site_id IS NULL OR h.site_id=core10.wfi_site_of(p_employee,p_date))
  ORDER BY (h.site_id IS NULL) LIMIT 1 $$;
 
 -- Pure deterministic day calculation. Does not write.
-CREATE FUNCTION c10_demo.wfi_calc_day(p_business bigint,p_employee bigint,p_date date) RETURNS jsonb
+CREATE FUNCTION core10.wfi_calc_day(p_business bigint,p_employee bigint,p_date date) RETURNS jsonb
 LANGUAGE plpgsql AS $$
-DECLARE e c10_demo.wf_employees; cfg c10_demo.wf_business_settings; sh c10_demo.wf_shifts; hol c10_demo.wf_holidays;
- corr c10_demo.wf_attendance_corrections; lv record; v_site bigint; today date:=c10_demo.wfi_today();
+DECLARE e core10.wf_employees; cfg core10.wf_business_settings; sh core10.wf_shifts; hol core10.wf_holidays;
+ corr core10.wf_attendance_corrections; lv record; v_site bigint; today date:=core10.wfi_today();
  st timestamptz; en timestamptz; wf timestamptz; wt timestamptz; fi timestamptz; lo timestamptz;
  is_off boolean; worked boolean; one_side boolean;
  dstat text; sched int:=0; wk int:=0; late int:=0; early int:=0; ot int:=0; otk text; span int;
  otapp int:=0; otdec boolean:=true; flags jsonb:='[]'; aprow record;
 BEGIN
- SELECT * INTO e FROM c10_demo.wf_employees WHERE id=p_employee AND business_id=p_business;
- IF NOT FOUND OR p_date<e.joined_on OR COALESCE(c10_demo.wfi_status_on(p_employee,p_date),'terminated')<>'active' THEN
+ SELECT * INTO e FROM core10.wf_employees WHERE id=p_employee AND business_id=p_business;
+ IF NOT FOUND OR p_date<e.joined_on OR COALESCE(core10.wfi_status_on(p_employee,p_date),'terminated')<>'active' THEN
   RETURN jsonb_build_object('status','not_employed','scheduled_minutes',0,'worked_minutes',0,'late_minutes',0,
    'early_leave_minutes',0,'overtime_minutes',0,'overtime_approved_minutes',0,'overtime_decided',true,'flags','[]'::jsonb);
  END IF;
- cfg:=c10_demo.wfi_cfg(p_business); sh:=c10_demo.wfi_shift_on(p_employee,p_date); v_site:=c10_demo.wfi_site_of(p_employee,p_date);
- is_off:=c10_demo.wfi_is_off_day(p_business,p_employee,p_date);
- hol:=c10_demo.wfi_holiday_on(p_business,p_employee,p_date);
+ cfg:=core10.wfi_cfg(p_business); sh:=core10.wfi_shift_on(p_employee,p_date); v_site:=core10.wfi_site_of(p_employee,p_date);
+ is_off:=core10.wfi_is_off_day(p_business,p_employee,p_date);
+ hol:=core10.wfi_holiday_on(p_business,p_employee,p_date);
  IF p_date>today THEN
   RETURN jsonb_build_object('status','future','site_id',v_site,'shift_id',sh.id,'scheduled_minutes',0,'worked_minutes',0,
    'late_minutes',0,'early_leave_minutes',0,'overtime_minutes',0,'overtime_approved_minutes',0,'overtime_decided',true,'flags','[]'::jsonb);
  END IF;
  IF sh.id IS NOT NULL THEN
-  st:=c10_demo.wfi_ts(p_date,sh.start_time);
-  en:=c10_demo.wfi_ts(p_date+CASE WHEN sh.end_time<=sh.start_time THEN 1 ELSE 0 END,sh.end_time);
+  st:=core10.wfi_ts(p_date,sh.start_time);
+  en:=core10.wfi_ts(p_date+CASE WHEN sh.end_time<=sh.start_time THEN 1 ELSE 0 END,sh.end_time);
   wf:=st-interval '180 minutes'; wt:=en+interval '180 minutes';
   sched:=(extract(epoch FROM (en-st))/60)::int-sh.break_minutes;
- ELSE wf:=c10_demo.wfi_ts(p_date,'00:00'); wt:=c10_demo.wfi_ts(p_date+1,'00:00'); END IF;
+ ELSE wf:=core10.wfi_ts(p_date,'00:00'); wt:=core10.wfi_ts(p_date+1,'00:00'); END IF;
  SELECT min(punched_at) FILTER(WHERE direction='in'),max(punched_at) FILTER(WHERE direction='out') INTO fi,lo
-  FROM c10_demo.wf_punches WHERE employee_id=p_employee AND status='accepted' AND punched_at>=wf AND punched_at<wt;
- SELECT * INTO corr FROM c10_demo.wf_attendance_corrections WHERE employee_id=p_employee AND work_date=p_date AND status='approved'
+  FROM core10.wf_punches WHERE employee_id=p_employee AND status='accepted' AND punched_at>=wf AND punched_at<wt;
+ SELECT * INTO corr FROM core10.wf_attendance_corrections WHERE employee_id=p_employee AND work_date=p_date AND status='approved'
   ORDER BY decided_at DESC,id DESC LIMIT 1;
  IF FOUND THEN fi:=COALESCE(corr.new_in,fi); lo:=COALESCE(corr.new_out,lo); flags:=flags||'"corrected"'::jsonb; END IF;
  IF fi IS NOT NULL AND lo IS NOT NULL AND lo<=fi THEN lo:=NULL; flags:=flags||'"out_before_in"'::jsonb; END IF;
  worked:=fi IS NOT NULL AND lo IS NOT NULL; one_side:=(fi IS NULL)<>(lo IS NULL);
- SELECT lr.id,lt.paid INTO lv FROM c10_demo.wf_leave_requests lr JOIN c10_demo.wf_leave_types lt ON lt.id=lr.leave_type_id
+ SELECT lr.id,lt.paid INTO lv FROM core10.wf_leave_requests lr JOIN core10.wf_leave_types lt ON lt.id=lr.leave_type_id
   WHERE lr.employee_id=p_employee AND lr.status='approved' AND p_date BETWEEN lr.from_date AND lr.to_date LIMIT 1;
  IF worked THEN
   span:=floor(extract(epoch FROM (lo-fi))/60)::int;
@@ -182,7 +182,7 @@ BEGIN
   IF dstat<>'incomplete' THEN wk:=0; END IF; END IF;
  IF ot>0 THEN
   IF cfg.overtime_requires_approval THEN
-   SELECT minutes INTO aprow FROM c10_demo.wf_overtime_approvals WHERE employee_id=p_employee AND work_date=p_date ORDER BY id DESC LIMIT 1;
+   SELECT minutes INTO aprow FROM core10.wf_overtime_approvals WHERE employee_id=p_employee AND work_date=p_date ORDER BY id DESC LIMIT 1;
    IF FOUND THEN otapp:=LEAST(aprow.minutes,ot); ELSE otdec:=false; END IF;
   ELSE otapp:=ot; END IF;
  END IF;
@@ -191,17 +191,17 @@ BEGIN
   'overtime_minutes',ot,'overtime_kind',otk,'overtime_decided',otdec,'overtime_approved_minutes',otapp,
   'leave_request_id',lv.id,'holiday_paid',hol.paid,'correction_id',corr.id,'flags',flags);
 END$$;
-CREATE FUNCTION c10_demo.wfi_corr_absent(c c10_demo.wf_attendance_corrections) RETURNS boolean
+CREATE FUNCTION core10.wfi_corr_absent(c core10.wf_attendance_corrections) RETURNS boolean
 LANGUAGE sql IMMUTABLE AS $$ SELECT c.id IS NOT NULL AND c.new_status='absent' $$;
 
-CREATE FUNCTION c10_demo.wfi_recompute_day(p_business bigint,p_employee bigint,p_date date) RETURNS void
+CREATE FUNCTION core10.wfi_recompute_day(p_business bigint,p_employee bigint,p_date date) RETURNS void
 LANGUAGE plpgsql AS $$
 DECLARE d jsonb; t bigint;
 BEGIN
- IF c10_demo.wfi_period_locked(p_business,p_date) THEN RETURN; END IF;
- d:=c10_demo.wfi_calc_day(p_business,p_employee,p_date);
- SELECT tenant_id INTO t FROM c10_demo.wf_employees WHERE id=p_employee;
- INSERT INTO c10_demo.wf_attendance_days(tenant_id,business_id,employee_id,work_date,status,site_id,shift_id,scheduled_minutes,
+ IF core10.wfi_period_locked(p_business,p_date) THEN RETURN; END IF;
+ d:=core10.wfi_calc_day(p_business,p_employee,p_date);
+ SELECT tenant_id INTO t FROM core10.wf_employees WHERE id=p_employee;
+ INSERT INTO core10.wf_attendance_days(tenant_id,business_id,employee_id,work_date,status,site_id,shift_id,scheduled_minutes,
   first_in,last_out,worked_minutes,late_minutes,early_leave_minutes,overtime_minutes,overtime_kind,overtime_decided,
   overtime_approved_minutes,leave_request_id,correction_id,flags,computed_at)
  VALUES(t,p_business,p_employee,p_date,d->>'status',(d->>'site_id')::bigint,(d->>'shift_id')::bigint,(d->>'scheduled_minutes')::int,
@@ -216,23 +216,23 @@ BEGIN
 END$$;
 
 -- Map an instant to the work date it belongs to (supports overnight shifts).
-CREATE FUNCTION c10_demo.wfi_work_date(p_business bigint,p_employee bigint,p_ts timestamptz) RETURNS date
+CREATE FUNCTION core10.wfi_work_date(p_business bigint,p_employee bigint,p_ts timestamptz) RETURNS date
 LANGUAGE plpgsql STABLE AS $$
-DECLARE d0 date:=(p_ts AT TIME ZONE 'Asia/Dhaka')::date; d date; sh c10_demo.wf_shifts; st timestamptz; en timestamptz;
+DECLARE d0 date:=(p_ts AT TIME ZONE 'Asia/Dhaka')::date; d date; sh core10.wf_shifts; st timestamptz; en timestamptz;
 BEGIN
  FOREACH d IN ARRAY ARRAY[d0,d0-1] LOOP
-  sh:=c10_demo.wfi_shift_on(p_employee,d);
+  sh:=core10.wfi_shift_on(p_employee,d);
   IF sh.id IS NULL THEN CONTINUE; END IF;
-  st:=c10_demo.wfi_ts(d,sh.start_time);
-  en:=c10_demo.wfi_ts(d+CASE WHEN sh.end_time<=sh.start_time THEN 1 ELSE 0 END,sh.end_time);
+  st:=core10.wfi_ts(d,sh.start_time);
+  en:=core10.wfi_ts(d+CASE WHEN sh.end_time<=sh.start_time THEN 1 ELSE 0 END,sh.end_time);
   IF p_ts>=st-interval '180 minutes' AND p_ts<en+interval '180 minutes' THEN RETURN d; END IF;
  END LOOP;
  RETURN d0;
 END$$;
 
 -- Bounded import-ready punch DTO: [{employee_no, at, direction, ref}] up to 500 rows.
-CREATE FUNCTION c10_demo.wf_import_punches_v1(p_business bigint,p_request text,p_site bigint,p_source text,p_punches jsonb)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_import_punches_v1(p_business bigint,p_request text,p_site bigint,p_source text,p_punches jsonb)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; cfg wf_business_settings; pay jsonb; el jsonb; i int:=0; emp wf_employees; ts timestamptz;
  dir text; ref text; v_id bigint; v_dup bigint; wd date; outcome text; acc int:=0; dup int:=0; rej int:=0;
  results jsonb:='[]'; touched jsonb:='{}'; k text; res jsonb;
@@ -284,9 +284,9 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'import_punches',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_request_correction_v1(p_business bigint,p_request text,p_employee bigint,p_work_date date,
+CREATE FUNCTION core10.wf_request_correction_v1(p_business bigint,p_request text,p_employee bigint,p_work_date date,
  p_new_in timestamptz,p_new_out timestamptz,p_new_status text,p_reason text) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; e wf_employees; v_id bigint; res jsonb;
 BEGIN
  IF p_employee IS NULL OR p_work_date IS NULL OR (p_new_in IS NULL AND p_new_out IS NULL AND p_new_status IS NULL)
@@ -313,8 +313,8 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'request_correction',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_decide_correction_v1(p_business bigint,p_request text,p_correction bigint,p_decision text,p_note text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_decide_correction_v1(p_business bigint,p_request text,p_correction bigint,p_decision text,p_note text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; cfg wf_business_settings; pay jsonb; r wf_attendance_corrections; res jsonb;
 BEGIN
  IF p_correction IS NULL OR p_decision NOT IN('approve','reject') OR p_decision IS NULL OR p_note IS NULL
@@ -338,8 +338,8 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'decide_correction',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_decide_overtime_v1(p_business bigint,p_request text,p_employee bigint,p_work_date date,
- p_minutes int,p_note text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_decide_overtime_v1(p_business bigint,p_request text,p_employee bigint,p_work_date date,
+ p_minutes int,p_note text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; d jsonb; res jsonb;
 BEGIN
  IF p_employee IS NULL OR p_work_date IS NULL OR p_minutes IS NULL OR p_minutes NOT BETWEEN 0 AND 720 OR p_note IS NULL
@@ -363,8 +363,8 @@ BEGIN
 END$$;
 
 -- ===== Leave =====
-CREATE FUNCTION c10_demo.wf_save_leave_type_v1(p_business bigint,p_request text,p_expected_version bigint,p_type jsonb,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_save_leave_type_v1(p_business bigint,p_request text,p_expected_version bigint,p_type jsonb,p_reason text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; lt wf_leave_types; v_id bigint; res jsonb;
 BEGIN
  IF p_type IS NULL OR jsonb_typeof(p_type)<>'object' OR p_expected_version IS NULL OR p_reason IS NULL
@@ -396,24 +396,24 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'save_leave_type',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wfi_leave_days(p_business bigint,p_employee bigint,p_from date,p_to date) RETURNS numeric
+CREATE FUNCTION core10.wfi_leave_days(p_business bigint,p_employee bigint,p_from date,p_to date) RETURNS numeric
 LANGUAGE plpgsql AS $$
 DECLARE d date; n numeric:=0;
 BEGIN
  FOR d IN SELECT generate_series(p_from,p_to,interval '1 day')::date LOOP
-  IF NOT c10_demo.wfi_is_off_day(p_business,p_employee,d) AND (c10_demo.wfi_holiday_on(p_business,p_employee,d)).id IS NULL THEN n:=n+1; END IF;
+  IF NOT core10.wfi_is_off_day(p_business,p_employee,d) AND (core10.wfi_holiday_on(p_business,p_employee,d)).id IS NULL THEN n:=n+1; END IF;
  END LOOP;
  RETURN n;
 END$$;
-CREATE FUNCTION c10_demo.wfi_leave_used(p_employee bigint,p_type bigint,p_year int,p_exclude bigint) RETURNS numeric
+CREATE FUNCTION core10.wfi_leave_used(p_employee bigint,p_type bigint,p_year int,p_exclude bigint) RETURNS numeric
 LANGUAGE sql STABLE AS $$
- SELECT COALESCE(sum(days),0) FROM c10_demo.wf_leave_requests WHERE employee_id=p_employee AND leave_type_id=p_type
+ SELECT COALESCE(sum(days),0) FROM core10.wf_leave_requests WHERE employee_id=p_employee AND leave_type_id=p_type
   AND status IN('pending','approved') AND extract(year FROM from_date)=p_year AND id<>COALESCE(p_exclude,-1) $$;
-CREATE FUNCTION c10_demo.wfi_leave_locked(p_business bigint,p_from date,p_to date) RETURNS boolean
-LANGUAGE sql STABLE AS $$ SELECT c10_demo.wfi_range_locked(p_business,p_from,p_to) $$;
+CREATE FUNCTION core10.wfi_leave_locked(p_business bigint,p_from date,p_to date) RETURNS boolean
+LANGUAGE sql STABLE AS $$ SELECT core10.wfi_range_locked(p_business,p_from,p_to) $$;
 
-CREATE FUNCTION c10_demo.wf_request_leave_v1(p_business bigint,p_request text,p_employee bigint,p_type_code text,
- p_from date,p_to date,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_request_leave_v1(p_business bigint,p_request text,p_employee bigint,p_type_code text,
+ p_from date,p_to date,p_reason text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; v_emp bigint; e wf_employees; lt wf_leave_types; v_days numeric; v_id bigint; res jsonb; v_status text;
 BEGIN
  IF p_type_code IS NULL OR p_from IS NULL OR p_to IS NULL OR p_reason IS NULL OR length(btrim(p_reason)) NOT BETWEEN 3 AND 500
@@ -452,8 +452,8 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'request_leave',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_decide_leave_v1(p_business bigint,p_request text,p_leave bigint,p_decision text,p_note text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_decide_leave_v1(p_business bigint,p_request text,p_leave bigint,p_decision text,p_note text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; cfg wf_business_settings; pay jsonb; r wf_leave_requests; lt wf_leave_types; res jsonb; v_to text;
 BEGIN
  IF p_leave IS NULL OR p_decision NOT IN('approve','reject','revoke') OR p_decision IS NULL OR p_note IS NULL
@@ -485,8 +485,8 @@ BEGIN
  RETURN wfi_finish(p_business,c.tenant_id,p_request,'decide_leave',pay,res);
 END$$;
 
-CREATE FUNCTION c10_demo.wf_cancel_leave_v1(p_business bigint,p_request text,p_leave bigint,p_note text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+CREATE FUNCTION core10.wf_cancel_leave_v1(p_business bigint,p_request text,p_leave bigint,p_note text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE b record; c wf_ctx_t; pay jsonb; r wf_leave_requests; res jsonb;
 BEGIN
  IF p_leave IS NULL OR p_note IS NULL OR length(btrim(p_note)) NOT BETWEEN 3 AND 500 THEN RAISE EXCEPTION 'wf_invalid_input'; END IF;
