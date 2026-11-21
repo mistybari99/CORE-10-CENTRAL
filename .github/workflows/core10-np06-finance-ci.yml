@@ -71,21 +71,11 @@ jobs:
           test "$(PGDATABASE=np06_rev_standalone psql -X -At -c "SELECT count(*) FROM core10.finance_reversals_v1 WHERE business_id=9711")" = "1"
           test "$(PGDATABASE=np06_rev_standalone psql -X -At -c "SELECT count(*) FROM core10.finance_journals_v1 WHERE business_id=9711 AND status='posted'")" = "2"
           echo NP06_REVERSAL_STANDALONE_FRESH_DB_PASS
-      - name: Rollback refuses data-bearing canonical Finance history
-        run: |
-          output="$(mktemp)"
-          if internal/migrations/run.sh down > "$output" 2>&1; then
-            cat "$output"
-            echo "FIN_ROLLBACK_UNEXPECTEDLY_ALLOWED"
-            exit 1
-          fi
-          grep -q "FIN_REVERSAL_ROLLBACK_DENIED_HISTORY" "$output" || { cat "$output"; exit 1; }
-          test "$(psql -X -At -c "SELECT count(*) FROM core10.finance_journals_v1 WHERE business_id=9711 AND status='posted'")" = "2"
-          test "$(psql -X -At -c "SELECT count(*) FROM core10.finance_reversals_v1 WHERE business_id=9711")" = "1"
-          echo "FIN_REVERSAL_ROLLBACK_HISTORY_GUARD_PASS"
+      - name: Explicit 0400 and 0401 immutable history and audit rollback guards
+        run: bash tests/migrations/np06-finance-rollback-boundary.sh
 
   np01-compat-pg17:
-    name: "F2 + NP01 PR111 compatibility (disposable PG17)"
+    name: "F2 + NP01 0114 PR111 compatibility (disposable PG17)"
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
@@ -115,7 +105,7 @@ jobs:
           git fetch --no-tags origin refs/pull/111/head:refs/remotes/np01/pr111
           np01_sha="$(git rev-parse refs/remotes/np01/pr111)"
           echo "NP01_COMPAT_REVIEWED_SHA=$np01_sha"
-          test "$np01_sha" = "c858084d0d5a80b752637c30fd7c9199dc8455a5" || {
+          test "$np01_sha" = "69143ffb82667b6f81b3667288af54a86b597698" || {
             echo "NP01_REVIEW_HEAD_MOVED_REVERIFY_BEFORE_COMPAT"; exit 1;
           }
           git -c user.name='NP06 CI Reviewer' -c user.email='ci-review@example.invalid' merge --no-commit --no-ff refs/remotes/np01/pr111
@@ -132,7 +122,7 @@ jobs:
           node --test tests/migrations/migration-contract.test.js
           node --test tests/migrations/np01-*.test.js
           node --test tests/setup001/setup-profile-engine.test.cjs tests/gov003/np01-canonical-csv.test.mjs
-      - name: Combined NP01 0110-0112 and Finance 0400-0401 Up Down Up
+      - name: Combined NP01 0110-0114 and Finance 0400-0401 Up Down Up
         run: |
           bash tests/migrations/run-updownup.sh
           internal/migrations/run.sh up
@@ -144,6 +134,8 @@ jobs:
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-submit-delegation-e2e.sql
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-route-stages-e2e.sql
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-site-provision-e2e.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-gov003-e2e.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-threshold-exception-e2e.sql
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-rpc-e2e.sql
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-e2e.sql
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-reversal-e2e.sql
@@ -151,6 +143,8 @@ jobs:
         run: |
           bash tests/migrations/np01-control-route-concurrency.sh
           bash tests/migrations/np01-control-site-provision-concurrency.sh
+          bash tests/migrations/np01-control-gov003-concurrency.sh
+          bash tests/migrations/np01-control-threshold-exception-concurrency.sh
           bash tests/migrations/np06-finance-race.sh
           bash tests/migrations/np06-finance-reversal-race.sh
           echo FINANCE_NP01_PR111_PG17_COMBINED_PASS

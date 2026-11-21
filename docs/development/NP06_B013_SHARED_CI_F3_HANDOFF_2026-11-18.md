@@ -1,0 +1,61 @@
+# NP06 / B-013 — Shared Finance CI unblock and F3 integration preflight
+
+**Date:** 2026-11-18. **Authority:** code, CI and independent review preparation ONLY. **NO Owner merge GO, no GO-2 staging, no GO-3 deployment.**
+
+## Canonical state (verify live before resuming)
+
+- Repository: `mistybari99/CORE-10-CENTRAL`; Claude trunk: `ccr-15ed11dd-n3hw5h`. Initial latest verified trunk: `a82ae993b93c1460898b9022bb56b7a995d96437`.
+- Finance F2 `0401` **integrated** by Claude: PR #115, merge commit `532bd36`. Never re-implement or amend the applied 0400/0401 migrations.
+- Shared CI correction **Draft PR #118**: `build/chatgpt-np06-shared-ci-fix` against live trunk.
+- Finance F3 `0402/0403` **Draft PR #117**: `build/chatgpt-np06-arap`, last verified head `3d128dc4df1b8860ce46a3aaae9960843d382c0f`. F3 is not integrated; F3 authorization is separate.
+- Cross-lane exact heads reviewed at initial checkpoint: NP01 PR #111 `69143ffb82667b6f81b3667288af54a86b597698` with 0113 GOV003 + 0114 GOV002 threshold/exception, Sales PR #109 `aa45845c4f7310824ae81dacbaff08660e4fc701` with 0304 invoice drafts, Manufacturing PR #112 `7e39b7517763e24c308b7f8316a3ac7219a84d2d` with 0504 canonical Master. **Pins are intentionally hard-fail guards** if any PR advances.
+
+## Exact CI-fix scope
+
+1. Trunk `.github/workflows/core10-np06-finance-ci.yml` no longer pins obsolete NP01 `c858084d`: it verifies the exact new reviewed `69143ffb` SHA and runs 0110–0114 including GOV003/GOV002 read, Owner Control, audit and independent-session race. PR111 is locally fetched with read-only repository permission; NO push or shared-branch alteration.
+2. Old generic `run.sh down` assertion incorrectly targeted whichever version was highest. New `tests/migrations/np06-finance-rollback-boundary.sh` calls *exact* `0401.down.sql` and `0400.down.sql` separately in `BEGIN READ ONLY` transactions and requires their **original** errors: `FIN_REVERSAL_ROLLBACK_DENIED_HISTORY`, `FIN_ROLLBACK_DENIED_PERSISTED_HISTORY`. It verifies applied 0400/0401 SHA256 checksums, complete `core10.schema_migrations` ledger, posted original/reversal, immutable lines, Owner settings and audit event counts before/after, and validates the canonical audit chain **as an authenticated synthetic tenant Owner**. This neither calls production `run.sh down` nor edits migrations.
+3. New read-only cross-lane CI `.github/workflows/core10-np06-crosslane-ci.yml` pins and locally merges Sales PR109 and Manufacturing PR112 separately. Each matrix leg does full disposable PG17 Up→Down→Up, Control mapping evidence, Finance 0400/0401 E2E, real independent-session posting/reversal, target rollback guard and domain tests. Manufacturing executes its own E2E and concurrency; Sales uses a separate **disposable Sales-named PG17 database** for unchanged invoice negative/zero-Money and Sales concurrency tests, while the primary combined DB proves Finance reversal works *with* 0304 installed. This preserves both lanes' safety assertions without hiding or weakening them.
+4. Small CI-only scope: no Finance SQL or migration checksum edits, no NP01/Sales/Manufacturing code edits, no new approval, Auth, Money, customer, supplier or payment engines.
+
+## Test checkpoints
+
+- Exact code checkpoint `8b156af450a04829ad07d21729d7ee6d3fd08c9f`:
+  - Finance workflow: https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/44366597749 (both normal and NP01 compatibility jobs)
+  - S0: https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/44366597681
+  - Cross-lane Sales + Manufacturing matrix: https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/44366597656
+  - NP02 Master/Owner Control: https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/44366597780
+- **Always recheck all exact-head workflow conclusions** after any docs/CI change. Report PASS only when job result is actually success; not when queued/in progress. S1-c Approval/Audit is covered by canonical Finance E2E and live shared CI; when a separate S1-c workflow is triggered, record it explicitly.
+
+## F3 integration preparation — NO merge yet
+
+Read-only inspection of F3 against latest F2-integrated trunk shows **exactly ten F3-owned additional paths**, with no modified 0400/0401 files: `0402_np06_arap_links_allocations` up/down, `0403_np06_arap_trace_integrity` up/down, F3 race/SQL regressions, F3 CI and two F3 docs. The old PR #117 base still points to Finance F2 feature branch and its old shared CI; re-targeting it before the reviewed #118 CI fix integrates would produce predictable stale-pin/rollback failures. **Do not weaken either test or pollute F3 diff with shared CI changes.**
+
+After Claude/Owner independently reviews and integrates PR #118 (with a separate GO):
+1. Re-fetch latest actual trunk and PR #117 HEAD. Confirm no other builder has introduced F3 paths.
+2. Compare F3's ten SHA-verified unique files to trunk. Use a normal, non-forced two-parent merge to sync trunk into `build/chatgpt-np06-arap`, preserving the original 0402/0403 up/down bytes and all history. Ensure 0400/0401 blobs match the integrated trunk.
+3. **Only then** re-target Draft PR #117 to `ccr-15ed11dd-n3hw5h`; require diff exactly F3-owned paths and no shared CI/old F2 migration modifications.
+4. Run full F3 PG17 E2E, Master party links, same actor replay, partial/over-payment, derived as-of aging, Auth/RLS/Control/Audit, three independent-session races, 0401 compatibility, NP02 Master/Owner Control and shared Finance/Approval/S0 checks at the new exact F3 SHA.
+5. Ask Claude for a **separate independent F3 code review and separate Owner F3 GO**. No self-merge.
+
+**F3 fail-closed blockers** remain: actual NP03B Sales invoice and NP03A procurement bill attestation, bank/receipt proof and true GOV002 Finance 1+stage adapter NOT CONNECTED; only explicit Owner/manual Money posting usable in disposable tests. Allocated document/payment reversal denied pending allocation-reconciliation adapter. Valuation/COGS, signed 16 personas, FX/tax, reconciliation, Finance Shell/UI and hosted testing are NOT COMPLETE.
+
+## Absolute HOLD
+
+Never apply hosted Supabase migrations, deploy Cloudflare/Workers, alter main/production/IMG-ERP-SG or push to another builder branch. Finance PR #115 is ALREADY integrated; do not repeat it. Shared CI PR #118 and F3 PR #117 both stay Draft until independent Claude/Owner decision.
+
+### NP01 active-head verification note (2026-11-18)
+
+NP01 PR111 advanced from d9a1659 to 22bc275 (migration 0114), then ce83108 (correct canonical Owner Audit claim in 0114 race) and finally 69143ff (documentation-only). A real combined Finance PG17 run at 22bc275 exposed NP01 0114 race's `canonical_audit_read_denied`; the builder's ce83108 change corrected the test, independently inspected by NP06. The move from ce83108 to 69143ff changes **only the NP01 handoff documentation** and no SQL or test executable. Finance's exact SHA pin now requires precisely 69143ff and will fail closed if it moves again. Coordination comment: https://github.com/mistybari99/CORE-10-CENTRAL/pull/111#issuecomment-6987585623 . Always verify the new exact-head combined PG17 run before requesting CI integration; do not misreport older green runs.
+
+### Sales PR109 additional UI-only advance
+
+Sales PR109 advanced from `c7165af0` to `aa45845c4f7310824ae81dacbaff08660e4fc701`, adding draft-invoice UI/client tests but **no new Sales database migrations**. Reviewed the diff; matrix SHA guard now pins this exact head and runs `node --test tests/np03b/invoice-client.test.cjs` in addition to previously verified combined 0304 Finance/rollback and separate Sales PG17 invoice/concurrency tests. Latest exact-head run must verify success before claiming the pin compatible.
+
+## 2026-11-19 — Independent Sweets review P1 pin correction (no production change)
+
+- Review: PR #118 at previously tested `d54ca632278467fe01cb5f5444d5791c6e232a65`; reviewer requested changes at the **unresolved** inline thread on `.github/workflows/core10-np06-crosslane-ci.yml:27`: https://github.com/mistybari99/CORE-10-CENTRAL/pull/118#discussion_r4621378774 .
+- Verified current PR #112 HEAD: `7e39b7517763e24c308b7f8316a3ac7219a84d2d` (old pinned `86851dc4a09bb71c051e3fb82b8fddc9d0b4ec1b`). Compare reports **one fast-forward commit**, `7e39b751` (`test(np05a): prepare independent review and prove source-linked nonposting boundaries`). Complete delta is restricted to Manufacturing's own `.github/workflows/core10-np05a-manufacturing-ci.yml`, `tests/np05a/master-browser.cjs`, `tests/np05a/0500-0504.sha256`, its docs/evidence and source-handoff screenshots. **No production SQL, 0500–0504 migration changes, or other builder's source edits.** CI checksum check now includes 0504 instead of stopping at 0503.
+- Changed **only** the Manufacturing `matrix.include.head_sha` constant in Finance-owned crosslane workflow. The mandatory `actual_sha != matrix.head_sha` abort with `FINANCE_manufacturing_HEAD_MOVED_REVERIFY_BEFORE_COMPAT`, and identical exact-head checks for Sales/F3/NP01, remain untouched. No permissions or production runner changes.
+- Other actual PR HEADs were checked before update and still match pinned values: NP01 PR111 `69143ffb82667b6f81b3667288af54a86b597698`; Sales PR109 `aa45845c4f7310824ae81dacbaff08660e4fc701`; F3 PR117 `3d128dc4df1b8860ce46a3aaae9960843d382c0f`.
+- Independent reviewer supplied **supplemental, detached PostgreSQL 17.12** evidence with current PR112 and all other PR heads: 50 combined migrations Up→Down→Up; applied checksums; Finance posting/reversal, Owner Control and immutable history guards; NP01 GOV002/3; Sales invoice negative; Manufacturing 0500–0504; F3 source-linked AR/AP and three two-session races all PASS. This is **reviewer evidence**, not a substitute for a new exact-head PR118 GitHub Actions run. Source review: https://github.com/mistybari99/CORE-10-CENTRAL/pull/118#pullrequestreview-5965786230 .
+- Fresh GitHub exact-head CI proof (Finance+NP01, S0, NP02 Control, Sales/Mfg/F3 matrix) must be recorded in PR #118 once all jobs conclude. A separate focused reviewer re-review and then **separate Owner integration GO** are required; this handoff does not authorize merge, staging or deployment.
