@@ -113,3 +113,60 @@ if [[ "$audit_rev" != "$rev_done" ]]; then
  echo "ARAP_REVERSAL_ALLOCATION_AUDIT_INCONSISTENT" >&2; exit 1
 fi
 echo "ARAP_REVERSAL_ALLOCATION_RACE_PASS reverse=$rev_done allocation=$alloc_done"
+# A locked journal belonging to another tenant must not hold up our caller.
+# Real independent PG17 sessions: one holds FOR UPDATE, two attempt F3 RPCs.
+foreign_journal="$(psql -X -At -c "SELECT id FROM core10.finance_journals_v1 WHERE business_id=9641 AND source_ref='arap-race-foreign-lock'")"
+[[ "$foreign_journal" =~ ^[0-9]+$ ]] || { echo 'ARAP_FOREIGN_JOURNAL_MISSING'; exit 1; }
+(
+ PGAPPNAME=core10_arap_foreign_lock psql -X -qAt -v ON_ERROR_STOP=1 >"$tmp/foreign-locker.out" 2>"$tmp/foreign-locker.err" <<SQL
+BEGIN;
+SELECT id FROM core10.finance_journals_v1 WHERE id=$foreign_journal FOR UPDATE;
+SELECT pg_sleep(5);
+ROLLBACK;
+SQL
+) & foreign_locker=$!
+lock_ready=0
+for _ in $(seq 1 80); do
+ if [[ "$(psql -X -At -c "SELECT count(*) FROM pg_stat_activity WHERE application_name='core10_arap_foreign_lock' AND state='active' AND query LIKE 'SELECT pg_sleep(5)%'")" == 1 ]]; then
+   lock_ready=1; break
+ fi
+ sleep 0.05
+done
+if [[ "$lock_ready" != 1 ]]; then
+ echo ARAP_FOREIGN_LOCK_NOT_ACQUIRED >&2
+ cat "$tmp/foreign-locker.err" >&2
+ wait "$foreign_locker" || true
+ exit 1
+fi
+if psql -X -qAt -v ON_ERROR_STOP=1 >"$tmp/foreign-link.out" 2>"$tmp/foreign-link.err" <<SQL
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims',
+ '{"sub":"91111111-1111-4111-8111-111111111111"}',false);
+SET statement_timeout='1500ms';
+SELECT core10.finance_link_open_item_v1($foreign_journal,1,1,'ar',
+ '2026-11-30','arapForeignLockLink1');
+SQL
+then
+ echo ARAP_FOREIGN_LINK_UNEXPECTEDLY_ALLOWED >&2; exit 1
+fi
+grep -q 'FIN_ARAP_AUTH_DENIED' "$tmp/foreign-link.err" || {
+ echo ARAP_FOREIGN_LINK_WAITED_FOR_ROW_LOCK >&2
+ cat "$tmp/foreign-link.err" >&2; exit 1
+}
+if psql -X -qAt -v ON_ERROR_STOP=1 >"$tmp/foreign-alloc.out" 2>"$tmp/foreign-alloc.err" <<SQL
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims',
+ '{"sub":"91111111-1111-4111-8111-111111111111"}',false);
+SET statement_timeout='1500ms';
+SELECT core10.finance_allocate_payment_v1($link,$foreign_journal,1,
+ 'arapForeignLockAlloc1');
+SQL
+then
+ echo ARAP_FOREIGN_PAYMENT_UNEXPECTEDLY_ALLOWED >&2; exit 1
+fi
+grep -q 'FIN_ARAP_PAYMENT_SCOPE_OR_STATUS' "$tmp/foreign-alloc.err" || {
+ echo ARAP_FOREIGN_PAYMENT_WAITED_FOR_ROW_LOCK >&2
+ cat "$tmp/foreign-alloc.err" >&2; exit 1
+}
+wait "$foreign_locker" || { cat "$tmp/foreign-locker.err" >&2; exit 1; }
+echo NP06_ARAP_FOREIGN_LOCK_GUARD_PASS

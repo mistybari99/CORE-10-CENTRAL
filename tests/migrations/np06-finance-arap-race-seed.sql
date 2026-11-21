@@ -8,6 +8,19 @@ INSERT INTO core10.businesses(id,tenant_id,legal_entity_id,slug,template_code,re
  VALUES(9631,963,9630,'np06-arap-race-biz','sweets_bakery','arap-race-biz001');
 INSERT INTO core10.tenant_members(tenant_id,user_id,role)
  VALUES(963,'91111111-1111-4111-8111-111111111111','tenant_owner');
+-- Distinct tenant and unposted journal are a deliberate row-lock adversary.
+-- A wrong-scope F3 command may not wait on this tenant's locked journal.
+INSERT INTO core10.tenants(id,slug) VALUES(964,'np06-arap-race-foreign');
+INSERT INTO core10.legal_entities(id,tenant_id,label) VALUES(9640,964,'Foreign Race Legal');
+INSERT INTO core10.businesses(id,tenant_id,legal_entity_id,slug,template_code,request_key)
+ VALUES(9641,964,9640,'np06-arap-race-foreign','sweets_bakery','arap-race-foreign-biz');
+INSERT INTO core10.finance_journals_v1
+ (tenant_id,business_id,legal_entity_id,currency,effective_on,source_domain,
+  source_ref,draft_key,payload_sha256,created_by)
+ VALUES(964,9641,9640,'BDT','2026-11-16','manual',
+  'arap-race-foreign-lock','arapForeignDraft1',repeat('a',64),
+  '91111111-1111-4111-8111-111111111111');
+
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims',
  '{"sub":"91111111-1111-4111-8111-111111111111"}',false);

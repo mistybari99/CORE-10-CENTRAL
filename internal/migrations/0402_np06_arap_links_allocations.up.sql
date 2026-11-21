@@ -103,8 +103,15 @@ DECLARE j core10.finance_journals_v1%ROWTYPE; p core10.master_parties_v1%ROWTYPE
  a core10.finance_accounts_v1%ROWTYPE; v_actor uuid:=core10.actor_uid();
  prev core10.finance_arap_links_v1%ROWTYPE; v_id bigint; v_audit bigint; v_side text; v_amount numeric;
 BEGIN
- SELECT * INTO j FROM core10.finance_journals_v1 WHERE id=p_journal FOR UPDATE;
+ -- Untrusted journal IDs never acquire foreign-tenant or business row locks.
+ -- Read scope without locking and verify active Owner authority before a wait.
+ SELECT * INTO j FROM core10.finance_journals_v1 WHERE id=p_journal;
  IF NOT FOUND OR v_actor IS NULL OR NOT core10.can_manage(j.tenant_id,j.business_id)
+ THEN RAISE EXCEPTION 'FIN_ARAP_AUTH_DENIED'; END IF;
+ -- Lock only the authorized scope, then revalidate membership after the wait.
+ SELECT * INTO j FROM core10.finance_journals_v1
+  WHERE id=p_journal AND tenant_id=j.tenant_id AND business_id=j.business_id FOR UPDATE;
+ IF NOT FOUND OR NOT core10.can_manage(j.tenant_id,j.business_id)
  THEN RAISE EXCEPTION 'FIN_ARAP_AUTH_DENIED'; END IF;
  PERFORM core10.control_check_v1(j.business_id,'finance.arap_link',j.site_id);
  IF p_kind IS NULL OR p_kind NOT IN ('ar','ap') OR p_due_on IS NULL
@@ -170,12 +177,26 @@ BEGIN
  OR p_amount IS NULL OR p_amount<=0 OR p_amount IN ('NaN'::numeric,'Infinity'::numeric)
  OR p_amount>99999999999999 OR scale(p_amount)>4
  THEN RAISE EXCEPTION 'FIN_ARAP_INVALID_AMOUNT_OR_KEY'; END IF;
- -- Locks must be acquired before reading budgets. A competing allocation to the
- -- same payment or original waits; a reversal of either also takes these locks.
+ -- Payment ID is untrusted. A foreign payment must fail before any row lock.
+ IF NOT EXISTS (SELECT 1 FROM core10.finance_journals_v1
+    WHERE id=p_payment AND tenant_id=l.tenant_id AND business_id=l.business_id)
+ THEN RAISE EXCEPTION 'FIN_ARAP_PAYMENT_SCOPE_OR_STATUS'; END IF;
+ -- Lock only same-scope journals in deterministic ID order, then refresh scope,
+ -- membership and Control after the wait; protect reversal and allocation races.
  PERFORM 1 FROM core10.finance_journals_v1
- WHERE id IN(l.journal_id,p_payment) ORDER BY id FOR UPDATE;
- SELECT * INTO j FROM core10.finance_journals_v1 WHERE id=l.journal_id;
- SELECT * INTO pay FROM core10.finance_journals_v1 WHERE id=p_payment;
+  WHERE id IN(l.journal_id,p_payment)
+    AND tenant_id=l.tenant_id AND business_id=l.business_id
+  ORDER BY id FOR UPDATE;
+ SELECT * INTO l FROM core10.finance_arap_links_v1
+  WHERE id=p_link AND tenant_id=l.tenant_id AND business_id=l.business_id;
+ IF NOT FOUND OR v_actor IS NULL OR NOT core10.can_manage(l.tenant_id,l.business_id)
+ THEN RAISE EXCEPTION 'FIN_ARAP_AUTH_DENIED'; END IF;
+ SELECT * INTO j FROM core10.finance_journals_v1
+  WHERE id=l.journal_id AND tenant_id=l.tenant_id AND business_id=l.business_id;
+ SELECT * INTO pay FROM core10.finance_journals_v1
+  WHERE id=p_payment AND tenant_id=l.tenant_id AND business_id=l.business_id;
+ IF j.id IS NULL OR pay.id IS NULL
+ THEN RAISE EXCEPTION 'FIN_ARAP_PAYMENT_SCOPE_OR_STATUS'; END IF;
  PERFORM core10.control_check_v1(l.business_id,'finance.arap_allocate',pay.site_id);
  IF j.id IS NULL OR pay.id IS NULL OR j.status<>'posted' OR pay.status<>'posted'
  OR j.business_id<>l.business_id OR pay.business_id<>l.business_id
