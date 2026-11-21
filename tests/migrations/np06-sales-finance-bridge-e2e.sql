@@ -131,6 +131,115 @@ SELECT bridge_test.ok(
  AND (payload->>'journal_id')::bigint=:journal_id),
  'one issued receipt in canonical Audit chain');
 
+-- 0407: real internal collection posting into the existing Money ledger,
+-- then atomic immutable AR allocation. Never claim an attested bank statement.
+SELECT (:'issue_receipt'::jsonb->>'issue_id')::bigint issue_id \gset
+SELECT core10.control_set_v1(101,NULL,'finance.arap_allocate',true,0::smallint,
+ '{}'::jsonb,NULL,false,0,'Synthetic AR settlement allocation','bridgeAllocCtl01');
+SELECT bridge_test.denies(format(
+ 'SELECT core10.finance_collect_sales_invoice_v1(%s,%s,%L,%s,%L)',
+ :issue_id,:cash_acct,'2026-11-22',250,'bridgeCollection01'),
+ 'CONTROL_DISABLED:finance.sales_collection');
+SELECT core10.control_set_v1(101,NULL,'finance.sales_collection',true,0::smallint,
+ '{}'::jsonb,NULL,false,0,'Owner enables synthetic cash collection','bridgeCollectOn1');
+SELECT bridge_test.denies(format(
+ 'SELECT core10.finance_collect_sales_invoice_v1(%s,%s,%L,%s,%L)',
+ :issue_id,:cash_acct,'2026-11-22',650,'bridgeOverpaid01'),
+ 'FIN_ARAP_OVERALLOCATION');
+SELECT bridge_test.ok(
+ (SELECT count(*)=0 FROM core10.finance_journals_v1
+ WHERE source_domain='sales_collection'),
+ 'over-collection never posts Money');
+SELECT core10.finance_collect_sales_invoice_v1(
+ :issue_id,:cash_acct,'2026-11-22',250,'bridgeCollection01') collection1 \gset
+SELECT bridge_test.ok(
+ core10.finance_collect_sales_invoice_v1(
+  :issue_id,:cash_acct,'2026-11-22',250,'bridgeCollection01')
+ = :'collection1'::jsonb,
+ 'exact-key collection replay does not create second Money journal');
+SELECT bridge_test.ok(
+ (SELECT count(*)=1 FROM core10.finance_sales_collections_v1
+  WHERE issue_id=:issue_id AND amount=250),
+ 'first immutable source receipt is 250 BDT');
+SELECT bridge_test.ok(
+ (SELECT count(*)=1 AND sum(amount)=250
+  FROM core10.finance_arap_allocations_v1 WHERE link_id=:ar_link_id),
+ 'first AR allocation equals first posted cash journal');
+SELECT bridge_test.ok(
+ (SELECT posted_amount=600 FROM (
+  SELECT (core10.finance_arap_trace_v1(:ar_link_id)->>'posted_amount')::numeric posted_amount
+ ) x),'invoice original posted amount stays 600');
+SELECT bridge_test.ok(
+ (SELECT sum((v->>'amount')::numeric)=250 FROM
+  jsonb_array_elements(core10.finance_arap_trace_v1(:ar_link_id)->'payment_allocations') v),
+ 'AR derived trace shows exactly first allocated cash payment');
+SELECT bridge_test.denies(format(
+ 'SELECT core10.finance_collect_sales_invoice_v1(%s,%s,%L,%s,%L)',
+ :issue_id,:cash_acct,'2026-11-22',351,'bridgeOverRemain1'),
+ 'FIN_ARAP_OVERALLOCATION');
+SELECT core10.finance_collect_sales_invoice_v1(
+ :issue_id,:cash_acct,'2026-11-22',350,'bridgeCollection02') collection2 \gset
+SELECT bridge_test.ok(
+ (SELECT count(*)=2 AND sum(amount)=600
+ FROM core10.finance_arap_allocations_v1 WHERE link_id=:ar_link_id),
+ 'two real posted payments close the entire 600 BDT AR item');
+SELECT bridge_test.ok(
+ (SELECT count(*)=2 AND sum(amount)=600
+ FROM core10.finance_sales_collections_v1 WHERE issue_id=:issue_id),
+ 'two immutable collection sources, no duplicate balance cache');
+SELECT bridge_test.ok(
+ (SELECT count(*)=2 FROM core10.finance_journals_v1
+ WHERE business_id=101 AND source_domain='sales_collection' AND status='posted'),
+ 'two balanced existing Money journals represent actual internal cash postings');
+SELECT bridge_test.ok(
+ (SELECT count(*)=4 AND
+  sum(amount) FILTER(WHERE side='debit')=600
+  AND sum(amount) FILTER(WHERE side='credit')=600
+ FROM core10.finance_journal_lines_v1
+ WHERE journal_id IN(SELECT journal_id FROM core10.finance_sales_collections_v1
+ WHERE issue_id=:issue_id)),
+ 'cash journal lines Dr cash and Cr AR exactly 600 total');
+SELECT bridge_test.ok(
+ (core10.finance_arap_trace_v1(:ar_link_id)->>'document_provenance')=
+ 'canonical_issued_sales_invoice_money_posted_stock_not_attested',
+ 'invoice provenance is genuine issued Sales, never an unverified manual journal');
+SELECT bridge_test.ok(
+ (SELECT bool_and(v->>'payment_provenance'=
+ 'canonical_sales_cash_movement_not_bank_statement_attested')
+ FROM jsonb_array_elements(core10.finance_arap_trace_v1(:ar_link_id)->'payment_allocations') v),
+ 'bank statement explicitly NOT attested in both collection receipts');
+SELECT bridge_test.ok(
+ (SELECT count(*)=2 FROM core10.canonical_audit_events_v1
+ WHERE business_id=101 AND action='sales.collection_posted'),
+ 'both collections are present in the ONE canonical Audit chain');
+SELECT bridge_test.denies(format(
+ 'SELECT core10.finance_collect_sales_invoice_v1(%s,%s,%L,%s,%L)',
+ :issue_id,:cash_acct,'2026-11-22',1,'bridgeOverpaid02'),
+ 'FIN_ARAP_OVERALLOCATION');
+
+-- A disabled current Owner switch even denies replay. No bypass via history.
+SELECT core10.control_set_v1(101,NULL,'finance.sales_collection',false,0::smallint,
+ '{}'::jsonb,NULL,false,1,'Owner suspends internal collections','bridgeCollectOff1');
+SELECT bridge_test.denies(format(
+ 'SELECT core10.finance_collect_sales_invoice_v1(%s,%s,%L,%s,%L)',
+ :issue_id,:cash_acct,'2026-11-22',250,'bridgeCollection01'),
+ 'CONTROL_DISABLED:finance.sales_collection');
+SELECT core10.control_set_v1(101,NULL,'finance.sales_collection',true,0::smallint,
+ '{}'::jsonb,NULL,false,2,'Owner restores internal collections','bridgeCollectOn2');
+
+-- Privileged SQL cannot edit a collection receipt or an already issued source.
+RESET ROLE;
+SELECT bridge_test.denies(format(
+ 'UPDATE core10.finance_sales_collections_v1 SET amount=1 WHERE issue_id=%s',:issue_id),
+ 'FIN_SALES_COLLECTION_IMMUTABLE');
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+SELECT bridge_test.denies(format(
+ 'SELECT core10.finance_collect_sales_invoice_v1(%s,%s,%L,%s,%L)',
+ :issue_id,:cash_acct,'2026-11-22',1,'bridgeForeignAttempt'),
+ 'FIN_SALES_COLLECTION_AUTH_DENIED');
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+
 -- A posted Sales Invoice is frozen even to privileged SQL.
 RESET ROLE;
 SELECT bridge_test.denies(format(
