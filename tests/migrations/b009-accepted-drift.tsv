@@ -16,3 +16,4 @@ table|templates	HARDENED	RLS enabled on templates in migrations (legacy had none
 function|provision_business(p_legal bigint, p_slug text, p_template text, p_request text)	HARDENED	0116 D063: internal writer only; direct authenticated EXECUTE removed
 function|setup_business_v1(p_legal bigint, p_slug text, p_template text, p_display_name text, p_mode text, p_sites jsonb, p_request text, p_brand_hex text)	HARDENED	0116 D063: tenant Control required before setup or replay, with canonical Audit
 function|setup_industry_draft_v2(p_legal bigint, p_slug text, p_template_id text, p_display_name text, p_mode text, p_sites jsonb, p_modules jsonb, p_request text, p_brand_hex text)	HARDENED	0116 D063: tenant Control required before setup or replay, with canonical Audit
+function|provision_site(p_business bigint, p_kind text, p_label text, p_request text)	HARDENED	0118 D063: private initial setup entrypoint requires canonical Control, Approval boundary, and per-Business cap

@@ -15,6 +15,7 @@ on:
       - "internal/migrations/0114*"
       - "internal/migrations/0115*"
       - "internal/migrations/0116*"
+      - "internal/migrations/0118*"
       - "tests/migrations/np01*"
       - "tests/setup001/**"
       - "tests/gov003/np01*"
@@ -86,3 +87,5 @@ jobs:
         run: bash tests/migrations/np01-bootstrap-policy-race.sh
       - name: D063 signed Business setup cutover and OFF receipt access (PG17)
         run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-bootstrap-cutover-e2e.sql
+      - name: D063 initial and later site cap and Approval boundary (PG17)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-bootstrap-site-cutover-e2e.sql
