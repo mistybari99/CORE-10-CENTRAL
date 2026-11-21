@@ -21,13 +21,13 @@ jobs:
         include:
           - lane: sales
             pr: 109
-            head_sha: aa45845c4f7310824ae81dacbaff08660e4fc701
+            head_sha: 3d60a075fb1eac4dbe0c678b9feb7875fdbbb1cf
           - lane: manufacturing
             pr: 112
             head_sha: 7e39b7517763e24c308b7f8316a3ac7219a84d2d
           - lane: f3
             pr: 117
-            head_sha: 3d128dc4df1b8860ce46a3aaae9960843d382c0f
+            head_sha: 98ace9e0703fbb7fcd821af4cc0d8b195d7f5ad7
     services:
       postgres:
         image: postgres:17
@@ -58,10 +58,29 @@ jobs:
             echo "FINANCE_${{ matrix.lane }}_HEAD_MOVED_REVERIFY_BEFORE_COMPAT" >&2
             exit 1
           fi
-          git -c user.name="NP06 CI Reviewer" -c user.email="ci-review@example.invalid" \
-              merge --no-commit --no-ff "refs/remotes/np06-compat/pr${{ matrix.pr }}"
-          test "$(git ls-files -u | wc -l)" = "0"
-          echo "FINANCE_${{ matrix.lane }}_LOCAL_MERGE_ONLY"
+          if [[ "${{ matrix.lane }}" == "f3" ]]; then
+            # F3 PR117 was ALREADY imported into this Finance branch.
+            # Re-merging the same files as an add/add merge would create
+            # conflicts and duplicate ledger code. Instead prove the four
+            # original F3 SQL migrations still equal PR117 exactly.
+            for file in \
+              internal/migrations/0402_np06_arap_links_allocations.up.sql \
+              internal/migrations/0402_np06_arap_links_allocations.down.sql \
+              internal/migrations/0403_np06_arap_trace_integrity.up.sql \
+              internal/migrations/0403_np06_arap_trace_integrity.down.sql; do
+              expected="$(git rev-parse "refs/remotes/np06-compat/pr117:$file")"
+              actual="$(git rev-parse "HEAD:$file")"
+              [[ "$expected" == "$actual" ]] || {
+                echo "FINANCE_F3_SOURCE_BLOB_MISMATCH:$file" >&2; exit 1;
+              }
+            done
+            echo FINANCE_F3_ORIGINAL_SQL_BLOBS_MATCH_PR117
+          else
+            git -c user.name="NP06 CI Reviewer" -c user.email="ci-review@example.invalid" \
+                merge --no-commit --no-ff "refs/remotes/np06-compat/pr${{ matrix.pr }}"
+            test "$(git ls-files -u | wc -l)" = "0"
+            echo "FINANCE_${{ matrix.lane }}_LOCAL_MERGE_ONLY"
+          fi
       - name: Create only disposable API roles
         run: |
           psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
@@ -110,8 +129,9 @@ jobs:
             PGDATABASE=core10_np03b_ci_domain bash tests/np03b/concurrency.sh
             PGDATABASE=core10_np03b_ci_domain bash tests/np03b/invoice-concurrency.sh
           elif [[ "${{ matrix.lane }}" == "f3" ]]; then
-            # F3 PR117 is fetched read-only into the CURRENT F2-integrated trunk
-            # + shared CI fix; never alter F3 branch or append its files to PR118.
+            # F3 is now copied into this Finance-only PR with exact original
+            # 0402/0403 SQL blobs attested above against live PR117. Test this
+            # CURRENT fully integrated branch on disposable PostgreSQL 17.
             psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-arap-e2e.sql
             bash tests/migrations/np06-finance-arap-race.sh
             evidence="$(mktemp)"
