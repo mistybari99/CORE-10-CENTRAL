@@ -1,0 +1,11 @@
+--- a/.github/workflows/core10-np06-finance-ci.yml
++++ b/.github/workflows/core10-np06-finance-ci.yml
+@@ -62,7 +62,7 @@
+       - name: Rollback refuses data-bearing canonical Finance history
+         run: |
+           output="$(mktemp)"
+-          if internal/migrations/run.sh down > "$output" 2>&1; then
++          if psql -X -q -v ON_ERROR_STOP=1 -1 -f internal/migrations/0400_np06_finance_foundation.down.sql > "$output" 2>&1; then
+             cat "$output"
+             echo "FIN_ROLLBACK_UNEXPECTEDLY_ALLOWED"
+             exit 1
