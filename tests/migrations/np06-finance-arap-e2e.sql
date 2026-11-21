@@ -255,6 +255,11 @@ SELECT np06_arap_test.ok((
  core10.finance_arap_aging_v1(9611,'2026-11-30','ar')->'rows') r
  WHERE r->>'kind'='ar'
 ), 'AR filter excludes AP records without changing their balances');
+SELECT np06_arap_test.ok((
+ SELECT count(*)=1 FROM jsonb_array_elements(
+ core10.finance_arap_aging_v1(9611,'2026-11-30','ap')->'rows') r
+ WHERE r->>'kind'='ap' AND (r->>'outstanding')::numeric=110
+), 'AP filter excludes AR records and preserves the derived 180-70 balance');
 
 -- P2-03 historical knowledge semantics: allocations recorded later are still
 -- counted in a past report when the posted payment's effective_on is on/before
