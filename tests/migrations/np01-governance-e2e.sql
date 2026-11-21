@@ -62,6 +62,11 @@ BEGIN
  THEN RAISE EXCEPTION 'NP01 exception acknowledgement wrongly changed approval state'; END IF;
  IF (SELECT count(*) FROM core10.stock_movements WHERE business_id=99121)<>0
  THEN RAISE EXCEPTION 'NP01 exception posted stock'; END IF;
+ -- GOV003 is default OFF: this pre-existing positive fixture explicitly enables it
+ -- through canonical Owner Control before the GOV003 assertions.
+ PERFORM core10.control_set_v1(99121,NULL,'gov003.review_export',
+ true,0::smallint,'{"max_rows":100,"metadata_only":true}'::jsonb,
+ NULL,false,0,'Owner enables GOV003 integration proof','np01_0113_gov_fixture_01');
  readiness:=core10.gov003_audit_readiness_v1(99121);
  IF readiness->>'release_certified'<>'false'
   OR readiness#>>'{canonical_chain,ok}'<>'true'
