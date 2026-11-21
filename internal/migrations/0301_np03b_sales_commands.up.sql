@@ -156,6 +156,7 @@ BEGIN
  stages:=(c->>'stages')::integer;
  payload:=jsonb_build_object('order_id',o.id,'site_id',p_site,'version',o.version,
   'document',o.document,'total',o.total,'action',p_action,'required_stages',stages);
+ IF stages=0 AND p_approval IS NOT NULL THEN RAISE EXCEPTION 'SALES_APPROVAL_NOT_ALLOWED'; END IF;
  IF stages>0 THEN
   -- NP01 review RPC bindings are still pending on trunk. Do not let an old
   -- approved receipt bypass the current review switch at the domain boundary.
