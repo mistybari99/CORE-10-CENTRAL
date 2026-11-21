@@ -27,7 +27,7 @@ jobs:
             head_sha: 7e39b7517763e24c308b7f8316a3ac7219a84d2d
           - lane: f3
             pr: 117
-            head_sha: 98ace9e0703fbb7fcd821af4cc0d8b195d7f5ad7
+            head_sha: 62ed324da1aab5e24dbc456b23ebc22948d51fd8
     services:
       postgres:
         image: postgres:17
