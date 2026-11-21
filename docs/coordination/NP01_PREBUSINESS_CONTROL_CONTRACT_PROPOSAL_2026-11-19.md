@@ -23,9 +23,9 @@
 The Owner has **explicitly ratified the following eight policies** after the independent architectural re-review. They are binding requirements for subsequent NP02/NP01 design and acceptance, not completed code or release authorization:
 
 1. Newly initialized tenants start with **Business Creation OFF** until an actively authorized Tenant Owner enables it. This is not an ERP-wide default-OFF policy. Existing tenants require safe inventory and explicit compatibility/backfill; never overwrite their prior behavior by assumption.
-2. Tenant/bootstrap policy administration (including ON/OFF, schedule and revert) belongs to the **active authorized Tenant Owner**. Business-scoped `can_manage` does not grant tenant policy administration; future delegation needs a separate Owner decision.
+2. Tenant/bootstrap policy administration (including ON/OFF, schedules, version revert, tenant-scoped exception grant and exception revocation) belongs to the **active authorized Tenant Owner**. Business-scoped `can_manage` does not grant tenant policy administration; future delegation needs a separate Owner decision.
 3. An applicable explicit **tenant OFF is a veto**: Legal Entity and Business restrictions may tighten the result, never enable a narrower scope against parent OFF.
-4. **Ordinary Control exceptions cannot bypass explicit tenant OFF**. Emergency *corrections* are separately governed and are not unbounded provisioning overrides.
+4. **Ordinary Control exceptions cannot bypass explicit tenant OFF**. Emergency *corrections* are separately governed and confer **no authority to create or provision any new Business against an explicit tenant OFF**, regardless of whether the creation is described as emergency, recovery or ordinary setup.
 5. Under current tenant OFF, provisioning (including successful-key replay through a provisioning RPC) **denies**; historical operation receipts remain separately readable only through a scoped, non-mutating, independently authorized reader.
 6. Site caps are **configurable per Business**; count existing/provisioned and sites that can be reactivated without renewed creation authorization, including applicable suspended/archived states. No unratified tenant-global quota or fixed 50-site ceiling is implied.
 7. Pending/in-flight operations **revalidate current effective policy before execution**. Committed documents, stock and journal history remain intact; operational corrections go through separately authorized domain paths rather than silent retroactive deletion.
@@ -112,7 +112,7 @@ Transactional success audit, override consumption, idempotency receipt and creat
 
 Authenticate first using signed `actor_uid()` and current tenant ownership/membership; resolve tenant/legal entity/server-side scope before mutation, with revalidation after any relevant lock wait. Reject spoofed actor, revoked membership, wrong tenant and unauthorized indirect SECURITY DEFINER access.
 
-**Owner-ratified authorization (2026-11-21):** only an active authorized tenant Owner can administer tenant/bootstrap setting changes, schedules and revert; no Business Owner gains tenant rights by `can_manage`. D061 `can_manage` remains valid for **business-scoped** Control under its existing contract. Explicit tenant-administrator delegation is **not approved**; any future delegation requires a separate Owner decision. Any administrative delegation must be separately scoped, revocable, auditable and subject to existing maker-checker where applicable.
+**Owner-ratified authorization (2026-11-21):** only an active authorized tenant Owner can administer tenant/bootstrap setting changes, schedules, version revert, tenant-scoped exception grants and exception revocations; no Business Owner gains tenant rights by `can_manage`. D061 `can_manage` remains valid for **business-scoped** Control under its existing contract. Explicit tenant-administrator delegation is **not approved**; any future delegation requires a separate Owner decision. Any administrative delegation must be separately scoped, revocable, auditable and subject to existing maker-checker where applicable.
 
 The authenticated tenant Owner must be able to inspect/operate the tenant policy with **zero Businesses**, including through an authorized Control view. Business Owner privileges, menu placement, a hidden/locked control, AI text or a copied tenant ID cannot confer tenant administrative authority.
 
@@ -166,7 +166,7 @@ A reusable private preparation/normalization service may exist, but **each actua
 
 An eligible override is scoped, signed-authorized, versioned, effective-time/expiry checked, bounded to a defined logical operation or explicit allowance, and canonically audited. Consumption must be atomic with successful permitted creation and performed no more than once per logical key. If an override-backed operation rolls back, consumption rolls back. A replay of committed success does not consume another override.
 
-**Owner-ratified security policy:** ordinary override cannot bypass explicit tenant-wide OFF. Emergency **correction** is a separately authorized, narrowly bounded, time-limited, independently approved and canonically audited domain workflow, **not** permission to bypass tenant OFF for ordinary new-Business creation. No override can replace Auth, protected invariants or genuine Approval completion.
+**Owner-ratified security policy:** ordinary override cannot bypass explicit tenant-wide OFF. Emergency **correction** is a separately authorized, narrowly bounded, time-limited, independently approved and canonically audited domain workflow. It **never authorizes new Business creation or provisioning against an explicit tenant OFF**, including requests labeled emergency or recovery; an authorized policy change to ON is a separate canonical administration action. No override can replace Auth, protected invariants or genuine Approval completion.
 
 ### 6.3 Site count and race safety
 
