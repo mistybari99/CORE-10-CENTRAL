@@ -5,10 +5,22 @@ const http=require("node:http"),fs=require("node:fs"),path=require("node:path"),
 const {build,verify,isAllowed}=require("../../internal/core10-pages-package");
 const AUTH=new Map([["/token","POST"],["/user","GET"],["/logout","POST"],["/health","GET"]]);
 const RPC=new Set(["build01_context_v1","build01_workspace_v1","build01_setup_v1","build01_site_v1","build01_set_access_v1"]);
-const TYPES={".html":"text/html; charset=utf-8",".js":"application/javascript; charset=utf-8",".css":"text/css; charset=utf-8"};
+const OPERATIONS_RPC=new Set([
+ "read_sales_orders_v1","read_sales_order_audit_v1","save_sales_order_v1","transition_sales_order_v1",
+ "read_sales_invoice_drafts_v1","save_sales_invoice_draft_v1","validate_sales_invoice_draft_v1",
+ "control_read_v1","master_list_items_v1","master_list_parties_v1","master_list_uoms_v1",
+ "master_list_price_lists_v1","master_get_price_list_v1",
+ "mfg_inspect_v1","mfg_material_requirements_v1","mfg_recipe_substitutions_v1","mfg_define_substitution_v1",
+ "mfg_preview_substitution_v1","mfg_preview_substitution_v2","mfg_master_validation_v1",
+ "mfg_material_waste_report_v1","mfg_record_material_waste_v1","mfg_create_recipe_v1",
+ "mfg_approve_recipe_v1","mfg_plan_batch_v1","mfg_release_batch_v1","mfg_record_output_v1",
+ "mfg_cancel_batch_v1","mfg_request_handoff_v1"
+]);
+const TYPES={".html":"text/html; charset=utf-8",".js":"application/javascript; charset=utf-8",".mjs":"application/javascript; charset=utf-8",".css":"text/css; charset=utf-8"};
 function loopback(value){const u=new URL(value);if(u.protocol!=="http:"||!["localhost","127.0.0.1","[::1]"].includes(u.hostname)||u.username||u.password||u.pathname!=="/"||u.search||u.hash)throw Error("LOOPBACK_TARGET_REQUIRED");return u.origin;}
 function createGateway(options){
  const auth=loopback(options.authUrl),rest=loopback(options.restUrl);
+ const operationsEnabled=options.operationsEnabled===true;
  if(typeof options.publishableKey!=="string"||!options.publishableKey)throw Error("ANON_KEY_REQUIRED");
  let role;try{role=JSON.parse(Buffer.from(options.publishableKey.split(".")[1],"base64url").toString()).role;}catch{throw Error("DISPOSABLE_ANON_KEY_REQUIRED");}
  if(role!=="anon")throw Error("ONLY_ANON_KEY_MAY_REACH_BROWSER");
@@ -26,7 +38,7 @@ function createGateway(options){
    const url=new URL(req.url,origin),p=decodeURIComponent(url.pathname);
    if(p==="/core10-build01-config.js"){
     if(!["GET","HEAD"].includes(req.method))return respond(405,"Method denied");
-    return respond(200,req.method==="HEAD"?null:"window.CORE10_BUILD01_CONFIG=Object.freeze("+JSON.stringify({enabled:true,mode:"isolated-development",url:origin,publishableKey:options.publishableKey,pack02Enabled:pack02Ready})+");","application/javascript; charset=utf-8");
+    return respond(200,req.method==="HEAD"?null:"window.CORE10_BUILD01_CONFIG=Object.freeze("+JSON.stringify({enabled:true,mode:"isolated-development",url:origin,publishableKey:options.publishableKey,pack02Enabled:pack02Ready,operationsEnabled})+");","application/javascript; charset=utf-8");
    }
    let target;
    if(p.startsWith("/auth/v1/")){
@@ -35,7 +47,8 @@ function createGateway(options){
     target=auth+suffix+url.search;
    }else if(p.startsWith("/rest/v1/rpc/")){
     if(req.method!=="POST"||url.search||
-      !(RPC.has(p.slice("/rest/v1/rpc/".length))||(pack02Ready&&new Set(["pack02_workspace_v1","pack02_controls_v1","pack02_business_report_v1",
+      !(RPC.has(p.slice("/rest/v1/rpc/".length))||
+       (operationsEnabled&&OPERATIONS_RPC.has(p.slice("/rest/v1/rpc/".length)))||(pack02Ready&&new Set(["pack02_workspace_v1","pack02_controls_v1","pack02_business_report_v1",
         "pack02_owner_report_v1","pack02_setup_readback_v1"]).has(p.slice("/rest/v1/rpc/".length)))))return respond(404,"RPC unavailable");
     target=rest+p.slice("/rest/v1".length);
    }
@@ -54,7 +67,11 @@ function createGateway(options){
    // Only this surface and its explicit original dependencies are reachable.
    const allowed=new Set(["core10-build01.html","core10-build01.js","core10-build01-pack02.js","core10-build01.css","core10-build01-client.js","core10-enterprise-client.js","core10-control-studio.css","vendor/supabase.js",
     "core10-pack02-workspace.js","core10-pack02-workspace.css","core10-pack02-controls.js",
-    "core10-pack02-signed.js","core10-pack02-app.js"]);
+    "core10-pack02-signed.js","core10-pack02-app.js","core10-central-operations.js",
+    "core10-sales-order.css","core10-sales-master-catalog.js","core10-sales-order-client.js",
+    "core10-sales-order-ui.js","core10-sales-invoice-ui.js","core10-sales-order-entry.js",
+    "core10-operational-flow.css","modules/manufacturing/manufacturing.css",
+    "modules/manufacturing/workbench.mjs","modules/manufacturing/client.mjs"]);
    if(!allowed.has(file)||!isAllowed(file))return respond(404,"Not found");
    if(file.startsWith("core10-pack02-")&&!pack02Ready)return respond(404,"Not found");
    const full=path.join(publicRoot,file);
@@ -70,6 +87,6 @@ function createGateway(options){
 }
 module.exports={createGateway};
 if(require.main===module){
- const server=createGateway({authUrl:process.env.BUILD01_AUTH_URL||"http://127.0.0.1:59999",restUrl:process.env.BUILD01_REST_URL||"http://127.0.0.1:55300",publishableKey:process.env.BUILD01_PUBLISHABLE_KEY});
+ const server=createGateway({authUrl:process.env.BUILD01_AUTH_URL||"http://127.0.0.1:59999",restUrl:process.env.BUILD01_REST_URL||"http://127.0.0.1:55300",publishableKey:process.env.BUILD01_PUBLISHABLE_KEY,operationsEnabled:process.env.BUILD01_CANONICAL_OPERATIONS==="1"});
  server.listen(Number(process.env.PORT||58081),"127.0.0.1",()=>console.log("Build 01 isolated gateway listening on loopback"));
 }

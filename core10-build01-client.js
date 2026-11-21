@@ -4,10 +4,10 @@
 (function(root,factory){
  "use strict";
  const existing=typeof module==="object"&&module.exports?require("./core10-enterprise-client.js"):root.CORE10_ENTERPRISE_CLIENT;
- const api=factory(existing);
+ const api=factory(existing,root);
  if(typeof module==="object"&&module.exports)module.exports=api;
  if(root)root.CORE10_BUILD01_CLIENT=api;
-})(typeof window!=="undefined"?window:globalThis,function(existing){
+})(typeof window!=="undefined"?window:globalThis,function(existing,root){
  "use strict";
  function fail(code){const e=new Error(code);e.code=code;throw e;}
  const obj=x=>x&&typeof x==="object"&&!Array.isArray(x);
@@ -119,7 +119,10 @@
    return {business_id:id(input.businessId),site_id:id(input.siteId),action:input.action,allowed:!!site&&Array.isArray(site.allowed_actions)&&site.allowed_actions.includes(input.action),source:"fresh_server_workspace"};
   }
   async function audit(business){return (await workspace(business)).audit;}
-  return Object.freeze({signIn,signOut,context,workspace,pack02,setup,createSite,changeAccess,effectivePermission,audit});
+  function createOperations(options) {
+   return root.CORE10_CENTRAL_OPERATIONS?.create({ ...options, client });
+  }
+  return Object.freeze({signIn,signOut,context,workspace,pack02,setup,createSite,changeAccess,effectivePermission,audit,createOperations});
  }
  return Object.freeze({create});
 });

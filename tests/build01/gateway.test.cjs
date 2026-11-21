@@ -17,6 +17,8 @@ test("gateway exposes only explicit loopback auth and RPC surfaces, never admin/
   assert(config.includes(base));assert(!config.includes("BOS_CONFIG"));
   const pack02Ready=config.includes('"pack02Enabled":true');
   assert.equal((await fetch(base+"/core10-build01-pack02.js")).status,200);
+  assert.equal((await fetch(base+"/core10-central-operations.js")).status,200);
+  assert.equal((await fetch(base+"/rest/v1/rpc/mfg_inspect_v1",{method:"POST",body:"{}"})).status,404);
   assert.equal((await fetch(base+"/core10-pack02-workspace.js")).status,pack02Ready?200:404);
   assert.equal((await fetch(base+"/core10-pack02-workspace.css")).status,pack02Ready?200:404);
   for(const f of["core10-pack02-controls.js","core10-pack02-signed.js","core10-pack02-app.js"])
@@ -39,4 +41,31 @@ test("gateway constructor refuses remote services and secret/service keys",()=>{
  assert.throws(()=>createGateway({authUrl:"https://remote.supabase.co",restUrl:"http://127.0.0.1:3000",publishableKey:anon}),/LOOPBACK/);
  const secret=["e30",Buffer.from(JSON.stringify({role:"service_role"})).toString("base64url"),"x"].join(".");
  assert.throws(()=>createGateway({authUrl:"http://127.0.0.1:9999",restUrl:"http://127.0.0.1:3000",publishableKey:secret}),/ONLY_ANON/);
+});
+
+test("canonical operations opt-in proxies only named Sales and Manufacturing RPCs", async () => {
+ const seen = [];
+ const upstream = http.createServer((request,response) => {
+  seen.push(request.url);
+  response.end("{}");
+ });
+ await listen(upstream);
+ const url = "http://127.0.0.1:"+upstream.address().port;
+ const gateway = createGateway({authUrl:url,restUrl:url,publishableKey:anon,operationsEnabled:true});
+ await listen(gateway);
+ const base = "http://127.0.0.1:"+gateway.address().port;
+ try {
+  const config = await (await fetch(base+"/core10-build01-config.js")).text();
+  assert.match(config, /"operationsEnabled":true/);
+  const module = await fetch(base+"/modules/manufacturing/workbench.mjs");
+  assert.equal(module.status,200);
+  assert.match(module.headers.get("content-type"), /javascript/);
+  for (const name of ["read_sales_orders_v1","mfg_inspect_v1"]) {
+   assert.equal((await fetch(base+"/rest/v1/rpc/"+name,{method:"POST",body:"{}"})).status,200);
+  }
+  for (const name of ["_sales_confirmation_event_v1","post_stock_event","finance_post_journal_v1"]) {
+   assert.equal((await fetch(base+"/rest/v1/rpc/"+name,{method:"POST",body:"{}"})).status,404);
+  }
+  assert.deepEqual(seen, ["/rpc/read_sales_orders_v1","/rpc/mfg_inspect_v1"]);
+ } finally { await close(gateway); await close(upstream); }
 });

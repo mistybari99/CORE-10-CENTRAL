@@ -68,7 +68,7 @@
    if(!globalThis.crypto?.randomUUID)throw Error('SECURE_ID_REQUIRED');const key='sales-'+crypto.randomUUID().replaceAll('-','');requests.set(kind,{signature,key});return key;}
   function rowLabel(r){return r?(lang==='en'?r.labelEn:r.labelBn)||r.label:'';}
   function uomLabel(r){return (lang==='en'?r.uomLabelEn:r.uomLabelBn)||r.uomLabel||String(r.uomId);}
-  function selectBox(rows,value,onChange,focusId){const x=el('select');if(focusId)x.dataset.soFocus=focusId;for(const r of rows){const o=el('option',null,rowLabel(r));o.value=String(r.id);x.append(o);}x.value=String(value??'');x.disabled=busy||!!uncertain;x.addEventListener('change',()=>onChange(Number(x.value)));return x;}
+  function selectBox(rows,value,onChange,focusId){const locked=options.scopeLocked===true&&(focusId==='business'||focusId==='site');const x=el('select');if(focusId)x.dataset.soFocus=focusId;for(const r of rows){const o=el('option',null,rowLabel(r));o.value=String(r.id);x.append(o);}x.value=String(value??'');x.disabled=busy||!!uncertain||locked;x.addEventListener('change',()=>{if(!locked)onChange(Number(x.value));});return x;}
   function selectedPriceList(){return catalog?.priceLists.find(p=>p.id===draft?.price_list_id);}
   function itemFor(line){return catalog?.items.find(p=>p.id===line.item_id&&(p.variantId??null)===(line.variant_id??null)&&p.uomId===line.uom_id);}
   function newLine(item){return {item_id:item.id,variant_id:item.variantId??null,uom_id:item.uomId,quantity:1,unit_price:Number(item.prices[draft.price_list_id]),discount_percent:0,tax_percent:0};}
@@ -99,7 +99,7 @@
    const bs=context.businesses.filter(b=>b.can_manage===true).map(b=>({id:b.id,label:b.label||b.slug||String(b.id)}));
    box.append(label(t('business'),selectBox(bs,business,b=>navigate(()=>{clearScope();business=b;site=context.sites.find(s=>s.business_id===b)?.id??null;render();loadScope();}),'business')),
     label(t('site'),selectBox(context.sites.filter(s=>s.business_id===business).map(s=>({id:s.id,label:s.label})),site,s=>navigate(()=>{clearScope();site=s;render();loadScope();}),'site')),
-    button(t('refresh'),()=>navigate(()=>{clearScope();render();loadScope();}),busy||!!uncertain));host.append(box,el('p','so-muted',t('scopeHint')));
+    button(t('refresh'),()=>navigate(()=>{clearScope();render();loadScope();}),busy||!!uncertain));host.append(box);if(!options.scopeLocked)host.append(el('p','so-muted',t('scopeHint')));
   }
   function drawList(root){const head=el('div','so-section-heading');head.append(el('h3',null,t('orders')),button(t('newOrder'),()=>navigate(startDraft),!catalog||!allowed('sales.order_draft'),'primary'));root.append(head);
    if(!orders.length)root.append(el('p','so-empty',busy?t('loading'):t('empty')));

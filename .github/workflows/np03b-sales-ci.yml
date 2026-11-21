@@ -3,7 +3,7 @@ on:
   push:
     branches: ['build/codex-np03b-sales']
   pull_request:
-    paths: ['internal/migrations/**','tests/np03b/**','core10-sales*','.github/workflows/np03b-sales-ci.yml']
+    paths: ['internal/migrations/**','tests/np03b/**','core10-sales*','core10-build01*','core10-central-operations.js','modules/manufacturing/**','internal/core10-pages-package.js','tests/e2e/static_server.js','.github/workflows/np03b-sales-ci.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -72,6 +72,10 @@ jobs:
           PGDATABASE=core10_np03b_ci_ui internal/migrations/run.sh up
           PGDATABASE=core10_np03b_ci_ui psql -X -v ON_ERROR_STOP=1 -f tests/np03b/ui-seed.sql
           PGDATABASE=core10_np03b_ci_ui node tests/np03b/browser.cjs
+          createdb core10_np03b_ci_central_ui
+          PGDATABASE=core10_np03b_ci_central_ui internal/migrations/run.sh up
+          PGDATABASE=core10_np03b_ci_central_ui psql -X -v ON_ERROR_STOP=1 -f tests/np03b/central-ui-seed.sql
+          PGDATABASE=core10_np03b_ci_central_ui node tests/np03b/central-browser.cjs
           createdb core10_np03b_ci_invoice_ui
           PGDATABASE=core10_np03b_ci_invoice_ui internal/migrations/run.sh up
           PGDATABASE=core10_np03b_ci_invoice_ui psql -X -v ON_ERROR_STOP=1 -f tests/np03b/invoice-ui-seed.sql

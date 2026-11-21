@@ -73,7 +73,7 @@
    const wanted=options.initialScope;if(wanted&&(!id(wanted.businessId)||!id(wanted.siteId)||!bs.some(b=>b.id===wanted.businessId)||!c.sites.some(s=>s.id===wanted.siteId&&s.business_id===wanted.businessId)))throw Error('SALES_SCOPE_DENIED');
    context=c;business=wanted?wanted.businessId:bs[0].id;site=wanted?wanted.siteId:c.sites.find(s=>s.business_id===business)?.id??null;if(!site)throw Error('SALES_SCOPE_DENIED');busy=false;await loadScope(null,options.initialOrderId||null);
   }catch(e){if(mine===epoch&&!disposed){clearPrivate();busy=false;notice=error(e);tone='error';render();}}}
-  function select(rows,value,fn,name){const x=el('select');x.dataset.siFocus=name;for(const r of rows){const o=el('option',null,r.label);o.value=String(r.id);x.append(o);}x.value=String(value);x.disabled=busy||!!uncertain;x.addEventListener('change',()=>fn(Number(x.value)));return x;}
+  function select(rows,value,fn,name){const locked=options.scopeLocked===true&&(name==='business'||name==='site');const x=el('select');x.dataset.siFocus=name;for(const r of rows){const o=el('option',null,r.label);o.value=String(r.id);x.append(o);}x.value=String(value);x.disabled=busy||!!uncertain||locked;x.addEventListener('change',()=>{if(!locked)fn(Number(x.value));});return x;}
   function header(){const top=el('div','so-heading'),title=el('div');title.append(el('h2',null,t('title')),el('p','so-muted',t('subtitle')));top.append(title,button('language',()=>{lang=lang==='bn'?'en':'bn';render();},busy));host.append(top);
    const box=el('div','so-boundary');box.append(el('strong',null,t(mode)),el('p',null,t('boundary')));host.append(box);
   }

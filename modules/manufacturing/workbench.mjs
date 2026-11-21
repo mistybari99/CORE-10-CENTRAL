@@ -1,15 +1,22 @@
 import {manufacturingClient} from './client.mjs';
 const esc = v => String(v ?? '').replace(/[&<>"']/g, x => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const key = () => 'mfg_ui_' + crypto.randomUUID().replaceAll('-','');
-export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic = false}) {
+export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic = false, central = false}) {
   const api = manufacturingClient(rpc, context);
-  let active = true, data = {recipes:[],batches:[]}, tab = 'recipes', generation = 0, busy = false;
+  root.classList.add("mfg-workspace");
+  const heading = central ? "h2" : "h1";
+  let active = true, data = {recipes:[],batches:[]}, tab = 'recipes', generation = 0, busy = false, dirty = false;
   const t = (bn,en) => lang === 'en' ? en : bn;
   const errorText=e=>e.message==='MFG_CONTROL_CHANGED_RETRY'?t('Owner-এর সেটিং বদলেছে। হালনাগাদ করে আবার চেষ্টা করুন।','Owner settings changed. Refresh and retry.')+' [MFG_CONTROL_CHANGED_RETRY]':e.message;
   const $ = q => root.querySelector(q);
   const status = (msg,error=false) => {if (!active) return; $('[role=status]').textContent=msg; $('[role=status]').dataset.error=String(error);};
+  function markDirty(event) {
+    if (event.target.closest("form")) dirty = true;
+  }
+  root.addEventListener("input", markDirty);
   function render() {
-    root.innerHTML = `<div class="mfg-top"><div><small>CORE10 / NP05A · ${synthetic ? t('কৃত্রিম QA • আসল SQL, পরীক্ষার পরিচয়','Synthetic QA • real SQL, synthetic identity') : t('উন্নয়ন পৃষ্ঠ • shell সংযোগ বাকি','Development surface • shell integration pending')}</small><h1>${t('মিষ্টি ও বেকারি উৎপাদন','Sweets & bakery manufacturing')}</h1><p>${esc(context.label || '')} · ${t('সাইট','Site')} ${esc(context.site_id)}</p></div><button data-lang>${lang==='bn'?'English':'বাংলা'}</button></div>
+    dirty = false;
+    root.innerHTML = `<div class="mfg-top"><div><small>CORE10 / NP05A · ${synthetic ? t('কৃত্রিম QA • আসল SQL, পরীক্ষার পরিচয়','Synthetic QA • real SQL, synthetic identity') : central ? t('Central • অনুমোদিত ব্যবসা ও সাইট','Central • authorized business and site') : t('উন্নয়ন পৃষ্ঠ','Development surface')}</small><${heading} class="mfg-title">${t('মিষ্টি ও বেকারি উৎপাদন','Sweets & bakery manufacturing')}</${heading}><p>${esc(context.label || '')} · ${t('সাইট','Site')} ${esc(context.site_id)}</p></div><button data-lang>${lang==='bn'?'English':'বাংলা'}</button></div>
     <div class="safety">${t('প্রকৃত স্টক বা অর্থ পোস্ট হয় না। Master UOM ও অনুমোদন সংযোগ ছাড়া ছাড়পত্র বন্ধ। ব্যয়ের অঙ্ক শুধু উদাহরণ ও পরিকল্পনা।','No real Stock or Money posting. Master UOM and approval completion gate releases. Costs are planning examples only.')}</div>
     <div class="mfg-pills"><span>${t('Master UOM · রেসিপি যাচাই করুন','Master UOM · validate each recipe')}</span><span>Stock · NOT_CONNECTED</span><span>Finance · NOT_CONNECTED</span><span>Approval completion · NOT_CONNECTED</span></div>
     <nav class="mfg-nav" aria-label="${t('উৎপাদন বিভাগ','Manufacturing sections')}">${[['recipes','রেসিপি','Recipes'],['batches','উৎপাদন ব্যাচ','Batches'],['reports','ফলন ও অপচয়','Yield & waste']].map(([id,bn,en])=>`<button data-tab="${id}" aria-pressed="${tab===id}">${t(bn,en)}</button>`).join('')}<button data-refresh>${t('হালনাগাদ','Refresh')}</button></nav>
@@ -158,7 +165,7 @@ export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic =
   function planForm(id) {inlineForm(t('ব্যাচ পরিকল্পনা','Plan batch'),`<label>${t('Stock location ID','Stock location ID')}<input name="location" required type="number" min="1"></label><label>${t('গুণক','Multiplier')}<input name="multiplier" required type="number" min="0.000001" step="0.000001" value="1"></label>`,f=>command('mfg_plan_batch_v1',()=>({p_recipe:id,p_location:Number(f.get('location')),p_multiplier:Number(f.get('multiplier'))})));}
   function reasonForm(id) {inlineForm(t('বাতিলের কারণ','Cancellation reason'),'<label>কারণ / Reason<input name="reason" required minlength="5" maxlength="500"></label>',f=>command('mfg_cancel_batch_v1',()=>({p_batch:id,p_reason:f.get('reason')})));}
   function outputForm(id) {inlineForm(t('ফলন নথি • পরিকল্পিত মোটের সাথে মেলাতে হবে','Record output • categories must reconcile to planned total'),'<label>Output JSON<textarea name="output" required></textarea></label>',f=>command('mfg_record_output_v1',()=>({p_batch:id,p_output:JSON.parse(f.get('output'))})));}
-  async function load() {const current=++generation;try {const r=await api.call('mfg_inspect_v1');if (!active||current!==generation)return;data=r;render();}catch(e){if(active&&current===generation)status(t('অনুমতি বা সংযোগ ত্রুটি: ','Permission or connection error: ')+errorText(e),true);}}
+  async function load() {const current=++generation;try {const r=await api.call('mfg_inspect_v1');if (!active||current!==generation)return;data=r;if(!dirty||busy)render();}catch(e){if(active&&current===generation)status(t('অনুমতি বা সংযোগ ত্রুটি: ','Permission or connection error: ')+errorText(e),true);}}
   async function command(name,args,onSaved,requestKey) {
     if(busy||!active)return;busy=true;root.querySelectorAll('button').forEach(b=>b.disabled=true);
     try {const r=await api.call(name,{...args(),p_key:requestKey||key()});await load();let warning='';if(active&&onSaved){try{await onSaved(r);}catch(error){warning=t(' • ইতিহাস হালনাগাদ হয়নি: ',' • History refresh unavailable: ')+errorText(error);}}if(active&&r.source_envelope)showHandoff(r);if(active)status((r.status==='NOT_CONNECTED'?'NOT_CONNECTED · '+r.reason:t('সংরক্ষিত • Audit #','Saved • Audit #')+r.audit_event_id)+warning,Boolean(warning));}
@@ -166,5 +173,20 @@ export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic =
     finally {busy=false;if(active)root.querySelectorAll('button').forEach(b=>b.disabled=false);}
   }
   render();load();
-  return ()=>{active=false;++generation;api.close();data={recipes:[],batches:[]};root.replaceChildren();};
+  function dispose() {
+    active=false;
+    ++generation;
+    api.close();
+    data={recipes:[],batches:[]};
+    root.removeEventListener("input", markDirty);
+    root.classList.remove("mfg-workspace");
+    root.replaceChildren();
+  }
+  dispose.requestLeave = leave => {
+    if (busy) return;
+    if (dirty &&
+        !root.ownerDocument.defaultView.confirm(t('অসম্পূর্ণ ফর্ম বন্ধ করবেন?', 'Close the unfinished form?'))) return;
+    leave();
+  };
+  return dispose;
 }

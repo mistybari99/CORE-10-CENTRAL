@@ -12,7 +12,7 @@ const RPCS={
  master_list_uoms_v1:[['p_business','bigint']],
  master_list_price_lists_v1:[['p_business','bigint'],['p_kind','text']],
  master_get_price_list_v1:[['p_business','bigint'],['p_price_list','bigint'],['p_limit','integer'],['p_after_id','bigint']],
- build01_context_v1:[],control_read_v1:[['p_business','bigint'],['p_site','bigint']],
+ build01_context_v1:[],build01_workspace_v1:[['p_business','bigint']],mfg_inspect_v1:[['p_business','bigint'],['p_site','bigint']],control_read_v1:[['p_business','bigint'],['p_site','bigint']],
  read_sales_orders_v1:[['p_business','bigint'],['p_site','bigint'],['p_order','bigint']],
  read_sales_order_audit_v1:[['p_business','bigint'],['p_site','bigint'],['p_order','bigint']],
  save_sales_order_v1:[['p_business','bigint'],['p_site','bigint'],['p_order','bigint'],['p_expected','bigint'],['p_document','jsonb'],['p_key','text']],

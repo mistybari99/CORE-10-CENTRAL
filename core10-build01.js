@@ -2,9 +2,10 @@
 (function () {
   "use strict";
   const $ = id => document.getElementById(id);
-  const S = { api:null, context:null, workspace:null, busy:false, lang:"bn", epoch:0, requests:new Map() };
+  const S = { api:null, operations:null, context:null, workspace:null, busy:false, lang:"bn", epoch:0, requests:new Map() };
   const original = new Map(Array.from(document.querySelectorAll("[data-i18n]"), el => [el, el.textContent]));
   const EN = {
+    sales:"Sales",manufacturing:"Manufacturing",closeOperation:"Close workspace",
     workspace:"Setup & access",studio:"Control Studio",builder:"Template builder",title:"Business Setup, Login & Permissions Integration",
     subtitle:"One identity, the same business and site, and server-enforced permissions.",boundary:"Approved non-production environment and synthetic test data only.",
     configuration:"Checking explicit connection configuration…",notPayment:"Business setup and access changes do not post stock, payroll, payments or accounting.",
@@ -38,17 +39,25 @@
     const businessId=Number($("b01-business").value);
     void bridge.refresh({api:S.api,context:S.context,businessId:Number.isSafeInteger(businessId)&&businessId>0?businessId:null}).catch(()=>bridge.clear());
   }
-  function clearPrivate(){s2Clear();S.epoch++;S.context=null;S.workspace=null;S.requests.clear();$("b01-workspace").hidden=true;$("b01-login").hidden=false;for(const id of["b01-business","b01-site","b01-legal","b01-template","b01-audit","b01-current-access"])$(id).replaceChildren();for(const id of["b01-effective-result","b01-setup-result","b01-site-result","b01-access-result","b01-actor","b01-session"])$(id).textContent="";for(const id of["b01-login-form","b01-setup-form","b01-site-form","b01-access-form","b01-effective-form"])$(id).reset();mode();}
-  function clearBusiness(){s2Clear();S.workspace=null;for(const id of["b01-site","b01-audit","b01-current-access"])$(id).replaceChildren();for(const id of["b01-effective-result","b01-site-result","b01-access-result"])$(id).textContent="";}
-  function formEnabled(form,enabled){for(const el of $(form).querySelectorAll("button,input,select,textarea"))el.disabled=!enabled||S.busy;}
+  function clearPrivate(){s2Clear();S.operations?.clear();S.epoch++;S.context=null;S.workspace=null;S.requests.clear();$("b01-workspace").hidden=true;$("b01-login").hidden=false;for(const id of["b01-business","b01-site","b01-legal","b01-template","b01-audit","b01-current-access"])$(id).replaceChildren();for(const id of["b01-effective-result","b01-setup-result","b01-site-result","b01-access-result","b01-actor","b01-session"])$(id).textContent="";for(const id of["b01-login-form","b01-setup-form","b01-site-form","b01-access-form","b01-effective-form"])$(id).reset();mode();}
+  function clearBusiness(){s2Clear();S.operations?.clear();S.workspace=null;for(const id of["b01-site","b01-audit","b01-current-access"])$(id).replaceChildren();for(const id of["b01-effective-result","b01-site-result","b01-access-result"])$(id).textContent="";}
+  function formEnabled(form,enabled){for(const el of $(form).querySelectorAll("button,input,select,textarea"))el.disabled=!enabled||S.busy||S.operations?.isOpen()===true;}
   function controls(){
     const configured=!!S.api,signed=!!S.context,managed=!!S.workspace?.can_manage;
+    const operationOpen = S.operations?.isOpen() === true;
+    const operationSite = S.workspace?.sites?.find(site =>
+      String(site.id) === $("b01-site").value && site.allowed_actions?.includes("stock.read"));
+    $("b01-operations").hidden = !operationOpen && !(S.operations && signed && managed && operationSite);
+    $("b01-open-sales").hidden = operationOpen;
+    $("b01-open-manufacturing").hidden = operationOpen;
+    $("b01-close-operation").hidden = !operationOpen;
+    $("b01-open-sales").disabled = $("b01-open-manufacturing").disabled = S.busy;
     formEnabled("b01-login-form",configured&&!signed);
     formEnabled("b01-setup-form",signed&&!!S.context.legal_entities?.length);
     formEnabled("b01-site-form",signed&&managed);
     formEnabled("b01-access-form",signed&&managed);
     formEnabled("b01-effective-form",signed&&!!S.workspace?.sites?.length);
-    for(const id of["b01-business","b01-site","b01-refresh","b01-signout","b01-audit-refresh"])$(id).disabled=S.busy||!signed;
+    for(const id of["b01-business","b01-site","b01-refresh","b01-signout","b01-audit-refresh"])$(id).disabled=S.busy||!signed||(operationOpen&&id!=="b01-signout");
     const command=$("b01-command").value,site=command.startsWith("site_grant"),grant=command.endsWith(".grant");
     $("b01-role-label").hidden=site;$("b01-action-fields").hidden=!site;$("b01-deny-fields").hidden=!site;
     $("b01-role").disabled=S.busy||!managed||site||!grant;
@@ -75,6 +84,19 @@
   function manifest(){return $("b01-sites").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(line=>{const parts=line.split("|");if(parts.length!==2||!parts[1].trim())throw Error("INVALID_SITE_MANIFEST");return{kind:parts[0].trim(),label:parts[1].trim()};});}
   function version(input){const access=S.workspace?.access||{},list=input.command.startsWith("business_member")?access.business_members:access.site_grants;const row=(list||[]).find(x=>String(x.user_id||x.subject_uid)===input.subjectUid&&(input.siteId===null||Number(x.site_id)===input.siteId));return row?.version??0;}
   $("b01-language").addEventListener("click",()=>{S.lang=S.lang==="bn"?"en":"bn";language();});
+  function openOperation(module) {
+    busy(async () => {
+      await S.operations.open({
+        module, context: S.context, workspace: S.workspace,
+        businessId: selectedBusiness(), siteId: selectedSite(), lang: S.lang
+      });
+      status("");
+    });
+  }
+  $("b01-open-sales").addEventListener("click", () => openOperation("sales"));
+  $("b01-open-manufacturing").addEventListener("click", () => openOperation("manufacturing"));
+  $("b01-close-operation").addEventListener("click", () => S.operations?.close());
+  $("b01-site").addEventListener("change", controls);
   $("b01-mode").addEventListener("change",mode);$("b01-command").addEventListener("change",controls);
   $("b01-login-form").addEventListener("submit",event=>{event.preventDefault();busy(async()=>{try{await S.api.signIn($("b01-email").value.trim(),$("b01-password").value);await context();status(say("সাইন ইন ও server scope যাচাই হয়েছে।","Signed in; server scope verified."));}finally{$("b01-password").value="";}});});
   $("b01-signout").addEventListener("click",()=>busy(async()=>{try{await S.api.signOut();}finally{clearPrivate();$("b01-password").value="";}status(say("সাইন আউট হয়েছে; private view পরিষ্কার।","Signed out; private view cleared."));}));
@@ -85,6 +107,49 @@
   $("b01-access-form").addEventListener("submit",event=>{event.preventDefault();busy(async()=>{const command=$("b01-command").value,site=command.startsWith("site_grant"),grant=command.endsWith(".grant"),expiry=$("b01-expiry").value;const input={businessId:selectedBusiness(),subjectUid:$("b01-subject").value.trim().toLowerCase(),command,role:site||!grant?null:$("b01-role").value,siteId:site?selectedSite():null,actions:site&&grant?[...($("b01-allow-read").checked?["stock.read"]:[]),...($("b01-allow-post").checked?["stock.post"]:[])]:[],deniedActions:site&&grant?[...($("b01-deny-read").checked?["stock.read"]:[]),...($("b01-deny-post").checked?["stock.post"]:[])]:[],expiresAt:grant&&expiry?new Date(expiry).toISOString():null};const result=await S.api.changeAccess(request("access",input,{expectedVersion:version(input)}));$("b01-access-result").textContent=say("Server access change গ্রহণ করেছে।","Server accepted the access change.")+" "+String(result.event_id??result.access_event_id??result.id??"");await workspace();status(say("Access record ও audit হালনাগাদ হয়েছে।","Access record and audit refreshed."));});});
   $("b01-effective-form").addEventListener("submit",event=>{event.preventDefault();busy(async()=>{const result=await S.api.effectivePermission({businessId:selectedBusiness(),siteId:selectedSite(),action:$("b01-inspect-action").value});$("b01-effective-result").textContent=JSON.stringify(result,null,2);status(say("বর্তমান server decision দেখানো হয়েছে।","Current server decision displayed."));});});
   $("b01-audit-refresh").addEventListener("click",()=>busy(async()=>{const a=await S.api.audit(selectedBusiness());drawAudit(Array.isArray(a)?a:a.audit||a.items||[]);status(say("Server audit পুনরায় লোড হয়েছে।","Server audit reloaded."));}));
-  async function boot(){language();controls();const config=window.CORE10_BUILD01_CONFIG;if(!config||config.enabled!==true){$("b01-environment").textContent=say("Non-production config দেওয়া হয়নি; sign-in ও writes বন্ধ। Root production config ব্যবহার করা হয় না।","Non-production configuration is missing; sign-in and writes are locked. Root production configuration is never used.");status(say("আলাদা non-production environment configure করতে হবে।","Configure a dedicated non-production environment."));return;}try{if(config.mode!=="isolated-development")throw Error("NONPRODUCTION_CONFIGURATION_REQUIRED");if(!window.CORE10_BUILD01_CLIENT)throw Error("BUILD01_CLIENT_UNAVAILABLE");S.api=window.CORE10_BUILD01_CLIENT.create({config});$("b01-environment").textContent="isolated-development · "+new URL(config.url).origin;controls();try{await context();status(say("Signed server context লোড হয়েছে।","Signed server context loaded."));}catch(error){clearPrivate();status(isAuth(error)?say("অনুমোদিত test account দিয়ে sign in করুন।","Sign in with an authorized test account."):errorMessage(error),!isAuth(error));}}catch(error){S.api=null;status(errorMessage(error),true);controls();}}
+  async function boot() {
+    language();
+    controls();
+    const config = window.CORE10_BUILD01_CONFIG;
+    if (!config || config.enabled !== true) {
+      $("b01-environment").textContent = say(
+        "Non-production config দেওয়া হয়নি; sign-in ও writes বন্ধ। Root production config ব্যবহার করা হয় না।",
+        "Non-production configuration is missing; sign-in and writes are locked. Root production configuration is never used."
+      );
+      status(say("আলাদা non-production environment configure করতে হবে।", "Configure a dedicated non-production environment."));
+      return;
+    }
+    try {
+      if (config.mode !== "isolated-development") throw Error("NONPRODUCTION_CONFIGURATION_REQUIRED");
+      if (!window.CORE10_BUILD01_CLIENT) throw Error("BUILD01_CLIENT_UNAVAILABLE");
+      S.api = window.CORE10_BUILD01_CLIENT.create({ config });
+      if (config.operationsEnabled === true) {
+        S.operations = S.api.createOperations({
+          host: $("b01-operation-host"),
+          onChange: controls,
+          onError: error => status(errorMessage(error), true),
+          onSessionChanged() {
+            clearPrivate();
+            controls();
+          }
+        });
+      }
+      $("b01-environment").textContent = "isolated-development · " + new URL(config.url).origin;
+      controls();
+      try {
+        await context();
+        status(say("Signed server context লোড হয়েছে।", "Signed server context loaded."));
+      } catch (error) {
+        clearPrivate();
+        status(isAuth(error) ? say(
+          "অনুমোদিত test account দিয়ে sign in করুন।", "Sign in with an authorized test account."
+        ) : errorMessage(error), !isAuth(error));
+      }
+    } catch (error) {
+      S.api = null;
+      status(errorMessage(error), true);
+      controls();
+    }
+  }
   boot();
 })();

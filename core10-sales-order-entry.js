@@ -12,7 +12,7 @@
    const previous=ui?.getState?.(),scope=source?{businessId:source.businessId,siteId:source.siteId}:previous?.businessId?{businessId:previous.businessId,siteId:previous.siteId}:options.initialScope;
    ui?.destroy();content.classList?.remove('so-workspace','si-workspace');view=next;
    const module=next==='invoices'?root.CORE10_SALES_INVOICE_UI:root.CORE10_SALES_ORDER_UI;
-   ui=module.mount(content,{api,backendMode:options.backendMode,lang:source?.lang||previous?.lang||options.lang,catalogProvider:options.catalogProvider||master?.load,initialScope:scope,initialOrderId:source?.orderId||(!previous?options.initialOrderId:undefined),
+   ui=module.mount(content,{api,backendMode:options.backendMode,lang:source?.lang||previous?.lang||options.lang,catalogProvider:options.catalogProvider||master?.load,initialScope:scope,scopeLocked:options.scopeLocked,initialOrderId:source?.orderId||(!previous?options.initialOrderId:undefined),
     onStateChange:stateChanged,onCreateInvoice:invoiceReady?source=>mountView('invoices',source):undefined});
    return ui.ready;
   }
@@ -25,7 +25,7 @@
    const ready=mountView(view);
    sub=options.client.auth.onAuthStateChange(event=>{if(event==='INITIAL_SESSION'||ended)return;sessionEnded=true;ui.reset();api.destroy();master?.destroy();stateChanged({lang:ui.getState?.()?.lang||options.lang,busy:false,uncertain:false});})?.data?.subscription;
    if(!sub?.unsubscribe)throw Error('SALES_SESSION_SUBSCRIPTION_REQUIRED');
-   return Object.freeze({ready,refresh:()=>ended||sessionEnded?undefined:ui.refresh?.(),getState:()=>({...ui.getState?.(),view}),destroy:dispose});
+   return Object.freeze({ready,requestLeave:fn=>{if(!ended&&!sessionEnded&&ui.requestLeave)ui.requestLeave(fn);else fn();},refresh:()=>ended||sessionEnded?undefined:ui.refresh?.(),getState:()=>({...ui.getState?.(),view}),destroy:dispose});
   }catch(e){dispose();throw e;}
  }
  root.CORE10_SALES_ORDER_ENTRY=Object.freeze({attach});
