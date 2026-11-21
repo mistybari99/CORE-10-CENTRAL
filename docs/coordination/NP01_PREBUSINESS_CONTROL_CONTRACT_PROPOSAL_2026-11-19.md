@@ -1,6 +1,6 @@
 # CORE-10-CENTRAL — Tenant Bootstrap Owner Control Contract, Revision 2.1
 
-**OWNER REVIEW CANDIDATE — ARCHITECTURAL REVIEW REQUIRED — NOT IMPLEMENTATION AUTHORIZATION**
+**OWNER-RATIFIED POLICY — ARCHITECTURAL REVIEW PASS REPORTED (IN-CHAT) — NOT IMPLEMENTATION AUTHORIZATION**
 
 **Date:** 2026-11-21  
 **Document scope:** NP01 pre-business provisioning, canonical NP02 tenant/bootstrap Owner Control and canonical Audit prerequisites.  
@@ -8,7 +8,9 @@
 **Draft PR:** [#119](https://github.com/mistybari99/CORE-10-CENTRAL/pull/119), branch `review/chatgpt-np01-bootstrap-20261119`, base `ccr-15ed11dd-n3hw5h`.  
 **Verified reference trunk before revision:** `5efece225a7e6ca5875dd954f9cc0b8298adeeb8`.  
 **Earlier proposal reviewed:** `e832a5e64a285404716b8388b4c8cf69076e5caa`.  
-**Independent review:** [Codex Sales, review 6001784578, 2026-11-21](https://github.com/mistybari99/CORE-10-CENTRAL/pull/119#pullrequestreview-6001784578): technical **REQUEST CHANGES** in a COMMENT review (not an Owner-ratified acceptance).  
+**Original independent review:** [Codex Sales, review 6001784578, 2026-11-21](https://github.com/mistybari99/CORE-10-CENTRAL/pull/119#pullrequestreview-6001784578): technical **REQUEST CHANGES** in a COMMENT review on old HEAD `e832a5e...`; preserved as historical evidence.  
+**Subsequent independent re-review:** Codex Sales reported architectural **PASS for Owner ratification** on exact Revision 2.1 HEAD `14f9bf541871a2dda4402f6e4e612215780135f3` in an Owner-provided chat handoff; no newer formal GitHub review submission is claimed. All original P1-A..P1-E/P2 are **design-addressed only**, not implemented or PG17-verified.  
+**Owner ratification:** eight Bootstrap policy choices explicitly approved on **2026-11-21**; canonical Decision Book `C10-D063`, revision `REV-016`. Policy approval is not coding/integration/release GO.  
 **Related NP01 PR #111 reviewed SHA:** `69143ffb82667b6f81b3667288af54a86b597698`. Finance Shared CI PR #118 is already integrated; do not repeat it.  
 **Release status:** GO-2 hosted staging **HOLD**; GO-3 production **HOLD**. No implementation, SQL, migration, merge or deployment GO.
 
@@ -16,11 +18,28 @@
 
 ## 1. Policy authority, scope and preserved history
 
+### 1.0 Owner ratification addendum — 21 November 2026 (policy only)
+
+The Owner has **explicitly ratified the following eight policies** after the independent architectural re-review. They are binding requirements for subsequent NP02/NP01 design and acceptance, not completed code or release authorization:
+
+1. Newly initialized tenants start with **Business Creation OFF** until an actively authorized Tenant Owner enables it. This is not an ERP-wide default-OFF policy. Existing tenants require safe inventory and explicit compatibility/backfill; never overwrite their prior behavior by assumption.
+2. Tenant/bootstrap policy administration (including ON/OFF, schedule and revert) belongs to the **active authorized Tenant Owner**. Business-scoped `can_manage` does not grant tenant policy administration; future delegation needs a separate Owner decision.
+3. An applicable explicit **tenant OFF is a veto**: Legal Entity and Business restrictions may tighten the result, never enable a narrower scope against parent OFF.
+4. **Ordinary Control exceptions cannot bypass explicit tenant OFF**. Emergency *corrections* are separately governed and are not unbounded provisioning overrides.
+5. Under current tenant OFF, provisioning (including successful-key replay through a provisioning RPC) **denies**; historical operation receipts remain separately readable only through a scoped, non-mutating, independently authorized reader.
+6. Site caps are **configurable per Business**; count existing/provisioned and sites that can be reactivated without renewed creation authorization, including applicable suspended/archived states. No unratified tenant-global quota or fixed 50-site ceiling is implied.
+7. Pending/in-flight operations **revalidate current effective policy before execution**. Committed documents, stock and journal history remain intact; operational corrections go through separately authorized domain paths rather than silent retroactive deletion.
+8. Emergency corrections must be **narrowly scoped, time-bounded, independently authorized/approved and canonically audited**, and cannot bypass tenant isolation, immutable Audit, Auth, financial/stock integrity or other protected invariants.
+
+**Architecture planning accepted:** NP02-A..NP02-E are the canonical shared provider plan (persistent tenant identity, tenant Owner Control, shared locking/time, tenant-scoped canonical Audit and NP01-facing D062-compatible interface). NP01 remains the consumer. The proposed implementation API names/signatures and lock graph require technical acceptance before a separate coding GO. Existing migration reservations and Claude-owned lane records remain unchanged. The ERP-wide D033/D045/D049/D057, A044/A045/A052 and 520-detail workstreams are preserved, not imported as new Bootstrap implementation scope.
+
+**Gate status:** `POLICY_RATIFIED / ARCHITECTURAL_REVIEW_PASS_IN_CHAT / IMPLEMENTATION_NOT_AUTHORIZED / GO-2_HOLD / GO-3_HOLD`. This addendum is documentation-only and is a post-review delta requiring separate exact-HEAD delta confirmation; it does not retroactively alter the reviewed SHA or earlier GitHub review.
+
 ### 1.1 What the Owner has actually decided
 
 **New, binding capability requirement (Owner, Revision 2.1):** a tenant with zero Businesses must be capable of holding an explicit, effective Business Creation OFF policy, configurable by an authorized tenant Owner and enforced on all Business-creation paths. The policy exists independently of Business IDs. It must be auditable in the canonical Audit architecture.
 
-This requirement **does not itself ratify** the initial default state, legal-entity policy precedence, delegated tenant administrators, emergency or ordinary override privileges, replay receipt visibility, or site-count interpretation. These remain explicit choices in section 11. A secure provisional specification may recommend values; it must not present them as adopted Owner policy.
+The initial default, active Tenant Owner administration, tenant OFF precedence, ordinary override prohibition, separate receipt reads, reactivatable-site counting, pending revalidation and audited emergency corrections were **subsequently Owner-ratified on 2026-11-21** and are recorded in section 1.0, section 11 and `C10-D063` / `REV-016`. Broader tenant delegation, any tenant-wide aggregate site cap, detailed existing-tenant backfill and new domain-specific emergency rights remain separate future policy/engineering gates; no implementation GO follows from ratification.
 
 ### 1.2 Decision inheritance and status
 
@@ -40,7 +59,7 @@ This requirement **does not itself ratify** the initial default state, legal-ent
 | Earlier PR #119 uncommitted candidate first-Business exception | **SUPERSEDED proposal** | May support the old business-only catalog lookup but cannot persist an explicit OFF before any Business. Not the policy mechanism. |
 | Earlier PR #119 enabled-by-default catalog-first authority | **SUPERSEDED proposal** | The business-scoped default cannot govern a tenant's first Business against an explicit tenant OFF. |
 | Tenant-scope bootstrap OFF capability | **NEW BINDING OWNER REQUIREMENT** | Business-independent canonical tenant policy scope, shared Control evaluation and tenant Audit support. |
-| Default OFF, tenant-only admin, precedence, override, replay and quota choices | **PROPOSED / OWNER DECISION PENDING** | Secure baselines in section 11, not silently approved. |
+| Eight Bootstrap policy choices (initial OFF, tenant administration, parent OFF, ordinary override, receipt read, per-Business cap, pending revalidation, emergency correction) | **OWNER-RATIFIED 2026-11-21 — C10-D063 / REV-016** | Approved policy only; section 11 retains originally suggested alternatives as non-binding historical options. No code/SQL/hosted GO. |
 
 Relevant revisions REV-009 and REV-011–REV-015 preserve original IMG-ERP-SG isolation, brand-neutral industry templates, one future Central App, the original 520-detail mapping, existing pack state, and canonical `core10` migration architecture. Revision 2.1 does not reopen or overwrite this history.
 
@@ -77,7 +96,7 @@ Requirements:
 
 ### 3.2 Scope precedence and invariants
 
-Recommended future precedence, **pending Owner ratification**: an explicit effective tenant provisioning OFF is an absolute veto on new Business creation; applicable legal-entity or Business rules may be more restrictive but may not re-enable a tenant OFF. Site Control uses the existing business/site semantics subject to applicable accepted tenant restrictions. In the absence of a ratified precedence rule, ambiguous new paths must fail closed, not silently choose a permissive scope.
+**Owner-ratified scope precedence (2026-11-21):** an explicit effective tenant provisioning OFF is an absolute veto on new Business creation; applicable legal-entity or Business rules may be more restrictive but may not re-enable a tenant OFF. Site Control uses existing business/site semantics subject to applicable tenant restrictions. Any **implementation ambiguity** or incomplete current-policy resolution must fail closed, not silently choose a permissive scope.
 
 Preserve all nonconfigurable canonical invariants, including tenant isolation, Auth/revocation, audit immutability, Approval maker-checker, Stock and Money integrity. ON does not grant action permission. A Control override does not bypass protected invariants.
 
@@ -93,7 +112,7 @@ Transactional success audit, override consumption, idempotency receipt and creat
 
 Authenticate first using signed `actor_uid()` and current tenant ownership/membership; resolve tenant/legal entity/server-side scope before mutation, with revalidation after any relevant lock wait. Reject spoofed actor, revoked membership, wrong tenant and unauthorized indirect SECURITY DEFINER access.
 
-**Secure proposed baseline:** only a current tenant Owner can administer tenant/bootstrap setting changes, schedules, revert and exception grant/revoke. D061 `can_manage` remains valid for **business-scoped** Control according to its existing contract; it must not silently authorize tenant-wide policy changes. Whether explicit delegated tenant administrators are allowed is an outstanding Owner decision (section 11). Any administrative delegation must be separately scoped, revocable, auditable and subject to existing maker-checker where applicable.
+**Owner-ratified authorization (2026-11-21):** only an active authorized tenant Owner can administer tenant/bootstrap setting changes, schedules and revert; no Business Owner gains tenant rights by `can_manage`. D061 `can_manage` remains valid for **business-scoped** Control under its existing contract. Explicit tenant-administrator delegation is **not approved**; any future delegation requires a separate Owner decision. Any administrative delegation must be separately scoped, revocable, auditable and subject to existing maker-checker where applicable.
 
 The authenticated tenant Owner must be able to inspect/operate the tenant policy with **zero Businesses**, including through an authorized Control view. Business Owner privileges, menu placement, a hidden/locked control, AI text or a copied tenant ID cannot confer tenant administrative authority.
 
@@ -147,13 +166,13 @@ A reusable private preparation/normalization service may exist, but **each actua
 
 An eligible override is scoped, signed-authorized, versioned, effective-time/expiry checked, bounded to a defined logical operation or explicit allowance, and canonically audited. Consumption must be atomic with successful permitted creation and performed no more than once per logical key. If an override-backed operation rolls back, consumption rolls back. A replay of committed success does not consume another override.
 
-**Proposed security default:** ordinary override cannot bypass explicit tenant-wide OFF. An extraordinary emergency override, if ever allowed, must have separate tenant authority, reason, maker-checker, expiry and immutable audit, subject to Owner ratification. Any override remains incapable of satisfying Auth, protected invariants or Approval completion.
+**Owner-ratified security policy:** ordinary override cannot bypass explicit tenant-wide OFF. Emergency **correction** is a separately authorized, narrowly bounded, time-limited, independently approved and canonically audited domain workflow, **not** permission to bypass tenant OFF for ordinary new-Business creation. No override can replace Auth, protected invariants or genuine Approval completion.
 
 ### 6.3 Site count and race safety
 
 Apply the typed `max_sites` parameter to normalized initial setup and all retained site-creation paths; Quick and Advanced setup must agree. Concurrency requires serialized quota check **and insert**, not an unlocked count snapshot.
 
-**Proposed interpretation, not ratified:** per-Business cumulative cap counting provisioned sites and any site that can be reactivated without renewed creation approval. Count pending/archived/soft-deleted states according to an explicitly accepted, bypass-resistant definition. A tenant-wide aggregate cap or legal-entity cap requires a separate explicit Owner decision; neither is implied by an existing per-setup parameter. Test cap 1, 50, 51, custom, concurrent site creators and mixed setup/site requests.
+**Owner-ratified quota interpretation:** configurable per-Business cumulative cap counting provisioned sites and any site that can be reactivated without renewed creation approval. Count pending/archived/soft-deleted states according to an explicitly accepted, bypass-resistant definition. A tenant-wide aggregate cap or legal-entity cap requires a separate explicit Owner decision; neither is implied by an existing per-setup parameter. Test cap 1, 50, 51, custom, concurrent site creators and mixed setup/site requests.
 
 ## 7. Approval-stage boundary
 
@@ -196,7 +215,7 @@ Preserve:
 - B-009 reviewed source/drift protections and public RPC evidence tests.
 - Auth, Approval, Stock and Money integrity boundaries and protected IMG-ERP-SG.
 
-**Dependency ordering, not new assignments:** (1) Owner policy ratification and shared interface approval; (2) canonical NP02 tenant identity/Control/Audit and fresh evaluation; (3) coordinated registry/EXECUTE legacy closure and forward site-stage safety; (4) future NP01 setup bindings using those canonical contracts; (5) disposable PG17 verification and independent technical review; (6) separate hosted release authorizations if later requested. Check live coordination reservations and branch heads before any future coding proposal. No implementation GO is conveyed.
+**Dependency ordering, not new assignments:** (1) Owner ratification completed 2026-11-21; shared provider interface approval and allocation remain pending; (2) after separately scoped coding GO, canonical NP02 tenant identity/Control/Audit and fresh evaluation; (3) coordinated registry/EXECUTE legacy closure and forward site-stage safety; (4) future NP01 setup bindings using those canonical contracts; (5) disposable PG17 verification and independent technical review; (6) separate hosted release authorizations if later requested. Check live coordination reservations and branch heads before any future coding proposal. No implementation GO is conveyed.
 
 ## 10. Universal Intelligent Owner Control compatibility — OUTSIDE this PR's feature backlog
 
@@ -215,22 +234,22 @@ The following remain independent dimensions across CORE-10:
 
 The shared canonical Control authority, Audit chain and security invariants apply uniformly. No second universal Control design, duplicate decision registry, AI-generated arbitrary SQL or shadow operational engine is proposed here. ERP-wide Intelligent Control, domain impact maps and full 520-detail execution coverage remain a **separate** existing workstream and outside PR #119's implementation scope.
 
-## 11. Outstanding Owner policy decisions — PROPOSAL REGISTER
+## 11. Owner-ratified Bootstrap policy register — 21 November 2026
 
-**Only the ability to configure explicit tenant OFF before the first Business is ratified by the new Owner instruction.** Every entry below is a proposal for separate Owner consideration; none is a grant to implement.
+**All eight recommendations in the following table are now explicitly Owner-ratified** under `C10-D063` / `REV-016`. The original alternative choices are preserved for decision provenance **only**, not approved policies. Technical implementation, existing-tenant backfill, new delegation, new legal/tax rules, integration, hosted migration and deployment still need separate review and Owner GO.
 
 | Choice | Recommended secure baseline | Alternatives | Business impact | Decision status |
 | --- | --- | --- | --- | --- |
-| Initial tenant Business Creation state | **OFF** until explicit authorized ON | ON after completed canonical tenant initialization | OFF adds deliberate enablement/onboarding step; ON reduces setup friction but permits creation absent explicit restriction | **PROPOSED / NOT RATIFIED** |
-| Tenant-scope administrator delegation | Active tenant Owner only | Explicit, scope/time-limited delegated tenant admin with maker-checker | Limits cross-Business policy escalation but can require Owner involvement | **PROPOSED / NOT RATIFIED** |
-| Tenant versus legal-entity restriction precedence | Tenant OFF is non-overridable veto; legal entity may further restrict | Tenant-only control, or reviewed finer-grained legal-entity configuration | Determines which legal entities may provision and guards parent/child privilege inheritance | **PROPOSED / NOT RATIFIED** |
-| Ordinary versus emergency OFF override | No ordinary override of explicit tenant OFF | Separately defined emergency override with tenant authority, independent approval and expiry | Preserves emergency recovery options while containing policy bypass risk | **PROPOSED / NOT RATIFIED** |
-| Replay under CURRENT OFF | Provisioning RPC denies replay; separately authorized read-only receipt lookup | Auth-filtered non-mutating replay return | Balances present policy enforcement, support reconciliation and historical receipt access | **PROPOSED / NOT RATIFIED** |
-| Site quota scope and counting | Per-Business cap; count provisioned and reactivatable sites | Active-only count; separate legal-entity or tenant aggregate quota | Affects costs, site reuse, suspension/reactivation, concurrency and onboarding size | **PROPOSED / NOT RATIFIED** |
-| Pending operations when feature becomes OFF | Deny new operations, revalidate queued execution, preserve committed history; corrections through separately controlled routes | Domain-specific grandfathering of approved-but-unposted work after independent safety review | Risks stranded fulfilment, stock in transit, pending approvals and receivable reconciliation; retroactive deletion prohibited | **PROPOSED / NOT RATIFIED** |
-| Emergency correction authority | Narrow, tenant-scoped, time-limited independent Approval and canonical Audit; never bypass invariants | No emergency exception; domain-specific correction-only actor grants | Defines recovery path during incidents without turning correction into unrestricted policy bypass | **PROPOSED / NOT RATIFIED** |
+| Initial tenant Business Creation state | **OFF** until explicit authorized ON | ON after completed canonical tenant initialization | OFF adds deliberate enablement/onboarding step; ON reduces setup friction but permits creation absent explicit restriction | **OWNER-RATIFIED 2026-11-21 — C10-D063** |
+| Tenant-scope administrator delegation | Active tenant Owner only | Explicit, scope/time-limited delegated tenant admin with maker-checker | Limits cross-Business policy escalation but can require Owner involvement | **OWNER-RATIFIED 2026-11-21 — C10-D063** |
+| Tenant versus legal-entity restriction precedence | Tenant OFF is non-overridable veto; legal entity may further restrict | Tenant-only control, or reviewed finer-grained legal-entity configuration | Determines which legal entities may provision and guards parent/child privilege inheritance | **OWNER-RATIFIED 2026-11-21 — C10-D063** |
+| Ordinary versus emergency OFF override | No ordinary override of explicit tenant OFF | Separately defined emergency override with tenant authority, independent approval and expiry | Preserves emergency recovery options while containing policy bypass risk | **OWNER-RATIFIED 2026-11-21 — C10-D063** |
+| Replay under CURRENT OFF | Provisioning RPC denies replay; separately authorized read-only receipt lookup | Auth-filtered non-mutating replay return | Balances present policy enforcement, support reconciliation and historical receipt access | **OWNER-RATIFIED 2026-11-21 — C10-D063** |
+| Site quota scope and counting | Per-Business cap; count provisioned and reactivatable sites | Active-only count; separate legal-entity or tenant aggregate quota | Affects costs, site reuse, suspension/reactivation, concurrency and onboarding size | **OWNER-RATIFIED 2026-11-21 — C10-D063** |
+| Pending operations when feature becomes OFF | Deny new operations, revalidate queued execution, preserve committed history; corrections through separately controlled routes | Domain-specific grandfathering of approved-but-unposted work after independent safety review | Risks stranded fulfilment, stock in transit, pending approvals and receivable reconciliation; retroactive deletion prohibited | **OWNER-RATIFIED 2026-11-21 — C10-D063** |
+| Emergency correction authority | Narrow, tenant-scoped, time-limited independent Approval and canonical Audit; never bypass invariants | No emergency exception; domain-specific correction-only actor grants | Defines recovery path during incidents without turning correction into unrestricted policy bypass | **OWNER-RATIFIED 2026-11-21 — C10-D063** |
 
-Any unratified ambiguity relevant to an execution path must result in a conservative, transparent blocked state rather than an invented permissive Owner choice.
+Any implementation ambiguity or new policy choice outside the eight ratified decisions must fail closed for affected execution paths and be surfaced for review rather than using an invented permissive interpretation.
 
 ## 12. Finding resolution matrix — DESIGN ONLY, NOT IMPLEMENTED
 
@@ -238,7 +257,7 @@ Any unratified ambiguity relevant to an execution path must result in a conserva
 | --- | --- | --- | --- | --- |
 | **P1-A — unpersisted minimum-Business anchor.** Legal seed/import ID can undercut existing minimum and move policy; no pre-Business policy record exists. | Persist tenant/bootstrap scope independently of Business IDs; immutable lifecycle and explicit existing-tenant backfill; canonical audit binds policy subject/version. | NP02 tenant identity, Control versions, RLS, Audit; NP01 provisioning. | Zero Businesses with OFF; lower-ID import, sequence manipulation/reset, status/deletion/reassignment and concurrent first creation do not change authority. | **DESIGN ADDRESSED / IMPLEMENTATION NOT DONE.** Shared NP02 forward schema/auth/audit contract and ratified backfill required. |
 | **P1-B — stale `statement_timestamp()` after wait.** Original setting resolution uses statement start; Control writers and creator do not share tenant lock. | Shared Control-write/creation lock order; fresh post-lock committed snapshot and decision time; deterministic scheduled/expiry precedence; one final linearization boundary. | NP02 effective Control resolver/writer; NP01 command gate and site writers. | Two independent PG17 sessions: creator starts t0 and waits; OFF starts after t0 and commits t1; creator resumes at t2 and must DENY. Include scheduled activation and override expiry during waits. | **DESIGN ADDRESSED / IMPLEMENTATION NOT DONE.** Accepted NP02 forward timing/lock contract; preserve `0101` checksum. |
-| **P1-C — business `can_manage` changes tenant-wide policy.** Business-scoped owner privilege was projected onto tenant policy. | Propose tenant-owner-only administration and explicitly separate tenant policy grants from business grants; schedule/override/revert obey same limit. | Canonical Auth/RLS and NP02 Control administration. | Business owner with `can_tenant=false` cannot ON, OFF, schedule, revert, grant/revoke tenant overrides; revoked and cross-tenant actors deny. | **DESIGN ADDRESSED / IMPLEMENTATION NOT DONE.** Owner ratification of delegation and NP02 authorization extension. |
+| **P1-C — business `can_manage` changes tenant-wide policy.** Business-scoped owner privilege was projected onto tenant policy. | Propose tenant-owner-only administration and explicitly separate tenant policy grants from business grants; schedule/override/revert obey same limit. | Canonical Auth/RLS and NP02 Control administration. | Business owner with `can_tenant=false` cannot ON, OFF, schedule, revert, grant/revoke tenant overrides; revoked and cross-tenant actors deny. | **DESIGN ADDRESSED / IMPLEMENTATION NOT DONE.** Owner-ratified Tenant Owner-only authority; NP02 signed Auth/RLS implementation and evidence still required; no delegated tenant administrator is authorized. |
 | **P1-D — direct legacy bypass.** `provision_business` / `provision_site` authenticated EXECUTE and bodies omit Control. | Internalize or equivalently gate every retained callable path; coordinated EXECUTE/registry updates; audit internal callers and compatibility. | NP01 provisioning, canonical Control/registry, B-009 drift contract. | Direct authenticated/role-inherited calls while OFF deny; site cap 1 cannot be exceeded; no stale public registry entry or public unguarded alias. | **DESIGN ADDRESSED / IMPLEMENTATION NOT DONE.** Complete caller/grant inventory and coordinated forward migration. |
 | **P1-E — `0112` site stage gap.** Site creation accepts stages > 0 without canonical approval completion. | Forward fail-closed stage > 0 until approved completion adapter; never count override as Approval. | NP01 site provisioning; GOV-002 canonical Approval/Audit. | Stage 1–5 deny without approved completion, both with/without Control override; zero unauthorized durable creation. | **DESIGN ADDRESSED / IMPLEMENTATION NOT DONE.** Separate forward stage fence/adapter acceptance; historical `0112` unchanged. |
 | **P2 — double Control check/replay/static registry.** Wrapper delegation can consume 2 overrides; checker reads each public function body; physical request checks do not guarantee logical exactly once. | One effective logical decision after waits, private writer, public literal/equivalent evidence, operation-bound idempotency and atomic override/receipt. | NP02 Control/registry, NP01 wrappers, Auth/Audit/Approval. | One override once; duplicate/conflicting keys, replay after OFF, rollback/retry, differing actors; each retained public RPC's literal evidence and CI denial test. | **DESIGN ADDRESSED / IMPLEMENTATION NOT DONE.** Accepted tenant-aware public port + D062 evidence compatibility and exact-head CI. |
@@ -280,9 +299,9 @@ The correct future order is: **(A)** Owner resolves outstanding scope/default/ov
 5. Site stages > 0 fail closed until genuine canonical Approval completion exists.
 6. Public D062 evidence, one logical decision, replay and override semantics are mutually satisfiable.
 7. D033/D045/D049/D054/D055/D057/D061/D062 and R071/R072/R123/R124/R128 remain inherited rather than recreated.
-8. Owner-proposed defaults are not misrepresented as approved; separate A044/A045/A052 Intelligent Control backlog is not imported into PR #119.
+8. The eight Owner-ratified Bootstrap policies are correctly marked approved; no extra delegation or unapproved policy is implied, and the A044/A045/A052 Intelligent Control backlog is not imported into PR #119.
 
-Report **PASS / REQUEST CHANGES / BLOCKED** for *architectural sufficiency*, cite exact new head and source evidence, and distinguish design completeness from implemented technical fixes. **Do not** mark Draft PR ready, merge, edit SQL/tests/other docs, dismiss the earlier review, ratify Owner choices, or infer deployment permission.
+Report **PASS / REQUEST CHANGES / BLOCKED** for *architectural sufficiency*, cite exact new head and source evidence, and distinguish design completeness from implemented technical fixes. **Do not** mark Draft PR ready, merge, edit SQL/tests/other docs, dismiss the earlier review, alter already ratified Owner choices, or infer deployment permission.
 
 ### Publication and safety notice
 
