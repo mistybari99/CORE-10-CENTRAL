@@ -4,6 +4,11 @@
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {spawnSync}=require('node:child_process');const ROOT=path.resolve(__dirname,'../..');
 const RPCS={
+ my_routed_review_tasks_v1:[['p_business','bigint']],
+ my_approval_status_v1:[['p_business','bigint'],['p_limit','integer']],
+ my_approval_activity_v1:[['p_business','bigint'],['p_limit','integer']],
+ decide_approval:[['p_request','bigint'],['p_action','text'],['p_key','text']],
+ withdraw_typed_approval_v1:[['p_request','bigint'],['p_key','text']],
  mfg_submit_approval_v1:[['p_business','bigint'],['p_site','bigint'],['p_operation','text'],['p_source','bigint'],['p_effective','timestamptz'],['p_key','text']],
  mfg_approve_recipe_with_approval_v1:[['p_business','bigint'],['p_site','bigint'],['p_recipe','bigint'],['p_effective','timestamptz'],['p_approval','bigint'],['p_key','text']],
  read_sales_invoice_drafts_v1:[['p_business','bigint'],['p_site','bigint'],['p_invoice','bigint']],
@@ -20,6 +25,7 @@ const RPCS={
  save_sales_order_v1:[['p_business','bigint'],['p_site','bigint'],['p_order','bigint'],['p_expected','bigint'],['p_document','jsonb'],['p_key','text']],
  transition_sales_order_v1:[['p_business','bigint'],['p_site','bigint'],['p_order','bigint'],['p_action','text'],['p_expected','bigint'],['p_approval','bigint'],['p_key','text']]
 };
+const TABLE_RPCS=new Set(['my_routed_review_tasks_v1','my_approval_status_v1','my_approval_activity_v1']);
 const FILES=['core10-control-studio.css','core10-build01.css','core10-sales-order.css','core10-sales-order-client.js','core10-sales-order-ui.js','core10-sales-order-entry.js','core10-sales-invoice-ui.js'];
 function sql(s){const box=process.env.NP03B_TEST_CONTAINER;if(box&&!/^core10-np03b-[a-z0-9-]+$/.test(box))throw Error('BAD_TEST_CONTAINER');
  const args=box?['exec','-i','-e','PGUSER=postgres','-e','PGDATABASE='+process.env.PGDATABASE,box,'psql','-X','-q','-At','-v','ON_ERROR_STOP=1']:['-X','-q','-At','-v','ON_ERROR_STOP=1'];
@@ -45,7 +51,11 @@ function start(port=0){
    let raw='';req.on('data',b=>{raw+=b;if(raw.length>262144)req.destroy();});req.on('end',()=>{let args;try{args=JSON.parse(raw||'{}');}catch{return send(400,{message:'BAD_JSON'});}
     if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).some(k=>!RPCS[name].some(([n])=>n===k)))return send(400,{message:'BAD_ARGS'});
     const params=RPCS[name].filter(([n])=>Object.hasOwn(args,n)).map(([n,t])=>n+' => '+(args[n]===null?'NULL':quote(typeof args[n]==='object'?JSON.stringify(args[n]):String(args[n])))+'::'+t).join(',');
-    const r=sql(`SET ROLE authenticated; DO $test$ BEGIN PERFORM set_config('request.jwt.claim.sub',${quote(persona)},false); END $test$; SELECT to_jsonb(core10.${name}(${params}));`);
+    const call=`core10.${name}(${params})`;
+    const result=TABLE_RPCS.has(name)
+     ? `SELECT coalesce(jsonb_agg(to_jsonb(row)), '[]'::jsonb) FROM ${call} AS row;`
+     : `SELECT to_jsonb(${call});`;
+    const r=sql(`SET ROLE authenticated; DO $test$ BEGIN PERFORM set_config('request.jwt.claim.sub',${quote(persona)},false); END $test$; ${result}`);
     if(r.status!==0)return send(400,{message:(r.stderr.match(/ERROR:\s+(.*)/)||[])[1]||'RPC_FAILED'});
     try{return send(200,JSON.parse(r.stdout.trim().split('\n').at(-1)));}catch{return send(500,{message:'BAD_SQL_RESPONSE'});}
    });return;

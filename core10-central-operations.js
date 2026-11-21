@@ -27,15 +27,18 @@
     async function open({ module, businessId, siteId, context, workspace, lang }) {
       if (active) return;
       const business = context.businesses.find((item) =>
-        Number(item.id) === businessId && item.can_manage === true);
+        Number(item.id) === businessId);
       const site = workspace?.sites?.find((item) =>
         Number(item.id) === siteId && Number(item.business_id) === businessId &&
         Number(item.tenant_id) === Number(business?.tenant_id) && item.allowed_actions?.includes("stock.read"));
-      if (!business || !site || Number(workspace.business_id) !== businessId ||
+      if (!business || Number(workspace?.business_id) !== businessId ||
           workspace.actor_uid !== context.actor_uid) {
         throw Error("CENTRAL_OPERATION_SCOPE_DENIED");
       }
-      if (module !== "sales" && module !== "manufacturing") throw Error("CENTRAL_OPERATION_UNKNOWN");
+      if (!["sales", "manufacturing", "approvals"].includes(module)) throw Error("CENTRAL_OPERATION_UNKNOWN");
+      if (module !== "approvals" && (!site || business.can_manage !== true)) {
+        throw Error("CENTRAL_OPERATION_SCOPE_DENIED");
+      }
 
       const version = ++generation;
       actor = context.actor_uid;
@@ -54,6 +57,17 @@
           active.dispose = sales.destroy;
           active.requestLeave = sales.requestLeave;
           await sales.ready;
+        } else if (module === "approvals") {
+          const { mountCanonicalGov002ReviewerWorkspace } =
+            await import("./modules/approvals/c10_np01_reviewer_workspace_v1.mjs");
+          if (generation !== version) return;
+          const desk = mountCanonicalGov002ReviewerWorkspace({
+            root: host, supabaseClient: client, businessId, lang, embedded: true,
+            businessLabel: business.label || business.slug, allowMutations: true
+          });
+          active.dispose = desk.destroy;
+          active.requestLeave = desk.requestLeave;
+          active.setLanguage = desk.setLanguage;
         } else {
           const { mountManufacturing } = await import("./modules/manufacturing/workbench.mjs");
           if (generation !== version) return;
@@ -82,9 +96,13 @@
       }
     }
 
-    function close() {
-      if (active?.requestLeave) active.requestLeave(clear);
-      else clear();
+    function close(afterClose) {
+      function leave() {
+        clear();
+        afterClose?.();
+      }
+      if (active?.requestLeave) active.requestLeave(leave);
+      else leave();
     }
 
     function clearSession() {
@@ -106,7 +124,8 @@
       onError(Error("CENTRAL_AUTH_SUBSCRIPTION_REQUIRED"));
       return null;
     }
-    return Object.freeze({ open, close, clear, isOpen: () => active !== null });
+    return Object.freeze({ open, close, clear, isOpen: () => active !== null, current: () => active?.module,
+      setLanguage: lang => active?.setLanguage?.(lang) });
   }
 
   root.CORE10_CENTRAL_OPERATIONS = Object.freeze({ create });

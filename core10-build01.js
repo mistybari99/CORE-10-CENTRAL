@@ -5,7 +5,7 @@
   const S = { api:null, operations:null, context:null, workspace:null, busy:false, lang:"bn", epoch:0, requests:new Map() };
   const original = new Map(Array.from(document.querySelectorAll("[data-i18n]"), el => [el, el.textContent]));
   const EN = {
-    sales:"Sales",manufacturing:"Manufacturing",closeOperation:"Close workspace",
+    sales:"Sales",manufacturing:"Manufacturing",approvals:"Approvals",closeOperation:"Close workspace",
     workspace:"Setup & access",studio:"Control Studio",builder:"Template builder",title:"Business Setup, Login & Permissions Integration",
     subtitle:"One identity, the same business and site, and server-enforced permissions.",boundary:"Approved non-production environment and synthetic test data only.",
     configuration:"Checking explicit connection configuration…",notPayment:"Business setup and access changes do not post stock, payroll, payments or accounting.",
@@ -47,11 +47,15 @@
     const operationOpen = S.operations?.isOpen() === true;
     const operationSite = S.workspace?.sites?.find(site =>
       String(site.id) === $("b01-site").value && site.allowed_actions?.includes("stock.read"));
-    $("b01-operations").hidden = !operationOpen && !(S.operations && signed && managed && operationSite);
-    $("b01-open-sales").hidden = operationOpen;
-    $("b01-open-manufacturing").hidden = operationOpen;
+    const operation = S.operations?.current();
+    const approvalsAvailable = Boolean(S.operations && signed && S.workspace &&
+      String(S.workspace.business_id) === $("b01-business").value);
+    $("b01-operations").hidden = !operationOpen && !approvalsAvailable;
+    $("b01-open-sales").hidden = operationOpen || !managed || !operationSite;
+    $("b01-open-manufacturing").hidden = !managed || !operationSite || (operationOpen && operation !== "approvals");
+    $("b01-open-approvals").hidden = !approvalsAvailable || (operationOpen && operation !== "manufacturing");
     $("b01-close-operation").hidden = !operationOpen;
-    $("b01-open-sales").disabled = $("b01-open-manufacturing").disabled = S.busy;
+    $("b01-open-sales").disabled = $("b01-open-manufacturing").disabled = $("b01-open-approvals").disabled = S.busy;
     formEnabled("b01-login-form",configured&&!signed);
     formEnabled("b01-setup-form",signed&&!!S.context.legal_entities?.length);
     formEnabled("b01-site-form",signed&&managed);
@@ -65,7 +69,7 @@
   }
   function mode(){const advanced=$("b01-mode").value==="advanced";$("b01-sites-label").hidden=!advanced;$("b01-mode-help").textContent=advanced?say("নিজের site list দিন; একই atomic setup service চালবে।","Supply your site list; the same atomic setup service executes it."):say("Quick একটি default showroom তৈরি করে। পরে একই engine দিয়ে বাড়াতে পারবেন।","Quick creates one default showroom. Extend it later through the same engine.");}
   function environment(){const config=window.CORE10_BUILD01_CONFIG;if(!config||config.enabled!==true){$("b01-environment").textContent=say("Non-production config দেওয়া হয়নি; sign-in ও writes বন্ধ। Root production config ব্যবহার করা হয় না।","Non-production configuration is missing; sign-in and writes are locked. Root production configuration is never used.");}else if(S.api){$("b01-environment").textContent="isolated-development · "+new URL(config.url).origin;}else{$("b01-environment").textContent=say("আলাদা non-production configuration যাচাই করা হচ্ছে; access এখনো অনুমোদিত নয়।","Validating explicit non-production configuration; access is not yet authorized.");}}
-  function language(){document.documentElement.lang=S.lang;for(const [el,bn]of original)el.textContent=S.lang==="bn"?bn:(EN[el.dataset.i18n]||bn);$("b01-language").textContent=S.lang==="bn"?"English":"বাংলা";mode();environment();if(S.workspace)drawWorkspace(S.workspace);}
+  function language(){document.documentElement.lang=S.lang;for(const [el,bn]of original)el.textContent=S.lang==="bn"?bn:(EN[el.dataset.i18n]||bn);$("b01-language").textContent=S.lang==="bn"?"English":"বাংলা";mode();environment();if(S.workspace)drawWorkspace(S.workspace);S.operations?.setLanguage(S.lang);}
   async function busy(task){if(S.busy)return;S.busy=true;controls();status(say("Server যাচাই করছে…","Checking with the server…"));try{await task();}catch(error){if(isAuth(error))clearPrivate();status(errorMessage(error),true);}finally{S.busy=false;controls();}}
   function request(kind,input,extra={}){const signature=JSON.stringify(input),old=S.requests.get(kind);if(old?.signature===signature)return old.input;const full={...input,...extra,requestKey:crypto.randomUUID()};S.requests.set(kind,{signature,input:full});return full;}
   function selectedBusiness(){const n=Number($("b01-business").value);if(!Number.isSafeInteger(n)||n<1)throw Error("BUSINESS_REQUIRED");return n;}
@@ -74,7 +78,9 @@
   function drawAudit(items){rows($("b01-audit"),items,x=>[x.command||x.event||x.kind||"event",x.subject_uid||x.subject||x.actor_uid||"—",x.executed_at||x.created_at||x.at||"—",x.status||x.result||x.id||"recorded"]);}
   function drawWorkspace(w){
     $("b01-session").textContent=w.can_manage?say("এই business-এর setup ও access পরিচালনার অনুমতি server নিশ্চিত করেছে। প্রতিটি action-এ আবার যাচাই হয়।","The server permits setup/access management for this business. Every action is revalidated."):say("এই business-এর setup/access পরিচালনার অনুমতি নেই। শুধু server-অনুমোদিত site ও নিজের access দেখতে পারবেন।","You cannot administer setup/access for this business. Only server-authorized sites and your own access are visible.");
+    const previousSite=$("b01-site").value;
     options($("b01-site"),w.sites||[],"id",x=>[x.kind,x.label].filter(Boolean).join(" · "));
+    if(w.sites?.some(site=>String(site.id)===previousSite))$("b01-site").value=previousSite;
     const a=w.access||{},all=[...(a.business_members||[]).map(x=>({...x,kind:"member"})),...(a.site_grants||[]).map(x=>({...x,kind:"site"}))];
     rows($("b01-current-access"),all,x=>[x.user_id||x.subject_uid,x.kind==="member"?x.role:(x.actions||[]).join(", "),(x.denied_actions||[]).join(", ")||"—",x.valid_until||"—",String(x.version??0)+" · "+(x.active?"active":"revoked")]);
     drawAudit(w.audit||[]);controls();
@@ -85,16 +91,19 @@
   function version(input){const access=S.workspace?.access||{},list=input.command.startsWith("business_member")?access.business_members:access.site_grants;const row=(list||[]).find(x=>String(x.user_id||x.subject_uid)===input.subjectUid&&(input.siteId===null||Number(x.site_id)===input.siteId));return row?.version??0;}
   $("b01-language").addEventListener("click",()=>{S.lang=S.lang==="bn"?"en":"bn";language();});
   function openOperation(module) {
-    busy(async () => {
+    const open = () => busy(async () => {
       await S.operations.open({
-        module, context: S.context, workspace: S.workspace,
-        businessId: selectedBusiness(), siteId: selectedSite(), lang: S.lang
+        module, context: S.context, workspace: S.workspace, businessId: selectedBusiness(),
+        siteId: module === "approvals" ? null : selectedSite(), lang: S.lang
       });
       status("");
     });
+    if (S.operations.isOpen()) S.operations.close(open);
+    else open();
   }
   $("b01-open-sales").addEventListener("click", () => openOperation("sales"));
   $("b01-open-manufacturing").addEventListener("click", () => openOperation("manufacturing"));
+  $("b01-open-approvals").addEventListener("click", () => openOperation("approvals"));
   $("b01-close-operation").addEventListener("click", () => S.operations?.close());
   $("b01-site").addEventListener("change", controls);
   $("b01-mode").addEventListener("change",mode);$("b01-command").addEventListener("change",controls);

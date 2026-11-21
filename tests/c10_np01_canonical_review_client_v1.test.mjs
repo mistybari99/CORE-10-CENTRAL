@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createCanonicalGov002ReviewClient} from '../internal/enterprise-client/c10_np01_canonical_review_client_v1.mjs';
+import {createCanonicalGov002ReviewClient} from '../modules/approvals/c10_np01_canonical_review_client_v1.mjs';
 
 const owner='01111111-1111-4111-8111-111111111111';
 const other='02222222-2222-4222-8222-222222222222';
@@ -83,6 +83,14 @@ test('canonical one-stage tasks are actionable, including Manufacturing',async()
  assert.equal(await c.decideApproval({
   businessId:101,requestId:single.request_id,action:'approve',idempotencyKey:'mfg_review_1'
  }),'901');
+ c.destroy();
+});
+test('a historical zero-stage completion does not hide other approval statuses',async()=>{
+ const zero={...status,request_id:'82',required_checks:0,completed_checks:0,stored_status:'approved',
+  display_status:'approved',can_review_now:false,is_maker:true};
+ const f=fixture({responder:()=>({data:[status,zero]})});
+ const c=createCanonicalGov002ReviewClient(f.sdk);
+ assert.deepEqual(await c.listStatus({businessId:101}),[status,zero]);
  c.destroy();
 });
 test('maker withdrawal requires maker, pending and zero votes; server remains final authority',async()=>{

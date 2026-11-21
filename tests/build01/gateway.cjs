@@ -15,7 +15,9 @@ const OPERATIONS_RPC=new Set([
  "mfg_material_waste_report_v1","mfg_record_material_waste_v1","mfg_create_recipe_v1",
  "mfg_approve_recipe_v1","mfg_plan_batch_v1","mfg_release_batch_v1","mfg_record_output_v1",
  "mfg_submit_approval_v1","mfg_approve_recipe_with_approval_v1","mfg_release_batch_with_approval_v1",
- "mfg_cancel_batch_v1","mfg_request_handoff_v1"
+ "mfg_cancel_batch_v1","mfg_request_handoff_v1",
+ "my_routed_review_tasks_v1","my_approval_status_v1","my_approval_activity_v1",
+ "decide_approval","withdraw_typed_approval_v1"
 ]);
 const TYPES={".html":"text/html; charset=utf-8",".js":"application/javascript; charset=utf-8",".mjs":"application/javascript; charset=utf-8",".css":"text/css; charset=utf-8"};
 function loopback(value){const u=new URL(value);if(u.protocol!=="http:"||!["localhost","127.0.0.1","[::1]"].includes(u.hostname)||u.username||u.password||u.pathname!=="/"||u.search||u.hash)throw Error("LOOPBACK_TARGET_REQUIRED");return u.origin;}
@@ -72,7 +74,10 @@ function createGateway(options){
     "core10-sales-order.css","core10-sales-master-catalog.js","core10-sales-order-client.js",
     "core10-sales-order-ui.js","core10-sales-invoice-ui.js","core10-sales-order-entry.js",
     "core10-operational-flow.css","modules/manufacturing/manufacturing.css",
-    "modules/manufacturing/workbench.mjs","modules/manufacturing/client.mjs"]);
+    "modules/manufacturing/workbench.mjs","modules/manufacturing/client.mjs",
+    "modules/approvals/c10_np01_canonical_review_client_v1.mjs",
+    "modules/approvals/c10_np01_reviewer_workspace_v1.mjs",
+    "modules/approvals/c10_np01_reviewer_workspace_v1.css"]);
    if(!allowed.has(file)||!isAllowed(file))return respond(404,"Not found");
    if(file.startsWith("core10-pack02-")&&!pack02Ready)return respond(404,"Not found");
    const full=path.join(publicRoot,file);

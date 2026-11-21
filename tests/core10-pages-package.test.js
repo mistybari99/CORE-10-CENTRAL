@@ -15,8 +15,16 @@ try {
  assert.equal(isAllowed("v2/scripts/danger.sql"),false);
  assert.equal(isAllowed("setup-admin.html"),false);
  assert.equal(isAllowed("vendor/supabase.js"),true);
+ const approvals=["c10_np01_canonical_review_client_v1.mjs","c10_np01_reviewer_workspace_v1.mjs",
+  "c10_np01_reviewer_workspace_v1.css"].map(name=>"modules/approvals/"+name);
+ for(const file of approvals) put(file);
+ const privateApprovalFile="modules/approvals/unpublished.mjs";
+ put(privateApprovalFile,"DO_NOT_PUBLISH");
  const result=build(src,out);
- assert.equal(result.count,REQUIRED.length+7);
+ assert.equal(result.count,REQUIRED.length+7+approvals.length);
+ assert.equal(isAllowed(privateApprovalFile),false);
+ for(const file of approvals) assert.equal(fs.readFileSync(path.join(out,file),"utf8"),"safe");
+ assert.equal(fs.existsSync(path.join(out,privateApprovalFile)),false);
  assert.deepEqual(verify(out),result.files);
  for(const p of ["scripts/tenant_migration.sql","scripts/c10_a018_demo_backend.sql","tests/secret.js","internal/secret.js","internal/enterprise-sql/private.sql","docs/handover.md","v2/scripts/danger.sql","v2/audit-unsafe.html","setup-admin.html","data/secret.env","vendor/file.map"]) assert.equal(fs.existsSync(path.join(out,p)),false,p+" leaked");
  assert.equal(fs.readFileSync(path.join(out,"vendor/supabase.js"),"utf8"),"safe");
