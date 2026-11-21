@@ -14,6 +14,7 @@ const OPERATIONS_RPC=new Set([
  "mfg_preview_substitution_v1","mfg_preview_substitution_v2","mfg_master_validation_v1",
  "mfg_material_waste_report_v1","mfg_record_material_waste_v1","mfg_create_recipe_v1",
  "mfg_approve_recipe_v1","mfg_plan_batch_v1","mfg_release_batch_v1","mfg_record_output_v1",
+ "mfg_submit_approval_v1","mfg_approve_recipe_with_approval_v1","mfg_release_batch_with_approval_v1",
  "mfg_cancel_batch_v1","mfg_request_handoff_v1"
 ]);
 const TYPES={".html":"text/html; charset=utf-8",".js":"application/javascript; charset=utf-8",".mjs":"application/javascript; charset=utf-8",".css":"text/css; charset=utf-8"};

@@ -4,6 +4,8 @@
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {spawnSync}=require('node:child_process');const ROOT=path.resolve(__dirname,'../..');
 const RPCS={
+ mfg_submit_approval_v1:[['p_business','bigint'],['p_site','bigint'],['p_operation','text'],['p_source','bigint'],['p_effective','timestamptz'],['p_key','text']],
+ mfg_approve_recipe_with_approval_v1:[['p_business','bigint'],['p_site','bigint'],['p_recipe','bigint'],['p_effective','timestamptz'],['p_approval','bigint'],['p_key','text']],
  read_sales_invoice_drafts_v1:[['p_business','bigint'],['p_site','bigint'],['p_invoice','bigint']],
  save_sales_invoice_draft_v1:[['p_business','bigint'],['p_site','bigint'],['p_invoice','bigint'],['p_expected','bigint'],['p_order','bigint'],['p_order_version','bigint'],['p_lines','jsonb'],['p_memo','text'],['p_key','text']],
  validate_sales_invoice_draft_v1:[['p_business','bigint'],['p_site','bigint'],['p_invoice','bigint'],['p_expected','bigint'],['p_approval','bigint'],['p_key','text']],

@@ -57,6 +57,8 @@ jobs:
         run: |
           psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/canonical-master-e2e.sql
           psql -X -At -c "SELECT pg_get_functiondef(oid)||';' FROM pg_proc WHERE oid IN ('core10._mfg_master_check_v1(bigint)'::regprocedure,'core10._mfg_substitution_check_v1(bigint)'::regprocedure)" > /tmp/np05a-canonical-hooks.sql
+      - name: Manufacturing staged Approval and canonical Audit binding
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/staged-approval-e2e.sql
       - name: Real two-session replay and safe rollback with history
         run: bash tests/np05a/concurrency.sh
       - name: Lock-wait Control change and immediate revocation

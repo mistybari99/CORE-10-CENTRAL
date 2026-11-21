@@ -123,6 +123,26 @@ async function launch() {
 
       await page.locator("#b01-open-manufacturing").click();
       await page.getByText("CENTRAL-SITE-RECIPE · v1").waitFor();
+      const operationHost = page.locator("#b01-operation-host");
+      await operationHost.locator("[data-approve]:visible").click();
+      const effective = width === 390 ? "2026-01-01T09:00" : "2026-01-02T09:00";
+      await operationHost.locator("[name=effective]").fill(effective);
+      await operationHost.locator("form button[type=submit]").click();
+      const operationStatus = operationHost.getByRole("status");
+      await page.waitForFunction(() => /#\d+/.test(
+        document.querySelector("#b01-operation-host [role=status]").textContent));
+      const requestId = (await operationStatus.textContent()).match(/#(\d+)/)[1];
+      const approval = calls.find(call => call.rpc === "mfg_submit_approval_v1");
+      assert.equal(approval.args.p_business, 101);
+      assert.equal(approval.args.p_site, 1002);
+      assert.equal(approval.args.p_operation, "recipe_approve");
+      await operationHost.locator("[name=approval_action]").selectOption("apply");
+      await operationHost.locator("[name=approval]").fill(requestId);
+      await operationHost.locator("form button[type=submit]").click();
+      await page.waitForFunction(() => document.querySelector("#b01-operation-host [role=status]")
+        .textContent.includes("MFG_MAKER_CHECKER"));
+      await operationHost.locator('[data-tab="recipes"]').click();
+      await page.getByText("CENTRAL-SITE-RECIPE · v1").waitFor();
       const delayed = hold("mfg_inspect_v1");
       await page.locator("#b01-operation-host [data-refresh]").click();
       const timeout = new AbortController();
