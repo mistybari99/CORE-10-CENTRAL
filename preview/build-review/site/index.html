@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="bn" data-lang="bn"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>CORE10 Build Review</title>
+<link rel="stylesheet" href="/review.css">
+</head><body><div class="rv-wrap">
+
+<header class="rv-top">
+ <h1>CORE 10 CENTRAL · <span class="bn">আসল Build Review</span><span class="en">Real Build Review</span></h1>
+ <div class="rv-lang" role="group" aria-label="Language"><button type="button" data-set-lang="bn">বাংলা</button> <button type="button" data-set-lang="en">English</button></div>
+</header>
+
+<div class="rv-banner" role="note">
+ <p class="bn"><strong>শুধু দেখার জন্য (Read-only) · Owner-এর ad-hoc review · VERIFIED_COMPLETE বা P01 নয়।</strong> এখানে কোনো database, sign-in, key বা আসল data নেই। কোনো কিছু save/post হয় না। Source: trunk <code>ccr-15ed11dd-n3hw5h</code> @ <code>fe1c6b6</code>.</p>
+ <p class="en"><strong>Read-only · Owner ad-hoc review · NOT VERIFIED_COMPLETE, NOT P01.</strong> No database, sign-in, key or real data here. Nothing can be saved or posted. Source: trunk <code>ccr-15ed11dd-n3hw5h</code> @ <code>fe1c6b6</code>.</p>
+</div>
+
+<ul class="rv-legend">
+ <li><span class="rv-tag rv-tag-live">LIVE UI</span><span class="bn">আসল source file অপরিবর্তিত চলছে</span><span class="en">actual source file running unchanged</span></li>
+ <li><span class="rv-tag rv-tag-fixture">FIXTURE</span><span class="bn">আসল renderer + test-এর synthetic fixture</span><span class="en">actual renderer + verbatim synthetic test fixture</span></li>
+ <li><span class="rv-tag rv-tag-shot">TEST SCREENSHOT</span><span class="bn">repo-র browser test, disposable local database</span><span class="en">repo browser test, disposable local database</span></li>
+ <li><span class="rv-tag rv-tag-nc">NOT_CONNECTED</span><span class="bn">Level 2 / GO ছাড়া চলবে না</span><span class="en">needs Level 2 / GO</span></li>
+ <li><span class="rv-tag rv-tag-draft">DRAFT PR</span><span class="bn">integrate হয়নি</span><span class="en">not integrated</span></li>
+</ul>
+
+<nav class="rv-toc" aria-label="Sections">
+ <a href="#shell">1 Central shell</a><a href="#build01">2 Build01</a><a href="#occ">3 Owner Control</a><a href="#pack02">4 PACK-02</a>
+ <a href="#approval">5 Approval</a><a href="#master">6 Master Data</a><a href="#sweets">7 Sweets/Bakery</a><a href="#status">8 Status</a><a href="#guide">Guide</a>
+</nav>
+
+<section class="rv-card" id="shell">
+ <h2>1 · Central shell &amp; Owner navigation</h2>
+ <div class="rv-tags"><span class="rv-tag rv-tag-nc">NOT_CONNECTED</span></div>
+ <p class="bn"><code>owner.html</code>, <code>index.html</code> ও <code>core10-shell.js</code> এখনো পুরোনো BOS app ও <code>config.js</code>-এর উপর চলে (<code>core10-shell.js</code> শুরুতেই <code>window.BOS</code> না পেলে থেমে যায়)। <code>config.js</code> CORE10 staging নয়, অন্য Supabase project। তাই নিরাপত্তার জন্য shell এই review-এ <b>প্রকাশ করা হয়নি</b> — screenshot-ও নেওয়া হয়নি, কারণ তা পুরোনো app দেখাত। CHG-006 অনুযায়ী নতুন shell route (signed context → module) এখনো wire হয়নি; তাই নিচের কোনো module “Central shell থেকে পৌঁছানো যায়” — এমন দাবি করা হচ্ছে না।</p>
+ <p class="en"><code>owner.html</code>, <code>index.html</code> and <code>core10-shell.js</code> still run on the legacy BOS app and <code>config.js</code> (<code>core10-shell.js</code> exits at once without <code>window.BOS</code>). <code>config.js</code> points to a different Supabase project, not CORE10 staging, so the shell is <b>not published</b> here, and no screenshot was taken because it would show the legacy app. The CHG-006 shell route contract (signed context → module) is not wired yet, so none of the modules below are claimed reachable from the Central shell.</p>
+ <p class="rv-small">Source (not served): <code>owner.html</code>, <code>index.html</code>, <code>core10-shell.js</code> blob <code>4c33535</code>, <code>core10-owner.css</code>, <code>core10-home.js</code>, <code>core10-owner-business-entry.js</code>, <code>core10-owner-inbox.js</code>, <code>core10-control-studio-entry.js</code> · contract: <code>docs/architecture/CORE10_S0_SCHEMA_AND_ENGINE_PORTS.md</code> §3.</p>
+</section>
+
+<section class="rv-card" id="build01">
+ <h2>2 · Build 01 — <span class="bn">ব্যবসা Setup ও Permission</span><span class="en">Business Setup &amp; Permissions</span></h2>
+ <div class="rv-tags"><span class="rv-tag rv-tag-live">LIVE UI</span><span class="rv-tag rv-tag-nc">NOT_CONNECTED</span></div>
+ <p class="bn">আসল <code>core10-build01.html</code> তার নিজের shipped config (<code>enabled:false</code>) নিয়ে চলছে। Page নিজেই বলে “Non-production config দেওয়া হয়নি; sign-in ও writes বন্ধ” এবং sign-in বোতাম নিষ্ক্রিয়। কোনো ব্যবসা তৈরি বা access দেওয়া সম্ভব নয়।</p>
+ <p class="en">The real <code>core10-build01.html</code> runs with its own shipped config (<code>enabled:false</code>). The page itself states that no non-production config is set and sign-in and writes are off; the sign-in button is disabled. No business can be created and no access granted.</p>
+ <div class="rv-actions"><a class="rv-btn" href="/live/core10-build01.html">Open Build01 (live, locked)</a></div>
+ <p class="rv-small"><span class="bn">Signed owner/staff journey-এর test আছে (<code>tests/e2e/core10-build01-live-browser.cjs</code>) কিন্তু তার জন্য loopback GoTrue + PostgREST লাগে, যা এই review-এ চালানো হয়নি — তাই signed screenshot নেই।</span><span class="en">A signed owner/staff journey test exists (<code>tests/e2e/core10-build01-live-browser.cjs</code>) but needs loopback GoTrue + PostgREST, which was not run for this review, so there is no signed screenshot.</span></p>
+</section>
+
+<section class="rv-card" id="occ">
+ <h2>3 · Owner Control Centre (B-021)</h2>
+ <div class="rv-tags"><span class="rv-tag rv-tag-live">LIVE UI</span><span class="rv-tag rv-tag-shot">TEST SCREENSHOT</span><span class="rv-tag rv-tag-nc">NOT_CONNECTED</span></div>
+ <p class="bn">Live link-এ আসল page তার আসল config (key খালি) নিয়ে চলে এবং দেখায় “স্টেজিং এখনো যুক্ত হয়নি (মালিকের Level 2 অনুমোদনের অপেক্ষায়)”। নিচের ছবিগুলো একই source code থেকে, repo-র <code>tests/control-centre/owner-control-centre-browser.cjs</code> চালিয়ে local disposable PostgreSQL-এ synthetic seed দিয়ে তোলা: <b>19/19 PASS</b> (business/site scope, feature on/off, approval stage, parameter, history/revert, audit hash chain, exception, schedule, Bangla/English, 390/1440)।</p>
+ <p class="en">The live link runs the real page with its real config (empty key) and shows “Staging is not connected yet (waiting for the Owner's Level 2 approval)”. The screenshots below come from the same source, captured by the repo test <code>tests/control-centre/owner-control-centre-browser.cjs</code> on a disposable local PostgreSQL with synthetic seed: <b>19/19 PASS</b> (business/site scope, feature on/off, approval stages, parameters, history/revert, audit hash chain, exceptions, scheduling, Bangla/English, 390/1440).</p>
+ <div class="rv-actions"><a class="rv-btn" href="/live/core10-owner-control-centre.html">Open Owner Control Centre (live, NOT_CONNECTED)</a></div>
+ <div class="rv-shots">
+  <figure><img src="/evidence/occ-owner-1440.png" alt="Owner Control Centre, owner, 1440 px" loading="lazy"><figcaption>TEST SCREENSHOT · Owner · 1440 px</figcaption></figure>
+  <figure><img src="/evidence/occ-owner-390.png" alt="Owner Control Centre, owner, 390 px" loading="lazy"><figcaption>TEST SCREENSHOT · Owner · 390 px</figcaption></figure>
+  <figure><img src="/evidence/occ-owner-390-dialog.png" alt="Confirmation dialog, 390 px" loading="lazy"><figcaption>TEST SCREENSHOT · confirm dialog · 390 px</figcaption></figure>
+  <figure><img src="/evidence/occ-manager-1440.png" alt="Manager view-only, 1440 px" loading="lazy"><figcaption>TEST SCREENSHOT · Manager (view-only) · 1440 px</figcaption></figure>
+ </div>
+ <p class="rv-small">Local run: PostgreSQL 16.15 + Playwright 1.63.0 Chromium, migrations 0001–0150 from <code>fe1c6b6</code> (CI uses PostgreSQL 17). The SQL gateway and persona harness are test-only and are <b>not</b> part of this Worker.</p>
+</section>
+
+<section class="rv-card" id="pack02">
+ <h2>4 · PACK-02 Owner / Business / Staff workspace</h2>
+ <div class="rv-tags"><span class="rv-tag rv-tag-fixture">FIXTURE</span><span class="rv-tag rv-tag-shot">TEST SCREENSHOT</span><span class="rv-tag rv-tag-nc">NOT_CONNECTED</span></div>
+ <p class="bn">আসল <code>core10-pack02-workspace.js</code> ও <code>core10-pack02-controls.js</code> আপনার browser-এ চলছে, test-এর একই synthetic SQL-projection fixture দিয়ে (<code>tests/pack02/fixtures/*.json</code>)। Menu বোতাম ইচ্ছা করে নিষ্ক্রিয় — source অনুযায়ী route এখনো wire হয়নি। Signed adapter (<code>core10-pack02-signed.js</code>, <code>core10-pack02-app.js</code>) এখানে চালানো হয়নি।</p>
+ <p class="en">The real <code>core10-pack02-workspace.js</code> and <code>core10-pack02-controls.js</code> run in your browser on the same synthetic SQL-projection fixtures the tests use (<code>tests/pack02/fixtures/*.json</code>). Menu buttons are disabled on purpose: the source marks the routes as not wired. The signed adapter (<code>core10-pack02-signed.js</code>, <code>core10-pack02-app.js</code>) is not run here.</p>
+ <div class="rv-actions"><a class="rv-btn" href="/pack02.html?fx=universal-owner">Open PACK-02 (6 fixtures)</a></div>
+ <div class="rv-shots">
+  <figure><img src="/evidence/pack02-universal-owner-1440.png" alt="Universal owner, 1440 px" loading="lazy"><figcaption>TEST SCREENSHOT · Universal Owner · 1440 px</figcaption></figure>
+  <figure><img src="/evidence/pack02-staff-390.png" alt="Staff, 390 px" loading="lazy"><figcaption>TEST SCREENSHOT · Staff · 390 px</figcaption></figure>
+  <figure><img src="/evidence/pack02-controls-central-1440.png" alt="Central controls, 1440 px" loading="lazy"><figcaption>TEST SCREENSHOT · Controls (Central) · 1440 px</figcaption></figure>
+ </div>
+ <p class="rv-small">Test: <code>tests/pack02/workspace-browser.cjs</code> PASS (overflow, 44 px touch targets, Bangla labels, staff isolation).</p>
+</section>
+
+<section class="rv-card" id="approval">
+ <h2>5 · <span class="bn">Approval reviewer (NP01 canonical)</span><span class="en">Canonical Approval reviewer (NP01)</span></h2>
+ <div class="rv-tags"><span class="rv-tag rv-tag-live">LIVE UI</span><span class="rv-tag rv-tag-fixture">FIXTURE</span><span class="rv-tag rv-tag-nc">NOT_CONNECTED</span></div>
+ <p class="bn">Repo-তে আগে থেকেই থাকা offline preview অপরিবর্তিত। আসল reviewer UI module চলে, কিন্তু data synthetic (“DEMO ONLY · NO REAL AUTH”), <code>allowMutations:false</code>। এটি hosted signed Approval নয়।</p>
+ <p class="en">The existing offline preview from the repo, unchanged. The real reviewer UI modules run, but the data is synthetic (“DEMO ONLY · NO REAL AUTH”) with <code>allowMutations:false</code>. This is not hosted signed Approval.</p>
+ <div class="rv-actions"><a class="rv-btn" href="/live/docs/preview/c10-np01-canonical-reviewer-preview.html">Open Approval reviewer (offline synthetic)</a></div>
+</section>
+
+<section class="rv-card" id="master">
+ <h2>6 · Master Data (B-011)</h2>
+ <div class="rv-tags"><span class="rv-tag rv-tag-nc">NOT_CONNECTED</span><span class="bn rv-small">এখনো UI নেই</span><span class="en rv-small">no UI yet</span></div>
+ <p class="bn">Migration 0150 (master tables, <code>core10.items</code> সম্প্রসারণ) trunk-এ আছে। <code>tests/migrations/np02-master-tables-e2e.sql</code> এই review-এর জন্য local disposable database-এ PASS। Control-enforced RPC (0151) ও UI পরের কাজ।</p>
+ <p class="en">Migration 0150 (master tables extending <code>core10.items</code>) is on trunk. <code>tests/migrations/np02-master-tables-e2e.sql</code> PASSED on a local disposable database for this review. Control-enforced RPCs (0151) and UI come next.</p>
+ <p class="rv-small">Contract: <code>docs/coordination/NP02_B011_MASTER_DATA_CONTRACT.md</code></p>
+</section>
+
+<section class="rv-card" id="sweets">
+ <h2>7 · Sweets &amp; Bakery <span class="bn">(প্রথম template)</span><span class="en">(first template)</span></h2>
+ <div class="rv-tags"><span class="rv-tag rv-tag-draft">DRAFT PR</span><span class="rv-tag rv-tag-nc">NOT_CONNECTED</span></div>
+ <p class="bn">T1 (B-016) এখনো PLANNED। প্রয়োজনীয় অংশগুলো আলাদা Draft PR-এ, trunk-এ integrate হয়নি, তাই এখানে কোনো UI দেখানো হয়নি।</p>
+ <p class="en">T1 (B-016) is still PLANNED. The parts it needs are in separate Draft PRs, not integrated into trunk, so no UI is shown here.</p>
+ <div class="rv-scroll"><table class="rv-table">
+  <thead><tr><th>Lane</th><th>PR / head</th><th>Board status</th><th>Blocked by</th></tr></thead>
+  <tbody>
+   <tr><td>NP05A Sweets manufacturing (B-015)</td><td><a href="https://github.com/mistybari99/CORE-10-CENTRAL/pull/112">#112</a> <code>06b6d1d</code></td><td>BLOCKED</td><td>B-011 Master, B-012 Stock, NP01 actions, B-013 Money, shell</td></tr>
+   <tr><td>NP03B Sales / POS (B-014)</td><td><a href="https://github.com/mistybari99/CORE-10-CENTRAL/pull/109">#109</a> <code>f79262f</code></td><td>BLOCKED</td><td>Master validators, Sales Auth, shell route, B-012 Stock, NP06 Money</td></tr>
+   <tr><td>NP06 Finance (B-013)</td><td><a href="https://github.com/mistybari99/CORE-10-CENTRAL/pull/108">#108</a> <code>88a2964</code></td><td>IN_PROGRESS · review done, not merged</td><td>Separate Owner GO; NP01 0110–0149</td></tr>
+   <tr><td>NP03A Stock (B-012)</td><td>—</td><td>PLANNED</td><td>B-011</td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="rv-card" id="status">
+ <h2>8 · <span class="bn">Module অবস্থা ও প্রমাণ</span><span class="en">Module status &amp; evidence</span></h2>
+ <div class="rv-scroll"><table class="rv-table">
+  <thead><tr><th>Item</th><th>Status (Board)</th><th>In this review</th><th>Evidence</th></tr></thead>
+  <tbody>
+   <tr><td>S0 schema, ports, shell contract (B-001/002)</td><td>INTEGRATED</td><td>docs only</td><td><a href="https://github.com/mistybari99/CORE-10-CENTRAL/pull/106">#106</a></td></tr>
+   <tr><td>Access + canonical audit + GOV-002 approval (B-003/004)</td><td>INTEGRATED</td><td>Approval reviewer: FIXTURE</td><td>#106</td></tr>
+   <tr><td>NP01 GO-1 (B-005…B-008, 0013–0019) (B-025)</td><td>INTEGRATED into trunk; signed GoTrue pending</td><td>—</td><td><a href="https://github.com/mistybari99/CORE-10-CENTRAL/pull/107">#107</a></td></tr>
+   <tr><td>NP01 Control bindings (B-020, 0110–0111)</td><td>IN_PROGRESS · Draft</td><td>—</td><td><a href="https://github.com/mistybari99/CORE-10-CENTRAL/pull/111">#111</a> <code>7b8747e</code></td></tr>
+   <tr><td>Control port (B-010) + registry (B-023)</td><td>IN_PROGRESS · 3 enforced / 7 exempt / 11 pending</td><td>via Owner Control Centre</td><td>CONTROL_PORT_INTEGRATION_CONTRACT.md</td></tr>
+   <tr><td>Owner Control Centre (B-021)</td><td>IN_PROGRESS · CI green</td><td>LIVE (NOT_CONNECTED) + 4 screenshots</td><td>19/19 browser test</td></tr>
+   <tr><td>Build01 setup &amp; access</td><td>coded; locked by config</td><td>LIVE (locked)</td><td>core10-build01-locked-browser.cjs</td></tr>
+   <tr><td>PACK-02 workspace</td><td>PACK-02 IN_PROGRESS</td><td>FIXTURE (6) + 3 screenshots</td><td>workspace-browser.cjs</td></tr>
+   <tr><td>Master data (B-011)</td><td>IN_PROGRESS · 0150</td><td>no UI</td><td>np02-master-tables-e2e.sql</td></tr>
+   <tr><td>Hosted staging apply (B-022)</td><td>BLOCKED · Owner GO</td><td>—</td><td>staging holds 0001–0012 only</td></tr>
+  </tbody></table></div>
+ <h3><span class="bn">যা এই review-এ নেই</span><span class="en">Not in this review</span></h3>
+ <p class="bn">Workforce, Asset maintenance, CRM, Site topology, Owner portfolio/intent, Engine workshop, Inventory operations ইত্যাদির পুরোনো standalone HTML page repo-তে আছে, কিন্তু সেগুলো নতুন plan-এ Central shell-এ যুক্ত নয় (DEC-04: আলাদা page “complete” নয়) — তাই দেখানো হয়নি।</p>
+ <p class="en">Older standalone pages (Workforce, Asset maintenance, CRM, Site topology, Owner portfolio/intent, Engine workshop, Inventory operations, …) exist in the repo but are not wired into the Central shell under the new plan (DEC-04: a standalone page is not “complete”), so they are not shown.</p>
+ <p class="rv-small">Full source manifest (paths, git blob SHAs, SHA-256): <a href="/manifest.json">/manifest.json</a></p>
+</section>
+
+<section class="rv-card" id="guide" lang="bn">
+ <h2>কোথায় ক্লিক করে কী দেখবেন (Owner checklist)</h2>
+ <ol class="rv-steps">
+  <li>উপরে “বাংলা / English” চাপলে এই পাতার ভাষা বদলায়।</li>
+  <li><b>৩ · Owner Control Centre</b>-এ নিচের ৪টি ছবি দেখুন: business/site বাছাই, feature-এর তালিকা, ডান পাশে detail; মোবাইল ছবিতে confirm dialog।</li>
+  <li>“Open Owner Control Centre” চাপুন — একটাই বাক্য দেখবেন: “স্টেজিং এখনো যুক্ত হয়নি…”। এটাই সঠিক: Level 2 GO না দেওয়া পর্যন্ত এটা database-এ যুক্ত হবে না।</li>
+  <li>ফিরে এসে <b>৪ · PACK-02</b> → “Open PACK-02” চাপুন। উপরের বোতাম দিয়ে Universal Owner, Business Owner, Staff, Controls দেখুন। Staff-এ শুধু নিজের শাখা; অন্য ব্যবসা নেই। Menu বোতাম চাপা যায় না — route এখনো wire হয়নি।</li>
+  <li><b>২ · Build01</b> → “Open Build01” চাপুন। Sign-in বোতাম বন্ধ এবং লেখা “Non-production config দেওয়া হয়নি; sign-in ও writes বন্ধ”।</li>
+  <li><b>৫ · Approval</b> → reviewer desk খুলুন। উপরে “DEMO ONLY · NO REAL AUTH” লেখা; task #405 ধাপ 2/3 দেখা যায়, কিন্তু approve করা যায় না।</li>
+  <li><b>৬, ৭, ৮</b>-এ লাল NOT_CONNECTED / বেগুনি DRAFT PR চিহ্ন দেখে বুঝবেন কোনটা এখনো বাকি।</li>
+  <li>মোবাইলে (৩৯০px) একই link খুলে দেখুন — পাতা পাশে scroll হওয়া উচিত নয়।</li>
+ </ol>
+</section>
+
+<p class="rv-small">Read-only Cloudflare review Worker <code>core10-build-review</code> · no bindings · connect-src 'none' · POST/PUT/DELETE → 405 · separate from <code>core10-central</code>.</p>
+</div>
+<script src="/review.js"></script>
+</body></html>
