@@ -22,6 +22,22 @@ DO $$ BEGIN
 END $$;
 SQL
 internal/migrations/run.sh up >/dev/null
+# Verify safe 0402-only and 0402+0403 serving states on a fresh database.
+# Applying 0402 without 0403 must never expose its incomplete mutations.
+[[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE')")" == t ]]
+[[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE')")" == t ]]
+internal/migrations/run.sh down >/dev/null
+[[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=402")" == 1 ]]
+[[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=403")" == 0 ]]
+[[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE')")" == f ]]
+[[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE')")" == f ]]
+[[ "$(psql -X -At -c "SELECT count(*) FROM pg_trigger WHERE tgname='finance_arap_source_integrity_v1' AND NOT tgisinternal")" == 0 ]]
+internal/migrations/run.sh up >/dev/null
+[[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE')")" == t ]]
+[[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE')")" == t ]]
+[[ "$(psql -X -At -c "SELECT count(*) FROM pg_trigger WHERE tgname='finance_arap_source_integrity_v1' AND NOT tgisinternal")" == 1 ]]
+echo FIN_ARAP_0402_0403_CUTOVER_GUARD_PASS
+
 psql -X -q -v ON_ERROR_STOP=1 <<'SQL'
 INSERT INTO core10.tenants(id,slug) VALUES (96811,'arap-override-only-rollback');
 INSERT INTO core10.legal_entities(id,tenant_id,label) VALUES (96812,96811,'Rollback Guard');

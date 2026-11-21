@@ -141,3 +141,9 @@ REVOKE EXECUTE ON FUNCTION
  core10._finance_arap_settlement_integrity_v1(),
  core10.finance_arap_trace_v1(bigint) FROM PUBLIC,authenticated;
 GRANT EXECUTE ON FUNCTION core10.finance_arap_trace_v1(bigint) TO authenticated;
+
+-- 0402 leaves writes closed. Only the completed 0403 integrity guard set
+-- authorizes these public mutation RPCs; both checks and Audit stay canonical.
+GRANT EXECUTE ON FUNCTION
+ core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text),
+ core10.finance_allocate_payment_v1(bigint,bigint,numeric,text) TO authenticated;

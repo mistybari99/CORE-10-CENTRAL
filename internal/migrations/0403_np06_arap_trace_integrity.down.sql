@@ -19,6 +19,12 @@ DO $guard$ BEGIN
  THEN RAISE EXCEPTION 'FIN_REVERSAL_ROLLBACK_DENIED_HISTORY'; END IF;
 END $guard$;
 
+-- A data-empty 0403 rollback must close F3 mutation APIs before removing
+-- the integrity triggers. The migration runner performs this atomically.
+REVOKE EXECUTE ON FUNCTION
+ core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text),
+ core10.finance_allocate_payment_v1(bigint,bigint,numeric,text) FROM PUBLIC,authenticated;
+
 DROP FUNCTION core10.finance_arap_trace_v1(bigint);
 DROP TRIGGER finance_arap_settlement_integrity_v1 ON core10.finance_arap_allocations_v1;
 DROP FUNCTION core10._finance_arap_settlement_integrity_v1();

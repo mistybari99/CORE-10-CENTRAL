@@ -304,11 +304,11 @@ INSERT INTO core10.control_rpc_map_v1
   'Posted journal allocation with dual-lock budgets, Owner Control and Audit',
   'ChatGPT','B-013','tests/migrations/np06-finance-arap-e2e.sql');
 
+-- Do not expose writes while 0402 is installed without the 0403
+-- source/settlement/reversal integrity triggers (migration failure window).
+-- 0403 opens the two mutation APIs only after those guards are installed.
 REVOKE ALL ON FUNCTION
  core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text),
  core10.finance_allocate_payment_v1(bigint,bigint,numeric,text),
- core10.finance_arap_aging_v1(bigint,date,text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION
- core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text),
- core10.finance_allocate_payment_v1(bigint,bigint,numeric,text),
- core10.finance_arap_aging_v1(bigint,date,text) TO authenticated;
+ core10.finance_arap_aging_v1(bigint,date,text) FROM PUBLIC,authenticated;
+GRANT EXECUTE ON FUNCTION core10.finance_arap_aging_v1(bigint,date,text) TO authenticated;
