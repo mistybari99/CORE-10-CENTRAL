@@ -120,7 +120,7 @@ CREATE TRIGGER sales_invoice_commands_approval_guard_0305
 -- original snapshot/version, transitioned source, receipt status/version,
 -- command actor, and command association MUST all match this same order.
 CREATE FUNCTION core10._sales_confirmed_audit_guard_0305()
-RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,core10 AS $body$
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,core10 AS $body$
 DECLARE o core10.sales_orders_v1%ROWTYPE;
 BEGIN
  IF TG_OP='DELETE' THEN RETURN OLD; END IF;
@@ -159,7 +159,7 @@ CREATE CONSTRAINT TRIGGER sales_confirmed_requires_audit_0305
  FOR EACH ROW EXECUTE FUNCTION core10._sales_confirmed_audit_guard_0305();
 
 CREATE FUNCTION core10._sales_invoice_confirmation_guard_0305()
-RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,core10 AS $body$
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,core10 AS $body$
 DECLARE o core10.sales_orders_v1%ROWTYPE;source_audit bigint;
 BEGIN
  SELECT * INTO o FROM core10.sales_orders_v1 WHERE id=NEW.source_order_id
