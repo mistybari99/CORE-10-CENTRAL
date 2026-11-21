@@ -13,6 +13,7 @@ on:
       - "internal/migrations/0112*"
       - "internal/migrations/0113*"
       - "internal/migrations/0114*"
+      - "internal/migrations/0115*"
       - "tests/migrations/np01*"
       - "tests/setup001/**"
       - "tests/gov003/np01*"
@@ -78,3 +79,7 @@ jobs:
         run: bash tests/migrations/np01-control-threshold-exception-concurrency.sh
       - name: B-006 real two-session PostgreSQL policy/request/exception races
         run: bash tests/migrations/np01-governance-concurrency.sh
+      - name: D063 tenant bootstrap policy and canonical Audit provider (PG17)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-bootstrap-policy-provider-e2e.sql
+      - name: D063 post-lock current policy and immutable rollback history (PG17)
+        run: bash tests/migrations/np01-bootstrap-policy-race.sh
