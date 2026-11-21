@@ -483,9 +483,9 @@ SELECT np06_arap_test.expect(
  $$DELETE FROM core10.finance_arap_allocations_v1 WHERE business_id=9611$$,
  'FIN_ARAP_IMMUTABLE');
 SELECT np06_arap_test.expect(
- $TRUNCATE core10.finance_arap_allocations_v1$,'FIN_ARAP_IMMUTABLE');
+ $$TRUNCATE core10.finance_arap_allocations_v1$$,'FIN_ARAP_IMMUTABLE');
 SELECT np06_arap_test.expect(
- $DELETE FROM core10.finance_arap_control_accounts_v1 WHERE business_id=9611$,
+ $$DELETE FROM core10.finance_arap_control_accounts_v1 WHERE business_id=9611$$,
  'FIN_ARAP_IMMUTABLE');
 SELECT np06_arap_test.ok(NOT has_function_privilege('anon',
  'core10.finance_register_arap_control_account_v1(bigint,text,text)','EXECUTE'),
