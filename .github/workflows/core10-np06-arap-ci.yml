@@ -6,6 +6,7 @@ on:
     paths:
       - "internal/migrations/**"
       - "tests/migrations/np06-finance-arap*"
+      - "tests/migrations/np06-finance-approval*"
       - ".github/workflows/core10-np06-arap-ci.yml"
   pull_request:
     paths:
@@ -60,6 +61,8 @@ jobs:
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-rpc-e2e.sql
       - name: Finance 0400 canonical journal E2E
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-e2e.sql
+      - name: Real GOV002 2-stage approved Finance 0405 posting E2E
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-approval-e2e.sql
       - name: Finance 0401 reversal E2E
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-reversal-e2e.sql
       - name: NP02 Master two independent PostgreSQL sessions
