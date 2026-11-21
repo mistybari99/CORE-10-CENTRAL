@@ -189,6 +189,11 @@ BEGIN
  IF NOT EXISTS (SELECT 1 FROM core10.finance_journals_v1
     WHERE id=p_payment AND tenant_id=l.tenant_id AND business_id=l.business_id)
  THEN RAISE EXCEPTION 'FIN_ARAP_PAYMENT_SCOPE_OR_STATUS'; END IF;
+ -- Reject disabled allocation policy before waiting on journal row locks;
+ -- recheck the same policy after locks below to close the wait window.
+ PERFORM core10.control_check_v1(l.business_id,'finance.arap_allocate',
+   (SELECT site_id FROM core10.finance_journals_v1 WHERE id=p_payment
+      AND tenant_id=l.tenant_id AND business_id=l.business_id));
  -- Lock only same-scope journals in deterministic ID order, then refresh scope,
  -- membership and Control after the wait; protect reversal and allocation races.
  PERFORM 1 FROM core10.finance_journals_v1
