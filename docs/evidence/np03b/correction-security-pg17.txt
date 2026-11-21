@@ -1,0 +1,201 @@
+BEGIN
+DO
+DO
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+INSERT 0 3
+INSERT 0 4
+INSERT 0 4
+INSERT 0 3
+INSERT 0 2
+INSERT 0 4
+INSERT 0 2
+UPDATE 3
+INSERT 0 2
+INSERT 0 2
+DO
+INSERT 0 2
+INSERT 0 5
+INSERT 0 5
+INSERT 0 4
+INSERT 0 2
+INSERT 0 20
+CREATE SCHEMA
+GRANT
+CREATE TABLE
+GRANT
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+SET
+              set_config              
+--------------------------------------
+ 11111111-1111-4111-8111-111111111111
+(1 row)
+
+ control 
+---------
+ 
+(1 row)
+
+ control 
+---------
+ 
+(1 row)
+
+ control 
+---------
+ 
+(1 row)
+
+ control 
+---------
+ 
+(1 row)
+
+ denies 
+--------
+ 
+(1 row)
+
+RESET
+ denies 
+--------
+ 
+(1 row)
+
+ denies 
+--------
+ 
+(1 row)
+
+ denies 
+--------
+ 
+(1 row)
+
+ denies 
+--------
+ 
+(1 row)
+
+ denies 
+--------
+ 
+(1 row)
+
+SAVEPOINT
+UPDATE 1
+UPDATE 1
+SET
+ denies 
+--------
+ 
+(1 row)
+
+RESET
+ROLLBACK
+INSERT 0 1
+SAVEPOINT
+UPDATE 1
+SET
+ denies 
+--------
+ 
+(1 row)
+
+RESET
+ROLLBACK
+INSERT 0 1
+SET
+ denies 
+--------
+ 
+(1 row)
+
+RESET
+SAVEPOINT
+UPDATE 1
+SET
+ denies 
+--------
+ 
+(1 row)
+
+RESET
+ROLLBACK
+INSERT 0 1
+SET
+ publish_approval_policy_v1 
+----------------------------
+                          3
+(1 row)
+
+              set_config              
+--------------------------------------
+ 22222222-2222-4222-8222-222222222222
+(1 row)
+
+ decide_approval 
+-----------------
+               6
+(1 row)
+
+              set_config              
+--------------------------------------
+ 11111111-1111-4111-8111-111111111111
+(1 row)
+
+ set_config | set_config 
+------------+------------
+ 21         | 6
+(1 row)
+
+DO
+ control 
+---------
+ 
+(1 row)
+
+ denies 
+--------
+ 
+(1 row)
+
+RESET
+          verify_canonical_audit_v1          
+---------------------------------------------
+ {"ok": true, "reason": null, "checked": 17}
+(1 row)
+
+DO
+                      label                       | secure |             observed              
+--------------------------------------------------+--------+-----------------------------------
+ P1-02 order zero-stage fabricated approval       | f      | PROBE_ACCEPTED
+ P1-01 confirmed header UPDATE                    | f      | PROBE_ACCEPTED
+ P1-01 confirmed line UPDATE                      | f      | PROBE_ACCEPTED
+ P1-01 confirmed line DELETE                      | f      | PROBE_ACCEPTED
+ P1-01 confirmed line INSERT                      | f      | PROBE_ACCEPTED
+ P2-02 referenced customer maintenance DELETE     | f      | PROBE_ACCEPTED
+ P1-01 tampered source before invoice             | f      | PROBE_ACCEPTED
+ P1-01 mismatched real confirmation Audit         | f      | PROBE_ACCEPTED
+ P1-02 invoice zero-stage fabricated approval     | f      | PROBE_ACCEPTED
+ P1-01 changed source line before validation      | f      | PROBE_ACCEPTED
+ P2-01 cancellation stage 1 missing approval      | t      | SALES_APPROVAL_REQUIRED
+ P2-01 cancellation stage 1 confirmation approval | t      | approval_stale_or_payload_changed
+ P2-01 cancellation stage 2 missing approval      | t      | SALES_APPROVAL_REQUIRED
+ P2-01 cancellation stage 2 confirmation approval | t      | approval_stale_or_payload_changed
+ P2-01 cancellation stage 3 missing approval      | t      | SALES_APPROVAL_REQUIRED
+ P2-01 cancellation stage 3 confirmation approval | t      | approval_stale_or_payload_changed
+ P2-01 cancellation stage 4 missing approval      | t      | SALES_APPROVAL_REQUIRED
+ P2-01 cancellation stage 4 confirmation approval | t      | approval_stale_or_payload_changed
+ P2-01 cancellation stage 5 missing approval      | t      | SALES_APPROVAL_REQUIRED
+ P2-01 cancellation stage 5 confirmation approval | t      | approval_stale_or_payload_changed
+ P2-01 stage zero draft cancellation accepted     | t      | PROBE_ACCEPTED
+(21 rows)
+
+psql:tests/np03b/correction-security.sql:128: ERROR:  SALES_CORRECTION_ACCEPTANCE_FAIL: 10 unresolved security cases; this is NOT a passing security result
+CONTEXT:  PL/pgSQL function inline_code_block line 3 at RAISE
