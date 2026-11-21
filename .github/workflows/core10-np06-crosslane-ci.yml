@@ -82,7 +82,7 @@ jobs:
               )
             fi
             for file in "${files[@]}"; do
-              expected="$(git rev-parse "refs/remotes/np06-compat/pr117:$file")"
+              expected="$(git rev-parse "refs/remotes/np06-compat/pr${{ matrix.pr }}:$file")"
               actual="$(git rev-parse "HEAD:$file")"
               [[ "$expected" == "$actual" ]] || {
                 echo "FINANCE_F3_SOURCE_BLOB_MISMATCH:$file" >&2; exit 1;
