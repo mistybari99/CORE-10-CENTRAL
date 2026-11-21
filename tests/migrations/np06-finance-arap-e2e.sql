@@ -242,6 +242,21 @@ SELECT np06_arap_test.ok((
  FROM jsonb_array_elements(core10.finance_arap_aging_v1(9611,'2026-11-17','ar')->'rows') r
  WHERE (r->>'link_id')::bigint=:ar_link
 ), 'historical AR balance before payment effective date remains 300');
+
+-- P2-03 historical knowledge semantics: allocations recorded later are still
+-- counted in a past report when the posted payment's effective_on is on/before
+-- p_as_of. This is a RESTATED EFFECTIVE-DATE report, not a knowledge-as-of
+-- snapshot or proof that the allocation was known on the historic date.
+SELECT np06_arap_test.ok((
+ SELECT a.created_at::date > DATE '2026-11-18'
+ FROM core10.finance_arap_allocations_v1 a WHERE a.id=:ar_allocation
+), 'allocation was linked AFTER the historical payment-effective date');
+SELECT np06_arap_test.ok((
+ SELECT (r->>'allocated_amount')::numeric=100
+    AND (r->>'outstanding')::numeric=200
+ FROM jsonb_array_elements(core10.finance_arap_aging_v1(9611,'2026-11-18','ar')->'rows') r
+ WHERE (r->>'link_id')::bigint=:ar_link
+), 'restated effective-date aging includes later-recorded allocation, not knowledge-as-of');
 SELECT np06_arap_test.ok((
  SELECT r->>'age_bucket'='1_30' FROM jsonb_array_elements(
  core10.finance_arap_aging_v1(9611,'2026-11-30','ar')->'rows') r),

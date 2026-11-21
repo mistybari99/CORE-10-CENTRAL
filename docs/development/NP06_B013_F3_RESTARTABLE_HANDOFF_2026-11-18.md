@@ -49,6 +49,28 @@ Date: 2026-11-18. **Review candidate only; do not integrate or deploy.**
 
 **NOT_COMPLETE:** No canonical `sales_invoice`, `purchase_bill`, receipt/bank/payout attestation adapter is connected. F3 can link Owner-governed MANUAL posted source and settlement journals only; it must not label them true invoices/bills or certified payment receipts. GOV-002 approval-completion adapter is still **FIN_APPROVAL_NOT_CONNECTED** for Finance post with 1+ stages; only explicit Owner zero-stage policy is used in disposable tests. Missing signed Accountant/Cashier permissions, real 16 personas and hosted Auth, automated invoice/credit-note collection flow, foreign currency/FX, tax, cash/bank reconciliation, valuation/COGS and Finance UI.
 
+## P2-03 retrospective aging: explicit historical time basis
+
+Current `core10.finance_arap_aging_v1(p_business,p_as_of,p_kind)` is a
+**restated effective-date aging view**, not a historic knowledge-as-of or
+transaction-commit-time snapshot. Source journals enter by `j.effective_on`,
+payment allocations are summed when their posted payment journal
+`pay.effective_on <= p_as_of`, and reversals enter by `rev.effective_on`.
+The immutable allocation record's `created_at` is **not** an as-of filter.
+
+Consequently, a payment effective 2026-11-18 but allocated on a later date
+appears in a retrospective 2026-11-18 aging query once the allocation exists.
+This accurately describes *restated economic effective date*, not what the
+business knew or reported on 2026-11-18. Do not use it as a point-in-time
+knowledge, filing, or close-period certification. No original allocation,
+journal, payment or Audit timestamp is rewritten by the read.
+
+The F3 PG17 E2E now asserts both the later `created_at` and the restated
+historical allocated/outstanding numbers. Supporting an immutable
+knowledge-as-of query would require an independently accepted reporting
+contract and additional event-time/commit-time evidence; do not silently
+invent that policy or claim that future feature is implemented.
+
 ## Restart procedure and independent review
 
 1. Fetch live F3 and F2 PR #115 heads/trunk. Verify F3 contains `0402–0403` but PR #115 does **not**, and F2 is not merged.
