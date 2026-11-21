@@ -32,6 +32,9 @@ internal/migrations/run.sh down >/dev/null
 [[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE')")" == f ]]
 [[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE')")" == f ]]
 [[ "$(psql -X -At -c "SELECT count(*) FROM pg_trigger WHERE tgname='finance_arap_source_integrity_v1' AND NOT tgisinternal")" == 0 ]]
+# A 0402-only cutover must also keep read RPCs closed to unauthenticated callers.
+[[ "$(psql -X -At -c "SELECT has_function_privilege('anon','core10.finance_arap_aging_v1(bigint,date,text)','EXECUTE')")" == f ]]
+[[ "$(psql -X -At -c "SELECT has_function_privilege('public','core10.finance_arap_trace_v1(bigint)','EXECUTE')")" == f ]]
 internal/migrations/run.sh up >/dev/null
 [[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE')")" == t ]]
 [[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE')")" == t ]]
