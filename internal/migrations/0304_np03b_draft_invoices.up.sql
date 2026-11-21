@@ -229,6 +229,7 @@ BEGIN
  IF amount IS DISTINCT FROM i.total THEN RAISE EXCEPTION 'SALES_INVOICE_TOTAL_CHANGED'; END IF;
  stages:=(c->>'stages')::integer;
  payload:=core10._sales_invoice_approval_payload_v1(i,stages);
+ IF stages=0 AND p_approval IS NOT NULL THEN RAISE EXCEPTION 'SALES_INVOICE_APPROVAL_NOT_ALLOWED'; END IF;
  IF stages>0 THEN
   PERFORM core10.control_check_v1(p_business,'gov002.review',p_site);
   IF p_approval IS NULL THEN RAISE EXCEPTION 'SALES_INVOICE_APPROVAL_REQUIRED'; END IF;
