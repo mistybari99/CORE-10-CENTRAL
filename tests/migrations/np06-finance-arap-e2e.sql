@@ -108,6 +108,16 @@ SELECT np06_arap_test.expect(format(
  'SELECT core10.finance_link_open_item_v1(%s,%s,%s,%L,%L,%L)',
  :ar_journal,:customer_id,:cash_account,'ar','2026-11-20','arapWrongLine1'),
  'FIN_ARAP_CONTROL_LINE_MISSING');
+-- Category alone is not a governed trade-account classification. Until a
+-- dedicated trade AR/AP designation exists, at minimum reject other categories.
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_link_open_item_v1(%s,%s,%s,%L,%L,%L)',
+ :ar_journal,:customer_id,:expense_account,'ar','2026-11-20','arapWrongCat01'),
+ 'FIN_ARAP_ACCOUNT_SCOPE');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_link_open_item_v1(%s,%s,%s,%L,%L,%L)',
+ :ap_journal,:supplier_id,:income_account,'ap','2026-11-25','arapWrongCat02'),
+ 'FIN_ARAP_ACCOUNT_SCOPE');
 
 SELECT core10.finance_link_open_item_v1(:ar_journal,:customer_id,:ar_account,
  'ar','2026-11-20','arapLinkKey001') ar_link \gset
