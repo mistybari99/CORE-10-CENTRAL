@@ -66,6 +66,15 @@ SELECT bridge_test.ok(
  'no Money entry from unvalidated Sales source');
 SELECT core10.validate_sales_invoice_draft_v1(
  101,1001,:invoice_id,1,NULL,'bridgeValidate001');
+-- Owner switch must be enforced in SQL, never only by a hidden UI button.
+SELECT core10.control_set_v1(101,NULL,'finance.sales_invoice_issue',false,0::smallint,
+ '{}'::jsonb,NULL,false,1,'Owner stops new issues','bridgeIssueOff01');
+SELECT bridge_test.denies(format(
+ 'SELECT core10.finance_issue_sales_invoice_v1(%s,%s,%s,%L,%L,%L)',
+ :invoice_id,:ar_acct,:revenue_acct,'2026-11-21','2026-12-15','bridgeIssueDisabled01'),
+ 'CONTROL_DISABLED:finance.sales_invoice_issue');
+SELECT core10.control_set_v1(101,NULL,'finance.sales_invoice_issue',true,0::smallint,
+ '{}'::jsonb,NULL,false,2,'Owner resumes new issues','bridgeIssueOn002');
 SELECT core10.control_set_v1(101,NULL,'finance.journal_post',true,1::smallint,
  '{"max_post_amount":2000}'::jsonb,NULL,false,1,
  'Positive stage cannot bypass canonical approval adapter','bridgePostStaged');

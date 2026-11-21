@@ -189,7 +189,8 @@ BEGIN
    WHERE journal_id=si.journal_id;
    RETURN jsonb_build_object('invoice_id',i.id,'issue_id',si.id,
      'journal_id',si.journal_id,'ar_link_id',v_ar_link,
-     'issued',true,'money_posted',true,'stock_posted',false,'tax_mode','ZERO_ONLY');
+     'issued',true,'money_posted',true,'stock_posted',false,'tax_mode','ZERO_ONLY',
+     'audit_event_id',si.audit_event_id);
   END IF;
   RAISE EXCEPTION 'FIN_SALES_ALREADY_ISSUED';
  END IF;
