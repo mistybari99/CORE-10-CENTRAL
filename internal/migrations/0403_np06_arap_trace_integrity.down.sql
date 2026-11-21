@@ -7,6 +7,8 @@ DO $guard$ BEGIN
    WHERE action IN ('finance.arap_link','finance.arap_allocate'))
  OR EXISTS (SELECT 1 FROM core10.control_setting_versions_v1
    WHERE feature_key IN ('finance.arap_link','finance.arap_allocate'))
+ OR EXISTS (SELECT 1 FROM core10.control_overrides_v1
+   WHERE feature_key IN ('finance.arap_link','finance.arap_allocate'))
  THEN RAISE EXCEPTION 'FIN_ARAP_INTEGRITY_ROLLBACK_DENIED_HISTORY'; END IF;
  -- 0403 also protects 0401 reversals from being made unsafe by removing the
  -- allocated-reversal fence. Preserve the existing Finance rollback error for
