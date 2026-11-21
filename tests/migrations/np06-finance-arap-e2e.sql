@@ -243,6 +243,19 @@ SELECT np06_arap_test.ok((
  WHERE (r->>'link_id')::bigint=:ar_link
 ), 'historical AR balance before payment effective date remains 300');
 
+-- Report filters must fail closed rather than silently widening scope.
+SELECT np06_arap_test.expect(
+ 'SELECT core10.finance_arap_aging_v1(9611,NULL,NULL)',
+ 'FIN_ARAP_BAD_REPORT_FILTER');
+SELECT np06_arap_test.expect(
+ 'SELECT core10.finance_arap_aging_v1(9611,DATE ''2026-11-30'',''other'')',
+ 'FIN_ARAP_BAD_REPORT_FILTER');
+SELECT np06_arap_test.ok((
+ SELECT count(*)=1 FROM jsonb_array_elements(
+ core10.finance_arap_aging_v1(9611,'2026-11-30','ar')->'rows') r
+ WHERE r->>'kind'='ar'
+), 'AR filter excludes AP records without changing their balances');
+
 -- P2-03 historical knowledge semantics: allocations recorded later are still
 -- counted in a past report when the posted payment's effective_on is on/before
 -- p_as_of. This is a RESTATED EFFECTIVE-DATE report, not a knowledge-as-of
