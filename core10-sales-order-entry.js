@@ -7,6 +7,8 @@
   function dispose(){if(ended)return;ended=true;sub?.unsubscribe();ui?.destroy();api?.destroy();master?.destroy();if(nav)host.replaceChildren();}
   function stateChanged(s){if(!nav)return;for(const b of nav.querySelectorAll('button')){const name=b.dataset.salesView;b.textContent=s.lang==='en'?(name==='orders'?'Sales orders':'Draft invoices'):(name==='orders'?'বিক্রয় অর্ডার':'ইনভয়েসের খসড়া');b.disabled=sessionEnded||s.busy||s.uncertain;b.setAttribute('aria-pressed',String(name===view));}}
   function mountView(next,source){
+   // A retained view callback must not resurrect a route after unmount/sign-out.
+   if(ended||sessionEnded)return Promise.resolve();
    const previous=ui?.getState?.(),scope=source?{businessId:source.businessId,siteId:source.siteId}:previous?.businessId?{businessId:previous.businessId,siteId:previous.siteId}:options.initialScope;
    ui?.destroy();content.classList?.remove('so-workspace','si-workspace');view=next;
    const module=next==='invoices'?root.CORE10_SALES_INVOICE_UI:root.CORE10_SALES_ORDER_UI;
@@ -23,7 +25,7 @@
    const ready=mountView(view);
    sub=options.client.auth.onAuthStateChange(event=>{if(event==='INITIAL_SESSION'||ended)return;sessionEnded=true;ui.reset();api.destroy();master?.destroy();stateChanged({lang:ui.getState?.()?.lang||options.lang,busy:false,uncertain:false});})?.data?.subscription;
    if(!sub?.unsubscribe)throw Error('SALES_SESSION_SUBSCRIPTION_REQUIRED');
-   return Object.freeze({ready,refresh:()=>ui.refresh?.(),getState:()=>({...ui.getState?.(),view}),destroy:dispose});
+   return Object.freeze({ready,refresh:()=>ended||sessionEnded?undefined:ui.refresh?.(),getState:()=>({...ui.getState?.(),view}),destroy:dispose});
   }catch(e){dispose();throw e;}
  }
  root.CORE10_SALES_ORDER_ENTRY=Object.freeze({attach});

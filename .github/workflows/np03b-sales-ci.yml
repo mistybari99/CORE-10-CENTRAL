@@ -29,7 +29,9 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - name: Static migration contract
-        run: node --test tests/migrations/migration-contract.test.js
+        run: |
+          node --test tests/migrations/migration-contract.test.js
+          sha256sum -c tests/np03b/0300-0304.sha256
       - name: Signed session-bound Sales client contracts (synthetic responses)
         run: |
           node tests/np03b/client.test.cjs
@@ -49,6 +51,7 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f tests/np03b/audit-read.sql
           psql -X -v ON_ERROR_STOP=1 -f tests/np03b/master-integration.sql
           psql -X -v ON_ERROR_STOP=1 -f tests/np03b/invoice-drafts.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/np03b/historical-master.sql
       - name: Every mutation mapped to Control with evidence
         run: |
           psql -X -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
@@ -77,3 +80,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with: { name: np03b-sales-order-screenshots, path: artifacts/np03b, if-no-files-found: ignore }
+      - name: Sales correction security acceptance (unresolved findings block integration)
+        run: |
+          correction_status=0
+          psql -X -v ON_ERROR_STOP=1 -f tests/np03b/correction-security.sql || correction_status=1
+          bash tests/np03b/correction-concurrency.sh || correction_status=1
+          exit "$correction_status"
