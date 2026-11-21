@@ -49,7 +49,7 @@ SQL
 holder=$!
 ready=0
 for _ in $(seq 1 50); do
- if [[ $(psql -X -At -c "select count(*) from pg_locks l join pg_stat_activity a on a.pid=l.pid where a.application_name='np03b_disabled_lock_holder' and l.locktype='advisory' and l.granted") = 1 ]]; then ready=1; break; fi
+ if [[ $(psql -X -At -c "select count(*) from pg_locks l join pg_stat_activity a on a.pid=l.pid where a.application_name='np03b_disabled_lock_holder' and l.locktype='advisory' and l.granted") -ge 1 ]]; then ready=1; break; fi
  sleep .05
 done
 [[ "$ready" = 1 ]]
