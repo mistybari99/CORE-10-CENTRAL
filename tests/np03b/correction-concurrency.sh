@@ -65,11 +65,9 @@ race "SELECT id FROM core10.sales_orders_v1 WHERE id=$o2 FOR UPDATE" \
  "SELECT np03b_correction_race.attempt(\$q\$SELECT core10.save_sales_order_v1(101,1001,$o2,1,'$correction_doc'::jsonb,'correction_edit_confirm')\$q\$)"
 [[ $(cat "$correction_tmp/left" "$correction_tmp/right" | LC_ALL=C sort | tr '\n' ' ') = 'SALES_STALE_VERSION ok ' ]]
 echo CORRECTION_AMENDMENT_VS_CONFIRMATION_CAS_PASS
-race "SELECT id FROM core10.sales_orders_v1 WHERE id=$o3 FOR UPDATE; UPDATE core10.sales_orders_v1 SET document=jsonb_set(document,'{lines,0,quantity}','1'),total=300 WHERE id=$o3; UPDATE core10.sales_order_lines_v1 SET quantity=1,line_total=300 WHERE order_id=$o3" \
- "SELECT np03b_correction_race.attempt(\$q\$SELECT core10.save_sales_invoice_draft_v1(101,1001,NULL,0,$o3,2,NULL,'','correction_tamper_wait')\$q\$)"
-result=$(cat "$correction_tmp/left")
-if [[ "$result" = ok ]]; then
- echo CORRECTION_SOURCE_TAMPER_VS_INVOICE_FAIL_ACCEPTED >&2; exit 1
-fi
-[[ "$result" =~ SALES_.*(SOURCE|AUDIT|IMMUTABLE) ]]
-echo CORRECTION_SOURCE_TAMPER_VS_INVOICE_DENIED_PASS
+race "SELECT id FROM core10.sales_orders_v1 WHERE id=$o3 FOR UPDATE; SELECT np03b_correction_race.attempt(\$q\$UPDATE core10.sales_order_lines_v1 SET quantity=3 WHERE order_id=$o3\$q\$)" \
+ "SELECT np03b_correction_race.attempt(\$q\$SELECT core10.save_sales_invoice_draft_v1(101,1001,NULL,0,$o3,2,NULL,'','correction_source_wait')\$q\$)"
+grep -q SALES_CONFIRMED_LINE_IMMUTABLE "$correction_tmp/holder"
+[[ $(cat "$correction_tmp/left") = ok ]]
+[[ $(psql -X -At -c "SELECT quantity FROM core10.sales_order_lines_v1 WHERE order_id=$o3") = 2 ]]
+echo CORRECTION_CONFIRMED_SOURCE_LOCK_AND_IMMUTABILITY_PASS

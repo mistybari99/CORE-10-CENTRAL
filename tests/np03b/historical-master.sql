@@ -56,18 +56,17 @@ SELECT np03b_history.changed(change,:source,:invoice) FROM (VALUES
  ('UPDATE core10.master_price_lists_v1 SET currency=''USD'' WHERE id=7101'),
  ('UPDATE core10.master_price_list_items_v1 SET uom_id=7202 WHERE price_list_id=7101')
 ) changes(change);
--- Maintenance deletion protection currently missing for party/list references.
--- Diagnose it, rather than claiming FK retention because IDs are positive.
-SAVEPOINT maintenance;
-DELETE FROM core10.master_parties_v1 WHERE id=7001;
-SET LOCAL ROLE authenticated;
-SELECT core10.read_sales_orders_v1(101,1001,:source)->'items'->0->>'customer_id' AS retained_id_without_master;
-RESET ROLE;
-ROLLBACK TO maintenance;
+-- A referenced party can be retired. Its canonical identity remains protected.
+DO $$ BEGIN
+ BEGIN
+  DELETE FROM core10.master_parties_v1 WHERE id=7001;
+  RAISE EXCEPTION 'HISTORICAL_MASTER_DELETE_ACCEPTED';
+ EXCEPTION WHEN foreign_key_violation THEN NULL; END;
+END $$;
 DO $$ BEGIN
  IF EXISTS(SELECT FROM core10.sales_invoice_commands_v1 WHERE request_key='history_changed_validate')
  THEN RAISE EXCEPTION 'FAILED_VALIDATION_RECEIPT_LEAK'; END IF;
 END $$;
 ROLLBACK;
 \echo NP03B_CURRENT_MASTER_FAIL_CLOSED_8_CASES_AND_UNCHANGED_SNAPSHOTS_OK
-\echo NP03B_MASTER_PARTY_MAINTENANCE_DELETE_GAP_REPRODUCED_NOT_A_RETENTION_PASS
+\echo NP03B_REFERENCED_MASTER_PARTY_DELETE_DENIED

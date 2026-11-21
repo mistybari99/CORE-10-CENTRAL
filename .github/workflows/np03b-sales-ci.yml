@@ -80,7 +80,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with: { name: np03b-sales-order-screenshots, path: artifacts/np03b, if-no-files-found: ignore }
-      - name: Sales correction security acceptance (unresolved findings block integration)
+      - name: Sales provenance and Approval acceptance
         run: |
           correction_status=0
           psql -X -v ON_ERROR_STOP=1 -f tests/np03b/correction-security.sql || correction_status=1

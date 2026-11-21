@@ -49,8 +49,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Fetch pinned builder PR head and merge LOCALLY (never push)
+      - name: Verify integrated Sales or fetch the pinned builder head
         run: |
+          if [[ "${{ matrix.lane }}" == "sales" ]] &&
+            git merge-base --is-ancestor 3d60a075fb1eac4dbe0c678b9feb7875fdbbb1cf HEAD 2>/dev/null; then
+            echo FINANCE_sales_INTEGRATED_CHECKOUT
+            echo "NP03B_INTEGRATED=1" >> "$GITHUB_ENV"
+            exit 0
+          fi
           git fetch --no-tags origin "refs/pull/${{ matrix.pr }}/head:refs/remotes/np06-compat/pr${{ matrix.pr }}"
           actual_sha="$(git rev-parse refs/remotes/np06-compat/pr${{ matrix.pr }})"
           echo "FINANCE_${{ matrix.lane }}_LIVE_SHA=$actual_sha"
@@ -87,7 +93,10 @@ jobs:
           highest="$(psql -X -At -c 'SELECT max(version) FROM core10.schema_migrations')"
           echo "FINANCE_${{ matrix.lane }}_HIGHEST_MIGRATION=$highest"
           if [[ "${{ matrix.lane }}" == "sales" ]]; then
-            [[ "$highest" -ge 304 ]] || { echo "SALES_0304_NOT_INSTALLED"; exit 1; }
+            [[ "$(psql -X -At -c 'SELECT count(*) FROM core10.schema_migrations WHERE version=304')" = 1 ]]
+            if [[ "${NP03B_INTEGRATED:-}" == 1 ]]; then
+              [[ "$(psql -X -At -c 'SELECT count(*) FROM core10.schema_migrations WHERE version=305')" = 1 ]]
+            fi
           elif [[ "${{ matrix.lane }}" == "manufacturing" ]]; then
             [[ "$highest" -ge 504 ]] || { echo "MANUFACTURING_0504_NOT_INSTALLED"; exit 1; }
           else
@@ -109,6 +118,10 @@ jobs:
             done
             PGDATABASE=core10_np03b_ci_domain bash tests/np03b/concurrency.sh
             PGDATABASE=core10_np03b_ci_domain bash tests/np03b/invoice-concurrency.sh
+            if [[ "${NP03B_INTEGRATED:-}" == 1 ]]; then
+              PGDATABASE=core10_np03b_ci_domain psql -X -q -v ON_ERROR_STOP=1 -f tests/np03b/correction-security.sql
+              PGDATABASE=core10_np03b_ci_domain bash tests/np03b/correction-concurrency.sh
+            fi
           elif [[ "${{ matrix.lane }}" == "f3" ]]; then
             # F3 PR117 is fetched read-only into the CURRENT F2-integrated trunk
             # + shared CI fix; never alter F3 branch or append its files to PR118.
