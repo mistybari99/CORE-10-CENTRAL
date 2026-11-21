@@ -75,8 +75,14 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-arap-e2e.sql
       - name: "Three real two-session races: replay, over-cap allocation, reversal vs allocation"
         run: bash tests/migrations/np06-finance-arap-race.sh
-      - name: Refuse data-bearing 0402 rollback and preserve canonical Finance history
+      - name: Refuse data-bearing F3 rollback and preserve canonical Finance history
         run: |
+          # 0405 is an additive approval adapter; no GOV002 history is stored
+          # by the rolled-back E2E fixture. Remove it before testing 0404 F3
+          # history guard. Never bypass that guard or change migration runner.
+          internal/migrations/run.sh down
+          test "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=405")" = "0"
+          test "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=404")" = "1"
           output="$(mktemp)"
           if internal/migrations/run.sh down > "$output" 2>&1; then
             cat "$output"
