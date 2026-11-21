@@ -9,7 +9,7 @@ DO $guard$ BEGIN
  THEN RAISE EXCEPTION 'SALES_P1_SECURITY_ROLLBACK_DENIED_HISTORY'; END IF;
 END $guard$;
 DROP TRIGGER sales_master_party_retention_0305 ON core10.master_parties_v1;
-DROP TRIGGER sales_invoice_confirmation_guard_0305 ON core10.sales_invoice_drafts_v1;
+DROP TRIGGER zz_sales_invoice_confirmation_guard_0305 ON core10.sales_invoice_drafts_v1;
 DROP TRIGGER sales_confirmed_requires_audit_0305 ON core10.sales_orders_v1;
 DROP TRIGGER sales_invoice_commands_approval_guard_0305 ON core10.sales_invoice_commands_v1;
 DROP TRIGGER sales_commands_approval_guard_0305 ON core10.sales_order_commands_v1;

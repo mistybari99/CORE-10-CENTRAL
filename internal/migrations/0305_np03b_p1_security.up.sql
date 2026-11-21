@@ -194,7 +194,7 @@ BEGIN
  THEN RAISE EXCEPTION 'SALES_INVOICE_SOURCE_AUDIT_MISMATCH'; END IF;
  RETURN NEW;
 END $body$;
-CREATE TRIGGER sales_invoice_confirmation_guard_0305
+CREATE TRIGGER zz_sales_invoice_confirmation_guard_0305
  BEFORE INSERT OR UPDATE ON core10.sales_invoice_drafts_v1
  FOR EACH ROW EXECUTE FUNCTION core10._sales_invoice_confirmation_guard_0305();
 
