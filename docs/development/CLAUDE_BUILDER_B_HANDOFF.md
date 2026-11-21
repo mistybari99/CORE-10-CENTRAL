@@ -51,15 +51,28 @@ Fixes against the A048 draft: `search_path` was `core10,pg_catalog` (now `pg_cat
 - Mutation checks (each must fail the tests, all did): master switch removed, `stock.read` instead of
   `stock.post`, approval stages ignored, maker-checker off, same-key advisory lock removed (race test).
 
+### Checkpoint 2 — 0202 GOV-002 approval adapter (CODED + TESTED on PG17.12)
+
+- Reuse: canonical approval journal 0009–0019 and the Finance adapter pattern (PR #120, 0405). No second approval cycle.
+- 0201 now posts through an internal hook `_inventory_approval_gate_v1`; 0202 replaces it (0202 down restores it).
+- `inventory_request_approval_v1(command, key)`: maker only, command confirmed, stages ≥ 1, route length = stages
+  (no route = 1 checker), checks `inventory.stock_event`, kind feature and `gov002.review`; registry `enforced`.
+- Posting with stages > 0 needs an approved request, full stage receipts, the same route length as the current
+  stages, and `verify_approval_binding_v1` on the frozen payload + version. Stage or route changes after approval
+  fail closed (`INV_APPROVAL_ROUTE_MISMATCH`).
+- Test `tests/migrations/np03a-inventory-approval-e2e.sql` (one checker, two-stage route, maker/self/foreign,
+  CONTROL_DISABLED for stock and for review). Mutations killed: gate open, maker check off, review switch not
+  checked, route mismatch ignored. Full local suite: all e2e + 5 race suites PASS; registry 22 enforced; B-009 PASS.
+
 ### Not done / NOT_CONNECTED
 
-- Approval stages > 0 refuse posting (`INV_APPROVAL_NOT_CONNECTED`) until the GOV-002 adapter.
+- Approval thresholds (`approval_thresholds_v1`) apply as GOV-002 defines them: payload `amount` = quantity,
+  `unit` = `base_qty`; below a configured minimum GOV-002 refuses the request (NP01 rule, not changed here).
 - Quantities are in the item's base unit; UOM decimals per item are not yet enforced.
 - Moves between two businesses are refused (an inter-business move is a sale/purchase, NP03B/P2).
 - No UI yet (P3). Signed GoTrue / staging: not run (Session A, GO-2/GO-3).
 
 ## Next
 
-1. 0202 GOV-002 adapter for stages > 0.
 3. P2 purchase → GRN → QC → stock (A026, PR #73 lot/expiry, Master parties).
 4. P3 owner multi-business dashboard; P4 10 × 400 scale test.

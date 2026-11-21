@@ -159,6 +159,14 @@ LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,core10 AS $$
   'posted_at',c.posted_at,'cancelled_by',c.cancelled_by,'replayed',p_replayed)
 $$;
 
+-- Approval gate for posting. 0 stages: post now. More: fail closed until the GOV-002 adapter (0202) replaces this.
+CREATE FUNCTION core10._inventory_approval_gate_v1(p_command bigint, p_stages integer) RETURNS jsonb
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=pg_catalog,core10 AS $$
+BEGIN
+ IF coalesce(p_stages,0)>0 THEN RAISE EXCEPTION 'INV_APPROVAL_NOT_CONNECTED'; END IF;
+ RETURN '{}'::jsonb;
+END $$;
+
 CREATE FUNCTION core10.create_inventory_command_v1(
  p_business bigint, p_kind text, p_source bigint, p_destination bigint,
  p_item bigint, p_quantity numeric, p_reason text, p_request text)
@@ -233,7 +241,7 @@ CREATE FUNCTION core10.advance_inventory_command_v1(p_command bigint, p_action t
 RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=pg_catalog,core10 AS $$
 DECLARE v_actor uuid := core10.actor_uid(); c core10.inventory_commands_v1%ROWTYPE; pre core10.inventory_commands_v1%ROWTYPE;
  r core10.inventory_command_requests_v1%ROWTYPE; ctl jsonb := '{}'; v_master jsonb := '[]'; s bigint;
- v_sha text; v_sites bigint[]; v_ref bigint;
+ v_sha text; v_sites bigint[]; v_ref bigint; v_appr jsonb := '{}';
 BEGIN
  IF v_actor IS NULL OR p_action IS NULL OR p_action NOT IN ('confirm','post','cancel') OR p_version IS NULL OR p_version<1
   OR p_request IS NULL OR p_request !~ '^[A-Za-z0-9_-]{8,100}$' THEN RAISE EXCEPTION 'INV_INVALID_ACTION'; END IF;
@@ -283,8 +291,8 @@ BEGIN
   END IF;
   IF c.kind='transfer' AND c.source_site_id<>c.destination_site_id AND NOT (ctl->>'allow_cross_site')::boolean
   THEN RAISE EXCEPTION 'CONTROL_LIMIT:allow_cross_site'; END IF;
-  -- Approval port: never self-approve or fabricate a receipt. The GOV-002 adapter is the next increment.
-  IF (ctl->>'stages')::int>0 THEN RAISE EXCEPTION 'INV_APPROVAL_NOT_CONNECTED'; END IF;
+  -- Approval port: never self-approve or fabricate a receipt (hook replaced by the GOV-002 adapter in 0202).
+  v_appr := core10._inventory_approval_gate_v1(c.id, (ctl->>'stages')::int);
   BEGIN
    IF c.kind='transfer' THEN
     v_ref := core10.transfer_stock_v1(c.source_location,c.destination_location,c.item_id,c.quantity,'c10-inv-cmd-'||c.id);
@@ -306,7 +314,8 @@ BEGIN
  VALUES (c.business_id,p_request,c.tenant_id,v_actor,c.id,p_action,p_version,v_sha);
  PERFORM core10._append_canonical_audit_v1(c.tenant_id,c.business_id,'inventory',
   'command:'||c.id||':'||c.status,'inventory.command_'||c.status,v_actor,'inventory:'||c.business_id||':'||p_request,
-  jsonb_build_object('command_id',c.id,'kind',c.kind,'from_version',p_version,'to_version',c.version,'stock_ref',c.stock_ref));
+  jsonb_build_object('command_id',c.id,'kind',c.kind,'from_version',p_version,'to_version',c.version,'stock_ref',c.stock_ref)
+   || v_appr);
  RETURN core10._inventory_command_json_v1(c, false);
 END $$;
 
@@ -362,7 +371,7 @@ END $$;
 
 REVOKE ALL ON FUNCTION core10.inventory_action_authorized_v1(bigint,bigint,bigint,text),
  core10._inventory_kind_feature_v1(text), core10._inventory_controls_v1(bigint,text,bigint[],jsonb),
- core10._inventory_may_act_v1(bigint,bigint,bigint,bigint),
+ core10._inventory_may_act_v1(bigint,bigint,bigint,bigint), core10._inventory_approval_gate_v1(bigint,integer),
  core10._inventory_command_json_v1(core10.inventory_commands_v1,boolean) FROM PUBLIC, authenticated;
 REVOKE ALL ON FUNCTION core10.create_inventory_command_v1(bigint,text,bigint,bigint,bigint,numeric,text,text),
  core10.advance_inventory_command_v1(bigint,text,integer,text),

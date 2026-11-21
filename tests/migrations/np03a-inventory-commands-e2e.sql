@@ -196,7 +196,7 @@ SELECT pg_temp.mk(9611,'transfer',961112,961111,96101,1,NULL,'invc-lim-0005') AS
 SELECT pg_temp.cset(9611,NULL,'inventory.issue',true,1,'{}',0,'invc-ctl-0008');
 SELECT pg_temp.mk(9611,'issue',961111,NULL,96101,1,NULL,'invc-stg-0001') AS st \gset
 SELECT pg_temp.adv(:'st'::jsonb,'confirm','invc-stg-0002') AS stc \gset
-SELECT pg_temp.expect($q$SELECT pg_temp.adv('$q$||:'stc'||$q$'::jsonb,'post','invc-stg-0003')$q$,'INV_APPROVAL_NOT_CONNECTED');
+SELECT pg_temp.expect($q$SELECT pg_temp.adv('$q$||:'stc'||$q$'::jsonb,'post','invc-stg-0003')$q$,'INV_APPROVAL_REQUIRED');
 SELECT pg_temp.cset(9611,NULL,'inventory.issue',true,0,'{}',1,'invc-ctl-0009');
 -- insufficient stock: the ledger never goes negative, with or without the negative-stock switch
 SELECT pg_temp.mk(9611,'issue',961112,NULL,96101,999,NULL,'invc-neg-0001') AS ng \gset

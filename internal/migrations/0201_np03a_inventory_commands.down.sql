@@ -17,6 +17,7 @@ DROP FUNCTION core10.inventory_list_balances_v1(bigint,bigint,bigint,bigint,inte
 DROP FUNCTION core10.inventory_list_commands_v1(bigint,bigint,text,bigint,integer);
 DROP FUNCTION core10.advance_inventory_command_v1(bigint,text,integer,text);
 DROP FUNCTION core10.create_inventory_command_v1(bigint,text,bigint,bigint,bigint,numeric,text,text);
+DROP FUNCTION core10._inventory_approval_gate_v1(bigint,integer);
 DROP FUNCTION core10._inventory_command_json_v1(core10.inventory_commands_v1,boolean);
 DROP FUNCTION core10._inventory_may_act_v1(bigint,bigint,bigint,bigint);
 DROP FUNCTION core10._inventory_controls_v1(bigint,text,bigint[],jsonb);

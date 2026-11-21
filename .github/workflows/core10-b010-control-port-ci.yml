@@ -61,6 +61,8 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-e2e.sql
       - name: "B-012 stock commands (0201 - Owner Control per kind/site, staff/deny/expiry, replay, versions, audit, scoped reads)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-commands-e2e.sql
+      - name: "B-012 stock approvals (0202 - GOV-002 one-checker and two-stage routes, maker-checker, Owner switches, stage/route drift)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-approval-e2e.sql
       - name: DEC-08 registry gate (every state-changing RPC is mapped)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Registry gate self-test (an unmapped RPC must fail the gate)
