@@ -10,6 +10,7 @@ on:
       - "core10-control-centre-config.js"
       - "core10-control-studio-entry.js"
       - "core10-master-data*"
+      - "core10-owner-dashboard*"
       - "tests/control-centre/**"
       - "tests/c10_np02_*"
       - "internal/enterprise-sql/**"
@@ -65,6 +66,8 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-approval-e2e.sql
       - name: "B-012 purchase order -> GRN -> QC -> stock (0203 - Master supplier, Owner Control, lot/expiry, partial receipt)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-procurement-e2e.sql
+      - name: "B-012 owner multi-business dashboard reads (0204 - figures, drill-down, scope per persona)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-owner-dashboard-e2e.sql
       - name: DEC-08 registry gate (every state-changing RPC is mapped)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Registry gate self-test (an unmapped RPC must fail the gate)
@@ -115,6 +118,13 @@ jobs:
           PGDATABASE=mdui internal/migrations/run.sh up
           PGDATABASE=mdui psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/md-seed.sql
           PGDATABASE=mdui node tests/control-centre/master-data-browser.cjs
+      - name: B-012 Owner dashboard in a real browser against the real SQL functions (390 and 1440 px, bn/en)
+        env: { OD_SHOTS: od-shots }
+        run: |
+          psql -X -q -c "CREATE DATABASE odui"
+          PGDATABASE=odui internal/migrations/run.sh up
+          PGDATABASE=odui psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/od-seed.sql
+          PGDATABASE=odui node tests/control-centre/owner-dashboard-browser.cjs
       - name: B-011 Central shell navigation contract (Owner Control / Master Data links, 390 and 1440 px)
         run: node tests/control-centre/shell-nav-browser.cjs
       - name: Master Data screenshots

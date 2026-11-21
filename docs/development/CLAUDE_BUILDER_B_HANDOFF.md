@@ -89,6 +89,23 @@ Reuse table (P2):
 - Not done: PO approval stages > 0 (`PROC_APPROVAL_NOT_CONNECTED`; same adapter pattern as 0202 next), AP / supplier
   bill (NP06), GRN cancel/return to supplier, lot-level balances, FEFO, recall.
 
+### Checkpoint 4 — P3 Owner multi-business dashboard (0204 + screen; CODED + TESTED locally)
+
+- Reuse: Control Centre / Master Data styles (`core10-owner-control-centre.css`, `core10-master-data.css` tables),
+  client pattern (signed session check before/after each RPC, RPC allowlist, no stored token), boot gate
+  (`core10-control-centre-config.js`: CORE10 staging or loopback only, key empty until Level 2 GO), test gateway.
+- `0204_np03a_owner_dashboard_read`: `owner_portfolio_v1()` (every business the caller may oversee: sites by kind,
+  stock items/units, open POs and value, receipts awaiting QC/posting, open stock tasks, pending approvals for
+  managers-of-business only, `not_connected: sales, cash`), `owner_business_sites_v1(business, kind, after_site, limit≤200)`.
+  Set-wise aggregates + 3 indexes. Read-only (STABLE), no registry rows needed.
+- Screen `core10-owner-dashboard.html` (+ `-client.js`, `-ui.js`, `.js`, `.css`): all businesses → one business's
+  sites (kind filter, 50 per page) → one site (stock, purchase orders, stock tasks), breadcrumbs, bn/en, 390/1440.
+  One short line says sales and cash are not connected yet; no developer blocker list.
+- Tests: `tests/migrations/np03a-owner-dashboard-e2e.sql`; `tests/control-centre/owner-dashboard-browser.cjs` 7/7
+  (+ `od-seed.sql`, `od-harness.*`; gateway allowlist extended). Master Data browser rerun with the extended gateway.
+- Not done: link from the Central shell (Session A owns `core10-control-studio-entry.js`; add next to Master Data:
+  `core10-owner-dashboard.html`); sales/cash/receivables figures (NP03B/NP06 not on trunk).
+
 ### Not done / NOT_CONNECTED
 
 - Approval thresholds (`approval_thresholds_v1`) apply as GOV-002 defines them: payload `amount` = quantity,
