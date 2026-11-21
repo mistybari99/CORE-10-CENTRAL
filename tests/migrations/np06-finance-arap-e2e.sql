@@ -416,6 +416,12 @@ SELECT np06_arap_test.ok(NOT has_function_privilege('anon',
 SELECT np06_arap_test.ok(NOT has_function_privilege('public',
  'core10.finance_arap_trace_v1(bigint)','EXECUTE'),
  'public cannot read AR/AP provenance');
+SELECT np06_arap_test.ok(NOT has_function_privilege('anon',
+ 'core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE'),
+ 'anon cannot create AR/AP link');
+SELECT np06_arap_test.ok(NOT has_function_privilege('public',
+ 'core10.finance_arap_aging_v1(bigint,date,text)','EXECUTE'),
+ 'public cannot read AR/AP aging');
 SELECT np06_arap_test.expect(
  $$DELETE FROM core10.finance_arap_links_v1 WHERE business_id=9611$$,'permission denied');
 
