@@ -215,6 +215,26 @@ BEGIN
  SELECT coalesce(sum(line_total),0) INTO v_total
  FROM core10.sales_invoice_draft_lines_v1 WHERE invoice_id=i.id;
  IF v_total IS DISTINCT FROM i.total THEN RAISE EXCEPTION 'FIN_SALES_INVOICE_LINES_MISMATCH'; END IF;
+ -- The total alone is insufficient: a privileged change to product, UOM,
+ -- quantity or unit price can preserve the same total. Re-attest the entire
+ -- canonical itemized payload against the persisted Sales line rows.
+ IF EXISTS(
+  SELECT 1
+  FROM jsonb_array_elements(i.document->'lines') WITH ORDINALITY d(doc,n)
+  FULL JOIN core10.sales_invoice_draft_lines_v1 l
+   ON l.invoice_id=i.id AND l.line_no=d.n
+  WHERE d.doc IS NULL OR l.invoice_id IS NULL
+   OR l.item_id IS DISTINCT FROM (d.doc->>'item_id')::bigint
+   OR l.variant_id IS DISTINCT FROM (d.doc->>'variant_id')::bigint
+   OR l.uom_id IS DISTINCT FROM (d.doc->>'uom_id')::bigint
+   OR l.quantity IS DISTINCT FROM (d.doc->>'quantity')::numeric
+   OR l.unit_price IS DISTINCT FROM (d.doc->>'unit_price')::numeric
+   OR l.discount_percent IS DISTINCT FROM (d.doc->>'discount_percent')::numeric
+   OR l.tax_percent IS DISTINCT FROM (d.doc->>'tax_percent')::numeric
+   OR l.line_total IS DISTINCT FROM round(
+    (d.doc->>'quantity')::numeric*(d.doc->>'unit_price')::numeric*
+    (1-(d.doc->>'discount_percent')::numeric/100),i.money_scale)
+ ) THEN RAISE EXCEPTION 'FIN_SALES_INVOICE_LINES_MISMATCH'; END IF;
  -- Prove the original canonical Sales validation command/Audit belongs to this
  -- exact immutable version, not just an arbitrary successful Audit checksum.
  IF NOT EXISTS(

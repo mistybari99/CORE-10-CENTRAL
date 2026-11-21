@@ -87,6 +87,23 @@ SELECT bridge_test.denies(format(
  'FIN_SALES_VALIDATED_SOURCE_TAMPER');
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+-- A privileged tamper made BEFORE canonical validation may preserve the
+-- invoice's total while swapping the actual product. Even after a valid
+-- validation receipt, the new issue boundary must reject mismatched child lines.
+-- Use a savepoint so no forged line or fake validation escapes this probe.
+SAVEPOINT forged_sales_lines;
+RESET ROLE;
+UPDATE core10.sales_invoice_draft_lines_v1
+ SET item_id=8104 WHERE invoice_id=:invoice_id;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+SELECT bridge_test.denies(format(
+ 'SELECT core10.finance_issue_sales_invoice_v1(%s,%s,%s,%L,%L,%L)',
+ :invoice_id,:ar_acct,:revenue_acct,'2026-11-21','2026-12-15','bridgeForgedLine01'),
+ 'FIN_SALES_INVOICE_LINES_MISMATCH');
+ROLLBACK TO forged_sales_lines;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 SELECT core10.control_set_v1(101,NULL,'finance.journal_post',true,1::smallint,
  '{"max_post_amount":2000}'::jsonb,NULL,false,1,
  'Positive stage cannot bypass canonical approval adapter','bridgePostStaged');
