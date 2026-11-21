@@ -64,6 +64,24 @@ SELECT bridge_test.ok(
  (SELECT count(*)=0 FROM core10.finance_journals_v1
   WHERE source_domain='sales_invoice'),
  'no Money entry from unvalidated Sales source');
+-- Privileged line tamper performed BEFORE validation can keep the total and
+-- still pass Sales header-only validation, but it cannot pass the new full
+-- itemized source attestation at the Money issue boundary.
+SAVEPOINT forged_sales_lines;
+RESET ROLE;
+UPDATE core10.sales_invoice_draft_lines_v1 SET item_id=8104
+ WHERE invoice_id=:invoice_id;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+SELECT core10.validate_sales_invoice_draft_v1(
+ 101,1001,:invoice_id,1,NULL,'bridgeTamperedValidate');
+SELECT bridge_test.denies(format(
+ 'SELECT core10.finance_issue_sales_invoice_v1(%s,%s,%s,%L,%L,%L)',
+ :invoice_id,:ar_acct,:revenue_acct,'2026-11-21','2026-12-15','bridgeForgedLine01'),
+ 'FIN_SALES_INVOICE_LINES_MISMATCH');
+ROLLBACK TO forged_sales_lines;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 SELECT core10.validate_sales_invoice_draft_v1(
  101,1001,:invoice_id,1,NULL,'bridgeValidate001');
 -- Owner switch must be enforced in SQL, never only by a hidden UI button.
@@ -85,23 +103,6 @@ SELECT bridge_test.denies(format(
 SELECT bridge_test.denies(format(
  'DELETE FROM core10.sales_invoice_draft_lines_v1 WHERE invoice_id=%s',:invoice_id),
  'FIN_SALES_VALIDATED_SOURCE_TAMPER');
-SET LOCAL ROLE authenticated;
-SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
--- A privileged tamper made BEFORE canonical validation may preserve the
--- invoice's total while swapping the actual product. Even after a valid
--- validation receipt, the new issue boundary must reject mismatched child lines.
--- Use a savepoint so no forged line or fake validation escapes this probe.
-SAVEPOINT forged_sales_lines;
-RESET ROLE;
-UPDATE core10.sales_invoice_draft_lines_v1
- SET item_id=8104 WHERE invoice_id=:invoice_id;
-SET LOCAL ROLE authenticated;
-SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
-SELECT bridge_test.denies(format(
- 'SELECT core10.finance_issue_sales_invoice_v1(%s,%s,%s,%L,%L,%L)',
- :invoice_id,:ar_acct,:revenue_acct,'2026-11-21','2026-12-15','bridgeForgedLine01'),
- 'FIN_SALES_INVOICE_LINES_MISMATCH');
-ROLLBACK TO forged_sales_lines;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 SELECT core10.control_set_v1(101,NULL,'finance.journal_post',true,1::smallint,
