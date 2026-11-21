@@ -64,6 +64,19 @@ SET LOCAL ROLE authenticated;
 SELECT core10.save_sales_invoice_draft_v1(101,1001,NULL,0,:source,2,NULL,'Synthetic','correction_invoice') AS invoice \gset
 SELECT np03b_correction.denies('P1-02 invoice zero-stage fabricated approval',format(
  'SELECT core10.validate_sales_invoice_draft_v1(101,1001,%s,1,999999,''correction_inject_invoice'')',(:'invoice'::jsonb->>'invoice_id')::bigint),'SALES_.*APPROVAL');
+RESET ROLE;
+SAVEPOINT validation_provenance;
+UPDATE core10.sales_order_commands_v1 SET audit_event_id=(SELECT audit_event_id FROM core10.sales_order_commands_v1 WHERE order_id=:other AND receipt->>'status'='confirmed')
+ WHERE order_id=:source AND receipt->>'status'='confirmed';
+SET LOCAL ROLE authenticated;
+SELECT np03b_correction.denies('P1-01 validation rejects mismatched confirmation Audit',format(
+ 'SELECT core10.validate_sales_invoice_draft_v1(101,1001,%s,1,NULL,''correction_wrong_audit_validate'')',
+ (:'invoice'::jsonb->>'invoice_id')::bigint),'SALES_INVOICE_SOURCE_AUDIT_MISMATCH');
+RESET ROLE;
+SELECT secure,observed FROM np03b_correction.results WHERE label='P1-01 validation rejects mismatched confirmation Audit' \gset validation_
+ROLLBACK TO validation_provenance;
+INSERT INTO np03b_correction.results VALUES('P1-01 validation rejects mismatched confirmation Audit',:'validation_secure',:'validation_observed');
+SET LOCAL ROLE authenticated;
 SELECT core10.publish_approval_policy_v1(101,'sales','confirm',1440,'correction_confirm_policy');
 SELECT core10.submit_typed_approval_v1(101,'sales','confirm','sales-order:'||:draft,1,
  jsonb_build_object('order_id',:draft,'site_id',1001,'version',1,'document',np03b_correction.doc(),'total',600,'action','confirm','required_stages',1),

@@ -42,8 +42,18 @@ BEGIN;
 SET application_name='np03b_disabled_lock_holder';
 SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 SELECT pg_advisory_xact_lock(hashtextextended('sales-key:101:race_disabled_01',0));
+DO $wait$
+BEGIN
+ FOR attempt IN 1..100 LOOP
+  PERFORM pg_stat_clear_snapshot();
+  IF EXISTS (SELECT 1 FROM pg_stat_activity WHERE application_name='np03b_disabled_writer'
+     AND wait_event_type='Lock' AND wait_event='advisory') THEN RETURN; END IF;
+  PERFORM pg_sleep(0.05);
+ END LOOP;
+ RAISE EXCEPTION 'SALES_WAITING_WRITER_NOT_OBSERVED';
+END
+$wait$;
 SELECT core10.control_set_v1(101,NULL,'sales.order_draft',false,0::smallint,'{}',NULL,false,1,'Disable while writer waits','sales_disable_wait');
-SELECT pg_sleep(3);
 COMMIT;
 SQL
 holder=$!
@@ -53,7 +63,7 @@ for _ in $(seq 1 50); do
  sleep .05
 done
 [[ "$ready" = 1 ]]
-psql -X -At -v ON_ERROR_STOP=1 -c "select core10.np03b_race_save('race_disabled_01',false)" >"$task_tmp/disabled"
+PGAPPNAME=np03b_disabled_writer psql -X -At -v ON_ERROR_STOP=1 -c "select core10.np03b_race_save('race_disabled_01',false)" >"$task_tmp/disabled"
 wait "$holder"
 [[ $(cat "$task_tmp/disabled") = 'CONTROL_DISABLED:sales.order_draft' ]]
 [[ $(psql -X -At -c 'select count(*) from core10.sales_orders_v1') = 1 ]]

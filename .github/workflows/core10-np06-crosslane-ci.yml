@@ -49,12 +49,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Verify integrated Sales or fetch the pinned builder head
+      - name: Verify integrated builders or fetch the pinned builder head
         run: |
           if [[ "${{ matrix.lane }}" == "sales" ]] &&
             git merge-base --is-ancestor 3d60a075fb1eac4dbe0c678b9feb7875fdbbb1cf HEAD 2>/dev/null; then
             echo FINANCE_sales_INTEGRATED_CHECKOUT
             echo "NP03B_INTEGRATED=1" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          if [[ "${{ matrix.lane }}" == "manufacturing" ]] &&
+            git merge-base --is-ancestor "${{ matrix.head_sha }}" HEAD 2>/dev/null; then
+            echo FINANCE_manufacturing_INTEGRATED_CHECKOUT
             exit 0
           fi
           git fetch --no-tags origin "refs/pull/${{ matrix.pr }}/head:refs/remotes/np06-compat/pr${{ matrix.pr }}"
@@ -95,10 +100,10 @@ jobs:
           if [[ "${{ matrix.lane }}" == "sales" ]]; then
             [[ "$(psql -X -At -c 'SELECT count(*) FROM core10.schema_migrations WHERE version=304')" = 1 ]]
             if [[ "${NP03B_INTEGRATED:-}" == 1 ]]; then
-              [[ "$(psql -X -At -c 'SELECT count(*) FROM core10.schema_migrations WHERE version=305')" = 1 ]]
+              [[ "$(psql -X -At -c 'SELECT count(*) FROM core10.schema_migrations WHERE version IN (305,306)')" = 2 ]]
             fi
           elif [[ "${{ matrix.lane }}" == "manufacturing" ]]; then
-            [[ "$highest" -ge 504 ]] || { echo "MANUFACTURING_0504_NOT_INSTALLED"; exit 1; }
+            [[ "$(psql -X -At -c 'SELECT count(*) FROM core10.schema_migrations WHERE version=504')" = 1 ]]
           else
             [[ "$highest" -ge 403 ]] || { echo "F3_0403_NOT_INSTALLED"; exit 1; }
           fi
