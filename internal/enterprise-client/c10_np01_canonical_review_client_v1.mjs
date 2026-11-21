@@ -88,7 +88,7 @@ export function createCanonicalGov002ReviewClient(supabase,{allowMutations=false
      throw Error('canonical_approval_invalid_status');
    }else if(kind==='tasks'){
     if(!currentStage(row.stage_no)||!currentStage(row.stage_total)
-     ||row.stage_total<2||row.stage_no>row.stage_total)
+     ||row.stage_no>row.stage_total)
      throw Error('canonical_approval_invalid_task');
    }else if(kind==='activity'){
     canonicalId(row.audit_event_id);

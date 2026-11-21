@@ -74,6 +74,17 @@ test('explicit mutation unlock still needs a current server reviewer task and id
  await assert.rejects(c.decideApproval({businessId:101,requestId:81,action:'reject',idempotencyKey:'bad'}),/invalid_idempotency_key/);
  c.destroy();
 });
+test('canonical one-stage tasks are actionable, including Manufacturing',async()=>{
+ const single={...task,domain:'manufacturing',action_code:'recipe_approve',
+  source_key:'mfg-recipe:40',stage_no:1,stage_total:1};
+ const f=fixture({responder:name=>name==='my_routed_review_tasks_v1'?{data:[single]}:response(name)});
+ const c=createCanonicalGov002ReviewClient(f.sdk,{allowMutations:true});
+ assert.deepEqual(await c.listReviewerTasks({businessId:101}),[single]);
+ assert.equal(await c.decideApproval({
+  businessId:101,requestId:single.request_id,action:'approve',idempotencyKey:'mfg_review_1'
+ }),'901');
+ c.destroy();
+});
 test('maker withdrawal requires maker, pending and zero votes; server remains final authority',async()=>{
  const f=fixture({responder:name=>name==='my_approval_status_v1'?{data:[{...status,is_maker:true,completed_checks:0,display_status:'awaiting_stage_1'}]}:response(name)});
  const c=createCanonicalGov002ReviewClient(f.sdk,{allowMutations:true});
@@ -92,6 +103,8 @@ test('rejects cross-tenant, malformed, duplicated, oversized and invented rows',
   ['my_approval_status_v1',[status,status]],
   ['my_approval_activity_v1',[{...event,audit_event_id:null}]],
   ['my_routed_review_tasks_v1',[{...task,stage_no:6}]],
+  ['my_routed_review_tasks_v1',[{...task,stage_no:2,stage_total:1}]],
+  ['my_routed_review_tasks_v1',[{...task,stage_no:1,stage_total:0}]],
   ['my_routed_review_tasks_v1',[{...task,business_id:999}]],
  ];
  for(const [name,data] of bad){

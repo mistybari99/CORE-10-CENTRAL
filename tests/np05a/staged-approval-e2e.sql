@@ -98,6 +98,10 @@ SELECT core10.submit_typed_approval_v1(9511,:'short_packet'::jsonb->>'domain',:'
  :'short_packet'::jsonb->>'source_key',(:'short_packet'::jsonb->>'source_version')::bigint,
  :'short_packet'::jsonb->'payload','mfg_apv_short_submit') AS short_request \gset
 SELECT set_config('request.jwt.claims',:'owner',true);
+SELECT mfg_approval_test.ok(EXISTS(
+ SELECT 1 FROM core10.my_routed_review_tasks_v1(9511)
+ WHERE request_id=:short_request AND domain='manufacturing' AND stage_no=1 AND stage_total=1),
+ 'canonical Reviewer Desk receives legitimate single-stage Manufacturing tasks');
 SELECT core10.decide_approval(:short_request,'approve','mfg_apv_short_final');
 SELECT mfg_approval_test.expect(format('SELECT core10.mfg_release_batch_with_approval_v1(9511,9521,%s,%s,%L)',
  :other_batch,:short_request,'mfg_apv_short_apply'),'MFG_APPROVAL_STAGES');
