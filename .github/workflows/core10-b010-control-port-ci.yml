@@ -63,6 +63,8 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-commands-e2e.sql
       - name: "B-012 stock approvals (0202 - GOV-002 one-checker and two-stage routes, maker-checker, Owner switches, stage/route drift)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-approval-e2e.sql
+      - name: "B-012 purchase order -> GRN -> QC -> stock (0203 - Master supplier, Owner Control, lot/expiry, partial receipt)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-procurement-e2e.sql
       - name: DEC-08 registry gate (every state-changing RPC is mapped)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Registry gate self-test (an unmapped RPC must fail the gate)
@@ -79,6 +81,8 @@ jobs:
         run: bash tests/migrations/np02-master-race.sh
       - name: B-012 stock commands real concurrent sessions (same key, oversell, single post, crossing transfers, Control switch, cross-tenant)
         run: bash tests/migrations/np03a-inventory-race.sh
+      - name: B-012 purchase receipts real concurrent sessions (over-receipt, double GRN posting)
+        run: bash tests/migrations/np03a-procurement-race.sh
       - name: Registry evidence (each enforced RPC names an existing CI-run proof test)
         run: bash tests/migrations/control-registry-evidence.sh
       - name: B-009 legacy installer vs numbered migrations drift (reviewed list, no silent ignores)

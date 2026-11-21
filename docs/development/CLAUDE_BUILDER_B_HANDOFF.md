@@ -64,6 +64,31 @@ Fixes against the A048 draft: `search_path` was `core10,pg_catalog` (now `pg_cat
   CONTROL_DISABLED for stock and for review). Mutations killed: gate open, maker check off, review switch not
   checked, route mismatch ignored. Full local suite: all e2e + 5 race suites PASS; registry 22 enforced; B-009 PASS.
 
+### Checkpoint 3 — 0203 purchase order → GRN → QC → stock (CODED + TESTED on PG17.12)
+
+Reuse table (P2):
+
+| Need | State | Source | Decision |
+|---|---|---|---|
+| Purchase document draft → confirmed → posted, lines, key | Draft-only | `internal/enterprise-sql/c10_a026_operational_docs_v1.sql` | **port + fix**: PO and GRN are separate documents; free-text counterparty replaced by Master supplier |
+| Lot, expiry, inspection pass/fail | Draft-only (PR #73 `1214731`) | `c10_a058_quality_lot_recall_v1.sql` | **reuse model** as `inventory_lots_v1` + GRN QC lines; its `quality_balances_v1` second book NOT ported (CHG-035) |
+| Supplier | Existing | `master_parties_v1` (0150) | **reuse** (supplier/both, active, same business) |
+| Item usable | Existing | `master_item_usable_v1` | **reuse** |
+| Stock receipt | Existing | `post_stock_event` (0200) | **reuse**, accepted quantity only |
+| Recall, genealogy, FEFO | Draft-only (PR #73) | A058 | **later** (not in P2) |
+
+- Controls: `procurement.purchase_order` (`max_po_amount`, `max_lines`, `manager_may_create`, `separate_approver`, 0–5 stages)
+  and `procurement.goods_receipt` (`over_receipt_pct`, `qc_required`, `separate_inspector`, `require_lot`, `require_expiry`);
+  GRN posting also checks `inventory.stock_event`.
+- RPCs (all `enforced`): `procurement_save_po_v1`, `procurement_advance_po_v1` (approve/cancel/close),
+  `procurement_receive_v1`, `procurement_inspect_v1`, `procurement_post_grn_v1`; reads `procurement_list_pos_v1`,
+  `procurement_get_po_v1` (with receipts).
+- Tests: `tests/migrations/np03a-procurement-e2e.sql` (5 personas), `tests/migrations/np03a-procurement-race.sh`
+  (concurrent over-receipt, double posting). Mutations killed: received-instead-of-accepted, supplier rule removed,
+  receive ignores switch, QC over-accept. Full local suite PASS; registry 27 enforced; evidence 27/27; B-009 PASS.
+- Not done: PO approval stages > 0 (`PROC_APPROVAL_NOT_CONNECTED`; same adapter pattern as 0202 next), AP / supplier
+  bill (NP06), GRN cancel/return to supplier, lot-level balances, FEFO, recall.
+
 ### Not done / NOT_CONNECTED
 
 - Approval thresholds (`approval_thresholds_v1`) apply as GOV-002 defines them: payload `amount` = quantity,
