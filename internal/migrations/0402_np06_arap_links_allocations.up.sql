@@ -108,6 +108,9 @@ BEGIN
  SELECT * INTO j FROM core10.finance_journals_v1 WHERE id=p_journal;
  IF NOT FOUND OR v_actor IS NULL OR NOT core10.can_manage(j.tenant_id,j.business_id)
  THEN RAISE EXCEPTION 'FIN_ARAP_AUTH_DENIED'; END IF;
+ -- Deny disabled Owner Control BEFORE acquiring a potentially contended row lock;
+ -- the same policy is checked again after the wait below.
+ PERFORM core10.control_check_v1(j.business_id,'finance.arap_link',j.site_id);
  -- Lock only the authorized scope, then revalidate membership after the wait.
  SELECT * INTO j FROM core10.finance_journals_v1
   WHERE id=p_journal AND tenant_id=j.tenant_id AND business_id=j.business_id FOR UPDATE;
