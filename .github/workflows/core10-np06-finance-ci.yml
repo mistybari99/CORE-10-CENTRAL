@@ -100,17 +100,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Read-only local combination with exact reviewed NP01 PR111 head
+      - name: Verify the reviewed NP01 revision and prepare the Finance test tree
         run: |
-          git fetch --no-tags origin refs/pull/111/head:refs/remotes/np01/pr111
-          np01_sha="$(git rev-parse refs/remotes/np01/pr111)"
-          echo "NP01_COMPAT_REVIEWED_SHA=$np01_sha"
-          test "$np01_sha" = "69143ffb82667b6f81b3667288af54a86b597698" || {
-            echo "NP01_REVIEW_HEAD_MOVED_REVERIFY_BEFORE_COMPAT"; exit 1;
-          }
-          git -c user.name='NP06 CI Reviewer' -c user.email='ci-review@example.invalid' merge --no-commit --no-ff refs/remotes/np01/pr111
-          test "$(git ls-files -u | wc -l)" = "0"
-          echo "FINANCE_NP01_PR111_LOCAL_COMBINED_ONLY"
+          bash tests/migrations/np06-np01-compat-tree.test.sh
+          bash tests/migrations/np06-np01-compat-tree.sh 69143ffb82667b6f81b3667288af54a86b597698
       - name: Create disposable canonical API roles
         run: |
           psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
