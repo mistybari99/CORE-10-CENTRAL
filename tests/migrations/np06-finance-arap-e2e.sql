@@ -96,6 +96,59 @@ SELECT np06_arap_test.ok((SELECT count(*)=0 FROM core10.finance_arap_links_v1),
 
 SELECT core10.control_set_v1(9611,NULL,'finance.arap_link',true,0::smallint,
  '{}'::jsonb,NULL,false,0,'Owner enables synthetic AR/AP linkage','arapControlLink1');
+
+-- 0404 P1: even a correctly posted manual AR journal cannot be linked as
+-- trade receivables merely because the account category is 'asset'.
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_link_open_item_v1(%s,%s,%s,%L,%L,%L)',
+ :ar_journal,:customer_id,:ar_account,'ar','2026-11-20','arapNoTradeMap1'),
+ 'FIN_ARAP_TRADE_CONTROL_NOT_DESIGNATED');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_register_arap_control_account_v1(%s,%L,%L)',
+ :ar_account,'ar','arapControlAR01'),
+ 'CONTROL_DISABLED:finance.arap_control_account');
+SELECT core10.control_set_v1(9611,NULL,'finance.arap_control_account',true,0::smallint,
+ '{}'::jsonb,NULL,false,0,'Owner authorizes explicit trade control accounts','arapControlMap1');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_register_arap_control_account_v1(%s,%L,%L)',
+ :cash_account,'ap','arapWrongRole01'),
+ 'FIN_ARAP_CONTROL_CATEGORY_INVALID');
+SELECT core10.finance_register_arap_control_account_v1(
+ :ar_account,'ar','arapControlAR01') ar_designation \gset
+SELECT core10.finance_register_arap_control_account_v1(
+ :ap_account,'ap','arapControlAP01') ap_designation \gset
+SELECT np06_arap_test.ok(
+ core10.finance_register_arap_control_account_v1(
+  :ar_account,'ar','arapControlAR01')=:ar_designation,
+ 'exact-key Owner designation replay creates no second record');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_register_arap_control_account_v1(%s,%L,%L)',
+ :ar_account,'ar','arapControlAR02'),
+ 'FIN_ARAP_CONTROL_ACCOUNT_ALREADY_DESIGNATED');
+SELECT np06_arap_test.ok(
+ (SELECT count(*)=2 FROM core10.finance_arap_control_accounts_v1 WHERE business_id=9611),
+ 'exactly two immutable, Owner-designated trade controls');
+SELECT np06_arap_test.ok(
+ (SELECT count(*)=2 FROM core10.canonical_audit_events_v1
+  WHERE business_id=9611 AND action='finance.arap_control_account'),
+ 'one canonical audit per mapping, no duplicate on retry');
+
+-- An ordinary cash/bank asset with a posted debit is NOT trade AR.
+SELECT core10.finance_draft_journal_v1(9611,NULL,'BDT','2026-11-18','manual',
+ 'arap-not-trade-asset-01','arapCashDraft01',
+ jsonb_build_array(
+  jsonb_build_object('account_id',:cash_account,'side','debit','amount',19),
+  jsonb_build_object('account_id',:income_account,'side','credit','amount',19))) fake_cash_ar \gset
+SELECT core10.finance_validate_journal_v1(:fake_cash_ar);
+SELECT core10.finance_post_journal_v1(:fake_cash_ar,'arapCashPost001');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_link_open_item_v1(%s,%s,%s,%L,%L,%L)',
+ :fake_cash_ar,:customer_id,:cash_account,'ar','2026-11-22','arapCashLink001'),
+ 'FIN_ARAP_TRADE_CONTROL_NOT_DESIGNATED');
+SELECT np06_arap_test.ok(
+ (SELECT count(*)=0 FROM core10.finance_arap_links_v1),
+ 'unmapped cash asset cannot be laundered as a trade receivable');
+
 SELECT np06_arap_test.expect(format(
  'SELECT core10.finance_link_open_item_v1(%s,%s,%s,%L,%L,%L)',
  :ar_journal,:supplier_id,:ar_account,'ar','2026-11-20','arapWrongKind01'),
@@ -379,6 +432,9 @@ SELECT np06_arap_test.as_user('93333333-3333-4333-8333-333333333333');
 SELECT np06_arap_test.expect(format(
  'SELECT core10.finance_allocate_payment_v1(%s,%s,%s,%L)',
  :ap_link,:ap_payment,1,'arapAllocKey006'),'FIN_ARAP_AUTH_DENIED');
+SELECT np06_arap_test.expect(format(
+ 'SELECT core10.finance_register_arap_control_account_v1(%s,%L,%L)',
+ :cash_account,'ar','arapManagerMap1'),'FIN_ARAP_CONTROL_AUTH_DENIED');
 SELECT np06_arap_test.as_user('95555555-5555-4555-8555-555555555555');
 SELECT np06_arap_test.ok((SELECT count(*)=0 FROM core10.finance_arap_links_v1),
  'cross tenant RLS hides ARAP links');
@@ -427,6 +483,12 @@ SELECT np06_arap_test.expect(
  $$DELETE FROM core10.finance_arap_allocations_v1 WHERE business_id=9611$$,
  'FIN_ARAP_IMMUTABLE');
 SELECT np06_arap_test.expect(
- $$TRUNCATE core10.finance_arap_allocations_v1$$,'FIN_ARAP_IMMUTABLE');
+ $TRUNCATE core10.finance_arap_allocations_v1$,'FIN_ARAP_IMMUTABLE');
+SELECT np06_arap_test.expect(
+ $DELETE FROM core10.finance_arap_control_accounts_v1 WHERE business_id=9611$,
+ 'FIN_ARAP_IMMUTABLE');
+SELECT np06_arap_test.ok(NOT has_function_privilege('anon',
+ 'core10.finance_register_arap_control_account_v1(bigint,text,text)','EXECUTE'),
+ 'anon cannot register trade account');
 SELECT 'NP06_ARAP_PG17_E2E_PASS' AS result;
 ROLLBACK;

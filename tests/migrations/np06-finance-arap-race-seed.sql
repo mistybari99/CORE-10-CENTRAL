@@ -50,6 +50,10 @@ SELECT core10.control_set_v1(9631,NULL,'finance.arap_link',true,0::smallint,
  '{}'::jsonb,NULL,false,0,'Owner enables synthetic race document link','arapRaceCtlLink');
 SELECT core10.control_set_v1(9631,NULL,'finance.arap_allocate',true,0::smallint,
  '{}'::jsonb,NULL,false,0,'Owner enables synthetic race allocation','arapRaceCtlAlloc');
+SELECT core10.control_set_v1(9631,NULL,'finance.arap_control_account',true,0::smallint,
+ '{}'::jsonb,NULL,false,0,'Owner enables audited trade designation','arapRaceCtlMap01');
+SELECT core10.finance_register_arap_control_account_v1(
+ :ar_id,'ar','arapRaceTradeAR1');
 SELECT core10.finance_link_open_item_v1(:doc,:party_id,:ar_id,'ar','2026-11-20',
  'arapRaceLink001') link_id;
 
