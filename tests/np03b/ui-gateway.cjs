@@ -9,6 +9,8 @@ const RPCS={
  my_approval_activity_v1:[['p_business','bigint'],['p_limit','integer']],
  decide_approval:[['p_request','bigint'],['p_action','text'],['p_key','text']],
  withdraw_typed_approval_v1:[['p_request','bigint'],['p_key','text']],
+ mfg_plan_batch_v1:[['p_business','bigint'],['p_site','bigint'],['p_recipe','bigint'],['p_location','bigint'],['p_multiplier','numeric'],['p_key','text']],
+ mfg_release_batch_with_approval_v1:[['p_business','bigint'],['p_site','bigint'],['p_batch','bigint'],['p_approval','bigint'],['p_key','text']],
  mfg_submit_approval_v1:[['p_business','bigint'],['p_site','bigint'],['p_operation','text'],['p_source','bigint'],['p_effective','timestamptz'],['p_key','text']],
  mfg_approve_recipe_with_approval_v1:[['p_business','bigint'],['p_site','bigint'],['p_recipe','bigint'],['p_effective','timestamptz'],['p_approval','bigint'],['p_key','text']],
  read_sales_invoice_drafts_v1:[['p_business','bigint'],['p_site','bigint'],['p_invoice','bigint']],

@@ -96,6 +96,34 @@ async function launch() {
     };
   }
 
+  async function approveRequest(reviewer, action, requestId, { bangla, cancelOnce = false }) {
+    const {page, calls} = reviewer;
+    const host = page.locator("#b01-operation-host");
+    await page.locator("#b01-open-approvals").click();
+    const card = host.locator(".c10np-card").filter({has:page.getByRole("heading",{name:action+" · #"+requestId,exact:true})});
+    await card.getByText(bangla ? "ধাপ 1/1" : "Stage 1/1").waitFor();
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2),true);
+    const approve = card.getByRole("button",{name:bangla ? "অনুমোদন" : "Approve",exact:true});
+    await approve.click();
+    const dialog = host.getByRole("dialog");
+    if (cancelOnce) {
+      await dialog.waitFor();
+      await page.keyboard.press("Escape");
+      await dialog.waitFor({state:"hidden"});
+      assert.equal(calls.some(call => call.rpc === "decide_approval"),false);
+      await approve.click();
+    }
+    await dialog.getByRole("button",{name:bangla ? "সিদ্ধান্ত নিশ্চিত করুন" : "Confirm decision",exact:true}).click();
+    await host.getByRole("status").waitFor();
+    await host.getByRole("button",{name:bangla ? "অডিট কার্যক্রম" : "Audit Activity"}).click();
+    await host.locator(".c10np-card").filter({has:page.getByRole("heading",{name:"approve · #"+requestId,exact:true})})
+      .getByText(/^Audit #/).waitFor();
+    const decision = calls.find(call => call.rpc === "decide_approval" && String(call.args.p_request) === requestId);
+    assert.equal(decision.args.p_action,"approve");
+    assert.ok(calls.filter(call => call.rpc.startsWith("my_")).every(
+      call => call.args.p_business===101 && !Object.hasOwn(call.args,"p_site")));
+  }
+
   try {
     for (const width of [390, 1440]) {
       const { page, calls, errors, hold } = await open(width, OWNER);
@@ -165,31 +193,8 @@ async function launch() {
       const reviewPage = reviewer.page;
       if (width === 1440) await reviewPage.locator("#b01-language").click();
       await reviewPage.locator("#b01-site").selectOption("1002");
-      await reviewPage.locator("#b01-open-approvals").click();
+      await approveRequest(reviewer,"recipe_approve",requestId,{bangla:width===390,cancelOnce:width===390});
       const reviewHost = reviewPage.locator("#b01-operation-host");
-      const reviewCard = reviewHost.locator(".c10np-card").filter({hasText:"recipe_approve · #"+requestId});
-      await reviewCard.getByText(width === 390 ? "ধাপ 1/1" : "Stage 1/1").waitFor();
-      assert.equal(await reviewPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2),true);
-      const approve = reviewCard.getByRole("button",{name:width === 390 ? "অনুমোদন" : "Approve",exact:true});
-      await approve.click();
-      const dialog = reviewHost.getByRole("dialog");
-      if (width === 390) {
-        await dialog.waitFor();
-        await reviewPage.keyboard.press("Escape");
-        await dialog.waitFor({state:"hidden"});
-        assert.equal(reviewer.calls.some(call => call.rpc === "decide_approval"),false);
-        await approve.click();
-      }
-      await dialog.getByRole("button",{name:width === 390 ? "সিদ্ধান্ত নিশ্চিত করুন" : "Confirm decision",exact:true}).click();
-      await reviewHost.getByRole("status").waitFor();
-      await reviewHost.getByRole("button",{name:width === 390 ? "অডিট কার্যক্রম" : "Audit Activity"}).click();
-      await reviewHost.locator(".c10np-card").filter({hasText:"approve · #"+requestId})
-        .getByText(/^Audit #/).waitFor();
-      const decision = reviewer.calls.find(call => call.rpc === "decide_approval");
-      assert.equal(String(decision.args.p_request),requestId);
-      assert.equal(decision.args.p_action,"approve");
-      assert.ok(reviewer.calls.filter(call => call.rpc.startsWith("my_")).every(
-        call => call.args.p_business===101 && !Object.hasOwn(call.args,"p_site")));
       await reviewPage.locator("#b01-language").click();
       assert.equal(await reviewPage.locator("#b01-site").inputValue(),"1002");
       await reviewPage.locator("#b01-open-manufacturing").click();
@@ -202,6 +207,34 @@ async function launch() {
       const applied = reviewer.calls.find(call => call.rpc === "mfg_approve_recipe_with_approval_v1");
       assert.equal(String(applied.args.p_approval),requestId);
       assert.deepEqual([applied.args.p_business,applied.args.p_site],[101,1002]);
+      await operationHost.locator("[data-refresh]").click();
+      await recipeCard(operationHost).locator("[data-plan]").click();
+      await operationHost.locator("[name=location]").fill("5002");
+      const plannedResponse = page.waitForResponse("**/central-fixture/mfg_plan_batch_v1");
+      await operationHost.locator("form button[type=submit]").click();
+      const planned = await (await plannedResponse).json();
+      assert.equal(planned.status,"planned");
+      await operationHost.locator('[data-tab="batches"]').click();
+      await operationHost.locator(`[data-release="${planned.batch_id}"]`).click();
+      const batchRequestResponse = page.waitForResponse("**/central-fixture/mfg_submit_approval_v1");
+      await operationHost.locator("form button[type=submit]").click();
+      const batchRequest = String(await (await batchRequestResponse).json());
+      await approveRequest(reviewer,"batch_release",batchRequest,{bangla:width===1440});
+      await reviewPage.locator("#b01-open-manufacturing").click();
+      await reviewHost.locator('[data-tab="batches"]').click();
+      const releaseButton = reviewHost.locator(`[data-release="${planned.batch_id}"]`);
+      await releaseButton.click();
+      await reviewHost.locator("[name=approval_action]").selectOption("apply");
+      await reviewHost.locator("[name=approval]").fill(batchRequest);
+      const releaseResponse = reviewPage.waitForResponse("**/central-fixture/mfg_release_batch_with_approval_v1");
+      await reviewHost.locator("form button[type=submit]").click();
+      const released = await (await releaseResponse).json();
+      assert.equal(released.status,"released");
+      assert.equal(released.stock_issued,false);
+      assert.equal(String(released.approval_request_id),batchRequest);
+      assert.ok(released.approval_event_id);
+      await releaseButton.waitFor({state:"hidden"});
+      await operationHost.locator('[data-tab="recipes"]').click();
       assert.equal(await reviewPage.evaluate(() => window.centralClients),1);
       assert.deepEqual(reviewer.errors,[]);
       await reviewPage.close();

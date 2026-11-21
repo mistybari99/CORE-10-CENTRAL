@@ -17,3 +17,7 @@ SELECT core10.control_set_v1(101,NULL,'gov002.review',true,1::smallint,'{}',NULL
 SELECT core10.publish_approval_policy_v1(101,'manufacturing','recipe_approve',120,
  'central_mfg_approval_policy') AS policy_id \gset
 SELECT core10.configure_approval_route_v1(:policy_id,ARRAY['tenant_owner'],'central_mfg_approval_route');
+
+SELECT core10.publish_approval_policy_v1(101,'manufacturing','batch_release',120,
+ 'central_mfg_release_policy') AS release_policy_id \gset
+SELECT core10.configure_approval_route_v1(:release_policy_id,ARRAY['tenant_owner'],'central_mfg_release_route');
