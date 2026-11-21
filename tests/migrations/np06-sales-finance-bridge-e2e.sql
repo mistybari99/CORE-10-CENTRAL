@@ -75,6 +75,18 @@ SELECT bridge_test.denies(format(
  'CONTROL_DISABLED:finance.sales_invoice_issue');
 SELECT core10.control_set_v1(101,NULL,'finance.sales_invoice_issue',true,0::smallint,
  '{}'::jsonb,NULL,false,2,'Owner resumes new issues','bridgeIssueOn002');
+-- The validated invoice's CHILD lines are also immutable until an explicit
+-- canonical edit clears validation. Privileged DML must not bypass validation
+-- by changing the quantity/line total while keeping its header unchanged.
+RESET ROLE;
+SELECT bridge_test.denies(format(
+ 'UPDATE core10.sales_invoice_draft_lines_v1 SET quantity=1 WHERE invoice_id=%s',:invoice_id),
+ 'FIN_SALES_VALIDATED_SOURCE_TAMPER');
+SELECT bridge_test.denies(format(
+ 'DELETE FROM core10.sales_invoice_draft_lines_v1 WHERE invoice_id=%s',:invoice_id),
+ 'FIN_SALES_VALIDATED_SOURCE_TAMPER');
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 SELECT core10.control_set_v1(101,NULL,'finance.journal_post',true,1::smallint,
  '{"max_post_amount":2000}'::jsonb,NULL,false,1,
  'Positive stage cannot bypass canonical approval adapter','bridgePostStaged');

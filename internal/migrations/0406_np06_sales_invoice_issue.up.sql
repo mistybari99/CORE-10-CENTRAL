@@ -95,6 +95,13 @@ BEGIN
  IF EXISTS(SELECT 1 FROM core10.finance_sales_issues_v1
   WHERE invoice_id=CASE WHEN TG_OP='DELETE' THEN OLD.invoice_id ELSE NEW.invoice_id END)
  THEN RAISE EXCEPTION 'FIN_SALES_ISSUED_SOURCE_IMMUTABLE'; END IF;
+ -- Prevent an administrator's accidental or malicious change to a validated
+ -- invoice's line table while preserving its header validation timestamp.
+ -- Official edit clears validated_at before replacing draft lines.
+ IF EXISTS(SELECT 1 FROM core10.sales_invoice_drafts_v1 i
+   WHERE i.id=CASE WHEN TG_OP='DELETE' THEN OLD.invoice_id ELSE NEW.invoice_id END
+   AND i.validated_at IS NOT NULL)
+ THEN RAISE EXCEPTION 'FIN_SALES_VALIDATED_SOURCE_TAMPER'; END IF;
  RETURN CASE WHEN TG_OP='DELETE' THEN OLD ELSE NEW END;
 END $body$;
 CREATE TRIGGER finance_sales_invoice_source_guard_v1
