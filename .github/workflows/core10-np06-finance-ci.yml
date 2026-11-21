@@ -139,6 +139,9 @@ jobs:
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-rpc-e2e.sql
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-e2e.sql
           psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-reversal-e2e.sql
+          # Exercise actual canonical GOV002 multi-stage Finance posting with
+          # NP01 0110-0114 merged locally, not just baseline 0400/0401.
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-approval-e2e.sql
       - name: Combined NP01 Finance real independent-session races
         run: |
           bash tests/migrations/np01-control-route-concurrency.sh

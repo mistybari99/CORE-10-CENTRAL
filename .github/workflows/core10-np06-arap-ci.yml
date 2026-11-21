@@ -1,0 +1,96 @@
+name: core10-np06-arap-ci
+on:
+  push:
+    branches:
+      - build/chatgpt-np06-arap
+    paths:
+      - "internal/migrations/**"
+      - "tests/migrations/np06-finance-arap*"
+      - "tests/migrations/np06-finance-approval*"
+      - ".github/workflows/core10-np06-arap-ci.yml"
+  pull_request:
+    paths:
+      - "internal/migrations/**"
+      - "tests/migrations/np06-finance-arap*"
+      - ".github/workflows/core10-np06-arap-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  arap-pg17:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_PASSWORD: arap_disposable }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: arap_disposable
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Create disposable authenticated and anon roles only
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+          END \$\$;"
+      - name: Static canonical migration contract
+        run: node --test tests/migrations/migration-contract.test.js
+      - name: All migrations up down up and idempotent reapply on PostgreSQL 17
+        run: bash tests/migrations/run-updownup.sh
+      - name: Finance 0403 override-only rollback protection on separate disposable PG17
+        run: bash tests/migrations/np06-finance-arap-rollback-guard.sh
+      - name: Canonical Control registry and enforced evidence
+        run: |
+          internal/migrations/run.sh up
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+          bash tests/migrations/control-registry-evidence.sh
+      - name: NP02 Master table and RPC regression
+        run: |
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-tables-e2e.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-rpc-e2e.sql
+      - name: Finance 0400 canonical journal E2E
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-e2e.sql
+      - name: Real GOV002 2-stage approved Finance 0405 posting E2E
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-approval-e2e.sql
+      - name: Finance 0401 reversal E2E
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-reversal-e2e.sql
+      - name: NP02 Master two independent PostgreSQL sessions
+        run: bash tests/migrations/np02-master-race.sh
+      - name: Finance 0401 two independent posting and reversal sessions
+        run: |
+          bash tests/migrations/np06-finance-race.sh
+          bash tests/migrations/np06-finance-reversal-race.sh
+      - name: Finance 0402-0403 ARAP linking allocation aging source authenticity and negative security E2E
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-arap-e2e.sql
+      - name: "Three real two-session races: replay, over-cap allocation, reversal vs allocation"
+        run: bash tests/migrations/np06-finance-arap-race.sh
+      - name: Refuse data-bearing F3 rollback and preserve canonical Finance history
+        run: |
+          # 0405 is an additive approval adapter; no GOV002 history is stored
+          # by the rolled-back E2E fixture. Remove it before testing 0404 F3
+          # history guard. Never bypass that guard or change migration runner.
+          internal/migrations/run.sh down
+          test "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=405")" = "0"
+          test "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=404")" = "1"
+          output="$(mktemp)"
+          if internal/migrations/run.sh down > "$output" 2>&1; then
+            cat "$output"
+            echo "FIN_ARAP_ROLLBACK_UNEXPECTEDLY_ALLOWED"
+            exit 1
+          fi
+          grep -q "FIN_ARAP_INTEGRITY_ROLLBACK_DENIED_HISTORY" "$output" || { cat "$output"; exit 1; }
+          test "$(psql -X -At -c "SELECT count(*) FROM core10.finance_arap_links_v1 WHERE business_id=9631")" = "2"
+          posted="$(psql -X -At -c "SELECT count(*) FROM core10.finance_journals_v1 WHERE business_id=9631 AND status='posted'")"
+          [[ "$posted" == "4" || "$posted" == "5" ]]
+          echo FIN_ARAP_HISTORY_ROLLBACK_GUARD_PASS
