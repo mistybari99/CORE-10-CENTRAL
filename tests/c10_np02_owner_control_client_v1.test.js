@@ -18,7 +18,8 @@ test("refuses without a signed client or session", async () => {
 });
 test("only allowlisted core10 RPCs, never tables", async () => {
   assert.deepStrictEqual(RPCS.slice().sort(), ["build01_context_v1", "control_approval_binding_v1", "control_audit_v1", "control_grant_override_v1",
-    "control_history_v1", "control_overrides_v1", "control_read_v1", "control_revert_v1", "control_revoke_override_v1", "control_set_v1"]);
+    "control_history_v1", "control_overrides_v1", "control_read_bootstrap_policy_v1", "control_read_v1", "control_revert_v1",
+    "control_revoke_override_v1", "control_set_bootstrap_policy_v1", "control_set_v1"]);
   const f = fake({}); const api = create({ client: f.client });
   await api.read(9101, null); await api.history(9101, "gov002.review"); await api.audit(9101);
   assert.deepStrictEqual(f.calls.map((c) => c[0]), ["control_read_v1", "control_history_v1", "control_audit_v1"]);
@@ -56,4 +57,17 @@ test("bad input is refused before any call", async () => {
 });
 test("request keys fit the server rule", () => {
   for (let i = 0; i < 50; i++) assert.match(newKey("ctl"), /^[A-Za-z0-9_-]{8,128}$/);
+});
+
+test("tenant policy RPCs use signed scope and a versioned write", async () => {
+  const f = fake({ reply: () => ({ data: { tenant_id: 901, enabled: false, latest_version: 0 } }) });
+  const api = create({ client: f.client });
+  await assert.rejects(api.readBootstrap(902), /CONTROL_SCOPE/);
+  const policy = await api.readBootstrap(901);
+  await api.setBootstrap({ tenant: 901, enabled: true, expectedVersion: policy.latest_version,
+    reason: "Allow first Business setup", requestKey: "bootstrap_test_key" });
+  assert.deepStrictEqual(f.calls.at(-1), ["control_set_bootstrap_policy_v1", {
+    p_tenant: 901, p_enabled: true, p_expected_version: 0, p_effective_at: null,
+    p_reason: "Allow first Business setup", p_request_key: "bootstrap_test_key"
+  }]);
 });
