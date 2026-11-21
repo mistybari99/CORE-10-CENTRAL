@@ -1,0 +1,144 @@
+[baseline-updown]
+MIGRATIONS_UP_DOWN_UP_OK 38
+
+[sales-regression]
+NP03B_SALES_ORDER_TESTS_OK_CANONICAL_MASTER_SYNTHETIC_DATA
+NP03B_SCOPED_CANONICAL_AUDIT_READ_OK
+NP03B_CANONICAL_MASTER_INTEGRATION_OK
+NP03B_INVOICE_DRAFT_TESTS_OK
+psql:tests/migrations/control-registry-check.sql:55: NOTICE:  PASS CONTROL REGISTRY: 40 state-changing RPCs registered: 23 enforced, 7 exempt, 10 pending (pending is tracked debt with a board row)
+PASS CONTROL EVIDENCE: 23 enforced RPC(s), each with an existing CI-run test that proves CONTROL_DISABLED
+NP03B_TWO_SESSION_REPLAY_AMENDMENT_AND_WAIT_DISABLED_OK
+NP03B_INVOICE_TWO_SESSION_REPLAY_SOURCE_UNIQUENESS_CAS_VALIDATION_LIVE_CONTROL_REVOKE_ROLLBACK_OK
+
+[master-history]
+NP03B_CURRENT_MASTER_FAIL_CLOSED_8_CASES_AND_UNCHANGED_SNAPSHOTS_OK
+NP03B_MASTER_PARTY_MAINTENANCE_DELETE_GAP_REPRODUCED_NOT_A_RETENTION_PASS
+
+[orders-browser]
+PASS 1440 existing shell and truthful synthetic boundary
+PASS 1440 language toggle preserves keyboard position
+PASS 1440 new order hands keyboard focus to the form
+PASS 1440 language toggle updates canonical customer/product/UOM labels
+PASS 1440 native accessible quantity constraint
+PASS 1440 product rerender preserves keyboard focus
+PASS 1440 product selection uses catalog price
+PASS 1440 actual SQL create response and total
+PASS 1440 asynchronous save restores keyboard focus
+PASS 1440 scoped canonical audit is visible
+PASS 1440 unsaved edits cannot confirm the old document
+PASS 1440 actual SQL amend/confirm and immutable form
+PASS 1440 all three canonical command events
+PASS 1440 mobile/desktop containment and keyboard focus
+PASS 1440 sign-out immediately clears private order/audit view
+PASS 390 existing shell and truthful synthetic boundary
+PASS 390 language toggle preserves keyboard position
+PASS 390 new order hands keyboard focus to the form
+PASS 390 language toggle updates canonical customer/product/UOM labels
+PASS 390 native accessible quantity constraint
+PASS 390 product rerender preserves keyboard focus
+PASS 390 product selection uses catalog price
+PASS 390 actual SQL create response and total
+PASS 390 asynchronous save restores keyboard focus
+PASS 390 scoped canonical audit is visible
+PASS 390 unsaved edits cannot confirm the old document
+PASS 390 actual SQL amend/confirm and immutable form
+PASS 390 all three canonical command events
+PASS 390 mobile/desktop containment and keyboard focus
+PASS 390 sign-out immediately clears private order/audit view
+PASS manager denied by actual owner-only boundary
+PASS host selected scope is honored after canonical context validation
+PASS foreign requested host scope is denied without fallback
+PASS missing Master catalog locks create but keeps scoped history
+PASS unsaved form survives a scope change until explicit discard
+PASS explicit discard changes site and clears old private form
+PASS in-flight read after sign-out cannot repopulate private state
+PASS lost response never claims successful save
+PASS uncertain command freezes edits and scope until exact retry
+PASS retry reuses key and creates only one server order
+PASS missing actual Master reader fails closed without creation UI
+PASS Master change after catalog load rejects save without success UI
+PASS actual Owner Control disabled state
+NP03B_BROWSER_PASS 43; synthetic Auth/data, canonical Master and real PG17 RPCs
+
+[invoice-browser]
+PASS 1440 invoice route preserves the one Central shell and signed scope
+PASS 1440 bilingual toggle preserves keyboard focus
+PASS 1440 source quantities have accessible native zero/cap/fraction bounds
+PASS 1440 create persists actual source-bound partial draft and canonical snapshot
+PASS 1440 validate is draft review with no issuance or postings
+PASS 1440 editing a validated draft clears canonical validation
+PASS 1440 responsive containment and exact source cap survive rendering
+PASS 1440 sign-out removes private invoice snapshot and audit
+PASS 390 invoice route preserves the one Central shell and signed scope
+PASS 390 bilingual toggle preserves keyboard focus
+PASS 390 source quantities have accessible native zero/cap/fraction bounds
+PASS 390 create persists actual source-bound partial draft and canonical snapshot
+PASS 390 validate is draft review with no issuance or postings
+PASS 390 editing a validated draft clears canonical validation
+PASS 390 responsive containment and exact source cap survive rendering
+PASS 390 sign-out removes private invoice snapshot and audit
+PASS manager cannot read owner-only invoice drafts
+PASS foreign tenant host scope fails closed without fallback
+PASS selected other site exposes no first-site invoice
+PASS independent real RPC amendment makes stale browser save fail
+PASS Master price change after load is rejected by actual server validation
+PASS lost response is reported as uncertain and freezes new mutations
+PASS exact retry reuses command key and avoids duplicate invoice or audit
+PASS write-receipt after real commit preserves uncertain input and blocks a fresh mutation
+PASS write-receipt exact retry adopts the current invoice without another command
+PASS follow-up-read after real commit preserves uncertain input and blocks a fresh mutation
+PASS follow-up-read exact retry adopts the current invoice without another command
+PASS saving dirty navigation input clears pending discard and stays in invoices
+PASS dirty invoice input blocks navigation into the order workspace
+PASS explicit discard enters the existing orders view without a second shell
+PASS confirmed order action opens its existing invoice without a duplicate draft
+PASS Owner disable after page load rejects actual save without changing the draft
+PASS one-stage UI validation without an approval ID is denied by the real server
+PASS late real read after sign-out cannot restore invoice data
+PASS actual Owner-off validation setting disables validation and explains why
+PASS actual Owner-off setting disables new draft creation
+NP03B_INVOICE_BROWSER_PASS 36; real PG17 RPCs, synthetic Auth/data, draft-only
+
+[combined-updown]
+MIGRATIONS_UP_DOWN_UP_OK 48
+psql:tests/migrations/control-registry-check.sql:55: NOTICE:  PASS CONTROL REGISTRY: 58 state-changing RPCs registered: 46 enforced, 7 exempt, 5 pending (pending is tracked debt with a board row)
+EVIDENCE_MISSING assess_approval_threshold_v1: tests/migrations/np01-control-threshold-exception-e2e.sql does not exist
+
+[combined-sales]
+PASS CONTROL EVIDENCE: 46 enforced RPC(s), each with an existing CI-run test that proves CONTROL_DISABLED
+NP03B_SALES_ORDER_TESTS_OK_CANONICAL_MASTER_SYNTHETIC_DATA
+NP03B_INVOICE_DRAFT_TESTS_OK
+
+[combined-lanes]
+RUN tests/migrations/np01-control-submit-delegation-e2e.sql
+psql:tests/migrations/np01-control-submit-delegation-e2e.sql:175: NOTICE:  NP01_0110_CONTROL_SUBMIT_DELEGATE_REVOKE_OK
+RUN tests/migrations/np01-control-route-stages-e2e.sql
+psql:tests/migrations/np01-control-route-stages-e2e.sql:176: NOTICE:  NP01_0111_PG17_ROUTE_0_TO_5_AND_PINNING_OK
+RUN tests/migrations/np01-control-site-provision-e2e.sql
+psql:tests/migrations/np01-control-site-provision-e2e.sql:74: NOTICE:  NP01_0112_SITE_PROVISION_PASS
+RUN tests/migrations/np01-control-gov003-e2e.sql
+psql:tests/migrations/np01-control-gov003-e2e.sql:205: NOTICE:  NP01_0113_GOV003_CONTROL_AUTH_RLS_LIMITS_OK
+psql:tests/migrations/np01-control-gov003-e2e.sql:230: NOTICE:  NP01_0113_GOV003_REGISTRY_OVERRIDE_AUDIT_OK
+RUN tests/migrations/np01-control-threshold-exception-e2e.sql
+psql:tests/migrations/np01-control-threshold-exception-e2e.sql:241: NOTICE:  NP01_0114_GOV002_AUTH_CONTROL_REPLAY_PRECISION_EXCEPTION_OK
+psql:tests/migrations/np01-control-threshold-exception-e2e.sql:265: NOTICE:  NP01_0114_REGISTRY_CANONICAL_AUDIT_OK
+RUN tests/np05a/manufacturing-e2e.sql
+NP05A_DOMAIN_AND_NEGATIVES_OK
+RUN tests/np05a/material-handoff-e2e.sql
+NP05A_MATERIAL_HANDOFF_OK
+RUN tests/np05a/material-waste-e2e.sql
+NP05A_MATERIAL_WASTE_OK
+RUN tests/np05a/substitution-e2e.sql
+NP05A_SUBSTITUTION_RULES_PREVIEW_OK
+RUN tests/np05a/canonical-master-e2e.sql
+NP05A_CANONICAL_MASTER_E2E_OK
+
+[stock-finance]
+psql:tests/migrations/np03a-inventory-e2e.sql:61: NOTICE:  NP03A inventory engine e2e PASS
+NP06_CONCURRENT_POST_ONCE_PASS journal=11
+REVERSAL_FOREIGN_LOCK_BYPASS_DENIED_BEFORE_LOCK_PASS
+NP06_CONCURRENT_REVERSAL_ONCE_PASS original=11 reversal=12
+FIN_ROLLBACK_0401_EXACT_GUARD_PASS
+FIN_ROLLBACK_0400_EXACT_GUARD_PASS
+FIN_ROLLBACK_0400_0401_TARGETED_HISTORY_LEDGER_AUDIT_PASS
