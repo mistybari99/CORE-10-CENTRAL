@@ -59,6 +59,8 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-rpc-e2e.sql
       - name: "B-012 canonical inventory engine (0200 - internal posting and transfer, balances, reconciliation, API denial)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-e2e.sql
+      - name: "B-012 stock commands (0201 - Owner Control per kind/site, staff/deny/expiry, replay, versions, audit, scoped reads)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-commands-e2e.sql
       - name: DEC-08 registry gate (every state-changing RPC is mapped)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Registry gate self-test (an unmapped RPC must fail the gate)
@@ -73,6 +75,8 @@ jobs:
         run: bash tests/migrations/control-race.sh
       - name: B-011 master data real concurrent sessions (replay, SKU, barcode, version, cross-tenant, Owner Control switch)
         run: bash tests/migrations/np02-master-race.sh
+      - name: B-012 stock commands real concurrent sessions (same key, oversell, single post, crossing transfers, Control switch, cross-tenant)
+        run: bash tests/migrations/np03a-inventory-race.sh
       - name: Registry evidence (each enforced RPC names an existing CI-run proof test)
         run: bash tests/migrations/control-registry-evidence.sh
       - name: B-009 legacy installer vs numbered migrations drift (reviewed list, no silent ignores)
