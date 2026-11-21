@@ -130,6 +130,11 @@ BEGIN
   RAISE EXCEPTION 'FIN_ARAP_ALREADY_LINKED';
  END IF;
  PERFORM pg_advisory_xact_lock(hashtextextended('core10.finance:arap-link:'||j.business_id||':'||p_key,0));
+ -- A request-key lock can wait after the journal lock; re-check authority and
+ -- the live Owner Control policy before creating a link or an Audit receipt.
+ IF NOT core10.can_manage(j.tenant_id,j.business_id)
+ THEN RAISE EXCEPTION 'FIN_ARAP_AUTH_DENIED'; END IF;
+ PERFORM core10.control_check_v1(j.business_id,'finance.arap_link',j.site_id);
  IF EXISTS(SELECT 1 FROM core10.finance_arap_links_v1
            WHERE business_id=j.business_id AND request_key=p_key)
  THEN RAISE EXCEPTION 'FIN_ARAP_KEY_CONFLICT'; END IF;
