@@ -26,8 +26,13 @@ internal/migrations/run.sh up >/dev/null
 # Applying 0402 without 0403 must never expose its incomplete mutations.
 [[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE')")" == t ]]
 [[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE')")" == t ]]
-# 0405 is the current top migration. Its separate approval adapter can roll
-# back on an empty DB without affecting the 0402-0404 AR/AP fences.
+# Optional 0407 and 0406 bridge layers are now the top migrations.
+# Remove each on a disposable no-history database, then test the exact
+# original 0405/0404/0403 F3 boundaries unchanged.
+internal/migrations/run.sh down >/dev/null
+[[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=407")" == 0 ]]
+internal/migrations/run.sh down >/dev/null
+[[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=406")" == 0 ]]
 internal/migrations/run.sh down >/dev/null
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=405")" == 0 ]]
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=404")" == 1 ]]
@@ -63,9 +68,12 @@ SQL
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.canonical_audit_events_v1 WHERE action IN ('finance.arap_link','finance.arap_allocate')")" == 0 ]]
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.control_setting_versions_v1 WHERE feature_key IN ('finance.arap_link','finance.arap_allocate')")" == 0 ]]
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.control_overrides_v1 WHERE feature_key='finance.arap_link'")" == 1 ]]
-# Only the additive 0405 Finance approval adapter can be removed without
-# changing existing AR/AP override history. 0404 must then refuse its own
-# rollback while the historical Owner override exists.
+# Pop the strictly empty-history integration layers 0407 and 0406,
+# then 0405. Do NOT remove, skip or weaken the real 0404 history guard.
+internal/migrations/run.sh down >/dev/null
+[[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=407")" == 0 ]]
+internal/migrations/run.sh down >/dev/null
+[[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=406")" == 0 ]]
 internal/migrations/run.sh down >/dev/null
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=405")" == 0 ]]
 output="$(mktemp)"

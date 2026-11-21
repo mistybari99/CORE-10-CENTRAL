@@ -77,9 +77,14 @@ jobs:
         run: bash tests/migrations/np06-finance-arap-race.sh
       - name: Refuse data-bearing F3 rollback and preserve canonical Finance history
         run: |
-          # 0405 is an additive approval adapter; no GOV002 history is stored
-          # by the rolled-back E2E fixture. Remove it before testing 0404 F3
-          # history guard. Never bypass that guard or change migration runner.
+          # The 0407/0406/0405 additive integration layers contain NO
+          # durable history in rolled-back synthetic E2Es. Remove those three
+          # in exact numeric order before asserting the original 0404 history
+          # guard. Never bypass that guard or alter the migration runner.
+          internal/migrations/run.sh down
+          test "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=407")" = "0"
+          internal/migrations/run.sh down
+          test "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=406")" = "0"
           internal/migrations/run.sh down
           test "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=405")" = "0"
           test "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=404")" = "1"
