@@ -87,8 +87,8 @@ BEGIN
   -- Once validated, a clandestine in-place edit retaining the validation
   -- receipt is forbidden. The canonical save API clears validation on edit.
   IF OLD.validated_at IS NOT NULL AND NEW.validated_at IS NOT NULL
-   AND ROW(NEW.document,NEW.selection,NEW.total,NEW.memo,NEW.version)
-    IS DISTINCT FROM ROW(OLD.document,OLD.selection,OLD.total,OLD.memo,OLD.version)
+   AND ROW(NEW.document,NEW.selection,NEW.total,NEW.memo)
+    IS DISTINCT FROM ROW(OLD.document,OLD.selection,OLD.total,OLD.memo)
   THEN RAISE EXCEPTION 'FIN_SALES_VALIDATED_SOURCE_TAMPER'; END IF;
   RETURN NEW;
  END IF;
