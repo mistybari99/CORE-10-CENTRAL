@@ -118,6 +118,11 @@ SELECT np06_arap_test.expect(format(
  'SELECT core10.finance_link_open_item_v1(%s,%s,%s,%L,%L,%L)',
  :ap_journal,:supplier_id,:income_account,'ap','2026-11-25','arapWrongCat02'),
  'FIN_ARAP_ACCOUNT_SCOPE');
+SELECT np06_arap_test.ok((SELECT count(*)=0 FROM core10.finance_arap_links_v1),
+ 'rejected wrong-category AR/AP links leave no persisted open items');
+SELECT np06_arap_test.ok((SELECT count(*)=0 FROM core10.canonical_audit_events_v1
+ WHERE business_id=9611 AND action='finance.arap_link'),
+ 'rejected wrong-category AR/AP links emit no canonical audit receipts');
 
 SELECT core10.finance_link_open_item_v1(:ar_journal,:customer_id,:ar_account,
  'ar','2026-11-20','arapLinkKey001') ar_link \gset
