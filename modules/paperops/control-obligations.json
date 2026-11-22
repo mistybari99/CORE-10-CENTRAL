@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "status": "INITIAL_CRITICAL_CONTROL_OBLIGATIONS_NOT_FIELD_PARITY",
+  "description": "Selected high-risk source-backed control obligations. Partial means draft has a conceptual field, NOT complete migration. Gap means no operational replacement. Do not release a replacement while any applicable obligation remains unresolved.",
+  "records": [
+    {
+      "id": "SHOWROOM_OPEN_SAFETY",
+      "legacy_form": "R-01",
+      "legacy_field_keys": [
+        "safety",
+        "fridges",
+        "expired_removed",
+        "open_counted"
+      ],
+      "obligation_en": "Pre-opening safety, cold-chain, expired segregation and opening money verification cannot disappear.",
+      "draft_target": "OPS-DAILY",
+      "coverage": "partial",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "JALEBI_MEASUREMENT_SEPARATION",
+      "legacy_form": "R-02",
+      "legacy_field_keys": [
+        "produced_slot",
+        "measured_slot",
+        "measured_by",
+        "scale"
+      ],
+      "obligation_en": "Fryer and independent measurer plus calibrated scale checks.",
+      "draft_target": null,
+      "coverage": "gap",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "JALEBI_YIELD_AND_UNSOLD",
+      "legacy_form": "R-02",
+      "legacy_field_keys": [
+        "tot_flour",
+        "tot_oil",
+        "jalebi_sales",
+        "unsold"
+      ],
+      "obligation_en": "Flour/oil/syrup and sold-versus-unsold reconcile to approved yield; unsold disposition is recorded.",
+      "draft_target": null,
+      "coverage": "gap",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "CASH_CUSTODY_PROOF",
+      "legacy_form": "C-01",
+      "legacy_field_keys": [
+        "seal_no",
+        "counted_total",
+        "received_total",
+        "diff"
+      ],
+      "obligation_en": "Two-party count, seal, actual recount, discrepancy and ledger references.",
+      "draft_target": "CASH-HANDOVER",
+      "coverage": "partial",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "GOODS_TWO_PARTY_TRANSFER",
+      "legacy_form": "W-02",
+      "legacy_field_keys": [
+        "sent",
+        "received",
+        "diff",
+        "receiver_counted",
+        "liability"
+      ],
+      "obligation_en": "Dispatch/receipt quantities, difference, carrier and responsibility evidence.",
+      "draft_target": "STK-TRANSFER",
+      "coverage": "partial",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "PHYSICAL_COUNT_IS_NOT_ADJUSTMENT",
+      "legacy_form": "W-03",
+      "legacy_field_keys": [
+        "count",
+        "book",
+        "var",
+        "reason",
+        "witness"
+      ],
+      "obligation_en": "Physical count requires independent discrepancy evidence before stock adjustment.",
+      "draft_target": "STK-COUNT",
+      "coverage": "partial",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "STOCK_LEDGER_CARRY_FORWARD",
+      "legacy_form": "W-04",
+      "legacy_field_keys": [
+        "opening",
+        "grn_no",
+        "issue_no",
+        "bal",
+        "count_sheet"
+      ],
+      "obligation_en": "Per-item opening, movement references, rolling balances and count-sheet-only correction.",
+      "draft_target": null,
+      "coverage": "gap",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "GRN_ACCEPTANCE_QC",
+      "legacy_form": "P-04",
+      "legacy_field_keys": [
+        "po_no",
+        "counted",
+        "quality",
+        "held_apart",
+        "rate_approver"
+      ],
+      "obligation_en": "Order comparison, independent quantity/QC, hold area and rate-change approval.",
+      "draft_target": "PUR-GRN",
+      "coverage": "partial",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "THREE_WAY_BILL_MATCH",
+      "legacy_form": "P-05",
+      "legacy_field_keys": [
+        "po",
+        "grn",
+        "bill",
+        "held",
+        "pay_approved"
+      ],
+      "obligation_en": "PO, receipt and invoice match before any authorised payment.",
+      "draft_target": null,
+      "coverage": "gap",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "QUOTE_SELECTION_PROOF",
+      "legacy_form": "P-02",
+      "legacy_field_keys": [
+        "lowest",
+        "sel_approved",
+        "single_approver"
+      ],
+      "obligation_en": "Lowest-price rule, justified exception and independent supplier choice.",
+      "draft_target": null,
+      "coverage": "gap",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "ORDER_FULFILMENT_ADVANCE",
+      "legacy_form": "S-01",
+      "legacy_field_keys": [
+        "board_no",
+        "factory_deadline",
+        "advance",
+        "balance"
+      ],
+      "obligation_en": "Order board, factory promises, customer advance and fulfilment reconciliation.",
+      "draft_target": null,
+      "coverage": "gap",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "DISCOUNT_ABOVE_LIMIT",
+      "legacy_form": "S-02",
+      "legacy_field_keys": [
+        "limit_text",
+        "approved_by",
+        "approved_time"
+      ],
+      "obligation_en": "Approved threshold and independent decision; no unsupported discount.",
+      "draft_target": "EXCEPTION",
+      "coverage": "partial",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "RETURN_REFUND_AND_ROOT_CAUSE",
+      "legacy_form": "S-03",
+      "legacy_field_keys": [
+        "refund_amt",
+        "approved_by",
+        "p_fate",
+        "root_cause"
+      ],
+      "obligation_en": "Refund authority, returned goods disposition and cause investigation.",
+      "draft_target": null,
+      "coverage": "gap",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "CHANNEL_SETTLEMENT_RECON",
+      "legacy_form": "C-04",
+      "legacy_field_keys": [
+        "st_bkash",
+        "st_nagad",
+        "st_card",
+        "sh_a",
+        "on_a"
+      ],
+      "obligation_en": "Settlement statement to shop/online ledger reconciliation with missing money exception.",
+      "draft_target": null,
+      "coverage": "gap",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "AGEING_AND_CREDIT_STOP",
+      "legacy_form": "C-05",
+      "legacy_field_keys": [
+        "a30",
+        "a60",
+        "a60p",
+        "credit_stopped"
+      ],
+      "obligation_en": "Receivables ageing, credit hold and advance balance.",
+      "draft_target": null,
+      "coverage": "gap",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "FACTORY_PRESTART_AND_BATCH",
+      "legacy_form": "F-05",
+      "legacy_field_keys": [
+        "safety",
+        "machines",
+        "issue_slip",
+        "batch_verify",
+        "yield_report"
+      ],
+      "obligation_en": "Safety/hygiene, issue-slip-controlled materials, batch yield and independent verification.",
+      "draft_target": "MFG-DAILY",
+      "coverage": "partial",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "RECIPE_VERSION_NOT_DAILY_COPY",
+      "legacy_form": "F-03",
+      "legacy_field_keys": [
+        "version",
+        "yield_no",
+        "spec_version"
+      ],
+      "obligation_en": "Approved recipe and product spec version referenced by production, not rewritten each shift.",
+      "draft_target": "MFG-DAILY",
+      "coverage": "partial",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "YIELD_TEST_INPUT_OUTPUT",
+      "legacy_form": "F-04",
+      "legacy_field_keys": [
+        "input",
+        "good",
+        "second",
+        "waste",
+        "approver"
+      ],
+      "obligation_en": "Yield tests reconcile input with good, second-grade and waste, plus approval.",
+      "draft_target": "MFG-DAILY",
+      "coverage": "partial",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "GRADE_AND_SHELF_LIFE",
+      "legacy_form": "F-02",
+      "legacy_field_keys": [
+        "version",
+        "g1_look",
+        "rj_mold",
+        "shelf_normal"
+      ],
+      "obligation_en": "Approved grading, rejection signs, storage and shelf-life reference.",
+      "draft_target": null,
+      "coverage": "gap",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    },
+    {
+      "id": "MONTHLY_PROFIT_AR_AP",
+      "legacy_form": "A-02",
+      "legacy_field_keys": [
+        "cogs",
+        "gross",
+        "net",
+        "receivables",
+        "payables"
+      ],
+      "obligation_en": "Monthly costs/profit and balances must reconcile to accounting records.",
+      "draft_target": null,
+      "coverage": "gap",
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+    }
+  ]
+}
