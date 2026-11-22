@@ -1,0 +1,27 @@
+name: PaperOps isolated foundation
+on:
+  push:
+    branches:
+      - build/paperops-foundation-20261122
+    paths:
+      - 'modules/paperops/**'
+      - '.github/workflows/paperops-foundation.yml'
+  pull_request:
+    branches:
+      - ccr-15ed11dd-n3hw5h
+    paths:
+      - 'modules/paperops/**'
+      - '.github/workflows/paperops-foundation.yml'
+  workflow_dispatch:
+jobs:
+  paperops:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PaperOps contract, safety and preservation tests
+        run: node --test modules/paperops/tests/paperops.test.cjs
