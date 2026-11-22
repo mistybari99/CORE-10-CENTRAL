@@ -37,7 +37,7 @@ test('print pages stay offline and no remote scripts or tracking are injected',(
 test('each form candidate and industry overlay remains print-only and needs field signoff',()=>{
   const src=read('form-packs.js');
   const api=require('../paperops.js');require('../form-packs.js');
-  assert.equal(api.TEMPLATES.length,29);
+  assert.equal(api.TEMPLATES.length, 30);
   assert.equal(api.TEMPLATES.filter(x=>x.status==='hypothesis').length,9); // original paint + eight new industries
   for(const form of api.TEMPLATES){
     assert.ok(['draft','hypothesis'].includes(form.status),form.id);
