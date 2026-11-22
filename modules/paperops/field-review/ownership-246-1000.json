@@ -1309,7 +1309,7 @@
     "no_real_erp_posting_or_database_mutation_from_audit": true,
     "no_main_trunk_merge_without_owner_permission": true,
     "no_staging_or_live_deploy_without_specific_owner_authorization": true,
-    "never_access_retired_supabase": "NEVER_CONNECT_TO_RETIRED_LEGACY_SUPABASE_PROJECTS_PER_AG​ENT_HANDOVER_CURRENT_MD",
+    "never_access_retired_supabase": "NEVER_USE_RETIRED_SUPABASE_PROJECTS_SEE_AGENT_HANDOVER_CURRENT",
     "evidence_rule": "Each field must be classified as source input, calculated display, reference, continuing ledger, attestation, conditionally shown/required or unresolved; no unchecked parity assertion."
   }
 }
