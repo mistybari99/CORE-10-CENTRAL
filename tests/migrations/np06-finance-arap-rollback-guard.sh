@@ -37,12 +37,17 @@ internal/migrations/run.sh down >/dev/null
 # 0402-only must not leak mutation privileges through PUBLIC or anon.
 [[ "$(psql -X -At -c "SELECT has_function_privilege('public','core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE')")" == f ]]
 [[ "$(psql -X -At -c "SELECT has_function_privilege('anon','core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE')")" == f ]]
+# PUBLIC must not inherit 0402-only aging read permission either.
+[[ "$(psql -X -At -c "SELECT has_function_privilege('public','core10.finance_arap_aging_v1(bigint,date,text)','EXECUTE')")" == f ]]
 # Trace RPC is introduced by 0403; in the 0402-only state it must be absent.
 [[ "$(psql -X -At -c "SELECT to_regprocedure('core10.finance_arap_trace_v1(bigint)') IS NULL")" == t ]]
 internal/migrations/run.sh up >/dev/null
 [[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE')")" == t ]]
 [[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE')")" == t ]]
 [[ "$(psql -X -At -c "SELECT count(*) FROM pg_trigger WHERE tgname='finance_arap_source_integrity_v1' AND NOT tgisinternal")" == 1 ]]
+# Cutover must not accidentally grant mutation RPCs to PUBLIC.
+[[ "$(psql -X -At -c "SELECT has_function_privilege('public','core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE')")" == f ]]
+[[ "$(psql -X -At -c "SELECT has_function_privilege('public','core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE')")" == f ]]
 # After 0403 cutover, read/trace RPCs remain private to authenticated callers.
 [[ "$(psql -X -At -c "SELECT has_function_privilege('anon','core10.finance_arap_aging_v1(bigint,date,text)','EXECUTE')")" == f ]]
 [[ "$(psql -X -At -c "SELECT has_function_privilege('anon','core10.finance_arap_trace_v1(bigint)','EXECUTE')")" == f ]]
