@@ -19,6 +19,12 @@
   if(!Number.isSafeInteger(n))throw Error('UNSAFE_AMOUNT:'+field);
   return n;
  }
+ function signedTemp(v,k){
+  const raw=typeof v==='number'&&Number.isFinite(v)?String(v):v;
+  if(typeof raw!=='string'||!/^[-+]?\d+(?:\.\d{1,2})?$/.test(raw))throw Error('INVALID_TEMPERATURE:'+k);
+  const sign=raw.startsWith('-')?-1:1,clean=raw.replace(/^[-+]/,'');
+  return sign*dec(clean,k,2);
+ }
  const qty=(v,k)=>dec(v,k,4), money=(v,k)=>dec(v,k,2);
  const fmt=(v,places)=>Number(v/10**places).toFixed(places);
  function r(value,reason,flags){
@@ -114,11 +120,11 @@
   for(let i=0;i<v.fridges.length;i++){
    const f=v.fridges[i];
    if(!present(f.name))r(true,'FRIDGE_IDENTITY_REQUIRED:'+i,flags);
-   const temp=dec(f.temperatureC,'fridge.temperatureC['+i+']',2);
+   const temp=signedTemp(f.temperatureC,'fridge.temperatureC['+i+']');
    if(f.minTempC===undefined||f.maxTempC===undefined){
     needs.push('fridge'+(i+1)+'_min','fridge'+(i+1)+'_max');
    }else{
-    const min=dec(f.minTempC,'fridge.minTempC['+i+']',2),max=dec(f.maxTempC,'fridge.maxTempC['+i+']',2);
+    const min=signedTemp(f.minTempC,'fridge.minTempC['+i+']'),max=signedTemp(f.maxTempC,'fridge.maxTempC['+i+']');
     if(min>max||temp<min||temp>max)r(true,'FRIDGE_TEMPERATURE_OUTSIDE_POLICY:'+i,flags);
    }
   }
