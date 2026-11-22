@@ -44,6 +44,8 @@ jobs:
         run: |
           node apps/central/build.mjs
           sha256sum apps/central/dist/worker.mjs
+      - name: Verify CURRENT site has only declared changes and bundle contains exact UI assets
+        run: node --test tests/core10-central-shell-provenance.test.js
       - name: Install pinned Chromium outside the repository
         run: |
           mkdir -p "$RUNNER_TEMP/core10-playwright"
