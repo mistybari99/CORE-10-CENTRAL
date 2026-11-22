@@ -19,6 +19,7 @@ New Session A (replaced the 2026-11-21 one). Owner re-confirmed GO-2 and GO-3 (a
 - Goal 1 (now): Owner's own businesses. Goal 2 (later, A024 deferred): sell to outside customers (single business up to many), each customer fully isolated, Owner keeps platform control.
 - Staging: Owner auth user confirmed; new tenant `core10-owner-group` (id 1) + legal entity "CORE10 Owner Group" (id 1); Owner = `tenant_owner` there (removed from sample tenant 9801). No password set yet: Owner sets it in the SQL editor (we never hold it). Everything else on staging stays synthetic demo personas.
 - Gap: no platform-level role exists (top role = tenant_owner). Planned design (needs Owner decisions, NOT built): `platform_operator` above tenants: create/suspend tenants, module/plan licensing, usage/health metadata, NO access to customer business data except time-boxed, customer-granted, audited support access; own migration range + cross-tenant negative tests.
+- Owner decision (2026-11-22): platform owner must ALSO have an option to view customer data when he chooses. Design: off by default, explicit per-tenant switch by the platform owner, every view audited and visible to the customer, disclosed in the customer contract.
 
 Next: integration items (Sales #109 security, F3 #117 rollback test, 0305 double claim, crosslane F3 pin).
 
