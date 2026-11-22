@@ -83,11 +83,13 @@ SELECT pg_temp.expect($q$SELECT core10.procurement_receive_v1($q$||(:'p1'::jsonb
 SELECT pg_temp.expect($q$SELECT core10.procurement_receive_v1($q$||(:'p1'::jsonb->>'po_id')||$q$,911111,'[{"line_no":1,"quantity":1,"lot_code":"OLD-1","expires_on":"2020-01-01"}]',NULL,'proc-grn-bad3')$q$,'PROC_LOT_EXPIRED');
 SELECT pg_temp.expect($q$SELECT core10.procurement_receive_v1($q$||(:'p1'::jsonb->>'po_id')||$q$,911111,'[{"line_no":9,"quantity":1}]',NULL,'proc-grn-bad4')$q$,'PROC_LINES_INVALID');
 SELECT pg_temp.expect($q$SELECT core10.procurement_receive_v1($q$||(:'p2'::jsonb->>'po_id')||$q$,911111,'[{"line_no":1,"quantity":1}]',NULL,'proc-grn-bad5')$q$,'PROC_PO_NOT_OPEN');
+-- lot expiry relative to today (no calendar time bomb); manufactured date is fixed in the past
+SELECT (current_date + 365)::text AS lot_exp \gset
 SELECT core10.procurement_receive_v1((:'p1'::jsonb->>'po_id')::bigint,911111,
- '[{"line_no":1,"quantity":60,"lot_code":"LOT-A1","manufactured_on":"2026-11-01","expires_on":"2027-11-01"},{"line_no":2,"quantity":40}]','DN-77','proc-grn-0001') AS g1 \gset
+ ('[{"line_no":1,"quantity":60,"lot_code":"LOT-A1","manufactured_on":"2026-11-01","expires_on":"'||:'lot_exp'||'"},{"line_no":2,"quantity":40}]')::jsonb,'DN-77','proc-grn-0001') AS g1 \gset
 SELECT pg_temp.ok((:'g1'::jsonb->>'status')='received','GRN waits for QC');
 SELECT pg_temp.ok((core10.procurement_receive_v1((:'p1'::jsonb->>'po_id')::bigint,911111,
- '[{"line_no":1,"quantity":60,"lot_code":"LOT-A1","manufactured_on":"2026-11-01","expires_on":"2027-11-01"},{"line_no":2,"quantity":40}]','DN-77','proc-grn-0001')->>'replayed')::boolean,'GRN replay');
+ ('[{"line_no":1,"quantity":60,"lot_code":"LOT-A1","manufactured_on":"2026-11-01","expires_on":"'||:'lot_exp'||'"},{"line_no":2,"quantity":40}]')::jsonb,'DN-77','proc-grn-0001')->>'replayed')::boolean,'GRN replay');
 SELECT pg_temp.expect($q$SELECT core10.procurement_receive_v1($q$||(:'p1'::jsonb->>'po_id')||$q$,911111,'[{"line_no":1,"quantity":61}]',NULL,'proc-grn-bad6')$q$,'CONTROL_LIMIT:over_receipt_pct');
 SELECT pg_temp.expect($q$SELECT core10.procurement_post_grn_v1($q$||(:'g1'::jsonb->>'grn_id')||$q$,1,'proc-post-bad1')$q$,'PROC_INVALID_TRANSITION');
 SELECT pg_temp.expect($q$SELECT core10.procurement_inspect_v1($q$||(:'g1'::jsonb->>'grn_id')||$q$,'[{"line_no":1,"accepted_qty":58}]',1,'proc-qc-bad1')$q$,'PROC_QC_LINES_INCOMPLETE');
@@ -100,10 +102,10 @@ SELECT pg_temp.ok((core10.procurement_post_grn_v1((:'g1'::jsonb->>'grn_id')::big
 RESET ROLE;
 SELECT pg_temp.ok(pg_temp.bal(911111,91101)=58 AND pg_temp.bal(911111,91102)=40,'only accepted quantity reached stock');
 SELECT pg_temp.ok((SELECT status FROM core10.purchase_orders_v1 WHERE id=(:'p1'::jsonb->>'po_id')::bigint)='partially_received','PO partially received');
-SELECT pg_temp.ok((SELECT expires_on FROM core10.inventory_lots_v1 WHERE business_id=9111 AND lot_code='LOT-A1')='2027-11-01','lot with expiry');
+SELECT pg_temp.ok((SELECT expires_on FROM core10.inventory_lots_v1 WHERE business_id=9111 AND lot_code='LOT-A1')=:'lot_exp'::date,'lot with expiry');
 SET LOCAL ROLE authenticated;
 SELECT pg_temp.expect($q$SELECT core10.procurement_receive_v1($q$||(:'p1'::jsonb->>'po_id')||$q$,911111,'[{"line_no":1,"quantity":63}]',NULL,'proc-grn-bad7')$q$,'CONTROL_LIMIT:over_receipt_pct');
-SELECT core10.procurement_receive_v1((:'p1'::jsonb->>'po_id')::bigint,911111,'[{"line_no":1,"quantity":62,"lot_code":"LOT-A1","manufactured_on":"2026-11-01","expires_on":"2027-11-01"}]',NULL,'proc-grn-0002') AS g2 \gset
+SELECT core10.procurement_receive_v1((:'p1'::jsonb->>'po_id')::bigint,911111,('[{"line_no":1,"quantity":62,"lot_code":"LOT-A1","manufactured_on":"2026-11-01","expires_on":"'||:'lot_exp'||'"}]')::jsonb,NULL,'proc-grn-0002') AS g2 \gset
 SELECT core10.procurement_post_grn_v1((x->>'grn_id')::bigint,2,'proc-post-0002') AS g2 FROM
  (SELECT core10.procurement_inspect_v1((:'g2'::jsonb->>'grn_id')::bigint,'[{"line_no":1,"accepted_qty":62}]',1,'proc-qc-0002') x) y \gset
 RESET ROLE;

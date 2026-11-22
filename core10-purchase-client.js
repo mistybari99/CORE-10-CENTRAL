@@ -49,7 +49,12 @@
     return (String(prefix || "pu") + "_" + raw).replace(/[^A-Za-z0-9_-]/g, "").slice(0, 100);
   }
   function key(k, prefix) { const s = k == null ? newKey(prefix) : String(k); if (!/^[A-Za-z0-9_-]{8,100}$/.test(s)) fail("INVALID_KEY"); return s; }
+  // Raw stock-engine messages that can surface through a purchase command (0209 lot-aware ledger under a supplier
+  // return post): a lot without enough quantity, or stock that is held/recalled, means "not that much stock here".
+  const ENGINE = { insufficient_stock: "PROC_INSUFFICIENT_STOCK", insufficient_lot_stock: "PROC_INSUFFICIENT_STOCK", lot_blocked_stock: "PROC_INSUFFICIENT_STOCK" };
   function errorCode(message) {
+    const raw = String(message || "").trim();
+    if (Object.prototype.hasOwnProperty.call(ENGINE, raw)) return { code: ENGINE[raw], detail: null };
     const m = String(message || "").match(/^((?:PROC|CONTROL|MASTER|INV|SESSION|SIGNED|INVALID|RPC|BUILD01)_[A-Z0-9_]+)(?::(.*))?$/);
     if (m) return { code: m[1], detail: m[2] || null };
     return { code: "PROC_RPC_UNAVAILABLE", detail: String(message || "").slice(0, 160) };

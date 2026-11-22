@@ -6,13 +6,17 @@
 // before stock (reason required, quantity open again, stock unchanged), a return to the supplier is drafted within the
 // server limits, the preparer cannot post it, the business owner posts it and stock goes down, a draft is cancelled with
 // confirmation, the Owner switch-off of returns is shown in bn/en, the lot expiry list pages and filters by N days;
-// store locations come from the 0208 list RPC (no table read); Owner switch-off; approval steps; other tenant sees nothing.
+// store locations come from the 0208 list RPC (no table read); 0209: a return whose received lot no longer holds the
+// quantity is refused with the stock message (bn/en), nothing moves; Owner switch-off; approval steps; other tenant sees nothing.
 const assert = require("node:assert");
 const fs = require("node:fs"), path = require("node:path");
 const { chromium } = require("playwright");
 const { start } = require("./sql-gateway.cjs");
 const { spawnSync } = require("node:child_process");
 const sql = (q) => { const r = spawnSync("psql", ["-X", "-q", "-At", "-v", "ON_ERROR_STOP=1"], { input: q, encoding: "utf8", env: process.env }); if (r.status !== 0) throw Error(r.stderr); return r.stdout.trim(); };
+// Internal engine call (not an API role): the posting function is not granted to authenticated, so it runs as the
+// database owner with the actor claims set, exactly like a server-side command would.
+const asActor = (uid, q) => sql(`SELECT set_config('request.jwt.claims','{"sub":"${uid}"}',false), set_config('request.jwt.claim.sub','${uid}',false) \\g /dev/null\n${q}`);
 const asUser = (uid, q) => sql(`SET ROLE authenticated; SELECT set_config('request.jwt.claims','{"sub":"${uid}"}',false), set_config('request.jwt.claim.sub','${uid}',false) \\g /dev/null\n${q}`);
 
 const P = { own: "e1611111-1111-4111-8111-111111111111", bo: "e1622222-2222-4222-8222-222222222222", buyer: "e1633333-3333-4333-8333-333333333333",
@@ -25,6 +29,9 @@ async function step(name, fn) {
 }
 const controlVersion = (feature) => Number(sql(`SELECT coalesce(max(version),0) FROM core10.control_setting_versions_v1 WHERE business_id=16011 AND site_id IS NULL AND feature_key='${feature}'`));
 const setControl = (feature, enabled, stages, key) => asUser(P.own, `SELECT core10.control_set_v1(16011,NULL,'${feature}',${enabled},${stages}::smallint,'{}',NULL,false,${controlVersion(feature)},'browser test','${key}') \\g /dev/null`);
+// Lot expiry dates are relative to the database's today so the flow never expires with the calendar (ghee first, then sugar).
+const EXP_GHEE = sql("SELECT (current_date + 70)::text"), EXP_SUGAR = sql("SELECT (current_date + 160)::text");
+const daysLeft = (d) => sql(`SELECT ('${d}'::date - current_date)::text`);
 const balance = (loc, sku) => sql(`SELECT coalesce((SELECT b.on_hand FROM core10.stock_balances_v1 b JOIN core10.items i ON i.id=b.item_id WHERE b.location_id=${loc} AND i.sku='${sku}' AND i.business_id=16011),0)`);
 
 (async () => {
@@ -128,15 +135,15 @@ const balance = (loc, sku) => sql(`SELECT coalesce((SELECT b.on_hand FROM core10
     const sugar = form.locator("fieldset.pu-line").nth(0), ghee = form.locator("fieldset.pu-line").nth(1);
     assert.match(await sugar.textContent(), /বাকি ১০০/);
     await sugar.locator("input[data-k=lot]").fill("SUG-2611"); await sugar.locator("input[data-k=mfg]").fill("2026-11-01");
-    await sugar.locator("input[data-k=exp]").fill("2027-05-01");
-    await ghee.locator("input[data-k=qty]").fill("15"); await ghee.locator("input[data-k=lot]").fill("GHEE-01"); await ghee.locator("input[data-k=exp]").fill("2027-01-31");
+    await sugar.locator("input[data-k=exp]").fill(EXP_SUGAR);
+    await ghee.locator("input[data-k=qty]").fill("15"); await ghee.locator("input[data-k=lot]").fill("GHEE-01"); await ghee.locator("input[data-k=exp]").fill(EXP_GHEE);
     await noOverflow(page);
     await shot(page, "pu-staff-receive-390-bn");
     await form.locator("button[type=submit]").click();
     await page.waitForSelector(".pu-grn[data-status=received]");
     assert.match(await page.textContent(".occ-status"), /মান যাচাই বাকি/);
     const g = await page.textContent(".pu-grn");
-    assert.match(g, /SUG-2611/); assert.match(g, /২০২৭-০৫-০১/); assert.match(g, /CH-7781/);
+    assert.match(g, /SUG-2611/); assert.match(g, new RegExp(EXP_SUGAR.replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[d]))); assert.match(g, /CH-7781/);
     await page.context().close();
   });
 
@@ -313,7 +320,7 @@ const balance = (loc, sku) => sql(`SELECT coalesce((SELECT b.on_hand FROM core10
     await en.click("[data-k=lots-more]"); await en.waitForFunction(() => !document.querySelector("[data-k=lots-more]"));
     const rows2 = await lotRows(en);
     assert.deepStrictEqual(rows2.map((r) => r[0]), ["GHEE-01", "SUG-2611"], "paging ends after the last lot, no duplicates");
-    assert.deepStrictEqual(rows2[1].slice(3), ["2027-05-01", sql("SELECT ('2027-05-01'::date - current_date)::text"), "85", "95", "10", "Main godown"], "sugar lot: net = 95 accepted − 10 returned");
+    assert.deepStrictEqual(rows2[1].slice(3), [EXP_SUGAR, daysLeft(EXP_SUGAR), "85", "95", "10", "Main godown"], "sugar lot: net = 95 accepted − 10 returned");
     assert.match(await en.textContent(".pu-lots"), /Days left = expiry date − today/);
     await noJargon(en); await noOverflow(en);
     await shot(en, "pu-lots-1440-en");
@@ -323,7 +330,7 @@ const balance = (loc, sku) => sql(`SELECT coalesce((SELECT b.on_hand FROM core10
     assert.strictEqual((await lotRows(bn)).length, 2, "godown staff sees the lots received at the godown");
     await bn.fill("input[data-k=days]", "৯৯৯৯"); await bn.click("[data-k=days-go]");
     assert.match(await bn.textContent(".pu-lots .occ-field-error"), /দিনের সংখ্যা ০ থেকে ৩৬৫০ এর মধ্যে দিন/);
-    const n = sql("SELECT ('2027-01-31'::date - current_date)::text");
+    const n = daysLeft(EXP_GHEE);
     await bn.fill("input[data-k=days]", n.replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[d])); await bn.click("[data-k=days-go]");
     await bn.waitForFunction(() => document.querySelectorAll(".pu-lots tbody tr").length === 1);
     assert.deepStrictEqual((await lotRows(bn)).map((r) => r[0]), ["GHEE-01"], "only the lot expiring within N days");
@@ -336,6 +343,42 @@ const balance = (loc, sku) => sql(`SELECT coalesce((SELECT b.on_hand FROM core10
     assert.match(await other.textContent(".pu-lots"), /কোনো লট নেই/);
     assert.ok(!/SUG-2611|GHEE-01/.test(await other.textContent("body")), "no lot of the other tenant");
     await other.context().close();
+  });
+
+  await step("0209 lot-aware return: the lot no longer holds the quantity, posting is refused with the stock message in en/bn, nothing moves", async () => {
+    const lotOnHand = () => sql(`SELECT coalesce(sum(b.on_hand),0) FROM core10.stock_lot_balances_v1 b JOIN core10.inventory_lots_v1 l ON l.id=b.lot_id WHERE l.business_id=16011 AND l.lot_code='SUG-2611' AND b.location_id=1601111`);
+    const sugarId = sql("SELECT id FROM core10.items WHERE business_id=16011 AND sku='SUGAR'");
+    assert.strictEqual(lotOnHand(), "85.000", "lot SUG-2611 carries the store's 85 sugar after the posted return");
+    // 80 sugar issued without a lot (FEFO takes it from SUG-2611), then 80 untracked sugar arrives: the store still
+    // has 85 sugar, but the received lot has only 5 left.
+    asActor(P.own, `SELECT core10.post_stock_event(1601111,${sugarId},-80,'pu-lot-issue-0001'), core10.post_stock_event(1601111,${sugarId},80,'pu-untracked-0001') \\g /dev/null`);
+    assert.strictEqual(balance(1601111, "SUGAR"), "85.000"); assert.strictEqual(lotOnHand(), "5.000", "FEFO issue took 80 from the lot");
+    const staff = await open(P.staff, 390);
+    await staff.click(`.occ-row[data-po='${po1}']`); await staff.waitForSelector(".pu-grn[data-status=posted]");
+    await staff.click(".pu-grn[data-status=posted] [data-k=return]");
+    const form = staff.locator("form.occ-panel");
+    await form.locator("fieldset.pu-line").nth(0).locator("input[data-k=rqty]").fill("১০"); await form.locator("input[data-k=reason]").fill("দেরিতে পাওয়া ত্রুটি");
+    await form.locator("button[type=submit]").click();
+    await staff.waitForSelector(".pu-return[data-ret-status=draft]");
+    await staff.context().close();
+    const posted = () => sql("SELECT count(*) FROM core10.supplier_returns_v1 WHERE business_id=16011 AND status='posted'");
+    const before = posted(), moves = sql("SELECT count(*) FROM core10.stock_movements WHERE business_id=16011");
+    for (const [width, lang, re] of [[1440, "en", /This store does not have that much stock — this quantity cannot be returned/], [390, null, /এই গুদামে এত মজুদ নেই — এই পরিমাণ ফেরত দেওয়া যাবে না/]]) {
+      const bo = await open(P.bo, width, lang);
+      await bo.click(`.occ-row[data-po='${po1}']`); await bo.waitForSelector(".pu-return[data-ret-status=draft]");
+      await bo.click(".pu-return[data-ret-status=draft] [data-k=ret-post]");
+      await bo.waitForSelector(".occ-detail .pu-flash[data-code=PROC_INSUFFICIENT_STOCK]");
+      assert.match(await bo.textContent(".occ-detail .pu-flash"), re);
+      await noJargon(bo); await noOverflow(bo);
+      assert.ok(!/insufficient_lot_stock/.test(await bo.textContent("body")), "no raw engine message on the screen");
+      await shot(bo, `pu-return-lot-short-${width}-${lang || "bn"}`);
+      await bo.context().close();
+    }
+    assert.strictEqual(posted(), before, "the return was not posted");
+    assert.strictEqual(sql("SELECT count(*) FROM core10.stock_movements WHERE business_id=16011"), moves, "no stock movement written");
+    assert.strictEqual(balance(1601111, "SUGAR"), "85.000"); assert.strictEqual(lotOnHand(), "5.000");
+    const r = sql("SELECT id||','||version FROM core10.supplier_returns_v1 WHERE business_id=16011 AND status='draft'").split(",");
+    asUser(P.staff, `SELECT core10.procurement_advance_return_v1(${r[0]},'cancel',${r[1]},'pu-ret-lot-cancel-01') \\g /dev/null`);
   });
 
   await step("owner switch-off: receiving shows the Bangla switched-off message and writes nothing", async () => {
