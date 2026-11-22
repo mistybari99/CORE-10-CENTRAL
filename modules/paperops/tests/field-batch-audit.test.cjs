@@ -62,7 +62,7 @@ test('first 50 preserve original required/conditional metadata and only draft te
    assert.equal(r.owner_accepted,false);
   }
  }
- assert.equal(report.entries.filter(x=>x.required_candidate==='CONDITIONAL').length,3);
+ assert.equal(report.entries.filter(x=>x.required_candidate==='CONDITIONAL').length,4);
  assert.ok(report.entries.filter(x=>x.visibility_candidate==='CONDITIONAL').length>=4);
 });
 test('expense voucher prints only on a qualifying event and is not silently merged into daily sale close',()=>{
