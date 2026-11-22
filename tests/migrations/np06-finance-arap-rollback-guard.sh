@@ -103,6 +103,14 @@ SQL
 # not merely leave version 0403 present with a changed or missing checksum.
 ledger_before="$(psql -X -At -c "SELECT version || ':' || name || ':' || checksum FROM core10.schema_migrations WHERE version IN (402,403) ORDER BY version")"
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version IN (402,403)")" == 2 ]]
+# A rejected 0403 down must not mutate any canonical AR/AP or Control history.
+# Snapshot counts and compare after the failed transactional rollback.
+state_before="$(psql -X -At -F ':' -c "SELECT
+ (SELECT count(*) FROM core10.finance_arap_links_v1),
+ (SELECT count(*) FROM core10.finance_arap_allocations_v1),
+ (SELECT count(*) FROM core10.canonical_audit_events_v1),
+ (SELECT count(*) FROM core10.control_setting_versions_v1),
+ (SELECT count(*) FROM core10.control_overrides_v1)")"
 output="$(mktemp)"
 trap 'rm -f "$output"; cleanup' EXIT
 if internal/migrations/run.sh down >"$output" 2>&1; then
@@ -115,6 +123,12 @@ if ! grep -q 'FIN_ARAP_INTEGRITY_ROLLBACK_DENIED_HISTORY' "$output"; then
   echo FIN_ARAP_OVERRIDE_ONLY_WRONG_ROLLBACK_ERROR >&2
   exit 1
 fi
+[[ "$(psql -X -At -F ':' -c "SELECT
+ (SELECT count(*) FROM core10.finance_arap_links_v1),
+ (SELECT count(*) FROM core10.finance_arap_allocations_v1),
+ (SELECT count(*) FROM core10.canonical_audit_events_v1),
+ (SELECT count(*) FROM core10.control_setting_versions_v1),
+ (SELECT count(*) FROM core10.control_overrides_v1)")" == "$state_before" ]]
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=403")" == 1 ]]
 [[ "$(psql -X -At -c "SELECT version || ':' || name || ':' || checksum FROM core10.schema_migrations WHERE version IN (402,403) ORDER BY version")" == "$ledger_before" ]]
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.control_overrides_v1 WHERE feature_key='finance.arap_link'")" == 1 ]]
