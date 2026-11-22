@@ -154,6 +154,7 @@ BEGIN
   THEN RAISE EXCEPTION 'SALES_TOTAL_CHANGED'; END IF;
  END IF;
  stages:=(c->>'stages')::integer;
+ IF stages IS NULL OR stages NOT BETWEEN 0 AND 5 THEN RAISE EXCEPTION 'SALES_APPROVAL_STAGES_INVALID'; END IF;
  payload:=jsonb_build_object('order_id',o.id,'site_id',p_site,'version',o.version,
   'document',o.document,'total',o.total,'action',p_action,'required_stages',stages);
  IF stages=0 AND p_approval IS NOT NULL THEN RAISE EXCEPTION 'SALES_APPROVAL_NOT_ALLOWED'; END IF;
