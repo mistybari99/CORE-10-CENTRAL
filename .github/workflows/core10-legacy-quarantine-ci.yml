@@ -1,0 +1,110 @@
+name: CORE10 Legacy Quarantine Safety (Owner §7c)
+on:
+  pull_request:
+    branches: ["ccr-15ed11dd-n3hw5h"]
+    paths:
+      - "legacy/islamia-erp/**"
+      - "docs/coordination/LEGACY_MOVE_MANIFEST_20261122.json"
+      - "tests/core10-legacy-move-integrity.test.js"
+      - "tests/core10-live-legacy-guard.test.js"
+      - "core10-*.html"
+      - "internal/core10-pages-package.js"
+      - ".github/workflows/core10-legacy-quarantine-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  byte-integrity-and-artifact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Prove SHA256 equality for all 463 moved source blobs and tamper negative
+        run: node --test tests/core10-legacy-move-integrity.test.js
+      - name: Reject old IMG-ERP configuration from CORE10 live/modules and root HTML
+        run: node --test tests/core10-live-legacy-guard.test.js
+      - name: Historical report/food module preservation and negative loss cases
+        run: node tests/core10-legacy-preservation.test.js
+      - name: Pages package parity, disallowed paths and symlink negatives
+        run: |
+          node tests/core10-pages-package.test.js
+          node tests/forbidden-files.test.js
+          node internal/core10-pages-package.js "$RUNNER_TEMP/core10-legacy-pages"
+          node tests/core10-pages-artifact-http.test.js "$RUNNER_TEMP/core10-legacy-pages"
+  disposable-pg17:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Migration static contract
+        run: node --test tests/migrations/migration-contract.test.js
+      - name: Full PostgreSQL 17 up-down-up
+        run: bash tests/migrations/run-updownup.sh
+      - name: Canonical control registry
+        run: psql -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+  unchanged-worker-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Restore read-only preview bundler on working tree (never commit/deploy)
+        run: |
+          git fetch --no-tags origin refs/heads/preview/core10-central-level2:refs/remotes/origin/preview/core10-central-level2
+          git restore --source refs/remotes/origin/preview/core10-central-level2 -- preview/core10-central-owner-app
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("preview/core10-central-owner-app/verify.cjs")
+          source=p.read_text()
+          old='path.join(ROOT, "config.js")'
+          assert source.count(old)==1, "Legacy sentinel location unexpectedly changed"
+          p.write_text(source.replace(old, 'path.join(ROOT, "legacy/islamia-erp/config.js")'))
+          PY
+          test ! -e config.js
+          test -f legacy/islamia-erp/config.js
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save --no-package-lock playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Deterministic unchanged Worker build
+        working-directory: preview/core10-central-owner-app
+        run: |
+          node build.mjs
+          echo "Worker sha256:"
+          sha256sum dist/worker.mjs
+      - name: Existing 56-test local exact-bundle verification
+        working-directory: preview/core10-central-owner-app
+        run: node verify.cjs
+      - name: Existing 56-test public Worker verification (no deployment)
+        working-directory: preview/core10-central-owner-app
+        env:
+          REVIEW_BASE: https://core10-central.mistybari99.workers.dev
+        run: node verify.cjs
