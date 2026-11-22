@@ -73,6 +73,8 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-supplier-return-e2e.sql
       - name: "B-012 scoped stock-location list (0208 - same rows as the row policy per persona, explicit site denies, can_post, site filter, cross-tenant, 2000 cap, catalog security)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-locations-e2e.sql
+      - name: "B-012 lots on the one ledger (0209 - lot breakdown of movements, lot balances, FEFO, hold/release, lot commands, genealogy, recall, Owner switches, replay, cross-tenant)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-lots-e2e.sql
       - name: "B-012 owner multi-business dashboard reads (0204 - figures, drill-down, scope per persona)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-owner-dashboard-e2e.sql
       - name: "B-012 P4 scale: 10 businesses x 400 sites (reads, budgets, RPC writes)"
@@ -97,6 +99,8 @@ jobs:
         run: bash tests/migrations/np03a-procurement-race.sh
       - name: B-012 supplier returns and GRN cancel real concurrent sessions (over-return drafts, double return posting, cancel vs receive)
         run: bash tests/migrations/np03a-supplier-return-race.sh
+      - name: B-012 lots real concurrent sessions (hold vs named-lot issue, concurrent lot-less FEFO issue)
+        run: bash tests/migrations/np03a-lots-race.sh
       - name: Registry evidence (each enforced RPC names an existing CI-run proof test)
         run: bash tests/migrations/control-registry-evidence.sh
       - name: B-009 legacy installer vs numbered migrations drift (reviewed list, no silent ignores)
