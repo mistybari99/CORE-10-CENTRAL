@@ -37,7 +37,7 @@ function fixture(){
 }
 async function run(){
  await check("both entrypoints link scoped responsive CSS and new JS",()=>{
-  for(const file of ["index.html","business.html"]){
+  for(const file of ["legacy/islamia-erp/index.html","legacy/islamia-erp/business.html"]){
    const contents=fs.readFileSync(file,"utf8");
    assert.match(contents,/href="core10-place-setup\.css/);
    assert.match(contents,/src="core10-place-setup\.js/);

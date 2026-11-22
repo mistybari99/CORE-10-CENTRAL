@@ -1,0 +1,2324 @@
+{
+  "schema_version": 1,
+  "source_commit": "6424aabe981513749ebfc166782fd60ff22ba140",
+  "source_branch": "ccr-15ed11dd-n3hw5h",
+  "destination": "legacy/islamia-erp",
+  "note": "Historical blob SHAs pinned before Owner-approved path relocation. SHA256 old-blob vs moved-file comparison is enforced by tests/core10-legacy-move-integrity.test.js.",
+  "files": [
+    {
+      "from": ".build-id",
+      "to": "legacy/islamia-erp/.build-id",
+      "git_blob": "f4851fbd32fc6a0aff7e98e074c0d2eea18d33f7"
+    },
+    {
+      "from": ".nojekyll",
+      "to": "legacy/islamia-erp/.nojekyll",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "from": "a11yfix.js",
+      "to": "legacy/islamia-erp/a11yfix.js",
+      "git_blob": "5871f92cd3a12d86cb13fa64e187476d1e9719bd"
+    },
+    {
+      "from": "accounts.js",
+      "to": "legacy/islamia-erp/accounts.js",
+      "git_blob": "9583b12d49b087cc3b8a40818a2609fe132c24c9"
+    },
+    {
+      "from": "ai_core.js",
+      "to": "legacy/islamia-erp/ai_core.js",
+      "git_blob": "74c8cda599dbce23f0b210cfc31b508bf680d3be"
+    },
+    {
+      "from": "announce.js",
+      "to": "legacy/islamia-erp/announce.js",
+      "git_blob": "2cc9eb0d46b4300fb048f7eb02e396eba7da895e"
+    },
+    {
+      "from": "app.css",
+      "to": "legacy/islamia-erp/app.css",
+      "git_blob": "396ff2ed4e3142d7a3a98a943680bbc45671d3d4"
+    },
+    {
+      "from": "app.js",
+      "to": "legacy/islamia-erp/app.js",
+      "git_blob": "8ea2359e943494452a3caa2192c688138be5827d"
+    },
+    {
+      "from": "assistant_tools.js",
+      "to": "legacy/islamia-erp/assistant_tools.js",
+      "git_blob": "ac7b1bef6715e5d697d131dd24bac10f383a4fab"
+    },
+    {
+      "from": "assistant.js",
+      "to": "legacy/islamia-erp/assistant.js",
+      "git_blob": "f4bdecfdc1bef44c7e7636ddcc9c9beb674e3353"
+    },
+    {
+      "from": "attend2.js",
+      "to": "legacy/islamia-erp/attend2.js",
+      "git_blob": "0ef6e8c4cf712ccc5ca7e852a95f2aab2e5fb8c1"
+    },
+    {
+      "from": "attendance.js",
+      "to": "legacy/islamia-erp/attendance.js",
+      "git_blob": "fe7a04fb6683383fda2db4a17a095f5661137b9e"
+    },
+    {
+      "from": "auditreports.js",
+      "to": "legacy/islamia-erp/auditreports.js",
+      "git_blob": "01380047a1ca3e48694df78fda7181f8859b5226"
+    },
+    {
+      "from": "badges107.js",
+      "to": "legacy/islamia-erp/badges107.js",
+      "git_blob": "1966a94882f9d426710418f88fbf597781a20801"
+    },
+    {
+      "from": "balancecheck.js",
+      "to": "legacy/islamia-erp/balancecheck.js",
+      "git_blob": "7440a9cbcb04916de8b7b79ed89ee23cade38c81"
+    },
+    {
+      "from": "barcode.js",
+      "to": "legacy/islamia-erp/barcode.js",
+      "git_blob": "64528ba5bc65383d36fc81bcf0880e48aee7c62f"
+    },
+    {
+      "from": "batchrep.js",
+      "to": "legacy/islamia-erp/batchrep.js",
+      "git_blob": "e8233eef5a6b544740aa2cfdcf8e82a93239e3da"
+    },
+    {
+      "from": "biz.js",
+      "to": "legacy/islamia-erp/biz.js",
+      "git_blob": "17b3708807bff94369a2b758496c978d21ac17d0"
+    },
+    {
+      "from": "bizctx.js",
+      "to": "legacy/islamia-erp/bizctx.js",
+      "git_blob": "6b566ad83057da74836817b3690777b1e4f3d41d"
+    },
+    {
+      "from": "books85.js",
+      "to": "legacy/islamia-erp/books85.js",
+      "git_blob": "cef848119b4e8802fcf8d48a103ab92da8b97889"
+    },
+    {
+      "from": "books96.js",
+      "to": "legacy/islamia-erp/books96.js",
+      "git_blob": "30b3b21ae08544d70548ebcc3f0a4b3c5d39390f"
+    },
+    {
+      "from": "bulkitems.js",
+      "to": "legacy/islamia-erp/bulkitems.js",
+      "git_blob": "31ea07dc52a829cbe1e615956fbb40f2bc84de92"
+    },
+    {
+      "from": "bundle-manifest.json",
+      "to": "legacy/islamia-erp/bundle-manifest.json",
+      "git_blob": "cdb63e4a57f80bd9f7bd2c2cd7d8e516c860b91f"
+    },
+    {
+      "from": "business-tenant-icon.svg",
+      "to": "legacy/islamia-erp/business-tenant-icon.svg",
+      "git_blob": "da8a1985dac0462d06bc6a20703bb163bff8ed44"
+    },
+    {
+      "from": "business-tenant.css",
+      "to": "legacy/islamia-erp/business-tenant.css",
+      "git_blob": "cc5c63463eb76b5d2ddbc1cfa1eefe79316a78a9"
+    },
+    {
+      "from": "business-tenant.webmanifest",
+      "to": "legacy/islamia-erp/business-tenant.webmanifest",
+      "git_blob": "80ba3339cbcd982d290ce029a74a1ed323bd8530"
+    },
+    {
+      "from": "business.html",
+      "to": "legacy/islamia-erp/business.html",
+      "git_blob": "5830e664011124920539a499f6cfb8a9423d3782"
+    },
+    {
+      "from": "businesshub.js",
+      "to": "legacy/islamia-erp/businesshub.js",
+      "git_blob": "c46babdafa6020eab87d6679cd6c027fb4ae5cc7"
+    },
+    {
+      "from": "c2rpt.js",
+      "to": "legacy/islamia-erp/c2rpt.js",
+      "git_blob": "dccb5e59ec9eba0b919c85d7a95e635f0317463b"
+    },
+    {
+      "from": "campaigns.js",
+      "to": "legacy/islamia-erp/campaigns.js",
+      "git_blob": "3b9df9b7f1b9ce3291b0b4294f17806a884ec7a1"
+    },
+    {
+      "from": "capacity.js",
+      "to": "legacy/islamia-erp/capacity.js",
+      "git_blob": "bace17317e4eb6e867c610aa4382be2e3dfb5fe9"
+    },
+    {
+      "from": "cashdrawer.js",
+      "to": "legacy/islamia-erp/cashdrawer.js",
+      "git_blob": "3c239554266b15b34a5efeced59dfc92474c11f7"
+    },
+    {
+      "from": "cashmoves.js",
+      "to": "legacy/islamia-erp/cashmoves.js",
+      "git_blob": "8f28d600c92997f9373e87abb15dcb6ce79f1502"
+    },
+    {
+      "from": "catpick.js",
+      "to": "legacy/islamia-erp/catpick.js",
+      "git_blob": "c0ed542ed43cb8c28f68d906edacf39adca5c612"
+    },
+    {
+      "from": "chanedit.js",
+      "to": "legacy/islamia-erp/chanedit.js",
+      "git_blob": "6e090e3d40a6a18127b640758bb08c4d094f8a7f"
+    },
+    {
+      "from": "charts.js",
+      "to": "legacy/islamia-erp/charts.js",
+      "git_blob": "8d9aa43b17b81217220d241112e312591e9433dc"
+    },
+    {
+      "from": "cheques127.js",
+      "to": "legacy/islamia-erp/cheques127.js",
+      "git_blob": "09dd9f1fd46c06aa2184396fe82af708b12d98f3"
+    },
+    {
+      "from": "coldstart.js",
+      "to": "legacy/islamia-erp/coldstart.js",
+      "git_blob": "2b2cd0d53f7ebf05daaadf4f7021fed2202a1e0c"
+    },
+    {
+      "from": "config.js",
+      "to": "legacy/islamia-erp/config.js",
+      "git_blob": "0f4fe5035973a6d032cbc906061cb2ace4b2ba12"
+    },
+    {
+      "from": "connect.js",
+      "to": "legacy/islamia-erp/connect.js",
+      "git_blob": "5f6acd2acba9b38c629d53813b5c007001b0b937"
+    },
+    {
+      "from": "control.js",
+      "to": "legacy/islamia-erp/control.js",
+      "git_blob": "c1c9e50216aa9a02a057c6e1a28ef6777499e65e"
+    },
+    {
+      "from": "controls.css",
+      "to": "legacy/islamia-erp/controls.css",
+      "git_blob": "7960ad6a7fd3df086bbb682cc33e2b8668dba025"
+    },
+    {
+      "from": "controls.js",
+      "to": "legacy/islamia-erp/controls.js",
+      "git_blob": "8e776317abafb42c36046684c0e34b2935a8fa27"
+    },
+    {
+      "from": "core.js",
+      "to": "legacy/islamia-erp/core.js",
+      "git_blob": "fb5f4ba58d11e86eea046fa31463af2b301b52dd"
+    },
+    {
+      "from": "cost116.js",
+      "to": "legacy/islamia-erp/cost116.js",
+      "git_blob": "2c2b72703cb191138af43f78912342f76bcc9977"
+    },
+    {
+      "from": "costattrib.js",
+      "to": "legacy/islamia-erp/costattrib.js",
+      "git_blob": "1bf637cc08b4a160fc68affe50411825988a45a9"
+    },
+    {
+      "from": "costboard.js",
+      "to": "legacy/islamia-erp/costboard.js",
+      "git_blob": "6586ab6a6f7588be1ddae5d7c649303bd0d0c9a6"
+    },
+    {
+      "from": "costgap.js",
+      "to": "legacy/islamia-erp/costgap.js",
+      "git_blob": "75610dbb04b9ceb196fddc5754fb9461fb78dee8"
+    },
+    {
+      "from": "costing.js",
+      "to": "legacy/islamia-erp/costing.js",
+      "git_blob": "3635b40816ec48e3a09160b08dc2c71b678ee888"
+    },
+    {
+      "from": "costsources.js",
+      "to": "legacy/islamia-erp/costsources.js",
+      "git_blob": "1e7b3c64493d7cde31b58c49b37a3a2361faaca6"
+    },
+    {
+      "from": "couponuse.js",
+      "to": "legacy/islamia-erp/couponuse.js",
+      "git_blob": "863869ead78616a1a59fef4af4fa2d993830946e"
+    },
+    {
+      "from": "crm_360.js",
+      "to": "legacy/islamia-erp/crm_360.js",
+      "git_blob": "269aa05b7045e186ea3a48c746502b56692a26d7"
+    },
+    {
+      "from": "crm_consent.js",
+      "to": "legacy/islamia-erp/crm_consent.js",
+      "git_blob": "d72b74bb8a470d8bef7c548f84d9c5d20303e8b6"
+    },
+    {
+      "from": "crm_coupons.js",
+      "to": "legacy/islamia-erp/crm_coupons.js",
+      "git_blob": "aaea23d51815db29cb522ac18b243c9efda51f00"
+    },
+    {
+      "from": "crm_dupes.js",
+      "to": "legacy/islamia-erp/crm_dupes.js",
+      "git_blob": "a54f221e81de70ffbf1e92e5d55304943cd94060"
+    },
+    {
+      "from": "crm_feedback.js",
+      "to": "legacy/islamia-erp/crm_feedback.js",
+      "git_blob": "0ed70b980e91d2a11f946482ff0f535b091d92f1"
+    },
+    {
+      "from": "crm_leads.js",
+      "to": "legacy/islamia-erp/crm_leads.js",
+      "git_blob": "3c7934cca23d49a2d2cafc54c2b6e314f56851b5"
+    },
+    {
+      "from": "crm_loyalty.js",
+      "to": "legacy/islamia-erp/crm_loyalty.js",
+      "git_blob": "b3e19c12e0c9a35abdb34b406f44c76dd7061116"
+    },
+    {
+      "from": "crm_profile.js",
+      "to": "legacy/islamia-erp/crm_profile.js",
+      "git_blob": "6359da897311f304e30540e36352b3f48b18b159"
+    },
+    {
+      "from": "crm_rfm.js",
+      "to": "legacy/islamia-erp/crm_rfm.js",
+      "git_blob": "da62459b04ea1034ef5e2ebab898dcf617932fa9"
+    },
+    {
+      "from": "crm_segments.js",
+      "to": "legacy/islamia-erp/crm_segments.js",
+      "git_blob": "e6bd9c05752a2ac328fa3a8fe997e548908d3038"
+    },
+    {
+      "from": "crm_tasks.js",
+      "to": "legacy/islamia-erp/crm_tasks.js",
+      "git_blob": "2db90c998de9e2f47a0855353059ac524794cffe"
+    },
+    {
+      "from": "custinsight.js",
+      "to": "legacy/islamia-erp/custinsight.js",
+      "git_blob": "6eb3d9c1385da11f51dd508b1e68ab9db47d46a0"
+    },
+    {
+      "from": "customers.js",
+      "to": "legacy/islamia-erp/customers.js",
+      "git_blob": "899b0bb2aa1243647ef016e68a85e58c65bd4ab6"
+    },
+    {
+      "from": "dash.js",
+      "to": "legacy/islamia-erp/dash.js",
+      "git_blob": "3f11ab2bda8352495827d191d4c332037628c7eb"
+    },
+    {
+      "from": "dashx_metrics.js",
+      "to": "legacy/islamia-erp/dashx_metrics.js",
+      "git_blob": "cd1fa433e002e69954e58c331f8b079120d0d24b"
+    },
+    {
+      "from": "dashx.js",
+      "to": "legacy/islamia-erp/dashx.js",
+      "git_blob": "a63052020ab555f5d78a317ea26ebc980aa77819"
+    },
+    {
+      "from": "daybook.js",
+      "to": "legacy/islamia-erp/daybook.js",
+      "git_blob": "315512b51343ed8ab11b8cb4bada7315df837dec"
+    },
+    {
+      "from": "delegation.js",
+      "to": "legacy/islamia-erp/delegation.js",
+      "git_blob": "ff7f8b878c5008731f34c8260e44ec7a54504389"
+    },
+    {
+      "from": "desktop.css",
+      "to": "legacy/islamia-erp/desktop.css",
+      "git_blob": "ab9ac764c1a01093ea75000b80b82bc24cfdec97"
+    },
+    {
+      "from": "dues.js",
+      "to": "legacy/islamia-erp/dues.js",
+      "git_blob": "4f7e74c1ad5c469dbed819def340d4e796951ea5"
+    },
+    {
+      "from": "employees.js",
+      "to": "legacy/islamia-erp/employees.js",
+      "git_blob": "c70803b7de80804c011fd663a1f72b25dbff9e91"
+    },
+    {
+      "from": "entry.js",
+      "to": "legacy/islamia-erp/entry.js",
+      "git_blob": "402eba6436f0e619ebcbd15bb99c7c3cd0853585"
+    },
+    {
+      "from": "errlog.js",
+      "to": "legacy/islamia-erp/errlog.js",
+      "git_blob": "0120b5d21124e92a6e97cb23830aaf7f214a49bf"
+    },
+    {
+      "from": "expenseregister.js",
+      "to": "legacy/islamia-erp/expenseregister.js",
+      "git_blob": "7082595fdaceac4e8ab4b6129bdb7c6e6fca312f"
+    },
+    {
+      "from": "filters.js",
+      "to": "legacy/islamia-erp/filters.js",
+      "git_blob": "9876c232920785ffc2812f538ac141c360e234b8"
+    },
+    {
+      "from": "finance2.js",
+      "to": "legacy/islamia-erp/finance2.js",
+      "git_blob": "2dbe1147f5ac6ef5b4acded626b3232cce3b2a1f"
+    },
+    {
+      "from": "flow.js",
+      "to": "legacy/islamia-erp/flow.js",
+      "git_blob": "c65c072565fc995aefb6af2300789cebcbe158a5"
+    },
+    {
+      "from": "forecast.js",
+      "to": "legacy/islamia-erp/forecast.js",
+      "git_blob": "4d65169a3e8dcfc6579c0e0789f32ef6dadf50ea"
+    },
+    {
+      "from": "forms_cash.js",
+      "to": "legacy/islamia-erp/forms_cash.js",
+      "git_blob": "9ea4fff512c709b6e28f9ab6613c3797b306b4f2"
+    },
+    {
+      "from": "forms_factory.js",
+      "to": "legacy/islamia-erp/forms_factory.js",
+      "git_blob": "1c52dc8b8bc87adbb91f5811d45e6dc1b10e23d6"
+    },
+    {
+      "from": "forms_sales.js",
+      "to": "legacy/islamia-erp/forms_sales.js",
+      "git_blob": "8bdf649f159593882f7e415a366688f6e3f45145"
+    },
+    {
+      "from": "forms_staff.js",
+      "to": "legacy/islamia-erp/forms_staff.js",
+      "git_blob": "218976e3a39a1816369c756abf477b919cba17cb"
+    },
+    {
+      "from": "forms_stock.js",
+      "to": "legacy/islamia-erp/forms_stock.js",
+      "git_blob": "59849dc51819243c5cd83b8f2246301daceebdb1"
+    },
+    {
+      "from": "forms.js",
+      "to": "legacy/islamia-erp/forms.js",
+      "git_blob": "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d"
+    },
+    {
+      "from": "formscreens.js",
+      "to": "legacy/islamia-erp/formscreens.js",
+      "git_blob": "8edfff36c9f6f5a581c578aaa17ea7543a29c729"
+    },
+    {
+      "from": "freshness.js",
+      "to": "legacy/islamia-erp/freshness.js",
+      "git_blob": "f264d245584ec2e222acd9d3d592c0acc5b2690b"
+    },
+    {
+      "from": "guards.js",
+      "to": "legacy/islamia-erp/guards.js",
+      "git_blob": "58b7083d9d681b4633239483c9f16c1d84ec2c39"
+    },
+    {
+      "from": "i18n.js",
+      "to": "legacy/islamia-erp/i18n.js",
+      "git_blob": "fdb7eabf288cc61e1d20f9d1522f1526180adc9a"
+    },
+    {
+      "from": "ia.js",
+      "to": "legacy/islamia-erp/ia.js",
+      "git_blob": "e5834768ccee343013a424f80caa0dd9fc000cf5"
+    },
+    {
+      "from": "icon.svg",
+      "to": "legacy/islamia-erp/icon.svg",
+      "git_blob": "90976392fe5e8c54b429a523739679bcc19a2585"
+    },
+    {
+      "from": "icons3d.js",
+      "to": "legacy/islamia-erp/icons3d.js",
+      "git_blob": "d95c31a54c4bcec298d0c9c6f933a233f32aaa46"
+    },
+    {
+      "from": "impexp124.js",
+      "to": "legacy/islamia-erp/impexp124.js",
+      "git_blob": "388341ef4635a6c6d2e1f3888e95a19eff910424"
+    },
+    {
+      "from": "inbox.js",
+      "to": "legacy/islamia-erp/inbox.js",
+      "git_blob": "9a5c2068698ef615f0eb6c61f7821c764e6ae434"
+    },
+    {
+      "from": "index.html",
+      "to": "legacy/islamia-erp/index.html",
+      "git_blob": "f2f74144e13ed865f45d84d6e683d49d2972cb5d"
+    },
+    {
+      "from": "infohint.js",
+      "to": "legacy/islamia-erp/infohint.js",
+      "git_blob": "06697b8a3080c8d8d60faf7e66fbb9d88f20ddff"
+    },
+    {
+      "from": "integrations.js",
+      "to": "legacy/islamia-erp/integrations.js",
+      "git_blob": "e4fe883ca78b51b866a7b49ae281065297d9f778"
+    },
+    {
+      "from": "invoice.js",
+      "to": "legacy/islamia-erp/invoice.js",
+      "git_blob": "410d9b2da3bd93e5bf670360287126fd69023b97"
+    },
+    {
+      "from": "invoiceview.js",
+      "to": "legacy/islamia-erp/invoiceview.js",
+      "git_blob": "e6f825b732b4b481a42b43e34acc88a11dbe311b"
+    },
+    {
+      "from": "itemimg.js",
+      "to": "legacy/islamia-erp/itemimg.js",
+      "git_blob": "18ef4bfc187f96bf2bb66a47b2aee3194046c952"
+    },
+    {
+      "from": "itemmaster.js",
+      "to": "legacy/islamia-erp/itemmaster.js",
+      "git_blob": "2453e7f3210f27024856727331f0f1b32c60c028"
+    },
+    {
+      "from": "items2.js",
+      "to": "legacy/islamia-erp/items2.js",
+      "git_blob": "e65aa869b9010cbc90bed134c5f244775c892b2f"
+    },
+    {
+      "from": "kbdfix.js",
+      "to": "legacy/islamia-erp/kbdfix.js",
+      "git_blob": "537558876f8df0e99fd473decff4ce9cedc8877b"
+    },
+    {
+      "from": "landed_q4.js",
+      "to": "legacy/islamia-erp/landed_q4.js",
+      "git_blob": "7c83f95abbd6fd30df6130b3152b9f8c18a813e9"
+    },
+    {
+      "from": "landed.js",
+      "to": "legacy/islamia-erp/landed.js",
+      "git_blob": "b8fdace11513764d84dc01b73bf8527f8d2a8007"
+    },
+    {
+      "from": "lazy.js",
+      "to": "legacy/islamia-erp/lazy.js",
+      "git_blob": "2bc31cb9c278b116abc549d1dfd278317f54151a"
+    },
+    {
+      "from": "listctl.js",
+      "to": "legacy/islamia-erp/listctl.js",
+      "git_blob": "eece6c6c9074a6666b25eb4c9519376b38a88e95"
+    },
+    {
+      "from": "lists.js",
+      "to": "legacy/islamia-erp/lists.js",
+      "git_blob": "e960bf18769552edd3e1a6a9d7900058f4443a0e"
+    },
+    {
+      "from": "locations.js",
+      "to": "legacy/islamia-erp/locations.js",
+      "git_blob": "a78ebd4a9696bb1df687327b73fdc2b394df8f37"
+    },
+    {
+      "from": "locgroups.js",
+      "to": "legacy/islamia-erp/locgroups.js",
+      "git_blob": "2bcbe69fc21a9e2ce913552a6a16fce3b5b79485"
+    },
+    {
+      "from": "logo.webp",
+      "to": "legacy/islamia-erp/logo.webp",
+      "git_blob": "e5084b7aca854e0d0514222df28c39abe98ae61a"
+    },
+    {
+      "from": "manifest.json",
+      "to": "legacy/islamia-erp/manifest.json",
+      "git_blob": "c5407831e5851c0d946c523a9161aaa7cf609416"
+    },
+    {
+      "from": "mark.svg",
+      "to": "legacy/islamia-erp/mark.svg",
+      "git_blob": "423eae4b6765df13d3ee96d0fa4a7eb4699ce9a8"
+    },
+    {
+      "from": "market.js",
+      "to": "legacy/islamia-erp/market.js",
+      "git_blob": "dad9f743f15cf7cab6d41dcbc4053eb8158f7856"
+    },
+    {
+      "from": "moneyaccounts.js",
+      "to": "legacy/islamia-erp/moneyaccounts.js",
+      "git_blob": "7fc0dc545b4e61d0fb06328ba04b4da7a89b7aaa"
+    },
+    {
+      "from": "moneycontrols.js",
+      "to": "legacy/islamia-erp/moneycontrols.js",
+      "git_blob": "6fc6f30ea6c7ca6472dddb99670b6aa997fb896d"
+    },
+    {
+      "from": "moneysrc.js",
+      "to": "legacy/islamia-erp/moneysrc.js",
+      "git_blob": "dbc03cf9d68721771addd777b4b850a22a239f58"
+    },
+    {
+      "from": "monthclose.js",
+      "to": "legacy/islamia-erp/monthclose.js",
+      "git_blob": "888cd4d04b83950e7d04cb9e5a17695544c6b4f2"
+    },
+    {
+      "from": "nav.js",
+      "to": "legacy/islamia-erp/nav.js",
+      "git_blob": "c66b54fa977c6b84c1a20351dff1b59fb8a82d40"
+    },
+    {
+      "from": "navstack.js",
+      "to": "legacy/islamia-erp/navstack.js",
+      "git_blob": "2ce24516f7580cd9fd437a248271504629582682"
+    },
+    {
+      "from": "nightgap.js",
+      "to": "legacy/islamia-erp/nightgap.js",
+      "git_blob": "992ad3da2067306f7fc9794798bd963cea00a1bf"
+    },
+    {
+      "from": "notifications.js",
+      "to": "legacy/islamia-erp/notifications.js",
+      "git_blob": "f25836b834e7b8c0273db30e648cb69cba19df6e"
+    },
+    {
+      "from": "openparties.js",
+      "to": "legacy/islamia-erp/openparties.js",
+      "git_blob": "19385a33875fbafa93cbcc6c0a0d928302b16281"
+    },
+    {
+      "from": "optionsx.js",
+      "to": "legacy/islamia-erp/optionsx.js",
+      "git_blob": "d029a7b459b5a0fb27cd7599209ccfed5f098ff2"
+    },
+    {
+      "from": "optviews.js",
+      "to": "legacy/islamia-erp/optviews.js",
+      "git_blob": "23144dd4459f202aaaed0b711e65ca12a04b910c"
+    },
+    {
+      "from": "order_parser.js",
+      "to": "legacy/islamia-erp/order_parser.js",
+      "git_blob": "347c5e57f635fa21de12da21233777b210f0bd61"
+    },
+    {
+      "from": "orderreports.js",
+      "to": "legacy/islamia-erp/orderreports.js",
+      "git_blob": "a6f18cd1b9688e1798319f7bb1faeda749132668"
+    },
+    {
+      "from": "org122.js",
+      "to": "legacy/islamia-erp/org122.js",
+      "git_blob": "eb7a7b67980c4ea65f3c3fc0605422a590d8e57d"
+    },
+    {
+      "from": "otherincome.js",
+      "to": "legacy/islamia-erp/otherincome.js",
+      "git_blob": "ef749d7be2f348401cf4e7a1d28643c8ed2739f1"
+    },
+    {
+      "from": "owner.html",
+      "to": "legacy/islamia-erp/owner.html",
+      "git_blob": "f9eb9e5a1346a2144799aea4b73a598429a065ad"
+    },
+    {
+      "from": "ownerboard.js",
+      "to": "legacy/islamia-erp/ownerboard.js",
+      "git_blob": "a17cced450c846dc20a767e5907f0052ef41c111"
+    },
+    {
+      "from": "packflags.js",
+      "to": "legacy/islamia-erp/packflags.js",
+      "git_blob": "aa582bd1758088e3865ba8645807d077c0da39f4"
+    },
+    {
+      "from": "pager.js",
+      "to": "legacy/islamia-erp/pager.js",
+      "git_blob": "271933a3f0161319ddbf50e66f52e14f81dd58f0"
+    },
+    {
+      "from": "parallel.js",
+      "to": "legacy/islamia-erp/parallel.js",
+      "git_blob": "b03a69282e29c319684b3fbf7738fc935f3c474c"
+    },
+    {
+      "from": "partners.js",
+      "to": "legacy/islamia-erp/partners.js",
+      "git_blob": "d0b025ab745678d833882e20378b37abe3e5bb7c"
+    },
+    {
+      "from": "paths.js",
+      "to": "legacy/islamia-erp/paths.js",
+      "git_blob": "0ca285e66b58859a4b9e70cc108dd37daaea5144"
+    },
+    {
+      "from": "pay.js",
+      "to": "legacy/islamia-erp/pay.js",
+      "git_blob": "1a3a484bdeb0c78d6678f13b44df7ce91ceef948"
+    },
+    {
+      "from": "payrequests.js",
+      "to": "legacy/islamia-erp/payrequests.js",
+      "git_blob": "db34a539d0cd4e24cb6f94f62dd177cb5229314b"
+    },
+    {
+      "from": "payroll.js",
+      "to": "legacy/islamia-erp/payroll.js",
+      "git_blob": "7fb152dcb3d622f336743d9d6bd04c1a5348598b"
+    },
+    {
+      "from": "periodlock.js",
+      "to": "legacy/islamia-erp/periodlock.js",
+      "git_blob": "3ebe08fa0b0c399c5f863cd59bb2ac236cfc8e7e"
+    },
+    {
+      "from": "photo.js",
+      "to": "legacy/islamia-erp/photo.js",
+      "git_blob": "e44b23742bcfa06eca7e675f9ac22c09d510b8a9"
+    },
+    {
+      "from": "pinsign.js",
+      "to": "legacy/islamia-erp/pinsign.js",
+      "git_blob": "78eb739eb414f6ac708c2a80ba73f8a4f592de9f"
+    },
+    {
+      "from": "places135.js",
+      "to": "legacy/islamia-erp/places135.js",
+      "git_blob": "5bcad8106e8ca936aa56a43b26a4eca817e96fe9"
+    },
+    {
+      "from": "pos.js",
+      "to": "legacy/islamia-erp/pos.js",
+      "git_blob": "f4e6b4a2456fbec448cae875a019ca6a56fb0f1a"
+    },
+    {
+      "from": "posfail.js",
+      "to": "legacy/islamia-erp/posfail.js",
+      "git_blob": "b7b377627fce0be3d6682ec3daddcb3c268f36c4"
+    },
+    {
+      "from": "printbooks.js",
+      "to": "legacy/islamia-erp/printbooks.js",
+      "git_blob": "d7c688ea5c6f234a168356abe1057949a8e9e4fe"
+    },
+    {
+      "from": "prodplan.js",
+      "to": "legacy/islamia-erp/prodplan.js",
+      "git_blob": "6569ecbe3d77d393fe05b2764497613486550a51"
+    },
+    {
+      "from": "prodreports.js",
+      "to": "legacy/islamia-erp/prodreports.js",
+      "git_blob": "8c4da0c8b4d6550bd08088c5a2e92ecc94b686bd"
+    },
+    {
+      "from": "profile134.js",
+      "to": "legacy/islamia-erp/profile134.js",
+      "git_blob": "6b87be459a12050e8d0512864069ab92b407c14f"
+    },
+    {
+      "from": "profitcheck.js",
+      "to": "legacy/islamia-erp/profitcheck.js",
+      "git_blob": "29ed428f9ef25bef58784e3ee3cbb56ef0047b2c"
+    },
+    {
+      "from": "purchase.js",
+      "to": "legacy/islamia-erp/purchase.js",
+      "git_blob": "f90922d45b5830743525e2f1463c4914e23f5e16"
+    },
+    {
+      "from": "purchaseprint.js",
+      "to": "legacy/islamia-erp/purchaseprint.js",
+      "git_blob": "4fa5b6dc696cebf2873a412811325426b09a1c29"
+    },
+    {
+      "from": "purchrep.js",
+      "to": "legacy/islamia-erp/purchrep.js",
+      "git_blob": "c81be8c54527714ceb86883347bd64117f5ba6ad"
+    },
+    {
+      "from": "rb4common.js",
+      "to": "legacy/islamia-erp/rb4common.js",
+      "git_blob": "ab02301216b313bd6b6aa72127644b05651563a4"
+    },
+    {
+      "from": "recipebook.js",
+      "to": "legacy/islamia-erp/recipebook.js",
+      "git_blob": "672ac7b1afea4d48950cc9a58985bced3e9d63c5"
+    },
+    {
+      "from": "recipes.js",
+      "to": "legacy/islamia-erp/recipes.js",
+      "git_blob": "f06b46807b45e39a28aadf451ce48b0f2a0c6beb"
+    },
+    {
+      "from": "recon118.js",
+      "to": "legacy/islamia-erp/recon118.js",
+      "git_blob": "f1d87e97ce8602780fe7047e113ad58d78b556af"
+    },
+    {
+      "from": "reporthub_ask.js",
+      "to": "legacy/islamia-erp/reporthub_ask.js",
+      "git_blob": "04f1da4111e8f204fcd26cda3a8ba494c3d4fa12"
+    },
+    {
+      "from": "reporthub_parse.js",
+      "to": "legacy/islamia-erp/reporthub_parse.js",
+      "git_blob": "c5e0cc733b9fe836b14fd70264dae01c8b39fe32"
+    },
+    {
+      "from": "reporthub_time.js",
+      "to": "legacy/islamia-erp/reporthub_time.js",
+      "git_blob": "df353a502ea3102b8812b82b2b15bb88c2524530"
+    },
+    {
+      "from": "reporthub.js",
+      "to": "legacy/islamia-erp/reporthub.js",
+      "git_blob": "7237881f7571cf68d296c23810cda927d20a2bad"
+    },
+    {
+      "from": "reportnotes.js",
+      "to": "legacy/islamia-erp/reportnotes.js",
+      "git_blob": "6cb83e5bfe97d26b7f4fca2fe9ac3a70867cd400"
+    },
+    {
+      "from": "reports.js",
+      "to": "legacy/islamia-erp/reports.js",
+      "git_blob": "0319f19b2182a84df8499c990264724326ec5d01"
+    },
+    {
+      "from": "reports131.js",
+      "to": "legacy/islamia-erp/reports131.js",
+      "git_blob": "8a8ef12e0a78ee916e301c6c646631f1de55659b"
+    },
+    {
+      "from": "reports2.js",
+      "to": "legacy/islamia-erp/reports2.js",
+      "git_blob": "05883f57df0c179fe68da61c5810ade087be3bf7"
+    },
+    {
+      "from": "reportsmap.js",
+      "to": "legacy/islamia-erp/reportsmap.js",
+      "git_blob": "905e3e93c1eefde0b182bd8a17720a248669b61e"
+    },
+    {
+      "from": "restoredrill.js",
+      "to": "legacy/islamia-erp/restoredrill.js",
+      "git_blob": "e20ba4a9de2a31f68b9ef8e3becec70431e906fc"
+    },
+    {
+      "from": "returnrules.js",
+      "to": "legacy/islamia-erp/returnrules.js",
+      "git_blob": "e8ae6a145ee6e927a0cca21b6fde2e0d8e17e0c5"
+    },
+    {
+      "from": "robots.txt",
+      "to": "legacy/islamia-erp/robots.txt",
+      "git_blob": "0b2b2a1390eb997427e89f6b5d3ba4535848f5a3"
+    },
+    {
+      "from": "rollout.js",
+      "to": "legacy/islamia-erp/rollout.js",
+      "git_blob": "e1e66ce1bb0890b537bed184123e51e12decb7b9"
+    },
+    {
+      "from": "rptkit.js",
+      "to": "legacy/islamia-erp/rptkit.js",
+      "git_blob": "48543c3f0d2e69fd28d99407c9917c982350e602"
+    },
+    {
+      "from": "rules.js",
+      "to": "legacy/islamia-erp/rules.js",
+      "git_blob": "8fcbc88817fdfd957eb07efc6308f3aa25381ce4"
+    },
+    {
+      "from": "s1setup.js",
+      "to": "legacy/islamia-erp/s1setup.js",
+      "git_blob": "56156da5d29940013d9b5d8ea86a4b52185f965c"
+    },
+    {
+      "from": "salary.js",
+      "to": "legacy/islamia-erp/salary.js",
+      "git_blob": "83752a0cd071790f6181f434e6d1be9348c896a6"
+    },
+    {
+      "from": "salereturn.js",
+      "to": "legacy/islamia-erp/salereturn.js",
+      "git_blob": "65bbfeed02a3ec1468811e0f5d18bcaaf1bc46d6"
+    },
+    {
+      "from": "salesx.js",
+      "to": "legacy/islamia-erp/salesx.js",
+      "git_blob": "6168435f527fba62bd49af24ca3657e837238957"
+    },
+    {
+      "from": "scan_core.js",
+      "to": "legacy/islamia-erp/scan_core.js",
+      "git_blob": "c0b35a6470d18fb66eb3e0c0497dd88b33a5424f"
+    },
+    {
+      "from": "scan_items.js",
+      "to": "legacy/islamia-erp/scan_items.js",
+      "git_blob": "7bed6883a2f20815d6866c7227fd99ff9ea0878d"
+    },
+    {
+      "from": "scan_native.js",
+      "to": "legacy/islamia-erp/scan_native.js",
+      "git_blob": "1463013ea79b830397933cf773258db2bca76314"
+    },
+    {
+      "from": "scan.js",
+      "to": "legacy/islamia-erp/scan.js",
+      "git_blob": "c29a0dcde9191ad96e2a4d2a47c7aa5dff9ea3a8"
+    },
+    {
+      "from": "schemes128.js",
+      "to": "legacy/islamia-erp/schemes128.js",
+      "git_blob": "4ca70bff5e99b64609a89cea1703a5a8e3e70e81"
+    },
+    {
+      "from": "settings2.js",
+      "to": "legacy/islamia-erp/settings2.js",
+      "git_blob": "79396395cf776ddd7445ceef305cd0be3308c0fc"
+    },
+    {
+      "from": "setupadvisor.js",
+      "to": "legacy/islamia-erp/setupadvisor.js",
+      "git_blob": "5c7029640f6f56213f5ff18214db05ea6570972c"
+    },
+    {
+      "from": "setupundo.js",
+      "to": "legacy/islamia-erp/setupundo.js",
+      "git_blob": "6760afef7d64ae3f6f6529c39051939296f1c297"
+    },
+    {
+      "from": "shifts.js",
+      "to": "legacy/islamia-erp/shifts.js",
+      "git_blob": "8dd875e893d98ce4a486a6652f9fbcf6d8d5f1e3"
+    },
+    {
+      "from": "shortages.js",
+      "to": "legacy/islamia-erp/shortages.js",
+      "git_blob": "b27dc5784d15d9b293919c1eec3607931e06aca7"
+    },
+    {
+      "from": "staffreports.js",
+      "to": "legacy/islamia-erp/staffreports.js",
+      "git_blob": "5909b2879373abdbc876de9145e2c537cf53f5cc"
+    },
+    {
+      "from": "statements.js",
+      "to": "legacy/islamia-erp/statements.js",
+      "git_blob": "cc716fdebad5dfa7d87ab6445a3dcc2c3806c2e4"
+    },
+    {
+      "from": "stepw_common.js",
+      "to": "legacy/islamia-erp/stepw_common.js",
+      "git_blob": "5fc4d3ab36057996f7d1ffe3af095a658e47f4fa"
+    },
+    {
+      "from": "stock2.js",
+      "to": "legacy/islamia-erp/stock2.js",
+      "git_blob": "9a91b2acc278ebf0c795c660f33bee33899e5891"
+    },
+    {
+      "from": "stockout.js",
+      "to": "legacy/islamia-erp/stockout.js",
+      "git_blob": "f6cdb1cf79d0819b0473b8722ccf8ccd63669ae5"
+    },
+    {
+      "from": "stockrep.js",
+      "to": "legacy/islamia-erp/stockrep.js",
+      "git_blob": "bb565c9db1d357c816266ec3f93e26db3450a04c"
+    },
+    {
+      "from": "stockx.js",
+      "to": "legacy/islamia-erp/stockx.js",
+      "git_blob": "23ae00beba96a492f4cc8032d71f905751c1befe"
+    },
+    {
+      "from": "styles.css",
+      "to": "legacy/islamia-erp/styles.css",
+      "git_blob": "6dabbb63410a863fd472cb1338a9fbdaa5c2ee78"
+    },
+    {
+      "from": "sw.js",
+      "to": "legacy/islamia-erp/sw.js",
+      "git_blob": "cd4d0e3016948407374df56c52392790228a955d"
+    },
+    {
+      "from": "switchboard.js",
+      "to": "legacy/islamia-erp/switchboard.js",
+      "git_blob": "b759da42471062987887e8b0b334d7a1fd2a0b34"
+    },
+    {
+      "from": "swreg.js",
+      "to": "legacy/islamia-erp/swreg.js",
+      "git_blob": "972235124d56995e33ea72e5f47ba70221dbf6c5"
+    },
+    {
+      "from": "targets.js",
+      "to": "legacy/islamia-erp/targets.js",
+      "git_blob": "90d2982ecdab5af4547b6a0fc0c3926decbfdddd"
+    },
+    {
+      "from": "theme_glass.css",
+      "to": "legacy/islamia-erp/theme_glass.css",
+      "git_blob": "6800f45b033b7712fea596d79cf395238288e41e"
+    },
+    {
+      "from": "theme_glass.js",
+      "to": "legacy/islamia-erp/theme_glass.js",
+      "git_blob": "b7c62e27938c3fd5aafd91c83036604fce172f8a"
+    },
+    {
+      "from": "theme.css",
+      "to": "legacy/islamia-erp/theme.css",
+      "git_blob": "7672b3362aed17af5780b8dd18bb2628ddaa3485"
+    },
+    {
+      "from": "tinting129.js",
+      "to": "legacy/islamia-erp/tinting129.js",
+      "git_blob": "e187fe8a083f6ff4aac53efdced3639fcb917c60"
+    },
+    {
+      "from": "todo.js",
+      "to": "legacy/islamia-erp/todo.js",
+      "git_blob": "a05810524e7de0deee079efb8627f5a83939fffb"
+    },
+    {
+      "from": "tpl_docs.js",
+      "to": "legacy/islamia-erp/tpl_docs.js",
+      "git_blob": "cb777ec6f7f52e2cc49d47bbf6436612e3b5de40"
+    },
+    {
+      "from": "tpl_labels.js",
+      "to": "legacy/islamia-erp/tpl_labels.js",
+      "git_blob": "1487a2471cf847f37cf8f33bca0cf7dc607d4434"
+    },
+    {
+      "from": "tpl_msgs.js",
+      "to": "legacy/islamia-erp/tpl_msgs.js",
+      "git_blob": "cf7e056650db63e0e326f68bc650375ea226d74f"
+    },
+    {
+      "from": "tpl_registry.js",
+      "to": "legacy/islamia-erp/tpl_registry.js",
+      "git_blob": "41744543a5a440f86a3b4400e0ab90b1e1f1180c"
+    },
+    {
+      "from": "tpl_samples.js",
+      "to": "legacy/islamia-erp/tpl_samples.js",
+      "git_blob": "e062cab597db5a9aff9e7fbe08333a08323209ed"
+    },
+    {
+      "from": "tplpicker.js",
+      "to": "legacy/islamia-erp/tplpicker.js",
+      "git_blob": "c49cff9fe22202172a2717a7e79104d90ea72b7b"
+    },
+    {
+      "from": "trace.js",
+      "to": "legacy/islamia-erp/trace.js",
+      "git_blob": "62b4dcf9ddeef465d4b1ae58acd746c4bc564052"
+    },
+    {
+      "from": "twofa.js",
+      "to": "legacy/islamia-erp/twofa.js",
+      "git_blob": "bc3eb038657f3472ca21c00650414b52663655a1"
+    },
+    {
+      "from": "v2/.build-id",
+      "to": "legacy/islamia-erp/v2/.build-id",
+      "git_blob": "f4851fbd32fc6a0aff7e98e074c0d2eea18d33f7"
+    },
+    {
+      "from": "v2/.nojekyll",
+      "to": "legacy/islamia-erp/v2/.nojekyll",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "from": "v2/a11yfix.js",
+      "to": "legacy/islamia-erp/v2/a11yfix.js",
+      "git_blob": "5871f92cd3a12d86cb13fa64e187476d1e9719bd"
+    },
+    {
+      "from": "v2/accounts.js",
+      "to": "legacy/islamia-erp/v2/accounts.js",
+      "git_blob": "9583b12d49b087cc3b8a40818a2609fe132c24c9"
+    },
+    {
+      "from": "v2/ai_core.js",
+      "to": "legacy/islamia-erp/v2/ai_core.js",
+      "git_blob": "74c8cda599dbce23f0b210cfc31b508bf680d3be"
+    },
+    {
+      "from": "v2/announce.js",
+      "to": "legacy/islamia-erp/v2/announce.js",
+      "git_blob": "2cc9eb0d46b4300fb048f7eb02e396eba7da895e"
+    },
+    {
+      "from": "v2/app.css",
+      "to": "legacy/islamia-erp/v2/app.css",
+      "git_blob": "396ff2ed4e3142d7a3a98a943680bbc45671d3d4"
+    },
+    {
+      "from": "v2/app.js",
+      "to": "legacy/islamia-erp/v2/app.js",
+      "git_blob": "8ea2359e943494452a3caa2192c688138be5827d"
+    },
+    {
+      "from": "v2/assistant_tools.js",
+      "to": "legacy/islamia-erp/v2/assistant_tools.js",
+      "git_blob": "ac7b1bef6715e5d697d131dd24bac10f383a4fab"
+    },
+    {
+      "from": "v2/assistant.js",
+      "to": "legacy/islamia-erp/v2/assistant.js",
+      "git_blob": "f4bdecfdc1bef44c7e7636ddcc9c9beb674e3353"
+    },
+    {
+      "from": "v2/attend2.js",
+      "to": "legacy/islamia-erp/v2/attend2.js",
+      "git_blob": "0ef6e8c4cf712ccc5ca7e852a95f2aab2e5fb8c1"
+    },
+    {
+      "from": "v2/attendance.js",
+      "to": "legacy/islamia-erp/v2/attendance.js",
+      "git_blob": "fe7a04fb6683383fda2db4a17a095f5661137b9e"
+    },
+    {
+      "from": "v2/auditreports.js",
+      "to": "legacy/islamia-erp/v2/auditreports.js",
+      "git_blob": "01380047a1ca3e48694df78fda7181f8859b5226"
+    },
+    {
+      "from": "v2/badges107.js",
+      "to": "legacy/islamia-erp/v2/badges107.js",
+      "git_blob": "1966a94882f9d426710418f88fbf597781a20801"
+    },
+    {
+      "from": "v2/balancecheck.js",
+      "to": "legacy/islamia-erp/v2/balancecheck.js",
+      "git_blob": "7440a9cbcb04916de8b7b79ed89ee23cade38c81"
+    },
+    {
+      "from": "v2/barcode.js",
+      "to": "legacy/islamia-erp/v2/barcode.js",
+      "git_blob": "64528ba5bc65383d36fc81bcf0880e48aee7c62f"
+    },
+    {
+      "from": "v2/batchrep.js",
+      "to": "legacy/islamia-erp/v2/batchrep.js",
+      "git_blob": "e8233eef5a6b544740aa2cfdcf8e82a93239e3da"
+    },
+    {
+      "from": "v2/biz.js",
+      "to": "legacy/islamia-erp/v2/biz.js",
+      "git_blob": "17b3708807bff94369a2b758496c978d21ac17d0"
+    },
+    {
+      "from": "v2/bizctx.js",
+      "to": "legacy/islamia-erp/v2/bizctx.js",
+      "git_blob": "6b566ad83057da74836817b3690777b1e4f3d41d"
+    },
+    {
+      "from": "v2/books85.js",
+      "to": "legacy/islamia-erp/v2/books85.js",
+      "git_blob": "cef848119b4e8802fcf8d48a103ab92da8b97889"
+    },
+    {
+      "from": "v2/books96.js",
+      "to": "legacy/islamia-erp/v2/books96.js",
+      "git_blob": "30b3b21ae08544d70548ebcc3f0a4b3c5d39390f"
+    },
+    {
+      "from": "v2/bulkitems.js",
+      "to": "legacy/islamia-erp/v2/bulkitems.js",
+      "git_blob": "31ea07dc52a829cbe1e615956fbb40f2bc84de92"
+    },
+    {
+      "from": "v2/bundle-manifest.json",
+      "to": "legacy/islamia-erp/v2/bundle-manifest.json",
+      "git_blob": "cdb63e4a57f80bd9f7bd2c2cd7d8e516c860b91f"
+    },
+    {
+      "from": "v2/business-tenant-icon.svg",
+      "to": "legacy/islamia-erp/v2/business-tenant-icon.svg",
+      "git_blob": "da8a1985dac0462d06bc6a20703bb163bff8ed44"
+    },
+    {
+      "from": "v2/business-tenant.css",
+      "to": "legacy/islamia-erp/v2/business-tenant.css",
+      "git_blob": "cc5c63463eb76b5d2ddbc1cfa1eefe79316a78a9"
+    },
+    {
+      "from": "v2/business-tenant.webmanifest",
+      "to": "legacy/islamia-erp/v2/business-tenant.webmanifest",
+      "git_blob": "80ba3339cbcd982d290ce029a74a1ed323bd8530"
+    },
+    {
+      "from": "v2/business.html",
+      "to": "legacy/islamia-erp/v2/business.html",
+      "git_blob": "f3d2d9779331c5ad226fc9f07558387da8787f79"
+    },
+    {
+      "from": "v2/businesshub.js",
+      "to": "legacy/islamia-erp/v2/businesshub.js",
+      "git_blob": "c46babdafa6020eab87d6679cd6c027fb4ae5cc7"
+    },
+    {
+      "from": "v2/c2rpt.js",
+      "to": "legacy/islamia-erp/v2/c2rpt.js",
+      "git_blob": "dccb5e59ec9eba0b919c85d7a95e635f0317463b"
+    },
+    {
+      "from": "v2/campaigns.js",
+      "to": "legacy/islamia-erp/v2/campaigns.js",
+      "git_blob": "3b9df9b7f1b9ce3291b0b4294f17806a884ec7a1"
+    },
+    {
+      "from": "v2/capacity.js",
+      "to": "legacy/islamia-erp/v2/capacity.js",
+      "git_blob": "bace17317e4eb6e867c610aa4382be2e3dfb5fe9"
+    },
+    {
+      "from": "v2/cashdrawer.js",
+      "to": "legacy/islamia-erp/v2/cashdrawer.js",
+      "git_blob": "3c239554266b15b34a5efeced59dfc92474c11f7"
+    },
+    {
+      "from": "v2/cashmoves.js",
+      "to": "legacy/islamia-erp/v2/cashmoves.js",
+      "git_blob": "8f28d600c92997f9373e87abb15dcb6ce79f1502"
+    },
+    {
+      "from": "v2/catpick.js",
+      "to": "legacy/islamia-erp/v2/catpick.js",
+      "git_blob": "c0ed542ed43cb8c28f68d906edacf39adca5c612"
+    },
+    {
+      "from": "v2/chanedit.js",
+      "to": "legacy/islamia-erp/v2/chanedit.js",
+      "git_blob": "6e090e3d40a6a18127b640758bb08c4d094f8a7f"
+    },
+    {
+      "from": "v2/charts.js",
+      "to": "legacy/islamia-erp/v2/charts.js",
+      "git_blob": "8d9aa43b17b81217220d241112e312591e9433dc"
+    },
+    {
+      "from": "v2/cheques127.js",
+      "to": "legacy/islamia-erp/v2/cheques127.js",
+      "git_blob": "09dd9f1fd46c06aa2184396fe82af708b12d98f3"
+    },
+    {
+      "from": "v2/coldstart.js",
+      "to": "legacy/islamia-erp/v2/coldstart.js",
+      "git_blob": "2b2cd0d53f7ebf05daaadf4f7021fed2202a1e0c"
+    },
+    {
+      "from": "v2/config.js",
+      "to": "legacy/islamia-erp/v2/config.js",
+      "git_blob": "0f4fe5035973a6d032cbc906061cb2ace4b2ba12"
+    },
+    {
+      "from": "v2/connect.js",
+      "to": "legacy/islamia-erp/v2/connect.js",
+      "git_blob": "5f6acd2acba9b38c629d53813b5c007001b0b937"
+    },
+    {
+      "from": "v2/control.js",
+      "to": "legacy/islamia-erp/v2/control.js",
+      "git_blob": "c1c9e50216aa9a02a057c6e1a28ef6777499e65e"
+    },
+    {
+      "from": "v2/controls.css",
+      "to": "legacy/islamia-erp/v2/controls.css",
+      "git_blob": "7960ad6a7fd3df086bbb682cc33e2b8668dba025"
+    },
+    {
+      "from": "v2/controls.js",
+      "to": "legacy/islamia-erp/v2/controls.js",
+      "git_blob": "8e776317abafb42c36046684c0e34b2935a8fa27"
+    },
+    {
+      "from": "v2/core.js",
+      "to": "legacy/islamia-erp/v2/core.js",
+      "git_blob": "fb5f4ba58d11e86eea046fa31463af2b301b52dd"
+    },
+    {
+      "from": "v2/core10-business-owner.js",
+      "to": "legacy/islamia-erp/v2/core10-business-owner.js",
+      "git_blob": "3bddcd3acef244248756dad226089e3432c262b1"
+    },
+    {
+      "from": "v2/core10-home.js",
+      "to": "legacy/islamia-erp/v2/core10-home.js",
+      "git_blob": "3e59eb1a41e84a39849ce09662640c8a6ff1d0ba"
+    },
+    {
+      "from": "v2/core10-owner-icon.svg",
+      "to": "legacy/islamia-erp/v2/core10-owner-icon.svg",
+      "git_blob": "7c767b0ae230bc2149fd3f53bc857536e2a5ab39"
+    },
+    {
+      "from": "v2/core10-owner-inbox.js",
+      "to": "legacy/islamia-erp/v2/core10-owner-inbox.js",
+      "git_blob": "89d377a741648dcb530b2ecf8f1a687c4db67f83"
+    },
+    {
+      "from": "v2/core10-owner-theme.js",
+      "to": "legacy/islamia-erp/v2/core10-owner-theme.js",
+      "git_blob": "5f61cd96ad7b8f484b3a46742acaf5623833d9c3"
+    },
+    {
+      "from": "v2/core10-owner.css",
+      "to": "legacy/islamia-erp/v2/core10-owner.css",
+      "git_blob": "d1819616d304af42632fef0571e55d68b6a7370d"
+    },
+    {
+      "from": "v2/core10-owner.webmanifest",
+      "to": "legacy/islamia-erp/v2/core10-owner.webmanifest",
+      "git_blob": "29859191204fb6bc020c6b956230a84b18b2f928"
+    },
+    {
+      "from": "v2/core10-shell.js",
+      "to": "legacy/islamia-erp/v2/core10-shell.js",
+      "git_blob": "4c335353e0148400668dcc4ba44d065a7feb3150"
+    },
+    {
+      "from": "v2/cost116.js",
+      "to": "legacy/islamia-erp/v2/cost116.js",
+      "git_blob": "2c2b72703cb191138af43f78912342f76bcc9977"
+    },
+    {
+      "from": "v2/costattrib.js",
+      "to": "legacy/islamia-erp/v2/costattrib.js",
+      "git_blob": "1bf637cc08b4a160fc68affe50411825988a45a9"
+    },
+    {
+      "from": "v2/costboard.js",
+      "to": "legacy/islamia-erp/v2/costboard.js",
+      "git_blob": "6586ab6a6f7588be1ddae5d7c649303bd0d0c9a6"
+    },
+    {
+      "from": "v2/costgap.js",
+      "to": "legacy/islamia-erp/v2/costgap.js",
+      "git_blob": "75610dbb04b9ceb196fddc5754fb9461fb78dee8"
+    },
+    {
+      "from": "v2/costing.js",
+      "to": "legacy/islamia-erp/v2/costing.js",
+      "git_blob": "3635b40816ec48e3a09160b08dc2c71b678ee888"
+    },
+    {
+      "from": "v2/costsources.js",
+      "to": "legacy/islamia-erp/v2/costsources.js",
+      "git_blob": "1e7b3c64493d7cde31b58c49b37a3a2361faaca6"
+    },
+    {
+      "from": "v2/couponuse.js",
+      "to": "legacy/islamia-erp/v2/couponuse.js",
+      "git_blob": "863869ead78616a1a59fef4af4fa2d993830946e"
+    },
+    {
+      "from": "v2/crm_360.js",
+      "to": "legacy/islamia-erp/v2/crm_360.js",
+      "git_blob": "269aa05b7045e186ea3a48c746502b56692a26d7"
+    },
+    {
+      "from": "v2/crm_consent.js",
+      "to": "legacy/islamia-erp/v2/crm_consent.js",
+      "git_blob": "d72b74bb8a470d8bef7c548f84d9c5d20303e8b6"
+    },
+    {
+      "from": "v2/crm_coupons.js",
+      "to": "legacy/islamia-erp/v2/crm_coupons.js",
+      "git_blob": "aaea23d51815db29cb522ac18b243c9efda51f00"
+    },
+    {
+      "from": "v2/crm_dupes.js",
+      "to": "legacy/islamia-erp/v2/crm_dupes.js",
+      "git_blob": "a54f221e81de70ffbf1e92e5d55304943cd94060"
+    },
+    {
+      "from": "v2/crm_feedback.js",
+      "to": "legacy/islamia-erp/v2/crm_feedback.js",
+      "git_blob": "0ed70b980e91d2a11f946482ff0f535b091d92f1"
+    },
+    {
+      "from": "v2/crm_leads.js",
+      "to": "legacy/islamia-erp/v2/crm_leads.js",
+      "git_blob": "3c7934cca23d49a2d2cafc54c2b6e314f56851b5"
+    },
+    {
+      "from": "v2/crm_loyalty.js",
+      "to": "legacy/islamia-erp/v2/crm_loyalty.js",
+      "git_blob": "b3e19c12e0c9a35abdb34b406f44c76dd7061116"
+    },
+    {
+      "from": "v2/crm_profile.js",
+      "to": "legacy/islamia-erp/v2/crm_profile.js",
+      "git_blob": "6359da897311f304e30540e36352b3f48b18b159"
+    },
+    {
+      "from": "v2/crm_rfm.js",
+      "to": "legacy/islamia-erp/v2/crm_rfm.js",
+      "git_blob": "da62459b04ea1034ef5e2ebab898dcf617932fa9"
+    },
+    {
+      "from": "v2/crm_segments.js",
+      "to": "legacy/islamia-erp/v2/crm_segments.js",
+      "git_blob": "e6bd9c05752a2ac328fa3a8fe997e548908d3038"
+    },
+    {
+      "from": "v2/crm_tasks.js",
+      "to": "legacy/islamia-erp/v2/crm_tasks.js",
+      "git_blob": "2db90c998de9e2f47a0855353059ac524794cffe"
+    },
+    {
+      "from": "v2/custinsight.js",
+      "to": "legacy/islamia-erp/v2/custinsight.js",
+      "git_blob": "6eb3d9c1385da11f51dd508b1e68ab9db47d46a0"
+    },
+    {
+      "from": "v2/customers.js",
+      "to": "legacy/islamia-erp/v2/customers.js",
+      "git_blob": "899b0bb2aa1243647ef016e68a85e58c65bd4ab6"
+    },
+    {
+      "from": "v2/dash.js",
+      "to": "legacy/islamia-erp/v2/dash.js",
+      "git_blob": "3f11ab2bda8352495827d191d4c332037628c7eb"
+    },
+    {
+      "from": "v2/dashx_metrics.js",
+      "to": "legacy/islamia-erp/v2/dashx_metrics.js",
+      "git_blob": "cd1fa433e002e69954e58c331f8b079120d0d24b"
+    },
+    {
+      "from": "v2/dashx.js",
+      "to": "legacy/islamia-erp/v2/dashx.js",
+      "git_blob": "a63052020ab555f5d78a317ea26ebc980aa77819"
+    },
+    {
+      "from": "v2/data/info.json",
+      "to": "legacy/islamia-erp/v2/data/info.json",
+      "git_blob": "914d9f6f3af8f1674c41f8698e8445326b92609c"
+    },
+    {
+      "from": "v2/data/item_dictionary.json",
+      "to": "legacy/islamia-erp/v2/data/item_dictionary.json",
+      "git_blob": "9f3a834b934acd1c45a15695092d03c8f95e8362"
+    },
+    {
+      "from": "v2/data/kb.json",
+      "to": "legacy/islamia-erp/v2/data/kb.json",
+      "git_blob": "12fa76aef8cd4b129b4605e516d8bdd970d0a092"
+    },
+    {
+      "from": "v2/data/report_registry.json",
+      "to": "legacy/islamia-erp/v2/data/report_registry.json",
+      "git_blob": "9a9f16d9b2a3be541214ab741d9a903854c82f4b"
+    },
+    {
+      "from": "v2/data/seed_item_mapping.json",
+      "to": "legacy/islamia-erp/v2/data/seed_item_mapping.json",
+      "git_blob": "ea9e3bbceb25a88e981eed6d94cece679f689789"
+    },
+    {
+      "from": "v2/daybook.js",
+      "to": "legacy/islamia-erp/v2/daybook.js",
+      "git_blob": "315512b51343ed8ab11b8cb4bada7315df837dec"
+    },
+    {
+      "from": "v2/delegation.js",
+      "to": "legacy/islamia-erp/v2/delegation.js",
+      "git_blob": "ff7f8b878c5008731f34c8260e44ec7a54504389"
+    },
+    {
+      "from": "v2/desktop.css",
+      "to": "legacy/islamia-erp/v2/desktop.css",
+      "git_blob": "ab9ac764c1a01093ea75000b80b82bc24cfdec97"
+    },
+    {
+      "from": "v2/dues.js",
+      "to": "legacy/islamia-erp/v2/dues.js",
+      "git_blob": "4f7e74c1ad5c469dbed819def340d4e796951ea5"
+    },
+    {
+      "from": "v2/employees.js",
+      "to": "legacy/islamia-erp/v2/employees.js",
+      "git_blob": "c70803b7de80804c011fd663a1f72b25dbff9e91"
+    },
+    {
+      "from": "v2/entry.js",
+      "to": "legacy/islamia-erp/v2/entry.js",
+      "git_blob": "402eba6436f0e619ebcbd15bb99c7c3cd0853585"
+    },
+    {
+      "from": "v2/errlog.js",
+      "to": "legacy/islamia-erp/v2/errlog.js",
+      "git_blob": "0120b5d21124e92a6e97cb23830aaf7f214a49bf"
+    },
+    {
+      "from": "v2/expenseregister.js",
+      "to": "legacy/islamia-erp/v2/expenseregister.js",
+      "git_blob": "7082595fdaceac4e8ab4b6129bdb7c6e6fca312f"
+    },
+    {
+      "from": "v2/filters.js",
+      "to": "legacy/islamia-erp/v2/filters.js",
+      "git_blob": "9876c232920785ffc2812f538ac141c360e234b8"
+    },
+    {
+      "from": "v2/finance2.js",
+      "to": "legacy/islamia-erp/v2/finance2.js",
+      "git_blob": "2dbe1147f5ac6ef5b4acded626b3232cce3b2a1f"
+    },
+    {
+      "from": "v2/flow.js",
+      "to": "legacy/islamia-erp/v2/flow.js",
+      "git_blob": "c65c072565fc995aefb6af2300789cebcbe158a5"
+    },
+    {
+      "from": "v2/forecast.js",
+      "to": "legacy/islamia-erp/v2/forecast.js",
+      "git_blob": "4d65169a3e8dcfc6579c0e0789f32ef6dadf50ea"
+    },
+    {
+      "from": "v2/forms_cash.js",
+      "to": "legacy/islamia-erp/v2/forms_cash.js",
+      "git_blob": "9ea4fff512c709b6e28f9ab6613c3797b306b4f2"
+    },
+    {
+      "from": "v2/forms_factory.js",
+      "to": "legacy/islamia-erp/v2/forms_factory.js",
+      "git_blob": "1c52dc8b8bc87adbb91f5811d45e6dc1b10e23d6"
+    },
+    {
+      "from": "v2/forms_sales.js",
+      "to": "legacy/islamia-erp/v2/forms_sales.js",
+      "git_blob": "8bdf649f159593882f7e415a366688f6e3f45145"
+    },
+    {
+      "from": "v2/forms_staff.js",
+      "to": "legacy/islamia-erp/v2/forms_staff.js",
+      "git_blob": "218976e3a39a1816369c756abf477b919cba17cb"
+    },
+    {
+      "from": "v2/forms_stock.js",
+      "to": "legacy/islamia-erp/v2/forms_stock.js",
+      "git_blob": "59849dc51819243c5cd83b8f2246301daceebdb1"
+    },
+    {
+      "from": "v2/forms.js",
+      "to": "legacy/islamia-erp/v2/forms.js",
+      "git_blob": "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d"
+    },
+    {
+      "from": "v2/formscreens.js",
+      "to": "legacy/islamia-erp/v2/formscreens.js",
+      "git_blob": "8edfff36c9f6f5a581c578aaa17ea7543a29c729"
+    },
+    {
+      "from": "v2/freshness.js",
+      "to": "legacy/islamia-erp/v2/freshness.js",
+      "git_blob": "f264d245584ec2e222acd9d3d592c0acc5b2690b"
+    },
+    {
+      "from": "v2/guards.js",
+      "to": "legacy/islamia-erp/v2/guards.js",
+      "git_blob": "58b7083d9d681b4633239483c9f16c1d84ec2c39"
+    },
+    {
+      "from": "v2/i18n.js",
+      "to": "legacy/islamia-erp/v2/i18n.js",
+      "git_blob": "fdb7eabf288cc61e1d20f9d1522f1526180adc9a"
+    },
+    {
+      "from": "v2/ia.js",
+      "to": "legacy/islamia-erp/v2/ia.js",
+      "git_blob": "e5834768ccee343013a424f80caa0dd9fc000cf5"
+    },
+    {
+      "from": "v2/icon.svg",
+      "to": "legacy/islamia-erp/v2/icon.svg",
+      "git_blob": "90976392fe5e8c54b429a523739679bcc19a2585"
+    },
+    {
+      "from": "v2/icons3d.js",
+      "to": "legacy/islamia-erp/v2/icons3d.js",
+      "git_blob": "d95c31a54c4bcec298d0c9c6f933a233f32aaa46"
+    },
+    {
+      "from": "v2/impexp124.js",
+      "to": "legacy/islamia-erp/v2/impexp124.js",
+      "git_blob": "388341ef4635a6c6d2e1f3888e95a19eff910424"
+    },
+    {
+      "from": "v2/inbox.js",
+      "to": "legacy/islamia-erp/v2/inbox.js",
+      "git_blob": "9a5c2068698ef615f0eb6c61f7821c764e6ae434"
+    },
+    {
+      "from": "v2/index.html",
+      "to": "legacy/islamia-erp/v2/index.html",
+      "git_blob": "e27ffaf70084f7edd2536bbf52c820314f4a92e4"
+    },
+    {
+      "from": "v2/infohint.js",
+      "to": "legacy/islamia-erp/v2/infohint.js",
+      "git_blob": "06697b8a3080c8d8d60faf7e66fbb9d88f20ddff"
+    },
+    {
+      "from": "v2/integrations.js",
+      "to": "legacy/islamia-erp/v2/integrations.js",
+      "git_blob": "e4fe883ca78b51b866a7b49ae281065297d9f778"
+    },
+    {
+      "from": "v2/invoice.js",
+      "to": "legacy/islamia-erp/v2/invoice.js",
+      "git_blob": "410d9b2da3bd93e5bf670360287126fd69023b97"
+    },
+    {
+      "from": "v2/invoiceview.js",
+      "to": "legacy/islamia-erp/v2/invoiceview.js",
+      "git_blob": "e6f825b732b4b481a42b43e34acc88a11dbe311b"
+    },
+    {
+      "from": "v2/itemimg.js",
+      "to": "legacy/islamia-erp/v2/itemimg.js",
+      "git_blob": "18ef4bfc187f96bf2bb66a47b2aee3194046c952"
+    },
+    {
+      "from": "v2/itemmaster.js",
+      "to": "legacy/islamia-erp/v2/itemmaster.js",
+      "git_blob": "2453e7f3210f27024856727331f0f1b32c60c028"
+    },
+    {
+      "from": "v2/items2.js",
+      "to": "legacy/islamia-erp/v2/items2.js",
+      "git_blob": "e65aa869b9010cbc90bed134c5f244775c892b2f"
+    },
+    {
+      "from": "v2/kbdfix.js",
+      "to": "legacy/islamia-erp/v2/kbdfix.js",
+      "git_blob": "537558876f8df0e99fd473decff4ce9cedc8877b"
+    },
+    {
+      "from": "v2/landed_q4.js",
+      "to": "legacy/islamia-erp/v2/landed_q4.js",
+      "git_blob": "7c83f95abbd6fd30df6130b3152b9f8c18a813e9"
+    },
+    {
+      "from": "v2/landed.js",
+      "to": "legacy/islamia-erp/v2/landed.js",
+      "git_blob": "b8fdace11513764d84dc01b73bf8527f8d2a8007"
+    },
+    {
+      "from": "v2/lazy.js",
+      "to": "legacy/islamia-erp/v2/lazy.js",
+      "git_blob": "2bc31cb9c278b116abc549d1dfd278317f54151a"
+    },
+    {
+      "from": "v2/listctl.js",
+      "to": "legacy/islamia-erp/v2/listctl.js",
+      "git_blob": "eece6c6c9074a6666b25eb4c9519376b38a88e95"
+    },
+    {
+      "from": "v2/lists.js",
+      "to": "legacy/islamia-erp/v2/lists.js",
+      "git_blob": "e960bf18769552edd3e1a6a9d7900058f4443a0e"
+    },
+    {
+      "from": "v2/locations.js",
+      "to": "legacy/islamia-erp/v2/locations.js",
+      "git_blob": "a78ebd4a9696bb1df687327b73fdc2b394df8f37"
+    },
+    {
+      "from": "v2/locgroups.js",
+      "to": "legacy/islamia-erp/v2/locgroups.js",
+      "git_blob": "2bcbe69fc21a9e2ce913552a6a16fce3b5b79485"
+    },
+    {
+      "from": "v2/logo.webp",
+      "to": "legacy/islamia-erp/v2/logo.webp",
+      "git_blob": "e5084b7aca854e0d0514222df28c39abe98ae61a"
+    },
+    {
+      "from": "v2/manifest.json",
+      "to": "legacy/islamia-erp/v2/manifest.json",
+      "git_blob": "c5407831e5851c0d946c523a9161aaa7cf609416"
+    },
+    {
+      "from": "v2/mark.svg",
+      "to": "legacy/islamia-erp/v2/mark.svg",
+      "git_blob": "423eae4b6765df13d3ee96d0fa4a7eb4699ce9a8"
+    },
+    {
+      "from": "v2/market.js",
+      "to": "legacy/islamia-erp/v2/market.js",
+      "git_blob": "dad9f743f15cf7cab6d41dcbc4053eb8158f7856"
+    },
+    {
+      "from": "v2/moneyaccounts.js",
+      "to": "legacy/islamia-erp/v2/moneyaccounts.js",
+      "git_blob": "7fc0dc545b4e61d0fb06328ba04b4da7a89b7aaa"
+    },
+    {
+      "from": "v2/moneycontrols.js",
+      "to": "legacy/islamia-erp/v2/moneycontrols.js",
+      "git_blob": "6fc6f30ea6c7ca6472dddb99670b6aa997fb896d"
+    },
+    {
+      "from": "v2/moneysrc.js",
+      "to": "legacy/islamia-erp/v2/moneysrc.js",
+      "git_blob": "dbc03cf9d68721771addd777b4b850a22a239f58"
+    },
+    {
+      "from": "v2/monthclose.js",
+      "to": "legacy/islamia-erp/v2/monthclose.js",
+      "git_blob": "888cd4d04b83950e7d04cb9e5a17695544c6b4f2"
+    },
+    {
+      "from": "v2/nav.js",
+      "to": "legacy/islamia-erp/v2/nav.js",
+      "git_blob": "c66b54fa977c6b84c1a20351dff1b59fb8a82d40"
+    },
+    {
+      "from": "v2/navstack.js",
+      "to": "legacy/islamia-erp/v2/navstack.js",
+      "git_blob": "2ce24516f7580cd9fd437a248271504629582682"
+    },
+    {
+      "from": "v2/nightgap.js",
+      "to": "legacy/islamia-erp/v2/nightgap.js",
+      "git_blob": "992ad3da2067306f7fc9794798bd963cea00a1bf"
+    },
+    {
+      "from": "v2/notifications.js",
+      "to": "legacy/islamia-erp/v2/notifications.js",
+      "git_blob": "f25836b834e7b8c0273db30e648cb69cba19df6e"
+    },
+    {
+      "from": "v2/openparties.js",
+      "to": "legacy/islamia-erp/v2/openparties.js",
+      "git_blob": "19385a33875fbafa93cbcc6c0a0d928302b16281"
+    },
+    {
+      "from": "v2/optionsx.js",
+      "to": "legacy/islamia-erp/v2/optionsx.js",
+      "git_blob": "d029a7b459b5a0fb27cd7599209ccfed5f098ff2"
+    },
+    {
+      "from": "v2/optviews.js",
+      "to": "legacy/islamia-erp/v2/optviews.js",
+      "git_blob": "23144dd4459f202aaaed0b711e65ca12a04b910c"
+    },
+    {
+      "from": "v2/order_parser.js",
+      "to": "legacy/islamia-erp/v2/order_parser.js",
+      "git_blob": "347c5e57f635fa21de12da21233777b210f0bd61"
+    },
+    {
+      "from": "v2/orderreports.js",
+      "to": "legacy/islamia-erp/v2/orderreports.js",
+      "git_blob": "a6f18cd1b9688e1798319f7bb1faeda749132668"
+    },
+    {
+      "from": "v2/org122.js",
+      "to": "legacy/islamia-erp/v2/org122.js",
+      "git_blob": "eb7a7b67980c4ea65f3c3fc0605422a590d8e57d"
+    },
+    {
+      "from": "v2/otherincome.js",
+      "to": "legacy/islamia-erp/v2/otherincome.js",
+      "git_blob": "ef749d7be2f348401cf4e7a1d28643c8ed2739f1"
+    },
+    {
+      "from": "v2/owner.html",
+      "to": "legacy/islamia-erp/v2/owner.html",
+      "git_blob": "162e96aa6216a557eac2e12c3b5edf5cd701c5b5"
+    },
+    {
+      "from": "v2/ownerboard.js",
+      "to": "legacy/islamia-erp/v2/ownerboard.js",
+      "git_blob": "a17cced450c846dc20a767e5907f0052ef41c111"
+    },
+    {
+      "from": "v2/packflags.js",
+      "to": "legacy/islamia-erp/v2/packflags.js",
+      "git_blob": "aa582bd1758088e3865ba8645807d077c0da39f4"
+    },
+    {
+      "from": "v2/pager.js",
+      "to": "legacy/islamia-erp/v2/pager.js",
+      "git_blob": "271933a3f0161319ddbf50e66f52e14f81dd58f0"
+    },
+    {
+      "from": "v2/parallel.js",
+      "to": "legacy/islamia-erp/v2/parallel.js",
+      "git_blob": "b03a69282e29c319684b3fbf7738fc935f3c474c"
+    },
+    {
+      "from": "v2/partners.js",
+      "to": "legacy/islamia-erp/v2/partners.js",
+      "git_blob": "d0b025ab745678d833882e20378b37abe3e5bb7c"
+    },
+    {
+      "from": "v2/paths.js",
+      "to": "legacy/islamia-erp/v2/paths.js",
+      "git_blob": "0ca285e66b58859a4b9e70cc108dd37daaea5144"
+    },
+    {
+      "from": "v2/pay.js",
+      "to": "legacy/islamia-erp/v2/pay.js",
+      "git_blob": "1a3a484bdeb0c78d6678f13b44df7ce91ceef948"
+    },
+    {
+      "from": "v2/payrequests.js",
+      "to": "legacy/islamia-erp/v2/payrequests.js",
+      "git_blob": "db34a539d0cd4e24cb6f94f62dd177cb5229314b"
+    },
+    {
+      "from": "v2/payroll.js",
+      "to": "legacy/islamia-erp/v2/payroll.js",
+      "git_blob": "7fb152dcb3d622f336743d9d6bd04c1a5348598b"
+    },
+    {
+      "from": "v2/periodlock.js",
+      "to": "legacy/islamia-erp/v2/periodlock.js",
+      "git_blob": "3ebe08fa0b0c399c5f863cd59bb2ac236cfc8e7e"
+    },
+    {
+      "from": "v2/photo.js",
+      "to": "legacy/islamia-erp/v2/photo.js",
+      "git_blob": "e44b23742bcfa06eca7e675f9ac22c09d510b8a9"
+    },
+    {
+      "from": "v2/pinsign.js",
+      "to": "legacy/islamia-erp/v2/pinsign.js",
+      "git_blob": "78eb739eb414f6ac708c2a80ba73f8a4f592de9f"
+    },
+    {
+      "from": "v2/places135.js",
+      "to": "legacy/islamia-erp/v2/places135.js",
+      "git_blob": "5bcad8106e8ca936aa56a43b26a4eca817e96fe9"
+    },
+    {
+      "from": "v2/pos.js",
+      "to": "legacy/islamia-erp/v2/pos.js",
+      "git_blob": "f4e6b4a2456fbec448cae875a019ca6a56fb0f1a"
+    },
+    {
+      "from": "v2/posfail.js",
+      "to": "legacy/islamia-erp/v2/posfail.js",
+      "git_blob": "b7b377627fce0be3d6682ec3daddcb3c268f36c4"
+    },
+    {
+      "from": "v2/printbooks.js",
+      "to": "legacy/islamia-erp/v2/printbooks.js",
+      "git_blob": "d7c688ea5c6f234a168356abe1057949a8e9e4fe"
+    },
+    {
+      "from": "v2/prodplan.js",
+      "to": "legacy/islamia-erp/v2/prodplan.js",
+      "git_blob": "6569ecbe3d77d393fe05b2764497613486550a51"
+    },
+    {
+      "from": "v2/prodreports.js",
+      "to": "legacy/islamia-erp/v2/prodreports.js",
+      "git_blob": "8c4da0c8b4d6550bd08088c5a2e92ecc94b686bd"
+    },
+    {
+      "from": "v2/profile134.js",
+      "to": "legacy/islamia-erp/v2/profile134.js",
+      "git_blob": "6b87be459a12050e8d0512864069ab92b407c14f"
+    },
+    {
+      "from": "v2/profitcheck.js",
+      "to": "legacy/islamia-erp/v2/profitcheck.js",
+      "git_blob": "29ed428f9ef25bef58784e3ee3cbb56ef0047b2c"
+    },
+    {
+      "from": "v2/purchase.js",
+      "to": "legacy/islamia-erp/v2/purchase.js",
+      "git_blob": "f90922d45b5830743525e2f1463c4914e23f5e16"
+    },
+    {
+      "from": "v2/purchaseprint.js",
+      "to": "legacy/islamia-erp/v2/purchaseprint.js",
+      "git_blob": "4fa5b6dc696cebf2873a412811325426b09a1c29"
+    },
+    {
+      "from": "v2/purchrep.js",
+      "to": "legacy/islamia-erp/v2/purchrep.js",
+      "git_blob": "c81be8c54527714ceb86883347bd64117f5ba6ad"
+    },
+    {
+      "from": "v2/rb4common.js",
+      "to": "legacy/islamia-erp/v2/rb4common.js",
+      "git_blob": "ab02301216b313bd6b6aa72127644b05651563a4"
+    },
+    {
+      "from": "v2/recipebook.js",
+      "to": "legacy/islamia-erp/v2/recipebook.js",
+      "git_blob": "672ac7b1afea4d48950cc9a58985bced3e9d63c5"
+    },
+    {
+      "from": "v2/recipes.js",
+      "to": "legacy/islamia-erp/v2/recipes.js",
+      "git_blob": "f06b46807b45e39a28aadf451ce48b0f2a0c6beb"
+    },
+    {
+      "from": "v2/recon118.js",
+      "to": "legacy/islamia-erp/v2/recon118.js",
+      "git_blob": "f1d87e97ce8602780fe7047e113ad58d78b556af"
+    },
+    {
+      "from": "v2/reporthub_ask.js",
+      "to": "legacy/islamia-erp/v2/reporthub_ask.js",
+      "git_blob": "04f1da4111e8f204fcd26cda3a8ba494c3d4fa12"
+    },
+    {
+      "from": "v2/reporthub_parse.js",
+      "to": "legacy/islamia-erp/v2/reporthub_parse.js",
+      "git_blob": "c5e0cc733b9fe836b14fd70264dae01c8b39fe32"
+    },
+    {
+      "from": "v2/reporthub_time.js",
+      "to": "legacy/islamia-erp/v2/reporthub_time.js",
+      "git_blob": "df353a502ea3102b8812b82b2b15bb88c2524530"
+    },
+    {
+      "from": "v2/reporthub.js",
+      "to": "legacy/islamia-erp/v2/reporthub.js",
+      "git_blob": "7237881f7571cf68d296c23810cda927d20a2bad"
+    },
+    {
+      "from": "v2/reportnotes.js",
+      "to": "legacy/islamia-erp/v2/reportnotes.js",
+      "git_blob": "6cb83e5bfe97d26b7f4fca2fe9ac3a70867cd400"
+    },
+    {
+      "from": "v2/reports.js",
+      "to": "legacy/islamia-erp/v2/reports.js",
+      "git_blob": "0319f19b2182a84df8499c990264724326ec5d01"
+    },
+    {
+      "from": "v2/reports131.js",
+      "to": "legacy/islamia-erp/v2/reports131.js",
+      "git_blob": "8a8ef12e0a78ee916e301c6c646631f1de55659b"
+    },
+    {
+      "from": "v2/reports2.js",
+      "to": "legacy/islamia-erp/v2/reports2.js",
+      "git_blob": "05883f57df0c179fe68da61c5810ade087be3bf7"
+    },
+    {
+      "from": "v2/reportsmap.js",
+      "to": "legacy/islamia-erp/v2/reportsmap.js",
+      "git_blob": "905e3e93c1eefde0b182bd8a17720a248669b61e"
+    },
+    {
+      "from": "v2/restoredrill.js",
+      "to": "legacy/islamia-erp/v2/restoredrill.js",
+      "git_blob": "e20ba4a9de2a31f68b9ef8e3becec70431e906fc"
+    },
+    {
+      "from": "v2/returnrules.js",
+      "to": "legacy/islamia-erp/v2/returnrules.js",
+      "git_blob": "e8ae6a145ee6e927a0cca21b6fde2e0d8e17e0c5"
+    },
+    {
+      "from": "v2/rollout.js",
+      "to": "legacy/islamia-erp/v2/rollout.js",
+      "git_blob": "e1e66ce1bb0890b537bed184123e51e12decb7b9"
+    },
+    {
+      "from": "v2/rptkit.js",
+      "to": "legacy/islamia-erp/v2/rptkit.js",
+      "git_blob": "48543c3f0d2e69fd28d99407c9917c982350e602"
+    },
+    {
+      "from": "v2/rules.js",
+      "to": "legacy/islamia-erp/v2/rules.js",
+      "git_blob": "8fcbc88817fdfd957eb07efc6308f3aa25381ce4"
+    },
+    {
+      "from": "v2/s1setup.js",
+      "to": "legacy/islamia-erp/v2/s1setup.js",
+      "git_blob": "56156da5d29940013d9b5d8ea86a4b52185f965c"
+    },
+    {
+      "from": "v2/salary.js",
+      "to": "legacy/islamia-erp/v2/salary.js",
+      "git_blob": "83752a0cd071790f6181f434e6d1be9348c896a6"
+    },
+    {
+      "from": "v2/salereturn.js",
+      "to": "legacy/islamia-erp/v2/salereturn.js",
+      "git_blob": "65bbfeed02a3ec1468811e0f5d18bcaaf1bc46d6"
+    },
+    {
+      "from": "v2/salesx.js",
+      "to": "legacy/islamia-erp/v2/salesx.js",
+      "git_blob": "6168435f527fba62bd49af24ca3657e837238957"
+    },
+    {
+      "from": "v2/scan_core.js",
+      "to": "legacy/islamia-erp/v2/scan_core.js",
+      "git_blob": "c0b35a6470d18fb66eb3e0c0497dd88b33a5424f"
+    },
+    {
+      "from": "v2/scan_items.js",
+      "to": "legacy/islamia-erp/v2/scan_items.js",
+      "git_blob": "7bed6883a2f20815d6866c7227fd99ff9ea0878d"
+    },
+    {
+      "from": "v2/scan_native.js",
+      "to": "legacy/islamia-erp/v2/scan_native.js",
+      "git_blob": "1463013ea79b830397933cf773258db2bca76314"
+    },
+    {
+      "from": "v2/scan.js",
+      "to": "legacy/islamia-erp/v2/scan.js",
+      "git_blob": "c29a0dcde9191ad96e2a4d2a47c7aa5dff9ea3a8"
+    },
+    {
+      "from": "v2/schemes128.js",
+      "to": "legacy/islamia-erp/v2/schemes128.js",
+      "git_blob": "4ca70bff5e99b64609a89cea1703a5a8e3e70e81"
+    },
+    {
+      "from": "v2/settings2.js",
+      "to": "legacy/islamia-erp/v2/settings2.js",
+      "git_blob": "79396395cf776ddd7445ceef305cd0be3308c0fc"
+    },
+    {
+      "from": "v2/setupadvisor.js",
+      "to": "legacy/islamia-erp/v2/setupadvisor.js",
+      "git_blob": "5c7029640f6f56213f5ff18214db05ea6570972c"
+    },
+    {
+      "from": "v2/setupundo.js",
+      "to": "legacy/islamia-erp/v2/setupundo.js",
+      "git_blob": "6760afef7d64ae3f6f6529c39051939296f1c297"
+    },
+    {
+      "from": "v2/shifts.js",
+      "to": "legacy/islamia-erp/v2/shifts.js",
+      "git_blob": "8dd875e893d98ce4a486a6652f9fbcf6d8d5f1e3"
+    },
+    {
+      "from": "v2/shortages.js",
+      "to": "legacy/islamia-erp/v2/shortages.js",
+      "git_blob": "b27dc5784d15d9b293919c1eec3607931e06aca7"
+    },
+    {
+      "from": "v2/staffreports.js",
+      "to": "legacy/islamia-erp/v2/staffreports.js",
+      "git_blob": "5909b2879373abdbc876de9145e2c537cf53f5cc"
+    },
+    {
+      "from": "v2/statements.js",
+      "to": "legacy/islamia-erp/v2/statements.js",
+      "git_blob": "cc716fdebad5dfa7d87ab6445a3dcc2c3806c2e4"
+    },
+    {
+      "from": "v2/stepw_common.js",
+      "to": "legacy/islamia-erp/v2/stepw_common.js",
+      "git_blob": "5fc4d3ab36057996f7d1ffe3af095a658e47f4fa"
+    },
+    {
+      "from": "v2/stock2.js",
+      "to": "legacy/islamia-erp/v2/stock2.js",
+      "git_blob": "9a91b2acc278ebf0c795c660f33bee33899e5891"
+    },
+    {
+      "from": "v2/stockout.js",
+      "to": "legacy/islamia-erp/v2/stockout.js",
+      "git_blob": "f6cdb1cf79d0819b0473b8722ccf8ccd63669ae5"
+    },
+    {
+      "from": "v2/stockrep.js",
+      "to": "legacy/islamia-erp/v2/stockrep.js",
+      "git_blob": "bb565c9db1d357c816266ec3f93e26db3450a04c"
+    },
+    {
+      "from": "v2/stockx.js",
+      "to": "legacy/islamia-erp/v2/stockx.js",
+      "git_blob": "23ae00beba96a492f4cc8032d71f905751c1befe"
+    },
+    {
+      "from": "v2/styles.css",
+      "to": "legacy/islamia-erp/v2/styles.css",
+      "git_blob": "6dabbb63410a863fd472cb1338a9fbdaa5c2ee78"
+    },
+    {
+      "from": "v2/sw.js",
+      "to": "legacy/islamia-erp/v2/sw.js",
+      "git_blob": "7c52c90247e485461b95e90fb50dc5c0fe62be0e"
+    },
+    {
+      "from": "v2/switchboard.js",
+      "to": "legacy/islamia-erp/v2/switchboard.js",
+      "git_blob": "b759da42471062987887e8b0b334d7a1fd2a0b34"
+    },
+    {
+      "from": "v2/swreg.js",
+      "to": "legacy/islamia-erp/v2/swreg.js",
+      "git_blob": "972235124d56995e33ea72e5f47ba70221dbf6c5"
+    },
+    {
+      "from": "v2/targets.js",
+      "to": "legacy/islamia-erp/v2/targets.js",
+      "git_blob": "90d2982ecdab5af4547b6a0fc0c3926decbfdddd"
+    },
+    {
+      "from": "v2/theme_glass.css",
+      "to": "legacy/islamia-erp/v2/theme_glass.css",
+      "git_blob": "6800f45b033b7712fea596d79cf395238288e41e"
+    },
+    {
+      "from": "v2/theme_glass.js",
+      "to": "legacy/islamia-erp/v2/theme_glass.js",
+      "git_blob": "b7c62e27938c3fd5aafd91c83036604fce172f8a"
+    },
+    {
+      "from": "v2/theme.css",
+      "to": "legacy/islamia-erp/v2/theme.css",
+      "git_blob": "7672b3362aed17af5780b8dd18bb2628ddaa3485"
+    },
+    {
+      "from": "v2/tinting129.js",
+      "to": "legacy/islamia-erp/v2/tinting129.js",
+      "git_blob": "e187fe8a083f6ff4aac53efdced3639fcb917c60"
+    },
+    {
+      "from": "v2/todo.js",
+      "to": "legacy/islamia-erp/v2/todo.js",
+      "git_blob": "a05810524e7de0deee079efb8627f5a83939fffb"
+    },
+    {
+      "from": "v2/tpl_docs.js",
+      "to": "legacy/islamia-erp/v2/tpl_docs.js",
+      "git_blob": "cb777ec6f7f52e2cc49d47bbf6436612e3b5de40"
+    },
+    {
+      "from": "v2/tpl_labels.js",
+      "to": "legacy/islamia-erp/v2/tpl_labels.js",
+      "git_blob": "1487a2471cf847f37cf8f33bca0cf7dc607d4434"
+    },
+    {
+      "from": "v2/tpl_msgs.js",
+      "to": "legacy/islamia-erp/v2/tpl_msgs.js",
+      "git_blob": "cf7e056650db63e0e326f68bc650375ea226d74f"
+    },
+    {
+      "from": "v2/tpl_registry.js",
+      "to": "legacy/islamia-erp/v2/tpl_registry.js",
+      "git_blob": "41744543a5a440f86a3b4400e0ab90b1e1f1180c"
+    },
+    {
+      "from": "v2/tpl_samples.js",
+      "to": "legacy/islamia-erp/v2/tpl_samples.js",
+      "git_blob": "e062cab597db5a9aff9e7fbe08333a08323209ed"
+    },
+    {
+      "from": "v2/tplpicker.js",
+      "to": "legacy/islamia-erp/v2/tplpicker.js",
+      "git_blob": "c49cff9fe22202172a2717a7e79104d90ea72b7b"
+    },
+    {
+      "from": "v2/trace.js",
+      "to": "legacy/islamia-erp/v2/trace.js",
+      "git_blob": "62b4dcf9ddeef465d4b1ae58acd746c4bc564052"
+    },
+    {
+      "from": "v2/twofa.js",
+      "to": "legacy/islamia-erp/v2/twofa.js",
+      "git_blob": "bc3eb038657f3472ca21c00650414b52663655a1"
+    },
+    {
+      "from": "v2/variants125.js",
+      "to": "legacy/islamia-erp/v2/variants125.js",
+      "git_blob": "573b0526037daf54fdcf9d8ab47cf0ae591241f6"
+    },
+    {
+      "from": "v2/vendor/supabase.js",
+      "to": "legacy/islamia-erp/v2/vendor/supabase.js",
+      "git_blob": "4102ef6b858ae140de4cf9549a2dfa1fccaec807"
+    },
+    {
+      "from": "v2/vendor/tesseract/LICENSE-tesseract.txt",
+      "to": "legacy/islamia-erp/v2/vendor/tesseract/LICENSE-tesseract.txt",
+      "git_blob": "8f71f43fee3f78649d238238cbde51e6d7055c82"
+    },
+    {
+      "from": "v2/vendor/tesseract/tesseract-core-simd-lstm.wasm",
+      "to": "legacy/islamia-erp/v2/vendor/tesseract/tesseract-core-simd-lstm.wasm",
+      "git_blob": "707e2d10394a07a5316d45db3aee5faa9c1c6789"
+    },
+    {
+      "from": "v2/vendor/tesseract/tesseract-core-simd-lstm.wasm.js",
+      "to": "legacy/islamia-erp/v2/vendor/tesseract/tesseract-core-simd-lstm.wasm.js",
+      "git_blob": "8cb0ed1edae5409ebcbd034a514f188451052809"
+    },
+    {
+      "from": "v2/vendor/tesseract/tesseract.min.js",
+      "to": "legacy/islamia-erp/v2/vendor/tesseract/tesseract.min.js",
+      "git_blob": "428fdae0bb460b1ffdb5091a027bebecc56d809d"
+    },
+    {
+      "from": "v2/vendor/tesseract/worker.min.js",
+      "to": "legacy/islamia-erp/v2/vendor/tesseract/worker.min.js",
+      "git_blob": "3682d39e0c6b03e366ed8d63faf169fb9fd86f11"
+    },
+    {
+      "from": "v2/vendor/X5_VENDOR.txt",
+      "to": "legacy/islamia-erp/v2/vendor/X5_VENDOR.txt",
+      "git_blob": "d42450b2999710b99caf2d2ba55a7b06a8188e12"
+    },
+    {
+      "from": "v2/vendor/zxing/LICENSE-zxing.txt",
+      "to": "legacy/islamia-erp/v2/vendor/zxing/LICENSE-zxing.txt",
+      "git_blob": "4bcbdae1b10aa04199c13f5ec9382a53d3442afb"
+    },
+    {
+      "from": "v2/vendor/zxing/zxing-library-0.21.3.min.js",
+      "to": "legacy/islamia-erp/v2/vendor/zxing/zxing-library-0.21.3.min.js",
+      "git_blob": "f85dd18072097d112eec4cb2b1c7bc9972c62a12"
+    },
+    {
+      "from": "v2/wallets.js",
+      "to": "legacy/islamia-erp/v2/wallets.js",
+      "git_blob": "d202f252b8249124c4edb314eaa8341005a6398d"
+    },
+    {
+      "from": "v2/website.js",
+      "to": "legacy/islamia-erp/v2/website.js",
+      "git_blob": "f5ac2966194d820152eb19ebc2c1cf8809143124"
+    },
+    {
+      "from": "v2/whatsnew.js",
+      "to": "legacy/islamia-erp/v2/whatsnew.js",
+      "git_blob": "b0e746f37af79e350318fbcf786b76a5aeeb2f1e"
+    },
+    {
+      "from": "v2/xb_cakejobs.js",
+      "to": "legacy/islamia-erp/v2/xb_cakejobs.js",
+      "git_blob": "d9115261ccdc5b99d666597a9fe602021f91c15b"
+    },
+    {
+      "from": "v2/xb_paycapture.js",
+      "to": "legacy/islamia-erp/v2/xb_paycapture.js",
+      "git_blob": "8f6ada207660dc65d6a4849f5c878545df6a1a90"
+    },
+    {
+      "from": "v2/xb_paysms.js",
+      "to": "legacy/islamia-erp/v2/xb_paysms.js",
+      "git_blob": "216a1dffdb7129b604d1552b43d2defee8c8f669"
+    },
+    {
+      "from": "v2/xb_riders.js",
+      "to": "legacy/islamia-erp/v2/xb_riders.js",
+      "git_blob": "07487f44df5afac386687ad19693794ea84ab2e3"
+    },
+    {
+      "from": "v2/xc_summary.js",
+      "to": "legacy/islamia-erp/v2/xc_summary.js",
+      "git_blob": "6b840ccd394a4cc9e113d3f72b2c8d4897b2478a"
+    },
+    {
+      "from": "v2/xc_unsold.js",
+      "to": "legacy/islamia-erp/v2/xc_unsold.js",
+      "git_blob": "43f62723843560f446e1542a6a175330ade10be5"
+    },
+    {
+      "from": "variants125.js",
+      "to": "legacy/islamia-erp/variants125.js",
+      "git_blob": "573b0526037daf54fdcf9d8ab47cf0ae591241f6"
+    },
+    {
+      "from": "wallets.js",
+      "to": "legacy/islamia-erp/wallets.js",
+      "git_blob": "d202f252b8249124c4edb314eaa8341005a6398d"
+    },
+    {
+      "from": "website.js",
+      "to": "legacy/islamia-erp/website.js",
+      "git_blob": "f5ac2966194d820152eb19ebc2c1cf8809143124"
+    },
+    {
+      "from": "whatsnew.js",
+      "to": "legacy/islamia-erp/whatsnew.js",
+      "git_blob": "b0e746f37af79e350318fbcf786b76a5aeeb2f1e"
+    },
+    {
+      "from": "xb_cakejobs.js",
+      "to": "legacy/islamia-erp/xb_cakejobs.js",
+      "git_blob": "d9115261ccdc5b99d666597a9fe602021f91c15b"
+    },
+    {
+      "from": "xb_paycapture.js",
+      "to": "legacy/islamia-erp/xb_paycapture.js",
+      "git_blob": "8f6ada207660dc65d6a4849f5c878545df6a1a90"
+    },
+    {
+      "from": "xb_paysms.js",
+      "to": "legacy/islamia-erp/xb_paysms.js",
+      "git_blob": "216a1dffdb7129b604d1552b43d2defee8c8f669"
+    },
+    {
+      "from": "xb_riders.js",
+      "to": "legacy/islamia-erp/xb_riders.js",
+      "git_blob": "07487f44df5afac386687ad19693794ea84ab2e3"
+    },
+    {
+      "from": "xc_summary.js",
+      "to": "legacy/islamia-erp/xc_summary.js",
+      "git_blob": "6b840ccd394a4cc9e113d3f72b2c8d4897b2478a"
+    },
+    {
+      "from": "xc_unsold.js",
+      "to": "legacy/islamia-erp/xc_unsold.js",
+      "git_blob": "43f62723843560f446e1542a6a175330ade10be5"
+    }
+  ]
+}
