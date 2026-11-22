@@ -1,6 +1,21 @@
 # Claude lane — restartable handoff (trunk / NP02 Control)
 
-## SESSION A STATE — 2026-11-21 (read this first)
+## SESSION A STATE — 2026-11-22 (GO-2 done; read this first)
+
+New Session A (replaced the 2026-11-21 one). Owner re-confirmed GO-2 and GO-3 (after staging) in this session.
+
+**GO-2 staging (rhrqhbyzrhaafynfhdaf): DONE 2026-11-22.**
+- Backup first: `docs/development/staging-backups/2026-11-22-pre-go2/` (core10 functions, ACLs, triggers, policies, views, columns, constraints, all rows; synthetic data only). Supabase daily backup is the second net.
+- Rehearsal: disposable PG17.12 with 0001-0012 + the real staging rows loaded, then the exact 19 payloads: 19/19 OK, registry gate PASS (17 enforced / 7 exempt / 6 pending).
+- Staging transaction semantics proven first (a failing `begin; create ...; 1/0; commit` left nothing behind).
+- Applied 0013-0019, 0100-0106, 0110-0114 in numeric order, one transaction per file = file text + `core10.schema_migrations(version,name,checksum)` row, sha256 of file bytes (run.sh semantics). Order guard checked before every file; ledger checksum re-read after every file. Log: `apply-log.txt`.
+- After: ledger 31 rows, max 114. Registry gate PASS on staging (17/7/6, same as rehearsal). Catalog: 0 SECURITY DEFINER without search_path, 0 anon execute, 0 tables without RLS, 0 authenticated direct DML. Data intact (audit 6, members 4, sites 3).
+- Supabase advisors: 48 "authenticated can execute SECURITY DEFINER" WARN + 6 "RLS no policy" INFO = intended RPC-only design (each RPC checks scope itself; RPC-only tables deny direct access). **Owner action:** Auth "leaked password protection" is OFF (dashboard setting, Owner's call before real users).
+- NOT applied (by design): 0115+ / 0150+ / 0200+ / 0400+ / 0500+. Next hosted version must be > 0114 in numeric order; 0115-0118 (PR #121) must be settled via the Board first.
+
+Next: GO-3 live (Level 2 list below), then integration items (Sales #109 security, F3 #117 rollback test, 0305 double claim, crosslane F3 pin).
+
+## SESSION A STATE — 2026-11-21 (superseded by 2026-11-22 above)
 
 Owner GO (2026-11-21): full build authority incl. GO-2 staging and GO-3 live, "check everything first".
 Re-alignment plan (Drive): https://docs.google.com/document/d/1gqWHIDdB81H2-VZqce2E5VbRSZOTOgGraszGt5yeDjc/edit
