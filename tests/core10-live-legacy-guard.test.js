@@ -27,7 +27,13 @@ function walk(directory) {
   });
 }
 const sources=new Set(live.map(p=>path.join(root,p)));
-for(const directory of ["modules","apps/central"])for(const p of walk(path.join(root,directory)))sources.add(p);
+// The Central shell runtime is site/ plus the Worker module. Build and verify
+// scripts are *not* shipped; verify.cjs itself contains intentional negative
+// assertions referring to retired paths, and must never be mistaken for app code.
+for(const directory of ["modules","apps/central/site"])
+  for(const p of walk(path.join(root,directory)))sources.add(p);
+if(fs.existsSync(path.join(root,"apps/central/worker-runtime.mjs")))
+  sources.add(path.join(root,"apps/central/worker-runtime.mjs"));
 // Unshipped historical CORE10 pages are NOT live: prohibit legacy loader imports,
 // without misclassifying the deliberately unshipped and bundle-denied offline stocktake.
 for(const name of fs.readdirSync(root).filter(p=>/^core10-.*\.html$/.test(p))) {
