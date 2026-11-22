@@ -15,7 +15,7 @@ for (const version of ['0201', '0203', '0206']) {
     const st = fs.lstatSync(file);
     assert.ok(st.isFile() && !st.isSymbolicLink(), 'unsafe migration file');
     const source = fs.readFileSync(file, 'utf8');
-    const lock = /FOR\\s+(?:NO\\s+KEY\\s+)?UPDATE\\b/ig;
+    const lock = /FOR\s+(?:NO\s+KEY\s+)?UPDATE\b/ig;
     const hits = [...source.matchAll(lock)];
     assert.ok(hits.length > 0, 'row lock missing');
     // Source-presence smoke guard, not a proof of control-flow dominance.
