@@ -41,10 +41,11 @@ export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic =
       root.querySelectorAll('[data-materials]').forEach(b=>b.onclick=()=>materialsForm(Number(b.dataset.materials)));
       root.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>planForm(Number(b.dataset.plan)));
     } else if (tab==='batches') {
-      content.innerHTML=`<section class="op-panel"><h2>${t('ব্যাচের অগ্রগতি','Batch progress')}</h2>${data.batches.map(b=>`<article class="op-record"><strong>${t('ব্যাচ','Batch')} #${b.id} · ${esc(b.status)}</strong><small>${t('পরিকল্পিত','Planned')} ${b.expected_output} ${esc(b.yield_uom_ref)} · BOM ${b.bom_id}</small><button data-release="${b.id}" ${b.status!=='planned'?'hidden':''}>${t('ছাড়পত্র অনুরোধ','Request release')}</button><button data-cancel="${b.id}" ${b.status!=='planned'?'hidden':''}>${t('বাতিল','Cancel')}</button><button data-record="${b.id}" ${b.status!=='released'?'hidden':''}>${t('ফলন লিখুন','Record output')}</button><button data-waste="${b.id}" ${b.status!=='recorded'?'hidden':''}>${t('উপকরণের অপচয়','Material waste')}</button><button data-handoff="${b.id}">${t('সংযোগ পরীক্ষা','Check handoff')}</button></article>`).join('') || t('কোনো ব্যাচ নেই।','No batches.')}</section>`;
+      content.innerHTML=`<section class="op-panel"><h2>${t('ব্যাচের অগ্রগতি','Batch progress')}</h2>${data.batches.map(b=>`<article class="op-record"><strong>${t('ব্যাচ','Batch')} #${b.id} · ${esc(b.status)}</strong><small>${t('পরিকল্পিত','Planned')} ${b.expected_output} ${esc(b.yield_uom_ref)} · BOM ${b.bom_id}</small><button data-release="${b.id}" ${b.status!=='planned'?'hidden':''}>${t('ছাড়পত্র অনুরোধ','Request release')}</button><button data-cancel="${b.id}" ${b.status!=='planned'?'hidden':''}>${t('বাতিল','Cancel')}</button><button data-record="${b.id}" ${b.status!=='released'?'hidden':''}>${t('ফলন লিখুন','Record output')}</button><button data-waste="${b.id}" ${b.status!=='recorded'?'hidden':''}>${t('উপকরণের অপচয়','Material waste')}</button>${central&&b.status!=='cancelled'? `<button data-grn="${b.id}">${t('GRN ও লট যাচাই','Verify GRN and lot')}</button>`:''}<button data-handoff="${b.id}">${t('সংযোগ পরীক্ষা','Check handoff')}</button></article>`).join('') || t('কোনো ব্যাচ নেই।','No batches.')}</section>`;
       root.querySelectorAll('[data-release]').forEach(b=>b.onclick=()=>central?approvalForm('batch_release',b.dataset.release):command('mfg_release_batch_v1',()=>({p_batch:Number(b.dataset.release)})));
       root.querySelectorAll('[data-cancel]').forEach(b=>b.onclick=()=>reasonForm(Number(b.dataset.cancel)));
       root.querySelectorAll('[data-record]').forEach(b=>b.onclick=()=>outputForm(Number(b.dataset.record)));
+      root.querySelectorAll('[data-grn]').forEach(b=>b.onclick=()=>grnForm(b.dataset.grn));
       root.querySelectorAll('[data-handoff]').forEach(b=>b.onclick=()=>command('mfg_request_handoff_v1',()=>({p_batch:Number(b.dataset.handoff),p_kind:data.batches.find(x=>x.id===Number(b.dataset.handoff)).status==='recorded'?'finance':'ingredients'})));
     } else {
       content.innerHTML=`<section class="op-panel"><h2>${t('ফলন, অপচয় ও ব্যয় পার্থক্য','Yield, waste & planning variance')}</h2><p>${t('উপাদানের কেজি ও পণ্যের পিস যোগ করা হয় না। হিসাব সংশ্লিষ্ট UOM অনুযায়ী।','Ingredient kg and output pieces are never added. Quantities retain their UOM.')}</p>${data.batches.filter(b=>b.status==='recorded').map(b=>`<article class="op-record"><strong>${t('ব্যাচ','Batch')} #${b.id} · ${esc(b.output_payload.lot_ref)}</strong><div class="mfg-kpis"><div><strong>${b.yield_pct}%</strong><small>${t('ভাল পণ্যের ফলন','Good output yield')}</small></div><div><strong>${b.output_payload.loss} ${esc(b.yield_uom_ref)}</strong><small>${t('প্রক্রিয়াগত অপচয়','Process loss')}</small></div><div><strong>${b.planning_cost_variance} BDT</strong><small>${t('উদাহরণ • পরিকল্পিত ব্যয় পার্থক্য','Example • planning cost variance')}</small></div></div><p>${t('প্রত্যাখ্যাত','Rejected')}: ${b.output_payload.rejected} · ${t('পুনঃকাজ','Rework')}: ${b.output_payload.rework} · ${esc(b.output_payload.reason)}</p><details><summary>${t('ব্যবহার ও লট সূত্র','Consumption & lot references')}</summary><pre>${esc(JSON.stringify(b.output_payload.consumption,null,2))}</pre></details><small>NOT_CONNECTED · Stock / Finance · actual_cogs_certified=false</small><button data-waste="${b.id}">${t('উপকরণের অপচয়','Material waste')}</button></article>`).join('') || t('ফলন নথি নেই।','No output records.')}</section>`;
@@ -53,6 +54,44 @@ export function mountManufacturing(root, {rpc, context, lang = 'bn', synthetic =
     root.querySelectorAll('[data-waste]').forEach(b=>b.onclick=()=>wasteForm(Number(b.dataset.waste)));
   }
   function inlineForm(title,html,submit) {$('#mfg-content').innerHTML=`<section class="op-panel"><h2>${title}</h2><form class="op-form">${html}<button type="submit">${t('জমা দিন','Submit')}</button></form></section>`;$('#mfg-content form').onsubmit=e=>{e.preventDefault();submit(new FormData(e.target));};}
+  function grnForm(batch) {
+    const title=t('GRN ও লট যাচাই','Verify GRN and lot');
+    inlineForm(title,`
+      <label>${t('GRN আইডি','GRN ID')}<input name="grn" inputmode="numeric" pattern="[1-9][0-9]{0,18}" required></label>
+      <label>${t('GRN লাইন','GRN line')}<input name="grn_line" type="number" min="1" max="200" required></label>
+      <label>${t('লট আইডি','Lot ID')}<input name="grn_lot" inputmode="numeric" pattern="[1-9][0-9]{0,18}" required></label>
+      <p>${t('গ্রহণের সময় নথিভুক্ত পরিমাণ ও মূল Stock movement যাচাই করুন।','Check the accepted receipt quantity and its original Stock movement.')}</p>
+    `,async f=>{
+      if(busy||!active)return;
+      busy=true;
+      root.querySelectorAll('button').forEach(b=>b.disabled=true);
+      try {
+        const r=await api.call('mfg_verify_grn_source_v1',{
+          p_batch:batch,p_grn:f.get('grn'),p_line:Number(f.get('grn_line')),p_lot:f.get('grn_lot')
+        });
+        if(!active)return;
+        dirty=false;
+        $('#mfg-content').innerHTML=`<section class="op-panel" id="mfg-grn-evidence">
+          <h2>${title}</h2>
+          <p>GRN #${esc(r.grn_id)} · ${t('লাইন','Line')} ${esc(r.line_no)} · PO #${esc(r.po_id)}</p>
+          <p>${esc(r.sku)} · ${t('গ্রহণের সময় অনুমোদিত পরিমাণ','Accepted receipt quantity')} ${esc(r.accepted_receipt_qty)}</p>
+          <p>${t('লট','Lot')} #${esc(r.lot_id)} · ${esc(r.lot_code)}${r.expires_on?' · '+t('মেয়াদ','Expires')+' '+esc(r.expires_on):''}</p>
+          <p>Stock movement #${esc(r.stock_movement_id)} · Audit #${esc(r.audit_event_id)}</p>
+          <small>${t('এই পরিমাণটি GRN পোস্টের সময়কার।','This quantity reflects the original GRN posting.')}</small>
+        </section>`;
+        status(t('GRN-এর সূত্র যাচাই হয়েছে।','GRN provenance verified.'));
+      } catch (e) {
+        const messages={
+          'NOT_CONNECTED:PROCUREMENT_GRN':t('Procurement সংযোগ এখনও উপলব্ধ নয়।','Procurement is currently unavailable.'),
+          MFG_GRN_SOURCE_UNVERIFIED:t('এই ব্যাচের জন্য GRN লাইন ও লট যাচাই করা যায়নি।','The GRN line and lot could not be verified for this batch.')
+        };
+        status(messages[e.message]||errorText(e),true);
+      } finally {
+        busy=false;
+        if(active)root.querySelectorAll('button').forEach(b=>b.disabled=false);
+      }
+    });
+  }
   function approvalForm(operation,id) {
     const recipe = operation === 'recipe_approve';
     const effectiveField = recipe

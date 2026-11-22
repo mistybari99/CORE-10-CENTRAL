@@ -11,6 +11,8 @@ const { start } = require("./ui-gateway.cjs");
 const OWNER = "11111111-1111-4111-8111-111111111111";
 const REVIEWER = "abababab-abab-4bab-8bab-abababababab";
 const FOREIGN_OWNER = "77777777-7777-4777-8777-777777777777";
+const GRN_RECEIPT = process.env.CORE10_TEST_GRN_RECEIPT;
+const GRN_LOT = process.env.CORE10_TEST_GRN_LOT;
 const MANAGER = "33333333-3333-4333-8333-333333333333";
 
 async function launch() {
@@ -149,7 +151,8 @@ async function launch() {
       assert.equal(await stock.getByText("MAIN · #5001").count(),0);
       const stockRead = calls.find(call => call.rpc === "stock/stock_summary");
       assert.deepEqual([stockRead.args.tenant_id,stockRead.args.business_id,stockRead.args.site_id],[1,101,1002]);
-      assert.ok(await stock.getByText(width === 390 ? "নথিভুক্ত মজুত ১২.৫" : "Recorded on hand 12.5").isVisible());
+      const onHand = new Intl.NumberFormat(width===390 ? "bn-BD" : "en").format(GRN_RECEIPT ? 70.5 : 12.5);
+      assert.ok(await stock.getByText((width===390 ? "নথিভুক্ত মজুত " : "Recorded on hand ")+onHand).isVisible());
       assert.equal(await stock.getByRole("button",{name:width===390 ? "পরের পৃষ্ঠা" : "Next"}).isDisabled(),true);
       await page.locator("#b01-close-operation").click();
       await page.locator("#b01-open-sales").click();
@@ -237,6 +240,29 @@ async function launch() {
       await operationHost.locator("form button[type=submit]").click();
       const planned = await (await plannedResponse).json();
       assert.equal(planned.status,"planned");
+      await operationHost.locator('[data-tab="batches"]').click();
+      await operationHost.locator(`[data-grn="${planned.batch_id}"]`).click();
+      async function verifyGRN(lot) {
+        await operationHost.locator('[name="grn"]').fill(GRN_RECEIPT || "1");
+        await operationHost.locator('[name="grn_line"]').fill("1");
+        await operationHost.locator('[name="grn_lot"]').fill(lot);
+        const pending = page.waitForResponse("**/central-fixture/mfg_verify_grn_source_v1");
+        await operationHost.locator("form button[type=submit]").click();
+        return (await pending).json();
+      }
+      if (GRN_RECEIPT) {
+        assert.equal((await verifyGRN("99999999")).message,"MFG_GRN_SOURCE_UNVERIFIED");
+        const proof=await verifyGRN(GRN_LOT);
+        assert.equal(proof.accepted_receipt_qty,58);
+        assert.equal(String(proof.lot_id),GRN_LOT);
+        assert.ok(proof.stock_movement_id && proof.audit_event_id);
+        assert.equal(proof.batch_id,planned.batch_id);
+        const evidence=operationHost.locator("#mfg-grn-evidence");
+        await evidence.getByText(/GRN-CENTRAL-QA/).waitFor();
+        assert.match(await evidence.innerText(),/Stock movement #\d+ · Audit #\d+/);
+      } else {
+        assert.equal((await verifyGRN("1")).message,"NOT_CONNECTED:PROCUREMENT_GRN");
+      }
       await operationHost.locator('[data-tab="batches"]').click();
       await operationHost.locator(`[data-release="${planned.batch_id}"]`).click();
       const batchRequestResponse = page.waitForResponse("**/central-fixture/mfg_submit_approval_v1");

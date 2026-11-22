@@ -59,6 +59,8 @@ jobs:
           psql -X -At -c "SELECT pg_get_functiondef(oid)||';' FROM pg_proc WHERE oid IN ('core10._mfg_master_check_v1(bigint)'::regprocedure,'core10._mfg_substitution_check_v1(bigint)'::regprocedure)" > /tmp/np05a-canonical-hooks.sql
       - name: Manufacturing staged Approval and canonical Audit binding
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/staged-approval-e2e.sql
+      - name: Manufacturing GRN provenance with optional Procurement offline
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/grn-provenance-e2e.sql
       - name: Real two-session replay and safe rollback with history
         run: bash tests/np05a/concurrency.sh
       - name: Lock-wait Control change and immediate revocation
@@ -91,3 +93,49 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with: {name: np05a-master-evidence, path: np05a-master-shots, if-no-files-found: ignore}
+  procurement-grn-compatibility:
+    name: Procurement GRN provenance in signed Central
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env: {POSTGRES_PASSWORD: grn_disposable_only}
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGUSER: postgres
+      PGPASSWORD: grn_disposable_only
+      PGDATABASE: core10_np03b_ci_grn_bridge
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, persist-credentials: true}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Load the exact Procurement candidate into the disposable CI checkout
+        run: |
+          git fetch --no-tags origin refs/pull/125/head:refs/remotes/np05a-compat/pr125
+          test "$(git rev-parse refs/remotes/np05a-compat/pr125)" = 6902ebe6a5c1d5de475c58d0d9c584794bd0b4aa
+          git -c user.name="NP05A CI" -c user.email="ci@users.noreply.github.com" merge --no-commit --no-ff refs/remotes/np05a-compat/pr125
+      - name: Apply canonical migrations and prove the receipt source
+        run: |
+          createdb "$PGDATABASE"
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN;'
+          internal/migrations/run.sh up
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-procurement-e2e.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/grn-provenance-e2e.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/np03b/central-ui-seed.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/np03b/grn-browser-seed.sql
+          psql -X -At -c "SELECT 'CORE10_TEST_GRN_RECEIPT='||l.grn_id||chr(10)||'CORE10_TEST_GRN_LOT='||l.lot_id FROM core10.goods_receipt_lines_v1 l WHERE l.lot_code='GRN-CENTRAL-QA'" >> "$GITHUB_ENV"
+      - name: Install Chromium for fixtures
+        run: |
+          npm install --prefix "$RUNNER_TEMP/grn-browser" playwright@1.63.0
+          "$RUNNER_TEMP/grn-browser/node_modules/.bin/playwright" install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/grn-browser/node_modules" >> "$GITHUB_ENV"
+      - name: Bilingual Central GRN browser and release regression
+        run: |
+          test -n "$CORE10_TEST_GRN_RECEIPT"
+          test -n "$CORE10_TEST_GRN_LOT"
+          node tests/np03b/central-browser.cjs

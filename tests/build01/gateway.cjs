@@ -10,7 +10,7 @@ const OPERATIONS_RPC=new Set([
  "read_sales_invoice_drafts_v1","save_sales_invoice_draft_v1","validate_sales_invoice_draft_v1",
  "control_read_v1","master_list_items_v1","master_list_parties_v1","master_list_uoms_v1",
  "master_list_price_lists_v1","master_get_price_list_v1",
- "mfg_inspect_v1","mfg_material_requirements_v1","mfg_recipe_substitutions_v1","mfg_define_substitution_v1",
+ "mfg_inspect_v1","mfg_verify_grn_source_v1","mfg_material_requirements_v1","mfg_recipe_substitutions_v1","mfg_define_substitution_v1",
  "mfg_preview_substitution_v1","mfg_preview_substitution_v2","mfg_master_validation_v1",
  "mfg_material_waste_report_v1","mfg_record_material_waste_v1","mfg_create_recipe_v1",
  "mfg_approve_recipe_v1","mfg_plan_batch_v1","mfg_release_batch_v1","mfg_record_output_v1",

@@ -4,6 +4,7 @@
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {spawnSync}=require('node:child_process');const ROOT=path.resolve(__dirname,'../..');
 const RPCS={
+ mfg_verify_grn_source_v1:[['p_business','bigint'],['p_site','bigint'],['p_batch','bigint'],['p_grn','bigint'],['p_line','integer'],['p_lot','bigint']],
  my_routed_review_tasks_v1:[['p_business','bigint']],
  my_approval_status_v1:[['p_business','bigint'],['p_limit','integer']],
  my_approval_activity_v1:[['p_business','bigint'],['p_limit','integer']],
