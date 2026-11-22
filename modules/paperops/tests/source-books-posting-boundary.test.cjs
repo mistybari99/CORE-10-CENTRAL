@@ -127,7 +127,9 @@ test('tampered, forged or unbalanced finance drafts are rejected independently o
  const fake=clone(p);fake.posted=true;
  assert.throws(()=>simulateDraftQueue([],fake),/FORBIDDEN_REAL_LEDGER_COMMIT/);
  const replay=clone(p);replay.proposals[0].payload.credit[0].amountBDT='120.01';
- assert.throws(()=>simulateDraftQueue([],replay),/DRAFT_BATCH_DIGEST_MISMATCH/);
+ // The batch index hashes per-row digests. A payload-only change is caught
+ // by each row's own SHA before it could be added to the draft queue.
+ assert.throws(()=>simulateDraftQueue([],replay),/DRAFT_DIGEST_MISMATCH/);
 });
 test('source book negative cases stop posting plan before any rows are offered',()=>{
  assert.throws(()=>mutateSource(x=>{x.packaging.events[2].declaredOutstanding.crates='999'}),
