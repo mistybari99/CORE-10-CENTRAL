@@ -13,7 +13,9 @@ New Session A (replaced the 2026-11-21 one). Owner re-confirmed GO-2 and GO-3 (a
 - Supabase advisors: 48 "authenticated can execute SECURITY DEFINER" WARN + 6 "RLS no policy" INFO = intended RPC-only design (each RPC checks scope itself; RPC-only tables deny direct access). **Owner action:** Auth "leaked password protection" is OFF (dashboard setting, Owner's call before real users).
 - NOT applied (by design): 0115+ / 0150+ / 0200+ / 0400+ / 0500+. Next hosted version must be > 0114 in numeric order; 0115-0118 (PR #121) must be settled via the Board first.
 
-Next: GO-3 live (Level 2 list below), then integration items (Sales #109 security, F3 #117 rollback test, 0305 double claim, crosslane F3 pin).
+**GO-3 live: DONE 2026-11-22.** Branch `preview/core10-central-level2` @ `887b395`, Draft PR #126 (base = Preview branch, which was left untouched; the Preview session is idle/completed, so Session A was the single releaser). Worker `core10-central` deployment `84095bdd…` / version `38141fd4-09de-4f90-8f81-e12a850597b4`; rollback version `025cf3a1` (source in `rollback/`). `#/control` = real Owner Control Centre, signed staging sign-in; CSP connect-src only self + staging. Live verify 49/49 (390/1440, bn/en, headers, CSP, staging Auth refuses wrong password). NOT VERIFIED: successful Owner sign-in (Owner's own account). Follow-up: shell banner says "nothing saved" — wrong for signed `#/control`.
+
+Next: integration items (Sales #109 security, F3 #117 rollback test, 0305 double claim, crosslane F3 pin).
 
 ## SESSION A STATE — 2026-11-21 (superseded by 2026-11-22 above)
 
