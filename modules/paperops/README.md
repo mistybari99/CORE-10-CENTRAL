@@ -87,6 +87,12 @@ These are **proposed cadence classifications**, not evidence that all 32 have be
 
 **Not yet implemented**: full offline cashbook/GL/AR/AP continuity; all 32 field-parity templates; regulatory receipts; signed tenant-validated form settings; automatic serial-number reservation; QR scan; scan/OCR import; ERP entry, RLS, reconciliation or audit posting; business packs for the other 8+ industries. No one should describe the prototype as complete offline business operation.
 
+## 4a. High-risk legacy control traceability (the important part)
+
+`control-obligations.json` identifies **20 source-backed high-risk obligations** (with the exact old field keys), of which **9 are only partially represented** in the first printable drafts and **11 remain explicit gaps**. Among the latter: independent Jalebi weight/yield and unsold product disposition; continuous stock and supplier ledgers; bill-PO-GRN matching; discount and refund audit; channel settlement reconciliation; customer receivables ageing; and source-controlled grading/shelf life. Nothing is labelled `complete`. The test suite refuses unknown legacy source keys and target templates, preventing these risks from being silently marked as covered.
+
+This is why an eight-template demo must **never** be substituted for the 32 original forms in real sweets operations. The next builder must resolve the gap matrix, prove each calculation/conditional blocker, then field-test the smallest practical paper set before any release.
+
 ## 5. Next executable build slices, with gates
 
 **P1 — Legacy source/control extraction.** Create a machine-readable matrix for every one of the 32 forms: each input name and unit, conditional required rule, validation, formula, tolerance, flag/blocker, roles, signatures, ledger/source links, frequency, where the item originates and who corrects it. Every removed or merged field needs a replacement-location/evidence link and a test. Cover actual Owner pain points before extending to other businesses.
