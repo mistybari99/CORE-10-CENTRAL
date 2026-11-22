@@ -172,15 +172,24 @@
       ], signatures: [t('আবেদনকারী', 'Prepared by'), t('স্বতন্ত্র অনুমোদনকারী', 'Independent approver')]
     }
   ];
-  const INDUSTRIES = ['generic', 'sweets', 'paint'];
+  const INDUSTRY_CLASSES = Object.freeze({
+    generic:'generic',sweets:'sweets',paint:'paint',
+    sweets_bakery:'sweets',paint_hardware:'paint',
+    restaurant:'generic',retail_wholesale:'generic',general_manufacturing:'generic',
+    construction:'generic',import_export:'generic',ecommerce:'generic',
+    technology_digital:'generic',services:'generic'
+  });
+  const INDUSTRIES = Object.freeze(Object.keys(INDUSTRY_CLASSES));
+  function industryClass(industry) { return INDUSTRY_CLASSES[industry] || null; }
   function escapeHtml(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, c =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   }
   function label(value, lang) { return (value && value[lang === 'en' ? 'en' : 'bn']) || ''; }
   function availableForms(industry) {
-    const choice = INDUSTRIES.includes(industry) ? industry : 'generic';
-    return TEMPLATES.filter(x => x.industries.includes('all') || x.industries.includes(choice));
+    const choice = industryClass(industry);
+    if (!choice) return [];
+    return TEMPLATES.filter(x => x.industries.includes('all') || x.industries.includes(industry) || x.industries.includes(choice));
   }
   function validateCatalog(forms = TEMPLATES) {
     const ids = new Set();
@@ -198,6 +207,20 @@
       }
     }
     return true;
+  }
+  function registerTemplates(additions) {
+    if (!Array.isArray(additions) || additions.length < 1 || additions.length > 100) throw Error('INVALID_TEMPLATE_PACK');
+    const proposed = [...TEMPLATES, ...additions];
+    validateCatalog(proposed);
+    for (const form of additions) {
+      if (!Array.isArray(form.industries) || !form.industries.length ||
+          form.industries.some(x => x !== 'all' && !INDUSTRIES.includes(x))) throw Error('UNKNOWN_INDUSTRY_IN_PACK');
+      if (!Array.isArray(form.signatures) || form.signatures.length < 1) throw Error('MISSING_SIGNATURES');
+      if (!['draft','hypothesis'].includes(form.status)) throw Error('NO_UNREVIEWED_RELEASE_STATUS');
+      if (!form.rule?.bn || !form.rule?.en) throw Error('MISSING_FORM_RULE');
+    }
+    TEMPLATES.push(...additions);
+    return additions.length;
   }
   function safeLogo(url) {
     return typeof url === 'string' && url.length < 750000 &&
@@ -223,8 +246,8 @@
     const c = config || {};
     const form = TEMPLATES.find(x => x.id === id);
     if (!form) throw Error('UNKNOWN_FORM');
-    if (!INDUSTRIES.includes(c.industry)) throw Error('UNKNOWN_INDUSTRY');
-    if (!(form.industries.includes('all') || form.industries.includes(c.industry))) throw Error('FORM_NOT_FOR_INDUSTRY');
+    if (!industryClass(c.industry)) throw Error('UNKNOWN_INDUSTRY');
+    if (!availableForms(c.industry).some(x => x.id === form.id)) throw Error('FORM_NOT_FOR_INDUSTRY');
     if (!['business', 'site'].includes(c.scope)) throw Error('INVALID_SCOPE');
     if (!String(c.businessName || '').trim()) throw Error('BUSINESS_REQUIRED');
     if (c.scope === 'site' && !String(c.siteName || '').trim()) throw Error('SITE_REQUIRED');
@@ -250,7 +273,7 @@
     parts.push('<span>' + escapeHtml(label(t('তারিখ', 'Date'), lang)) + ': __________________</span></div>');
     parts.push('<p class="paperops-rule">' + escapeHtml(label(form.rule, lang)) + '</p>');
     for (const sec of form.sections) {
-      const fields = sec.fields.filter(field => field.industries.includes('all') || field.industries.includes(c.industry));
+      const fields = sec.fields.filter(field => field.industries.includes('all') || field.industries.includes(c.industry) || field.industries.includes(industryClass(c.industry)));
       if (!fields.length && !sec.table) continue;
       parts.push('<section class="paperops-section"><h2>' + escapeHtml(label(sec.title, lang)) + '</h2>');
       if (fields.length) {
@@ -277,5 +300,5 @@
     return parts.join('');
   }
   validateCatalog();
-  return Object.freeze({ TEMPLATES, INDUSTRIES, availableForms, escapeHtml, resolveBrand, validateCatalog, validateJob, renderPrintMarkup });
+  return Object.freeze({ TEMPLATES, INDUSTRIES, industryClass, registerTemplates, availableForms, escapeHtml, resolveBrand, validateCatalog, validateJob, renderPrintMarkup });
 });
