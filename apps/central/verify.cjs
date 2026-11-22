@@ -25,7 +25,7 @@ async function step(name, fn) {
     const w = fs.readFileSync(path.join(HERE, "dist/worker.mjs"), "utf8");
     const F = JSON.parse(w.split("\n").find((l) => l.startsWith("const FILES=")).slice(12, -1));
     const all = Object.values(F).map(([, b]) => Buffer.from(b, "base64").toString("latin1")).join("\n");
-    for (const h of fs.readFileSync(path.join(ROOT, "config.js"), "utf8").match(/[a-z0-9]{20}\.supabase\.co/g) || []) assert.ok(!all.includes(h), "legacy host " + h);
+    for (const h of fs.readFileSync(path.join(ROOT, "legacy/islamia-erp/config.js"), "utf8").match(/[a-z0-9]{20}\.supabase\.co/g) || []) assert.ok(!all.includes(h), "legacy host " + h);
     assert.ok(!/eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.|sb_secret_[A-Za-z0-9_-]{8,}|BOS_CONFIG\s*=\s*\{/.test(all), "secret/JWT key-like token");
     // The config route must hold only the publishable key: no JWT, secret key or service-role wording at all.
     for (const r of ["/live/core10-control-centre-config.js", "/live/core10-build01-config.js"]) {
