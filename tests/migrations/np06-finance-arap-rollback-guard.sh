@@ -56,6 +56,28 @@ internal/migrations/run.sh up >/dev/null
 [[ "$(psql -X -At -c "SELECT has_function_privilege('anon','core10.finance_arap_aging_v1(bigint,date,text)','EXECUTE')")" == f ]]
 [[ "$(psql -X -At -c "SELECT has_function_privilege('anon','core10.finance_arap_trace_v1(bigint)','EXECUTE')")" == f ]]
 [[ "$(psql -X -At -c "SELECT has_function_privilege('public','core10.finance_arap_trace_v1(bigint)','EXECUTE')")" == f ]]
+# Inspect the actual PUBLIC pseudo-role ACL (grantee OID 0), not merely a login role.
+# PostgreSQL's default function ACL grants PUBLIC EXECUTE unless explicitly revoked.
+psql -X -q -v ON_ERROR_STOP=1 <<'SQL'
+DO $guard$
+DECLARE exposed text;
+BEGIN
+ SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)
+ INTO exposed
+ FROM pg_proc p
+ CROSS JOIN LATERAL aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+ WHERE p.oid IN (
+  'core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)'::regprocedure,
+  'core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)'::regprocedure,
+  'core10.finance_arap_aging_v1(bigint,date,text)'::regprocedure,
+  'core10.finance_arap_trace_v1(bigint)'::regprocedure
+ ) AND a.grantee = 0 AND a.privilege_type = 'EXECUTE';
+ IF exposed IS NOT NULL THEN
+  RAISE EXCEPTION 'FIN_ARAP_PUBLIC_EXECUTE_ACL_LEAK: %', exposed;
+ END IF;
+END
+$guard$;
+SQL
 echo FIN_ARAP_0402_0403_CUTOVER_GUARD_PASS
 
 psql -X -q -v ON_ERROR_STOP=1 <<'SQL'
