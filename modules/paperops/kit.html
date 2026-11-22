@@ -67,7 +67,18 @@ main{display:block;margin:0;padding:0}.print-area{border:0;border-radius:0;paddi
 <div class="notice"><strong>পরীক্ষামূলক:</strong> এখানে সব লেজার, ট্যাক্স, পে-রোল ও সম্পূর্ণ হিসাবের ফর্ম এখনো নেই। এই প্রিন্ট সেটকে সম্পূর্ণ অফলাইন ব্যবসা চালানোর কিট হিসেবে ব্যবহার করবেন না।</div>
 <h2>১. ব্যবসা ও শাখা</h2>
 <label>তারিখ<input id="day" type="date" required></label>
-<label>ব্যবসার ধরন<select id="industry"><option value="sweets">মিষ্টি / খাদ্য</option><option value="paint">পেইন্ট</option><option value="generic">অন্যান্য (কমন খসড়া)</option></select></label>
+<label>ব্যবসার ধরন<select id="industry">
+<option value="sweets_bakery">মিষ্টি, বেকারি ও খাদ্য উৎপাদন</option>
+<option value="restaurant">রেস্টুরেন্ট, ফাস্ট ফুড ও ক্লাউড কিচেন</option>
+<option value="paint_hardware">পেইন্ট, হার্ডওয়্যার ও ডিলারশিপ</option>
+<option value="retail_wholesale">রিটেইল, হোলসেল ও ডিস্ট্রিবিউশন</option>
+<option value="general_manufacturing">সাধারণ ম্যানুফ্যাকচারিং</option>
+<option value="construction">কনস্ট্রাকশন ও প্রজেক্ট</option>
+<option value="import_export">ইমপোর্ট, এক্সপোর্ট ও ইন্টারন্যাশনাল ট্রেড</option>
+<option value="ecommerce">ই-কমার্স ও অনলাইন স্টোর</option>
+<option value="technology_digital">টেকনোলজি ও সফটওয়্যার</option>
+<option value="services">সার্ভিস ও এজেন্সি</option>
+</select></label>
 <label>ব্যবসার নাম<input id="business" maxlength="120" value="ডেমো মিষ্টি ব্যবসা"></label>
 <label>গ্রুপ নাম<input id="group" maxlength="120" value="CORE-10 Group"></label>
 <label>শাখা তালিকা: প্রতিটি লাইনে <code>ID | নাম | ধরন | ঐচ্ছিক হেডার | ঐচ্ছিক #রং</code><textarea id="sites" spellcheck="false">khulna | খুলনা শোরুম | showroom
@@ -102,11 +113,27 @@ const api=window.CORE10_PAPER_KIT, el=id=>document.getElementById(id);
 let events=[], businessLogo='';
 const today=new Date();
 el('day').value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
-for(const [id,d] of Object.entries(api.EVENT_TYPES)){
-  const option=document.createElement('option');option.value=id;option.textContent=d.name_bn;el('eventType').append(option);
+function updateEventOptions(){
+  const prev=el('eventType').value;
+  const industry=el('industry').value,cls=window.CORE10_PAPEROPS.industryClass(industry);
+  el('eventType').replaceChildren();
+  for(const [id,d] of Object.entries(api.EVENT_TYPES)){
+    if(d.industries&&!d.industries.includes(industry)&&!d.industries.includes(cls))continue;
+    const option=document.createElement('option');option.value=id;
+    option.textContent=d.name_bn;el('eventType').append(option);
+  }
+  if([...el('eventType').options].some(x=>x.value===prev))el('eventType').value=prev;
 }
+el('industry').addEventListener('change',function(){
+  events=[];drawEvents();updateEventOptions();el('print').disabled=true;
+  el('status').textContent='নতুন ব্যবসার ধরন বেছে নেওয়া হয়েছে; আগের ঘটনার তালিকা রিসেট হয়েছে।';
+});
 for(const b of api.INDEPENDENT_BOOKS){
-  const li=document.createElement('li');li.textContent=b.name_bn+' — এখনও আলাদা খাতা/প্রক্রিয়া প্রয়োজন';el('books').append(li);
+  const li=document.createElement('li');
+  li.textContent=b.name_bn+(b.status==='POLICY_REQUIRED'
+    ?' — অনুমোদিত স্থানীয় আইন/কমপ্লায়েন্স নিয়ম প্রয়োজন'
+    :' — প্রিন্টযোগ্য খসড়া পাওয়া যায়, কিন্তু হিসাব/নিয়ন্ত্রণ যাচাই বাকি');
+  el('books').append(li);
 }
 function readSites(){
   const lines=el('sites').value.split(/\r?\n/).filter(x=>x.trim()), out=[], brands={};
@@ -180,6 +207,7 @@ el('generate').addEventListener('click',function(){
   }catch(err){el('print').disabled=true;el('status').textContent='কিট তৈরি হয়নি: '+err.message;}
 });
 el('print').addEventListener('click',function(){if(!this.disabled)window.print();});
+updateEventOptions();
 syncSites();
 })();
 </script>
