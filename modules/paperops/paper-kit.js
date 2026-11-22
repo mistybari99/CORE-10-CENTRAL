@@ -107,6 +107,39 @@
       coverageStatus:'INCOMPLETE_DRAFT_DO_NOT_USE_AS_A_COMPLETE_OFFLINE_ACCOUNTING_KIT'
     });
   }
+  // Print large businesses in explicit, complete batches. Never truncate or silently drop a site.
+  function partitionKit(plan, batchSize = 100) {
+    if (!plan || !Array.isArray(plan.forms) ||
+      plan.coverageStatus !== 'INCOMPLETE_DRAFT_DO_NOT_USE_AS_A_COMPLETE_OFFLINE_ACCOUNTING_KIT')
+      throw Error('INVALID_PLAN');
+    if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > 100)
+      throw Error('INVALID_PRINT_BATCH_SIZE');
+    if (!plan.forms.length) return Object.freeze([]);
+    const ids = new Set();
+    for (const row of plan.forms) {
+      if (!row || typeof row.key !== 'string' || ids.has(row.key))
+        throw Error('DUPLICATE_OR_MISSING_SHEET_KEY');
+      ids.add(row.key);
+    }
+    const groups = [];
+    for (let start = 0; start < plan.forms.length; start += batchSize) {
+      const forms = Object.freeze(plan.forms.slice(start, start + batchSize));
+      const batch = Object.freeze({
+        date: plan.date, businessName: plan.businessName, industry: plan.industry,
+        forms, count: forms.length,
+        dailyCount: forms.filter(x => x.type === 'daily').length,
+        eventCount: forms.filter(x => x.type !== 'daily').length,
+        excludedDailySites: plan.excludedDailySites, outstandingBooks: plan.outstandingBooks,
+        coverageStatus: plan.coverageStatus,
+        batchNumber: groups.length + 1, firstSheet: start + 1,
+        lastSheet: start + forms.length, totalSheets: plan.count
+      });
+      groups.push(batch);
+    }
+    if (groups.reduce((n,x) => n + x.count, 0) !== plan.count)
+      throw Error('INCOMPLETE_PRINT_BATCHES');
+    return Object.freeze(groups);
+  }
   function printKit(plan, settings) {
     if (!plan || !Array.isArray(plan.forms) || plan.coverageStatus !==
       'INCOMPLETE_DRAFT_DO_NOT_USE_AS_A_COMPLETE_OFFLINE_ACCOUNTING_KIT') throw Error('INVALID_PLAN');
@@ -134,5 +167,5 @@
     }
     return parts.join('');
   }
-  return Object.freeze({EVENT_TYPES,INDEPENDENT_BOOKS,planDay,printKit});
+  return Object.freeze({EVENT_TYPES,INDEPENDENT_BOOKS,planDay,partitionKit,printKit});
 });
