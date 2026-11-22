@@ -124,7 +124,7 @@
     const salePaisa=money(v.jalebiSales,'jalebiSales'),price=money(v.approvedPricePerKg,'approvedPricePerKg');
     const unsold=qty(v.unsoldKg,'unsoldKg'),samples=qty(v.samplesKg,'samplesKg');
     const iOil=qty(v.oilIssuedL,'oilIssuedL'),oOil=qty(v.openOilL,'openOilL'),cOil=qty(v.closeOilL,'closeOilL');
-    const iSyr=qty(v.syrupReceivedL,'syrupReceivedL'),oSyr=qty(v.openSyrupL,'openSyrupL'),cSyr=qty(v.closeSyrupL');
+    const iSyr=qty(v.syrupReceivedL,'syrupReceivedL'),oSyr=qty(v.openSyrupL,'openSyrupL'),cSyr=qty(v.closeSyrupL,'closeSyrupL');
     if(pct<=0||price<=0||yieldKg<=0)throw Error('APPROVED_CONVERSION_YIELD_PRICE_REQUIRED');
     const flourUsed=issued+(openDough-closeDough)*1000000/pct; // original R-02: dough delta × 100 / approved base %
     const expected=flourUsed*yieldKg/10000;
