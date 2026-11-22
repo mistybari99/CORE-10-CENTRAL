@@ -180,3 +180,32 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
   rollback `2d9894b8`. Preview release README `e9dd90d`.
   NEXT: Owner manual signed Stock write UI acceptance, add signed PO/GRN/QC
   workflows, then Sales 030x/Finance 040x/Manufacturing 050x numeric integration.
+
+## 7. Open PR audit and integration queue (2026-11-22, Claude; trunk ff5152a → 1a60e79)
+Rule: never merge an old PR wholesale. Old branches (based on `main`, `preview/c10-integrated-20261111-v1` or the
+A018 catalog) predate the numbered-migration trunk; their logic must be PORTED as new numbered migrations + tests on
+trunk (like B-009 did for A018 inventory). After a port is integrated and green, close the old PR with a link (Owner OK).
+
+**A. Trunk-based, integrate next (in this order, each with full PG17 + its lane CI before merge):**
+| PR | What | State vs trunk | Action |
+|---|---|---|---|
+| #117 → #128 → #130 | F3 AR/AP 0402–0403 + ACL + aging tests (stacked) | not in trunk | rollback test must not assume 0403 newest; then merge stack; cross-lane pin now `dc74cde` (1a60e79) |
+| #120 | F3 replay 0402–0405 + Money post | not in trunk; overlaps #117 | pick ONE of #117/#120 (same numbers) via Board |
+| #122 | Sales invoice→Money→AR (0305/0406/0407) | not in trunk | needs Sales 0300–0304 + correction-security PASS first; 0305 clash with #121 |
+| #121 | Codex integration (D063, Sales, Mfg, host) | 105 of 117 files differ | split: its 0115–0118 already on trunk; renumber its 0305; port remaining pieces |
+| #123 / #125 | Stock 0201 (Builder B) / CI replay | mostly in trunk (4 / 7 files differ) | diff the remaining files, port or close |
+| #124 | old F3 re-pin | superseded by 1a60e79 | close |
+| #119 | NP01 bootstrap proposal (docs) | superseded by 0115–0117 on trunk | close after check |
+| #116 / #113 / #114 | old preview branches | superseded by #126 | close |
+
+**B. Old module PRs NOT yet in trunk as numbered migrations (port = new build work, Goal 1 relevant first):**
+- #55 A051 Workforce/Attendance/Leave/Payroll, #59 A055 Assets & Maintenance, #65 A057 CRM/Service/Commerce,
+  #51 A050 Owner portfolio workspace (UI), #73 A058 QC/lot/expiry/recall (NOT in trunk at all),
+  #95 Build05 Paint tint/QC/quotes (paint business!), #97 Build08 procurement kernel (compare 0203/0206 first),
+  #96 Build11 FIN-001 voucher (compare 0400/0401 first), #94 Build04 setup profiles + 303-site fixture,
+  #103 A064 language modes.
+- GOV-002 chain #78–#93, #98, #99 and A008 #69/#71, PACK-01/02 #104/#105: logic already ported into 0007–0019
+  (NP01) — verify each feature against trunk tests, then close.
+- Deferred by Owner: #77/#75 A025 simulation, #67 research docs, #54 D049 docs, #85 work-order doc, #60 preview v1.
+Suggested build order for Goal 1: Sales (fix) → Finance F3 → Paint (#95) → Procurement/QC (#97, #73) →
+Workforce/Payroll (#55) → Assets (#59) → CRM (#65).
