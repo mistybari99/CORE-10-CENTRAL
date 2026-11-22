@@ -10,6 +10,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../..");
 export const PINS = {
   trunk: { sha: "a82ae99", ref: "ccr-15ed11dd-n3hw5h", status: "TRUNK_INTEGRATED" },
+  setup: { sha: "6f058dc", ref: "ccr-15ed11dd-n3hw5h", status: "TRUNK_INTEGRATED" },
   pr109: { sha: "c7165af", ref: "PR #109 NP03B Sales (Draft)", status: "DRAFT_NOT_INTEGRATED" },
   pr112: { sha: "86851dc", ref: "PR #112 NP05A Sweets Manufacturing (Draft)", status: "DRAFT_NOT_INTEGRATED" },
 };
@@ -17,8 +18,8 @@ const T = "trunk";
 export const LIVE = [
   [T, "core10-owner-control-centre.css"], [T, "core10-owner-control-centre-ui.js"], [T, "core10-owner-control-client.js"],
   [T, "core10-master-data.css"], [T, "core10-master-data-client.js"], [T, "core10-master-data-ui.js"],
-  [T, "core10-build01.html"], [T, "core10-build01.css"], [T, "core10-build01.js"], [T, "core10-build01-client.js"],
-  [T, "core10-build01-config.js"], [T, "core10-build01-pack02.js"], [T, "core10-enterprise-client.js"], [T, "core10-control-studio.css"],
+  ["setup", "core10-build01.html"], ["setup", "core10-build01.css"], ["setup", "core10-build01.js"], ["setup", "core10-build01-client.js"],
+  [T, "core10-build01-pack02.js"], [T, "core10-enterprise-client.js"], [T, "core10-control-studio.css"],
   [T, "vendor/supabase.js"],
   // GO-3 Level 2 (2026-11-22): the real signed Owner Control Centre against CORE10 staging (0100-0106 applied under GO-2).
   [T, "core10-owner-control-centre.html"], [T, "core10-owner-control-centre.js"],
@@ -65,6 +66,13 @@ export function build() {
     if (!src.includes('url: "' + url + '", key: ""')) throw new Error("CONFIG_SOURCE_CHANGED");
     add("/live/core10-control-centre-config.js", Buffer.from(src.replace('key: ""', "key: " + JSON.stringify(STAGING.key))),
       { kind: "LEVEL2_CONFIG", commit: full(T), source: "core10-control-centre-config.js + STAGING.key (publishable)", backend: url });
+  }
+  {
+    const src = pinned("setup", "core10-build01-config.js").toString("utf8");
+    if (!/enabled: false,\s*mode: "isolated-development",\s*url: "",\s*publishableKey: ""/.test(src)) throw new Error("SETUP_CONFIG_SOURCE_CHANGED");
+    const out = src.replace(/enabled: false,(\s*)mode: "isolated-development",(\s*)url: "",(\s*)publishableKey: ""/,
+      (m, a, b, c) => "enabled: true," + a + 'mode: "core10-staging",' + b + 'url: "https://' + STAGING.ref + '.supabase.co",' + c + "publishableKey: " + JSON.stringify(STAGING.key));
+    add("/live/core10-build01-config.js", Buffer.from(out), { kind: "LEVEL2_CONFIG", commit: full("setup"), source: "core10-build01-config.js + STAGING (core10-staging mode)" });
   }
   for (const [k, p] of LIVE) add("/live/" + p, pinned(k, p), { kind: "ACTUAL_SOURCE", status: PINS[k].status, commit: full(k), source: p, git_blob: blob(k, p) });
   const ws = {};

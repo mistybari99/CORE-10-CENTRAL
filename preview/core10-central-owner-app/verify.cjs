@@ -28,11 +28,13 @@ async function step(name, fn) {
     for (const h of fs.readFileSync(path.join(ROOT, "config.js"), "utf8").match(/[a-z0-9]{20}\.supabase\.co/g) || []) assert.ok(!all.includes(h), "legacy host " + h);
     assert.ok(!/eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.|sb_secret_[A-Za-z0-9_-]{8,}|BOS_CONFIG\s*=\s*\{/.test(all), "secret/JWT key-like token");
     // The config route must hold only the publishable key: no JWT, secret key or service-role wording at all.
-    const cfgText = Buffer.from(F["/live/core10-control-centre-config.js"][1], "base64").toString("utf8");
-    assert.ok(!/eyJ|sb_secret_|service_role/i.test(cfgText), "config holds non-publishable key material");
+    for (const r of ["/live/core10-control-centre-config.js", "/live/core10-build01-config.js"]) {
+      const cfgText = Buffer.from(F[r][1], "base64").toString("utf8");
+      assert.ok(!/eyJ|sb_secret_|service_role/i.test(cfgText), r + " holds non-publishable key material");
+    }
     // Level 2: exactly one publishable key, only in the staging config, and the only backend host is CORE10 staging.
     const pubs = Object.entries(F).filter(([, [, b]]) => /sb_publishable_[A-Za-z0-9_-]{12,}/.test(Buffer.from(b, "base64").toString("latin1"))).map(([r]) => r);
-    assert.deepEqual(pubs, ["/live/core10-control-centre-config.js"], "publishable key outside staging config: " + pubs);
+    assert.deepEqual(pubs.sort(), ["/live/core10-build01-config.js", "/live/core10-control-centre-config.js"], "publishable key outside staging configs: " + pubs);
     const hosts = new Set(all.match(/[a-z0-9]{20}\.supabase\.co/g) || []);
     assert.deepEqual([...hosts], ["rhrqhbyzrhaafynfhdaf.supabase.co"], "backend hosts " + [...hosts]);
     for (const r of Object.keys(F)) assert.ok(r === "/index.html" || !/(^|\/)(config\.js|index\.html|owner\.html|core10-stocktake-offline\.html|core10-stocktake-preview\.js|core10-shell\.js|sql-gateway\.cjs|harness\.(js|html)|seed\.sql)$/.test(r), "forbidden " + r);
@@ -55,7 +57,7 @@ async function step(name, fn) {
       await ctx.addInitScript((l) => { try { localStorage.setItem("core10.preview.lang", l); } catch (_) {} }, lang);
       const page = await ctx.newPage(), errors = [], foreign = [], bad = [];
       page.on("pageerror", (e) => errors.push(e.message));
-      page.on("request", (r) => { const u = r.url(); if (!u.startsWith(origin + "/") && !/^(data|blob|about):/.test(u) && !(route === "control" && u.startsWith(STAGING))) foreign.push(u); if (/\/(rest|auth|storage|functions)\/v1\/|supabase\.co/.test(u) && !(route === "control" && u.startsWith(STAGING))) foreign.push("BACKEND " + u); });
+      page.on("request", (r) => { const u = r.url(); if (!u.startsWith(origin + "/") && !/^(data|blob|about):/.test(u) && !((route === "control" || route === "setup") && u.startsWith(STAGING))) foreign.push(u); if (/\/(rest|auth|storage|functions)\/v1\/|supabase\.co/.test(u) && !((route === "control" || route === "setup") && u.startsWith(STAGING))) foreign.push("BACKEND " + u); });
       page.on("response", (r) => { if (r.status() >= 400) bad.push(r.status() + " " + r.url()); });
       await page.goto(base + "/#/" + route, { waitUntil: "load" }); await page.waitForTimeout(1500);
       assert.equal(await page.getAttribute("html", "lang"), lang);
@@ -67,6 +69,7 @@ async function step(name, fn) {
         assert.ok(frame, "module frame loaded"); await frame.waitForLoadState("load");
         const ft = await frame.evaluate(() => document.body.innerText); assert.ok(ft.trim().length > 20, "module rendered content");
         text += "\n" + ft; fOver = await frame.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        if (route === "setup") assert.match(await frame.innerText("#b01-environment"), /core10-staging · https:\/\/rhrqhbyzrhaafynfhdaf\.supabase\.co/);
         if (route === "control") { await frame.waitForSelector("#occ-email"); assert.ok(await frame.isVisible("#occ-password"), "signed sign-in form"); }
       }
       const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

@@ -5,6 +5,11 @@
    "ref": "ccr-15ed11dd-n3hw5h",
    "status": "TRUNK_INTEGRATED"
   },
+  "setup": {
+   "sha": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
+   "ref": "ccr-15ed11dd-n3hw5h",
+   "status": "TRUNK_INTEGRATED"
+  },
   "pr109": {
    "sha": "c7165af0162123c39154445b07d1b730c048519c",
    "ref": "PR #109 NP03B Sales (Draft)",
@@ -16,7 +21,7 @@
    "status": "DRAFT_NOT_INTEGRATED"
   }
  },
- "worker_sha256": "e0f7578d41edd35527cb1b0cedbe29e0225ca01fc83f49468b2a284e96bb8c86",
+ "worker_sha256": "7a8300053a80160b593215bbe030ae555295143c289e35588ddc8b9748c7baa5",
  "files": [
   {
    "route": "/live/core10-control-centre-config.js",
@@ -26,6 +31,14 @@
    "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
    "source": "core10-control-centre-config.js + STAGING.key (publishable)",
    "backend": "https://rhrqhbyzrhaafynfhdaf.supabase.co"
+  },
+  {
+   "route": "/live/core10-build01-config.js",
+   "bytes": 369,
+   "sha256": "db7328ec8afdca173244616534f929709ff2c433517b3f5b2044798b9fb89200",
+   "kind": "LEVEL2_CONFIG",
+   "commit": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
+   "source": "core10-build01-config.js + STAGING (core10-staging mode)"
   },
   {
    "route": "/live/core10-owner-control-centre.css",
@@ -89,13 +102,13 @@
   },
   {
    "route": "/live/core10-build01.html",
-   "bytes": 12286,
-   "sha256": "82975588e3c5ae6599aedab17aee74226025bc749bc3caa78c6936d285b47b3f",
+   "bytes": 12327,
+   "sha256": "3115537c852853cf68775cd3c1b04ccf8d1443e55e13e4d0712f141f7bf0e544",
    "kind": "ACTUAL_SOURCE",
    "status": "TRUNK_INTEGRATED",
-   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "commit": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
    "source": "core10-build01.html",
-   "git_blob": "c5ad7764a76e1bf858c411da80bc004f437eb21e"
+   "git_blob": "34203c27a4b62b1738423087af9504c984fb7578"
   },
   {
    "route": "/live/core10-build01.css",
@@ -103,39 +116,29 @@
    "sha256": "403cb60961484cc0f53a0f30749301c79611d2095bbf8e66881c6270596d2b01",
    "kind": "ACTUAL_SOURCE",
    "status": "TRUNK_INTEGRATED",
-   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "commit": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
    "source": "core10-build01.css",
    "git_blob": "8741754027e3b6d9f286b1d858c32ade14b54d5c"
   },
   {
    "route": "/live/core10-build01.js",
-   "bytes": 19120,
-   "sha256": "bac0fdfb7aae502c06e601fb50efc04a9db7d25043a48fcc97ba60170d2b64f7",
+   "bytes": 19132,
+   "sha256": "518d7685d84cc927af39afa48d08cbde8beb6f8e8df289041bc455fa3d6b85dd",
    "kind": "ACTUAL_SOURCE",
    "status": "TRUNK_INTEGRATED",
-   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "commit": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
    "source": "core10-build01.js",
-   "git_blob": "a0a1db793392b7314316216f191c0c446afb0dd4"
+   "git_blob": "4cb65a044147180e68ecc510e90ec089c5124940"
   },
   {
    "route": "/live/core10-build01-client.js",
-   "bytes": 9132,
-   "sha256": "567ca97b0d7fe0eb078613dd79c0b5586e662fb95bdf2ccde7678b37f57a6798",
+   "bytes": 9503,
+   "sha256": "d9f9f5f132c49fd5c0c03a08092d12adfea9eb0a9f4d153318b68d2bd10827f7",
    "kind": "ACTUAL_SOURCE",
    "status": "TRUNK_INTEGRATED",
-   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "commit": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
    "source": "core10-build01-client.js",
-   "git_blob": "6ed1fb497b57687759ec750a863930cadbaea3b7"
-  },
-  {
-   "route": "/live/core10-build01-config.js",
-   "bytes": 290,
-   "sha256": "9a3abdbef0ea55fa3c28369c4ab82a9f864a60ec8a6925af9a3aa97f28d1ee76",
-   "kind": "ACTUAL_SOURCE",
-   "status": "TRUNK_INTEGRATED",
-   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
-   "source": "core10-build01-config.js",
-   "git_blob": "85de88ae20c05ccdd9e6be27df43e802363a6d6f"
+   "git_blob": "b3ec03c2c5d1645af5e2cda67c04582c6cd36168"
   },
   {
    "route": "/live/core10-build01-pack02.js",
