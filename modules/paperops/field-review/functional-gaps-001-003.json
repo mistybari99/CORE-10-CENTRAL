@@ -3,7 +3,7 @@
   "scope": "RECHECK_OF_PREVIOUSLY_MAPPED_BATCHES_001_002_003_ONLY",
   "old_candidate_field_ids": 150,
   "status": "EVIDENCE_BACKED_OPEN_GAPS_NOT_OWNER_APPROVED",
-  "statement": "The 150 historical source field declarations and 16 conditional syntax branches have been independently rechecked; these operational discrepancies prevent any statement of complete 150-field business parity. All risks below are evidence-backed gaps or differing safety policies, not proof the new ERP is faulty in production. Two of the eleven now have synthetic-only source-ledger implementations; they remain OPEN until full signed real-core integration and Owner approval. A separate no-write eight-intent Stock/Money port handoff preview now binds synthetic source IDs and independent candidate roles, while continuing to refuse all server authorization claims and ERP posting.",
+  "statement": "The 150 historical source field declarations and 16 conditional syntax branches have been independently rechecked; these operational discrepancies prevent any statement of complete 150-field business parity. All risks below are evidence-backed gaps or differing safety policies, not proof the new ERP is faulty in production. Two of the eleven now have synthetic-only source-ledger implementations; they remain OPEN until full signed real-core integration and Owner approval. A separate no-write eight-intent Stock/Money port handoff preview now binds synthetic source IDs and independent candidate roles, while continuing to refuse all server authorization claims and ERP posting. The two source-book flows now also generate signed-context-SHAPED, authorization-disabled posting proposals, with finance balancing and replay diagnostics. They are NOT server-authorized, cryptographically signed, persisted or Owner accepted.",
   "scope_limit": "First 150 source candidates from original 1160 not individually mapped; 1010 remain for first pass. 86 previously critical-linked keys and source 20 obligations separately tracked.",
   "summary": {
     "open_functional_gaps": 11,
@@ -13,7 +13,9 @@
     "ready_for_live": false,
     "synthetic_book_prototypes_built": 2,
     "port_intents_prototyped": 8,
-    "server_authorized_port_intents": 0
+    "server_authorized_port_intents": 0,
+    "synthetic_scope_boundary_dry_run_built": 1,
+    "source_book_prototypes_with_dry_run": 2
   },
   "gaps": [
     {
@@ -82,7 +84,7 @@
       "source_fragment": "Crates outstanding",
       "prototype": "source-books.cjs packagingLedger; source-books-fixture.json; tests/source-books.test.cjs",
       "next": "OWNER_DEFINE_OPENING_CARRY_FORWARD_EVIDENCE_AND_SIGNED_ORIGINAL_SOURCE_PLUS_ERP_EVENT_LEDGER_ROLLOUT",
-      "status": "SYNTHETIC_SOURCE_LEDGER_BUILT_PRODUCTION_PERSISTENCE_AND_SIGNOFF_PENDING",
+      "status": "SOURCE_BOOK_AND_SCOPE_DRY_RUN_BUILT_REAL_ERP_SECURITY_AND_POSTING_PENDING",
       "build_proof": {
         "built_module": "modules/paperops/source-books.cjs",
         "fixture": "modules/paperops/source-books-fixture.json",
@@ -105,6 +107,18 @@
           "realApprovalGranted": false,
           "ERPPostingAuthorized": false
         }
+      },
+      "dry_run_integration": {
+        "module": "modules/paperops/source-books-posting-boundary.cjs",
+        "context_contract": "build01_context_v1 observed actor/tenants/businesses/sites consistency ONLY; no server authorization",
+        "proposed_scope": "DEMO-scope numeric canonical-shaped context; no real keys or live user data",
+        "scenario_idempotency": "SHA256 source digest and tenant+business+kind+sourceRef scoped key, local draft replay guard",
+        "output_kind": "RETURNABLE_PACKAGING_DRAFT",
+        "persistence": "DISABLED",
+        "chart_of_accounts": "UNMAPPED",
+        "independent_approval": "NO_TRUSTED_SERVER_GRANT",
+        "staging": "NOT_AUTHORIZED",
+        "owner_signoff": false
       }
     },
     {
@@ -180,7 +194,7 @@
       "source_fragment": "Total expenses",
       "prototype": "source-books.cjs expenseCashbookReconcile; source-books-fixture.json; tests/source-books.test.cjs",
       "next": "CONNECT_SIGNED_C02_SOURCE_TO_R01_AND_CANONICAL_IMMUTABLE_CASHBOOK_LEDGER_WITH_APPROVAL_AND_REVERSALS",
-      "status": "SYNTHETIC_SOURCE_CASHBOOK_RECONCILIATION_BUILT_REAL_POSTINGS_PENDING",
+      "status": "SOURCE_BOOK_AND_SCOPE_DRY_RUN_BUILT_REAL_ERP_SECURITY_AND_POSTING_PENDING",
       "build_proof": {
         "built_module": "modules/paperops/source-books.cjs",
         "fixture": "modules/paperops/source-books-fixture.json",
@@ -204,6 +218,18 @@
           "realApprovalGranted": false,
           "ERPPostingAuthorized": false
         }
+      },
+      "dry_run_integration": {
+        "module": "modules/paperops/source-books-posting-boundary.cjs",
+        "context_contract": "build01_context_v1 observed actor/tenants/businesses/sites consistency ONLY; no server authorization",
+        "proposed_scope": "DEMO-scope numeric canonical-shaped context; no real keys or live user data",
+        "scenario_idempotency": "SHA256 source digest and tenant+business+kind+sourceRef scoped key, local draft replay guard",
+        "output_kind": "FINANCE_EXPENSE_DRAFT",
+        "persistence": "DISABLED",
+        "chart_of_accounts": "UNMAPPED",
+        "independent_approval": "NO_TRUSTED_SERVER_GRANT",
+        "staging": "NOT_AUTHORIZED",
+        "owner_signoff": false
       }
     },
     {
