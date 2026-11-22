@@ -1,7 +1,7 @@
 {
   "rule": "Numeric order is apply order. A persistent database never receives a version lower than its highest applied version (internal/migrations/run.sh refuses with OUT_OF_ORDER). A range therefore only takes new files while no persistent database has applied a higher number; once that happens the board allocates the lane a new range above the persistent maximum, or the trunk owner renumbers an unapplied file at integration (file rename only, content and checksum unchanged).",
   "persistent_databases": {
-    "staging rhrqhbyzrhaafynfhdaf": "0001-0019, 0100-0106, 0110-0114 applied (0013-0114 on 2026-11-22 under Owner GO-2, per-file transaction + sha256 ledger row; backup docs/development/staging-backups/2026-11-22-pre-go2). Next free hosted version must be > 0114 and land in numeric order."
+    "staging rhrqhbyzrhaafynfhdaf": "0001-0019,0100-0106,0110-0118,0150-0153,0200 applied (40 ledger rows, max 0200 on 2026-11-22; 0115-0118 D063 via exact CI-green PR127, Owner bootstrap policy enabled same 0116 transaction; 0150-0153/0200 Master/Stock foundation applied after PG17 current-staging rehearsal). Backups: 2026-11-22-pre-go2, pre-d063, pre-master-stock. No 0201+, 030x, 040x, 050x hosted. Numeric order enforced; no lower version can be hosted after 0200 without Board renumbering."
   },
   "ranges": [
     {
