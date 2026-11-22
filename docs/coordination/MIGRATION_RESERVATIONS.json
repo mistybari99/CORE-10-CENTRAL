@@ -1,7 +1,7 @@
 {
   "rule": "Numeric order is apply order. A persistent database never receives a version lower than its highest applied version (internal/migrations/run.sh refuses with OUT_OF_ORDER). A range therefore only takes new files while no persistent database has applied a higher number; once that happens the board allocates the lane a new range above the persistent maximum, or the trunk owner renumbers an unapplied file at integration (file rename only, content and checksum unchanged).",
   "persistent_databases": {
-    "staging rhrqhbyzrhaafynfhdaf": "0001-0019,0100-0106,0110-0118,0150-0153,0200 applied (40 ledger rows, max 0200 on 2026-11-22; 0115-0118 D063 via exact CI-green PR127, Owner bootstrap policy enabled same 0116 transaction; 0150-0153/0200 Master/Stock foundation applied after PG17 current-staging rehearsal). Backups: 2026-11-22-pre-go2, pre-d063, pre-master-stock. No 0201+, 030x, 040x, 050x hosted. Numeric order enforced; no lower version can be hosted after 0200 without Board renumbering."
+    "staging rhrqhbyzrhaafynfhdaf": "0001-0019,0100-0106,0110-0118,0150-0153,0200-0206 applied (46 ledger rows, max 0206 on 2026-11-22). Stock/Procurement exact 0201-0206 via CI-green PR129 merge ac86ee809157af13458b5607132f00a3d72caec9; 0201/0203/0206 post-lock Auth recheck and live concurrency revocation test PASS. One transaction per exact-file SHA256 ledger entry. Backups: 2026-11-22-pre-go2, pre-d063, pre-master-stock, pre-stock-0201-0206. Staging Owner TEST ONLY has 6 posted inventory commands/8 movements/6 balances, no unreconciled. No Sales 030x, Finance 040x or Manufacturing 050x hosted; numeric order and Board allocation enforced. Other Supabase projects untouched."
   },
   "ranges": [
     {

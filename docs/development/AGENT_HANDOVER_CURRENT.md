@@ -33,9 +33,10 @@ NEVER TOUCH: Supabase `kbuhnpqooycqbzrfejcs` (IMG-ERP-SG, old ERP) and `luoeyyng
 No merge to `main` without Owner. No production DB. No secrets in git (publishable key is fine; never service_role/sb_secret).
 
 ## 3. Current state (2026-11-22)
-- CORE10 staging only `rhrqhbyzrhaafynfhdaf` PostgreSQL 17.11: **40 applied migrations**, max `0200`:
-  0001–0019, 0100–0106, 0110–0118, 0150–0153, 0200; every new file used one transaction
-  containing exact upstream file bytes + matching SHA256 ledger row. **No 0400+/0500+ hosted**, nor Sales 030x/Stock 0201+.
+- CORE10 staging only `rhrqhbyzrhaafynfhdaf` PG17: **46 applied migration rows**, maximum `0206`:
+  0001–0019, 0100–0106, 0110–0118, 0150–0153, 0200–0206. Each hosted file applied sequentially
+  with exact source SHA256 in the same committed transaction as its ledger record. Sales 030x,
+  Finance 040x and Manufacturing 050x are NOT on staging; never jump over an unhosted smaller number.
 - Original 0115–0118 D063 on PR #121 were copied **byte-identical** into scoped PR #127, PG17 CI all 8/8
   SUCCESS; B-009 reviewed four intentional guarded legacy API diffs, PR #127 merged to trunk `8ba066184b696307b08421e030652ebc4ab17a56`.
   Real current staging rows 4-migration BEGIN/ROLLBACK rehearsal PASS; Owner signed policy activation + fresh signed
@@ -55,8 +56,26 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
 - Staging safety snapshots: `docs/development/staging-backups/2026-11-22-pre-go2/`,
   `2026-11-22-pre-d063/` (current 14-table snapshot without auth secrets), and
   `2026-11-22-pre-master-stock/`. Each is a scoped logical backup; full restore still relies on managed backup.
-- Cloudflare Worker `core10-central` LIVE version `4b6d179c-e1aa-4066-9fb6-6988dbc32432`, deployment `7a58b970-2e62-405f-abe3-e4cd064611ee` at 100%. Previous rollback `ceeea069-d630-460a-b1f0-5b12e5157da9`. `/#/setup`, `/#/control`, and NOW `/#/master` are signed CORE10 staging, whereas Sales and Manufacturing remain recorded replay. New signed Master UI source `35ef4f6`, verified candidate `f0e8e036`, Worker 903404 bytes SHA256 `3ae944b1cdcb49f4701457d629e99b61f4acff32fff7b77e2713d3f16568fc28`. Full local browser CI `44991383787` 50/50 PASS and full live public URL CI `44991642473` 50/50 PASS; wrong-password refusal checked. Release README preview commit `1fac3aa`. Owner has not yet manually confirmed item editing on new Master mobile page.
+- Cloudflare Worker `core10-central` latest fully verified v`2d9894b8-279d-4772-91f6-be46a54d98e3` (read-only signed Business dashboard), public Chromium verification `44996166820` **50/50 PASS**; previous fully verified fallback v`4b6d179c-e1aa-4066-9fb6-6988dbc32432`. `/#/setup`, `/#/control`, and NOW `/#/master` are signed CORE10 staging, whereas Sales and Manufacturing remain recorded replay. New signed Master UI source `35ef4f6`, verified candidate `f0e8e036`, Worker 903404 bytes SHA256 `3ae944b1cdcb49f4701457d629e99b61f4acff32fff7b77e2713d3f16568fc28`. Full local browser CI `44991383787` 50/50 PASS and full live public URL CI `44991642473` 50/50 PASS; wrong-password refusal checked. Release README preview commit `1fac3aa`. Owner has not yet manually confirmed item editing on new Master mobile page.
 - Post-0118 signed Owner **staging capacity** (2026-11-22): verified 50 default succeeds, 51st denied; an audited per-business `max_sites=400` setting allowed 400 sites and 401st denied. All tests `BEGIN/ROLLBACK`, post-test Owner business 3 still exactly 4 sites and no persisted business cap setting; DB ledger remains 40/max0200. Mobile 400-site UX not yet performance-tested.
+- Stock/Procurement NP03A integration: original Claude PR #123 at `54bc5889` remains preserved;
+  isolated PR #129 merged at trunk `ac86ee809157af13458b5607132f00a3d72caec9`.
+  Before merge, a post-row-lock Auth recheck was added to inventory command/PO/GRN writers
+  (0201, 0203, 0206), with a real revocation-while-waiting race test.
+  All six exact-head CI workflows PASS including PG17, Control registry, multi-session races,
+  390/1440 Chromium dashboard; no old 0200 file was changed. Signed staging-row ROLLBACK
+  rehearsal and signed Owner stock receive→confirm→post/replay/cross-tenant negatives PASS.
+  Pre-hosted scoped 30-table snapshot `docs/development/staging-backups/2026-11-22-pre-stock-0201-0206/`
+  was committed `77fd9ad2`. Hosted 0201–0206 with exact SHA/ledger one transaction each, all PASS.
+  Staging business #3 now has synthetic (TEST ONLY) six posted inventory commands, eight canonical
+  stock movements, six balance rows, zero unreconciled; four original site MAIN locations were
+  provisioned earlier and reused, four Master items intact. No Finance journal/real customer posts.
+- Dashboard Owner `/#/business`: signed read-only real portfolio/site/Stock integration preview source
+  `a7b36cfa`, deterministic bundle candidate `27b2e254`, local browser CI `44995895627`
+  **50/50 PASS**, Cloudflare existing Worker version `2d9894b8-279d-4772-91f6-be46a54d98e3`
+  active after PUT. Exact public-live bundle verification run `44996166820` **50/50 PASS**, same
+  SHA256 as local bundle and no unauthorized backend calls.
+  Previous stable rollback Worker `4b6d179c-e1aa-4066-9fb6-6988dbc32432`.
 - F3 crosslane PR #117 stale SHA pin fixed on trunk `bd5aec72826a5ff0b2fd1827bc1396e3390d9067`, CI
   `44989810303` SUCCESS. Sales PR #109 security cases, 0305 double claim and 0201–0202 Stock remain work.
   **NEVER TOUCH** old IMG-ERP-SG Supabase project `kbuhnpqooycqbzrfejcs` or `luoeyyngayxpqecuuijb`;
@@ -67,7 +86,7 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
   Before merge: local PG17 (`bash tests/migrations/run-updownup.sh`, `internal/migrations/run.sh up`, lane SQL tests,
   `psql -f tests/migrations/control-registry-check.sql`), `node --test tests/migrations/migration-contract.test.js`,
   relevant browser tests. Never weaken/skip a test.
-- **Apply migrations to staging**: only next numbers in order (> 0200 as of 2026-11-22; no gaps that other open PRs hold).
+- **Apply migrations to staging**: only next numbers in order (> 0206 as of 2026-11-22; no gaps that other open PRs hold).
   Per file, one transaction: file text + `insert into core10.schema_migrations(version,name,checksum)` with
   sha256 of the file bytes (exactly like `run.sh`). Rehearse first on PG17 with staging rows. Backup first.
 - **Deploy live**: edit `preview/core10-central-owner-app/build.mjs` (pins + LIVE list) on `preview/core10-central-level2`,
@@ -79,12 +98,32 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
   DB connection) from the Owner. Never commit them.
 
 ## 5. Next build steps (priority order)
-1. Signed Master is LIVE: `/#/master` Worker `4b6d179c`, local 50/50 and live 50/50 PASS. Owner should check the four seeded sample items on mobile, then test a permitted item edit. Do not claim verified successful human Master login/edit yet.
-2. Numeric migrations: staging max `0200` (40). Reconcile Stock 0201+, Sales 030x security PR109 and 0305 Board double claim PR121/122 before Finance 0400+, Manufacturing 0500+. Correct Sales 10 failed cases through FORWARD migrations, never edit old 0301/0304; no jumps over lower unhosted numbers.
-3. Build actual Stock/Sales/Finance/Manufacturing signed staging end-to-end, after PG17, cross-tenant negative, Owner Control, backup and SHA256 ledger tests. Finance PR117 newest-migration rollback test still open; F3 SHA pin already fixed `bd5aec`.
-4. Site 100–400 after D063: signed Owner staging post-0118 test now PASS: sites 5–50 allowed, 51 denied by default; an audited per-business Owner Control max_sites=400 (version 1) allowed 400, 401 denied. Both 50 and 400 tests ran inside ROLLBACK; after rollback the Owner demo retains 4 sites and 0 business cap overrides. Backend capacity confirmed; real mobile management UX under load still needs testing.
-5. Synthetic business ID 3 has 4 sites (including Owner trial ASIAN Paint), 4 items, 3 UOMs, 2 categories, 2 parties and 1 retail list with two prices. Fresh-instance script available. Never erase immutable audit; no real operating business or production posting yet. Legacy IMG-ERP-SG/other Supabase projects untouched.
-6. Goal2 platform-operator SaaS/customer separation remains deferred.
+1. **Owner Business read-only LIVE acceptance**: `/#/business` is now signed CORE10
+   staging on Worker v`2d9894b8`; deterministic pre-publish build & full Chromium
+   run `44995895627` **50/50 PASS**, exact public URL run `44996166820` **50/50 PASS**,
+   bundle 936636 bytes SHA256 `bd9253d7c0ee16bf76d3a0abc5cd3e950479b1a694a7d7cf404e10ce0088fc0f`.
+   Rollback version `4b6d179c` preserved. Owner still needs to personally check
+   the signed Business dashboard, read Stock amounts and Master editing on their phone.
+2. **Build signed Stock input UI**: staging 0201–0206 gives real receive/issue/transfer/adjust,
+   PO/GRN/QC and Owner dashboard APIs, but `/#/business` is READ-ONLY.
+   Build a separate signed staging Inventory/Procurement write workbench on isolated branch
+   (must use the real canonical Control + Auth/RPC and reject unauthorized posts).
+   Real demo ledger rows: factory RAS20/SAND15, showroom RAS10/SAND5,
+   warehouse SUGAR25/MILK10; all TEST ONLY.
+3. **Sales stage 030x first**: reconcile merged Sales PR109 with open 10 security
+   correction cases, resolve competing 0305 PR121/PR122 with Board and enforce FORWARD-only
+   fixes. Exact-head CI + independent P1 review + scoped backup + signed staging
+   rehearsal before hosting. Do NOT skip 030x to Finance 040x or Manufacturing 050x.
+4. **Then Finance 0400+ and Manufacturing 0500+**: integrate signed Stock/PO/GRN/Sales
+   handoffs with source-linked single Money/Audit ledgers; PR117 rollback test P1
+   and trade-account policy still require exact-head readiness; no phantom posting.
+   Sales/Manufacturing UI currently recorded replay, not live operational.
+5. **Keep cross-builder ownership**: hourly A/B agents work isolated branches only.
+   This interactive chat exclusively writes canonical trunk, hosted CORE10 staging
+   and existing Cloudflare Worker, after SHA/CI/backup/rollback gates. Never touch
+   original PR123, old IMG-ERP-SG or main. Synthetic data still obey immutable audit.
+6. **Later Goal2**: platform-operator/customer separation and audited support mode,
+   deferred. Owner Goal1 is one ERP for 10+ own businesses and 100–400 sites each.
 
 ## 6. Progress log (append newest at the bottom: date, agent, what, commit/deploy, next)
 - 2026-11-22 Claude Session A: GO-2 staging apply (e609b8a); GO-3 live Level 2 (PR #126, v38141fd4);
@@ -103,3 +142,15 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
 - 2026-11-22 agent=ChatGPT: original D063 0115-0118 code and tests integrated via PR127 after 8/8 PG17 CI PASS, merge `8ba0661`. Snapshot pre-D063 `3b5e7c8`; Owner bootstrap policy activated atomically at 0116 hosted. Staging signed setup after D063 PASS. Snapshot pre-Master/Stock `3740ea5`; staged 0150-0153 and 0200 with exact SHA ledger; 40 migrations, max 0200. Signed four dummy Master items and reference data persisted, cross-tenant negative PASS.
 - 2026-11-22 agent=ChatGPT: Master staging signed frontend `35ef4f6`, full local Chromium CI `44991383787` 50/50 PASS, exact Worker candidate `f0e8e036`; deployed Worker `4b6d179c-e1aa-4066-9fb6-6988dbc32432` 100%, public LIVE CI `44991642473` 50/50 PASS, previous rollback `ceeea069`, preview README `1fac3aa`. Owner personal Master mobile item-edit acceptance still pending. Next: Stock/Sales numeric backlog then Finance/Manufacturing.
 - 2026-11-22 agent=ChatGPT: staging post-D063 Owner capacity regression PASS. Signed 50-site default/51st refusal + audited Control cap400/401st refusal via canonical RPCs, all rolled back. Re-verified unchanged 4 Owner demo sites, 0 business overrides, ledger 40/max0200. Next: exercise actual mobile UI performance at 100–400.
+- 2026-11-22 agent=ChatGPT: progressed real NP03A Stock/Procurement. Claude PR123
+  `54bc5889` copied into isolated PR129 and security-hardened against post-lock
+  permission revocation in 0201/0203/0206; test uses real concurrent tenant-member
+  revoke and proves denied post. Exact-head `e6ea21003da828a53db5c464c1f20281f5686b4f`
+  6/6 CI PASS incl. PG17 + browser; PR129 merged canonical `ac86ee8`.
+  Pre-cutover backup `77fd9ad2`, 30 scoped `core10` tables. Hosted 0201–0206
+  each with SHA256 ledger and signed Owner ROLLBACK rehearsal; staging 46/max0206.
+  Persisted six TEST ONLY command posts/eight movements/six balances, reconciliation 0,
+  other tenant denied. Owner Business signed read-only preview `a7b36cfa`,
+  local 50/50 PASS `44995895627`, candidate `27b2e254`, Worker active
+  `2d9894b8-279d-4772-91f6-be46a54d98e3`; public gate `44996166820` **50/50 PASS**, live release confirmed. Next: verify public gate + release doc,
+  then build signed Stock/Procurement write UI and Sales 030x.
