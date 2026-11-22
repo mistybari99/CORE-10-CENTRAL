@@ -33,6 +33,7 @@ NEVER TOUCH: Supabase `kbuhnpqooycqbzrfejcs` (IMG-ERP-SG, old ERP) and `luoeyyng
 No merge to `main` without Owner. No production DB. No secrets in git (publishable key is fine; never service_role/sb_secret).
 
 ## 3. Current state (2026-11-22)
+- **§7b.1 classification COMPLETE:** PR #133 merged canonical trunk `ff4c06b1b2ef4a00bda85652e4947e043fde938a`; root exact 132-file inventory (23 LIVE, 108 TRUNK_UNSHIPPED, 1 TOOLING), 463 LEGACY_FROZEN source references, all 37 Worker preview source pins checked at exact historical commits, including nine draft-head Sales/Mfg sources (replay, not staging). `docs/coordination/FILE_CLASSIFICATION.json`, `tests/core10-file-classification.test.js`, own CI workflow. Exact HEAD `399bedc` 3/3 GitHub Actions SUCCESS incl real Control Port browser gate. No Worker deploy, staging SQL or production changes. **NEXT: §7b.3 bring byte-identical preview shell onto trunk at `apps/central/`, then shared sign-in/context/menu, token CSS + bn/en dictionaries.**
 - **Owner-approved §7c legacy quarantine COMPLETE:** PR #131 merged only into canonical trunk at `f92072f22e273e379b001de4cfba80bcd7d7f79d` (2026-11-22). All 463 old IMG-ERP blobs (221 root + 242 `v2/`) moved with original Git blob hashes under `legacy/islamia-erp/`; `docs/coordination/LEGACY_MOVE_MANIFEST_20261122.json` and SHA256 + negative mutation test lock them. 25 unshipped CORE10 HTML views disconnected from old `./config.js` loader; shipped CORE10/module denylist test added. Legacy Pages package/test paths moved. 21/21 exact-head PR CI workflows SUCCESS; PostgreSQL 17 and live Worker local/public `verify.cjs` 56/56 each PASS (CI `45010718551`). Old browser suites use checksum-verified **CI-only** frozen fixtures with both protected Supabase hostnames blocked. No staging migration, database changes, live Worker deploy or `main` merge. Next: §7b steps 1,3,4,5, then §7a Sales 030x.
 - CORE10 staging only `rhrqhbyzrhaafynfhdaf` PG17: **46 applied migration rows**, maximum `0206`:
   0001–0019, 0100–0106, 0110–0118, 0150–0153, 0200–0206. Each hosted file applied sequentially
@@ -110,7 +111,7 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
   DB connection) from the Owner. Never commit them.
 
 ## 5. Next build steps (priority order) — see also §7, §7a, §7b, §7c (latest queue)
-**Owner's 2026-11-22 build sequence overrides the historical ordering below:** §7c legacy move completed via PR #131 (`f92072f`); next implement §7b (file classification + test, live shell under `apps/central/` with byte-identical Worker gate, single Group ▸ Business ▸ Site and role homes/mobile menu, shared token CSS + bn/en dictionaries). Then §7a Sales 030x forward-only security patch and staged apply; only after Sales migrate Finance F3 040x and Manufacturing 050x, followed by Paint, Procurement/QC, Payroll, Assets, CRM. The previously numbered steps remain background/acceptance obligations, not permission to skip this order.
+**Owner's 2026-11-22 build sequence overrides the historical ordering below:** §7c legacy move completed via PR #131 (`f92072f`); §7b.1 file classification + exact pin CI merged via PR #133 (`ff4c06b`). **NEXT §7b.3** live shell under `apps/central/` with byte-identical Worker gate, then single Group ▸ Business ▸ Site and role homes/mobile menu, shared token CSS + bn/en dictionaries. Then §7a Sales 030x forward-only security patch and staged apply; only after Sales migrate Finance F3 040x and Manufacturing 050x, followed by Paint, Procurement/QC, Payroll, Assets, CRM. The previously numbered steps remain background/acceptance obligations, not permission to skip this order.
 1. **Owner signed Business, Master and Stock mobile acceptance**: all three are now live.
    Owner Business `/#/business` read-only Worker `2d9894b8` had public 50/50 PASS; signed
    Master `/#/master` accepts canonical items and prices; newly signed `/#/stock` deployed Worker
@@ -185,8 +186,10 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
 
 - 2026-11-22 agent=ChatGPT: completed §7c IMG-ERP 463-blob byte-identical move to `legacy/islamia-erp/`; PR #131 merged canonical trunk `f92072f22e273e379b001de4cfba80bcd7d7f79d` (build HEAD `01f75b0242e2eb124666f9cd95644a8ee55206a8`). GitHub Actions exact-head 21/21 PASS; PG17 full up/down/up, SHA256 negative guard, legacy Pages tests and unchanged Worker local/public 56/56 PASS (`45010718551`). No deployment or staging/main writes; Owner Business #3 and other staging data still synthetic TEST ONLY. NEXT: §7b FILE_CLASSIFICATION + apps/central shell/UX, then §7a Sales 030x.
 
+- 2026-11-22 agent=ChatGPT: built §7b.1 executable root/source classification, merged PR #133 canonical trunk `ff4c06b1b2ef4a00bda85652e4947e043fde938a` (PR HEAD `399bedc53cfa320aae6df20f32f6ed3307fccc0e`); 132 root files classified, 463 legacy frozen referenced, 37 pinned LIVE paths verified including 9 draft sources. Exact-head 3/3 CI PASS (classification, double audit, real Control Port). No staging, protected Supabase, live Worker or main writes; test data unchanged. NEXT: §7b.3 copy live shell to `apps/central/` with byte-identical 56/56 gate, then shared session/UI and Sales 030x.
+
 ## 7. Open PR audit and integration queue (2026-11-22, Claude; updated by ChatGPT after §7c)
-**Build progress:** Owner legacy §7c PR #131 MERGED `f92072f`, 21/21 exact-head CI PASS (incl PG17, checksum preservation, Pages and live Worker 56/56 local/public). Next §7b classification + application shell + navigation/token/i18n build, then §7a Sales security before 040x/050x; never port an old PR wholesale.
+**Build progress:** Owner legacy §7c PR #131 MERGED `f92072f`, 21/21 exact-head CI PASS (incl PG17, checksum preservation, Pages and live Worker 56/56 local/public); §7b.1 classification PR #133 MERGED `ff4c06b`, 3/3 exact-head CI PASS. **NEXT §7b.3** app shell copy/build byte-equality, then §7b UX/nav/i18n, then §7a Sales security before 040x/050x; never port an old PR wholesale.
 Rule: never merge an old PR wholesale. Old branches (based on `main`, `preview/c10-integrated-20261111-v1` or the
 A018 catalog) predate the numbered-migration trunk; their logic must be PORTED as new numbered migrations + tests on
 trunk (like B-009 did for A018 inventory). After a port is integrated and green, close the old PR with a link (Owner OK).
@@ -234,6 +237,7 @@ cases are either expected to be blocked by the trigger (stronger) or simulated w
 table owner in a controlled way. Decide with the Sales lane before changing the test; never weaken assertions.
 
 ### 7b. App organization review — 2026-11-22
+**Step 1 BUILT/MERGED:** `docs/coordination/FILE_CLASSIFICATION.json` + `tests/core10-file-classification.test.js` + CI; PR #133 `ff4c06b`, 3/3 green. §7c step 2 retired-project guard was built with PR #131. Next step 3: copy pinned preview shell + builder + runtime + verifier to `apps/central/` and prove identical bundle without deployment; then shared sign-in/context and design system.
 Full survey + safe reorganization plan: branch `review/app-organization-20261122` @ `2e4f6bc`,
 `docs/development/APP_ORGANIZATION_REVIEW.md` (+ 22 screenshots). Read before any UI/shell/file-move work.
 Top steps: (1) FILE_CLASSIFICATION.json + test, (2) test blocking legacy config/v2/old Supabase from live code,
