@@ -6,6 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const paperops = require('../paperops.js');
 const inventory = require('../legacy-inventory.json');
+const extracted = require('../legacy-field-index.json');
 const repoRoot = path.resolve(__dirname, '../../..');
 
 const baseJob = {
@@ -109,4 +110,23 @@ test('print studio has no network dependency and no ERP posting routine', () => 
   assert.match(html, /input id="logo"/);
   assert.match(html, /scope/);
   assert.doesNotMatch(html + js, /fetch\(|XMLHttpRequest|\.rpc\(|service_role|BOS_CONFIG|kbuhnpqooycqbzrfejcs/);
+});
+
+test('all 32 legacy forms have a reproducible candidate field-key index', () => {
+  assert.equal(extracted.forms.length, 32);
+  assert.equal(extracted.total_extracted_fields, 1246);
+  assert.deepEqual(new Set(extracted.forms.map(f=>f.legacy_code)),
+    new Set(inventory.forms.map(f=>f.legacy_code)));
+  for(const form of extracted.forms) {
+    assert.ok(form.count_extracted > 0, 'no extracted fields: '+form.legacy_code);
+    assert.equal(form.count_extracted, form.extracted_field_keys.length);
+    assert.equal(new Set(form.extracted_field_keys).size, form.count_extracted);
+    const fromInventory=inventory.forms.find(f=>f.legacy_code===form.legacy_code);
+    assert.equal(fromInventory.original_source, form.source);
+  }
+  const daily=extracted.forms.find(f=>f.legacy_code==='R-01');
+  assert.ok(daily.count_extracted>=150, 'critical daily form extraction weakened');
+  assert.ok(daily.signals.conditional_display_syntax_mentions>=10);
+  const factory=extracted.forms.find(f=>f.legacy_code==='F-05');
+  assert.ok(factory.count_extracted>=55, 'factory daily controls extraction weakened');
 });
