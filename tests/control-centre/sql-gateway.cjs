@@ -7,6 +7,9 @@ const { spawnSync } = require("node:child_process");
 const ROOT = path.resolve(__dirname, "../..");
 const RPCS = new Set(require(path.join(ROOT, "core10-owner-control-client.js")).RPCS.concat(require(path.join(ROOT, "core10-master-data-client.js")).RPCS)
   .concat(require(path.join(ROOT, "core10-owner-dashboard-client.js")).RPCS));
+require(path.join(ROOT, "core10-purchase-client.js")).RPCS.forEach((n) => RPCS.add(n));
+// RLS-scoped table reads a client declares (exact column list); integer equality filters only.
+const READS = require(path.join(ROOT, "core10-purchase-client.js")).READS;
 const FILES = {
   "/harness.html": "tests/control-centre/harness.html", "/harness.js": "tests/control-centre/harness.js",
   "/core10-owner-control-client.js": "core10-owner-control-client.js",
@@ -19,6 +22,11 @@ const FILES = {
   "/core10-owner-dashboard-client.js": "core10-owner-dashboard-client.js", "/core10-owner-dashboard-ui.js": "core10-owner-dashboard-ui.js",
   "/core10-owner-dashboard.css": "core10-owner-dashboard.css"
 };
+Object.assign(FILES, {
+  "/pu-harness.html": "tests/control-centre/pu-harness.html", "/pu-harness.js": "tests/control-centre/pu-harness.js",
+  "/core10-purchase-client.js": "core10-purchase-client.js", "/core10-purchase-ui.js": "core10-purchase-ui.js",
+  "/core10-purchase.css": "core10-purchase.css"
+});
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8", ".css": "text/css; charset=utf-8" };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -59,6 +67,25 @@ SELECT to_jsonb(core10.${name}(${params.join(", ")}));`;
   const lines = r.stdout.trim().split("\n");
   return { status: 200, body: JSON.parse(lines[lines.length - 1]) };
 }
+function readTable(table, q, persona) {
+  const cols = Object.prototype.hasOwnProperty.call(READS, table) ? READS[table] : null;
+  if (!cols || q.get("select") !== cols) return { status: 404, body: { message: "READ_NOT_ALLOWED" } };
+  const where = [];
+  for (const [k, v] of q) {
+    if (["select", "order", "limit"].includes(k)) continue;
+    if (!/^[a-z_]+$/.test(k) || !/^[1-9][0-9]{0,17}$/.test(v)) return { status: 400, body: { message: "BAD_FILTER" } };
+    where.push(k + " = " + v);
+  }
+  const order = q.get("order") || "id", lim = Number(q.get("limit") || 200);
+  if (!cols.split(",").includes(order) || !Number.isInteger(lim) || lim < 1 || lim > 200) return { status: 400, body: { message: "BAD_FILTER" } };
+  const claims = persona ? JSON.stringify({ sub: persona, role: "authenticated" }) : "{}";
+  const r = psql(`SET ROLE authenticated;
+DO $occ$ BEGIN PERFORM set_config('request.jwt.claims', ${quote(claims)}, false); PERFORM set_config('request.jwt.claim.sub', ${quote(persona || "")}, false); END $occ$;
+SELECT coalesce(jsonb_agg(to_jsonb(x) ORDER BY x.${order}), '[]'::jsonb) FROM (SELECT ${cols} FROM core10.${table}${where.length ? " WHERE " + where.join(" AND ") : ""} ORDER BY ${order} LIMIT ${lim}) x;`);
+  if (r.status !== 0) return { status: 400, body: { message: ((r.stderr.match(/ERROR:\s+(.*)/) || [])[1] || "READ_FAILED").trim() } };
+  const lines = r.stdout.trim().split("\n");
+  return { status: 200, body: JSON.parse(lines[lines.length - 1]) };
+}
 function start(port) {
   requireLoopbackDatabase();
   const sig = signatures();
@@ -79,6 +106,11 @@ function start(port) {
       req.on("end", () => { let args; try { args = raw ? JSON.parse(raw) : {}; } catch (_) { return send(400, { message: "BAD_JSON" }); }
         const out = call(sig, name, args, persona); send(out.status, out.body); });
       return;
+    }
+    if (req.method === "GET" && url.pathname.startsWith("/table/")) {
+      const persona = String(req.headers["x-test-persona"] || "");
+      if (persona && !UUID.test(persona)) return send(400, { message: "BAD_PERSONA" });
+      const out = readTable(url.pathname.slice(7), url.searchParams, persona); return send(out.status, out.body);
     }
     send(404, { message: "NOT_FOUND" });
   });

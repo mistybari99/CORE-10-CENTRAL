@@ -11,6 +11,7 @@ on:
       - "core10-control-studio-entry.js"
       - "core10-master-data*"
       - "core10-owner-dashboard*"
+      - "core10-purchase*"
       - "tests/control-centre/**"
       - "tests/c10_np02_*"
       - "internal/enterprise-sql/**"
@@ -129,12 +130,23 @@ jobs:
           PGDATABASE=odui internal/migrations/run.sh up
           PGDATABASE=odui psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/od-seed.sql
           PGDATABASE=odui node tests/control-centre/owner-dashboard-browser.cjs
+      - name: B-012 Purchase and goods receipt screen in a real browser against the real SQL functions (390 and 1440 px, bn/en)
+        env: { PU_SHOTS: pu-shots }
+        run: |
+          psql -X -q -c "CREATE DATABASE puui"
+          PGDATABASE=puui internal/migrations/run.sh up
+          PGDATABASE=puui psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/pu-seed.sql
+          PGDATABASE=puui node tests/control-centre/purchase-browser.cjs
       - name: B-011 Central shell navigation contract (Owner Control / Master Data links, 390 and 1440 px)
         run: node tests/control-centre/shell-nav-browser.cjs
       - name: Master Data screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with: { name: master-data-screenshots, path: md-shots, if-no-files-found: ignore }
+      - name: Purchase screen screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: purchase-screenshots, path: pu-shots, if-no-files-found: ignore }
       - name: Owner Control Centre screenshots
         if: always()
         uses: actions/upload-artifact@v4

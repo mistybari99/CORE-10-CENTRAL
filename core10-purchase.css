@@ -1,0 +1,18 @@
+/* CORE 10 CENTRAL | B-012 Purchases — additions on top of the Owner Control Centre and Master Data styles. */
+input[type=date]{background:var(--panel2);border:1px solid var(--edge);border-radius:9px;padding:9px 11px;min-height:44px;max-width:100%;width:100%;color-scheme:dark}
+.pu-lines{display:grid;gap:10px;min-width:0}
+.pu-line{min-width:0}
+.pu-line-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pu-line-grid input,.pu-line select{width:100%}
+.pu-total{font-weight:700;font-variant-numeric:tabular-nums;margin:6px 0}
+.pu-actions{justify-content:flex-start;margin:10px 0}
+.pu-grn{margin:8px 0;min-width:0}
+.pu-grn .occ-actions{justify-content:flex-start}
+.pu-confirm{margin:10px 0}
+.pu-note{font-style:italic}
+.occ-chip.pu-st-approved,.occ-chip.pu-st-received{color:var(--on);border-color:#2f6f57}
+.occ-chip.pu-st-partially_received{color:var(--sea)}
+.occ-chip.pu-st-cancelled,.occ-chip.pu-st-closed{color:var(--muted)}
+.occ-chip.pu-st-draft{color:var(--highlight)}
+.occ-detail a{color:var(--sea)}
+@media (max-width:420px){.pu-line-grid{grid-template-columns:minmax(0,1fr)}}
