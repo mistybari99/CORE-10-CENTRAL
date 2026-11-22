@@ -102,7 +102,7 @@ SQL
 # A rejected rollback must preserve the exact applied migration ledger record,
 # not merely leave version 0403 present with a changed or missing checksum.
 ledger_before="$(psql -X -At -c "SELECT version || ':' || name || ':' || checksum FROM core10.schema_migrations WHERE version IN (402,403) ORDER BY version")"
-[[ "$(printf '%s\\n' "$ledger_before" | wc -l | tr -d ' ')" == 2 ]]
+[[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version IN (402,403)")" == 2 ]]
 output="$(mktemp)"
 trap 'rm -f "$output"; cleanup' EXIT
 if internal/migrations/run.sh down >"$output" 2>&1; then
