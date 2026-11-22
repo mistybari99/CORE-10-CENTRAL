@@ -10,6 +10,28 @@
  <span class="c10-pill" id="c10-data-status" role="status" aria-live="polite"><span class="bn">প্রিভিউ · নমুনা তথ্য · এখানে পরিবর্তন সংরক্ষিত হয় না</span><span class="en">Preview · sample data · changes are not saved</span></span>
  <div class="c10-lang" role="group" aria-label="Language"><button type="button" data-set-lang="bn">বাংলা</button><button type="button" data-set-lang="en">EN</button></div>
 </header>
+<section class="c10-context" id="c10-context" aria-label="Signed Group Business Site context">
+ <div class="c10-context-row">
+  <span class="c10-context-title"><span class="bn">গ্রুপ ▸ ব্যবসা ▸ স্থান</span><span class="en">Group ▸ Business ▸ Site</span></span>
+  <span id="c10-context-note" class="c10-context-note" role="status" aria-live="polite"></span>
+  <div class="c10-context-anon" id="c10-context-anon">
+   <button type="button" id="c10-shell-open-login" aria-expanded="false" aria-controls="c10-shell-login-panel"><span class="bn">সাইন ইন</span><span class="en">Sign in</span></button>
+  </div>
+  <div class="c10-context-signed" id="c10-context-signed" hidden>
+   <label><span class="bn">গ্রুপ</span><span class="en">Group</span><select id="c10-group" aria-label="Group"></select></label>
+   <label><span class="bn">ব্যবসা</span><span class="en">Business</span><select id="c10-business" aria-label="Business"></select></label>
+   <label><span class="bn">স্থান</span><span class="en">Site</span><select id="c10-site" aria-label="Site"></select></label>
+   <button type="button" id="c10-context-refresh"><span class="bn">যাচাই</span><span class="en">Refresh</span></button>
+   <button type="button" id="c10-shell-signout"><span class="bn">সাইন আউট</span><span class="en">Sign out</span></button>
+  </div>
+ </div>
+ <form id="c10-shell-login-panel" class="c10-shell-login" hidden autocomplete="on">
+  <label><span class="bn">ইমেইল</span><span class="en">Email</span><input id="c10-shell-email" type="email" autocomplete="username" required></label>
+  <label><span class="bn">পাসওয়ার্ড</span><span class="en">Password</span><input id="c10-shell-password" type="password" autocomplete="current-password" required></label>
+  <button type="submit" id="c10-shell-submit"><span class="bn">প্রবেশ করুন</span><span class="en">Continue</span></button>
+  <p class="c10-context-help"><span class="bn">শুধু CORE10 স্টেজিং; প্রতিটি মডিউল কাজের সময় আলাদাভাবে অনুমতি যাচাই করে।</span><span class="en">CORE10 staging only; each module rechecks authorization for operations.</span></p>
+ </form>
+</section>
 <div class="c10-body">
  <nav class="c10-nav" aria-label="Main">
   <div class="c10-nav-section" role="group" aria-label="Workspaces">
@@ -55,5 +77,8 @@
  <a href="#/features" data-mobile-route="features"><span class="bn">ফিচার অনুমতি</span><span class="en">Feature permissions</span></a>
  <a href="#/setup" data-mobile-route="setup"><span class="bn">সেটআপ ও প্রবেশাধিকার</span><span class="en">Setup &amp; access</span></a>
 </nav>
+<script src="/live/vendor/supabase.js"></script>
+<script src="/live/core10-control-centre-config.js"></script>
+<script src="/shell-context.js"></script>
 <script src="/app.js"></script>
 </body></html>

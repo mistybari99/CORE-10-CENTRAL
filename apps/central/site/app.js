@@ -82,6 +82,14 @@
   document.addEventListener("pointerdown", function (e) {
     if (!morePanel.hidden && !morePanel.contains(e.target) && !moreToggle.contains(e.target)) closeMore(false);
   });
+  // Canonical shell can purge an embedded private view on sign-out/account switch.
+  window.addEventListener("core10:signed-out", function () {
+    currentFrameUrl = "";
+    try { frame.contentWindow.location.replace("about:blank"); }
+    catch (_) { frame.setAttribute("src", "about:blank"); }
+    // The old frame must be gone before the next view is allowed to render.
+    Promise.resolve().then(route);
+  });
   window.addEventListener("hashchange", route);
   setLang(lang);
 })();
