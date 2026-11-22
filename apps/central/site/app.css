@@ -50,3 +50,31 @@ html[data-lang="bn"] .en,html[data-lang="en"] .bn{display:none}
  .c10-pill{order:3;margin-left:0;width:100%;text-align:center}
  .c10-lang{margin-left:auto}
 }
+
+/* §7b.4 signed shell context. Presentational only; authorization always stays server-side. */
+.c10-context{flex:none;background:var(--panel);border-bottom:1px solid var(--line);padding:6px 12px}
+.c10-context-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:36px}
+.c10-context-title{font-size:13px;font-weight:700;white-space:nowrap}
+.c10-context-note{font-size:12px;color:var(--muted);min-width:0;max-width:100%;overflow-wrap:anywhere}
+.c10-context-anon,.c10-context-signed{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.c10-context [hidden]{display:none!important}
+.c10-context button,.c10-context select,.c10-context input{min-height:36px;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:7px}
+.c10-context button{padding:5px 9px;cursor:pointer}
+.c10-context button:disabled,.c10-context select:disabled{opacity:.65;cursor:wait}
+.c10-context label{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.c10-context select{max-width:185px;min-width:90px}
+.c10-shell-login{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 0 3px;border-top:1px solid var(--line);margin-top:6px}
+.c10-shell-login input{max-width:205px;padding:4px 7px}
+.c10-context-help{width:100%;margin:0;font-size:12px;color:var(--muted)}
+@media(max-width:760px){
+ .c10-context{padding:5px 8px}
+ .c10-context-row{gap:4px}
+ .c10-context-note{order:4;width:100%;font-size:11px}
+ .c10-context-title{font-size:12px}
+ .c10-context-signed{width:100%;margin:3px 0 0;gap:4px}
+ .c10-context-signed label{flex:1 1 27%;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:0;font-size:11px}
+ .c10-context select{min-width:0;max-width:100%;width:100%;min-height:34px}
+ .c10-context-signed button{font-size:12px;min-height:34px}
+ .c10-shell-login label{flex:1 1 125px;min-width:0;align-items:stretch;flex-direction:column}
+ .c10-shell-login input{max-width:100%;width:100%}
+}
