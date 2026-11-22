@@ -1,0 +1,19 @@
+name: Lane B Stock Post-lock Checkout Contract
+on:
+  push:
+    branches:
+      - build/chatgpt-laneb-stock-postlock-ci-20261123
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  stock-postlock-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Execute real checkout source assertions (no skips)
+        run: node --test tests/lane-b/stock-postlock-checkout-ci.test.cjs
