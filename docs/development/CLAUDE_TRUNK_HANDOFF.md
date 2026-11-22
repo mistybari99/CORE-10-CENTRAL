@@ -1,5 +1,8 @@
 # Claude lane — restartable handoff (trunk / NP02 Control)
 
+> **Start with `docs/development/AGENT_HANDOVER_CURRENT.md`** (single handover file for any agent; progress log at its end).
+
+
 ## SESSION A STATE — 2026-11-22 (GO-2 done; read this first)
 
 New Session A (replaced the 2026-11-21 one). Owner re-confirmed GO-2 and GO-3 (after staging) in this session.
