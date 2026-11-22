@@ -8,17 +8,17 @@ const ROOT_EXT = new Set([".html",".js",".css",".json",".webmanifest",".svg",".p
 const DIR_EXT = new Map([
   ["data",new Set([".json",".svg",".png",".webp"])],
   ["vendor",new Set([".js",".css",".svg",".png",".jpg",".jpeg",".webp",".ico",".woff",".woff2"])],
-  ["v2",ROOT_EXT],
+  ["legacy/islamia-erp",ROOT_EXT],
   ["experimental/owner-console",ROOT_EXT]
 ]);
-const REQUIRED = ["index.html","owner.html","business.html","sw.js","v2/index.html","v2/sw.js"];
+const REQUIRED = ["legacy/islamia-erp/index.html","legacy/islamia-erp/owner.html","legacy/islamia-erp/business.html","legacy/islamia-erp/sw.js","legacy/islamia-erp/v2/index.html","legacy/islamia-erp/v2/sw.js"];
 const DENY = /(^|\/)(?:scripts|tests|internal|security|docs|design|\.github|node_modules)(?:\/|$)|(^|\/)(?:setup-|audit-)[^/]*\.html$|\.(?:sql|md|map|env|pem|key|bak|log)$/i;
 function safeRelative(rel) {
   if (!rel || rel.startsWith("/") || rel.includes("\\") || rel.split("/").some(s=>!s||s==="."||s===".."||s.startsWith("."))) return false;
   return !DENY.test(rel);
 }
 function isAllowed(rel) {
-  if (rel === ".build-id" || rel === "v2/.build-id") return true;
+  if (rel === "legacy/islamia-erp/.build-id" || rel === "legacy/islamia-erp/v2/.build-id") return true;
   if (!safeRelative(rel)) return false;
   const parts=rel.split("/");
   if(parts.length===1) return ROOT_EXT.has(path.extname(rel).toLowerCase()) || ["robots.txt"].includes(rel);

@@ -16,8 +16,8 @@ async function main(){
   const files=verify(dir);
   assert.ok(files.length>100,"Artifact unexpectedly small, legacy bundle may be missing");
   const positive=[
-    "index.html","owner.html","business.html","sw.js",
-    "v2/index.html","v2/sw.js","app.js","vendor/supabase.js",
+    "legacy/islamia-erp/index.html","legacy/islamia-erp/owner.html","legacy/islamia-erp/business.html","legacy/islamia-erp/sw.js",
+    "legacy/islamia-erp/v2/index.html","legacy/islamia-erp/v2/sw.js","legacy/islamia-erp/app.js","vendor/supabase.js",
     "data/report_registry.json","core10-business-builder.html"
   ];
   for(const p of positive)assert.ok(files.includes(p),"REQUIRED_PUBLISH_PATH_MISSING:"+p);
@@ -30,7 +30,7 @@ async function main(){
     "internal/core10-pages-package.js",
     "docs/development/CURRENT_HANDOFF.md",
     ".github/workflows/pages-dist.yml.disabled",
-    "v2/scripts/secret.sql","data/private.env","audit-private.html","setup-admin.html"
+    "legacy/islamia-erp/v2/scripts/secret.sql","data/private.env","audit-private.html","setup-admin.html"
   ];
   for(const p of blocked)assert.equal(files.includes(p),false,"LEAKED_INTERNAL_FILE:"+p);
   assert.ok(files.every(isAllowed),"Artifact inventory has non-public paths");
