@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CORE-10 PaperOps · Control Review</title>
+<style>
+:root{font-family:system-ui,"Noto Sans Bengali",sans-serif;background:#f2f6f4;color:#142b26}
+*{box-sizing:border-box}body{margin:0}.top{background:#174c4c;color:white;padding:16px max(16px,calc((100vw - 1150px)/2))}
+.top h1{font-size:1.25rem;margin:0}.top p{font-size:13px;color:#d7eee5;line-height:1.6;margin:4px 0}
+.top a{color:white;text-underline-offset:3px}
+.container{max-width:1150px;margin:14px auto;padding:0 14px;display:grid;grid-template-columns:minmax(0,1.65fr) minmax(285px,1fr);gap:14px;align-items:start}
+.panel{padding:18px;background:#fff;border:1px solid #cadad3;border-radius:12px}
+label{display:block;font-size:13px;font-weight:600;margin:8px 0}
+input,select{display:block;margin-top:5px;width:100%;padding:9px;font:inherit;border:1px solid #9ab0a7;border-radius:7px;min-height:38px;color:#142b26;background:white}
+button{font:inherit;border:none;border-radius:8px;min-height:40px;padding:9px 14px;background:#174c4c;color:#fff;cursor:pointer}
+button.secondary{background:#edf4f1;color:#174c4c;border:1px solid #aec9bc}
+:focus-visible{outline:3px solid #e4a451;outline-offset:2px}
+.fieldgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}
+.banner{border-left:4px solid #a8751b;padding:9px;background:#fff7e5;margin:12px 0;font-size:12px;line-height:1.6}
+.critical{font-weight:750;color:#8b3030}.result{font-size:13px;line-height:1.7}
+.result h2{font-size:17px}.result h3{font-size:14px}.result ul{padding-left:20px}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;background:#f1f6f4;padding:12px;border-radius:8px;max-height:300px;overflow-y:auto}
+.status{font-size:13px;font-weight:650}.block{color:#991b1b}.review{color:#16634b}
+@media(max-width:850px){.container{display:block}.panel{margin-bottom:14px}.fieldgrid{grid-template-columns:1fr}}
+@media print{
+@page{size:A4;margin:12mm}
+.top,.controls,.actions,#workFields,.inputform,.banner,.panel:first-child{display:none!important}
+.container{display:block;margin:0;padding:0}.panel{border:0;padding:0}
+.result pre{max-height:none;border:1px solid #888}
+}
+</style>
+</head>
+<body>
+<header class="top"><h1>CORE-10 PaperOps · Control Review (Draft)</h1>
+<p>বাস্তব হিসাবের আগে কাগজের প্রমাণ যাচাইয়ের অফলাইন প্রোটোটাইপ। কোনো তথ্য সার্ভারে পাঠায় না, কোনো ERP পোস্টিং বা পেমেন্ট অনুমোদন করে না।</p>
+<p><a href="./kit.html">স্মার্ট ফর্ম কিট</a> · <a href="./index.html">একক ফর্ম প্রিন্ট</a></p></header>
+<main class="container">
+<section class="panel inputform" aria-label="Control review entry">
+<div class="banner"><strong>শুধু পরীক্ষা / Draft:</strong> পুরোনো ৩২টি ফর্মের সব শর্ত এখনো যাচাই করা হয়নি। এখানে ‘যাচাইয়ের জন্য প্রস্তুত’ দেখালেও প্রস্তুতকারী ও অনুমোদনকারীর স্বাক্ষর এবং মূল দলিল ছাড়া লেনদেন বৈধ নয়।</div>
+<div class="controls">
+<label>যে ব্যবসার নিয়ন্ত্রণ যাচাই করবেন<select id="flow"></select></label>
+<label>ভাষা<select id="lang"><option value="bn">বাংলা</option><option value="en">English</option></select></label>
+</div>
+<div id="workFields" class="fieldgrid"></div>
+<div class="actions">
+<button type="button" id="check">তথ্য যাচাই করুন</button>
+<button type="button" id="clear" class="secondary">নতুন হিসাব</button>
+<button type="button" id="print" class="secondary" disabled>যাচাইয়ের রিপোর্ট প্রিন্ট</button>
+</div>
+<p id="message" role="status" aria-live="polite"></p>
+</section>
+<section class="panel result" aria-label="Review findings">
+<h2>অফলাইন কন্ট্রোল ফলাফল</h2>
+<p id="source"></p>
+<p id="state" class="status">তথ্য দিয়ে যাচাই করুন।</p>
+<div id="blocks"></div>
+<div class="banner">এই রিপোর্ট কেবল অসম্পূর্ণ যাচাইয়ের চেকলিস্ট। এটি কোনো অনুমোদিত ERP হিসাব, পেমেন্ট অর্ডার, স্টক সমন্বয় বা সরকারি নথি নয়।</div>
+<h3>পড়ার জন্য সংখ্যাগত সারাংশ</h3><pre id="details">—</pre>
+<p class="critical">NOT APPROVED · NOT POSTED · FIELD PARITY NOT CERTIFIED</p>
+</section>
+</main>
+<script src="./paper-controls.js"></script>
+<script src="./control-workbench.js"></script>
+<script>
+(function(){
+  'use strict';
+  const api=window.CORE10_PAPER_WORKBENCH, el=id=>document.getElementById(id);
+  const fields=el('workFields'),flow=el('flow');
+  for(const entry of api.FLOWS){
+    const option=document.createElement('option');option.value=entry.id;
+    option.textContent=entry.bn+' · '+entry.source;
+    flow.append(option);
+  }
+  function render(){
+    fields.replaceChildren();
+    const schema=api.FLOWS.find(f=>f.id===flow.value), lang=el('lang').value;
+    el('source').textContent='Original evidence: '+schema.source;
+    for(const f of schema.fields){
+      const label=document.createElement('label');
+      label.textContent=(lang==='en'?f.en:f.bn)+(f.type==='money'?' (৳)':'');
+      let input;
+      if(f.type==='bool'){
+        input=document.createElement('select');
+        for(const [value,name] of [['','— / Unknown'],['yes',lang==='en'?'Yes':'হ্যাঁ'],['no',lang==='en'?'No':'না']]){
+          const option=document.createElement('option');option.value=value;option.textContent=name;input.append(option);
+        }
+      }else{
+        input=document.createElement('input');
+        input.type=f.type==='money'||f.type==='qty'?'text':'text';
+        input.inputMode=f.type==='money'||f.type==='qty'?'decimal':'text';
+        input.autocomplete='off';input.maxLength=f.type==='text'?120:35;
+        input.placeholder=f.type==='money'?'0.00':f.type==='qty'?'0.0000':'';
+      }
+      input.dataset.key=f.key;input.dataset.kind=f.type;
+      label.append(input);fields.append(label);
+    }
+    resetResult();
+  }
+  function resetResult(){
+    el('state').textContent='তথ্য দিয়ে যাচাই করুন।';
+    el('state').className='status';
+    el('blocks').replaceChildren();
+    el('details').textContent='—';
+    el('print').disabled=true;
+    el('message').textContent='';
+  }
+  function gather(){
+    const out={};
+    for(const input of fields.querySelectorAll('[data-key]')){
+      const key=input.dataset.key,kind=input.dataset.kind,val=input.value.trim();
+      if(kind==='bool'){if(val!=='')out[key]=val==='yes';}
+      else if(val!=='')out[key]=val;
+    }
+    return out;
+  }
+  el('check').addEventListener('click',function(){
+    resetResult();
+    try{
+      const x=api.evaluate(flow.value,gather()),r=x.result;
+      const blocked=r.status==='BLOCK';
+      el('state').className='status '+(blocked?'block':'review');
+      el('state').textContent=blocked
+        ?'BLOCK — গরমিল বা প্রমাণের ঘাটতি; কাজ আটকে যাচাই করুন।'
+        :'CHECKS SATISFIED (DRAFT) — স্বতন্ত্র অনুমোদন ও আসল কাগজ যাচাই বাকি।';
+      const list=document.createElement('ul');
+      for(const code of r.blockers){
+        const li=document.createElement('li');li.textContent=code.replaceAll('_',' ');list.append(li);
+      }
+      if(!r.blockers.length){const p=document.createElement('p');p.textContent='এই পরীক্ষার সীমার মধ্যে কোনো blocker শনাক্ত হয়নি।';el('blocks').append(p);}
+      else el('blocks').append(list);
+      el('details').textContent=JSON.stringify({source:x.source,control:x.flowId,
+        amounts:r.evidence,status:r.status,authorized:false,fieldParityConfirmed:false},null,2);
+      el('print').disabled=false;
+    }catch(err){
+      el('state').textContent='BLOCK — '+err.message;
+      el('state').className='status block';
+      el('message').textContent='ঘর যাচাই করুন; ভুল বা খালি সংখ্যার জন্য স্বয়ংক্রিয় অনুমোদন দেওয়া হয়নি।';
+    }
+  });
+  el('clear').addEventListener('click',render);
+  el('print').addEventListener('click',function(){if(!this.disabled)window.print();});
+  flow.addEventListener('change',render);
+  el('lang').addEventListener('change',render);
+  render();
+})();
+</script>
+</body>
+</html>
