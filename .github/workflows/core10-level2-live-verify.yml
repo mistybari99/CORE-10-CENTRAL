@@ -1,0 +1,37 @@
+name: CORE10 Level2 deployed Worker 49-check live gate
+on:
+  push:
+    branches: [preview/core10-central-level2]
+    paths:
+      - '.github/workflows/core10-level2-live-verify.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare real Chromium for mobile and desktop
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-live-playwright"
+          cd "$RUNNER_TEMP/core10-live-playwright"
+          npm init -y >/dev/null
+          npm install --save-dev playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-live-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Rebuild and verify exact released candidate artifact checksum
+        run: |
+          node preview/core10-central-owner-app/build.mjs
+          echo "0a97d1a234e0fd39e9c5946698767dc525b8aeeebe652b9d9bcd014cc36b70ee  preview/core10-central-owner-app/dist/worker.mjs" | sha256sum -c -
+          node --check preview/core10-central-owner-app/dist/worker.mjs
+      - name: FULL deployed live Worker verification — all 49 must PASS
+        env:
+          REVIEW_BASE: https://core10-central.mistybari99.workers.dev
+        run: node preview/core10-central-owner-app/verify.cjs
