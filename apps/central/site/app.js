@@ -23,6 +23,9 @@
     morePanel.hidden = true; moreToggle.setAttribute("aria-expanded", "false");
     if (restoreFocus) moreToggle.focus();
   }
+  // A changing iframe.src pushes entries into the joint browser history.
+  // Replace each nested route so browser Back returns to the previous shell hash.
+  var currentFrameUrl = "";
   var lang = "bn"; try { lang = localStorage.getItem("core10.preview.lang") === "en" ? "en" : "bn"; } catch (_) {}
   function route() {
     var r = (location.hash.replace(/^#\/?/, "") || "home").split("?")[0];
@@ -48,7 +51,15 @@
     draft.hidden = !DRAFT[r];
     {
       var url = src + (src.indexOf("?") < 0 ? "?" : "&") + "lang=" + lang;
-      if (frame.getAttribute("src") !== url) frame.setAttribute("src", url);
+      if (currentFrameUrl !== url) {
+        currentFrameUrl = url;
+        try {
+          frame.contentWindow.location.replace(url);
+        } catch (_) {
+          // Fail open for rendering only; all authorization remains in each signed view.
+          frame.setAttribute("src", url);
+        }
+      }
     }
     document.body.dataset.view = r;
   }
@@ -56,7 +67,7 @@
     lang = l; html.dataset.lang = l; html.lang = l;
     try { localStorage.setItem("core10.preview.lang", l); } catch (_) {}
     Array.prototype.forEach.call(document.querySelectorAll("[data-set-lang]"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.setLang === l)); });
-    frame.removeAttribute("src"); route();
+    route();
   }
   Array.prototype.forEach.call(document.querySelectorAll("[data-set-lang]"), function (b) { b.addEventListener("click", function () { setLang(b.dataset.setLang); }); });
   moreToggle.addEventListener("click", function () {
