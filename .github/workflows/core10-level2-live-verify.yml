@@ -29,7 +29,7 @@ jobs:
       - name: Rebuild and verify exact released candidate artifact checksum
         run: |
           node preview/core10-central-owner-app/build.mjs
-          echo "3ae944b1cdcb49f4701457d629e99b61f4acff32fff7b77e2713d3f16568fc28  preview/core10-central-owner-app/dist/worker.mjs" | sha256sum -c -
+          echo "bd9253d7c0ee16bf76d3a0abc5cd3e950479b1a694a7d7cf404e10ce0088fc0f  preview/core10-central-owner-app/dist/worker.mjs" | sha256sum -c -
           node --check preview/core10-central-owner-app/dist/worker.mjs
       - name: FULL deployed live Worker verification — all 50 must PASS
         env:
