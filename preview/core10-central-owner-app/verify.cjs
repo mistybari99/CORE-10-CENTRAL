@@ -62,6 +62,11 @@ async function step(name, fn) {
       await page.goto(base + "/#/" + route, { waitUntil: "load" }); await page.waitForTimeout(1500);
       assert.equal(await page.getAttribute("html", "lang"), lang);
       assert.equal(await page.getAttribute(`[data-route="${route}"]`, "aria-current"), "page");
+      const dataNotice = (await page.locator("#c10-data-status ." + lang).textContent()).trim();
+      if (route === "control" || route === "setup")
+        assert.match(dataNotice, lang === "bn" ? /স্টেজিং.*সংরক্ষণ/ : /staging.*saved/i, "signed staging route must not claim changes are unsaved");
+      else
+        assert.match(dataNotice, lang === "bn" ? /নমুনা.*সংরক্ষিত/ : /sample.*not saved/i, "replay route must disclose unsaved sample data");
       const frame = page.frames().find((f) => f !== page.mainFrame() && f.url() !== "about:blank");
       let text = await page.innerText("body"), fOver = 0;
       if (DRAFT_ROUTES.has(route)) assert.ok(await page.isVisible("#c10-draft"), "draft banner shown"); else assert.ok(!(await page.isVisible("#c10-draft")), "no draft banner");
