@@ -7,6 +7,7 @@ const crypto = require('node:crypto');
 const paperops = require('../paperops.js');
 const inventory = require('../legacy-inventory.json');
 const extracted = require('../legacy-field-index.json');
+const obligations = require('../control-obligations.json');
 const repoRoot = path.resolve(__dirname, '../../..');
 
 const baseJob = {
@@ -129,4 +130,35 @@ test('all 32 legacy forms have a reproducible candidate field-key index', () => 
   assert.ok(daily.signals.conditional_display_syntax_mentions>=10);
   const factory=extracted.forms.find(f=>f.legacy_code==='F-05');
   assert.ok(factory.count_extracted>=55, 'factory daily controls extraction weakened');
+});
+
+test('critical control obligations are source-backed and cannot be claimed complete', () => {
+  assert.equal(obligations.records.length, 20);
+  assert.equal(new Set(obligations.records.map(o => o.id)).size, obligations.records.length);
+  assert.ok(obligations.records.some(o => o.coverage === 'gap'), 'lost-control gaps must remain visible');
+  for (const obligation of obligations.records) {
+    const legacy = extracted.forms.find(f => f.legacy_code === obligation.legacy_form);
+    assert.ok(legacy, 'unknown source form: ' + obligation.id);
+    for (const key of obligation.legacy_field_keys) {
+      assert.ok(legacy.extracted_field_keys.includes(key),
+        'untraceable source field in ' + obligation.id + ': ' + key);
+    }
+    assert.ok(['gap','partial'].includes(obligation.coverage),
+      'field parity or Owner acceptance has not yet been proved');
+    if (obligation.draft_target) {
+      assert.ok(paperops.TEMPLATES.some(f => f.id === obligation.draft_target));
+    }
+    if (obligation.coverage === 'partial') assert.ok(obligation.draft_target);
+  }
+});
+
+test('early daily and factory paper forms visibly retain safety controls', () => {
+  const daily = paperops.renderPrintMarkup('OPS-DAILY', baseJob);
+  const factory = paperops.renderPrintMarkup('MFG-DAILY', baseJob);
+  const grn = paperops.renderPrintMarkup('PUR-GRN', baseJob);
+  assert.match(daily, /পরিচ্ছন্নতা/);
+  assert.match(daily, /মেয়াদোত্তীর্ণ/);
+  assert.match(factory, /যন্ত্র \/ পাল্লা \/ নিরাপত্তা/);
+  assert.match(grn, /অর্ডারে/);
+  assert.match(grn, /আটক\/ফেরত/);
 });
