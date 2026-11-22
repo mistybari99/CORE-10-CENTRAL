@@ -59,6 +59,6 @@ test('down permits exactly one atomic rollback for matching ledger checksum', t 
   assert.match(result.stdout, /rolled back 0206_integrity_fixture/);
   const lines = transactions.trim().split('\n');
   assert.equal(lines.length, 1, transactions);
-  assert.match(lines[0], /delete from core10\\.schema_migrations/);
-  assert.match(lines[0], /0206_integrity_fixture\\.down\\.sql/);
+  assert.ok(lines[0].includes('delete from core10.schema_migrations'));
+  assert.ok(lines[0].includes('0206_integrity_fixture.down.sql'));
 });
