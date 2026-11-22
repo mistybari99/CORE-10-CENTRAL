@@ -308,6 +308,31 @@ node modules/paperops/r01-hidden-source-audit.cjs
 node --test modules/paperops/tests/r01-hidden-source-audit.test.cjs
 ```
 
+## 5i. Owner-directed deep recheck of the PREVIOUS 150 (not just mock tests)
+
+Owner explicitly requested that the first **150 old fields be independently rechecked using the intended actual-source business rule method**, rather than simply accepting 150 print slots or synthetic demo PASS results. This is a **re-review of the SAME 150** and **does NOT reduce the remaining first-pass 1,010** count again.
+
+**Built:**
+
+- `field-deep-source-recheck.cjs` reads the untouched `legacy/islamia-erp/forms.js` text and independently extracts **all 150 exact original field calls** in the same three 50-field batches: C-02 **19**, C-01 **16**, W-02 **48**, W-03 **9**, R-01 **58**. It validates constructor aliases, BN/EN field labels, true literal `req` / `show` / `who` attributes, and possible original `calc(e)` references, against prior source and batch indexes. Original call snippets and explicitly unresolved proof state are preserved in `field-review/deep-source-recheck-001-003.json`.
+- **30** original always-required syntactic candidates; **6** conditional-required; **16** conditional-visibility; **34** source fields found referenced in the historic calculator text (a conservative reference search, **not 34 proven formulas**). No one marked source formula, workflow or Owner signoff complete.
+- `source-conditional-recheck.cjs` cross-checks all **16 exact source expressions** and tests conditional outcomes using fail-closed normalized evidence. All six `req` branches (expense over-limit approver, missing-receipt reason, cash recount difference, transfer outside-demand reason, movement-during-stock-count explanation, showroom safety defect) are explicitly checked true/false/unknown. Source-only show rules including cash-on-transfer, customer order, busy-day extra temperature and expiry reporting also covered.
+- **UNPROVEN HELPERS:** the original `O("cash_now")`, `O("open_counted")`, and `n(e.d.imp_cash)` helpers do **NOT** become assumed optional/visible rules. They stay `UNKNOWN_MUST_REVIEW` until genuine old helper semantics and relevant surrounding source behavior are reconstructed.
+- `field-review/functional-gaps-001-003.json` records **11 concrete unresolved source-to-prototype control/ledger gaps**, with old field IDs, original source phrase, current prototype, risk and action. `field-functional-gap-audit.cjs` fails if any evidence reference is invented, the gap count drifts, or someone claims Owner/live approval. Example open issues: C-02 old blank=Cash vs stricter explicit-mode prototype; old missing receipt yellow vs current candidate BLOCK; cash custody's independent physical ledger proof; originally entered returnable crates/trays due vs yet-unbuilt candidate ledger; inventory movement/counter independence and authorized adjustments; fridge/expiry evidence; original source visibility helper `O()`; linked expense voucher cashbook; full daily cash including digital, advances, refunds and transfers.
+
+**What the first 150 recheck proves:** The exact old source field declarations and preliminary roles/branch syntax were independently verified; the 16 source conditional patterns are identified and tested against explicit synthetic inputs; proposed destination choices and actual unresolved rules are inspectable with individual source IDs. **It DOES NOT prove that all 150 business behaviors, formulas, permissions, real ledgers, compliance or real Owner workflows are interchangeable.** No old source was run. New stricter fail-closed checks are not asserted to have identical old warning severity.
+
+Reproduce in Node 22:
+
+```bash
+node modules/paperops/field-deep-source-recheck.cjs --check
+node modules/paperops/source-conditional-recheck.cjs
+node modules/paperops/field-functional-gap-audit.cjs
+node --test modules/paperops/tests/deep-source-recheck.test.cjs modules/paperops/tests/field-functional-gap-audit.test.cjs
+```
+
+**Release boundary:** The first 150 field declarations are now genuinely source-rechecked, but **zero** source business-rule parity approvals and **zero** Owner acceptances are claimed. Do not merge, replace original paper, deploy, or post any ERP transaction on this evidence alone. **1,010** still await first-pass mapping; original additional high-risk obligations remain separately tracked. Subsequent work must resolve the 11 concrete gaps and prove real normalized event/ledger continuity with independent actor, account, site and transaction evidence rather than collecting duplicate paper fields.
+
 ## 6. Reproduction, safety and deployment
 
 Open `modules/paperops/index.html` locally in a modern browser, choose form/industry, business-wide or branch-specific scope, apply optional header/logo/colour, preview, then use Print/PDF. Save/import a JSON settings file locally if desired. Do not put confidential identifiers in a file shared publicly.
