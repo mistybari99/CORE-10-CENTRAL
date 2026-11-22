@@ -3,6 +3,9 @@
 -- approval, payload binding, other tenant. Calls run as `authenticated` with a signed actor.
 \set ON_ERROR_STOP on
 BEGIN;
+-- NP01 0111 (route stages pinned to an explicit gov002.review setting) is present on trunk, absent on older bases.
+SELECT EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid='core10.approval_requests'::regclass
+ AND attname='route_stages_pinned_v1' AND NOT attisdropped) AS inva_np01_route_pin \gset
 INSERT INTO core10.templates(code,source_status,demo_allowed) VALUES ('sweets_bakery','available',true) ON CONFLICT (code) DO NOTHING;
 INSERT INTO core10.tenants(id,slug) VALUES (941,'inva-a'),(942,'inva-b');
 INSERT INTO core10.legal_entities(id,tenant_id,label) VALUES (9410,941,'Inva A'),(9420,942,'Inva B');
@@ -83,11 +86,34 @@ SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
 SELECT pg_temp.expect($q$SELECT pg_temp.req('$q$||:'c2'||$q$'::jsonb,'inva-off-r001')$q$,'CONTROL_DISABLED:inventory.stock_event');
 SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
 SELECT pg_temp.cset(9411,'inventory.stock_event',true,0,'{}',1,'inva-ctl-0003');
+-- An explicit gov002.review setting cannot be reset to the catalog default at business scope, and with NP01 0111
+-- an explicit setting pins every GOV-002 route to its stage count. Prove the switch inside a savepoint, then return
+-- the business to the default so the legacy one-checker and two-stage sections below keep their meaning.
+SAVEPOINT inva_gov002_switch;
 SELECT pg_temp.cset(9411,'gov002.review',false,1,'{}',0,'inva-ctl-0004');
 SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
 SELECT pg_temp.expect($q$SELECT pg_temp.req('$q$||:'c2'||$q$'::jsonb,'inva-off-r002')$q$,'CONTROL_DISABLED:gov002.review');
 SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
 SELECT pg_temp.cset(9411,'gov002.review',true,1,'{}',1,'inva-ctl-0005');
+SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
+\if :inva_np01_route_pin
+-- NP01 0111: explicit one-stage review needs a one-stage route; the un-routed legacy policy is refused.
+SELECT pg_temp.expect($q$SELECT pg_temp.req('$q$||:'c2'||$q$'::jsonb,'inva-off-r00a')$q$,'CONTROL_STAGE_MISMATCH');
+SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
+SELECT core10.configure_approval_route_v1((SELECT core10.publish_approval_policy_v1(9411,'inventory','issue',120,'inva-policy-1s')),
+ ARRAY['tenant_owner'],'inva-route-1s');
+SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
+SELECT pg_temp.req(:'c2'::jsonb,'inva-off-r00b') AS q2s \gset
+SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
+SELECT core10.decide_approval(:q2s,'approve','inva-off-dec0');
+SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
+SELECT pg_temp.ok((pg_temp.post(:'c2'::jsonb,'inva-off-p000')->>'status')='posted','explicit one-stage route posts');
+RESET ROLE;
+SELECT pg_temp.ok((SELECT count(*) FROM core10.approval_stage_receipts_v1 WHERE request_id=:q2s)=1,'one stage receipt');
+\else
+SELECT pg_temp.ok(pg_temp.req(:'c2'::jsonb,'inva-off-r00b') IS NOT NULL,'re-enabled review accepts the request');
+\endif
+ROLLBACK TO SAVEPOINT inva_gov002_switch;
 SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
 SELECT pg_temp.req(:'c2'::jsonb,'inva-off-r003') AS q2 \gset
 SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
