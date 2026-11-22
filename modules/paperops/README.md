@@ -115,6 +115,43 @@ This is why an eight-template demo must **never** be substituted for the 32 orig
 
 **Quality gates:** `node --test modules/paperops/tests/*.test.cjs` checks source field traceability, event selection, duplicate prevention, different site types, a 100-sheet cap and HTML escaping. This is implementation evidence for an isolated prototype, not business signoff, an ERP write path, an approved complete offline mode or permission to merge to trunk.
 
+## 5b. BUILT: 29 draft templates and traceable calculation checks
+
+The printable registry now has **29 draft definitions**: 8 original first-slice templates plus **21** added in `form-packs.js`. New source-traced sweets/shared forms include:
+
+| Source-backed controls (draft, not release) | Printable form |
+|---|---|
+| R-02 independent measurement + Jalebi yield, oil/syrup and unsold handling | `SWT-JALEBI` |
+| W-04 continuous stock movement, balance and variance | `STK-LEDGER` |
+| P-05 PO–GRN–invoice match / hold | `PUR-BILL-MATCH` |
+| P-02 competitive quotation / single-source exception | `PUR-COMPARE` |
+| S-01 customer order, advance and handoff | `SLS-ORDER` |
+| S-03 return, quarantine, refund and root-cause decision | `SLS-RETURN` |
+| C-04 digital PSP settlement vs statement vs bank | `FIN-SETTLEMENT` |
+| C-05 ageing and credit-stop / advances | `FIN-AR-AGING` |
+| F-02/03 approved spec, grade, rejection, shelf-life/version | `MFG-SPEC` |
+| A-02 monthly COGS/gross/net/AR/AP summary | `FIN-MONTHLY` |
+| C-01/02 continuing cash/bank evidence | `FIN-CASHBOOK` |
+| P-06 supplier payables and bill ledger | `FIN-AP-LEDGER` |
+| S-06 customer receivables and advance ledger | `FIN-AR-LEDGER` |
+
+The previously **11 unmapped** obligations in `control-obligations.json` now **all have printable draft targets**. Their status remains **GAP**, not complete; the other nine remain **PARTIAL**, until every old field, every blocker/role and each conditional formula is proven equivalent and accepted through realistic Owner-run paper scenarios.
+
+Eight additional **industry-specific hypothesis packs** (`REST-KITCHEN`, `RETAIL-REPLENISH`, `MFG-QC`, `PROJECT-DAILY`, `TRADE-CLEARANCE`, `ECOM-FULFILL`, `TECH-DELIVERY`, `SERVICE-JOB`) cover non-sweets/paint industry distinctions but are not yet field validated. Their IDs and all ten canonical business-type selectors come from the existing `data/core10_capability_catalog_v1.json` on trunk: `sweets_bakery`, `restaurant`, `paint_hardware`, `retail_wholesale`, `general_manufacturing`, `construction`, `import_export`, `ecommerce`, `technology_digital`, `services`. No industry processes are described as verified merely because a draft template exists.
+
+`paper-math.js` provides **offline pure, source-informed calculation prototypes** (zero backend posting): stock roll-forward; cash closing; PO/GRN/bill match and payment hold; digital statement/fee/bank reconciliation; ageing buckets and credit policy; quotation selection; Jalebi dough-to-flour conversion / yield / sell price / unsold / oil / syrup; monthly COGS/gross/net. The Jalebi equation mirrors the explicit `R-02` source formula `flour used = issued flour + (opening dough − closing dough) × 100 ÷ approved conversion %`, with no guessed approved rate, tolerance or selling price. Amounts are input-validated (two decimal monetary precision, four decimal quantity precision), with strict missing-policy warnings and no authorization for accounting posts. Tests include exact synthetic expected values, mismatch, missing inputs, maker/checker separation and negative cases.
+
+### Practical paper saving rules applied to version 2
+
+- One **retail showroom** Daily Close per active day, not one for every factory/warehouse/office.
+- Jalebi special yield sheet **only when a Jalebi shift operates**, not every sweet shop on every day.
+- Handover, GRN/QC, stock transfer, returns and bill matching require **event-specific proof**.
+- Stock, cash/bank, AR/AP and supplier ledgers are **continuing books**, not new independent forms per transaction.
+- Approved product specifications, recipe cards and shelf-life settings are **versioned master sheets**; batches reference versions rather than repeatedly copying.
+- Industry-specific work items remain draft/hypothesis until real-world samples, missing-field checks, responsibility maps and the Owner's operational controls are accepted.
+
+**Audit caveat:** The printed drafts and test results do NOT prove all-paper business continuity, legal/tax compliance, complete A–Z form parity, printed page fit on every printer, or an authorized ERP workflow. Print-only data is not persisted; QR/serial reservation, signed tenant/site permissions and scan-back entry still require separate implementation.
+
 ## 6. Reproduction, safety and deployment
 
 Open `modules/paperops/index.html` locally in a modern browser, choose form/industry, business-wide or branch-specific scope, apply optional header/logo/colour, preview, then use Print/PDF. Save/import a JSON settings file locally if desired. Do not put confidential identifiers in a file shared publicly.
