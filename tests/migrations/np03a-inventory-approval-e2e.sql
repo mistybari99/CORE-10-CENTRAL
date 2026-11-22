@@ -83,11 +83,108 @@ SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
 SELECT pg_temp.expect($q$SELECT pg_temp.req('$q$||:'c2'||$q$'::jsonb,'inva-off-r001')$q$,'CONTROL_DISABLED:inventory.stock_event');
 SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
 SELECT pg_temp.cset(9411,'inventory.stock_event',true,0,'{}',1,'inva-ctl-0003');
+-- NP01 0111 binds explicit gov002.review stages to a matching routed policy.
+-- Exercise the disabled switch and the explicit-without-route negative in a
+-- SAVEPOINT; return to the original default one-checker policy for the rest
+-- of this independently verified inventory test. Never relax the Control gate.
+SAVEPOINT inv_review_switch;
 SELECT pg_temp.cset(9411,'gov002.review',false,1,'{}',0,'inva-ctl-0004');
 SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
-SELECT pg_temp.expect($q$SELECT pg_temp.req('$q$||:'c2'||$q$'::jsonb,'inva-off-r002')$q$,'CONTROL_DISABLED:gov002.review');
+SELECT pg_temp.expect($q$SELECT pg_temp.req('$q$||:'c2'||$q
+SELECT pg_temp.req(:'c2'::jsonb,'inva-off-r003') AS q2 \gset
+SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
+SELECT core10.decide_approval(:q2,'approve','inva-off-dec1');
+-- Owner raises the stage count after the approval: posting must refuse (no route has two stages yet)
+SELECT pg_temp.cset(9411,'inventory.issue',true,2,'{"staff_allowed":true}',1,'inva-ctl-0006');
+SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
+SELECT pg_temp.expect($q$SELECT pg_temp.post('$q$||:'c2'||$q$'::jsonb,'inva-off-p001')$q$,'INV_APPROVAL_ROUTE_MISMATCH');
+SELECT pg_temp.ready('inva-mis-0001',1) AS c3 \gset
+SELECT pg_temp.expect($q$SELECT pg_temp.req('$q$||:'c3'||$q$'::jsonb,'inva-mis-r001')$q$,'INV_APPROVAL_ROUTE_MISMATCH');
+SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
+SELECT pg_temp.cset(9411,'inventory.issue',true,0,'{"staff_allowed":true}',2,'inva-ctl-0007');
+SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
+SELECT pg_temp.expect($q$SELECT pg_temp.req('$q$||:'c3'||$q$'::jsonb,'inva-mis-r002')$q$,'INV_APPROVAL_STAGES_REQUIRED');
+SELECT pg_temp.ok((pg_temp.post(:'c3'::jsonb,'inva-mis-p001')->>'status')='posted','zero stages posts without approval');
+SELECT pg_temp.expect($q$SELECT core10.inventory_request_approval_v1((core10.create_inventory_command_v1(9411,'issue',941111,NULL,94101,1,NULL,'inva-draft-001')->>'command_id')::bigint,'inva-draft-r01')$q$,'INV_CONFIRM_FIRST');
+
+-- ---------- two-stage route: business owner, then tenant owner; maker is the manager ----------
+SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
+SELECT core10.configure_approval_route_v1((SELECT core10.publish_approval_policy_v1(9411,'inventory','issue',120,'inva-policy-02')),
+ ARRAY['business_owner','tenant_owner'],'inva-route-01');
+SELECT pg_temp.cset(9411,'inventory.issue',true,2,'{"staff_allowed":true}',3,'inva-ctl-0008');
+SELECT pg_temp.as_user('e3333333-3333-4333-8333-333333333333');
+SELECT pg_temp.ready('inva-two-0001',5) AS c4 \gset
+SELECT pg_temp.req(:'c4'::jsonb,'inva-two-r001') AS q4 \gset
+SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
+SELECT pg_temp.expect($q$SELECT core10.decide_approval($q$||:q4||$q$,'approve','inva-two-early')$q$,'approval_not_authorized');
+SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
+SELECT core10.decide_approval(:q4,'approve','inva-two-dec1');
+SELECT pg_temp.as_user('e3333333-3333-4333-8333-333333333333');
+SELECT pg_temp.expect($q$SELECT pg_temp.post('$q$||:'c4'||$q$'::jsonb,'inva-two-p001')$q$,'INV_APPROVAL_NOT_EFFECTIVE');
+SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
+SELECT core10.decide_approval(:q4,'approve','inva-two-dec2');
+SELECT pg_temp.as_user('e3333333-3333-4333-8333-333333333333');
+SELECT pg_temp.ok((pg_temp.post(:'c4'::jsonb,'inva-two-p002')->>'status')='posted','two-stage approved command posted');
+RESET ROLE;
+SELECT pg_temp.ok((SELECT count(*) FROM core10.approval_stage_receipts_v1 WHERE request_id=:q4)=2,'two stage receipts');
+SELECT pg_temp.ok((SELECT on_hand FROM core10.stock_balances_v1 WHERE location_id=941111 AND item_id=94101)=84,'balance 84');
+SELECT pg_temp.ok(NOT EXISTS(SELECT 1 FROM core10.inventory_reconciliation_v1 WHERE NOT reconciled),'reconciled');
+SELECT pg_temp.ok((SELECT status FROM core10.control_rpc_map_v1 WHERE rpc_name='inventory_request_approval_v1')='enforced','registry enforced');
+SELECT pg_temp.ok(NOT has_function_privilege('anon','core10.inventory_request_approval_v1(bigint,text)','execute'),'anon cannot request');
+SELECT pg_temp.ok(NOT has_function_privilege('authenticated','core10._inventory_approval_gate_v1(bigint,integer)','execute'),'gate is internal');
+ROLLBACK;
+\echo 'PASS np03a-inventory-approval-e2e'
+::jsonb,'inva-off-r002')$q$,'CONTROL_DISABLED:gov002.review');
 SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
 SELECT pg_temp.cset(9411,'gov002.review',true,1,'{}',1,'inva-ctl-0005');
+SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
+SELECT pg_temp.expect($q$SELECT pg_temp.req('$q$||:'c2'||$q
+SELECT pg_temp.req(:'c2'::jsonb,'inva-off-r003') AS q2 \gset
+SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
+SELECT core10.decide_approval(:q2,'approve','inva-off-dec1');
+-- Owner raises the stage count after the approval: posting must refuse (no route has two stages yet)
+SELECT pg_temp.cset(9411,'inventory.issue',true,2,'{"staff_allowed":true}',1,'inva-ctl-0006');
+SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
+SELECT pg_temp.expect($q$SELECT pg_temp.post('$q$||:'c2'||$q$'::jsonb,'inva-off-p001')$q$,'INV_APPROVAL_ROUTE_MISMATCH');
+SELECT pg_temp.ready('inva-mis-0001',1) AS c3 \gset
+SELECT pg_temp.expect($q$SELECT pg_temp.req('$q$||:'c3'||$q$'::jsonb,'inva-mis-r001')$q$,'INV_APPROVAL_ROUTE_MISMATCH');
+SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
+SELECT pg_temp.cset(9411,'inventory.issue',true,0,'{"staff_allowed":true}',2,'inva-ctl-0007');
+SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
+SELECT pg_temp.expect($q$SELECT pg_temp.req('$q$||:'c3'||$q$'::jsonb,'inva-mis-r002')$q$,'INV_APPROVAL_STAGES_REQUIRED');
+SELECT pg_temp.ok((pg_temp.post(:'c3'::jsonb,'inva-mis-p001')->>'status')='posted','zero stages posts without approval');
+SELECT pg_temp.expect($q$SELECT core10.inventory_request_approval_v1((core10.create_inventory_command_v1(9411,'issue',941111,NULL,94101,1,NULL,'inva-draft-001')->>'command_id')::bigint,'inva-draft-r01')$q$,'INV_CONFIRM_FIRST');
+
+-- ---------- two-stage route: business owner, then tenant owner; maker is the manager ----------
+SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
+SELECT core10.configure_approval_route_v1((SELECT core10.publish_approval_policy_v1(9411,'inventory','issue',120,'inva-policy-02')),
+ ARRAY['business_owner','tenant_owner'],'inva-route-01');
+SELECT pg_temp.cset(9411,'inventory.issue',true,2,'{"staff_allowed":true}',3,'inva-ctl-0008');
+SELECT pg_temp.as_user('e3333333-3333-4333-8333-333333333333');
+SELECT pg_temp.ready('inva-two-0001',5) AS c4 \gset
+SELECT pg_temp.req(:'c4'::jsonb,'inva-two-r001') AS q4 \gset
+SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
+SELECT pg_temp.expect($q$SELECT core10.decide_approval($q$||:q4||$q$,'approve','inva-two-early')$q$,'approval_not_authorized');
+SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
+SELECT core10.decide_approval(:q4,'approve','inva-two-dec1');
+SELECT pg_temp.as_user('e3333333-3333-4333-8333-333333333333');
+SELECT pg_temp.expect($q$SELECT pg_temp.post('$q$||:'c4'||$q$'::jsonb,'inva-two-p001')$q$,'INV_APPROVAL_NOT_EFFECTIVE');
+SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
+SELECT core10.decide_approval(:q4,'approve','inva-two-dec2');
+SELECT pg_temp.as_user('e3333333-3333-4333-8333-333333333333');
+SELECT pg_temp.ok((pg_temp.post(:'c4'::jsonb,'inva-two-p002')->>'status')='posted','two-stage approved command posted');
+RESET ROLE;
+SELECT pg_temp.ok((SELECT count(*) FROM core10.approval_stage_receipts_v1 WHERE request_id=:q4)=2,'two stage receipts');
+SELECT pg_temp.ok((SELECT on_hand FROM core10.stock_balances_v1 WHERE location_id=941111 AND item_id=94101)=84,'balance 84');
+SELECT pg_temp.ok(NOT EXISTS(SELECT 1 FROM core10.inventory_reconciliation_v1 WHERE NOT reconciled),'reconciled');
+SELECT pg_temp.ok((SELECT status FROM core10.control_rpc_map_v1 WHERE rpc_name='inventory_request_approval_v1')='enforced','registry enforced');
+SELECT pg_temp.ok(NOT has_function_privilege('anon','core10.inventory_request_approval_v1(bigint,text)','execute'),'anon cannot request');
+SELECT pg_temp.ok(NOT has_function_privilege('authenticated','core10._inventory_approval_gate_v1(bigint,integer)','execute'),'gate is internal');
+ROLLBACK;
+\echo 'PASS np03a-inventory-approval-e2e'
+::jsonb,'inva-off-r002-route')$q$,'CONTROL_STAGE_MISMATCH');
+ROLLBACK TO SAVEPOINT inv_review_switch;
+-- Savepoint rollback restores the original default/no-route review setting.
 SELECT pg_temp.as_user('e2222222-2222-4222-8222-222222222222');
 SELECT pg_temp.req(:'c2'::jsonb,'inva-off-r003') AS q2 \gset
 SELECT pg_temp.as_user('e1111111-1111-4111-8111-111111111111');
