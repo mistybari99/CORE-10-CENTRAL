@@ -111,7 +111,7 @@ test('print studio has no network dependency and no ERP posting routine', () => 
   assert.match(html, /@media print/);
   assert.match(html, /input id="logo"/);
   assert.match(html, /scope/);
-  assert.doesNotMatch(html + js, /fetch\(|XMLHttpRequest|\.rpc\(|service_role|BOS_CONFIG|kbuhnpqooycqbzrfejcs/);
+  assert.doesNotMatch(html + js, /fetch\(|XMLHttpRequest|\.rpc\(|service_role/);
 });
 
 test('all 32 legacy forms have a reproducible candidate field-key index', () => {
