@@ -16,3 +16,12 @@ input[type=date]{background:var(--panel2);border:1px solid var(--edge);border-ra
 .occ-chip.pu-st-draft{color:var(--highlight)}
 .occ-detail a{color:var(--sea)}
 @media (max-width:420px){.pu-line-grid{grid-template-columns:minmax(0,1fr)}}
+.pu-views{margin-bottom:0}
+.pu-return{border-top:1px dashed var(--edge);padding-top:8px;margin-top:6px;display:grid;gap:4px;min-width:0}
+.pu-return .occ-actions{justify-content:flex-start}
+.pu-return[data-ret-status=posted] strong{color:var(--on)}
+.pu-return[data-ret-status=cancelled] strong{color:var(--muted)}
+.pu-grn[data-status=cancelled]>strong{color:var(--muted)}
+.pu-lot-filter{max-width:420px}
+.pu-lots tr[data-expired] td{color:var(--err)}
+.pu-note{overflow-wrap:anywhere}

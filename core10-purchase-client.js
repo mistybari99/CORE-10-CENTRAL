@@ -1,8 +1,8 @@
 /* CORE 10 CENTRAL | B-012 Purchase and goods receipt client (NP03A).
  * Calls only the canonical core10 RPCs: 0203 purchase order / GRN / quality check / post, 0206 approval request,
- * 0152 Master suppliers and items, Build01 context. One scoped read of stock locations goes through the existing
- * RLS policy location_scope_read (0002) because no location-list RPC exists yet. No other table access, no local
- * permission decision, no stored token, no simulated success: the server decides scope and Owner Control.
+ * 0207 GRN cancel / supplier return / lot expiry list, 0208 scoped location list, 0152 Master suppliers and items,
+ * Build01 context. No table access, no local permission decision, no stored token, no simulated success: the server
+ * decides scope and Owner Control.
  */
 (function (root, factory) {
   "use strict";
@@ -14,10 +14,9 @@
   const RPCS = new Set([
     "build01_context_v1", "procurement_save_po_v1", "procurement_advance_po_v1", "procurement_request_po_approval_v1",
     "procurement_receive_v1", "procurement_inspect_v1", "procurement_post_grn_v1", "procurement_list_pos_v1",
-    "procurement_get_po_v1", "master_list_parties_v1", "master_list_items_v1"
+    "procurement_get_po_v1", "master_list_parties_v1", "master_list_items_v1", "inventory_list_locations_v1",
+    "procurement_cancel_grn_v1", "procurement_save_return_v1", "procurement_advance_return_v1", "procurement_list_lots_v1"
   ]);
-  // Read-only, RLS-scoped table reads (exact columns). Nothing else.
-  const READS = { stock_locations: "id,site_id,code" };
   const STATUSES = ["draft", "approved", "partially_received", "received", "closed", "cancelled"];
   function fail(code, detail) { const e = new Error(code); e.code = code; if (detail) e.detail = detail; throw e; }
   // Bangla digits typed on a phone keyboard are accepted as the same number.
@@ -38,6 +37,9 @@
     const s = ascii(x); if (!s) return null;
     if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(s) || isNaN(Date.parse(s + "T00:00:00Z"))) fail("INVALID_DATE"); return s;
   }
+  // Reason text the server accepts: 3-300 characters after trimming.
+  function reason(x, code) { const s = typeof x === "string" ? x.trim() : ""; if (s.length < 3 || s.length > 300) fail(code); return s; }
+  function optReason(x, code) { const s = typeof x === "string" ? x.trim() : ""; if (!s) return null; if (s.length < 3 || s.length > 300) fail(code); return s; }
   function optText(x, max, code) { const s = typeof x === "string" ? x.trim() : ""; if (s.length > max) fail(code || "INVALID_TEXT"); return s || null; }
   function lot(x) { const s = ascii(x); if (!s) return null; if (!/^[A-Za-z0-9][A-Za-z0-9/_.-]{1,59}$/.test(s)) fail("INVALID_LOT"); return s; }
   const limit = (x, d) => { const n = Number(x || d); return Number.isInteger(n) && n >= 1 && n <= 200 ? n : d; };
@@ -96,10 +98,11 @@
         p_status: "active", p_limit: limit(o && o.limit, 200), p_after_id: optInt(o && o.after) }),
       items: async (b, o) => call("master_list_items_v1", { p_business: posInt(b), p_search: optText(o && o.search, 80), p_status: "active",
         p_category: null, p_limit: limit(o && o.limit, 200), p_after_id: optInt(o && o.after) }),
-      locations: async (b, site) => signed((schema) => {
-        if (typeof schema.from !== "function") fail("PROC_SCHEMA_UNAVAILABLE");
-        return schema.from("stock_locations").select(READS.stock_locations).eq("business_id", posInt(b)).eq("site_id", posInt(site)).order("id").limit(200);
-      }),
+      // Locations of one site the caller may read (0208), with can_post per location.
+      locations: async (b, site) => {
+        const r = await call("inventory_list_locations_v1", { p_business: posInt(b), p_site: posInt(site, "INVALID_SITE") });
+        return (r && Array.isArray(r.items)) ? r.items : [];
+      },
       list: async (b, o) => {
         const status = o && o.status ? String(o.status) : null; if (status && !STATUSES.includes(status)) fail("PROC_INVALID_FILTER");
         return call("procurement_list_pos_v1", { p_business: posInt(b), p_site: optInt(o && o.site), p_status: status,
@@ -125,8 +128,32 @@
       },
       inspect: async (grn, o) => call("procurement_inspect_v1", { p_grn: posInt(grn), p_lines: (o.lines || []).map((l) => ({ line_no: posInt(l.lineNo),
         accepted_qty: qty(l.accepted, true), notes: optText(l.notes, 500, "INVALID_NOTE") })), p_version: version(o.version), p_key: key(o.requestKey, "qc") }),
-      post: async (grn, v, k) => call("procurement_post_grn_v1", { p_grn: posInt(grn), p_version: version(v), p_key: key(k, "grnpost") })
+      post: async (grn, v, k) => call("procurement_post_grn_v1", { p_grn: posInt(grn), p_version: version(v), p_key: key(k, "grnpost") }),
+      // 0207: cancel a received / inspected GRN (never a posted one); reason 3-300 characters.
+      cancelGrn: async (grn, v, why, k) => call("procurement_cancel_grn_v1", { p_grn: posInt(grn), p_version: version(v),
+        p_reason: reason(why, "PROC_CANCEL_REASON_REQUIRED"), p_key: key(k, "grncancel") }),
+      // 0207: draft a return to the supplier against one posted GRN; the server checks accepted - returned, stock and Owner Control.
+      saveReturn: async (grn, o) => {
+        if (!Array.isArray(o.lines) || o.lines.length < 1 || o.lines.length > 200) fail("PROC_LINES_INVALID");
+        const lines = o.lines.map((l) => ({ line_no: posInt(l.lineNo), quantity: qty(l.quantity) }));
+        if (new Set(lines.map((l) => l.line_no)).size !== lines.length) fail("PROC_LINES_INVALID");
+        return call("procurement_save_return_v1", { p_grn: posInt(grn), p_lines: lines, p_reason: optReason(o.reason, "PROC_RETURN_REASON_INVALID"),
+          p_key: key(o.requestKey, "ret") });
+      },
+      advanceReturn: async (ret, action, v, k) => {
+        if (!["post", "cancel"].includes(action)) fail("PROC_INVALID_ACTION");
+        return call("procurement_advance_return_v1", { p_return: posInt(ret), p_action: action, p_version: version(v), p_key: key(k, "ret" + action) });
+      },
+      // 0207: lots of a business by expiry; days = "expiring within N days" (expired included); keyset cursor next_after.
+      lots: async (b, o) => {
+        const d = o && o.days != null && String(o.days).trim() !== "" ? ascii(o.days) : null;
+        if (d !== null && (!/^[0-9]{1,4}$/.test(d) || Number(d) > 3650)) fail("INVALID_DAYS");
+        const after = o && o.after;
+        if (after && (!/^([0-9]{4}-[0-9]{2}-[0-9]{2}|infinity)$/.test(String(after.expires_on)) || !after.lot_id)) fail("PROC_INVALID_FILTER");
+        return call("procurement_list_lots_v1", { p_business: posInt(b), p_site: optInt(o && o.site), p_expiring_within_days: d === null ? null : Number(d),
+          p_after_expires_on: after ? String(after.expires_on) : null, p_after_lot: after ? posInt(after.lot_id) : null, p_limit: limit(o && o.limit, 50) });
+      }
     };
   }
-  return { create, errorCode, newKey, lineAmount, paisaText, ascii, STATUSES, RPCS: Array.from(RPCS), READS };
+  return { create, errorCode, newKey, lineAmount, paisaText, ascii, STATUSES, RPCS: Array.from(RPCS) };
 });
