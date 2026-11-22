@@ -139,6 +139,11 @@ test('critical control obligations are source-backed and cannot be claimed compl
   assert.equal(obligations.records.length, 20);
   assert.equal(new Set(obligations.records.map(o => o.id)).size, obligations.records.length);
   assert.ok(obligations.records.some(o => o.coverage === 'gap'), 'lost-control gaps must remain visible');
+  assert.equal(obligations.records.filter(o=>o.coverage==='gap').length,11);
+  assert.equal(obligations.records.filter(o=>o.coverage==='partial').length,9);
+  assert.ok(obligations.records.every(o=>o.draft_target),'all historic obligations should have a draft target');
+  assert.ok(obligations.records.every(o=>o.release_gate==='FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE'));
+
   for (const obligation of obligations.records) {
     const legacy = extracted.forms.find(f => f.legacy_code === obligation.legacy_form);
     assert.ok(legacy, 'unknown source form: ' + obligation.id);
