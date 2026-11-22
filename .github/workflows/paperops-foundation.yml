@@ -24,4 +24,4 @@ jobs:
         with:
           node-version: '22'
       - name: PaperOps contract, safety and preservation tests
-        run: node --test modules/paperops/tests/paperops.test.cjs
+        run: node --test modules/paperops/tests/*.test.cjs
