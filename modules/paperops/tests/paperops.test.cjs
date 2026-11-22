@@ -21,7 +21,7 @@ test('the printable registry is consistent and deliberately small', () => {
   assert.equal(paperops.validateCatalog(), true);
   assert.equal(paperops.TEMPLATES.length, 29);
   assert.equal(extraPacks.length, 21);
-  assert.equal(new Set(paperops.TEMPLATES.map(f => f.id)).size, 8);
+  assert.equal(new Set(paperops.TEMPLATES.map(f => f.id)).size, 29);
   assert.ok(paperops.TEMPLATES.every(f => f.status !== 'live'));
   assert.equal(paperops.availableForms('generic').some(f => f.id === 'PAINT-TINT'), false);
   assert.equal(paperops.availableForms('paint').some(f => f.id === 'PAINT-TINT'), true);
