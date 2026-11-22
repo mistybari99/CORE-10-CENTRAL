@@ -113,7 +113,7 @@
       ], signatures: [t('গণনাকারী', 'Counter'), t('স্বতন্ত্র যাচাইকারী', 'Independent checker'), t('সমন্বয় অনুমোদনকারী', 'Adjustment approver')]
     },
     {
-      id: 'MFG-DAILY', industries: ['sweets', 'paint'], cadence: 'event', status: 'draft', legacyRefs: ['F-05', 'F-03', 'F-04'],
+      id: 'MFG-DAILY', industries: ['sweets', 'paint', 'general_manufacturing'], cadence: 'event', status: 'draft', legacyRefs: ['F-05', 'F-03', 'F-04'],
       title: t('কারখানা ব্যাচ উৎপাদন ও ফলন রেকর্ড', 'Factory Batch Production & Yield'),
       rule: t('স্থায়ী রেসিপি / অনুমোদিত ফর্মুলা প্রতিদিন কপি নয়; তার ভার্সন রেফারেন্স দিন। অপচয়, QC ও ফলনের পার্থক্য লিখুন।', 'Reference the approved recipe/formula version; do not recopy it each shift. Record yield, loss, QC and discrepancies.'),
       sections: [
