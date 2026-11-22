@@ -124,3 +124,30 @@ test('an event-only factory requires a real event and print batches cannot silen
   assert.equal(big.count,101);
   assert.throws(()=>kit.printKit(big),/PRINT_BATCH_LIMIT_100/);
 });
+
+test('each of the ten canonical business types can plan and print its own selected event',()=>{
+  const cases=[
+    ['sweets_bakery','jalebi_shift','factory'],
+    ['restaurant','kitchen_prep','factory'],
+    ['paint_hardware','paint_tint','factory'],
+    ['retail_wholesale','retail_replenish','showroom'],
+    ['general_manufacturing','manufacturing_qc','factory'],
+    ['construction','construction_daily','project'],
+    ['import_export','trade_shipment','office'],
+    ['ecommerce','ecommerce_delivery','warehouse'],
+    ['technology_digital','technology_delivery','office'],
+    ['services','service_job','project']
+  ];
+  for (const [industry,type,kind] of cases) {
+    const v={date:'2026-11-22',industry,businessName:'Sample Business',
+      sites:[{id:'site-1',name:'Site One',kind}],events:[{type,siteId:'site-1',eventId:'REF-'+industry}]};
+    const plan=kit.planDay(v);
+    assert.equal(plan.eventCount,1);
+    assert.equal(plan.count,kind==='showroom'?2:1,'wrong paper burden: '+industry);
+    const html=kit.printKit(plan,{lang:'bn',businessBrand:{headerName:'Brand '+industry}});
+    assert.equal((html.match(/class="paperops-kit-sheet"/g)||[]).length,plan.count);
+    assert.match(html,new RegExp('Brand '+industry));
+    assert.ok(plan.forms.at(-1).status==='HYPOTHESIS_NOT_FIELD_VALIDATED' ||
+      plan.forms.at(-1).status==='DRAFT_PRINTABLE');
+  }
+});
