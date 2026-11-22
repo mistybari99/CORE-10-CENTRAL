@@ -24,3 +24,10 @@ Fresh = a new clean TEST ONLY business instance, not erasure of previously audit
 - Scoped backup evidence: `docs/development/staging-backups/2026-11-22-pre-go2`, `2026-11-22-pre-d063`, `2026-11-22-pre-master-stock`. These logical snapshots do not replace a full database restore.
 - Cloudflare Worker `core10-central`: version `4b6d179c-e1aa-4066-9fb6-6988dbc32432`, bundle SHA256 `3ae944b1cdcb49f4701457d629e99b61f4acff32fff7b77e2713d3f16568fc28`, local real Chromium `44991383787` **50/50 PASS**, live URL CI `44991642473` **50/50 PASS**. Previous stable rollback version `ceeea069-d630-460a-b1f0-5b12e5157da9`.
 - Sales/Manufacturing pages are recorded replay only; Stock core foundation has no signed operational posting in this release; Finance 0400+ not hosted. No production certification. D063 post-cutover maximum sites defaults to 50; auditable per-business Owner Control cap increase and new stress tests needed for 100–400.
+
+## Post-D063 50/400 Site capacity evidence (2026-11-22)
+
+Executed against real CORE10 staging PG17 with Owner's existing session, **without permanent writes**:
+- Default cap: 4 existing Owner demo sites plus 46 new sites = 50 PASS; attempted site 51 was rejected with `CONTROL_LIMIT:max_sites`.
+- Applied audited per-business Owner Control `setup001.provision` with `{"max_sites":400}` version 1 in a trial transaction; 396 new sites brought the total to 400 PASS; attempted site 401 rejected with the same limit error.
+- Both transactions used `BEGIN/ROLLBACK`; follow-up SQL confirmed Owner demo has exactly 4 sites, 0 business-specific cap settings; ledger remains 40/max `0200`. This validates database/business-rule capacity, **not** phone usability or high-concurrency production scale.
