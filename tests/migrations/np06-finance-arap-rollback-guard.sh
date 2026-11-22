@@ -122,4 +122,9 @@ fi
 # Failed rollback is atomic: keep both authenticated mutation grants intact.
 [[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE')")" == t ]]
 [[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE')")" == t ]]
+# A denied 0403 rollback must preserve read-side RPC privileges and closure too.
+[[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_arap_aging_v1(bigint,date,text)','EXECUTE')")" == t ]]
+[[ "$(psql -X -At -c "SELECT has_function_privilege('authenticated','core10.finance_arap_trace_v1(bigint)','EXECUTE')")" == t ]]
+[[ "$(psql -X -At -c "SELECT has_function_privilege('anon','core10.finance_arap_aging_v1(bigint,date,text)','EXECUTE')")" == f ]]
+[[ "$(psql -X -At -c "SELECT has_function_privilege('anon','core10.finance_arap_trace_v1(bigint)','EXECUTE')")" == f ]]
 echo FIN_ARAP_OVERRIDE_ONLY_ROLLBACK_GUARD_PASS
