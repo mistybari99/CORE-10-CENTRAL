@@ -102,25 +102,25 @@ Q -c "SELECT set_config('request.jwt.claims','{\"sub\":\"$OWNER\"}',false)" \
   -c "SELECT core10.advance_inventory_command_v1($RVC,'confirm',1,'race-revoke-confirm-0001')" >/dev/null
 before_revoke=$(bal 731111)
 (
-  psql -X -qAt -v ON_ERROR_STOP=1 >"$tmp/revoke.holder.out" 2>"$tmp/revoke.holder.err" <<SQL
+  if psql -X -qAt -v ON_ERROR_STOP=1 >"$tmp/revoke.holder.out" 2>"$tmp/revoke.holder.err" <<SQL
 BEGIN;
 SELECT id FROM core10.inventory_commands_v1 WHERE id=$RVC FOR UPDATE;
 SELECT pg_sleep(5);
 UPDATE core10.tenant_members SET active=false WHERE tenant_id=731 AND user_id='$OWNER';
 COMMIT;
 SQL
-  echo $? > "$tmp/revoke.holder.rc"
+  then echo 0 > "$tmp/revoke.holder.rc"; else echo 1 > "$tmp/revoke.holder.rc"; fi
 ) &
 holder_pid=$!
 sleep 0.3
 (
-  psql -X -qAt -v ON_ERROR_STOP=1 >"$tmp/revoke.worker.out" 2>"$tmp/revoke.worker.err" <<SQL
+  if psql -X -qAt -v ON_ERROR_STOP=1 >"$tmp/revoke.worker.out" 2>"$tmp/revoke.worker.err" <<SQL
 SET application_name = 'core10_stock_revocation_waiter';
 SET ROLE authenticated;
-SELECT set_config('request.jwt.claims','{\"sub\":\"$OWNER\"}',false);
+SELECT set_config('request.jwt.claims','{"sub":"$OWNER"}',false);
 SELECT core10.advance_inventory_command_v1($RVC,'post',2,'race-revoke-post-0001');
 SQL
-  echo $? > "$tmp/revoke.worker.rc"
+  then echo 0 > "$tmp/revoke.worker.rc"; else echo 1 > "$tmp/revoke.worker.rc"; fi
 ) &
 worker_pid=$!
 saw_wait=0
@@ -129,7 +129,8 @@ for attempt in $(seq 1 35); do
   if [ "$waiting" = 1 ]; then saw_wait=1; break; fi
   sleep 0.12
 done
-wait "$holder_pid" "$worker_pid"
+wait "$holder_pid" || true
+wait "$worker_pid" || true
 [ "$saw_wait" = 1 ] || fail "revoke race never observed blocked worker before revocation"
 [ "$(cat "$tmp/revoke.holder.rc")" = 0 ] || { cat "$tmp/revoke.holder.err" >&2; fail "revocation transaction failed"; }
 [ "$(cat "$tmp/revoke.worker.rc")" != 0 ] || fail "revoked owner posted stock after row-lock wait"
