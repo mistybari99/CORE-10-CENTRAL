@@ -108,7 +108,7 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
 - **Credentials**: you need your own Cloudflare API token (Workers edit) and Supabase access (Management API token or
   DB connection) from the Owner. Never commit them.
 
-## 5. Next build steps (priority order)
+## 5. Next build steps (priority order) — see also §7, §7a, §7b, §7c (latest queue)
 1. **Owner signed Business, Master and Stock mobile acceptance**: all three are now live.
    Owner Business `/#/business` read-only Worker `2d9894b8` had public 50/50 PASS; signed
    Master `/#/master` accepts canonical items and prices; newly signed `/#/stock` deployed Worker
@@ -236,3 +236,16 @@ Top steps: (1) FILE_CLASSIFICATION.json + test, (2) test blocking legacy config/
 (4) one sign-in + Group ▸ Business ▸ Site context bar, regrouped menu, role homes, Android bottom bar,
 (5) one design-token CSS + bn/en dictionaries. Moving legacy IMG-ERP files to legacy/ needs Owner approval.
 NOTE: Sales 030x must reach staging BEFORE Finance 040x / Manufacturing 050x, or later Sales applies are OUT_OF_ORDER.
+
+### 7c. Owner decision 2026-11-22: move legacy IMG-ERP files (APPROVED)
+Owner: the old Islamia/IMG-ERP app is NOT in use anywhere; its files may be moved. Task for the next agent:
+1. On a branch from trunk, `git mv` the legacy files (root `index.html`, `owner.html`, `business.html`, `sw.js`,
+   `config.js`, `v2/`, and the ~201 non-`core10` root JS/HTML/CSS listed as "frozen legacy" in the review §
+   FILE_CLASSIFICATION) into `legacy/islamia-erp/` — content byte-identical, history kept. Do NOT delete anything.
+   Do NOT touch Supabase `kbuhnpqooycqbzrfejcs`.
+2. Same change: update the legacy-preservation tests and the old Pages package required-file list to the new paths
+   (never weaken: they must still prove every preserved file exists byte-identical), and repoint any `core10-*.html`
+   that loads `./config.js` to nothing legacy (they must load only CORE10 configs).
+3. Add the guard test from review step 2 (no `config.js`/`v2/`/`BOS_CONFIG`/`kbuhnpqooycqbzrfejcs` in live/module code).
+4. Full CI green on the branch, `build.mjs` + `verify.cjs` all PASS (live bundle unchanged), then merge into trunk.
+Then continue with review steps 1, 3, 4, 5 and the §7 build queue.
