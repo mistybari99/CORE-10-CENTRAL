@@ -10,6 +10,11 @@
    "ref": "ccr-15ed11dd-n3hw5h",
    "status": "TRUNK_INTEGRATED"
   },
+  "stock": {
+   "sha": "ac86ee809157af13458b5607132f00a3d72caec9",
+   "ref": "ccr-15ed11dd-n3hw5h",
+   "status": "TRUNK_INTEGRATED"
+  },
   "pr109": {
    "sha": "c7165af0162123c39154445b07d1b730c048519c",
    "ref": "PR #109 NP03B Sales (Draft)",
@@ -21,7 +26,7 @@
    "status": "DRAFT_NOT_INTEGRATED"
   }
  },
- "worker_sha256": "3ae944b1cdcb49f4701457d629e99b61f4acff32fff7b77e2713d3f16568fc28",
+ "worker_sha256": "bd9253d7c0ee16bf76d3a0abc5cd3e950479b1a694a7d7cf404e10ce0088fc0f",
  "files": [
   {
    "route": "/live/core10-control-centre-config.js",
@@ -99,6 +104,56 @@
    "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
    "source": "core10-master-data-ui.js",
    "git_blob": "28d36614ef2a7cca4fdd87e3cffaed2ac77f147b"
+  },
+  {
+   "route": "/live/core10-owner-dashboard.html",
+   "bytes": 1089,
+   "sha256": "22761d5a5820365456b20b4dc31344163d85773641745f8db87341c33c623678",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "ac86ee809157af13458b5607132f00a3d72caec9",
+   "source": "core10-owner-dashboard.html",
+   "git_blob": "7dd0fd51a7507ea5294dd4a28dae8a94e889327b"
+  },
+  {
+   "route": "/live/core10-owner-dashboard.js",
+   "bytes": 2951,
+   "sha256": "9692ed27a0aa565fe83da620023cf0bd0efaec7d7868331204d5b11a838ebbf1",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "ac86ee809157af13458b5607132f00a3d72caec9",
+   "source": "core10-owner-dashboard.js",
+   "git_blob": "1df4403b24a5c857a87308c12fa6d44f99d58863"
+  },
+  {
+   "route": "/live/core10-owner-dashboard-client.js",
+   "bytes": 3784,
+   "sha256": "b692098e8227c67a39a9bcd94b737c342b57a5eaf6a4eadba128726ae6a7a949",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "ac86ee809157af13458b5607132f00a3d72caec9",
+   "source": "core10-owner-dashboard-client.js",
+   "git_blob": "71decb1b2a7c40fc1378787a1b562ebf9e9608ac"
+  },
+  {
+   "route": "/live/core10-owner-dashboard-ui.js",
+   "bytes": 13862,
+   "sha256": "10c14119c44a4a0484ae1e229037667d740322dabbaf19504e59ce5500bb64f3",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "ac86ee809157af13458b5607132f00a3d72caec9",
+   "source": "core10-owner-dashboard-ui.js",
+   "git_blob": "cc298de7f1ccbae7b22baaa87ae998fda1a6b8b7"
+  },
+  {
+   "route": "/live/core10-owner-dashboard.css",
+   "bytes": 1148,
+   "sha256": "34b8d6077a0c5a30d8cb8f03e63b582e5a088782c888c024911a99134d13816a",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "ac86ee809157af13458b5607132f00a3d72caec9",
+   "source": "core10-owner-dashboard.css",
+   "git_blob": "6feb0448d3ef175d397fa618e9a80750952807e1"
   },
   {
    "route": "/live/core10-build01.html",
@@ -413,8 +468,8 @@
   },
   {
    "route": "/app.js",
-   "bytes": 2857,
-   "sha256": "9ef357a8b2de7abcc14da277903cdb4d682ab10eeae3f4e9510c605632be74aa",
+   "bytes": 3106,
+   "sha256": "51da02a86a2ee737ff870cb18c240780c85f8b9dc1d20c7f5d7bbcbc813d9bcf",
    "kind": "PREVIEW_SHELL",
    "source": "preview/core10-central-owner-app/site/app.js"
   },
@@ -480,6 +535,20 @@
    "sha256": "b6bb86ef01eb25d49986fd420aa93fbd5a5ad2762c5159280899b456d7b16726",
    "kind": "PREVIEW_SHELL",
    "source": "preview/core10-central-owner-app/site/view/mfg.mjs"
+  },
+  {
+   "route": "/view/owner-dashboard-language.js",
+   "bytes": 447,
+   "sha256": "bac6d97ce17700c29b1fb2ce6e3e0c051f5c704f358c75495b4394b4367f6e53",
+   "kind": "PREVIEW_SHELL",
+   "source": "preview/core10-central-owner-app/site/view/owner-dashboard-language.js"
+  },
+  {
+   "route": "/view/owner-dashboard-signed.html",
+   "bytes": 1001,
+   "sha256": "8ee0746d6e51be53ebddf9585d31d2d4e2b3f5bebcea88113ee3948999976d44",
+   "kind": "PREVIEW_SHELL",
+   "source": "preview/core10-central-owner-app/site/view/owner-dashboard-signed.html"
   },
   {
    "route": "/view/replay.js",
