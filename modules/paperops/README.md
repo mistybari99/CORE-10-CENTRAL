@@ -377,6 +377,27 @@ node --test modules/paperops/tests/source-port-handoff.test.cjs
 
 **Boundary:** These 8 are deliberately **UNSIGNED_PORT_HANDOFF_PREVIEW_NOT_APPROVED**. The API always sets `canPost:false`, `approvalServerVerified:false`, and `databaseTouched:false`; it has no credentials, RPC/HTTP route, real JWT validation, database connection, durable idempotency lock or canonical Approval/Audit integration. This is a tested contract and source lineage handoff, **not a backend integration or real permission-control mechanism**. The old 11 functional gaps stay OPEN until actual server-side work, Owner policy and signed evidence. The isolated PR is not authorized for merging or deployment on this proof.
 
+## 5k. BUILT — scoped canonical-shaped posting proposals, still NOT authorized
+
+The next integration slice takes the tested W-02 packaging and C-02→R-01/cashbook working books and turns them into **deterministic, inspectable, completely unpostable draft operations**. Unlike the earlier printable forms, these are structured finance/stock candidate records. It does NOT skip the Owner-approved original business policy gaps.
+
+- `source-books-posting-boundary.cjs` accepts synthetic source books and the actual **read-only `build01_context_v1` response shape** (`actor_uid`, `tenants`, `businesses`, `sites`). It rejects a changed sign-in actor, foreign group, business or site and missing/duplicate site mappings. The context is an **OBSERVED RPC DATA SHAPE**, not cryptographically verified or an authorization token. Even `can_manage:true` **never** grants finance/stock posting rights.
+- Two C-02 expense vouchers become **one proposed two-sided DR/CR journal each**: original purchase lines = proposed debit, matching imprest cash = proposed credit. The daily R-01 voucher total is a **read-only reconciliation reference**, NEVER a second expense posting. Real chart-of-accounts ID, authenticated finance role, approval and audit proofs are deliberately unresolved.
+- Five W-02 packaging source events become proposed separately scoped **returnable-package draft movements**, retaining W-02 challan, sender/receiver proof references, issue/return type, site pair and crate/tray outstanding. They are **not stock quantity posts** until canonical transaction security and source validation exist.
+- Every candidate has an idempotency key scoped to tenant+business+kind+source, SHA-256 payload checksum, explicit `DRAFT_NOT_AUTHORIZED`, a non-post flag and source lineage. `simulateDraftQueue()` is **pure, in-memory** with replay deduplication and conflicting-source rejection. SHA-256 **detects accidental tampering, not malicious author identity**. A changed digest that is recomputed cannot grant posting or bypass chart-of-accounts/accounting-balance validation.
+- The only alleged "commit" API `postToERP()` *always throws*. No signed server role, cryptographic session binding, RLS, immutable persisted PostgreSQL ledger, ERP-owned approvals/reversals or staging migration are available here. They must be built and independently tested in their owning canonical lanes before real posting can be considered. **There is no posting authorization or supported backend endpoint.**
+- `source-books-posting-boundary-fixture.json` uses synthetic numeric tenant/business/site IDs shaped like the signed context from canonical trunk; these are not real business IDs. `source-books-posting-demo.cjs` compiles **7 draft operations** (2 finance, 5 packaging) and simulates first/repeat handling; `tests/source-books-posting-boundary.test.cjs` includes forged actor, stale/mismatched group, site crossover, finance balance, changed digest, duplicate replay, source-book negative examples and disabled posting.
+- All original source field/calc deep-recheck records remain unchanged. The two relevant entries in `field-review/functional-gaps-001-003.json` explicitly note a newly implemented **synthetic draft integration boundary**; **the full set of 11 signoff gaps remains OPEN**. Also **1,010** original field candidates remain for first pass. No claim of Owner acceptance or legal/accounting equivalence.
+
+Run on Node 22 (no credentials/network):
+
+```bash
+node modules/paperops/source-books-posting-demo.cjs
+node --test modules/paperops/tests/source-books-posting-boundary.test.cjs
+```
+
+**PRODUCTION SECURITY RULE:** The existing shell's `build01_context_v1` only obtains context lists for display. It is **not** a universal signed module SSO or a finance/warehouse entitlement. Real signed-context permission and tenant RLS must be enforced on the *server on each mutation*, not on a copied browser response. This branch cannot post an expense, stock transfer or returnable asset movement.
+
 ## 6. Reproduction, safety and deployment
 
 Open `modules/paperops/index.html` locally in a modern browser, choose form/industry, business-wide or branch-specific scope, apply optional header/logo/colour, preview, then use Print/PDF. Save/import a JSON settings file locally if desired. Do not put confidential identifiers in a file shared publicly.
