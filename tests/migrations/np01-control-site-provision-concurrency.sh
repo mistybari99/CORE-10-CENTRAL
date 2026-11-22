@@ -41,3 +41,49 @@ count=$(psql -X -At -d "$DB" -c 'SELECT count(*) FROM core10.sites WHERE busines
  echo "SITE_RACE_FAIL ok=$ok denied=$denied count=$count"; cat "$TMP"/1 "$TMP"/2; exit 1;
 }
 echo 'PASS NP01 0112: one of two concurrent site writers succeeds'
+
+# Establish that the setup statement starts before the Owner's OFF write and
+# remains blocked on the same Control lock until that write commits.
+psql -X -q -v ON_ERROR_STOP=1 >"$TMP/policy-writer" 2>&1 <<SQL &
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','99781111-1111-4111-8111-111111111111',false);
+BEGIN;
+SELECT pg_advisory_xact_lock(hashtextextended('c10ctl:99783:0:setup001.provision',0));
+\\! touch "$TMP/policy-lock-held"
+\\! timeout 15 sh -c 'until test -f "$TMP/site-request-blocked"; do sleep .05; done'
+SELECT core10.control_set_v1(99783,NULL,'setup001.provision',false,0::smallint,
+ '{"max_sites":2}',NULL,false,1,'Disable site creation while waiting','np01_site_waited_off');
+COMMIT;
+SQL
+writer=$!
+for _ in $(seq 1 100); do
+ [[ -e "$TMP/policy-lock-held" ]] && break
+ sleep .05
+done
+test -e "$TMP/policy-lock-held" || { cat "$TMP/policy-writer" >&2; exit 1; }
+
+PGAPPNAME=core10-waited-site psql -X -q -v ON_ERROR_STOP=1 >"$TMP/waited-site" 2>&1 <<'SQL' &
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','99781111-1111-4111-8111-111111111111',false);
+SET statement_timeout='20s';
+SELECT core10.build01_site_v1(99783,'showroom','Waited site','np01-waited-site');
+SQL
+waiter=$!
+blocked=0
+for _ in $(seq 1 100); do
+ blocked=$(psql -X -At -v ON_ERROR_STOP=1 -c "SELECT count(*) FROM pg_stat_activity
+   WHERE datname=current_database() AND application_name='core10-waited-site'
+     AND wait_event_type='Lock' AND wait_event='advisory'")
+ [[ "$blocked" == 1 ]] && break
+ sleep .05
+done
+touch "$TMP/site-request-blocked"
+wait "$writer" || { cat "$TMP/policy-writer" >&2; exit 1; }
+test "$blocked" = 1
+if wait "$waiter"; then
+ echo 'Waiting site request ignored the committed OFF policy' >&2
+ exit 1
+fi
+grep -q 'CONTROL_DISABLED:setup001.provision' "$TMP/waited-site"
+test "$(psql -X -At -v ON_ERROR_STOP=1 -c 'SELECT count(*) FROM core10.sites WHERE business_id=99783')" = 1
+echo 'PASS NP01 0118: a waiting site request sees the newly committed OFF policy'

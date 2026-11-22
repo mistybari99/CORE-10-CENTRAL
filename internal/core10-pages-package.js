@@ -9,6 +9,8 @@ const DIR_EXT = new Map([
   ["data",new Set([".json",".svg",".png",".webp"])],
   ["vendor",new Set([".js",".css",".svg",".png",".jpg",".jpeg",".webp",".ico",".woff",".woff2"])],
   ["v2",ROOT_EXT],
+  ["modules/manufacturing",new Set([".mjs",".css"])],
+  ["modules/approvals",new Set([".mjs",".css"])],
   ["experimental/owner-console",ROOT_EXT]
 ]);
 const REQUIRED = ["index.html","owner.html","business.html","sw.js","v2/index.html","v2/sw.js"];
@@ -21,6 +23,15 @@ function isAllowed(rel) {
   if (rel === ".build-id" || rel === "v2/.build-id") return true;
   if (!safeRelative(rel)) return false;
   const parts=rel.split("/");
+  if (rel.startsWith("modules/manufacturing/")) {
+    return parts.length === 3 && ["client.mjs", "workbench.mjs", "manufacturing.css"].includes(parts[2]);
+  }
+  if (rel.startsWith("modules/approvals/")) {
+    return parts.length === 3 && [
+      "c10_np01_canonical_review_client_v1.mjs", "c10_np01_reviewer_workspace_v1.mjs",
+      "c10_np01_reviewer_workspace_v1.css"
+    ].includes(parts[2]);
+  }
   if(parts.length===1) return ROOT_EXT.has(path.extname(rel).toLowerCase()) || ["robots.txt"].includes(rel);
   for(const [dir,extensions] of DIR_EXT) {
     if(rel.startsWith(dir+"/")) return extensions.has(path.extname(rel).toLowerCase());

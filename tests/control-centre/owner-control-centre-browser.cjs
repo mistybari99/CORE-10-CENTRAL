@@ -8,7 +8,8 @@ const { start } = require("./sql-gateway.cjs");
 
 const P = { own: "91111111-1111-4111-8111-111111111111", bo: "92222222-2222-4222-8222-222222222222",
   mgr: "93333333-3333-4333-8333-333333333333", stf: "95555555-5555-4555-8555-555555555555",
-  out: "96666666-6666-4666-8666-666666666666", non: "97777777-7777-4777-8777-777777777777" };
+  out: "96666666-6666-4666-8666-666666666666", non: "97777777-7777-4777-8777-777777777777",
+  first: "98888888-8888-4888-8888-888888888888" };
 const SHOTS = process.env.OCC_SHOTS || path.join(require("node:os").tmpdir(), "occ-shots");
 const results = [];
 async function step(name, fn) {
@@ -20,7 +21,7 @@ async function step(name, fn) {
   fs.mkdirSync(SHOTS, { recursive: true });
   const server = await start(0);
   const base = "http://127.0.0.1:" + server.address().port;
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ executablePath: process.env.C10_CHROMIUM || undefined });
   async function open(persona, width, lang) {
     const ctx = await browser.newContext({ viewport: { width, height: width < 500 ? 844 : 900 }, deviceScaleFactor: 1 });
     const page = await ctx.newPage();
@@ -45,6 +46,29 @@ async function step(name, fn) {
     await page.waitForFunction(() => !document.querySelector(".occ[aria-busy]"));
   }
   const rowHas = (page, key, cls) => page.$(`[data-feature="${key}"] .${cls}`);
+
+  await step("zero-Business Tenant Owner can change Business Creation in BN and EN", async () => {
+    const first = await open(P.first, 390, "bn");
+    assert.ok(await first.locator("#occ-no-business").isVisible());
+    assert.match(await first.textContent("#occ-bootstrap-state"), /^বন্ধ/);
+    await first.click("#occ-bootstrap-save");
+    await confirm(first, "প্রথম ব্যবসা তৈরির অনুমতি");
+    await first.waitForFunction(() => document.querySelector("#occ-bootstrap-state").textContent.startsWith("চালু"));
+    assert.ok(await first.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await first.context().close();
+
+    const desktop = await open(P.first, 1440, "en");
+    assert.match(await desktop.textContent("#occ-bootstrap-state"), /^On/);
+    await desktop.click("#occ-bootstrap-save");
+    await confirm(desktop, "Pause new Business creation");
+    await desktop.waitForFunction(() => document.querySelector("#occ-bootstrap-state").textContent.startsWith("Off"));
+    await desktop.context().close();
+  });
+  await step("Business Owner cannot see tenant policy controls", async () => {
+    const businessOwner = await open(P.bo, 390, "en");
+    assert.strictEqual(await businessOwner.locator("#occ-bootstrap-title").count(), 0);
+    await businessOwner.context().close();
+  });
 
   const own = await open(P.own, 1440, "en");
   await step("owner sees the business, its sites and the 9 baseline features", async () => {

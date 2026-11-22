@@ -1,0 +1,92 @@
+name: NP03B Sales Order Foundation PG17
+on:
+  push:
+    branches: ['build/codex-np03b-sales']
+  pull_request:
+    paths: ['internal/migrations/**','tests/np03b/**','core10-sales*','core10-build01*','core10-central-operations.js','core10-central-stock.js','modules/manufacturing/**','modules/approvals/**','internal/core10-pages-package.js','tests/e2e/static_server.js','.github/workflows/np03b-sales-ci.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sales:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_PASSWORD: np03b_disposable, POSTGRES_DB: core10_np03b_ci }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGUSER: postgres
+      PGDATABASE: core10_np03b_ci
+      PGPASSWORD: np03b_disposable
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Static migration contract
+        run: |
+          node --test tests/migrations/migration-contract.test.js
+          sha256sum -c tests/np03b/0300-0304.sha256
+      - name: Signed session-bound Sales client contracts (synthetic responses)
+        run: |
+          node tests/np03b/client.test.cjs
+          node tests/np03b/invoice-client.test.cjs
+          node --test tests/np03b/master-catalog.test.cjs tests/np03b/entry.test.cjs
+      - name: Disposable API roles
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+          END \$\$;"
+      - name: Full up down up PostgreSQL17
+        run: bash tests/migrations/run-updownup.sh
+      - name: Canonical Master Sales security, approvals, idempotency, RLS and rollback
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f tests/np03b/sales-orders.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/np03b/audit-read.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/np03b/master-integration.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/np03b/invoice-drafts.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/np03b/historical-master.sql
+      - name: Every mutation mapped to Control with evidence
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+          bash tests/migrations/control-registry-evidence.sh
+      - name: Independent session duplicate and amendment races
+        run: |
+          bash tests/np03b/concurrency.sh
+          bash tests/np03b/invoice-concurrency.sh
+      - name: Install pinned browser test tool
+        run: |
+          npm install --prefix "$RUNNER_TEMP/np03b-ui-tools" playwright@1.63.0
+          "$RUNNER_TEMP/np03b-ui-tools/node_modules/.bin/playwright" install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/np03b-ui-tools/node_modules" >> "$GITHUB_ENV"
+      - name: Existing shell Sales UI against real PG17 (390 and 1440)
+        env: { NP03B_SHOTS: artifacts/np03b }
+        run: |
+          createdb core10_np03b_ci_ui
+          PGDATABASE=core10_np03b_ci_ui internal/migrations/run.sh up
+          PGDATABASE=core10_np03b_ci_ui psql -X -v ON_ERROR_STOP=1 -f tests/np03b/ui-seed.sql
+          PGDATABASE=core10_np03b_ci_ui node tests/np03b/browser.cjs
+          createdb core10_np03b_ci_central_ui
+          PGDATABASE=core10_np03b_ci_central_ui internal/migrations/run.sh up
+          PGDATABASE=core10_np03b_ci_central_ui psql -X -v ON_ERROR_STOP=1 -f tests/np03b/central-ui-seed.sql
+          PGDATABASE=core10_np03b_ci_central_ui node tests/np03b/central-browser.cjs
+          createdb core10_np03b_ci_invoice_ui
+          PGDATABASE=core10_np03b_ci_invoice_ui internal/migrations/run.sh up
+          PGDATABASE=core10_np03b_ci_invoice_ui psql -X -v ON_ERROR_STOP=1 -f tests/np03b/invoice-ui-seed.sql
+          PGDATABASE=core10_np03b_ci_invoice_ui node tests/np03b/invoice-browser.cjs
+      - name: Sales UI screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: np03b-sales-order-screenshots, path: artifacts/np03b, if-no-files-found: ignore }
+      - name: Sales provenance and Approval acceptance
+        run: |
+          correction_status=0
+          psql -X -v ON_ERROR_STOP=1 -f tests/np03b/correction-security.sql || correction_status=1
+          bash tests/np03b/correction-concurrency.sh || correction_status=1
+          exit "$correction_status"

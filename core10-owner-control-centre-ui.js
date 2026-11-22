@@ -29,6 +29,9 @@
       chainOk: "অডিট শৃঙ্খল অক্ষত", chainBad: "অডিট শৃঙ্খলে সমস্যা", chainNA: "শৃঙ্খল যাচাই এই ভূমিকায় নেই",
       noBusiness: "এই অ্যাকাউন্টে কোনো ব্যবসা নেই।", noFeatures: "কোনো ফিচার পাওয়া যায়নি", choose: "বাঁ দিক থেকে একটি ফিচার বেছে নিন",
       version: "সংস্করণ ", by: "করেছেন ", from: "কার্যকর ", needSchedule: "সময় দিন", wholeBiz: "পুরো ব্যবসা",
+      bootstrapTitle: "নতুন ব্যবসা তৈরি", tenant: "টেন্যান্ট",
+      bootstrapHelp: "এই টেন্যান্টে নতুন ব্যবসা ও সেটআপের পুনরায় অনুরোধ নিয়ন্ত্রণ করুন।",
+      bootstrapOn: "নতুন ব্যবসা তৈরি চালু করুন", bootstrapOff: "নতুন ব্যবসা তৈরি বন্ধ করুন",
       scopeOf: "পরিধি", reloaded: "অন্য কেউ এটি বদলেছেন; সর্বশেষ অবস্থা আনা হয়েছে। আবার চেষ্টা করুন।"
     },
     en: {
@@ -50,11 +53,14 @@
       chainOk: "Audit chain intact", chainBad: "Audit chain problem", chainNA: "Chain check not available to this role",
       noBusiness: "No business is available to this account.", noFeatures: "No features found", choose: "Choose a feature from the list",
       version: "Version ", by: "by ", from: "effective ", needSchedule: "Enter a time", wholeBiz: "Whole business",
+      bootstrapTitle: "Business creation", tenant: "Tenant",
+      bootstrapHelp: "Control new business creation and setup retries for this tenant.",
+      bootstrapOn: "Enable business creation", bootstrapOff: "Disable business creation",
       scopeOf: "Scope", reloaded: "Someone else changed this; the latest state is loaded. Try again."
     }
   };
   const ERR = {
-    bn: { CONTROL_SCOPE: "এই ব্যবসা আপনার অনুমতির বাইরে।", CONTROL_FORBIDDEN: "এটি বদলানোর অনুমতি আপনার নেই।",
+    bn: { BOOTSTRAP_POLICY_DENIED: "এই টেন্যান্টের নীতি বদলানোর অনুমতি আপনার নেই।", CONTROL_SCOPE: "এই ব্যবসা আপনার অনুমতির বাইরে।", CONTROL_FORBIDDEN: "এটি বদলানোর অনুমতি আপনার নেই।",
       CONTROL_INVARIANT: "স্থায়ী সুরক্ষা বদলানো যায় না।", CONTROL_PARAM_RANGE: "মান সীমার বাইরে", CONTROL_PARAM_TYPE: "মানের ধরন ঠিক নয়",
       CONTROL_PARAM_ENUM: "তালিকার বাইরের মান", CONTROL_PARAM_UNKNOWN: "অচেনা মান", CONTROL_STAGES: "অনুমোদনের ধাপ অনুমোদিত সীমার বাইরে।",
       CONTROL_EFFECTIVE_PAST: "অতীতের তারিখ দেওয়া যায় না।", CONTROL_EFFECTIVE_FUTURE: "এক বছরের বেশি পরের তারিখ দেওয়া যায় না।",
@@ -62,7 +68,7 @@
       CONTROL_OVERRIDE_CLOSED: "ব্যতিক্রমটি আগেই বন্ধ হয়েছে।", CONTROL_REPLAY_CONFLICT: "একই অনুরোধ ভিন্ন তথ্যসহ এসেছে।",
       SIGNED_SESSION_REQUIRED: "সাইন-ইন প্রয়োজন।", SESSION_CHANGED: "সাইন-ইন বদলেছে; পাতাটি আবার খুলুন।",
       CONTROL_RPC_UNAVAILABLE: "সার্ভারে পৌঁছানো যায়নি।" },
-    en: { CONTROL_SCOPE: "This business is outside your access.", CONTROL_FORBIDDEN: "You are not allowed to change this.",
+    en: { BOOTSTRAP_POLICY_DENIED: "You do not have access to this tenant policy.", CONTROL_SCOPE: "This business is outside your access.", CONTROL_FORBIDDEN: "You are not allowed to change this.",
       CONTROL_INVARIANT: "A permanent protection cannot be changed.", CONTROL_PARAM_RANGE: "Value is out of range", CONTROL_PARAM_TYPE: "Wrong kind of value",
       CONTROL_PARAM_ENUM: "Value is not in the list", CONTROL_PARAM_UNKNOWN: "Unknown value", CONTROL_STAGES: "Approval stages are outside the allowed limit.",
       CONTROL_EFFECTIVE_PAST: "A past time cannot be used.", CONTROL_EFFECTIVE_FUTURE: "More than a year ahead is not allowed.",
@@ -89,7 +95,7 @@
   function mount(rootEl, options) {
     const api = options.api;
     const st = { lang: options.lang === "en" ? "en" : "bn", ctx: null, business: null, site: null, features: [],
-      selected: null, tab: "settings", history: [], overrides: [], audit: null, query: "", fieldErrors: {} };
+      tenant: null, bootstrap: null, selected: null, tab: "settings", history: [], overrides: [], audit: null, query: "", fieldErrors: {} };
     const t = (k) => T[st.lang][k] || k;
     const errText = (e) => {
       const code = (e && e.code) || "CONTROL_RPC_UNAVAILABLE";
@@ -361,6 +367,52 @@
           onclick: () => openTab(k) }))),
         el("div", { role: "tabpanel", "aria-labelledby": "occ-tab-" + st.tab }, [panel])]);
     }
+    async function selectBootstrapTenant(id) {
+      st.tenant = st.ctx.tenants.find((tenant) => tenant.id === id) || null;
+      st.bootstrap = null;
+      if (!st.tenant) return;
+      const tenant = st.tenant;
+      const policy = await guard(() => api.readBootstrap(tenant.id));
+      if (st.tenant === tenant) st.bootstrap = policy || null;
+    }
+
+    async function saveBootstrap() {
+      const tenant = st.tenant;
+      const before = st.bootstrap;
+      if (!tenant || !before) return;
+      const enabled = !before.enabled;
+      const label = t(enabled ? "bootstrapOn" : "bootstrapOff");
+      const response = await dialog({ title: label, lines: [tenant.slug, t("bootstrapHelp")], needReason: true });
+      if (!response.ok || st.tenant !== tenant) return;
+      const saved = await guard(() => api.setBootstrap({
+        tenant: tenant.id, enabled, reason: response.reason, expectedVersion: before.latest_version
+      }));
+      if (st.tenant !== tenant) return;
+      await selectBootstrapTenant(tenant.id);
+      if (saved && st.bootstrap) say(t("saved") + saved.version);
+      render();
+    }
+
+    function bootstrapPanel() {
+      const tenants = st.ctx.tenants;
+      if (!tenants.length) return null;
+      const policy = st.bootstrap;
+      return el("section", { class: "occ-detail", "aria-labelledby": "occ-bootstrap-title" }, [
+        el("h2", { id: "occ-bootstrap-title", text: t("bootstrapTitle") }),
+        el("label", { for: "occ-bootstrap-tenant", text: t("tenant") }),
+        el("select", { id: "occ-bootstrap-tenant", onchange: async (ev) => {
+          await selectBootstrapTenant(Number(ev.target.value));
+          render();
+        } }, tenants.map((tenant) => el("option", {
+          value: String(tenant.id), text: tenant.slug, selected: tenant === st.tenant
+        }))),
+        policy && el("p", { id: "occ-bootstrap-state", role: "status",
+          text: t(policy.enabled ? "on" : "off") + " · " + t("version") + policy.effective_version }),
+        policy && el("button", { id: "occ-bootstrap-save", type: "button", class: "occ-primary",
+          text: t(policy.enabled ? "bootstrapOff" : "bootstrapOn"), onclick: saveBootstrap })
+      ]);
+    }
+
     function render() {
       app.setAttribute("lang", st.lang);
       const bizSelect = el("select", { id: "occ-business", onchange: (ev) => selectBusiness(Number(ev.target.value)) },
@@ -377,6 +429,8 @@
             st.lang = st.lang === "bn" ? "en" : "bn"; try { localStorage.setItem("core10.occ.lang", st.lang); } catch (_) {} render(); } })])]);
       const kids = [header, status];
       if (!st.ctx) { app.replaceChildren(...kids); return; }
+      const bootstrap = bootstrapPanel();
+      if (bootstrap) kids.push(bootstrap);
       if (!st.ctx.businesses.length) { kids.push(el("p", { class: "occ-empty", id: "occ-no-business", text: t("noBusiness") })); app.replaceChildren(...kids); return; }
       if (!canManage()) kids.push(el("p", { class: "occ-banner", id: "occ-view-only", role: "note", text: t("viewOnly") }));
       const q = st.query.trim().toLowerCase();
@@ -397,8 +451,16 @@
       render();
       const ctx = await guard(() => api.context());
       if (!ctx) { render(); return; }
-      st.ctx = { businesses: ctx.businesses || [], sites: ctx.sites || [] };
-      if (!st.ctx.businesses.length) { say(""); render(); return; }
+      st.ctx = {
+        businesses: ctx.businesses || [], sites: ctx.sites || [],
+        tenants: (ctx.tenants || []).filter((tenant) => tenant.can_manage_bootstrap === true)
+      };
+      if (st.ctx.tenants.length) await selectBootstrapTenant(st.ctx.tenants[0].id);
+      if (!st.ctx.businesses.length) {
+        if (status.dataset.kind !== "error") say("");
+        render();
+        return;
+      }
       const first = st.ctx.businesses.find((b) => b.can_manage) || st.ctx.businesses[0];
       await selectBusiness(first.id);
     }

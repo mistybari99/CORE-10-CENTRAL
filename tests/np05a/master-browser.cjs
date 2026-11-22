@@ -5,7 +5,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
 const {start,psql}=require('./gateway.cjs');
 (async()=>{
  const server=await start(),base='http://127.0.0.1:'+server.address().port,shots=process.env.MFG_SHOTS||'/tmp/np05a-master-shots';fs.mkdirSync(shots,{recursive:true});
- const browser=await chromium.launch({headless:true,args:['--no-sandbox']});let checks=0;
+ const browser=await chromium.launch({headless:true,executablePath:process.env.MFG_CHROMIUM||undefined,args:['--no-sandbox']});let checks=0;
  const owner="select set_config('request.jwt.claims','{\"sub\":\"95111111-1111-4111-8111-111111111111\"}',false);";
  // Complete real canonical Stock/Money rows must be identical before/after planning and guarded requests.
  const postingTables=['stock_movements','stock_balances_v1','stock_transfers_v1','finance_accounts_v1','finance_periods_v1','finance_journals_v1','finance_journal_lines_v1','finance_reversals_v1'];

@@ -13,7 +13,8 @@
   const RPCS = new Set([
     "build01_context_v1", "control_read_v1", "control_set_v1", "control_revert_v1",
     "control_history_v1", "control_overrides_v1", "control_grant_override_v1",
-    "control_revoke_override_v1", "control_audit_v1", "control_approval_binding_v1"
+    "control_revoke_override_v1", "control_audit_v1", "control_approval_binding_v1",
+    "control_read_bootstrap_policy_v1", "control_set_bootstrap_policy_v1"
   ]);
 
   function fail(code, detail) {
@@ -45,7 +46,7 @@
     return (String(prefix || "ctl") + "_" + raw).replace(/[^A-Za-z0-9_-]/g, "").slice(0, 100);
   }
   function errorCode(message) {
-    const m = String(message || "").match(/^((?:CONTROL|SESSION|SIGNED|INVALID|RPC)_[A-Z_]+)(?::(.*))?$/);
+    const m = String(message || "").match(/^((?:CONTROL|SESSION|SIGNED|INVALID|RPC|BOOTSTRAP)_[A-Z_]+)(?::(.*))?$/);
     return m ? { code: m[1], detail: m[2] || null } : { code: "CONTROL_RPC_UNAVAILABLE", detail: String(message || "").slice(0, 160) };
   }
 
@@ -76,6 +77,22 @@
     return {
       userId: () => sessionUser,
       context: async () => call("build01_context_v1", {}),
+      readBootstrap: async (tenant) => {
+        const id = posInt(tenant, "INVALID_TENANT_ID");
+        const policy = await call("control_read_bootstrap_policy_v1", { p_tenant: id });
+        if (!policy || Number(policy.tenant_id) !== id || typeof policy.enabled !== "boolean")
+          fail("CONTROL_SCOPE");
+        return policy;
+      },
+      setBootstrap: async (o) => {
+        if (typeof o.enabled !== "boolean") fail("CONTROL_BAD_INPUT");
+        return call("control_set_bootstrap_policy_v1", {
+          p_tenant: posInt(o.tenant, "INVALID_TENANT_ID"),
+          p_enabled: o.enabled, p_effective_at: null,
+          p_expected_version: nonNegative(o.expectedVersion), p_reason: reason(o.reason),
+          p_request_key: o.requestKey || newKey("bootstrap")
+        });
+      },
       read: async (business, site) => call("control_read_v1", { p_business: posInt(business, "INVALID_BUSINESS_ID"), p_site: optSite(site) }),
       history: async (business, featureKey, limit) => call("control_history_v1", {
         p_business: posInt(business, "INVALID_BUSINESS_ID"), p_feature: featureKey ? feature(featureKey) : null, p_limit: limit || 100 }),

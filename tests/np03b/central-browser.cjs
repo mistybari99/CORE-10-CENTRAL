@@ -1,0 +1,364 @@
+"use strict";
+
+// The actual packaged Build 01 shell and modules, with disposable PG17 RPCs
+// and an inert Auth fixture. The client factory is counted on the page.
+const assert = require("node:assert/strict");
+const { chromium } = require("playwright");
+const { setTimeout: sleep } = require("node:timers/promises");
+const { createServer } = require("../e2e/static_server");
+const { start } = require("./ui-gateway.cjs");
+
+const OWNER = "11111111-1111-4111-8111-111111111111";
+const REVIEWER = "abababab-abab-4bab-8bab-abababababab";
+const FOREIGN_OWNER = "77777777-7777-4777-8777-777777777777";
+const GRN_RECEIPT = process.env.CORE10_TEST_GRN_RECEIPT;
+const GRN_LOT = process.env.CORE10_TEST_GRN_LOT;
+const MANAGER = "33333333-3333-4333-8333-333333333333";
+
+async function launch() {
+  const gateway = await start();
+  const staticServer = createServer();
+  await new Promise(resolve => staticServer.listen(0, "127.0.0.1", resolve));
+  const base = "http://127.0.0.1:" + staticServer.address().port;
+  const rpcBase = "http://127.0.0.1:" + gateway.address().port;
+  const browser = await chromium.launch({ executablePath: process.env.NP03B_CHROMIUM || undefined });
+  let passed = 0;
+  async function open(width, persona) {
+    const page = await browser.newPage({ viewport: { width, height: 900 } });
+    page.setDefaultTimeout(12000);
+    const errors = [];
+    const calls = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await page.route("**/core10-build01-config.js", route => route.fulfill({
+      contentType: "text/javascript",
+      body: "window.CORE10_BUILD01_CONFIG=" + JSON.stringify({
+        enabled: true, mode: "isolated-development", url: base, publishableKey: "disposable-fixture",
+        operationsEnabled: true
+      })
+    }));
+    await page.route("**/vendor/supabase.js", route => route.fulfill({
+      contentType: "text/javascript",
+      body: `window.centralClients=0;
+        window.supabase={createClient(){
+          window.centralClients++;
+          let actor=null;
+          const listeners=new Set();
+          function signOut(){actor=null;for(const listener of listeners)listener("SIGNED_OUT",null);}
+          window.centralFixtureSignOut=signOut;
+          return {auth:{
+            async getUser(){return {data:{user:actor?{id:actor}:null}};},
+            async signInWithPassword(){actor=${JSON.stringify(persona)};return {data:{user:{id:actor}}};},
+            async signOut(){signOut();return {};},
+            onAuthStateChange(listener){listeners.add(listener);return {data:{subscription:{unsubscribe(){listeners.delete(listener);}}}};}
+          },schema(name){
+            if(name!=="core10")throw Error("TEST_WRONG_SCHEMA");
+            async function query(path,args) {
+              const response=await fetch("/central-fixture/"+path,{method:"POST",
+                headers:{"content-type":"application/json","x-test-persona":actor||""},body:JSON.stringify(args)});
+              const data=await response.json();
+              return response.ok?{data}:{error:data};
+            }
+            return {
+              rpc(rpc,args){return query(rpc,args);},
+              from(table) {
+                const args={order:[]};
+                return {
+                  select(columns){args.columns=columns;return this;},
+                  eq(field,value){args[field]=value;return this;},
+                  in(field,values){if(field!=="id")throw Error("BAD_FIXTURE_FILTER");args.ids=values;return this;},
+                  order(field){args.order.push(field);return this;},
+                  range(start,end){args.offset=start;args.limit=end-start+1;return this;},
+                  then(resolve,reject){return query("stock/"+table,args).then(resolve,reject);}
+                };
+              }
+            };
+          }};
+        }};`
+    }));
+    let delay = null;
+    await page.route("**/central-fixture/**", async route => {
+      const rpc = new URL(route.request().url()).pathname.split("/central-fixture/").at(-1);
+      calls.push({ rpc, args: route.request().postDataJSON() });
+      if (rpc.startsWith("pack02_")) return route.fulfill({ status: 404, json: { message: "RPC_NOT_ALLOWED" } });
+      const request = route.request();
+      const response = await fetch(rpcBase + (rpc.startsWith("stock/") ? "/" : "/rpc/") + rpc, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-test-persona": request.headers()["x-test-persona"]
+        },
+        body: request.postData()
+      });
+      const body = await response.text();
+      if (delay && delay.rpc === rpc) {
+        delay.arrived();
+        await delay.release;
+      }
+      if (!page.isClosed()) await route.fulfill({ status: response.status, contentType: "application/json", body });
+    });
+    await page.goto(base + "/core10-build01.html");
+    await page.locator("#b01-email").fill("fixture@example.invalid");
+    await page.locator("#b01-password").fill("disposable");
+    await page.locator("#b01-login-form button").click();
+    await page.waitForFunction(() => !document.querySelector("#b01-refresh").disabled);
+    return {
+      page, calls, errors,
+      hold(rpc) {
+        let resume, arrived;
+        const waiting = new Promise(resolve => { arrived = resolve; });
+        delay = { rpc, arrived, release: new Promise(resolve => { resume = resolve; }) };
+        return { waiting, resume };
+      }
+    };
+  }
+
+  async function approveRequest(reviewer, action, requestId, { bangla, cancelOnce = false }) {
+    const {page, calls} = reviewer;
+    const host = page.locator("#b01-operation-host");
+    await page.locator("#b01-open-approvals").click();
+    const card = host.locator(".c10np-card").filter({has:page.getByRole("heading",{name:action+" · #"+requestId,exact:true})});
+    await card.getByText(bangla ? "ধাপ 1/1" : "Stage 1/1").waitFor();
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2),true);
+    const approve = card.getByRole("button",{name:bangla ? "অনুমোদন" : "Approve",exact:true});
+    await approve.click();
+    const dialog = host.getByRole("dialog");
+    if (cancelOnce) {
+      await dialog.waitFor();
+      await page.keyboard.press("Escape");
+      await dialog.waitFor({state:"hidden"});
+      assert.equal(calls.some(call => call.rpc === "decide_approval"),false);
+      await approve.click();
+    }
+    await dialog.getByRole("button",{name:bangla ? "সিদ্ধান্ত নিশ্চিত করুন" : "Confirm decision",exact:true}).click();
+    await host.getByRole("status").waitFor();
+    await host.getByRole("button",{name:bangla ? "অডিট কার্যক্রম" : "Audit Activity"}).click();
+    await host.locator(".c10np-card").filter({has:page.getByRole("heading",{name:"approve · #"+requestId,exact:true})})
+      .getByText(/^Audit #/).waitFor();
+    const decision = calls.find(call => call.rpc === "decide_approval" && String(call.args.p_request) === requestId);
+    assert.equal(decision.args.p_action,"approve");
+    assert.ok(calls.filter(call => call.rpc.startsWith("my_")).every(
+      call => call.args.p_business===101 && !Object.hasOwn(call.args,"p_site")));
+  }
+
+  try {
+    for (const width of [390, 1440]) {
+      const { page, calls, errors, hold } = await open(width, OWNER);
+      if (width === 1440) await page.locator("#b01-language").click();
+      await page.locator("#b01-site").selectOption("1002");
+      const stock = page.locator("#b01-operation-host");
+      await page.locator("#b01-open-stock").click();
+      await stock.getByText("MAIN · #5002").waitFor();
+      assert.equal(await stock.getByText("MAIN · #5001").count(),0);
+      const stockRead = calls.find(call => call.rpc === "stock/stock_summary");
+      assert.deepEqual([stockRead.args.tenant_id,stockRead.args.business_id,stockRead.args.site_id],[1,101,1002]);
+      const onHand = new Intl.NumberFormat(width===390 ? "bn-BD" : "en").format(GRN_RECEIPT ? 70.5 : 12.5);
+      assert.ok(await stock.getByText((width===390 ? "নথিভুক্ত মজুত " : "Recorded on hand ")+onHand).isVisible());
+      assert.equal(await stock.getByRole("button",{name:width===390 ? "পরের পৃষ্ঠা" : "Next"}).isDisabled(),true);
+      await page.locator("#b01-close-operation").click();
+      await page.locator("#b01-open-sales").click();
+      await page.waitForFunction(() => !document.querySelector("#b01-operation-host").hidden &&
+        document.querySelector("#b01-operation-host .so-order-list, #b01-operation-host .so-empty"));
+      assert.equal(await page.locator("#b01-site").isDisabled(), true);
+      assert.equal(await page.locator('[data-so-focus="site"]').inputValue(), "1002");
+      assert.equal(await page.locator('[data-so-focus="site"]').isDisabled(), true);
+      await page.locator("#b01-operation-host .so-list .primary").click();
+      await page.locator('[data-so-focus="priceList"]').selectOption("7102");
+      assert.equal(await page.locator('[data-field="unit_price"][data-line="0"]').inputValue(), "270");
+      await page.locator('[data-action="save"]').click();
+      await page.locator("#b01-operation-host .so-order[aria-pressed=true]").waitFor();
+      const saved = calls.find(call => call.rpc === "save_sales_order_v1");
+      assert.equal(saved.args.p_document.price_list_id, 7102);
+      assert.equal(saved.args.p_site, 1002);
+
+      await page.locator('[data-sales-view="invoices"]').click();
+      await page.locator('[data-si-focus="site"]').waitFor();
+      assert.equal(await page.locator('[data-si-focus="site"]').inputValue(), "1002");
+      assert.equal(await page.locator('[data-si-focus="site"]').isDisabled(), true);
+      await page.waitForFunction(() => document.querySelector("#b01-operation-host .si-workspace")?.getAttribute("aria-busy") === "false");
+      await page.locator("#b01-close-operation").click();
+
+      await page.locator("#b01-open-manufacturing").click();
+      const recipe = width === 390 ? "CENTRAL-SITE-RECIPE" : "CENTRAL-WIDE-RECIPE";
+      await page.getByText(recipe+" · v1").waitFor();
+      const operationHost = page.locator("#b01-operation-host");
+      const recipeCard = host => host.locator("article.op-record").filter({hasText:recipe+" · v1"});
+      await recipeCard(operationHost).locator("[data-approve]").click();
+      const effective = width === 390 ? "2026-01-01T09:00" : "2026-01-02T09:00";
+      await operationHost.locator("[name=effective]").fill(effective);
+      await operationHost.locator("form button[type=submit]").click();
+      const operationStatus = operationHost.getByRole("status");
+      await page.waitForFunction(() => /#\d+/.test(
+        document.querySelector("#b01-operation-host [role=status]").textContent));
+      const requestId = (await operationStatus.textContent()).match(/#(\d+)/)[1];
+      const approval = calls.find(call => call.rpc === "mfg_submit_approval_v1");
+      assert.equal(approval.args.p_business, 101);
+      assert.equal(approval.args.p_site, 1002);
+      assert.equal(approval.args.p_operation, "recipe_approve");
+      await operationHost.locator("[name=approval_action]").selectOption("apply");
+      await operationHost.locator("[name=approval]").fill(requestId);
+      await operationHost.locator("form button[type=submit]").click();
+      await page.waitForFunction(() => document.querySelector("#b01-operation-host [role=status]")
+        .textContent.includes("MFG_MAKER_CHECKER"));
+      await operationHost.locator('[data-tab="recipes"]').click();
+      await page.getByText(recipe+" · v1").waitFor();
+      await page.locator("#b01-open-approvals").click();
+      const makerStatus = operationHost.getByRole("button", {
+        name:width === 390 ? "অনুমোদনের অবস্থা" : "Approval Status"
+      });
+      await makerStatus.click();
+      const makerCard = operationHost.locator(".c10np-card").filter({hasText:"recipe_approve · #"+requestId});
+      await makerCard.getByText("awaiting_stage_1").waitFor();
+      assert.equal(await makerCard.getByRole("button", {name:/^Approve$|^অনুমোদন$/}).count(),0);
+      assert.equal(await page.locator("#b01-business").isDisabled(),true);
+      assert.equal(await page.locator("#b01-site").isDisabled(),true);
+      await page.locator("#b01-open-manufacturing").click();
+      await page.getByText(recipe+" · v1").waitFor();
+      assert.equal(await page.locator("#b01-site").inputValue(),"1002");
+
+      const reviewer = await open(width,REVIEWER);
+      const reviewPage = reviewer.page;
+      if (width === 1440) await reviewPage.locator("#b01-language").click();
+      await reviewPage.locator("#b01-site").selectOption("1002");
+      await approveRequest(reviewer,"recipe_approve",requestId,{bangla:width===390,cancelOnce:width===390});
+      const reviewHost = reviewPage.locator("#b01-operation-host");
+      await reviewPage.locator("#b01-language").click();
+      assert.equal(await reviewPage.locator("#b01-site").inputValue(),"1002");
+      await reviewPage.locator("#b01-open-manufacturing").click();
+      await recipeCard(reviewHost).locator("[data-approve]").click();
+      await reviewHost.locator("[name=effective]").fill(effective);
+      await reviewHost.locator("[name=approval_action]").selectOption("apply");
+      await reviewHost.locator("[name=approval]").fill(requestId);
+      await reviewHost.locator("form button[type=submit]").click();
+      await recipeCard(reviewHost).getByText(/^approved ·/).waitFor();
+      const applied = reviewer.calls.find(call => call.rpc === "mfg_approve_recipe_with_approval_v1");
+      assert.equal(String(applied.args.p_approval),requestId);
+      assert.deepEqual([applied.args.p_business,applied.args.p_site],[101,1002]);
+      await operationHost.locator("[data-refresh]").click();
+      await recipeCard(operationHost).locator("[data-plan]").click();
+      await operationHost.locator("[name=location]").fill("5002");
+      const plannedResponse = page.waitForResponse("**/central-fixture/mfg_plan_batch_v1");
+      await operationHost.locator("form button[type=submit]").click();
+      const planned = await (await plannedResponse).json();
+      assert.equal(planned.status,"planned");
+      await operationHost.locator('[data-tab="batches"]').click();
+      await operationHost.locator(`[data-grn="${planned.batch_id}"]`).click();
+      async function verifyGRN(lot) {
+        await operationHost.locator('[name="grn"]').fill(GRN_RECEIPT || "1");
+        await operationHost.locator('[name="grn_line"]').fill("1");
+        await operationHost.locator('[name="grn_lot"]').fill(lot);
+        const pending = page.waitForResponse("**/central-fixture/mfg_verify_grn_source_v1");
+        await operationHost.locator("form button[type=submit]").click();
+        return (await pending).json();
+      }
+      if (GRN_RECEIPT) {
+        assert.equal((await verifyGRN("99999999")).message,"MFG_GRN_SOURCE_UNVERIFIED");
+        const proof=await verifyGRN(GRN_LOT);
+        assert.equal(proof.accepted_receipt_qty,58);
+        assert.equal(String(proof.lot_id),GRN_LOT);
+        assert.ok(proof.stock_movement_id && proof.audit_event_id);
+        assert.equal(proof.batch_id,planned.batch_id);
+        const evidence=operationHost.locator("#mfg-grn-evidence");
+        await evidence.getByText(/GRN-CENTRAL-QA/).waitFor();
+        assert.match(await evidence.innerText(),/Stock movement #\d+ · Audit #\d+/);
+      } else {
+        assert.equal((await verifyGRN("1")).message,"NOT_CONNECTED:PROCUREMENT_GRN");
+      }
+      await operationHost.locator('[data-tab="batches"]').click();
+      await operationHost.locator(`[data-release="${planned.batch_id}"]`).click();
+      const batchRequestResponse = page.waitForResponse("**/central-fixture/mfg_submit_approval_v1");
+      await operationHost.locator("form button[type=submit]").click();
+      const batchRequest = String(await (await batchRequestResponse).json());
+      await approveRequest(reviewer,"batch_release",batchRequest,{bangla:width===1440});
+      await reviewPage.locator("#b01-open-manufacturing").click();
+      await reviewHost.locator('[data-tab="batches"]').click();
+      const releaseButton = reviewHost.locator(`[data-release="${planned.batch_id}"]`);
+      await releaseButton.click();
+      await reviewHost.locator("[name=approval_action]").selectOption("apply");
+      await reviewHost.locator("[name=approval]").fill(batchRequest);
+      const releaseResponse = reviewPage.waitForResponse("**/central-fixture/mfg_release_batch_with_approval_v1");
+      await reviewHost.locator("form button[type=submit]").click();
+      const released = await (await releaseResponse).json();
+      assert.equal(released.status,"released");
+      assert.equal(released.stock_issued,false);
+      assert.equal(String(released.approval_request_id),batchRequest);
+      assert.ok(released.approval_event_id);
+      await releaseButton.waitFor({state:"hidden"});
+      await operationHost.locator('[data-tab="recipes"]').click();
+      assert.equal(await reviewPage.evaluate(() => window.centralClients),1);
+      assert.deepEqual(reviewer.errors,[]);
+      await reviewPage.close();
+      const delayed = hold("mfg_inspect_v1");
+      await page.locator("#b01-operation-host [data-refresh]").click();
+      const timeout = new AbortController();
+      try {
+        await Promise.race([delayed.waiting, sleep(12000, undefined, { signal: timeout.signal })
+          .then(() => { throw Error("Manufacturing did not dispatch its scoped read"); })]);
+      } finally {
+        timeout.abort();
+      }
+      assert.equal(await page.evaluate(() => window.centralClients), 1);
+      assert.deepEqual(calls.filter(call => ["read_sales_orders_v1", "read_sales_invoice_drafts_v1", "mfg_inspect_v1"]
+        .includes(call.rpc)).map(call => [call.args.p_business, call.args.p_site]).filter(
+        ([business, site]) => business !== 101 || site !== 1002), []);
+      assert.match(await page.locator("#b01-operation-host").innerText(), /NOT_CONNECTED/);
+      for (const rpc of ["read_sales_orders_v1", "read_sales_invoice_drafts_v1", "mfg_inspect_v1"])
+        assert.ok(calls.some(call => call.rpc === rpc), rpc);
+      const input = page.locator('#mfg-recipe-form input[name="code"]');
+      await input.fill("UNSAVED-DRAFT");
+      page.once("dialog", dialog => dialog.dismiss());
+      await page.locator("#b01-close-operation").click();
+      assert.equal(await input.inputValue(), "UNSAVED-DRAFT");
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), true);
+      await page.evaluate(() => window.centralFixtureSignOut());
+      const response = page.waitForResponse("**/central-fixture/mfg_inspect_v1");
+      delayed.resume();
+      await response;
+      await page.evaluate(() => new Promise(requestAnimationFrame));
+      await page.waitForFunction(() => !document.querySelector("#b01-login").hidden);
+      assert.equal(await page.locator("#b01-operation-host").innerText(), "");
+      assert.equal(await page.locator("#b01-workspace").isVisible(), false);
+      assert.equal(await page.locator("#b01-login-form button").isEnabled(), true);
+      assert.deepEqual(errors, []);
+      passed++;
+      await page.close();
+    }
+
+    const { page, calls } = await open(390, MANAGER);
+    assert.equal(await page.locator("#b01-open-manufacturing").isVisible(), false);
+    assert.equal(await page.locator("#b01-open-sales").isVisible(), false);
+    assert.equal(await page.locator('#b01-site option[value="1002"]').count(),0);
+    await page.locator("#b01-open-stock").click();
+    await page.locator("#b01-operation-host").getByText("MAIN · #5001").waitFor();
+    await page.locator("#b01-close-operation").click();
+    await page.locator("#b01-open-approvals").click();
+    await page.locator(".c10np-empty").waitFor();
+    assert.equal(await page.locator(".c10np-card button").count(),0);
+    assert.equal(calls.some(call => call.rpc==="decide_approval"),false);
+    assert.equal(calls.some(call => call.rpc.startsWith("mfg_") || call.rpc.startsWith("read_sales_")), false);
+    passed++;
+    await page.close();
+    const foreign = await open(390, FOREIGN_OWNER);
+    assert.equal(await foreign.page.locator("#b01-business").inputValue(),"201");
+    await foreign.page.locator("#b01-open-approvals").click();
+    await foreign.page.locator(".c10np-empty").waitFor();
+    assert.equal(await foreign.page.locator(".c10np-card").count(),0);
+    const approvalRead = foreign.hold("my_approval_status_v1");
+    await foreign.page.locator("#b01-operation-host").getByRole("button",{name:"হালনাগাদ",exact:true}).click();
+    await approvalRead.waiting;
+    await foreign.page.evaluate(() => window.centralFixtureSignOut());
+    const lateResponse = foreign.page.waitForResponse("**/central-fixture/my_approval_status_v1");
+    approvalRead.resume();
+    await lateResponse;
+    await foreign.page.locator("#b01-login").waitFor();
+    assert.equal(await foreign.page.locator("#b01-operation-host").innerText(),"");
+    assert.ok(foreign.calls.filter(call => call.rpc.startsWith("my_")).every(call => call.args.p_business===201));
+    assert.deepEqual(foreign.errors,[]);
+    await foreign.page.close();
+    passed++;
+    console.log("CENTRAL_SHARED_SCOPE_BROWSER_PASS", passed);
+  } finally {
+    await browser.close();
+    await Promise.all([staticServer, gateway].map(server => new Promise(resolve => server.close(resolve))));
+  }
+}
+launch().catch(error => { console.error(error); process.exitCode = 1; });

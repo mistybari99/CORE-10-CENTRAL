@@ -3,7 +3,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
 const {start,psql}=require('./gateway.cjs');
 (async()=>{
  const server=await start(),base='http://127.0.0.1:'+server.address().port,shots=process.env.MFG_SHOTS||'/tmp/np05a-shots';fs.mkdirSync(shots,{recursive:true});
- const browser=await chromium.launch({headless:true,args:['--no-sandbox']});let checks=0;
+ const browser=await chromium.launch({headless:true,executablePath:process.env.MFG_CHROMIUM||undefined,args:['--no-sandbox']});let checks=0;
  try{
  for(const width of [390,1440]){
   const page=await browser.newPage({viewport:{width,height:900}}),errors=[];page.on('pageerror',e=>errors.push(e.message));

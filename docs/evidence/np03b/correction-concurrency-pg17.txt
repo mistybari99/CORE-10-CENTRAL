@@ -1,0 +1,6 @@
+psql:/src/internal/migrations/0103_np02_control_registry_evidence.up.sql:44: NOTICE:  registry publish_approval_policy_v1: enforced
+psql:/src/internal/migrations/0106_np02_registry_review_promotion.up.sql:10: NOTICE:  registry decide_approval: enforced
+psql:/src/internal/migrations/0106_np02_registry_review_promotion.up.sql:10: NOTICE:  registry withdraw_typed_approval_v1: enforced
+CORRECTION_COMPETING_CONFIRMATION_CAS_PASS
+CORRECTION_AMENDMENT_VS_CONFIRMATION_CAS_PASS
+CORRECTION_SOURCE_TAMPER_VS_INVOICE_FAIL_ACCEPTED
