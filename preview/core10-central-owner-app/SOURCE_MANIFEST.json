@@ -21,7 +21,7 @@
    "status": "DRAFT_NOT_INTEGRATED"
   }
  },
- "worker_sha256": "7a8300053a80160b593215bbe030ae555295143c289e35588ddc8b9748c7baa5",
+ "worker_sha256": "0a97d1a234e0fd39e9c5946698767dc525b8aeeebe652b9d9bcd014cc36b70ee",
  "files": [
   {
    "route": "/live/core10-control-centre-config.js",
@@ -413,15 +413,15 @@
   },
   {
    "route": "/app.js",
-   "bytes": 2196,
-   "sha256": "5892fa7ec3e6e5558d6a037c30b63d4a2416f3875163258daf307159f8dffa79",
+   "bytes": 2832,
+   "sha256": "2fde312561c14b9105e209ac9b552f82fa958aad71b3643f5e18d007d3a87e5e",
    "kind": "PREVIEW_SHELL",
    "source": "preview/core10-central-owner-app/site/app.js"
   },
   {
    "route": "/index.html",
-   "bytes": 2926,
-   "sha256": "0ba4b5b6b2b9c74929253fe70b613bff066d4c64f115da3f3f0b67b4a3e3301f",
+   "bytes": 3016,
+   "sha256": "f393496364d86808074d580f722b615dc8f2b559556e43a0ffcb7b265ddf508a",
    "kind": "PREVIEW_SHELL",
    "source": "preview/core10-central-owner-app/site/index.html"
   },
