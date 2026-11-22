@@ -57,13 +57,15 @@ async function step(name, fn) {
       await ctx.addInitScript((l) => { try { localStorage.setItem("core10.preview.lang", l); } catch (_) {} }, lang);
       const page = await ctx.newPage(), errors = [], foreign = [], bad = [];
       page.on("pageerror", (e) => errors.push(e.message));
-      page.on("request", (r) => { const u = r.url(); if (!u.startsWith(origin + "/") && !/^(data|blob|about):/.test(u) && !((route === "control" || route === "setup" || route === "master") && u.startsWith(STAGING))) foreign.push(u); if (/\/(rest|auth|storage|functions)\/v1\/|supabase\.co/.test(u) && !((route === "control" || route === "setup" || route === "master") && u.startsWith(STAGING))) foreign.push("BACKEND " + u); });
+      page.on("request", (r) => { const u = r.url(); if (!u.startsWith(origin + "/") && !/^(data|blob|about):/.test(u) && !((route === "control" || route === "setup" || route === "master" || route === "business") && u.startsWith(STAGING))) foreign.push(u); if (/\/(rest|auth|storage|functions)\/v1\/|supabase\.co/.test(u) && !((route === "control" || route === "setup" || route === "master" || route === "business") && u.startsWith(STAGING))) foreign.push("BACKEND " + u); });
       page.on("response", (r) => { if (r.status() >= 400) bad.push(r.status() + " " + r.url()); });
       await page.goto(base + "/#/" + route, { waitUntil: "load" }); await page.waitForTimeout(1500);
       assert.equal(await page.getAttribute("html", "lang"), lang);
       assert.equal(await page.getAttribute(`[data-route="${route}"]`, "aria-current"), "page");
       const dataNotice = (await page.locator("#c10-data-status ." + lang).textContent()).trim();
-      if (route === "control" || route === "setup" || route === "master")
+      if (route === "business")
+        assert.match(dataNotice, lang === "bn" ? /স্টেজিং.*শুধু পড়া/ : /staging.*read-only/i, "signed business route must say read-only");
+      else if (route === "control" || route === "setup" || route === "master")
         assert.match(dataNotice, lang === "bn" ? /স্টেজিং.*সংরক্ষণ/ : /staging.*saved/i, "signed staging route must not claim changes are unsaved");
       else
         assert.match(dataNotice, lang === "bn" ? /নমুনা.*সংরক্ষিত/ : /sample.*not saved/i, "replay route must disclose unsaved sample data");
@@ -77,6 +79,7 @@ async function step(name, fn) {
         if (route === "setup") assert.match(await frame.innerText("#b01-environment"), /core10-staging · https:\/\/rhrqhbyzrhaafynfhdaf\.supabase\.co/);
         if (route === "control") { await frame.waitForSelector("#occ-email"); assert.ok(await frame.isVisible("#occ-password"), "signed sign-in form"); }
         if (route === "master") { await frame.waitForSelector("#md-email"); assert.ok(await frame.isVisible("#md-password"), "Master signed sign-in form"); }
+        if (route === "business") { await frame.waitForSelector("#od-root"); assert.match(await frame.innerText("#od-root"), lang === "bn" ? /সাইন-ইন প্রয়োজন/ : /Sign-in required/i, "unsigned dashboard must not reveal portfolio or stock"); }
       }
       const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       assert.ok(over <= 1 && fOver <= 1, `horizontal overflow shell=${over} module=${fOver}`);

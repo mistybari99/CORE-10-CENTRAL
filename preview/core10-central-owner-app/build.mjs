@@ -11,13 +11,16 @@ const ROOT = path.resolve(HERE, "../..");
 export const PINS = {
   trunk: { sha: "a82ae99", ref: "ccr-15ed11dd-n3hw5h", status: "TRUNK_INTEGRATED" },
   setup: { sha: "6f058dc", ref: "ccr-15ed11dd-n3hw5h", status: "TRUNK_INTEGRATED" },
+  stock: { sha: "ac86ee8", ref: "ccr-15ed11dd-n3hw5h", status: "TRUNK_INTEGRATED" },
   pr109: { sha: "c7165af", ref: "PR #109 NP03B Sales (Draft)", status: "DRAFT_NOT_INTEGRATED" },
   pr112: { sha: "86851dc", ref: "PR #112 NP05A Sweets Manufacturing (Draft)", status: "DRAFT_NOT_INTEGRATED" },
 };
-const T = "trunk";
+const T = "trunk", S = "stock";
 export const LIVE = [
   [T, "core10-owner-control-centre.css"], [T, "core10-owner-control-centre-ui.js"], [T, "core10-owner-control-client.js"],
   [T, "core10-master-data.css"], [T, "core10-master-data-client.js"], [T, "core10-master-data-ui.js"],
+  [S, "core10-owner-dashboard.html"], [S, "core10-owner-dashboard.js"],
+  [S, "core10-owner-dashboard-client.js"], [S, "core10-owner-dashboard-ui.js"], [S, "core10-owner-dashboard.css"],
   ["setup", "core10-build01.html"], ["setup", "core10-build01.css"], ["setup", "core10-build01.js"], ["setup", "core10-build01-client.js"],
   [T, "core10-build01-pack02.js"], [T, "core10-enterprise-client.js"], [T, "core10-control-studio.css"],
   [T, "vendor/supabase.js"],
