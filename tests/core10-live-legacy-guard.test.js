@@ -30,9 +30,9 @@ const sources=new Set(live.map(p=>path.join(root,p)));
 for(const directory of ["modules","apps/central"])for(const p of walk(path.join(root,directory)))sources.add(p);
 // Unshipped historical CORE10 pages are NOT live: prohibit legacy loader imports,
 // without misclassifying the deliberately unshipped and bundle-denied offline stocktake.
-for(const name of fs.readdirSync(root).filter(p=>/^core10-.*\\.html$/.test(p))) {
+for(const name of fs.readdirSync(root).filter(p=>/^core10-.*\.html$/.test(p))) {
   const page=fs.readFileSync(path.join(root,name),"utf8");
-  assert.doesNotMatch(page,/<script\\b[^>]*\\bsrc\\s*=\\s*["'](?:\\.\\/)?config\\.js["'][^>]*>/i,
+  assert.doesNotMatch(page,/<script\b[^>]*\bsrc\s*=\s*["'](?:\.\/)?config\.js["'][^>]*>/i,
     "ROOT_CORE10_LEGACY_LOADER:"+name);
 }
 for(const p of sources){
