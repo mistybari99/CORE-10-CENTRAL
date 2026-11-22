@@ -23,5 +23,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Reproduce all legacy form rule candidates without executing frozen code
+        run: node modules/paperops/legacy-rule-extractor.cjs --check
       - name: PaperOps contract, safety and preservation tests
         run: node --test modules/paperops/tests/*.test.cjs
