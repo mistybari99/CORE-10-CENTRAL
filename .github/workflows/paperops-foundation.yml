@@ -27,3 +27,8 @@ jobs:
         run: node modules/paperops/legacy-rule-extractor.cjs --check
       - name: PaperOps contract, safety and preservation tests
         run: node --test modules/paperops/tests/*.test.cjs
+      - name: Cross-module live and retired-project guard when available
+        run: |
+          if [ -f tests/core10-live-legacy-guard.test.js ]; then
+            node tests/core10-live-legacy-guard.test.js
+          fi
