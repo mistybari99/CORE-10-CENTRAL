@@ -106,3 +106,14 @@ Live screenshots: `evidence/live-go-p1/`. Test labels (`BROWSER-1440`, `fixture:
 
 ### Update 2026-11-22: signed setup page
 `#/setup` = trunk Build01 setup page (pinned `6f058dc`, core10-staging mode) with staging config. Deployment `e3d176dd-3335-4153-bd64-0c2a25f0e3e4` / version `201008ca-42a7-42cd-a08e-b968da6c4e51`; previous `38141fd4`, rollback base `025cf3a1`. Live verify 49/49.
+
+### 2026-11-22 — Level 2 truthful staging-status banner release (verified)
+
+- **Owner GO**: accelerate safe staging UX and testing. Original Owner demo business ID 3 and sites unchanged; IMG-ERP-SG untouched.
+- **Source**: preview branch `8d30615ee4648bc2ac38d80d9655eaaf01a80192` fixes the false “nothing is saved” shell wording for signed `#/setup` and `#/control` only. Other routes remain accurate recorded-read previews.
+- **Mandatory local bundle gates**: added `.github/workflows/core10-level2-gated-build.yml` at `4a5c55c`; actual GitHub Actions run `44989935242`: `node build.mjs` PASS, `node --check dist/worker.mjs` PASS, `node verify.cjs` **49/49 PASS**, browser 390/1440 BN/EN and same-origin/staging-only security checks. Saved exact verified candidate in Git commit `6277d563ca6acc0d911f035b3a63eb1e46d63511`.
+- **Worker script**: `dist/worker.mjs`, **894638 bytes**, SHA256 `0a97d1a234e0fd39e9c5946698767dc525b8aeeebe652b9d9bcd014cc36b70ee`.
+- **Live deployment**: Cloudflare existing Worker `core10-central` only (no KV, secrets, extra Worker, or production DB changes), deployment `aaa6039c-752e-4645-aaf2-76b0596a732a` / version **`ceeea069-d630-460a-b1f0-5b12e5157da9`**, confirmed 100%.
+- **Public release gate**: workflow `.github/workflows/core10-level2-live-verify.yml` at `79ec3a3`, live run `44990275034` **SUCCESS**, actual public URL `REVIEW_BASE=...` `verify.cjs` **49/49 PASS**, identical bundle checksum confirmed in CI. No failing check, no rollback needed.
+- **Rollback**: previous deployment `e3d176dd-3335-4153-bd64-0c2a25f0e3e4`, version `201008ca-42a7-42cd-a08e-b968da6c4e51`; Cloudflare POST deployment switch back to that version at 100% if a subsequent signed smoke check reveals regression.
+- **Not a full ERP launch**: signed setup/control operate on CORE10 staging; master/sales/manufacturing remain recorded replay; Stock/Finance UI not connected, staging migrations remain through `0114`. Human Owner confirmed signed setup/screenshots independently, but this automated run does **not** use Owner credentials.
