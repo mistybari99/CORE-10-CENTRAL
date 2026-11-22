@@ -34,6 +34,11 @@ case "${1:-}" in
  down)
   v="$(applied | tail -1)"; [ -n "$v" ] || { echo "nothing to roll back"; exit 0; }
   n="$(q "select name from core10.schema_migrations where version=$v")"
+  f="$DIR/$n.up.sql"
+  [ -f "$f" ] || { echo "MISSING_UP $n" >&2; exit 1; }
+  [ -f "$DIR/$n.down.sql" ] || { echo "MISSING_DOWN $n" >&2; exit 1; }
+  [ "$(q "select checksum from core10.schema_migrations where version=$v")" = "$(sum "$f")" ] \
+    || { echo "CHECKSUM_DRIFT $n: an applied migration was edited" >&2; exit 1; }
   "${PSQL[@]}" -1 -c "delete from core10.schema_migrations where version=$v" -f "$DIR/$n.down.sql"
   echo "rolled back $n";;
  status) applied | sed 's/^/applied /';;
