@@ -68,6 +68,8 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-procurement-e2e.sql
       - name: "B-012 owner multi-business dashboard reads (0204 - figures, drill-down, scope per persona)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-owner-dashboard-e2e.sql
+      - name: "B-012 P4 scale: 10 businesses x 400 sites (reads, budgets, RPC writes)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-scale.sql
       - name: DEC-08 registry gate (every state-changing RPC is mapped)
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Registry gate self-test (an unmapped RPC must fail the gate)
