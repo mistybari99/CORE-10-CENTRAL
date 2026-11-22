@@ -48,6 +48,10 @@ internal/migrations/run.sh up >/dev/null
 # Cutover must not accidentally grant mutation RPCs to PUBLIC.
 [[ "$(psql -X -At -c "SELECT has_function_privilege('public','core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE')")" == f ]]
 [[ "$(psql -X -At -c "SELECT has_function_privilege('public','core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE')")" == f ]]
+# After 0403 cutover, neither anonymous nor PUBLIC callers can invoke AR/AP mutations.
+[[ "$(psql -X -At -c "SELECT has_function_privilege('anon','core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)','EXECUTE')")" == f ]]
+[[ "$(psql -X -At -c "SELECT has_function_privilege('anon','core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)','EXECUTE')")" == f ]]
+[[ "$(psql -X -At -c "SELECT has_function_privilege('public','core10.finance_arap_aging_v1(bigint,date,text)','EXECUTE')")" == f ]]
 # After 0403 cutover, read/trace RPCs remain private to authenticated callers.
 [[ "$(psql -X -At -c "SELECT has_function_privilege('anon','core10.finance_arap_aging_v1(bigint,date,text)','EXECUTE')")" == f ]]
 [[ "$(psql -X -At -c "SELECT has_function_privilege('anon','core10.finance_arap_trace_v1(bigint)','EXECUTE')")" == f ]]
