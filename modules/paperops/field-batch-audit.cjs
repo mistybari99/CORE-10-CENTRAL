@@ -8,6 +8,7 @@ const old=require('./legacy-rule-candidates.json');
 const paperops=require('./paperops.js');
 require('./form-packs.js');
 const checks=require('./field-batch-001-checks.js');
+const laterChecks=require('./field-batch-002-003-checks.js');
 const dir=path.join(__dirname,'field-review');
 const SIZE=50;
 const all=index.forms.flatMap(f=>f.source_fields);
@@ -19,9 +20,17 @@ function auditBatch(batch, alreadyReviewed=[]) {
  const problems=[];
  const previous=new Set(alreadyReviewed);
  const next=pending.filter(f=>!previous.has(f.id)).slice(0,SIZE);
+ const expectedNumber=previous.size/SIZE+1;
+ if(batch.batch_number!==expectedNumber||!Number.isInteger(expectedNumber))
+   problems.push('BATCH_SEQUENCE_NOT_CONTIGUOUS');
  if(batch.batch_size!==SIZE||batch.fields_checked_in_this_batch!==SIZE||batch.entries?.length!==SIZE)
    problems.push('NOT_EXACTLY_50_FIELDS');
  if(batch.entries?.some(x=>previous.has(x.source_id)))problems.push('REVIEWED_FIELD_REPEATED');
+ const selectedFormIds=new Set(next.map(x=>x.id.split(':')[0]));
+ if((batch.forms||[]).length!==selectedFormIds.size||
+    new Set((batch.forms||[]).map(x=>x.legacy_code)).size!==selectedFormIds.size||
+    (batch.forms||[]).some(x=>!selectedFormIds.has(x.legacy_code)))
+   problems.push('SOURCE_FORM_COVERAGE_MISMATCH');
  if(batch.entries?.length!==new Set((batch.entries||[]).map(x=>x.source_id)).size)
    problems.push('DUPLICATE_FIELD_ID');
  const orig=new Map(all.map(f=>[f.id,f]));
@@ -54,22 +63,31 @@ function auditBatch(batch, alreadyReviewed=[]) {
    const s=formsByCode.get(f.legacy_code),template=newForms.get(f.print_form);
    if(!s||!template||!template.legacyRefs.includes(f.legacy_code))
      {problems.push('SOURCE_OR_PRINT_FORM_MISSING:'+f.legacy_code);continue;}
-   if(typeof checks[f.check_function]!=='function')
+   if(typeof checks[f.check_function]!=='function'&&typeof laterChecks[f.check_function]!=='function')
      problems.push('CANDIDATE_CALCULATOR_MISSING:'+f.legacy_code);
    const srcFlags=s.flag_candidates.map(x=>x.code).sort();
    const mapped=(f.original_flags||[]).map(x=>x.source_flag).sort();
    if(JSON.stringify(srcFlags)!==JSON.stringify(mapped))
      problems.push('HISTORIC_FLAG_NOT_MAPPED:'+f.legacy_code);
+   const knownFlags=f.legacy_code==='W-03'?laterChecks.COUNT_FLAGS:
+     f.legacy_code==='R-01'?laterChecks.DAILY_FLAGS:null;
+   if(knownFlags&&(f.original_flags||[]).some(x=>knownFlags[x.new_blocker]!==x.source_flag))
+     problems.push('CANDIDATE_FLAG_EXECUTION_MAPPING_DRIFT:'+f.legacy_code);
    if((f.original_flags||[]).some(x=>!x.new_blocker||x.new_blocker.length<6))
      problems.push('FLAG_HAS_NO_CANDIDATE_CHECK:'+f.legacy_code);
    if(f.status!=='SOURCE_FLAGS_REPRODUCED_BY_CANDIDATE_TESTS_NO_PARITY_SIGNOFF')
      problems.push('FALSE_CALCULATOR_PARITY_CLAIM:'+f.legacy_code);
  }
- if(batch.status!=='FIRST_50_SOURCE_TO_PRINT_MAPPED_NOT_PARITY_CERTIFIED'||
+ const expectedStatus=batch.batch_number===1?
+   'FIRST_50_SOURCE_TO_PRINT_MAPPED_NOT_PARITY_CERTIFIED':
+   'BATCH_50_SOURCE_TO_PRINT_MAPPED_NOT_PARITY_CERTIFIED';
+ if(batch.status!==expectedStatus||
     batch.result_summary?.parity_approved!==0||
     batch.result_summary?.erp_write_or_signoff_allowed!==false)
    problems.push('UNAUTHORIZED_RELEASE_OR_PARITY_CLAIM');
  const verifiedKeys=new Set((batch.entries||[]).map(x=>x.source_id));
+ if(batch.result_summary?.original_flag_candidates_tested!==(batch.forms||[]).reduce((n,f)=>n+(f.original_flags||[]).length,0))
+   problems.push('SOURCE_FLAG_COUNT_MISMATCH');
  if(batch.result_summary?.original_field_keys_located!==SIZE||
     batch.result_summary?.printable_fields_added_or_matched!==SIZE||
     batch.result_summary?.remaining_first_pass_unchecked!==pending.length-previous.size-SIZE)
@@ -98,6 +116,10 @@ function run(){
   next_batch_number:results.length+1,
   next_50:outstanding.slice(0,SIZE).map(x=>x.id),
   flag_categories_checked:results.reduce((n,x)=>n+x.original_flag_categories_checked,0),
+  unique_source_flag_categories:new Set(results.flatMap((x,i)=>{
+    const batch=JSON.parse(fs.readFileSync(path.join(dir,reviewedFiles()[i]),'utf8'));
+    return batch.forms.flatMap(f=>f.original_flags.map(w=>f.legacy_code+':'+w.source_flag));
+  })).size,
   results,ready_for_release:false};
 }
 if(require.main===module){
