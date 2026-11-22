@@ -123,8 +123,8 @@ test('tampered, forged or unbalanced finance drafts are rejected independently o
  const forged=clone(p.proposals[0]);forged.accountingPostApproved=true;
  assert.throws(()=>validateRow(forged),/UNAUTHORIZED_OR_UNKNOWN_DRAFT/);
  const wrong=clone(p);wrong.proposalDigest='a'.repeat(64);
- // Validation correctly rejects the first invalid row digest before a batch-level digest can be accepted.
- assert.throws(()=>simulateDraftQueue([],wrong),/DRAFT_DIGEST_MISMATCH/);
+ // Corrupting only the batch digest must fail the batch-level integrity gate.
+ assert.throws(()=>simulateDraftQueue([],wrong),/DRAFT_BATCH_DIGEST_MISMATCH/);
  const fake=clone(p);fake.posted=true;
  assert.throws(()=>simulateDraftQueue([],fake),/FORBIDDEN_REAL_LEDGER_COMMIT/);
  const replay=clone(p);replay.proposals[0].payload.credit[0].amountBDT='120.01';
