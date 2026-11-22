@@ -49,8 +49,8 @@ run_round cx 4 "SELECT core10.procurement_receive_v1($PO2,1703111,'[{\"line_no\"
  "SELECT core10.procurement_cancel_grn_v1($GRNB,1,'race cancel','rrace-cx-0001')->>'status';"
 [ "$(cat "$tmp/cx.1.rc")" = 0 ] || { cat "$tmp/cx.1.err" >&2; fail "cancel failed"; }
 only_errors cx "CONTROL_LIMIT:over_receipt_pct"
-[ "$(Q -c "SELECT coalesce(sum(l.received_qty),0) FROM core10.goods_receipt_lines_v1 l JOIN core10.goods_receipts_v1 g ON g.id=l.grn_id WHERE l.po_id=$PO2 AND g.status<>'cancelled'")" \
-  = "$(( ($(ok_count cx)-1)*10 )).000" ] || fail "live receipts do not match winners"
+[ "$(Q -c "SELECT coalesce(sum(l.received_qty),0)=$(( ($(ok_count cx)-1)*10 )) FROM core10.goods_receipt_lines_v1 l JOIN core10.goods_receipts_v1 g ON g.id=l.grn_id WHERE l.po_id=$PO2 AND g.status<>'cancelled'")" = t ] \
+  || fail "live receipts do not match winners"
 [ "$(ok_count cx)" -le 2 ] || fail "freed quantity received twice"
 [ "$(Q -c "SELECT count(*) FROM core10.inventory_reconciliation_v1 WHERE business_id=17031 AND NOT reconciled")" = 0 ] || fail "not reconciled"
 echo "PASS np03a supplier-return races: concurrent over-return drafts, concurrent return posting, cancel vs receive"
