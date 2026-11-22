@@ -106,6 +106,25 @@ Reuse table (P2):
 - Not done: link from the Central shell (Session A owns `core10-control-studio-entry.js`; add next to Master Data:
   `core10-owner-dashboard.html`); sales/cash/receivables figures (NP03B/NP06 not on trunk).
 
+### PAUSE CHECKPOINT (2026-11-22, Owner asked to pause; nothing local-only)
+
+- P4 started: `tests/migrations/np03a-scale.sql` (10 businesses x 400 sites = 4,000 sites, 80,000 ledger rows and
+  balances, 8,000 POs, 4,000 stock tasks; correctness + time budgets + 400 real receive and 100 transfer RPC writes).
+  Local PG17.12: every owner/business/site read 1–55 ms; 400 receives 3.3 s; 100 transfers 1.3 s. **One finding:**
+  `inventory_list_balances_v1` for a site-only staff member over a whole business (no site filter) = 1,523 ms (budget
+  1,500 ms) because `can_site` runs per balance row. Fix next: resolve the caller's readable sites once (or require
+  `p_site` for site-only staff), then rerun. The scale file is committed but NOT yet a CI step (it would fail).
+- **GitHub CI is RED at `bed68b9` and `3456a35`** (green at `6c7a3fa`):
+  1. `core10-b010-control-port-ci` job `control-port` failed (runs 44960292006, 44960789001). The log tail shows only
+     cleanup; the failing step is not read yet. It was introduced by 0203 or 0204 (or their CI steps). First action
+     on resume: read the full job log, reproduce locally with the exact CI step order (all steps share ONE database:
+     committed race seeds can collide with e2e ids or change counts), fix, push.
+  2. `NP03B Sales Order Foundation PG17` job `sales` failed: `SALES_CORRECTION_ACCEPTANCE_FAIL: 10 unresolved security
+     cases`. That is the NP03B lane's own test running on this PR. Check whether it is also red on trunk `5efece2`;
+     if not, find which 02xx object it trips.
+- Resume order: (1) fix CI red, (2) balance read fix + wire scale test into CI, (3) PO approval stages via GOV-002
+  (same pattern as 0202), (4) Central shell link for the dashboard (Session A file).
+
 ### Not done / NOT_CONNECTED
 
 - Approval thresholds (`approval_thresholds_v1`) apply as GOV-002 defines them: payload `amount` = quantity,
