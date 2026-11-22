@@ -260,6 +260,33 @@ node --test modules/paperops/tests/field-batch-002-003.test.cjs
 
 **Current form registry = 32 bilingual printable DRAFT/HYPOTHESIS templates.** Tests are code/synthetic-input evidence only: no scanned signed paper, accounting mutation, RLS integration, legal acceptance, complete source branch parity or permission to merge. The existing source preservation and live/module guards remain mandatory.
 
+## 5g. Clarified Owner intent — semantic rule recovery, not merely generating mock data
+
+The Owner clarified that the **1,160** originally unlinked candidate field keys are *not 1,160 mandatory text boxes to copy to an ERP*. They were not yet included individually in the 20 highest-risk control traces; they may be source inputs, calculated outputs, ledger/master references, conditional evidence, signatories or repeated displays. The two added 50-field review batches (002 + 003) are source-to-print prototypes, **not** a complete business-rule audit or permission to expand daily paperwork.
+
+**New source-semantics layer:** `field-semantic-triage.cjs` deterministically constructs `field-review/semantic-triage-001-003.json` from the original extracted constructor/required/visibility/role metadata and the first three exact 50-field batches; CI executes `--check`. All **150** original keys now have an explicit **proposed** semantic class, data origin, risk level, source requirement evidence and named next proof action. This helps distinguish computed references from genuinely required human evidence without claiming source execution or proven ERP parity.
+
+Source-level observations for the first 150 (counts can overlap): **30** explicitly always-required syntax candidates, **6** conditionally-required candidates, **16** conditionally-visible candidates, and **80** conservative high-risk review flags. The proposed data origins include **16 calculated/display** candidates, **7 continuing-ledger** candidates, **39 reference** candidates, **30 human control-attestation** candidates, **9 actor/role** candidates, **1 document attachment**, **1 line collection** and **47 general input/conditional evidence** candidates. These are *heuristic classification*, never validated authority for dropping a document. The final source formula, branch trigger, posting ledger, Owner rule, legal source and operational signoff remain open. Signed field parity count remains **zero**.
+
+**Examples of the intended destination after actual process verification:**
+
+- Original C-02 `total`, `sum_cr`, `imprest_text` and C-01 `handover`: **recompute from referenced money lines and approved float policy**; do not demand a second manual re-entry of the total.
+- W-02 `crates_due` and `trays_due`: candidate **returnable-packaging liability ledger**, not an additional daily full form; must still reconcile signatures and returns.
+- R-01 `vouchers` / `v_no` / `v_amt`: proposed **links and summaries from independent expense source vouchers**, not payment authority in the retail close.
+- R-01 `temp`, `expired_shown`, `expired_informed`, `clean` and W-03 `movement`: preserve real **food-safety, independent checking and stock-count freeze evidence** even if the print burden is reduced.
+- R-01 `t2_1` / `t2_2`, C-02 `approved_by`, W-02 `cash_amount`: **explicitly preserve conditional trigger verification**; static `show` syntax does not prove the business rule is implemented.
+
+**Correct continuation per 50:** (1) read each original source declaration/conditional/role/calculation and relevant warning branch; (2) decide input vs derived vs reference vs linked ledger vs control attestation, cross-referencing real owner process; (3) implement the **smallest event-driven normalized flow** rather than reproducing every old paper column; (4) test positive, negative, boundary, role separation and ledger continuity with synthetic items/accounts; (5) record exact gaps and never mark Owner accepted without field evidence. Tests protect the code, but do not substitute for source semantics, signed business workflow or Owner approval.
+
+Reproduce:
+
+```bash
+node modules/paperops/field-semantic-triage.cjs --check
+node --test modules/paperops/tests/field-semantic-triage.test.cjs
+```
+
+No live ERP branch, worker or real database is modified by the classification or its tests.
+
 ## 6. Reproduction, safety and deployment
 
 Open `modules/paperops/index.html` locally in a modern browser, choose form/industry, business-wide or branch-specific scope, apply optional header/logo/colour, preview, then use Print/PDF. Save/import a JSON settings file locally if desired. Do not put confidential identifiers in a file shared publicly.
