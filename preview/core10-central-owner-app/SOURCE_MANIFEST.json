@@ -16,8 +16,17 @@
    "status": "DRAFT_NOT_INTEGRATED"
   }
  },
- "worker_sha256": "b65cc8e1dfaf070c6005ce2408b7cd64c4c96b12630c884088341f9c66ab0a7a",
+ "worker_sha256": "e0f7578d41edd35527cb1b0cedbe29e0225ca01fc83f49468b2a284e96bb8c86",
  "files": [
+  {
+   "route": "/live/core10-control-centre-config.js",
+   "bytes": 452,
+   "sha256": "64179b040d661b7c9563e7199be5c48e2adc7c72ef31703225b24aa28ee2d7be",
+   "kind": "LEVEL2_CONFIG",
+   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "source": "core10-control-centre-config.js + STAGING.key (publishable)",
+   "backend": "https://rhrqhbyzrhaafynfhdaf.supabase.co"
+  },
   {
    "route": "/live/core10-owner-control-centre.css",
    "bytes": 5235,
@@ -167,6 +176,26 @@
    "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
    "source": "vendor/supabase.js",
    "git_blob": "4102ef6b858ae140de4cf9549a2dfa1fccaec807"
+  },
+  {
+   "route": "/live/core10-owner-control-centre.html",
+   "bytes": 989,
+   "sha256": "a641b7c66b9ae6f9294bd8ec32e7bd315b59a65dba954b2743ee69151c39158f",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "source": "core10-owner-control-centre.html",
+   "git_blob": "4e51d882f2dac8ceef9a48cc39a63b6c912029a8"
+  },
+  {
+   "route": "/live/core10-owner-control-centre.js",
+   "bytes": 3934,
+   "sha256": "bc91b83c73610233f5492503271ca211dfaa8c2740b7b17fc7f0098dc8efc016",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "source": "core10-owner-control-centre.js",
+   "git_blob": "08cbad1f77a76a4d66e18d2db5dafeff8e32555e"
   },
   {
    "route": "/live/core10-pack02-workspace.js",
@@ -381,8 +410,8 @@
   },
   {
    "route": "/app.js",
-   "bytes": 2176,
-   "sha256": "e457fc728ad0b48b84278fd7a5d995198bd4ebe57088d93132b025bfae8d4ab2",
+   "bytes": 2196,
+   "sha256": "5892fa7ec3e6e5558d6a037c30b63d4a2416f3875163258daf307159f8dffa79",
    "kind": "PREVIEW_SHELL",
    "source": "preview/core10-central-owner-app/site/app.js"
   },

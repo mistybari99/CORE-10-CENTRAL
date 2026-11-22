@@ -8,7 +8,7 @@
     master: "/view/master.html",
     sales: "/view/sales.html",
     manufacturing: "/view/mfg.html",
-    control: "/view/control.html",
+    control: "/live/core10-owner-control-centre.html",
     features: "/view/workspace.html?v=controls-central",
     approvals: "/live/docs/preview/c10-np01-canonical-reviewer-preview.html",
     staff: "/view/workspace.html?v=staff"
