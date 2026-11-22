@@ -137,3 +137,36 @@ Reuse table (P2):
 
 3. P2 purchase → GRN → QC → stock (A026, PR #73 lot/expiry, Master parties).
 4. P3 owner multi-business dashboard; P4 10 × 400 scale test.
+
+### Agent C — 0206 PO approval
+
+- Branch `agentC/po-approval` (from `build/claude-np03a-stock`), local commit only, not pushed.
+- `internal/migrations/0206_np03a_po_approval.up.sql` / `.down.sql`: purchase-order approval stages > 0 now go
+  through the ONE canonical GOV-002 journal, the same adapter pattern as 0202 (no second approval cycle).
+  - `purchase_orders_v1.approval_request_id` (FK `approval_requests`).
+  - `procurement_request_po_approval_v1(p_po, p_key)`: authorize (scope, `can_business`) before the row lock;
+    `control_check_v1(p.business_id, 'procurement.purchase_order', p.site_id)` + `gov002.review`; PO must be a
+    draft; caller must be the PO creator (`PROC_APPROVAL_MAKER_DENIED`); stages >= 1
+    (`PROC_APPROVAL_STAGES_REQUIRED`); route length = stages, no route = exactly 1 checker
+    (`PROC_APPROVAL_ROUTE_MISMATCH`); `submit_typed_approval_v1(business,'procurement','purchase_order',
+    'procurement:po:'||id, PO version, server-built payload, key)`. Payload: po/business/site/supplier, `amount` =
+    `total_amount`, `unit` = `currency_total`, expected_on, version, lines (item, qty, price). A live request for the
+    current version blocks another (`PROC_APPROVAL_ALREADY_REQUESTED`); one bound to an earlier version of an edited
+    draft can never be effective, so a fresh request is allowed. Canonical audit `procurement.po_approval_requested`.
+    Registered `enforced` (feature `procurement.purchase_order`, B-012, test `tests/migrations/np03a-po-approval-e2e.sql`).
+  - `procurement_advance_po_v1` (CREATE OR REPLACE): identical to 0203 except approve calls
+    `_proc_po_approval_gate_v1`: stages = 0 → unchanged; else `PROC_APPROVAL_REQUIRED` /
+    `PROC_APPROVAL_NOT_EFFECTIVE` / `PROC_APPROVAL_ROUTE_MISMATCH` / `PROC_APPROVAL_RECEIPTS_INCOMPLETE`, then
+    `verify_approval_binding_v1` on the frozen payload + version (edited draft → `approval_stale_or_payload_changed`).
+    Approval ids go into the approve audit payload and the RPC result.
+  - Down: refuses once any PO carries an approval request; restores the 0203 function byte-for-byte (prosrc md5
+    checked) and drops the column/helpers.
+- Tests: new `tests/migrations/np03a-po-approval-e2e.sql` (tenants 1401/1402; one checker, two-stage route
+  `business_owner`→`tenant_owner`, maker/self/foreign denials, `CONTROL_DISABLED:procurement.purchase_order` and
+  `CONTROL_DISABLED:gov002.review`, stage change after approval fails closed, edited draft fails closed, stages 0
+  unchanged); CI step added after the 0203 step. `np03a-procurement-e2e.sql`: the stages>0 assertion now expects
+  `PROC_APPROVAL_REQUIRED`, and the "five procurement writers enforced" count is scoped to that file's `test_ref`
+  (the new 0206 RPC would otherwise make it six).
+- Not done: thresholds — `currency_total` is not a GOV-002 threshold unit code (`^[A-Z][A-Z0-9_]{1,11}$`), so a
+  threshold configured on the procurement policy makes the request fail closed until a currency unit is agreed;
+  no UI button yet for "request approval".
