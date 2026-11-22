@@ -187,3 +187,39 @@ test('a recomputed hash cannot bypass unbalanced journal, source chart mapping o
  idSpoof.idempotencyKey='paperops:9802:9810:FINANCE_EXPENSE_DRAFT:DEMO-C02-001';
  assert.throws(()=>validateRow(idSpoof),/DRAFT_IDEMPOTENCY_KEY_MISMATCH/);
 });
+
+test('new boundary rejects duplicate source drafts even when batch digest was recomputed',()=>{
+ const crypto=require('node:crypto');
+ const digest=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
+ const p=clone(plan());
+ p.proposals.push(clone(p.proposals[0]));
+ p.proposalDigest=digest(p.proposals.map(row=>({key:row.idempotencyKey,digest:row.sourceDigest})));
+ assert.throws(()=>simulateDraftQueue([],p),/DUPLICATE_SOURCE_IN_SAME_DRAFT_BATCH/);
+});
+test('source cashbook amount must match original C-02 voucher amount before a posting candidate exists',()=>{
+ const bad=clone(sourceFixture);
+ bad.expense.cashbookRows[0].amountBDT='119.00';
+ // The source ledger gate must stop this before any draft even exists.
+ assert.throws(()=>planPostingCandidates({syntheticFixture:bad,
+  build01Context:scoped.build01Context,authenticatedActorUid:scoped.authenticatedActorUid,
+  selection:scoped.selection,siteBindings:scoped.siteBindings}),
+ /SOURCE_BOOKS_NOT_RECONCILED/);
+});
+test('recomputed per-row digest still cannot create negative, cross-site, direction-forged packaging drafts',()=>{
+ const crypto=require('node:crypto');
+ const digest=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
+ function mutate(prop,value){
+  const row=clone(plan().proposals.find(x=>x.kind==='RETURNABLE_PACKAGING_DRAFT'));
+  row.payload[prop]=value;
+  row.sourceDigest=digest({kind:row.kind,scope:row.scope,sourceRef:row.sourceRef,payload:row.payload});
+  return row;
+ }
+ assert.throws(()=>validateRow(mutate('siteFromId',0)),/INVALID_RETURNABLE_PACKAGING_DRAFT/);
+ assert.throws(()=>validateRow(mutate('declaredCratesDue',-1)),/INVALID_RETURNABLE_PACKAGING_DRAFT/);
+ assert.throws(()=>validateRow(mutate('sourceReceiverRef','')),/INVALID_PACKAGING_RECEIVER_EVIDENCE/);
+ assert.throws(()=>validateRow(mutate('kind','FAKE')),/INVALID_RETURNABLE_PACKAGING_DRAFT/);
+ const returned=clone(plan().proposals.find(x=>x.kind==='RETURNABLE_PACKAGING_DRAFT'&&x.payload.kind==='RETURN'));
+ returned.payload.cratesDelta=3;
+ returned.sourceDigest=digest({kind:returned.kind,scope:returned.scope,sourceRef:returned.sourceRef,payload:returned.payload});
+ assert.throws(()=>validateRow(returned),/RETURN_DIRECTION_INVERTED/);
+});
