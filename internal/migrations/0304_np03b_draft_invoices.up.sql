@@ -228,6 +228,7 @@ BEGIN
  amount:=core10._sales_validate_v1(p_business,p_site,i.document,draft_control->'params');
  IF amount IS DISTINCT FROM i.total THEN RAISE EXCEPTION 'SALES_INVOICE_TOTAL_CHANGED'; END IF;
  stages:=(c->>'stages')::integer;
+ IF stages IS NULL OR stages NOT BETWEEN 0 AND 5 THEN RAISE EXCEPTION 'SALES_INVOICE_APPROVAL_STAGES_INVALID'; END IF;
  payload:=core10._sales_invoice_approval_payload_v1(i,stages);
  IF stages=0 AND p_approval IS NOT NULL THEN RAISE EXCEPTION 'SALES_INVOICE_APPROVAL_NOT_ALLOWED'; END IF;
  IF stages>0 THEN
