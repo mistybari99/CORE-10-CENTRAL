@@ -1,0 +1,33 @@
+name: CORE10 §7b root file classification and pinned runtime source gate
+on:
+  pull_request:
+    branches: ["ccr-15ed11dd-n3hw5h"]
+    paths:
+      - "docs/coordination/FILE_CLASSIFICATION.json"
+      - "tests/core10-file-classification.test.js"
+      - ".github/workflows/core10-file-classification-ci.yml"
+      - "core10-*"
+      - "legacy/islamia-erp/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  classification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Fetch only pinned external preview draft ancestry (no merge)
+        run: git fetch --no-tags origin refs/pull/109/head:refs/remotes/origin/pr109-head refs/pull/112/head:refs/remotes/origin/pr112-head
+      - name: Check all root and preserved legacy files + 37 pinned runtime source paths
+        run: node --test tests/core10-file-classification.test.js
+      - name: Recheck CORE10 live/module retired backend boundary
+        run: node --test tests/core10-live-legacy-guard.test.js
+      - name: Recheck original 463 bytes and negative tamper test
+        run: node --test tests/core10-legacy-move-integrity.test.js
