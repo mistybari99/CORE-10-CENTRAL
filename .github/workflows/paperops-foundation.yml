@@ -25,6 +25,8 @@ jobs:
           node-version: '22'
       - name: Reproduce all legacy form rule candidates without executing frozen code
         run: node modules/paperops/legacy-rule-extractor.cjs --check
+      - name: Verify all 1246 original fields have preserved cadence and unapproved mapping status
+        run: node modules/paperops/field-routing.cjs --check
       - name: Enforce old-field to new-field and blocker trace, no false parity claims
         run: node modules/paperops/paper-parity-audit.cjs
       - name: Run eight synthetic paper-day scenarios (counts, routing, all drafts)
