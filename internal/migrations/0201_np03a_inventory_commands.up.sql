@@ -251,6 +251,10 @@ BEGIN
  IF NOT core10._inventory_may_act_v1(pre.tenant_id,pre.business_id,pre.source_location,pre.destination_location)
  THEN RAISE EXCEPTION 'INV_PERMISSION_DENIED'; END IF;
  SELECT * INTO c FROM core10.inventory_commands_v1 WHERE id=p_command FOR UPDATE;
+ -- Re-validate committed Auth membership/site rights after the row lock: a concurrent revocation must win.
+ IF NOT core10.can_see_business(c.tenant_id,c.business_id) THEN RAISE EXCEPTION 'INV_SCOPE'; END IF;
+ IF p_action<>'cancel' AND NOT core10._inventory_may_act_v1(c.tenant_id,c.business_id,c.source_location,c.destination_location)
+ THEN RAISE EXCEPTION 'INV_PERMISSION_DENIED'; END IF;
  v_sites := array_remove(ARRAY[c.source_site_id, CASE WHEN c.destination_site_id IS DISTINCT FROM c.source_site_id
   THEN c.destination_site_id END], NULL);
  -- Cancel needs no Owner Control (it moves nothing): the creator or a manager may withdraw an unposted command.

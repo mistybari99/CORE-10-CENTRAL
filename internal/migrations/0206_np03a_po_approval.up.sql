@@ -130,6 +130,10 @@ BEGIN
  IF NOT core10.can_manage(p.tenant_id,p.business_id) AND NOT (p_action='cancel' AND p.created_by=v_actor)
  THEN RAISE EXCEPTION 'PROC_PERMISSION_DENIED'; END IF;
  SELECT * INTO p FROM core10.purchase_orders_v1 WHERE id=p_po FOR UPDATE;
+ -- Re-read Auth after the row lock; permission could have been revoked while waiting.
+ IF NOT core10.can_see_business(p.tenant_id,p.business_id) THEN RAISE EXCEPTION 'PROC_SCOPE'; END IF;
+ IF NOT core10.can_manage(p.tenant_id,p.business_id) AND NOT (p_action='cancel' AND p.created_by=v_actor)
+ THEN RAISE EXCEPTION 'PROC_PERMISSION_DENIED'; END IF;
  c := core10.control_check_v1(p.business_id, 'procurement.purchase_order', p.site_id);
  v_sha := core10._proc_sha_v1(jsonb_build_object('po',p_po,'a',p_action,'v',p_version));
  v_id := core10._proc_replay_v1(p.business_id,p_key,'po_'||p_action,v_sha);

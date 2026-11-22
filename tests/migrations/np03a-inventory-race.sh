@@ -93,4 +93,49 @@ grep -qE "INV_INVALID_ACTION|INV_SCOPE" "$tmp/xt.3.err" || fail "unsigned not re
 [ "$(Q -c "SELECT confirmed_by FROM core10.inventory_commands_v1 WHERE id=$XT")" = "$OWNER" ] || fail "wrong confirmer"
 
 [ "$(Q -c "SELECT count(*) FROM core10.inventory_reconciliation_v1 WHERE business_id=7311 AND NOT reconciled")" = 0 ] || fail "ledger not reconciled"
-echo "PASS np03a inventory races: same key, oversell, single post, crossing transfers, Control switch, cross-tenant"
+# 7. Real membership revocation while the command row is locked: an already-admitted caller
+#    must re-authorize AFTER the wait, not post on a stale pre-lock membership snapshot.
+#    The lock waiter is observed in pg_stat_activity BEFORE the owner is revoked (no timing-only guess).
+RVC=$(Q -c "SELECT set_config('request.jwt.claims','{\"sub\":\"$OWNER\"}',false)" \
+  -c "SELECT core10.create_inventory_command_v1(7311,'receive',NULL,731111,73101,4,NULL,'race-revoke-0001')->>'command_id'" | tail -1)
+Q -c "SELECT set_config('request.jwt.claims','{\"sub\":\"$OWNER\"}',false)" \
+  -c "SELECT core10.advance_inventory_command_v1($RVC,'confirm',1,'race-revoke-confirm-0001')" >/dev/null
+before_revoke=$(bal 731111)
+(
+  psql -X -qAt -v ON_ERROR_STOP=1 >"$tmp/revoke.holder.out" 2>"$tmp/revoke.holder.err" <<SQL
+BEGIN;
+SELECT id FROM core10.inventory_commands_v1 WHERE id=$RVC FOR UPDATE;
+SELECT pg_sleep(5);
+UPDATE core10.tenant_members SET active=false WHERE tenant_id=731 AND user_id='$OWNER';
+COMMIT;
+SQL
+  echo $? > "$tmp/revoke.holder.rc"
+) &
+holder_pid=$!
+sleep 0.3
+(
+  psql -X -qAt -v ON_ERROR_STOP=1 >"$tmp/revoke.worker.out" 2>"$tmp/revoke.worker.err" <<SQL
+SET application_name = 'core10_stock_revocation_waiter';
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims','{\"sub\":\"$OWNER\"}',false);
+SELECT core10.advance_inventory_command_v1($RVC,'post',2,'race-revoke-post-0001');
+SQL
+  echo $? > "$tmp/revoke.worker.rc"
+) &
+worker_pid=$!
+saw_wait=0
+for attempt in $(seq 1 35); do
+  waiting=$(Q -c "SELECT count(*) FROM pg_stat_activity WHERE application_name='core10_stock_revocation_waiter' AND wait_event_type='Lock'")
+  if [ "$waiting" = 1 ]; then saw_wait=1; break; fi
+  sleep 0.12
+done
+wait "$holder_pid" "$worker_pid"
+[ "$saw_wait" = 1 ] || fail "revoke race never observed blocked worker before revocation"
+[ "$(cat "$tmp/revoke.holder.rc")" = 0 ] || { cat "$tmp/revoke.holder.err" >&2; fail "revocation transaction failed"; }
+[ "$(cat "$tmp/revoke.worker.rc")" != 0 ] || fail "revoked owner posted stock after row-lock wait"
+grep -qE 'INV_SCOPE|INV_PERMISSION_DENIED' "$tmp/revoke.worker.err" || { cat "$tmp/revoke.worker.err" >&2; fail "revoked writer returned wrong denial"; }
+[ "$(Q -c "SELECT status FROM core10.inventory_commands_v1 WHERE id=$RVC")" = confirmed ] || fail "revoked command transitioned"
+[ "$(bal 731111)" = "$before_revoke" ] || fail "revoked command altered the ledger"
+Q -c "UPDATE core10.tenant_members SET active=true WHERE tenant_id=731 AND user_id='$OWNER'" >/dev/null
+
+echo "PASS np03a inventory races: same key, oversell, single post, crossing transfers, Control switch, cross-tenant, revoked mid-lock"

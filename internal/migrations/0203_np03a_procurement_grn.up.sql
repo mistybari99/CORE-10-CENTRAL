@@ -250,6 +250,10 @@ BEGIN
  IF NOT core10.can_manage(p.tenant_id,p.business_id) AND NOT (p_action='cancel' AND p.created_by=v_actor)
  THEN RAISE EXCEPTION 'PROC_PERMISSION_DENIED'; END IF;
  SELECT * INTO p FROM core10.purchase_orders_v1 WHERE id=p_po FOR UPDATE;
+ -- Re-read Auth after the row lock; permission could have been revoked while waiting.
+ IF NOT core10.can_see_business(p.tenant_id,p.business_id) THEN RAISE EXCEPTION 'PROC_SCOPE'; END IF;
+ IF NOT core10.can_manage(p.tenant_id,p.business_id) AND NOT (p_action='cancel' AND p.created_by=v_actor)
+ THEN RAISE EXCEPTION 'PROC_PERMISSION_DENIED'; END IF;
  c := core10.control_check_v1(p.business_id, 'procurement.purchase_order', p.site_id);
  v_sha := core10._proc_sha_v1(jsonb_build_object('po',p_po,'a',p_action,'v',p_version));
  v_id := core10._proc_replay_v1(p.business_id,p_key,'po_'||p_action,v_sha);
@@ -288,6 +292,10 @@ BEGIN
  IF v_site IS NULL OR v_site<>p.site_id THEN RAISE EXCEPTION 'PROC_LOCATION_SCOPE'; END IF;
  IF NOT core10.inventory_action_authorized_v1(p.tenant_id,p.business_id,p_location,'stock.post') THEN RAISE EXCEPTION 'PROC_PERMISSION_DENIED'; END IF;
  SELECT * INTO p FROM core10.purchase_orders_v1 WHERE id=p_po FOR UPDATE;
+ -- Re-check signed site/post permission after waiting for an exclusive PO lock.
+ IF NOT core10.can_see_business(p.tenant_id,p.business_id) THEN RAISE EXCEPTION 'PROC_SCOPE'; END IF;
+ IF NOT core10.inventory_action_authorized_v1(p.tenant_id,p.business_id,p_location,'stock.post')
+ THEN RAISE EXCEPTION 'PROC_PERMISSION_DENIED'; END IF;
  c := core10.control_check_v1(p.business_id, 'procurement.goods_receipt', p.site_id);
  v_sha := core10._proc_sha_v1(jsonb_build_object('po',p_po,'l',p_location,'x',p_lines,'r',p_supplier_ref));
  v_id := core10._proc_replay_v1(p.business_id,p_key,'grn_receive',v_sha);
@@ -340,6 +348,10 @@ BEGIN
  IF NOT FOUND OR NOT core10.can_see_business(g.tenant_id,g.business_id) THEN RAISE EXCEPTION 'PROC_SCOPE'; END IF;
  IF NOT core10.inventory_action_authorized_v1(g.tenant_id,g.business_id,g.location_id,'stock.post') THEN RAISE EXCEPTION 'PROC_PERMISSION_DENIED'; END IF;
  SELECT * INTO g FROM core10.goods_receipts_v1 WHERE id=p_grn FOR UPDATE;
+ -- Prevent stale permission from surviving an in-flight row-lock wait.
+ IF NOT core10.can_see_business(g.tenant_id,g.business_id) THEN RAISE EXCEPTION 'PROC_SCOPE'; END IF;
+ IF NOT core10.inventory_action_authorized_v1(g.tenant_id,g.business_id,g.location_id,'stock.post')
+ THEN RAISE EXCEPTION 'PROC_PERMISSION_DENIED'; END IF;
  c := core10.control_check_v1(g.business_id, 'procurement.goods_receipt', g.site_id);
  v_sha := core10._proc_sha_v1(jsonb_build_object('g',p_grn,'x',p_lines,'v',p_version));
  v_id := core10._proc_replay_v1(g.business_id,p_key,'grn_inspect',v_sha);
@@ -377,6 +389,10 @@ BEGIN
  IF NOT core10.inventory_action_authorized_v1(g.tenant_id,g.business_id,g.location_id,'stock.post') THEN RAISE EXCEPTION 'PROC_PERMISSION_DENIED'; END IF;
  PERFORM 1 FROM core10.purchase_orders_v1 WHERE id=g.po_id FOR UPDATE;
  SELECT * INTO g FROM core10.goods_receipts_v1 WHERE id=p_grn FOR UPDATE;
+ -- Prevent stale permission from surviving an in-flight row-lock wait.
+ IF NOT core10.can_see_business(g.tenant_id,g.business_id) THEN RAISE EXCEPTION 'PROC_SCOPE'; END IF;
+ IF NOT core10.inventory_action_authorized_v1(g.tenant_id,g.business_id,g.location_id,'stock.post')
+ THEN RAISE EXCEPTION 'PROC_PERMISSION_DENIED'; END IF;
  PERFORM core10.control_check_v1(g.business_id, 'procurement.goods_receipt', g.site_id);
  PERFORM core10.control_check_v1(g.business_id, 'inventory.stock_event', g.site_id);
  v_sha := core10._proc_sha_v1(jsonb_build_object('g',p_grn,'v',p_version));
