@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const paperops = require('../paperops.js');
+const extraPacks = require('../form-packs.js');
 const inventory = require('../legacy-inventory.json');
 const extracted = require('../legacy-field-index.json');
 const obligations = require('../control-obligations.json');
@@ -18,7 +19,8 @@ const baseJob = {
 
 test('the printable registry is consistent and deliberately small', () => {
   assert.equal(paperops.validateCatalog(), true);
-  assert.equal(paperops.TEMPLATES.length, 8);
+  assert.equal(paperops.TEMPLATES.length, 29);
+  assert.equal(extraPacks.length, 21);
   assert.equal(new Set(paperops.TEMPLATES.map(f => f.id)).size, 8);
   assert.ok(paperops.TEMPLATES.every(f => f.status !== 'live'));
   assert.equal(paperops.availableForms('generic').some(f => f.id === 'PAINT-TINT'), false);
@@ -187,4 +189,33 @@ test('source-derived rule candidates cover all old forms without being certified
       assert.ok(['CHECKER','DEFAULT_OR_UNDECLARED'].includes(field.role_candidate));
     }
   }
+});
+
+test('all ten official business catalog IDs are recognized and industry packs stay scoped', () => {
+  const catalog=require(path.join(repoRoot,'data/core10_capability_catalog_v1.json'));
+  assert.equal(catalog.templates.length,10);
+  for(const original of catalog.templates){
+    assert.ok(paperops.INDUSTRIES.includes(original.id),'missing official industry '+original.id);
+    assert.ok(paperops.availableForms(original.id).length>=8);
+    assert.equal(paperops.industryClass(original.id)===null,false);
+  }
+  const specific=[
+    ['sweets_bakery','SWT-JALEBI'],
+    ['paint_hardware','PAINT-TINT'],
+    ['restaurant','REST-KITCHEN'],
+    ['retail_wholesale','RETAIL-REPLENISH'],
+    ['general_manufacturing','MFG-QC'],
+    ['construction','PROJECT-DAILY'],
+    ['import_export','TRADE-CLEARANCE'],
+    ['ecommerce','ECOM-FULFILL'],
+    ['technology_digital','TECH-DELIVERY'],
+    ['services','SERVICE-JOB']
+  ];
+  for(const [industry,id] of specific){
+    assert.ok(paperops.availableForms(industry).some(x=>x.id===id),'industry missing '+id);
+    assert.doesNotThrow(()=>paperops.renderPrintMarkup(id,{...baseJob,industry}));
+  }
+  assert.equal(paperops.availableForms('restaurant').some(x=>x.id==='SWT-JALEBI'),false);
+  assert.equal(paperops.availableForms('ecommerce').some(x=>x.id==='PAINT-TINT'),false);
+  assert.throws(()=>paperops.registerTemplates([paperops.TEMPLATES[0]]),/INVALID_FORM_ID/);
 });
