@@ -103,3 +103,6 @@ Live screenshots: `evidence/live-go-p1/`. Test labels (`BROWSER-1440`, `fixture:
 | Rollback | version `025cf3a1-8d91-45ba-bd4f-e2f77ee24ac1`; source saved `rollback/core10-central-025cf3a1.worker.mjs` (sha256 = live bytes) |
 | Live verify | `verify.cjs` 49/49 at the public URL: bn/en x 390/1440 x 10 routes, headers/CSP, write methods 405, forbidden paths 404, staging Auth refuses a wrong password and no other host is contacted. Evidence `evidence/live-go3/` |
 | NOT VERIFIED | a successful Owner sign-in (needs the Owner's own staging account). Master/Sales/Manufacturing stay recorded replay (0150+ not on staging). |
+
+### Update 2026-11-22: signed setup page
+`#/setup` = trunk Build01 setup page (pinned `6f058dc`, core10-staging mode) with staging config. Deployment `e3d176dd-3335-4153-bd64-0c2a25f0e3e4` / version `201008ca-42a7-42cd-a08e-b968da6c4e51`; previous `38141fd4`, rollback base `025cf3a1`. Live verify 49/49.
