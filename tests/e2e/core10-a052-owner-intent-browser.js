@@ -27,8 +27,8 @@ async function open(browser,base,who,width){
  const errors=[],external=[];page.on("pageerror",e=>errors.push(e.message));page.on("request",r=>{if(!r.url().startsWith(base))external.push(r.url())});
  await page.exposeFunction("__rpc",(n,a)=>callPg(U[who],n,a));
  await page.addInitScript("window.__uid="+JSON.stringify(U[who])+";");
- await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
- await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:fixture}));
+ await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:fixture}));
+ await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
  await page.goto(base+"/core10-owner-intent.html?biz=101",{waitUntil:"load"});
  return{page,errors,external,ctx};
 }

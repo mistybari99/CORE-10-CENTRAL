@@ -59,6 +59,36 @@ function collect(root) {
   for(const name of REQUIRED) if(!out.includes(name)) throw new Error("MISSING_REQUIRED_PAGES_ASSET:"+name);
   return out;
 }
+// §7c: legacy pages keep their frozen bytes but still load shared root assets by relative path
+// (e.g. core10-shell.js, vendor/supabase.js). Mirror exactly those referenced, allowed root files next
+// to the legacy pages inside the ARTIFACT only (repo tree unchanged).
+const LEGACY_DIRS=["legacy/islamia-erp","legacy/islamia-erp/v2"];
+function legacyMirror(root,files) {
+  const have=new Set(files), out=[];
+  for(const dir of LEGACY_DIRS) {
+    const abs=path.join(root,dir);
+    if(!fs.existsSync(abs)) continue;
+    const refs=[];
+    for(const page of fs.readdirSync(abs).filter(n=>n.endsWith(".html"))) {
+      const html=fs.readFileSync(path.join(abs,page),"utf8");
+      for(const m of html.matchAll(/<(?:script|link)\b[^>]*?\b(?:src|href)=["']([^"'#?]+)/gi)) refs.push(m[1]);
+    }
+    if(fs.existsSync(path.join(abs,"sw.js"))) {
+      const pre=/PRECACHE=\[([^\]]*)\]/.exec(fs.readFileSync(path.join(abs,"sw.js"),"utf8"));
+      if(pre) for(const m of pre[1].matchAll(/"([^"#?]+)/g)) refs.push(m[1]);
+    }
+    {
+      for(const ref of refs) {
+        if(/^(?:[a-z]+:|\/)/i.test(ref)||!safeRelative(ref)) continue;
+        const dest=dir+"/"+ref;
+        if(have.has(dest)||!isAllowed(ref)||!isAllowed(dest)) continue;
+        if(!fs.existsSync(path.join(root,ref))||!fs.lstatSync(path.join(root,ref)).isFile()) continue;
+        have.add(dest); out.push([dest,ref]);
+      }
+    }
+  }
+  return out.sort((x,y)=>x[0]<y[0]?-1:1);
+}
 function verify(destination) {
   const allFiles=listFiles(destination);
   if (!allFiles.includes(".nojekyll")) throw new Error("PAGES_NOJEKYLL_MISSING");
@@ -73,15 +103,16 @@ function build(repoRoot,destination) {
   if(fs.existsSync(out)) throw new Error("DIST_ALREADY_EXISTS");
   const files=collect(root);
   fs.mkdirSync(out,{recursive:true});
-  for(const name of files) {
+  const mirror=legacyMirror(root,files);
+  for(const [name,src] of [...files.map(f=>[f,f]),...mirror]) {
     const dest=path.join(out,name);
     fs.mkdirSync(path.dirname(dest),{recursive:true});
-    fs.copyFileSync(path.join(root,name),dest,fs.constants.COPYFILE_EXCL);
+    fs.copyFileSync(path.join(root,src),dest,fs.constants.COPYFILE_EXCL);
   }
   fs.writeFileSync(path.join(out,".nojekyll"),"");
   const verified=verify(out);
-  if(verified.length!==files.length) throw new Error("PUBLISH_MANIFEST_COUNT_MISMATCH");
-  return {count:files.length,files};
+  if(verified.length!==files.length+mirror.length) throw new Error("PUBLISH_MANIFEST_COUNT_MISMATCH");
+  return {count:verified.length,files:verified,mirrored:mirror.map(([d])=>d)};
 }
 if(require.main===module) {
   const destination=process.argv[2];
@@ -92,4 +123,4 @@ if(require.main===module) {
     console.log("NOTE: artifact readiness only. Release blocked until Pages source is verified as GitHub Actions.");
   } catch(err) { console.error("FAIL Pages artifact:",err.message); process.exitCode=1; }
 }
-module.exports={build,verify,collect,isAllowed,REQUIRED};
+module.exports={build,verify,collect,isAllowed,legacyMirror,REQUIRED};

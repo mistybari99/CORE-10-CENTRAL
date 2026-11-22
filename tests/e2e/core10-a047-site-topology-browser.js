@@ -17,8 +17,8 @@ const fixture=fs.readFileSync(path.join(__dirname,"../fixtures/c10_a047_topology
    const errors=[],external=[];
    page.on("pageerror",e=>errors.push(e.message));
    page.on("request",r=>{if(!r.url().startsWith(base))external.push(r.url())});
-   await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
-   await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:fixture}));
+   await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:fixture}));
+   await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
    await page.goto(base+"/core10-site-topology.html?biz=101",{waitUntil:"load"});
    await page.waitForFunction(()=>document.querySelector("#topology-status")?.textContent.includes("Authorized structure loaded"),{timeout:18000});
    assert.match(await page.locator("#topology-count").innerText(),/2 accessible sites/);
