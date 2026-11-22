@@ -261,3 +261,17 @@ NOTE: Sales 030x must reach staging BEFORE Finance 040x / Manufacturing 050x, or
 3. Add the guard test from review step 2 (no `config.js`/`v2/`/`BOS_CONFIG`/`kbuhnpqooycqbzrfejcs` in live/module code).
 4. Full CI green on the branch, `build.mjs` + `verify.cjs` all PASS (live bundle unchanged), then merge into trunk.
 Then continue with review steps 1, 3, 4, 5 and the §7 build queue.
+
+### 7d. Trunk RED after §7c legacy move (found 2026-11-22 by Claude; fix FIRST)
+Trunk head cb4cbe0 had 6 failing checks, all from tests still reading legacy files at the repo root:
+- `site-permission` — `tests/pack01/legacy-source-guard.cjs`: FIXED (reads legacy/islamia-erp, 9/9 PASS).
+- `legacy-route-visual` — `tests/pack01/legacy-route-visual.cjs`: `candidate` must serve the legacy app from
+  `legacy/islamia-erp/` (index.html blob f2f74144 unchanged) while root-level `core10-control-studio-entry.js`
+  still resolves (the legacy index loads it) — e.g. serve legacy dir first, fall back to repo root for core10-* files.
+- `isolated-demo-artifact` — `tests/core10-a040-pages-parity.test.js` MISSING_PAGES_DEMO_ASSET:owner.html:
+  `internal/core10-pages-package.js` file list must copy `legacy/islamia-erp/owner.html` (+other legacy assets) into
+  the artifact at the SAME published paths; keep the assertions.
+- `Packaged browser safety and module journeys` — fixture 404 where 200 expected: same packaging path issue.
+- `Combined schema / assets` and `Combined schema / intent` — inspect logs (A055 assets / D049 intent browser
+  journeys load legacy root assets); same fix pattern.
+Rule: change paths/packaging only; never delete or relax an assertion. Run each failing step locally, then push.
