@@ -2,6 +2,8 @@
 # NP06/F3: 0403 rollback must reject an otherwise empty database that contains
 # only an F3 Owner Control override. Run on disposable loopback PG17 only.
 set -euo pipefail
+# CI diagnostics: report the exact failing assertion without exposing credentials.
+trap 'rc=$?; printf "FIN_ARAP_GUARD_FAILED line=%s status=%s command=%q\\n" "$LINENO" "$rc" "$BASH_COMMAND" >&2' ERR
 cd "$(dirname "$0")/../.."
 case "$PGHOST" in 127.0.0.1|localhost) ;; *) echo 'DISPOSABLE_LOOPBACK_POSTGRES_REQUIRED' >&2; exit 2;; esac
 DB="core10_arap_override_guard_$$"
