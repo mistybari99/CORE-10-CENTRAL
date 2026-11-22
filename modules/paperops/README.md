@@ -287,6 +287,27 @@ node --test modules/paperops/tests/field-semantic-triage.test.cjs
 
 No live ERP branch, worker or real database is modified by the classification or its tests.
 
+## 5h. Real source-rule investigation found missing historical warnings (not a demo-only check)
+
+A direct read of the **frozen old R-01 `calc(e)` body** revealed a **material shortcoming in the baseline source extractor**. The first 163 historical warning candidates were found by a regex requiring a **literal flag ID and literal severity**. It silently missed original rules whose `severity` was computed at runtime and warning identifiers assembled from a numbered fridge. The exact source is retained, unexecuted, at `legacy/islamia-erp/forms.js`.
+
+**Five additional runtime warning codes in R-01** were recovered that were absent from the R-01's initial 11 static-warning list:
+
+| Old dynamic warning | Source rule now evidenced | Candidate code and boundary tests |
+|---|---|---|
+| `goods_money_gap` | Goods-based BDT vs retail BDT (total sale less party cash); **OR** of percentage/absolute BDT tolerance determines yellow/red warning | `r01-hidden-warning-checks.js` `goodsMoneyGap` |
+| `cash_short_over` | Expected cash includes opening float, sale and digital amounts, dues, new/prior advances, refunds, credit, hub deposit and signed rounding; count mismatch uses approved `cash_tol` for severity | `cashShortOver` |
+| `temp_out_1`, `temp_out_2`, `temp_out_3` | One dynamically constructed warning ID per fridge; each checked against independently configured min/max, including negative/freezer temperatures | `temperatureFlagFromChecker` maps the existing R-01 candidate temperature check blockers |
+
+**Proof and fail-closed tests:** `r01-hidden-source-audit.cjs` reads the preserved original `forms.js` as text, verifies the exact dynamic-warning source expressions exist, verifies the five warning IDs were not included in the original R-01 11-flag snapshot and that the candidate gates exist; `field-review/r01-hidden-source-flags.json` preserves the predicates, source policy names, caution and test status. `tests/r01-hidden-source-audit.test.cjs` runs valid, over-tolerance and under-tolerance cash/goods demos; missing policies; money precision rejection; and distinct fridge-1/2/3 out-of-range cases. No original legacy app code executes.
+
+**Important accounting rule:** `163` is the count of the *original static-regex warning candidates*, **NOT the entire old warning inventory**. These **five additional runtime warning codes have been found in one form only**; do not silently revise the whole 32-form total to 168 or assert exhaustive warning parity. Remaining original source calculations and dynamic warning patterns must undergo the same independent inspection, before any ERP release or Owner signoff. Tests confirm candidate formulas, **not** the complete historic R-01 cashbook parity. No real account, live data, signed ledger or staged payment is changed.
+
+```bash
+node modules/paperops/r01-hidden-source-audit.cjs
+node --test modules/paperops/tests/r01-hidden-source-audit.test.cjs
+```
+
 ## 6. Reproduction, safety and deployment
 
 Open `modules/paperops/index.html` locally in a modern browser, choose form/industry, business-wide or branch-specific scope, apply optional header/logo/colour, preview, then use Print/PDF. Save/import a JSON settings file locally if desired. Do not put confidential identifiers in a file shared publicly.
