@@ -50,7 +50,28 @@
           f('counted', 'গ্রহণের সময় গণনাকৃত নগদ ৳', 'Cash recounted at receipt BDT'),
           f('difference', 'পার্থক্য ও তদন্ত রেফারেন্স', 'Difference and investigation reference'),
           f('proof', 'সংযুক্ত কাগজ / ডিপোজিট স্লিপ নং', 'Enclosed records / deposit slip')
-        ])
+        ]),
+        s('পুরোনো C-01 ফর্ম থেকে পুনরুদ্ধার: ১৫টি উৎস ঘর', 'Recovered C-01 paper source: 15 fields', [
+          f("sheet_no", "দৈনিক শোরুম শিট নং", "Daily showroom sheet no."),
+          f("carrier", "বহনকারী", "Carrier"),
+          f("send_time", "পাঠানোর সময়", "Time sent"),
+          f("count", "নোট ধরে গণনা", "Count by notes"),
+          f("leave_float", "রেখে যাওয়া খুচরা", "Float left behind"),
+          f("handover", "হ্যান্ডওভারের টাকা", "Handover amount"),
+          f("words", "কথায়", "In words"),
+          f("with_sheet", "দৈনিক শোরুম শিট (মূল কপি) সাথে", "Daily showroom sheet (original) enclosed"),
+          f("vouchers_count", "সাথে ব্যয় ভাউচার (টি)", "Expense vouchers enclosed (no.)"),
+          f("other_docs", "অন্য কাগজ", "Other papers"),
+          f("rcount", "হাবে নোট ধরে গণনা", "Hub count by notes"),
+          f("diff_reason", "পার্থক্যের কারণ", "Reason for the difference"),
+          f("ledger_date", "ক্যাশ ও ব্যাংক লেজারের তারিখ", "Cash & bank ledger date"),
+          f("ledger_line", "লেজারের লাইন নং", "Ledger line no."),
+          f("seal_ok", "সিল ঠিক অবস্থায় পাওয়া", "Seal found intact"),
+          f("copy_returned", "ফেরত কপি শোরুমে পাঠানো", "Return copy sent to the showroom")
+        ], table('পাঠানো ও হাবে আলাদা নোট গণনা', 'Sender / hub independent denomination recount', [
+          ['নোট মূল্য', 'Denomination BDT'], ['পাঠানো নোট সংখ্যা', 'Sender count'], ['পাঠানো মোট', 'Sender subtotal'],
+          ['হাবে নোট সংখ্যা', 'Hub count'], ['হাব মোট', 'Hub subtotal'], ['পার্থক্য', 'Difference']
+        ], 9))
       ], signatures: [t('দাতা (সময়সহ)', 'Handed over by (with time)'), t('গ্রহণকারী (সময়সহ)', 'Received by (with time)')]
     },
     {
@@ -69,6 +90,23 @@
         s('সমাপ্তি', 'Closure', [
           f('dispatch_time', 'ছাড়ার সময়', 'Dispatched at'), f('receipt_time', 'পৌঁছার সময়', 'Received at'),
           f('variance_ref', 'পার্থক্য হলে তদন্ত / সিদ্ধান্ত নং', 'Discrepancy investigation / decision ref')
+        ]),
+        s('পুরোনো W-02: প্রথম ১৬টি উৎস ঘরের যাচাই', 'Recovered W-02: first 16 source fields', [
+          f("ttype", "ধরন", "Type"),
+          f("from_loc", "প্রেরক লোকেশন (From)", "Sender location (From)"),
+          f("to_loc", "প্রাপক লোকেশন (To)", "Receiver location (To)"),
+          f("shift", "শিফট", "Shift"),
+          f("vehicle", "গাড়ি / ভ্যান", "Vehicle"),
+          f("driver", "ডেলিভারি ম্যান", "Delivery man"),
+          f("out_time", "আউট টাইম (প্রেরক)", "Out time (sender)"),
+          f("handover_point", "হ্যান্ডওভার পয়েন্ট", "Handover point"),
+          f("as_demand", "দৈনিক শোরুম শিটের চাহিদা মতো পাঠানো", "Sent as per the daily showroom sheet demand"),
+          f("demand_sheet_no", "শোরুম শিট নং", "Showroom sheet no."),
+          f("outside", "চাহিদার বাইরের পণ্য?", "Goods outside the demand?"),
+          f("outside_reason", "কারণ", "Reason"),
+          f("cust_order", "কাস্টমার অর্ডারের পণ্য?", "Goods for a customer order?"),
+          f("order_no", "অর্ডার নং", "Order no."),
+          f("prod_dates", "প্রতিটি লাইনে উৎপাদন তারিখ লেখা", "Production date written on every line")
         ])
       ], signatures: [t('ইস্যুকারী', 'Issued by'), t('বহনকারী', 'Carrier'), t('গ্রহণকারী', 'Received by')]
     },
