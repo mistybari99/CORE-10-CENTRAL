@@ -45,6 +45,15 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
   source + regression assertions on `preview/core10-central-level2` commit `8d30615ee4648bc2ac38d80d9655eaaf01a80192`.
   Runtime route smoke 4/4 PASS, source syntax PASS, GitHub Preview static CI PASS. Full `build.mjs` → `verify.cjs`
   and live verification NOT RUN, so no Worker deployment; live remains `201008ca-42a7-42cd-a08e-b968da6c4e51`.
+- Owner-authorized **synthetic demo** on CORE10 staging (2026-11-22): Owner tenant `1`, business `3`,
+  slug `core10-demo-sweets-20261122` and `sweets_bakery` Draft with 3 sites (showroom/factory/warehouse).
+  Direct setup URL HTTP 200; signed-session SQL-context setup/replay/workspace tests PASS, cross-tenant 9801 denied,
+  1 access event and 1 immutable canonical audit event. This is not real Owner business data.
+- Demo auth: existing `np-owner-a@core10-staging.test` password could not be reset with available tool;
+  no auth credentials were changed. Owner's existing login is used for this staging demo; successful human browser
+  sign-in and live UI click acceptance were NOT run in this session. Code `8907369`: signed `--fresh`
+  staging demo creation (retains old draft and audit, never hard deletes), unit tests 5/5 PASS.
+  Full hard cleanup requires forward migration + approved audit retention, NOT available now.
 
 ## 4. How to do each kind of work
 - **Code on trunk**: branch from/commit to `ccr-15ed11dd-n3hw5h` (or a lane branch + PR into it). Small commits.
@@ -66,7 +75,10 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
 1. Owner creates his businesses in `#/setup`; fix anything that breaks there.
    2026-11-22: still 0 Owner businesses. Misleading setup/control save-status banner corrected in preview code
    (`8d30615`), NOT deployed; finish mandated full build/verify/deploy before declaring the UI fix live.
-   Owner business creation and signed acceptance remain pending.
+   Owner's **TEST ONLY** business draft now created (business `3`, 3 sites, staging only), so setup backend exercise is
+   complete; Owner's separate real businesses and successful human UI acceptance still pending.
+   Safe repeatable `--fresh` demo script and five tests in `8907369`; does not hard-delete immutable audit.
+   Direct setup URL HTTP 200. No Worker deploy or migration change.
 2. Unblock staging for master data/stock/finance: settle numbers 0115–0118 (PR #121, in NP01 range) via the Board,
    then apply 0150–0153 (master), 0200 (stock), 0400–0401 (finance), 0500–0504 (manufacturing) in numeric order,
    then switch those live pages from replay to signed staging (same pattern as `#/control`).
@@ -84,4 +96,10 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
 - 2026-11-22 agent=ChatGPT: signed setup/control staging banner fix + regression test on preview branch
   commit `8d30615ee4648bc2ac38d80d9655eaaf01a80192`; route smoke 4/4 PASS and Preview static CI PASS;
   no staging migration or deploy (Worker still `201008ca-42a7-42cd-a08e-b968da6c4e51`); full build/verify pending.
-  Next: Owner creates business in signed setup, then complete build/verify/live-gated publish; §5.2 remains blocked on Board.
+  Next: Owner opens signed setup, then complete build/verify/live-gated publish; §5.2 remains blocked on Board.
+- 2026-11-22 agent=ChatGPT: built actual Owner-group staging DEMO Sweets draft #3 + 3 sites through existing
+  `build01_setup_v1`; signed-context SQL tests (replay, workspace, isolation, audit) PASS. Fresh-instance
+  runner, tests 5/5 local PASS, reset/audit guide committed `8907369b636e7fff5c408025e8262c9d9ca81342`;
+  CI was queued at observation; no migration or Worker deploy, live `201008ca-42a7-42cd-a08e-b968da6c4e51`.
+  Next: Owner tests existing sign-in at /live/core10-build01.html; finish browser acceptance, build/verify/live gate,
+  decide policy-based archival before any hard deletion, then resolve §5.2 0115-0118 migration reservations.
