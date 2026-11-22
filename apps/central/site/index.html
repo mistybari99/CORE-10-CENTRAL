@@ -12,22 +12,48 @@
 </header>
 <div class="c10-body">
  <nav class="c10-nav" aria-label="Main">
-  <a href="#/home" data-route="home"><span class="bn">মালিকের হোম</span><span class="en">Owner home</span></a>
-  <a href="#/business" data-route="business"><span class="bn">ব্যবসা</span><span class="en">Business</span></a>
-  <a href="#/master" data-route="master"><span class="bn">মাস্টার ডেটা</span><span class="en">Master data</span></a>
-  <a href="#/stock" data-route="stock"><span class="bn">স্টক লেনদেন</span><span class="en">Stock operations</span></a>
-  <a href="#/sales" data-route="sales"><span class="bn">বিক্রয় অর্ডার</span><span class="en">Sales orders</span></a>
-  <a href="#/manufacturing" data-route="manufacturing"><span class="bn">উৎপাদন</span><span class="en">Manufacturing</span></a>
-  <a href="#/control" data-route="control"><span class="bn">মালিক নিয়ন্ত্রণ</span><span class="en">Owner control</span></a>
-  <a href="#/features" data-route="features"><span class="bn">ফিচার অনুমতি</span><span class="en">Feature permissions</span></a>
-  <a href="#/approvals" data-route="approvals"><span class="bn">অনুমোদন</span><span class="en">Approvals</span></a>
-  <a href="#/staff" data-route="staff"><span class="bn">কর্মীর কাজ</span><span class="en">Staff workspace</span></a>
-  <a href="#/setup" data-route="setup"><span class="bn">সেটআপ ও প্রবেশাধিকার</span><span class="en">Setup &amp; access</span></a>
+  <div class="c10-nav-section" role="group" aria-label="Workspaces">
+   <p class="c10-nav-heading"><span class="bn">কাজের জায়গা</span><span class="en">Workspaces</span></p>
+   <a href="#/home" data-route="home"><span class="bn">মালিকের হোম</span><span class="en">Owner home</span></a>
+   <a href="#/business" data-route="business"><span class="bn">ব্যবসা</span><span class="en">Business</span></a>
+   <a href="#/staff" data-route="staff"><span class="bn">কর্মীর কাজ</span><span class="en">Staff workspace</span></a>
+  </div>
+  <div class="c10-nav-section" role="group" aria-label="Operations">
+   <p class="c10-nav-heading"><span class="bn">কার্যক্রম</span><span class="en">Operations</span></p>
+   <a href="#/master" data-route="master"><span class="bn">মাস্টার ডেটা</span><span class="en">Master data</span></a>
+   <a href="#/stock" data-route="stock"><span class="bn">স্টক লেনদেন</span><span class="en">Stock operations</span></a>
+   <a href="#/sales" data-route="sales"><span class="bn">বিক্রয় অর্ডার</span><span class="en">Sales orders</span></a>
+   <a href="#/manufacturing" data-route="manufacturing"><span class="bn">উৎপাদন</span><span class="en">Manufacturing</span></a>
+  </div>
+  <div class="c10-nav-section" role="group" aria-label="Approvals and administration">
+   <p class="c10-nav-heading"><span class="bn">অনুমোদন ও পরিচালনা</span><span class="en">Approvals and administration</span></p>
+   <a href="#/approvals" data-route="approvals"><span class="bn">অনুমোদন</span><span class="en">Approvals</span></a>
+   <a href="#/control" data-route="control"><span class="bn">মালিক নিয়ন্ত্রণ</span><span class="en">Owner control</span></a>
+   <a href="#/features" data-route="features"><span class="bn">ফিচার অনুমতি</span><span class="en">Feature permissions</span></a>
+   <a href="#/setup" data-route="setup"><span class="bn">সেটআপ ও প্রবেশাধিকার</span><span class="en">Setup &amp; access</span></a>
+  </div>
  </nav>
  <main class="c10-main" id="c10-main">
   <p id="c10-draft" class="c10-draft" role="note" hidden><span class="bn">এই অংশ এখনো মূল সিস্টেমে যুক্ত হয়নি — শুধু দেখার নমুনা, কিছু পোস্ট হয় না।</span><span class="en">Not yet part of the main system — view-only sample, nothing is posted.</span></p>
   <iframe id="c10-frame" title="CORE 10" src="about:blank"></iframe>
  </main>
 </div>
+<nav class="c10-mobilebar" aria-label="Mobile primary navigation">
+ <a href="#/home" data-mobile-route="home"><span class="bn">হোম</span><span class="en">Home</span></a>
+ <a href="#/business" data-mobile-route="business"><span class="bn">ব্যবসা</span><span class="en">Business</span></a>
+ <a href="#/stock" data-mobile-route="stock"><span class="bn">স্টক</span><span class="en">Stock</span></a>
+ <a href="#/approvals" data-mobile-route="approvals"><span class="bn">অনুমোদন</span><span class="en">Approvals</span></a>
+ <button type="button" id="c10-more-toggle" aria-controls="c10-mobile-more" aria-expanded="false"><span class="bn">আরও</span><span class="en">More</span></button>
+</nav>
+<nav id="c10-mobile-more" class="c10-mobile-more" aria-label="More modules" hidden>
+ <p class="c10-nav-heading"><span class="bn">অন্যান্য মডিউল</span><span class="en">Other modules</span></p>
+ <a href="#/master" data-mobile-route="master"><span class="bn">মাস্টার ডেটা</span><span class="en">Master data</span></a>
+ <a href="#/sales" data-mobile-route="sales"><span class="bn">বিক্রয় অর্ডার</span><span class="en">Sales orders</span></a>
+ <a href="#/manufacturing" data-mobile-route="manufacturing"><span class="bn">উৎপাদন</span><span class="en">Manufacturing</span></a>
+ <a href="#/staff" data-mobile-route="staff"><span class="bn">কর্মীর কাজ</span><span class="en">Staff workspace</span></a>
+ <a href="#/control" data-mobile-route="control"><span class="bn">মালিক নিয়ন্ত্রণ</span><span class="en">Owner control</span></a>
+ <a href="#/features" data-mobile-route="features"><span class="bn">ফিচার অনুমতি</span><span class="en">Feature permissions</span></a>
+ <a href="#/setup" data-mobile-route="setup"><span class="bn">সেটআপ ও প্রবেশাধিকার</span><span class="en">Setup &amp; access</span></a>
+</nav>
 <script src="/app.js"></script>
 </body></html>
