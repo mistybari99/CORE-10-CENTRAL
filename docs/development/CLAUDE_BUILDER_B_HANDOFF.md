@@ -137,3 +137,26 @@ Reuse table (P2):
 
 3. P2 purchase → GRN → QC → stock (A026, PR #73 lot/expiry, Master parties).
 4. P3 owner multi-business dashboard; P4 10 × 400 scale test.
+
+### Agent B — 0205 read scale
+
+- New migration `internal/migrations/0205_np03a_inventory_read_scale.up.sql` / `.down.sql` (Claude block 0200-0299).
+  `inventory_list_balances_v1` (same signature, error codes `INV_SCOPE` / `INV_INVALID_FILTER`, ordering, keyset
+  `next_after`, 200 cap, JSON shape) now resolves the caller's readable site ids of the business ONCE and filters
+  balances by `site_id = ANY(...)` (index `stock_balances_business_site_ix`), instead of `can_site` per balance row.
+  Rule = `can_site(...,'stock.read')` exactly: a site where the caller has no `site_grants` row reduces to
+  `can_business` (computed once); any site with a grant/deny row (live, expired or inactive) is decided by
+  `core10.can_site` itself, so explicit denies still beat owner/manager rights. Down restores the exact 0201 body
+  (verified: identical `md5(prosrc)` and ACL to a database that never had 0205).
+- Differential check (scratch, not committed): old 0201 body vs 0205 over 8 personas (tenant owner with read/post/
+  expired/inactive denies, live and expired manager, site-only staff with read/post-only/expired/inactive/denied
+  grants, investor, no rights, bad/empty JWT) x 5 businesses (incl. inactive tenant, foreign tenant, missing) x all
+  sites + no site + foreign site x 6 limits, walking every keyset page: 2,328 calls, 0 mismatches.
+- Local PG17 timings (best of 3), before -> after: balances as branch staff over a whole business 1,152-1,297 ms ->
+  15-19 ms (budget 1,500); balances business page (owner) 30-34 ms -> 3-9 ms; site page 3.6 ms -> 1-2 ms.
+  `inventory_list_commands_v1` left unchanged: as branch staff over a whole business it is 75-78 ms (budget 300).
+- `tests/migrations/np03a-scale.sql` is now a CI step ("B-012 P4 scale: 10 businesses x 400 sites (reads, budgets,
+  RPC writes)") right after the owner dashboard e2e; budgets unchanged. Replayed the CI order on one fresh PG17
+  database: contract, up/down/up (38), all e2e, scale, registry gate, inventory race: PASS.
+- Note: 0205 sorts below 0400/0401 (NP06). Fine for disposable databases; a persistent database that already applied
+  04xx would refuse 0205 with OUT_OF_ORDER (none does today: staging is at 0012).
