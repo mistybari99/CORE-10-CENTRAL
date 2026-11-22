@@ -1,0 +1,27 @@
+name: Lane B migration runner fail-closed regression
+on:
+  push:
+    branches:
+      - build/chatgpt-laneb-runner-ci-20261122
+    paths:
+      - 'tests/lane-b/migration-runner-failclosed.test.cjs'
+      - 'internal/migrations/run.sh'
+      - '.github/workflows/lane-b-runner-failclosed.yml'
+  pull_request:
+    paths:
+      - 'tests/lane-b/migration-runner-failclosed.test.cjs'
+      - 'internal/migrations/run.sh'
+      - '.github/workflows/lane-b-runner-failclosed.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runner-negative-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Node version
+        run: node --version
+      - name: Runner out-of-order and checksum-drift negative tests
+        run: node --test tests/lane-b/migration-runner-failclosed.test.cjs
