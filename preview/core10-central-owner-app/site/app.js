@@ -3,22 +3,32 @@
   "use strict";
   var ROUTES = {
     home: "/view/workspace.html?v=universal-owner",
-    business: "/view/workspace.html?v=business-owner-branded",
+    business: "/view/owner-dashboard-signed.html",
     setup: "/live/core10-build01.html",
-    master: "/view/master.html",
+    master: "/view/master-signed.html",
+    stock: "/view/stock-signed.html",
     sales: "/view/sales.html",
     manufacturing: "/view/mfg.html",
-    control: "/view/control.html",
+    control: "/live/core10-owner-control-centre.html",
     features: "/view/workspace.html?v=controls-central",
     approvals: "/live/docs/preview/c10-np01-canonical-reviewer-preview.html",
     staff: "/view/workspace.html?v=staff"
   };
-  var html = document.documentElement, frame = document.getElementById("c10-frame"), draft = document.getElementById("c10-draft");
+  var html = document.documentElement, frame = document.getElementById("c10-frame"), draft = document.getElementById("c10-draft"), dataStatus = document.getElementById("c10-data-status");
   var DRAFT = { sales: true, manufacturing: true };
   var lang = "bn"; try { lang = localStorage.getItem("core10.preview.lang") === "en" ? "en" : "bn"; } catch (_) {}
   function route() {
     var r = (location.hash.replace(/^#\/?/, "") || "home").split("?")[0];
     if (!Object.prototype.hasOwnProperty.call(ROUTES, r)) r = "home";
+    var signed = r === "control" || r === "setup" || r === "master" || r === "stock";
+    dataStatus.querySelector(".bn").textContent = r === "business"
+      ? "CORE10 স্টেজিং · সাইন-ইন করে লাইভ ব্যবসার তথ্য দেখুন (শুধু পড়া)"
+      : signed ? "CORE10 স্টেজিং · সাইন-ইন করলে পরিবর্তন সংরক্ষণ করা যায়"
+      : "প্রিভিউ · নমুনা তথ্য · এখানে পরিবর্তন সংরক্ষিত হয় না";
+    dataStatus.querySelector(".en").textContent = r === "business"
+      ? "CORE10 staging · signed read-only business data"
+      : signed ? "CORE10 staging · signed-in changes can be saved"
+      : "Preview · sample data · changes are not saved";
     Array.prototype.forEach.call(document.querySelectorAll("[data-route]"), function (a) {
       if (a.dataset.route === r) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });

@@ -1,6 +1,7 @@
-// Read-only owner preview runtime. No bindings, no secrets, no outbound fetch. GET/HEAD only.
+// Owner preview runtime. No bindings, no secrets, no server-side fetch. GET/HEAD only.
+// Level 2: the browser may reach ONLY CORE10 staging (rhrqhbyzrhaafynfhdaf) for signed sign-in and RPCs.
 const CSP = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; " +
-  "connect-src 'none'; frame-src 'self'; worker-src 'none'; manifest-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'";
+  "connect-src 'self' https://rhrqhbyzrhaafynfhdaf.supabase.co; frame-src 'self'; worker-src 'none'; manifest-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'";
 // The existing Approval reviewer page mounts itself from an inline module script (unchanged source).
 const INLINE_SCRIPT_OK = new Set(["/live/docs/preview/c10-np01-canonical-reviewer-preview.html"]);
 const SECURITY = {

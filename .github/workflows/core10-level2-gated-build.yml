@@ -1,0 +1,61 @@
+name: CORE10 Level2 gated build and full browser verification
+on:
+  push:
+    branches: [preview/core10-central-level2]
+    paths:
+      - 'preview/core10-central-owner-app/site/**'
+      - 'preview/core10-central-owner-app/build.mjs'
+      - 'preview/core10-central-owner-app/verify.cjs'
+      - 'preview/core10-central-owner-app/worker-runtime.mjs'
+      - '.github/workflows/core10-level2-gated-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: core10-level2-gated-release
+  cancel-in-progress: false
+jobs:
+  verified-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare isolated Chromium browser dependencies
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-level2-playwright"
+          cd "$RUNNER_TEMP/core10-level2-playwright"
+          npm init -y >/dev/null
+          npm install --save-dev playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-level2-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Build deterministic pinned Worker bundle
+        run: |
+          node preview/core10-central-owner-app/build.mjs
+          node --check preview/core10-central-owner-app/dist/worker.mjs
+      - name: FULL local browser and staging-boundary verification, no skipped checks
+        run: node preview/core10-central-owner-app/verify.cjs
+      - name: Preserve exact verified Worker candidate in git (not a deployment)
+        run: |
+          git config user.name "CORE10 Verified Release CI"
+          git config user.email "core10-release-ci@users.noreply.github.com"
+          git add -f preview/core10-central-owner-app/dist/worker.mjs
+          git add preview/core10-central-owner-app/SOURCE_MANIFEST.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(preview): archive build-and-browser-verified Level2 Worker candidate"
+            git push origin HEAD:preview/core10-central-level2
+          else
+            echo "VERIFIED_BUNDLE_ALREADY_COMMITTED"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: core10-level2-fully-verified-candidate
+          path: |
+            preview/core10-central-owner-app/dist/worker.mjs
+            preview/core10-central-owner-app/SOURCE_MANIFEST.json
+          if-no-files-found: error

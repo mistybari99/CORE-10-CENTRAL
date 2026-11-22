@@ -5,6 +5,16 @@
    "ref": "ccr-15ed11dd-n3hw5h",
    "status": "TRUNK_INTEGRATED"
   },
+  "setup": {
+   "sha": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
+   "ref": "ccr-15ed11dd-n3hw5h",
+   "status": "TRUNK_INTEGRATED"
+  },
+  "stock": {
+   "sha": "ac86ee809157af13458b5607132f00a3d72caec9",
+   "ref": "ccr-15ed11dd-n3hw5h",
+   "status": "TRUNK_INTEGRATED"
+  },
   "pr109": {
    "sha": "c7165af0162123c39154445b07d1b730c048519c",
    "ref": "PR #109 NP03B Sales (Draft)",
@@ -16,8 +26,25 @@
    "status": "DRAFT_NOT_INTEGRATED"
   }
  },
- "worker_sha256": "b65cc8e1dfaf070c6005ce2408b7cd64c4c96b12630c884088341f9c66ab0a7a",
+ "worker_sha256": "ba530d45179f9ea146bccb0a04899213a3e396adf7fe6030b28eebf938a5f4b2",
  "files": [
+  {
+   "route": "/live/core10-control-centre-config.js",
+   "bytes": 452,
+   "sha256": "64179b040d661b7c9563e7199be5c48e2adc7c72ef31703225b24aa28ee2d7be",
+   "kind": "LEVEL2_CONFIG",
+   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "source": "core10-control-centre-config.js + STAGING.key (publishable)",
+   "backend": "https://rhrqhbyzrhaafynfhdaf.supabase.co"
+  },
+  {
+   "route": "/live/core10-build01-config.js",
+   "bytes": 369,
+   "sha256": "db7328ec8afdca173244616534f929709ff2c433517b3f5b2044798b9fb89200",
+   "kind": "LEVEL2_CONFIG",
+   "commit": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
+   "source": "core10-build01-config.js + STAGING (core10-staging mode)"
+  },
   {
    "route": "/live/core10-owner-control-centre.css",
    "bytes": 5235,
@@ -79,14 +106,64 @@
    "git_blob": "28d36614ef2a7cca4fdd87e3cffaed2ac77f147b"
   },
   {
-   "route": "/live/core10-build01.html",
-   "bytes": 12286,
-   "sha256": "82975588e3c5ae6599aedab17aee74226025bc749bc3caa78c6936d285b47b3f",
+   "route": "/live/core10-owner-dashboard.html",
+   "bytes": 1089,
+   "sha256": "22761d5a5820365456b20b4dc31344163d85773641745f8db87341c33c623678",
    "kind": "ACTUAL_SOURCE",
    "status": "TRUNK_INTEGRATED",
-   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "commit": "ac86ee809157af13458b5607132f00a3d72caec9",
+   "source": "core10-owner-dashboard.html",
+   "git_blob": "7dd0fd51a7507ea5294dd4a28dae8a94e889327b"
+  },
+  {
+   "route": "/live/core10-owner-dashboard.js",
+   "bytes": 2951,
+   "sha256": "9692ed27a0aa565fe83da620023cf0bd0efaec7d7868331204d5b11a838ebbf1",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "ac86ee809157af13458b5607132f00a3d72caec9",
+   "source": "core10-owner-dashboard.js",
+   "git_blob": "1df4403b24a5c857a87308c12fa6d44f99d58863"
+  },
+  {
+   "route": "/live/core10-owner-dashboard-client.js",
+   "bytes": 3784,
+   "sha256": "b692098e8227c67a39a9bcd94b737c342b57a5eaf6a4eadba128726ae6a7a949",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "ac86ee809157af13458b5607132f00a3d72caec9",
+   "source": "core10-owner-dashboard-client.js",
+   "git_blob": "71decb1b2a7c40fc1378787a1b562ebf9e9608ac"
+  },
+  {
+   "route": "/live/core10-owner-dashboard-ui.js",
+   "bytes": 13862,
+   "sha256": "10c14119c44a4a0484ae1e229037667d740322dabbaf19504e59ce5500bb64f3",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "ac86ee809157af13458b5607132f00a3d72caec9",
+   "source": "core10-owner-dashboard-ui.js",
+   "git_blob": "cc298de7f1ccbae7b22baaa87ae998fda1a6b8b7"
+  },
+  {
+   "route": "/live/core10-owner-dashboard.css",
+   "bytes": 1148,
+   "sha256": "34b8d6077a0c5a30d8cb8f03e63b582e5a088782c888c024911a99134d13816a",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "ac86ee809157af13458b5607132f00a3d72caec9",
+   "source": "core10-owner-dashboard.css",
+   "git_blob": "6feb0448d3ef175d397fa618e9a80750952807e1"
+  },
+  {
+   "route": "/live/core10-build01.html",
+   "bytes": 12327,
+   "sha256": "3115537c852853cf68775cd3c1b04ccf8d1443e55e13e4d0712f141f7bf0e544",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
    "source": "core10-build01.html",
-   "git_blob": "c5ad7764a76e1bf858c411da80bc004f437eb21e"
+   "git_blob": "34203c27a4b62b1738423087af9504c984fb7578"
   },
   {
    "route": "/live/core10-build01.css",
@@ -94,39 +171,29 @@
    "sha256": "403cb60961484cc0f53a0f30749301c79611d2095bbf8e66881c6270596d2b01",
    "kind": "ACTUAL_SOURCE",
    "status": "TRUNK_INTEGRATED",
-   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "commit": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
    "source": "core10-build01.css",
    "git_blob": "8741754027e3b6d9f286b1d858c32ade14b54d5c"
   },
   {
    "route": "/live/core10-build01.js",
-   "bytes": 19120,
-   "sha256": "bac0fdfb7aae502c06e601fb50efc04a9db7d25043a48fcc97ba60170d2b64f7",
+   "bytes": 19132,
+   "sha256": "518d7685d84cc927af39afa48d08cbde8beb6f8e8df289041bc455fa3d6b85dd",
    "kind": "ACTUAL_SOURCE",
    "status": "TRUNK_INTEGRATED",
-   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "commit": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
    "source": "core10-build01.js",
-   "git_blob": "a0a1db793392b7314316216f191c0c446afb0dd4"
+   "git_blob": "4cb65a044147180e68ecc510e90ec089c5124940"
   },
   {
    "route": "/live/core10-build01-client.js",
-   "bytes": 9132,
-   "sha256": "567ca97b0d7fe0eb078613dd79c0b5586e662fb95bdf2ccde7678b37f57a6798",
+   "bytes": 9503,
+   "sha256": "d9f9f5f132c49fd5c0c03a08092d12adfea9eb0a9f4d153318b68d2bd10827f7",
    "kind": "ACTUAL_SOURCE",
    "status": "TRUNK_INTEGRATED",
-   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "commit": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
    "source": "core10-build01-client.js",
-   "git_blob": "6ed1fb497b57687759ec750a863930cadbaea3b7"
-  },
-  {
-   "route": "/live/core10-build01-config.js",
-   "bytes": 290,
-   "sha256": "9a3abdbef0ea55fa3c28369c4ab82a9f864a60ec8a6925af9a3aa97f28d1ee76",
-   "kind": "ACTUAL_SOURCE",
-   "status": "TRUNK_INTEGRATED",
-   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
-   "source": "core10-build01-config.js",
-   "git_blob": "85de88ae20c05ccdd9e6be27df43e802363a6d6f"
+   "git_blob": "b3ec03c2c5d1645af5e2cda67c04582c6cd36168"
   },
   {
    "route": "/live/core10-build01-pack02.js",
@@ -167,6 +234,26 @@
    "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
    "source": "vendor/supabase.js",
    "git_blob": "4102ef6b858ae140de4cf9549a2dfa1fccaec807"
+  },
+  {
+   "route": "/live/core10-owner-control-centre.html",
+   "bytes": 989,
+   "sha256": "a641b7c66b9ae6f9294bd8ec32e7bd315b59a65dba954b2743ee69151c39158f",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "source": "core10-owner-control-centre.html",
+   "git_blob": "4e51d882f2dac8ceef9a48cc39a63b6c912029a8"
+  },
+  {
+   "route": "/live/core10-owner-control-centre.js",
+   "bytes": 3934,
+   "sha256": "bc91b83c73610233f5492503271ca211dfaa8c2740b7b17fc7f0098dc8efc016",
+   "kind": "ACTUAL_SOURCE",
+   "status": "TRUNK_INTEGRATED",
+   "commit": "a82ae993b93c1460898b9022bb56b7a995d96437",
+   "source": "core10-owner-control-centre.js",
+   "git_blob": "08cbad1f77a76a4d66e18d2db5dafeff8e32555e"
   },
   {
    "route": "/live/core10-pack02-workspace.js",
@@ -381,15 +468,15 @@
   },
   {
    "route": "/app.js",
-   "bytes": 2176,
-   "sha256": "e457fc728ad0b48b84278fd7a5d995198bd4ebe57088d93132b025bfae8d4ab2",
+   "bytes": 3161,
+   "sha256": "e26741afa722dda2b6296742c05d686513ded64f65db423a5a1d7f2decb5a075",
    "kind": "PREVIEW_SHELL",
    "source": "preview/core10-central-owner-app/site/app.js"
   },
   {
    "route": "/index.html",
-   "bytes": 2926,
-   "sha256": "0ba4b5b6b2b9c74929253fe70b613bff066d4c64f115da3f3f0b67b4a3e3301f",
+   "bytes": 3155,
+   "sha256": "4c93b9cedc9dd4600197a433810804787c37229cf4baf0d9fdf5a0dbb89d0f63",
    "kind": "PREVIEW_SHELL",
    "source": "preview/core10-central-owner-app/site/index.html"
   },
@@ -406,6 +493,20 @@
    "sha256": "f96af8bb1ec4750607725ab71549a1a6b366a70238ec1f0d06cea567faae4749",
    "kind": "PREVIEW_SHELL",
    "source": "preview/core10-central-owner-app/site/view/control.js"
+  },
+  {
+   "route": "/view/master-signed.html",
+   "bytes": 808,
+   "sha256": "d7ea2dee365ba8a62d11a653e028e8a5ed90730a127c78cdadccff26b67f4035",
+   "kind": "PREVIEW_SHELL",
+   "source": "preview/core10-central-owner-app/site/view/master-signed.html"
+  },
+  {
+   "route": "/view/master-signed.js",
+   "bytes": 5644,
+   "sha256": "e51ee14ffabafeac3e2b283e96fd28558e5ff86c31f430e047cfc7a28859cec8",
+   "kind": "PREVIEW_SHELL",
+   "source": "preview/core10-central-owner-app/site/view/master-signed.js"
   },
   {
    "route": "/view/master.html",
@@ -436,6 +537,20 @@
    "source": "preview/core10-central-owner-app/site/view/mfg.mjs"
   },
   {
+   "route": "/view/owner-dashboard-language.js",
+   "bytes": 447,
+   "sha256": "bac6d97ce17700c29b1fb2ce6e3e0c051f5c704f358c75495b4394b4367f6e53",
+   "kind": "PREVIEW_SHELL",
+   "source": "preview/core10-central-owner-app/site/view/owner-dashboard-language.js"
+  },
+  {
+   "route": "/view/owner-dashboard-signed.html",
+   "bytes": 1001,
+   "sha256": "8ee0746d6e51be53ebddf9585d31d2d4e2b3f5bebcea88113ee3948999976d44",
+   "kind": "PREVIEW_SHELL",
+   "source": "preview/core10-central-owner-app/site/view/owner-dashboard-signed.html"
+  },
+  {
    "route": "/view/replay.js",
    "bytes": 1354,
    "sha256": "9028993091dc3f06f4e305125755ed0e969fcc1f4582d8e293862343b068e9c2",
@@ -455,6 +570,27 @@
    "sha256": "9a5a5b89e0808e458128342d38cfb3512bbd80af4881c2baa80478b5cd72b7dc",
    "kind": "PREVIEW_SHELL",
    "source": "preview/core10-central-owner-app/site/view/sales.js"
+  },
+  {
+   "route": "/view/stock-signed.css",
+   "bytes": 1421,
+   "sha256": "b6441a99c705f54153974636d3e4f45d5ed40b812250669332730f860d1b7299",
+   "kind": "PREVIEW_SHELL",
+   "source": "preview/core10-central-owner-app/site/view/stock-signed.css"
+  },
+  {
+   "route": "/view/stock-signed.html",
+   "bytes": 602,
+   "sha256": "222a4afaf8f1c19f3a111606f1bd89f381098c19735086897e0a17d9cb006d6b",
+   "kind": "PREVIEW_SHELL",
+   "source": "preview/core10-central-owner-app/site/view/stock-signed.html"
+  },
+  {
+   "route": "/view/stock-signed.js",
+   "bytes": 11814,
+   "sha256": "c789fdc8f7b0cb2e01a5aaf32bc432de6e9105efad4edb1440ad14cf3d481df9",
+   "kind": "PREVIEW_SHELL",
+   "source": "preview/core10-central-owner-app/site/view/stock-signed.js"
   },
   {
    "route": "/view/view.css",

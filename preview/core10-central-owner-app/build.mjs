@@ -10,16 +10,22 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../..");
 export const PINS = {
   trunk: { sha: "a82ae99", ref: "ccr-15ed11dd-n3hw5h", status: "TRUNK_INTEGRATED" },
+  setup: { sha: "6f058dc", ref: "ccr-15ed11dd-n3hw5h", status: "TRUNK_INTEGRATED" },
+  stock: { sha: "ac86ee8", ref: "ccr-15ed11dd-n3hw5h", status: "TRUNK_INTEGRATED" },
   pr109: { sha: "c7165af", ref: "PR #109 NP03B Sales (Draft)", status: "DRAFT_NOT_INTEGRATED" },
   pr112: { sha: "86851dc", ref: "PR #112 NP05A Sweets Manufacturing (Draft)", status: "DRAFT_NOT_INTEGRATED" },
 };
-const T = "trunk";
+const T = "trunk", S = "stock";
 export const LIVE = [
   [T, "core10-owner-control-centre.css"], [T, "core10-owner-control-centre-ui.js"], [T, "core10-owner-control-client.js"],
   [T, "core10-master-data.css"], [T, "core10-master-data-client.js"], [T, "core10-master-data-ui.js"],
-  [T, "core10-build01.html"], [T, "core10-build01.css"], [T, "core10-build01.js"], [T, "core10-build01-client.js"],
-  [T, "core10-build01-config.js"], [T, "core10-build01-pack02.js"], [T, "core10-enterprise-client.js"], [T, "core10-control-studio.css"],
+  [S, "core10-owner-dashboard.html"], [S, "core10-owner-dashboard.js"],
+  [S, "core10-owner-dashboard-client.js"], [S, "core10-owner-dashboard-ui.js"], [S, "core10-owner-dashboard.css"],
+  ["setup", "core10-build01.html"], ["setup", "core10-build01.css"], ["setup", "core10-build01.js"], ["setup", "core10-build01-client.js"],
+  [T, "core10-build01-pack02.js"], [T, "core10-enterprise-client.js"], [T, "core10-control-studio.css"],
   [T, "vendor/supabase.js"],
+  // GO-3 Level 2 (2026-11-22): the real signed Owner Control Centre against CORE10 staging (0100-0106 applied under GO-2).
+  [T, "core10-owner-control-centre.html"], [T, "core10-owner-control-centre.js"],
   [T, "core10-pack02-workspace.js"], [T, "core10-pack02-workspace.css"], [T, "core10-pack02-controls.js"],
   [T, "docs/preview/c10-np01-canonical-reviewer-preview.html"],
   [T, "internal/enterprise-client/c10_np01_reviewer_workspace_v1.mjs"],
@@ -30,12 +36,14 @@ export const LIVE = [
   ["pr112", "core10-operational-flow.css"], ["pr112", "modules/manufacturing/manufacturing.css"],
   ["pr112", "modules/manufacturing/workbench.mjs"], ["pr112", "modules/manufacturing/client.mjs"],
 ];
+// Level 2: the ONLY backend this bundle may reach, and its publishable (client-side, RLS/RPC-guarded) key.
+export const STAGING = { ref: "rhrqhbyzrhaafynfhdaf", key: "sb_publishable_HeeiXCowelMel7kc171mvg_4xwkh7wf" };
 export const SAMPLES = ["universal-owner", "business-owner-branded", "staff", "controls-central"];
 const REPLAYS = [["/view/control-data.js", "CORE10_PREVIEW_CONTROL", "occ-owner-replay.json", T],
   ["/view/master-data.js", "CORE10_PREVIEW_MASTER", "md-replay.json", T],
   ["/view/sales-data.js", "CORE10_PREVIEW_SALES", "sales-replay.json", "pr109"],
   ["/view/mfg-data.js", "CORE10_PREVIEW_MFG", "mfg-replay.json", "pr112"]];
-const FORBIDDEN = /(^|\/)(config\.js|owner\.html|core10-shell\.js|core10-control-centre-config\.js|core10-owner-control-centre\.js|core10-master-data\.js|sql-gateway\.cjs|ui-gateway\.cjs|gateway\.cjs|harness\.(js|html|mjs)|ui-harness\.js|md-harness\.(js|html)|seed\.sql)$/;
+const FORBIDDEN = /(^|\/)(config\.js|index\.html|owner\.html|core10-stocktake-offline\.html|core10-stocktake-preview\.js|core10-shell\.js|core10-master-data\.js|sql-gateway\.cjs|ui-gateway\.cjs|gateway\.cjs|harness\.(js|html|mjs)|ui-harness\.js|md-harness\.(js|html)|seed\.sql)$/;
 
 const TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8",
   ".mjs": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml" };
@@ -55,6 +63,20 @@ export function build() {
     files[route] = [TYPES[path.extname(route)] || "application/octet-stream", buf.toString("base64")];
     manifest.push({ route, bytes: buf.length, sha256: sha256(buf), ...entry });
   };
+  {
+    const src = pinned(T, "core10-control-centre-config.js").toString("utf8");
+    const url = "https://" + STAGING.ref + ".supabase.co";
+    if (!src.includes('url: "' + url + '", key: ""')) throw new Error("CONFIG_SOURCE_CHANGED");
+    add("/live/core10-control-centre-config.js", Buffer.from(src.replace('key: ""', "key: " + JSON.stringify(STAGING.key))),
+      { kind: "LEVEL2_CONFIG", commit: full(T), source: "core10-control-centre-config.js + STAGING.key (publishable)", backend: url });
+  }
+  {
+    const src = pinned("setup", "core10-build01-config.js").toString("utf8");
+    if (!/enabled: false,\s*mode: "isolated-development",\s*url: "",\s*publishableKey: ""/.test(src)) throw new Error("SETUP_CONFIG_SOURCE_CHANGED");
+    const out = src.replace(/enabled: false,(\s*)mode: "isolated-development",(\s*)url: "",(\s*)publishableKey: ""/,
+      (m, a, b, c) => "enabled: true," + a + 'mode: "core10-staging",' + b + 'url: "https://' + STAGING.ref + '.supabase.co",' + c + "publishableKey: " + JSON.stringify(STAGING.key));
+    add("/live/core10-build01-config.js", Buffer.from(out), { kind: "LEVEL2_CONFIG", commit: full("setup"), source: "core10-build01-config.js + STAGING (core10-staging mode)" });
+  }
   for (const [k, p] of LIVE) add("/live/" + p, pinned(k, p), { kind: "ACTUAL_SOURCE", status: PINS[k].status, commit: full(k), source: p, git_blob: blob(k, p) });
   const ws = {};
   for (const n of SAMPLES) ws[n] = JSON.parse(pinned(T, `tests/pack02/fixtures/${n}.json`).toString("utf8"));
