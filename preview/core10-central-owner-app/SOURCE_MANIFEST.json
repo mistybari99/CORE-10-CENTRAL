@@ -21,7 +21,7 @@
    "status": "DRAFT_NOT_INTEGRATED"
   }
  },
- "worker_sha256": "0a97d1a234e0fd39e9c5946698767dc525b8aeeebe652b9d9bcd014cc36b70ee",
+ "worker_sha256": "3ae944b1cdcb49f4701457d629e99b61f4acff32fff7b77e2713d3f16568fc28",
  "files": [
   {
    "route": "/live/core10-control-centre-config.js",
@@ -413,8 +413,8 @@
   },
   {
    "route": "/app.js",
-   "bytes": 2832,
-   "sha256": "2fde312561c14b9105e209ac9b552f82fa958aad71b3643f5e18d007d3a87e5e",
+   "bytes": 2857,
+   "sha256": "9ef357a8b2de7abcc14da277903cdb4d682ab10eeae3f4e9510c605632be74aa",
    "kind": "PREVIEW_SHELL",
    "source": "preview/core10-central-owner-app/site/app.js"
   },
@@ -438,6 +438,20 @@
    "sha256": "f96af8bb1ec4750607725ab71549a1a6b366a70238ec1f0d06cea567faae4749",
    "kind": "PREVIEW_SHELL",
    "source": "preview/core10-central-owner-app/site/view/control.js"
+  },
+  {
+   "route": "/view/master-signed.html",
+   "bytes": 808,
+   "sha256": "d7ea2dee365ba8a62d11a653e028e8a5ed90730a127c78cdadccff26b67f4035",
+   "kind": "PREVIEW_SHELL",
+   "source": "preview/core10-central-owner-app/site/view/master-signed.html"
+  },
+  {
+   "route": "/view/master-signed.js",
+   "bytes": 5644,
+   "sha256": "e51ee14ffabafeac3e2b283e96fd28558e5ff86c31f430e047cfc7a28859cec8",
+   "kind": "PREVIEW_SHELL",
+   "source": "preview/core10-central-owner-app/site/view/master-signed.js"
   },
   {
    "route": "/view/master.html",
