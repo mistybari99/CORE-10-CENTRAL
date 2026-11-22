@@ -8,7 +8,7 @@ Resume from the last pushed SHA without chat history. Rules: `docs/coordination/
 | Draft PR | into trunk (see PR list; title starts `NP03A B-012`) |
 | Migration block | 0201–0299 (NP03A, Claude). 0200 already on trunk |
 | Board row | B-012 |
-| Hosted / deployed | **nothing.** No staging, Cloudflare or live action. IMG-ERP-SG untouched |
+| Hosted / deployed | **nothing from this branch.** Trunk Session A hosted 0201–0206 on CORE10 staging via PR #129 (2026-11-22); 0207 is NOT hosted. No Cloudflare / live action here. IMG-ERP-SG untouched |
 
 ## P1 — stock commands (0201): reuse table (2026-11-21)
 
@@ -277,3 +277,46 @@ Reuse table (P2):
   post-time re-check (tampered draft), no GRN lock on draft (race: 3 drafts won).
 - Not done: UI (GRN cancel button, return screen, lot expiry list); lot-level balances / FEFO / recall; AP debit
   note for returns (NP06); signed staging run; hosted apply of 0207 (needs Owner GO).
+
+### Checkpoint 5 — purchase screen, 0207, shell links, trunk sync (2026-11-22, Agent I integrator)
+
+Landed on `build/claude-np03a-stock` (Draft PR #123 into trunk):
+- Agent F (`32f66405`): Purchases screen `core10-purchase.html` + `core10-purchase-{client,ui}.js`, `.css`, `.js` (bn/en;
+  business/site choice, paged PO list, PO detail, draft create/edit, approve, send for approval 0206, cancel/close,
+  GRN with lot/made/expiry, QC accepted/rejected, post accepted qty). Test `tests/control-centre/purchase-browser.cjs`
+  (+ `pu-harness.*`, `pu-seed.sql`), 390/1440. `sql-gateway.cjs`: adds purchase RPCs plus a test-only, column-locked
+  table read `core10.stock_locations (id, site_id, code)` through RLS (no location-list RPC exists yet).
+- Agent G (`aa7ed5cf`): `0207_np03a_grn_cancel_supplier_return` (see "Agent G — 0207" above) + e2e and race tests.
+- Agent H (`6fe88668`) then `8c9d8ee4`: Owner-only shell links Owner dashboard + Purchases (header and `?biz=N`).
+- Trunk sync `416a7e50` = merge of `ccr-15ed11dd-n3hw5h` @ `6424aabe`. Session A integrated our 0201–0206 as the
+  isolated PR #129 (`ac86ee80`, with post-row-lock Auth re-checks in 0201/0203/0206 and a revocation race in
+  `np03a-inventory-race.sh`) and hosted 0201–0206 on staging; PR #123 itself was NOT merged (kept open as this
+  branch's Draft PR). Conflicts: 0201/0203/0206 up files and `np03a-inventory-race.sh` = TRUNK version; workflow,
+  `sql-gateway.cjs`, this handoff = union. 0207 `procurement_advance_po_v1` = trunk 0206 body (incl. re-check) + the
+  two cancelled-receipt lines, so no trunk guard is lost. Migration numbers unique; only new number is 0207.
+
+Decision — Stock operations screen NOT built: ChatGPT lane B-038 (PR #126) already has a live signed stock workbench
+(`/#/stock`). Links `core10-stock-ops-entry` / `core10-stock-ops-biz-entry` and their assertions removed (no link to
+a missing page). Gaps to request from the ChatGPT lane for that workbench: balances list, cancel action, the
+`inventory_request_approval_v1` (0202) path, bn/en `INV_*` / `CONTROL_*` messages, paging, item picker, PG17 tests.
+
+Local results at `416a7e50` (PG17 disposable cluster, one fresh DB per workflow job, steps in workflow order):
+| Workflow / job | Result |
+|---|---|
+| core10-b010-control-port-ci / control-port (incl. 5 Chromium tests) | 31/31 PASS (Chromium install skipped: preinstalled) |
+| core10-s0-migrations-ci / migrations | 2/2 PASS |
+| core10-s1c-canonical-approval-ci / s1c-approval-audit | 6/6 SQL+JS PASS; python Playwright smoke NOT RUN locally (module not installed; runs on GitHub) |
+| np01-s1c-remainder-ci / np01-negative-proof | 17/17 PASS |
+| core10-np06-finance-ci / finance-pg17 | 10/10 PASS |
+| core10-np05a-manufacturing-ci / manufacturing | 19/19 PASS (browser install skipped) |
+Shell navigation 16/16, purchase browser PASS, supplier-return e2e + race PASS. GitHub CI: see PR #123 checks.
+
+Open items:
+- PO approval threshold currency: core10 has no business currency (`currency_total` is not a GOV-002 unit), a
+  threshold on the procurement policy still fails closed → Owner decision (business base currency vs price-list).
+- Location list RPC to replace the test-gateway table read of `core10.stock_locations` (hosted client needs it).
+- Lot balances / FEFO / recall (0207 has only the lot expiry read; `on_hand_by_lot: NOT_CONNECTED`).
+- AP debit note for supplier returns (NP06 lane).
+- UI for GRN cancel and supplier return (RPCs exist in 0207; no buttons yet).
+- Signed staging GO-2 (apply 0207) and GO-3 (publish purchase screen) need Owner GO; nothing hosted from here.
+
