@@ -39,8 +39,10 @@
       if (!s || typeof s !== 'object') throw Error('INVALID_SITE');
       const id = nonempty(s.id, 90, 'INVALID_SITE_ID');
       const name = nonempty(s.name, 120, 'INVALID_SITE_NAME');
+      const kind = s.kind === undefined ? 'showroom' : nonempty(s.kind, 30, 'INVALID_SITE_KIND');
+      if (!['showroom','factory','warehouse','office','project'].includes(kind)) throw Error('INVALID_SITE_KIND');
       if (map.has(id)) throw Error('DUPLICATE_SITE_ID');
-      map.set(id, Object.freeze({id,name}));
+      map.set(id, Object.freeze({id,name,kind}));
     }
     const day = nonempty(config.date, 10, 'DATE_REQUIRED');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(Date.parse(day+'T12:00:00Z')) ||
@@ -49,7 +51,10 @@
     if (!Array.isArray(events) || events.length > 2000) throw Error('INVALID_EVENTS');
     const forms = [];
     const seen = new Set();
-    for (const site of map.values()) forms.push({
+    // Only retail/showroom sites receive the retail-sales close by default.
+    // A factory or warehouse must use its actual event paperwork and rolling books;
+    // inventing a sales close for it would add pointless daily work.
+    for (const site of map.values()) if (site.kind === 'showroom') forms.push({
       key: 'daily:'+day+':'+site.id,formId:'OPS-DAILY',siteId:site.id,siteName:site.name,
       type:'daily',eventId:null,source:'R-01',status:'DRAFT_PRINTABLE'
     });
@@ -72,7 +77,9 @@
     return Object.freeze({
       date:day,businessName:business,industry:config.industry,
       forms:Object.freeze(forms.map(x=>Object.freeze(x))),
-      count:forms.length,dailyCount:sites.length,eventCount:events.length,
+      count:forms.length,dailyCount:sites.filter(s=>(s.kind || 'showroom')==='showroom').length,
+      eventCount:events.length,
+      excludedDailySites:Object.freeze([...map.values()].filter(s=>s.kind!=='showroom')),
       outstandingBooks:INDEPENDENT_BOOKS,
       coverageStatus:'INCOMPLETE_DRAFT_DO_NOT_USE_AS_A_COMPLETE_OFFLINE_ACCOUNTING_KIT'
     });
@@ -80,6 +87,8 @@
   function printKit(plan, settings) {
     if (!plan || !Array.isArray(plan.forms) || plan.coverageStatus !==
       'INCOMPLETE_DRAFT_DO_NOT_USE_AS_A_COMPLETE_OFFLINE_ACCOUNTING_KIT') throw Error('INVALID_PLAN');
+    if (plan.forms.length === 0) throw Error('EMPTY_PLAN_REQUIRES_OPERATIONAL_EVENT');
+    if (plan.forms.length > 100) throw Error('PRINT_BATCH_LIMIT_100_USE_MULTIPLE_KITS');
     const opts = settings || {};
     const parts=[];
     for (const item of plan.forms) {
