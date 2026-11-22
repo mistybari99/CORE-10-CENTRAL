@@ -227,3 +227,12 @@ CONFLICT TO RESOLVE: after fix 2, the test's own tamper setup (plain UPDATE of a
 `tamper`/`line_tamper`) will itself raise and abort the script. The test needs a reviewed adjustment so the tamper
 cases are either expected to be blocked by the trigger (stronger) or simulated with the trigger bypassed by the
 table owner in a controlled way. Decide with the Sales lane before changing the test; never weaken assertions.
+
+### 7b. App organization review — 2026-11-22
+Full survey + safe reorganization plan: branch `review/app-organization-20261122` @ `2e4f6bc`,
+`docs/development/APP_ORGANIZATION_REVIEW.md` (+ 22 screenshots). Read before any UI/shell/file-move work.
+Top steps: (1) FILE_CLASSIFICATION.json + test, (2) test blocking legacy config/v2/old Supabase from live code,
+(3) move live shell (site/, build.mjs, verify.cjs) onto trunk under apps/central/ (byte-identical build gate),
+(4) one sign-in + Group ▸ Business ▸ Site context bar, regrouped menu, role homes, Android bottom bar,
+(5) one design-token CSS + bn/en dictionaries. Moving legacy IMG-ERP files to legacy/ needs Owner approval.
+NOTE: Sales 030x must reach staging BEFORE Finance 040x / Manufacturing 050x, or later Sales applies are OUT_OF_ORDER.
