@@ -31,4 +31,18 @@ for(const file of manifest.files){
   fs.mkdirSync(path.dirname(dest),{recursive:true});
   fs.writeFileSync(dest,bytes,{flag:"wx"});
 }
-console.log("PASS CI-ONLY preserved legacy test fixture: 463 original Git blobs restored ephemerally; not part of branch or live bundle.");
+// The 25 quarantined CORE10 draft pages deliberately omit the old config loader.
+// For historical *non-shipping* browser contract tests ONLY, reconstitute that
+// original loader in this disposable checkout. The host DNS block above applies.
+// The real branch files and actual Worker remain untouched.
+const detached="<!-- Unshipped CORE10 view: legacy runtime configuration disconnected. -->";
+let restoredPages=0;
+for(const name of fs.readdirSync(root).filter(x=>/^core10-.*\.html$/.test(x))){
+  const p=path.join(root,name),body=fs.readFileSync(p,"utf8");
+  if(!body.includes(detached))continue;
+  assert.doesNotMatch(body,/<script\b[^>]*\bsrc\s*=\s*["']\.\/config\.js["']/i);
+  fs.writeFileSync(p,body.replaceAll(detached,'<script src="./config.js"></script>'));
+  restoredPages++;
+}
+assert.equal(restoredPages,25,"HISTORICAL_DRAFT_PAGE_FIXTURE_COUNT_CHANGED");
+console.log("PASS CI-ONLY preserved legacy test fixture: 463 original Git blobs + 25 legacy draft loader fixtures; protected hosts blocked; no live change.");
