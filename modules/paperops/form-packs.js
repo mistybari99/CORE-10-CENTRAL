@@ -19,6 +19,123 @@
   const sig=(...pairs)=>pairs.map(([bn,en])=>t(bn,en));
   const COMMON_APPROVAL=sig(['প্রস্তুতকারী','Prepared by'],['স্বতন্ত্র যাচাইকারী','Independent checker']);
   return [
+
+    {
+      id:'TRANSFER-DETAIL',industries:['all'],status:'draft',cadence:'event',legacyRefs:['W-02'],
+      title:t('W-02 পণ্য স্থানান্তরের বিস্তারিত ও প্যাকেজ রিটার্ন','W-02 transfer detail and packaging returns'),
+      rule:t('মূল ট্রান্সফার চালানের পরিপূরক। পণ্যভিত্তিক প্রাপ্তি, ক্ষয়ক্ষতি, বাক্স/ট্রে ফেরত ও উভয় কাগজের রেফারেন্স রাখুন। প্রাসঙ্গিক ও প্রয়োজনীয় মূল দলিল কখনো বাদ দেবেন না।','Supplementary to the signed transfer challan. Retain received quantities by item, damage, outstanding crates/trays and both-paper references. Never discard required original source evidence.'),
+      sections:[
+        s('চালানের আইটেম ও প্রেরণ প্রমাণ','Transfer item and dispatch proof',[
+          f("grades","গ্রেড (১ম / ২য়) লেখা","Grade (1st / 2nd) written"),
+          f("item","আইটেম","Item"),
+          f("unit","একক","Unit"),
+          f("grade","গ্রেড","Grade"),
+          f("prod_date","উৎপাদন তারিখ","Production date"),
+          f("tag","ট্যাগ রং (সেটিংস থেকে)","Tag colour (from settings)"),
+          f("demand","চাহিদা","Demand"),
+          f("remark","মন্তব্য / ড্যামেজ","Remark / damage"),
+          f("count_time","গণনার সময়","Count time")
+        ]),
+        s('প্রাপকের গণনা, মান ও ক্ষতির প্রমাণ','Recipient count, grade and damage proof',[
+          f("in_time","ইন টাইম (প্রাপক)","In time (receiver)"),
+          f("sender_counted","প্রেরক গণনা করেছেন","Sender counted"),
+          f("dates_ok","সব লাইনে উৎপাদন তারিখ আছে","Production dates on every line"),
+          f("tag_ok","ট্যাগ রং চালানের তারিখের সাথে মিল","Tag colour matches the challan date"),
+          f("damage_note","ড্যামেজ — পণ্য, পরিমাণ, মূল্য","Damage — item, quantity, value"),
+          f("qty","পরিমাণ","Quantity"),
+          f("reason","কারণ","Reason"),
+          f("paper_no","সংশ্লিষ্ট কাগজের নং","Related paper no."),
+          f("crates_sent","ক্যারেট — প্রেরিত","Crates sent")
+        ]),
+        s('বাক্স ও ট্রে ফেরত / দায়','Crates, trays and outstanding liability',[
+          f("crates_back","ক্যারেট — ফেরত","Crates returned"),
+          f("crates_due","ক্যারেট — বকেয়া","Crates outstanding"),
+          f("trays_sent","ট্রে — প্রেরিত","Trays sent"),
+          f("trays_back","ট্রে — ফেরত","Trays returned"),
+          f("trays_due","ট্রে — বকেয়া","Trays outstanding"),
+          f("crates_match","ক্যারেট/ট্রের হিসাব মিলেছে","Crate/tray count matches"),
+          f("in_factory_sheet","কারখানা দৈনিক শিটে লেখা","Written in the factory daily sheet"),
+          f("factory_sheet_no","কারখানা শিট নং","Factory sheet no.")
+        ]),
+        s('কারখানা, লেজার, অর্ডার ও পেমেন্টের সংশ্লিষ্ট প্রমাণ','Factory, ledger, order and payment references',[
+          f("in_stock_ledger","স্টক লেজারে লেখা","Written in the stock ledger"),
+          f("both_papers","চালান নং দুই কাগজেই লেখা","Challan no. written on both papers"),
+          f("order_invoice_no","অর্ডার ফরম / ইনভয়েস নং","Order form / invoice no."),
+          f("recv_name","প্রাপকের নাম","Receiver name"),
+          f("recv_phone","ফোন","Phone"),
+          f("pay","পেমেন্ট","Payment"),
+          f("cash_amount","ক্যাশ টাকা","Cash amount")
+        ])
+      ],
+      signatures:sig(['প্রেরণকারী','Sender'],['পৃথক গণনাকারী','Independent receiver'],['প্যাকেজ/ক্ষতি যাচাইকারী','Packaging/damage reviewer'])
+    },
+    {
+      id:'SWEETS-SHOP-CHECK',industries:['sweets'],status:'draft',cadence:'event',legacyRefs:['R-01'],
+      title:t('R-01 শোরুম খোলা, নিরাপত্তা ও অতিরিক্ত প্রমাণ','R-01 showroom opening, safety and extra evidence'),
+      rule:t('দৈনিক ক্লোজিংয়ের বিকল্প নয়; R-01-এর সোর্স-ভিত্তিক পরিপূরক চেকলিস্ট। খাবার, তাপমাত্রা, মেয়াদ, পরিষ্কার, মালামাল গ্রহণ ও খরচের আসল প্রমাণ যতক্ষণ না পুরো সমতা যাচাই হয় ততক্ষণ রাখুন।','Supplement to daily closing, never a substitute. Keep original food safety, temperature, expired goods, cleaning, receipts and voucher evidence until field-level parity is certified.'),
+      sections:[
+        s('ইমপ্রেস্ট, ফ্রিজ ও পণ্যের অবস্থা','Imprest, fridges and food condition',[
+          f("imp_receipts","ইমপ্রেস্ট — রসিদ","Imprest — receipts"),
+          f("imp_text","নগদ + রসিদ = নির্ধারিত?","Cash + receipts = fixed amount?"),
+          f("name","ইউনিট","Unit"),
+          f("noise","শব্দ ঠিক","Sound OK"),
+          f("leak","লিকেজ নেই","No leak"),
+          f("cold","ঠান্ডা ঠিক","Cooling OK"),
+          f("seal","দরজার সিল ঠিক","Door seal OK"),
+          f("temp","তাপমাত্রা °C","Temperature °C"),
+          f("temp_ok","সীমার মধ্যে?","Within range?"),
+          f("fridge_defect","ত্রুটির বিবরণ","Defect details"),
+          f("product_cond","পণ্যের অবস্থা — ত্রুটি থাকলে লিখুন","Product condition — write any defect"),
+          f("product_ok","ত্রুটি নেই","No defect"),
+          f("expired_shown","ডিসপ্লেতে মেয়াদ শেষ পণ্য?","Expired goods on display?"),
+          f("expired_informed","ব্যবস্থাপনাকে জানানো হয়েছে","Management informed"),
+          f("key_shutter","চাবির দায়িত্বে — শাটার","Keys — shutter"),
+          f("key_drawer","চাবির দায়িত্বে — ড্রয়ার","Keys — drawer"),
+          f("key_stock","চাবির দায়িত্বে — স্টক-রুম","Keys — stock room")
+        ]),
+        s('দায়িত্ব ও শুরুর পরিচ্ছন্নতা','Keys, duties and opening hygiene',[
+          f("duties","আজকের দায়িত্ব ভাগ (পরিষ্কার, ডিসপ্লে, অর্ডার বোর্ড, ক্যাশ)","Today's duty split (cleaning, display, order board, cash)"),
+          f("r_pack","প্যাকেজিং স্টক","Packaging stock"),
+          f("r_pest","পোকামাকড় নিয়ন্ত্রণ","Pest control"),
+          f("r_cobweb","মাকড়সার জাল","Cobwebs"),
+          f("r_trays","ট্রে ঘোরানো ও সাজানো","Trays rotated and arranged"),
+          f("r_light","আলো ও ব্র্যান্ডিং","Lights and branding"),
+          f("open_all_ok","সব বাধ্যতামূলক ঘর পূরণ ও ঠিক","All required boxes filled and correct"),
+          f("challan_no","চালান নং","Challan no.")
+        ]),
+        s('মালামাল গ্রহণ ও স্বাক্ষর','Goods receiving and source signatures',[
+          f("time","সময়","Time"),
+          f("from","কোথা থেকে","From"),
+          f("written","চালানে লেখা","Written on challan"),
+          f("counted","গণনায় প্রাপ্ত","Counted"),
+          f("short","ঘাটতি / ড্যামেজ","Shortage / damage"),
+          f("prod_date","উৎপাদন তারিখ","Production date"),
+          f("tag","ট্যাগ রং","Tag colour"),
+          f("signed","দুজনের স্বাক্ষর","Both signed"),
+          f("clean","পরিষ্কার — সম্পাদনকারী ও যাচাইকারী আলাদা জন","Cleaning — doer and checker are different people"),
+          f("doer","সম্পাদনকারী","Done by")
+        ]),
+        s('পরিষ্কার, ডিসপ্লে, তাপমাত্রা ও কোয়ালিটি','Cleaning, display, extra temperature and quality',[
+          f("verifier","যাচাইকারী","Checked by"),
+          f("done","সম্পন্ন","Done"),
+          f("disp_open","ডিসপ্লে সাজানো (আগের মালামাল সামনে — FIFO): খোলার সময়","Display arranged (older stock in front — FIFO): at opening"),
+          f("disp_peak","বড় বিক্রির পর","After a big sale"),
+          f("sun_move","রোদ / গরম থেকে পণ্য সরানো — সময় ও কারণ","Goods moved from sun / heat — time and reason"),
+          f("t2_1","দ্বিতীয়বার তাপমাত্রা ১ °C (ব্যস্ত দিনে)","Second temperature 1 °C (busy day)"),
+          f("t2_2","দ্বিতীয়বার তাপমাত্রা ২ °C","Second temperature 2 °C"),
+          f("parcel_check","পার্সেল প্যাকিংয়ের আগে মান যাচাই","Quality checked before packing parcels"),
+          f("parcel_defect","ত্রুটি থাকলে লিখুন","Write any defect"),
+          f("vouchers","দৈনিক খরচ (শুধু ইমপ্রেস্ট থেকে)","Daily expenses (from the imprest only)")
+        ]),
+        s('ইমপ্রেস্ট ব্যয়ের রেফারেন্স, দৈনিক নতুন ভাউচার নয়','Expense voucher references, no duplicate expense ledger',[
+          f("v_no","ব্যয় ভাউচার নং","Expense voucher no."),
+          f("v_head","খাত","Head"),
+          f("v_amt","টাকা","Amount"),
+          f("v_rec","রসিদ","Receipt"),
+          f("v_total","মোট খরচ","Total expenses")
+        ])
+      ],signatures:sig(['ডিউটি ম্যানেজার','Duty manager'],['স্বতন্ত্র পরিচ্ছন্নতা/মান যাচাইকারী','Independent hygiene/QC checker'])
+    },
     {
       id:'EXP-VOUCHER',industries:['all'],status:'draft',cadence:'event',legacyRefs:['C-02'],
       title:t('ব্যয় ভাউচার — মূল ইমপ্রেস্ট প্রমাণ','Expense Voucher — Original Imprest Evidence'),
