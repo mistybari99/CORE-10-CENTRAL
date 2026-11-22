@@ -358,6 +358,25 @@ node --test modules/paperops/tests/source-books.test.cjs
 
 **Safety and limits:** Both are **implemented testable workbenches**, **not canonical persistent ERP ledgers or authorized postings**. They record and guard source reference invariants and demonstrate why old fields can become linked accounting/packaging books instead of repeated daily paper. The two original **functional gaps remain OPEN** pending real signed evidence, tenant-aware auth, migrations, immutable/corrective entries, reconciliation and Owner policy. The other **nine** open gaps are unchanged; **11/11 still require proof**. Source field parity approved remains **0**. No live/production/staging Supabase writes, Cloudflare deployment, historic source modification, or trunk merge.
 
+## 5k. BUILT — strict no-write source-to-CORE10 port handoff and correction proposal
+
+The next step after W02-01 / R01-03 synthetic book reconciliation implements a **machine-readable source-to-port handoff preview**, not another audit-only review, in `source-port-handoff.cjs`.
+
+- Calls both existing `packagingLedger` and `expenseCashbookReconcile`; refuses handoff when either has **any blocking source mismatch**, cross-site/account error, duplicate voucher or unsupported noncash branch.
+- Builds **8 deterministic source intents** from the current isolated fixture: 5 W-02 returnable-container events for the future canonical **Stock port**, 2 C-02 expense voucher intents for the future canonical **Money port**, and 1 cross-checked R-01/Cashbook summary intent.
+- Every intent carries a scoped business/site/source identifier, stable source checksum and future server-side idempotency key. A canonical, sorted-key SHA256 protects the **local preview from accidental mutation**. The hash is **not a signature, authentication or permission**, and intentionally does not claim to prevent a malicious party recalculating a hash.
+- Checks that proposed requester, independent reviewer and **designated** approver are three different synthetic actors; it **never treats the supplied names as a real authenticated user or granted approval**.
+- Exposes the explicit outstanding integration gates: real signed group/business/site context from a server-verified session, tenant/role/entitlement RLS, policy/version and two-person approval, immutable signed source documents, atomic idempotency/replay locks, real accounting/stock journal posting and reverse/compensating entry.
+- `proposeCorrection` creates a new **unapplied** correction intent bound to original source and preview digests, reason and independent checker. It neither mutates an original transaction nor posts a reversal. The original signed ledger and reversal flows still need real server implementation.
+- The `source-port-handoff-demo.cjs` CLI and `tests/source-port-handoff.test.cjs` cover normal, duplicate, wrong amount, wrong tenant/site, same-person approval, source tampering, deterministic replay, changed source hash and safe correction attempts.
+
+```bash
+node modules/paperops/source-port-handoff-demo.cjs
+node --test modules/paperops/tests/source-port-handoff.test.cjs
+```
+
+**Boundary:** These 8 are deliberately **UNSIGNED_PORT_HANDOFF_PREVIEW_NOT_APPROVED**. The API always sets `canPost:false`, `approvalServerVerified:false`, and `databaseTouched:false`; it has no credentials, RPC/HTTP route, real JWT validation, database connection, durable idempotency lock or canonical Approval/Audit integration. This is a tested contract and source lineage handoff, **not a backend integration or real permission-control mechanism**. The old 11 functional gaps stay OPEN until actual server-side work, Owner policy and signed evidence. The isolated PR is not authorized for merging or deployment on this proof.
+
 ## 6. Reproduction, safety and deployment
 
 Open `modules/paperops/index.html` locally in a modern browser, choose form/industry, business-wide or branch-specific scope, apply optional header/logo/colour, preview, then use Print/PDF. Save/import a JSON settings file locally if desired. Do not put confidential identifiers in a file shared publicly.
