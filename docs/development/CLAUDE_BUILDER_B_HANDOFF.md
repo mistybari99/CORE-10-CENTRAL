@@ -222,3 +222,58 @@ Reuse table (P2):
 - Not done: thresholds — `currency_total` is not a GOV-002 threshold unit code (`^[A-Z][A-Z0-9_]{1,11}$`), so a
   threshold configured on the procurement policy makes the request fail closed until a currency unit is agreed;
   no UI button yet for "request approval".
+
+### Agent G — 0207
+
+- Branch `agentG/grn-return` (from `build/claude-np03a-stock` @ `54bc588`); local commits only, not pushed.
+  Board conflict check (2026-11-22): B-012 row INTEGRATED + staging max 0206; 0207–0299 reserved NP03A; no open PR
+  touches 0207. Only migration used: `0207_np03a_grn_cancel_supplier_return` (up + down).
+- a) `procurement_cancel_grn_v1(p_grn, p_version, p_reason, p_key)`: received / inspected → `cancelled` (posted
+  never); receiver or `can_manage`, plus `stock.post` at the GRN location; authorize, lock PO then GRN (same order as
+  receive / post), re-authorize; `control_check_v1(…,'procurement.goods_receipt',site)`; reason 3–300
+  (`PROC_CANCEL_REASON_REQUIRED`); request-key replay; audit `procurement.grn_cancel` with the freed quantities.
+  `goods_receipts_v1` gets `cancelled_by/at`, `cancel_reason`; status/combination CHECKs replaced (same names) +
+  `goods_receipts_v1_cancel_v1`. `_proc_open_qty_v1` ignores cancelled receipts (freed quantity can be received
+  again at once); `procurement_advance_po_v1`: a cancelled receipt no longer blocks short-close, and a PO whose
+  receipts are all cancelled may be cancelled (body = trunk 0206 incl. post-lock Auth re-check + those two lines);
+  `owner_business_sites_v1` "receipts waiting" = received/inspected only (before: `<>'posted'`, counted cancelled).
+- b) Supplier return, one document per posted GRN: `supplier_returns_v1` (draft/posted/cancelled, reason, version,
+  request key, supplier from the PO) + `supplier_return_lines_v1` (GRN line, item, lot, qty, stock movement).
+  `procurement_save_return_v1(p_grn, p_lines, p_reason, p_key)`: GRN must be posted (`PROC_GRN_NOT_POSTED`); per line
+  qty ≤ accepted − returned − other open drafts (`PROC_RETURN_EXCEEDS_ACCEPTED`), ≤ `max_return_qty`
+  (`CONTROL_LIMIT:max_return_qty`), stock on hand at the GRN location (`PROC_INSUFFICIENT_STOCK`); GRN row lock
+  serializes all returns of a receipt. `procurement_advance_return_v1(p_return,'post'|'cancel',v,key)`: post =
+  maker-checker (`separate_approver`, `PROC_SAME_ACTOR`), `inventory.stock_event` switch, re-check accepted − returned
+  and the limit under the PO → GRN → return locks, then `core10.post_stock_event(location, item, −qty,
+  'c10-ret-<id>-<line>')` (insufficient → `PROC_INSUFFICIENT_STOCK`), `returned_qty` += on GRN line and PO line
+  (CHECK `returned_qty ≤ accepted`); cancel = creator or `can_manage`. A return does not reopen PO quantity.
+  Owner Control feature `procurement.supplier_return` (bn/en, NP03A, max_stages 0, site scope): `reason_required`
+  (default true), `separate_approver` (true), `max_return_qty` (100000). Audit `procurement.return_save/post/cancel`.
+  `_proc_grn_json_v1` adds cancel fields, `returned_qty` per line and `returns`; `_proc_po_json_v1` adds `returned_qty`.
+- c) `procurement_list_lots_v1(p_business, p_site, p_expiring_within_days, p_after_expires_on, p_after_lot, p_limit)`
+  STABLE: lots ordered by expiry (none last), accepted / returned / net totals over POSTED receipts at the caller's
+  readable sites only (0205 rule: explicit site deny wins), `days_to_expiry`, `expired`, `site_ids`; filter N days
+  (0–3650, includes expired); keyset `next_after {expires_on ('infinity' = no expiry), lot_id}`, ≤ 200;
+  `on_hand_by_lot: NOT_CONNECTED` (no lot balances; one ledger). Indexes on lot expiry and GRN line lot.
+- d) NOT done: no business or PO currency exists in core10 (only `master_price_lists_v1.currency` 0150 and NP06
+  accounts 0400), so the 0206 payload unit stays `currency_total`; a GOV-002 threshold on the procurement policy
+  still fails closed. Needs an Owner decision (business base currency in setup, or PO currency from the price list).
+- Registry: 3 new `enforced` rows (cancel → `procurement.goods_receipt`; save/advance return →
+  `procurement.supplier_return`), test `tests/migrations/np03a-supplier-return-e2e.sql`; totals now 54/7/5.
+- Down: refuses (`PROC_ROLLBACK_DENIED_RETURN_OR_CANCEL_HISTORY`) once any return, cancelled GRN, returned qty, 0207
+  request, 0207 audit row or `procurement.supplier_return` setting/override exists; else restores the 0203 / 0204
+  bodies and the TRUNK 0206 `procurement_advance_po_v1`. Verified: on a trunk merge, catalog snapshot (functions
+  md5(prosrc)+ACL+config, constraints, columns, indexes, catalog, registry) after up→down = DB that never had 0207.
+  On this branch alone the only difference is `procurement_advance_po_v1` gaining trunk's post-lock re-check
+  (this branch's 0206 predates PR #129).
+- Tests: `np03a-supplier-return-e2e.sql` (tenants 1701/1702; tenant owner, business owner, buyer-manager, godown
+  staff, branch staff, foreign owner, unknown user) and `np03a-supplier-return-race.sh` (+ seed, tenant 1703: 4
+  concurrent over-return drafts → 1; 4 posters → 1, stock once; cancel vs 3 receivers of the freed qty → ≤ 1).
+  CI steps added after the 0206 e2e and after the 0203 race. Local PG17.12, full SQL order of
+  `core10-b010-control-port-ci` on one fresh DB 24/24 PASS on the branch AND on a throwaway local merge with trunk
+  `ccr-15ed11dd-n3hw5h` @ `98384ab` (deleted after); on the merge also PASS: NP01 bootstrap 3 e2e + race, NP05A 5 e2e
+  + 3 races, NP06 e2e/reversal/races/rollback boundary, S1-c 3 e2e, NP01 0110-0114 e2e. Mutations (6, all killed):
+  open-qty ignores cancel, no draft reservation, lot read without site scope, no stock switch on return post, no
+  post-time re-check (tampered draft), no GRN lock on draft (race: 3 drafts won).
+- Not done: UI (GRN cancel button, return screen, lot expiry list); lot-level balances / FEFO / recall; AP debit
+  note for returns (NP06); signed staging run; hosted apply of 0207 (needs Owner GO).
