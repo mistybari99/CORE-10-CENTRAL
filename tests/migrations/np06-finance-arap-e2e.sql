@@ -177,6 +177,14 @@ SELECT core10.control_set_v1(9611,NULL,'finance.arap_link',true,0::smallint,
  '{}'::jsonb,NULL,false,2,'Owner resumes manual ARAP linking','arapLinkOn0002');
 SELECT np06_arap_test.ok((SELECT count(*)=2 FROM core10.finance_arap_allocations_v1),
  'disabled exact-key retries append no additional allocation or Audit receipt');
+SELECT np06_arap_test.ok((SELECT count(*)=2 FROM core10.finance_arap_links_v1),
+ 'disabled exact-key link replay appends no duplicate open item');
+SELECT np06_arap_test.ok((SELECT count(*)=2 FROM core10.canonical_audit_events_v1
+ WHERE business_id=9611 AND action='finance.arap_link'),
+ 'disabled exact-key link replay appends no canonical link Audit receipt');
+SELECT np06_arap_test.ok((SELECT count(*)=2 FROM core10.canonical_audit_events_v1
+ WHERE business_id=9611 AND action='finance.arap_allocate'),
+ 'disabled exact-key allocation replay appends no canonical allocation Audit receipt');
 
 -- An active customer party from another business/tenant must not be reusable.
 SELECT np06_arap_test.as_user('95555555-5555-4555-8555-555555555555');
