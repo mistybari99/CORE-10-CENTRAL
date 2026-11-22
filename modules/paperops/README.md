@@ -333,6 +333,31 @@ node --test modules/paperops/tests/deep-source-recheck.test.cjs modules/paperops
 
 **Release boundary:** The first 150 field declarations are now genuinely source-rechecked, but **zero** source business-rule parity approvals and **zero** Owner acceptances are claimed. Do not merge, replace original paper, deploy, or post any ERP transaction on this evidence alone. **1,010** still await first-pass mapping; original additional high-risk obligations remain separately tracked. Subsequent work must resolve the 11 concrete gaps and prove real normalized event/ledger continuity with independent actor, account, site and transaction evidence rather than collecting duplicate paper fields.
 
+## 5j. BUILT — two genuine synthetic source-book continuity flows from the 11 open gaps
+
+After owner-directed deep recheck of the original 150 fields, the next build targets **W02-01** (returnable crates/trays) and **R01-03** (expense vouchers → daily R-01 → cashbook), rather than creating yet another batch of empty old-field boxes.
+
+**W-02 packaging continuity** — `source-books.cjs` `packagingLedger`:
+
+- Validates **original W-02 fields** `crates_sent/back/due` and `trays_sent/back/due` through an event-sourced working record: externally referenced legacy opening, signed-source issue, partial return and **per-issue remaining quantity**. It independently checks the old form's **entered** outstanding quantities against calculated balances rather than falsely claiming the historical source calculated them.
+- Enforces one source challan per movement, no repeated opening, no over-return, exact original issue reference, same business and controlled site-pair, distinct sender/receiver evidence, safe whole-unit arithmetic, and no balance rollover or untracked manual write.
+- An original *signed source* reference in synthetic fixture is **not** proof that real people signed anything. `signaturesPhysicallyVerified:false`, `erpPosted:false`.
+
+**C-02 → R-01 → cashbook imprest reconciliation** — `source-books.cjs` `expenseCashbookReconcile`:
+
+- Two **synthetic original C-02 vouchers** with separate purchase head/receipt proofs and successive cash snapshots feed one retail daily R-01 summary and one independent cashbook. Exact source totals and per-voucher `cash now + cumulative receipts = fixed imprest` are reconciled with cash account, correct site/tenant, signed-source references and independent checker evidence.
+- Prevents duplicate source voucher IDs or cashbook rows, lost original R-01 rows, repeated receipt references, mismatched money, over-spent imprest, unauthorized account/site crossover, one-person preparation/payment, and silent clearing of missing receipt/over-limit warnings.
+- Only the **cash** payment branch has been modeled. The original C-02 may permit bank/mobile/card, but these are **explicitly BLOCKED as not yet implemented**, not silently treated as cash. The daily *sales drawer is always separate from imprest*.
+
+**Fixtures and execution:** `source-books-fixture.json` has 5 packaging movements (opening, two issues, two partial returns), two expense vouchers, one synthetic BDT cash account, two cashbook rows, and one daily closing. `source-books-demo.cjs` runs both pure calculations; CI executes that script and `tests/source-books.test.cjs` with positive, tampered value, source duplication, over-return, isolation, missing signers/receipts, fake-policy, unsafe-precision and insufficient-cash cases.
+
+```bash
+node modules/paperops/source-books-demo.cjs
+node --test modules/paperops/tests/source-books.test.cjs
+```
+
+**Safety and limits:** Both are **implemented testable workbenches**, **not canonical persistent ERP ledgers or authorized postings**. They record and guard source reference invariants and demonstrate why old fields can become linked accounting/packaging books instead of repeated daily paper. The two original **functional gaps remain OPEN** pending real signed evidence, tenant-aware auth, migrations, immutable/corrective entries, reconciliation and Owner policy. The other **nine** open gaps are unchanged; **11/11 still require proof**. Source field parity approved remains **0**. No live/production/staging Supabase writes, Cloudflare deployment, historic source modification, or trunk merge.
+
 ## 6. Reproduction, safety and deployment
 
 Open `modules/paperops/index.html` locally in a modern browser, choose form/industry, business-wide or branch-specific scope, apply optional header/logo/colour, preview, then use Print/PDF. Save/import a JSON settings file locally if desired. Do not put confidential identifiers in a file shared publicly.
