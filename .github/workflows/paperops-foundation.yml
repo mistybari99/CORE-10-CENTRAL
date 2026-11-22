@@ -35,6 +35,8 @@ jobs:
         run: node modules/paperops/field-deep-source-recheck.cjs --check
       - name: Trace exactly 16 source show and six conditionally required branches
         run: node modules/paperops/source-conditional-recheck.cjs
+      - name: Require 11 source backed open gaps after full first 150 recheck
+        run: node modules/paperops/field-functional-gap-audit.cjs
       - name: Verify previously missed dynamic R-01 cash, goods and fridge warning branches
         run: node modules/paperops/r01-hidden-source-audit.cjs
       - name: Enforce old-field to new-field and blocker trace, no false parity claims
