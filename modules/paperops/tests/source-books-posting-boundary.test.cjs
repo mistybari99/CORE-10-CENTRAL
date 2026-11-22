@@ -150,3 +150,37 @@ test('proposal source idempotency digest is deterministic across rechecks, but s
   assert.ok(row.idempotencyKey.startsWith('paperops:9801:9810:'));
  }
 });
+
+test('same idempotency key with different balanced source amount rejects replay atomically',()=>{
+ const {createHash}=require('node:crypto');
+ const digest=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
+ const original=plan(),old=simulateDraftQueue([],original);
+ const changed=clone(original);
+ // Fake a NEW balanced document for the same voucher, with a recalculated
+ // unkeyed diagnostic SHA. This is not a signature; conflict still must block.
+ const e=changed.proposals[0];
+ e.payload.debit[0].amountBDT='69.00';
+ e.payload.credit[0].amountBDT='119.00';
+ e.sourceDigest=digest({kind:e.kind,scope:e.scope,sourceRef:e.sourceRef,payload:e.payload});
+ changed.proposalDigest=digest(changed.proposals.map(r=>({key:r.idempotencyKey,digest:r.sourceDigest})));
+ const before=JSON.stringify(old.records);
+ assert.throws(()=>simulateDraftQueue(old.records,changed),/IDEMPOTENCY_CONFLICT_DETECTED/);
+ assert.equal(JSON.stringify(old.records),before,'no partial draft queue mutation');
+ assert.equal(old.records.length,7);
+});
+test('a recomputed hash cannot bypass unbalanced journal, source chart mapping or unauthorized posting',()=>{
+ const {createHash}=require('node:crypto');
+ const digest=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
+ const p=plan(),bad=clone(p.proposals[0]);
+ bad.payload.credit[0].amountBDT='999.00';
+ bad.sourceDigest=digest({kind:bad.kind,scope:bad.scope,sourceRef:bad.sourceRef,payload:bad.payload});
+ assert.throws(()=>validateRow(bad),/UNBALANCED_FINANCE_DRAFT/);
+ const badChart=clone(p.proposals[0]);
+ badChart.payload.debit[0].account='REAL_GL_ACCOUNT';
+ badChart.sourceDigest=digest({kind:badChart.kind,scope:badChart.scope,
+   sourceRef:badChart.sourceRef,payload:badChart.payload});
+ assert.throws(()=>validateRow(badChart),/UNRESOLVED_CHART_POLICY_BYPASS/);
+ const idSpoof=clone(p.proposals[0]);
+ idSpoof.idempotencyKey='paperops:9802:9810:FINANCE_EXPENSE_DRAFT:DEMO-C02-001';
+ assert.throws(()=>validateRow(idSpoof),/DRAFT_IDEMPOTENCY_KEY_MISMATCH/);
+});
