@@ -20,6 +20,47 @@
   const COMMON_APPROVAL=sig(['প্রস্তুতকারী','Prepared by'],['স্বতন্ত্র যাচাইকারী','Independent checker']);
   return [
     {
+      id:'EXP-VOUCHER',industries:['all'],status:'draft',cadence:'event',legacyRefs:['C-02'],
+      title:t('ব্যয় ভাউচার — মূল ইমপ্রেস্ট প্রমাণ','Expense Voucher — Original Imprest Evidence'),
+      rule:t('দৈনিক বিক্রি-ক্লোজিং থেকে আলাদা। প্রতিটি খরচের রসিদ/অনুপস্থিতির কারণ, অনুমোদিত খরচ সীমা, বিক্রির ড্রয়ার অক্ষত থাকা এবং ইমপ্রেস্ট মিল যাচাই করুন। ফর্ম তৈরি কখনো পেমেন্ট অনুমোদন নয়।',
+        'Separate from daily sales close. Preserve expense receipts or reasons, approved per-line expense limit, untouched sales drawer, and fixed-imprest reconciliation. Printing never authorizes a payment.'),
+      sections:[
+        s('পুরোনো C-02-এর সকল ১৯টি ফিল্ড','All 19 original C-02 source fields',[
+          f("time", "সময়", "Time"),
+          f("sheet_no", "দৈনিক শোরুম শিট নং", "Daily showroom sheet no."),
+          f("head", "খরচের খাত", "Expense head"),
+          f("to", "কার কাছে / কী বাবদ", "Paid to / for"),
+          f("receipt", "রসিদ সংযুক্ত", "Receipt attached"),
+          f("amount", "টাকা", "Amount"),
+          f("total", "মোট", "Total"),
+          f("money_account_id", "Payment source", "Payment source"),
+          f("receipt_photos", "রসিদ / ভাউচারের ছবি", "Receipt / voucher photos"),
+          f("limit_text", "সীমা যাচাই", "Limit check"),
+          f("approved_by", "সীমার উপরে হলে অনুমোদনকারী", "Approved by (when over the limit)"),
+          f("no_receipt_reason", "রসিদ না থাকলে কারণ", "Reason if a receipt is missing"),
+          f("drawer_untouched", "বিক্রয় ড্রয়ার থেকে কিছু নেওয়া হয়নি", "Nothing was taken from the sales drawer"),
+          f("pay_mode", "কীভাবে দেওয়া হয়েছে (ফাঁকা = cash)", "Paid how (empty = cash)"),
+          f("cash_morning", "সকালে নগদ", "Cash in the morning"),
+          f("cash_now", "এখন নগদ (গুনে লিখুন)", "Cash now (count, then enter)"),
+          f("receipts_total", "রসিদের মোট", "Receipts total"),
+          f("sum_cr", "নগদ + রসিদ", "Cash + receipts"),
+          f("imprest_text", "নির্ধারিত টাকার সাথে মিল", "Match with the fixed amount")
+        ]),
+        s('ইমপ্রেস্ট খরচের মূল লাইনের প্রমাণ','Imprest expense source lines',[],tab('রসিদ ও খরচের উৎস','Original expense lines',[
+          ['খরচের খাত','Expense head'],['কার কাছে / কী বাবদ','Paid to / reason'],
+          ['রসিদ আছে?','Receipt attached?'],['টাকা ৳','Amount BDT'],
+          ['পেমেন্ট মাধ্যম / অ্যাকাউন্ট','Payment mode / account'],['প্রমাণ/রসিদ নং','Voucher/receipt ref']
+        ],8)),
+        s('সীমা / ইমপ্রেস্ট / ড্রয়ার নিয়ন্ত্রণ','Limit / imprest / sales drawer control',[
+          f('policy_ref','অনুমোদিত expense_max / imprest নীতির সংস্করণ','Approved expense_max / imprest policy version'),
+          f('approval_ref','সীমা ছাড়ালে স্বতন্ত্র অনুমোদনের রেফারেন্স','Independent over-limit approval source'),
+          f('source_ref','ভাউচারের স্বতন্ত্র নম্বর','Independent voucher number')
+        ])
+      ],signatures:sig(['ব্যয় প্রস্তুতকারী','Prepared by'],
+        ['স্বতন্ত্র সীমা যাচাইকারী','Independent expense policy checker'],
+        ['স্বতন্ত্র টাকা প্রদানকারী','Paid by'])
+    },
+    {
       id:'SWT-JALEBI',industries:['sweets'],status:'draft',cadence:'event',legacyRefs:['R-02','F-04'],
       title:t('জিলাপি কাউন্টার — মাপ, ফলন ও অবিক্রিত হিসাব','Jalebi Counter — Measures, Yield & Unsold'),
       rule:t('এই ফর্ম শুধু সক্রিয় জিলাপি শিফটে। কারিগর ও পরিমাপকারী পৃথক, পাল্লা পরীক্ষিত, মালামাল ইস্যু স্লিপ বাধ্যতামূলক। অনুমোদিত ফলন/মূল্য/সীমা ছাড়া সিদ্ধান্ত দেওয়া যাবে না।','Only for active Jalebi shifts. Producer and measurer must differ; verified scale and issue slips are necessary. No tolerance conclusion without approved yield, price and limits.'),
