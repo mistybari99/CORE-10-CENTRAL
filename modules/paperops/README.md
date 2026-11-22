@@ -164,6 +164,44 @@ Eight additional **industry-specific hypothesis packs** (`REST-KITCHEN`, `RETAIL
 
 **Release gate remains RED:** Original 32-form field-by-field parity and 163 old flags have not all been reimplemented and Owner verified. None of the historical 20 obligations is marked release-complete (11 GAP + 9 PARTIAL). More field mapping, expected-result tests with authentic Owner scenarios, workbooks for continuous ledger carry-forward, actual print/layout trials and independent approval workflows are required before any business reliance. ERP staging, live Worker, legacy copies and production data stay untouched.
 
+## 5d. BUILT: full old-field cadence inventory and synthetic end-to-end accounts (2026-11-22)
+
+**All old fields retained, no silent drop:** `field-routing-policy.json`, `field-routing.cjs` and generated `field-routing-report.json` preserve each of the **1,246 old form/field identities**, with original labels, draft form-level cadence, conditional-required/show candidates, candidate role, old warning flags, critical-control links, and a mandatory `preserve_original:true` / `auto_delete:false` / `owner_accepted:false` marker. The older total of **86 critical-linked fields + 1,160 needing individual mapping** remains accurate. The 1,160 entries **now have provisional form-based routing classification**, but **NOT field-by-field approved replacement mappings**.
+
+| Candidate form cadence | Old candidate field entries | What it implies |
+|---|---:|---|
+| Showroom daily close | 153 | One active showroom closing scope, not all staff fields daily |
+| Active factory batch/shift | 60 | Only batch/shift operations, distinct from retail close |
+| Triggered operational records | 322 | Need/order/receipt/return/count etc. only on event |
+| Two-party custody/movement | 98 | Signed evidence on handover/transfer/issue |
+| Source invoice/voucher | 86 | Cannot remove independent financial source document |
+| Continuous ledgers | 195 | Update existing page/book, not new full form daily |
+| Policy-triggered controls | 107 | Quote/discount/yield trial/product decisions where rule applies |
+| Versioned masters | 71 | Approved specification/recipe, not daily re-entry |
+| Periodic reviews | 117 | Cash position, weekly management, monthly P&L |
+| Periodic settlement | 37 | Match statement/bank for period, not daily default |
+
+**Explicit missing standalone source forms:** C-02 expense voucher, C-03 marketing spend ledger, C-06 cash position/budget, P-01 purchase request, P-03 approved PO, S-04 online and delivery ledger, S-05 commercial/tax wholesale invoice, F-01 new-product authorization, F-04 controlled yield trial, M-01 maintenance request, A-01 weekly management review. They remain **source-required** until independent functional equivalence has been built and Owner verified. A shared event template is not evidence of parity with any of these source documents.
+
+**Realistic synthetic business/accounting demonstration:** `demo-fixture.json` is a self-contained fake business `DEMO-SWEETS-01` with **3 synthetic sites**, **4 non-real item/lot IDs**, **3 synthetic payment accounts**, **4 fake employee role IDs**, source-referenced transfers/GRNs/orders and money values. `paper-demo.cjs` reconciles item stock, document-backed goods received, PO × accepted-quantity × rate × invoice, physical counts, independent custody, showroom cash/digital/credit splits, bank net-of-fee settlement, refunds, production batch and Jalebi yield, and monthly COGS/AR/AP. It intentionally marks 60+ receivables for periodic follow-up rather than treating ageing as a cash-book pass. There are **no passwords, logins, real accounts, data writes, hosted database test fixtures or external network requests**. All demo transactions stay ephemeral inside a Node process, and the fixture is committed with an unmistakable `synthetic_only` marker.
+
+**Misposting, mismatches and cross-site errors tested:** The demo tests deliberately mutate invoice totals, received quantities, ledger stock, cash count/handover, digital settlement, refund value, missing independent QC/checker, illness escalation, impossible advances, ageing splits, unknown staff, wrong site, duplicate account/item IDs, and real-account markers. Failures are rejected or returned as `DEMO_BLOCKED`; a clean demo is only `DEMO_CONSISTENT_PROTOTYPE_ONLY` and always `readyForERPPosting:false`.
+
+**400-site print, no sheet loss:** `paper-kit.js` `partitionKit(plan,100)` splits a 400-showroom plan into **four independent 100-sheet print batches** without dropped or duplicated form keys. `kit.html` offers an explicit batch selector and prints only the selected batch. The batch cap remains in place; the interface does not silently truncate the business-wide workload.
+
+**Reproduce on Node 22:**
+
+```bash
+node modules/paperops/legacy-rule-extractor.cjs --check
+node modules/paperops/field-routing.cjs --check
+node modules/paperops/paper-parity-audit.cjs
+node modules/paperops/paper-pilot.cjs
+node modules/paperops/paper-demo.cjs
+node --test modules/paperops/tests/*.test.cjs
+```
+
+This is an **isolated offline prototype build**, **not a signed ERP feature, Owner-approved business book set, field-parity release or authorized staging/production test run**. No old source was modified. New code requires full field/approval equivalence and live shell/signed-context integration review before any merge/deployment.
+
 ## 6. Reproduction, safety and deployment
 
 Open `modules/paperops/index.html` locally in a modern browser, choose form/industry, business-wide or branch-specific scope, apply optional header/logo/colour, preview, then use Print/PDF. Save/import a JSON settings file locally if desired. Do not put confidential identifiers in a file shared publicly.
