@@ -30,7 +30,7 @@ const discount={
 };
 const refund={
  originalSaleRef:'S-1',returnRef:'RET-1',rootCause:'Damaged packaging',
- productReturned:true,productQuarantined:true,refundAmount:'30',refundLimit:'50',
+ productReturned:true,productQuarantined:true,foodIllnessReported:false,refundAmount:'30',refundLimit:'50',
  refundVoucherRef:'PAY-1',receivedBy:'Cashier',paidBy:'Accountant'
 };
 const order={
