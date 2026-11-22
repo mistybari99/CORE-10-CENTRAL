@@ -320,3 +320,54 @@ Open items:
 - UI for GRN cancel and supplier return (RPCs exist in 0207; no buttons yet).
 - Signed staging GO-2 (apply 0207) and GO-3 (publish purchase screen) need Owner GO; nothing hosted from here.
 
+
+### Agent K — 0209 lots
+
+Conflict check (2026-11-22): board row B-012 (this lane) owns "lot/expiry from PR #73 on the one stock ledger";
+0208–0299 reserved NP03A, 0208 = Agent J. No open PR or trunk migration has lot balances / FEFO / recall: NP05A
+(trunk 0500–0504 and PR #112) carries only a free-text `lot_ref` with `lot_validation: NOT_CONNECTED`. PR #73
+(A058) is a `c10_demo` draft with its own `quality_balances_v1` second book — reused for ideas only.
+
+Migration `internal/migrations/0209_np03a_lot_balances_fefo_recall.up.sql` (+ exact `.down.sql`):
+- **One book.** `core10.stock_movements` stays the only quantity ledger. New `core10.stock_movement_lots_v1` is the
+  lot *dimension* of a movement (movement → lot, signed quantity, |sum| ≤ |delta|, rest untracked; append-only).
+  Lot balances are derived: view `stock_lot_balances_v1`; `inventory_lot_reconciliation_v1` proves per
+  location/item `0 ≤ sum(lots) ≤ on_hand`, no lot < 0. No stored lot quantity anywhere.
+- **Engine path only.** `post_stock_event` / `transfer_stock_v1` (0200, internal) are re-created with identical checks
+  and order plus one call to `_stock_lot_apply_v1` under the same balance row lock. The lot comes from the source
+  document of the server-built request key (`c10-grn-<grn>-<line>`, `c10-ret-<return>-<line>`, `c10-inv-cmd-<id>`),
+  so 0201 `advance_inventory_command_v1`, 0203 `procurement_post_grn_v1` and 0207 `procurement_advance_return_v1` are
+  NOT replaced. Lot-less issue: untracked first, then released lots FEFO; a transfer's in-leg carries the out-leg's
+  lots (a lot follows its stock). Existing movements are backfilled in id order with the same rules (fail closed).
+- **Lot-aware commands:** `inventory_create_lot_command_v1(business, kind, source, destination, item, qty, lot, reason,
+  key)` = `create_inventory_command_v1` + lot (`inventory_commands_v1.lot_id`); confirm/post through the unchanged
+  0201/0202 lifecycle (GOV-002 payload now includes `lot_id` when present).
+- **Hold / release:** `inventory_lot_hold_v1(lot, 'hold'|'release', reason, key)`, managers/owners only. Held,
+  rejected or recalled lots: named issue/transfer refused (`INV_LOT_HELD|REJECTED|RECALLED`), lot-less issue may not
+  consume their stock (`INV_LOT_BLOCKED_STOCK`); write-off (`adjust_out`) and supplier return allowed. Expired lot:
+  named issue/transfer refused (`INV_LOT_EXPIRED`), write-off allowed.
+- **FEFO:** `inventory_fefo_v1(business, site, item, qty)` read-only suggestion (expiry, lot, location; excludes held /
+  recalled / expired; shortfall, untracked available; nothing reserved).
+- **Recall:** `inventory_lot_start_recall_v1(lot, severity, reason, key)` blocks the lot and (param
+  `include_genealogy`) every descendant from `inventory_lot_link_v1(parent, child, key)`; returns where the stock is
+  (site/location/lot/qty), remaining total and receipts; `inventory_lot_recall_v1(recall)` scoped read;
+  `inventory_lot_close_recall_v1(recall, note, key)` only at zero stock (param `close_requires_zero_stock`); recalled
+  lots stay blocked after close. `inventory_list_lot_balances_v1` = scoped keyset read of lot balances.
+- Owner Control features `inventory.lot_control` (reason_required, separate_releaser) and `inventory.lot_recall`
+  (close_requires_zero_stock, include_genealogy), max_stages 0; 5 writers enforced in the DEC-08 registry; canonical
+  audit source `inventory`; request ledger `inventory_lot_requests_v1`; pinned search_path; RLS; RPC-only; no anon.
+- Lock order lot → audit chain head everywhere (the race test found a create-vs-hold deadlock; fixed by share-locking
+  the lot before the inner create).
+
+Tests: `tests/migrations/np03a-lots-e2e.sql` (tenants 1901/1902), `tests/migrations/np03a-lots-race.sh` + seed
+(tenant 1903); CI steps added after the 0207 steps in `core10-b010-control-port-ci.yml`. Existing tests unmodified.
+Local PG17.12: control-port workflow mirror 31/31 PASS (incl. registry gate + self-test, evidence, contract,
+up/down/up, B-009 drift + self-test, scale, all races), purchase browser 12/12; exact-down catalog diff vs a 0207-only
+database = identical (1529 objects); backfill on pre-0209 data (lot GRN, return, lot-less issue, transfer) + down + up
+PASS; 3 mutants killed (no blocked-stock check, no in-leg lot mirror, no Control check on hold).
+
+Not done / NOT_CONNECTED: lot UI (no screen), `procurement_list_lots_v1` still says `on_hand_by_lot: NOT_CONNECTED`
+(use `inventory_list_lot_balances_v1`), supplier-return draft checks location stock not lot stock (posting checks the
+lot: raw `insufficient_lot_stock`), lot creation outside GRN (manufacturing output lots: NP05A port), approval stages
+for lot features (max 0), one-time Control override consumed at posting can still deadlock-abort against a hold
+(PG aborts one; retry), no hosted apply (GO-2 needed).
