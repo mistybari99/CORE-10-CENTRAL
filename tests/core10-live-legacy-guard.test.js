@@ -16,7 +16,7 @@ const live=[
 "internal/enterprise-client/c10_np01_reviewer_workspace_v1.css",
 "internal/enterprise-client/c10_np01_canonical_review_client_v1.mjs"
 ];
-const forbidden=[/(?:^|["'\s(])(?:\.\/)?config\.js(?:[?"'\s)]|$)/i,/v2\//i,/\bBOS_CONFIG\b/,/kbuhnpqooycqbzrfejcs/i];
+const forbidden=[/(?:^|["'\s(])(?:\.\/)?config\.js(?:[?"'\s)]|$)/i,/(?:^|[\/"'`\s(])(?:\.{1,2}\/)*v2\//i,/\bBOS_CONFIG\b/,/kbuhnpqooycqbzrfejcs/i];
 const reject=(content)=>forbidden.some(pattern=>pattern.test(content));
 function walk(directory) {
   if(!fs.existsSync(directory)) return [];
@@ -33,6 +33,7 @@ for(const p of sources){
   assert.ok(fs.existsSync(p),"LIVE_SOURCE_MISSING:"+path.relative(root,p));
   assert.equal(reject(fs.readFileSync(p,"utf8")),false,"LEGACY_CONFIG_LEAK:"+path.relative(root,p));
 }
+assert.equal(reject('https://storage.example/object/list-v2/bucket'),false,'Valid vendor API path must not resemble legacy v2/');
 for(const forbiddenText of ['<script src="./config.js"></script>','import "../v2/foo.js"','window.BOS_CONFIG','https://kbuhnpqooycqbzrfejcs.supabase.co'])
   assert.equal(reject(forbiddenText),true,"LEGACY_GUARD_FALSE_NEGATIVE");
 console.log("PASS live/module legacy config boundary: "+sources.size+" files + malicious-reference negatives");
