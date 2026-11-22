@@ -31,6 +31,8 @@ jobs:
         run: node modules/paperops/paper-parity-audit.cjs
       - name: Run eight synthetic paper-day scenarios (counts, routing, all drafts)
         run: node modules/paperops/paper-pilot.cjs
+      - name: Run isolated synthetic demo accounts, inventory, money and ERP-write denial
+        run: node modules/paperops/paper-demo.cjs
       - name: PaperOps contract, safety and preservation tests
         run: node --test modules/paperops/tests/*.test.cjs
       - name: Cross-module live and retired-project guard when available
