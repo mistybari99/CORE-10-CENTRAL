@@ -78,6 +78,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Materialize exact Git-blob legacy browser fixtures (CI-only)
+        run: node scripts/ci/materialize-legacy-test-fixture.cjs
       - name: Node 22
         uses: actions/setup-node@v4
         with:
