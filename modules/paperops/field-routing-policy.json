@@ -31,8 +31,8 @@
       "legacy_code": "C-02",
       "cadence": "SOURCE_VOUCHER",
       "trigger": "approved_expense",
-      "draft_form": null,
-      "notes": "independent expense proof; never replaced by daily close",
+      "draft_form": "EXP-VOUCHER",
+      "notes": "A separate source-backed expense voucher DRAFT is printable on expense; original approved paper/receipt controls remain mandatory until Owner field parity.",
       "parity": "NOT_PROVEN"
     },
     {
