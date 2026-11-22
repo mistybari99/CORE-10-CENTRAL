@@ -29,6 +29,8 @@ jobs:
         run: node modules/paperops/field-routing.cjs --check
       - name: Verify consecutive first three 50-field batches and mapped source warnings
         run: node modules/paperops/field-batch-audit.cjs --check
+      - name: Classify field semantics and unresolved source rules without inventing mandatory paper
+        run: node modules/paperops/field-semantic-triage.cjs --check
       - name: Enforce old-field to new-field and blocker trace, no false parity claims
         run: node modules/paperops/paper-parity-audit.cjs
       - name: Run eight synthetic paper-day scenarios (counts, routing, all drafts)
