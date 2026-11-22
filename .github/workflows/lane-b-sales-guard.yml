@@ -1,0 +1,32 @@
+name: Lane B Sales approval guard contract
+on:
+  push:
+    branches:
+      - build/chatgpt-laneb-zero-stage-guard-20261122
+    paths:
+      - 'internal/migrations/0301_np03b_sales_commands.up.sql'
+      - 'internal/migrations/0304_np03b_draft_invoices.up.sql'
+      - 'tests/lane-b/**'
+      - '.github/workflows/lane-b-sales-guard.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sales-guard-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Zero-stage contract
+        run: node tests/lane-b/zero-stage-approval-guard.test.cjs
+      - name: Zero-stage mutation regression
+        run: node tests/lane-b/zero-stage-approval-guard.mutation.test.cjs
+      - name: Stage-range contract
+        run: node tests/lane-b/approval-stage-range.test.cjs
+      - name: Stage-range mutation regression
+        run: node tests/lane-b/approval-stage-range.mutation.test.cjs
