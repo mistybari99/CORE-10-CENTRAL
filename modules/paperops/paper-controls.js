@@ -56,6 +56,7 @@
     if(!present(v.challanRef))reasons.push('CHALLAN_REFERENCE_REQUIRED');
     requireUniqueActors(reasons,v.issuedBy,v.receivedBy,'INDEPENDENT_RECEIVER_REQUIRED');
     if(sent!==received)reasons.push('TRANSFER_QUANTITY_VARIANCE');
+    if(typeof v.foodGoods!=='boolean')reasons.push('FOOD_CATEGORY_CONFIRMATION_REQUIRED');
     if(v.foodGoods===true&&(!present(v.productionDate)||!present(v.grade)))
       reasons.push('FOOD_BATCH_DATE_AND_GRADE_REQUIRED');
     if(v.outsideApprovedDemand===true&&(!present(v.demandExceptionRef)||!present(v.approvedBy)))
@@ -113,6 +114,8 @@
     const refund=money(v.refundAmount,'refundAmount');
     if(!present(v.originalSaleRef)||!present(v.returnRef))reasons.push('ORIGINAL_SALE_AND_RETURN_REF_REQUIRED');
     if(!present(v.rootCause))reasons.push('ROOT_CAUSE_REQUIRED');
+    if(typeof v.productReturned!=='boolean')reasons.push('RETURN_INTAKE_CONFIRMATION_REQUIRED');
+    if(typeof v.foodIllnessReported!=='boolean')reasons.push('ILLNESS_SCREEN_CONFIRMATION_REQUIRED');
     if(v.productReturned===true&&v.productQuarantined!==true)reasons.push('RETURNED_GOODS_NOT_QUARANTINED');
     if(v.foodIllnessReported===true&&v.managementEscalated!==true)reasons.push('FOOD_ILLNESS_ESCALATION_MISSING');
     if(v.refundLimit===undefined)reasons.push('REFUND_POLICY_MISSING');
