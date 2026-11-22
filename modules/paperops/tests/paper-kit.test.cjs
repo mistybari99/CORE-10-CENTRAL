@@ -98,3 +98,29 @@ test('offline UI only loads local module scripts', () => {
   assert.doesNotMatch(html,/<script[^>]+src="https?:/);
   assert.doesNotMatch(html,/fetch\(|XMLHttpRequest|\.rpc\(/);
 });
+
+test('factory, warehouse and office do not receive a fake retail sales close', () => {
+  const plan=kit.planDay({...base,sites:[
+    {id:'show',name:'Showroom',kind:'showroom'},
+    {id:'fac',name:'Production',kind:'factory'},
+    {id:'godown',name:'Warehouse',kind:'warehouse'},
+    {id:'office',name:'Office',kind:'office'}
+  ],events:[{type:'production_batch',siteId:'fac',eventId:'B-001'}]});
+  assert.equal(plan.dailyCount,1);
+  assert.equal(plan.eventCount,1);
+  assert.equal(plan.count,2);
+  assert.deepEqual(plan.forms.map(x=>x.formId),['OPS-DAILY','MFG-DAILY']);
+  assert.deepEqual(plan.excludedDailySites.map(x=>x.id),['fac','godown','office']);
+  assert.throws(()=>kit.planDay({...base,sites:[{id:'x',name:'X',kind:'car'}]}),/INVALID_SITE_KIND/);
+});
+
+test('an event-only factory requires a real event and print batches cannot silently omit sheets', () => {
+  const p=kit.planDay({...base,sites:[{id:'f1',name:'Factory',kind:'factory'}],events:[]});
+  assert.equal(p.count,0);
+  assert.equal(p.dailyCount,0);
+  assert.throws(()=>kit.printKit(p),/EMPTY_PLAN_REQUIRES_OPERATIONAL_EVENT/);
+  const sites=Array.from({length:101},(_,n)=>({id:'s'+n,name:'Showroom '+n}));
+  const big=kit.planDay({...base,sites,events:[]});
+  assert.equal(big.count,101);
+  assert.throws(()=>kit.printKit(big),/PRINT_BATCH_LIMIT_100/);
+});
