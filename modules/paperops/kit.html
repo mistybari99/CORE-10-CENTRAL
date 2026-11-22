@@ -94,7 +94,8 @@ factory | মূল কারখানা | factory</textarea></label>
 <div class="grid2"><label>ভাষা<select id="lang"><option value="bn">বাংলা</option><option value="en">English</option></select></label>
 <label>থিম<input id="color" type="color" value="#174c4c"></label></div>
 <label>কমন লোগো (স্থানীয় ফাইল, ৫০০ KB-এর মধ্যে)<input type="file" id="logo" accept="image/png,image/jpeg,image/webp"></label>
-<div class="controls"><button id="generate" type="button">স্মার্ট কিট তৈরি</button><button id="print" type="button" disabled>সব ফর্ম প্রিন্ট/PDF</button></div>
+<div class="controls"><button id="generate" type="button">স্মার্ট কিট তৈরি</button><button id="print" type="button" disabled>নির্বাচিত ব্যাচ প্রিন্ট/PDF</button></div>
+<label>প্রিন্টের ব্যাচ (প্রতি ব্যাচে সর্বোচ্চ ১০০টি শিট)<select id="batch" disabled></select></label>
 <p id="status" role="status" aria-live="polite"></p>
 </section>
 <section class="print-area">
@@ -110,7 +111,7 @@ factory | মূল কারখানা | factory</textarea></label>
 (function(){
 'use strict';
 const api=window.CORE10_PAPER_KIT, el=id=>document.getElementById(id);
-let events=[], businessLogo='';
+let events=[], businessLogo='', kitBatches=[],kitSettings=null;
 const today=new Date();
 el('day').value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
 function updateEventOptions(){
@@ -190,21 +191,40 @@ el('logo').addEventListener('change',function(){
   reader.onload=()=>{businessLogo=String(reader.result||'');el('print').disabled=true;el('status').textContent='লোগো লোড হয়েছে; আবার কিট তৈরি করুন।';};
   reader.readAsDataURL(file);
 });
+function previewBatch(){
+  if(!kitBatches.length||!kitSettings)throw Error('KIT_NOT_PREPARED');
+  const selected=Number(el('batch').value);
+  if(!Number.isInteger(selected)||selected<0||selected>=kitBatches.length)throw Error('INVALID_BATCH_SELECTION');
+  const pack=kitBatches[selected];
+  el('output').innerHTML=api.printKit(pack,kitSettings);
+  el('print').disabled=false;
+  el('status').textContent='ব্যাচ '+pack.batchNumber+'/'+kitBatches.length+
+    ' · '+pack.count+'টি শিট প্রিন্টের জন্য প্রস্তুত। পরের ব্যাচ আলাদা নির্বাচন করুন; কোনো ERP ডাটা পরিবর্তিত হয়নি।';
+}
+el('batch').addEventListener('change',function(){try{previewBatch();}catch(err){el('print').disabled=true;el('status').textContent=err.message;}});
 el('generate').addEventListener('click',function(){
   try{
     const {sites,brands}=readSites();
     const plan=api.planDay({date:el('day').value,industry:el('industry').value,businessName:el('business').value,
       sites,events});
-    const markup=api.printKit(plan,{
+    kitBatches=api.partitionKit(plan,100);
+    if(!kitBatches.length)throw Error('EMPTY_PLAN_REQUIRES_OPERATIONAL_EVENT');
+    kitSettings={
       groupName:el('group').value,lang:el('lang').value,tableRows:8,
       businessBrand:{color:el('color').value,logo:businessLogo},
       siteBrands:brands
-    });
-    el('output').innerHTML=markup;
-    el('summary').textContent='প্রস্তুত: '+plan.count+'টি খসড়া শিট ('+plan.dailyCount+'টি শোরুম ক্লোজিং + '+plan.eventCount+'টি ঘটনার)। '+plan.excludedDailySites.length+'টি non-retail সাইটে অপ্রয়োজনীয় sales close বাদ। অসম্পূর্ণ রেজিস্টারগুলো আলাদাভাবে রাখতে হবে।';
-    el('print').disabled=false;
-    el('status').textContent='প্রিন্ট প্রিভিউ প্রস্তুত। কোনো ERP ডাটা পরিবর্তিত হয়নি।';
-  }catch(err){el('print').disabled=true;el('status').textContent='কিট তৈরি হয়নি: '+err.message;}
+    };
+    el('batch').replaceChildren();
+    for(const pack of kitBatches){
+      const option=document.createElement('option');
+      option.value=String(pack.batchNumber-1);
+      option.textContent='ব্যাচ '+pack.batchNumber+'/'+kitBatches.length+' · শিট '+pack.firstSheet+'–'+pack.lastSheet;
+      el('batch').append(option);
+    }
+    el('batch').disabled=false;
+    el('summary').textContent='প্রস্তুত: '+plan.count+'টি খসড়া শিট ('+plan.dailyCount+'টি শোরুম ক্লোজিং + '+plan.eventCount+'টি ঘটনার)। মোট '+kitBatches.length+'টি আলাদা প্রিন্ট ব্যাচ; কোনো শিট বাদ দেওয়া হয়নি। '+plan.excludedDailySites.length+'টি non-retail সাইটে অপ্রয়োজনীয় sales close বাদ। অসম্পূর্ণ রেজিস্টারগুলো আলাদাভাবে রাখতে হবে।';
+    previewBatch();
+  }catch(err){kitBatches=[];kitSettings=null;el('batch').disabled=true;el('print').disabled=true;el('status').textContent='কিট তৈরি হয়নি: '+err.message;}
 });
 el('print').addEventListener('click',function(){if(!this.disabled)window.print();});
 updateEventOptions();
