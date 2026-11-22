@@ -40,7 +40,11 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
 - Live Worker version `201008ca-42a7-42cd-a08e-b968da6c4e51` (rollback: `38141fd4…`, base `025cf3a1…`; source in
   `preview/core10-central-owner-app/rollback/`). `#/control` and `#/setup` are signed against staging; master/sales/
   manufacturing pages are still recorded replay (their migrations are not on staging).
-- Owner sign-in verified by Owner. Owner's group has 0 businesses; next he creates them in `#/setup`.
+- Owner sign-in verified by Owner. Owner's group has 0 businesses (reconfirmed by staging SQL on 2026-11-22); next he creates them in `#/setup`.
+- Preview-only (NOT live yet): signed `#/setup`/`#/control` route banner now distinguishes staging writes from replay data,
+  source + regression assertions on `preview/core10-central-level2` commit `8d30615ee4648bc2ac38d80d9655eaaf01a80192`.
+  Runtime route smoke 4/4 PASS, source syntax PASS, GitHub Preview static CI PASS. Full `build.mjs` → `verify.cjs`
+  and live verification NOT RUN, so no Worker deployment; live remains `201008ca-42a7-42cd-a08e-b968da6c4e51`.
 
 ## 4. How to do each kind of work
 - **Code on trunk**: branch from/commit to `ccr-15ed11dd-n3hw5h` (or a lane branch + PR into it). Small commits.
@@ -60,6 +64,9 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
 
 ## 5. Next build steps (priority order)
 1. Owner creates his businesses in `#/setup`; fix anything that breaks there.
+   2026-11-22: still 0 Owner businesses. Misleading setup/control save-status banner corrected in preview code
+   (`8d30615`), NOT deployed; finish mandated full build/verify/deploy before declaring the UI fix live.
+   Owner business creation and signed acceptance remain pending.
 2. Unblock staging for master data/stock/finance: settle numbers 0115–0118 (PR #121, in NP01 range) via the Board,
    then apply 0150–0153 (master), 0200 (stock), 0400–0401 (finance), 0500–0504 (manufacturing) in numeric order,
    then switch those live pages from replay to signed staging (same pattern as `#/control`).
@@ -67,9 +74,14 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
 4. Finance F3 (PR #117): rollback test must not assume 0403 is newest; refresh the stale pin in
    `.github/workflows/core10-np06-crosslane-ci.yml` (pinned 3d128dc, PR head c6d6ca4). That check is red on trunk until then.
 5. 0305 double claim (PR #121 vs #122): renumber one via the Board.
-6. Fix shell banner text "nothing is saved" on signed routes (`preview/.../site/`).
+6. Finish shell banner fix on signed routes (`preview/.../site/`): source and per-route browser assertions
+   committed at `8d30615`; pending `build.mjs`, complete `verify.cjs` all-PASS and live deployment/verification.
 7. Later (Goal 2): platform-operator role design + migration range + cross-tenant negative tests.
 
 ## 6. Progress log (append newest at the bottom: date, agent, what, commit/deploy, next)
 - 2026-11-22 Claude Session A: GO-2 staging apply (e609b8a); GO-3 live Level 2 (PR #126, v38141fd4);
   Owner account + own tenant; setup page core10-staging mode (a408d7e, 6f058dc) and live v201008ca. Next: §5.1.
+- 2026-11-22 agent=ChatGPT: signed setup/control staging banner fix + regression test on preview branch
+  commit `8d30615ee4648bc2ac38d80d9655eaaf01a80192`; route smoke 4/4 PASS and Preview static CI PASS;
+  no staging migration or deploy (Worker still `201008ca-42a7-42cd-a08e-b968da6c4e51`); full build/verify pending.
+  Next: Owner creates business in signed setup, then complete build/verify/live-gated publish; §5.2 remains blocked on Board.
