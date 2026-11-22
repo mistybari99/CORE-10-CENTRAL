@@ -1,4 +1,4 @@
-name: CORE10 Central Shell Import Byte-for-Byte + 56/56 Local/Live (NO DEPLOY)
+name: CORE10 Frozen Import Provenance + Current Navigation 56/56 Local/Live (NO DEPLOY)
 on:
   pull_request:
     branches: ["ccr-15ed11dd-n3hw5h"]
@@ -6,6 +6,7 @@ on:
       - "apps/central/**"
       - "docs/coordination/CENTRAL_SHELL_IMPORT_20261122.json"
       - "tests/core10-central-shell-provenance.test.js"
+      - "tests/core10-central-mobile-nav.test.cjs"
       - "tests/core10-live-legacy-guard.test.js"
       - ".github/workflows/core10-central-shell-import-ci.yml"
   workflow_dispatch:
@@ -28,17 +29,20 @@ jobs:
           git fetch --no-tags origin refs/heads/preview/core10-central-level2:refs/remotes/origin/preview/core10-central-level2
           git fetch --no-tags origin refs/pull/109/head:refs/remotes/origin/pr109-head refs/pull/112/head:refs/remotes/origin/pr112-head
           git cat-file -e e9dd90d2c1616711378f657c4e5e0ce08e0d9db9^{commit}
-      - name: Prove all copied source trees, Git blobs and unchanged 56-test assertions
-        run: node --test --test-name-pattern="§7b.3 (imported|only|build input)" tests/core10-central-shell-provenance.test.js
-      - name: No retired IMG-ERP backend or config in shipped shell or modules
+      - name: Verify the exact §7b.3 frozen import in its historical worktree (no test relaxation)
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/core10-shell-import-baseline" 4345b6e4aa7ee593a455ee29dceccf55d61ade7f
+          node "$RUNNER_TEMP/core10-shell-import-baseline/apps/central/build.mjs"
+          node --test "$RUNNER_TEMP/core10-shell-import-baseline/tests/core10-central-shell-provenance.test.js"
+      - name: Current shell keeps original verifier and pinned backend inputs
+        run: node --test --test-name-pattern="§7b.3 (only|build input)" tests/core10-central-shell-provenance.test.js
+      - name: No retired IMG-ERP backend or config in CURRENT shipped shell or modules
         run: |
           node --test tests/core10-live-legacy-guard.test.js
           node --test tests/core10-legacy-move-integrity.test.js
-      - name: Deterministic exact Worker bundle (NO deploy)
-        run: node apps/central/build.mjs
-      - name: Byte-level proof of unchanged verified Worker
+      - name: Build CURRENT candidate Worker deterministically (NO deploy)
         run: |
-          node --test tests/core10-central-shell-provenance.test.js
+          node apps/central/build.mjs
           sha256sum apps/central/dist/worker.mjs
       - name: Install pinned Chromium outside the repository
         run: |
@@ -50,6 +54,8 @@ jobs:
           echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
       - name: Canonical 56/56 local browser checks, full suite unchanged
         run: node apps/central/verify.cjs
+      - name: NEW bilingual mobile and desktop route navigation browser regression
+        run: node --test tests/core10-central-mobile-nav.test.cjs
       - name: Canonical 56/56 public Worker checks, NO deploy
         env:
           REVIEW_BASE: https://core10-central.mistybari99.workers.dev
