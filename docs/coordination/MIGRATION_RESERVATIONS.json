@@ -1,14 +1,57 @@
 {
   "rule": "Numeric order is apply order. A persistent database never receives a version lower than its highest applied version (internal/migrations/run.sh refuses with OUT_OF_ORDER). A range therefore only takes new files while no persistent database has applied a higher number; once that happens the board allocates the lane a new range above the persistent maximum, or the trunk owner renumbers an unapplied file at integration (file rename only, content and checksum unchanged).",
-  "persistent_databases": {"staging rhrqhbyzrhaafynfhdaf": "0001-0012 applied 2026-11-16"},
+  "persistent_databases": {
+    "staging rhrqhbyzrhaafynfhdaf": "0001-0019, 0100-0106, 0110-0114 applied (0013-0114 on 2026-11-22 under Owner GO-2, per-file transaction + sha256 ledger row; backup docs/development/staging-backups/2026-11-22-pre-go2). Next free hosted version must be > 0114 and land in numeric order."
+  },
   "ranges": [
-    {"from": 1, "to": 99, "lane": "NP01 access, approval, audit, setup", "owner": "ChatGPT", "note": "0013-0019 on build/chatgpt-np01; must reach staging before 0100 does; new Control-dependent NP01 work goes to 0110-0149"},
-    {"from": 100, "to": 109, "lane": "NP02 Owner Control port and registry", "owner": "Claude"},
-    {"from": 110, "to": 149, "lane": "NP01 Control bindings and later NP01 work that depends on the Control port", "owner": "ChatGPT"},
-    {"from": 150, "to": 199, "lane": "NP02 master data", "owner": "Claude"},
-    {"from": 200, "to": 299, "lane": "NP03A procurement, inventory, lot/QC", "owner": "Claude"},
-    {"from": 300, "to": 399, "lane": "NP03B sales core, POS", "owner": "open"},
-    {"from": 400, "to": 499, "lane": "NP06 finance", "owner": "ChatGPT"},
-    {"from": 500, "to": 599, "lane": "NP05A manufacturing", "owner": "open"}
+    {
+      "from": 1,
+      "to": 99,
+      "lane": "NP01 access, approval, audit, setup",
+      "owner": "ChatGPT",
+      "note": "0013-0019 on build/chatgpt-np01; must reach staging before 0100 does; new Control-dependent NP01 work goes to 0110-0149"
+    },
+    {
+      "from": 100,
+      "to": 109,
+      "lane": "NP02 Owner Control port and registry",
+      "owner": "Claude"
+    },
+    {
+      "from": 110,
+      "to": 149,
+      "lane": "NP01 Control bindings and later NP01 work that depends on the Control port",
+      "owner": "ChatGPT"
+    },
+    {
+      "from": 150,
+      "to": 199,
+      "lane": "NP02 master data",
+      "owner": "Claude"
+    },
+    {
+      "from": 200,
+      "to": 299,
+      "lane": "NP03A procurement, inventory, lot/QC",
+      "owner": "Claude"
+    },
+    {
+      "from": 300,
+      "to": 399,
+      "lane": "NP03B sales core, POS",
+      "owner": "open"
+    },
+    {
+      "from": 400,
+      "to": 499,
+      "lane": "NP06 finance",
+      "owner": "ChatGPT"
+    },
+    {
+      "from": 500,
+      "to": 599,
+      "lane": "NP05A manufacturing",
+      "owner": "open"
+    }
   ]
 }

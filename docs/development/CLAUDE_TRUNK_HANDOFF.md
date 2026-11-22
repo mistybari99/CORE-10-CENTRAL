@@ -1,5 +1,43 @@
 # Claude lane — restartable handoff (trunk / NP02 Control)
 
+## SESSION A STATE — 2026-11-22 (GO-2 done; read this first)
+
+New Session A (replaced the 2026-11-21 one). Owner re-confirmed GO-2 and GO-3 (after staging) in this session.
+
+**GO-2 staging (rhrqhbyzrhaafynfhdaf): DONE 2026-11-22.**
+- Backup first: `docs/development/staging-backups/2026-11-22-pre-go2/` (core10 functions, ACLs, triggers, policies, views, columns, constraints, all rows; synthetic data only). Supabase daily backup is the second net.
+- Rehearsal: disposable PG17.12 with 0001-0012 + the real staging rows loaded, then the exact 19 payloads: 19/19 OK, registry gate PASS (17 enforced / 7 exempt / 6 pending).
+- Staging transaction semantics proven first (a failing `begin; create ...; 1/0; commit` left nothing behind).
+- Applied 0013-0019, 0100-0106, 0110-0114 in numeric order, one transaction per file = file text + `core10.schema_migrations(version,name,checksum)` row, sha256 of file bytes (run.sh semantics). Order guard checked before every file; ledger checksum re-read after every file. Log: `apply-log.txt`.
+- After: ledger 31 rows, max 114. Registry gate PASS on staging (17/7/6, same as rehearsal). Catalog: 0 SECURITY DEFINER without search_path, 0 anon execute, 0 tables without RLS, 0 authenticated direct DML. Data intact (audit 6, members 4, sites 3).
+- Supabase advisors: 48 "authenticated can execute SECURITY DEFINER" WARN + 6 "RLS no policy" INFO = intended RPC-only design (each RPC checks scope itself; RPC-only tables deny direct access). **Owner action:** Auth "leaked password protection" is OFF (dashboard setting, Owner's call before real users).
+- NOT applied (by design): 0115+ / 0150+ / 0200+ / 0400+ / 0500+. Next hosted version must be > 0114 in numeric order; 0115-0118 (PR #121) must be settled via the Board first.
+
+Next: GO-3 live (Level 2 list below), then integration items (Sales #109 security, F3 #117 rollback test, 0305 double claim, crosslane F3 pin).
+
+## SESSION A STATE — 2026-11-21 (superseded by 2026-11-22 above)
+
+Owner GO (2026-11-21): full build authority incl. GO-2 staging and GO-3 live, "check everything first".
+Re-alignment plan (Drive): https://docs.google.com/document/d/1gqWHIDdB81H2-VZqce2E5VbRSZOTOgGraszGt5yeDjc/edit
+Goal: one platform, many businesses (10), 100-400 branches/factories/warehouses each, full Owner control; IMG-ERP-SG untouched.
+Session split: A = this trunk (integration, staging, live). B = build/claude-np03a-stock (0201-0299, P1/P2/P4/P5), never pushes trunk.
+
+Trunk head 6d24ad8. Integrated (code only, nothing hosted beyond 0001-0012):
+- NP01 0110-0114 (@69143ff), Manufacturing 0500-0504 (@7e39b75), Finance 0400-0401, Master 0150-0153, Stock 0200, Control 0100-0106.
+- Sales 0300-0304 merged (6fa70ba) then REVERTED (6d24ad8): tests/np03b/correction-security.sql has 10 open security cases (also failing on PR #109's own head). Re-integrate only when it passes; fixes must be forward migrations, never edits to 0301/0304.
+- Finance F3 0402-0403 (PR #117 @53ee374) held: its rollback test assumes 0403 is the newest migration (run.sh down = newest). Asked on #117.
+- crosslane CI (core10-np06-crosslane-ci) keeps only F3, still pinned 3d128dc (stale): runs only when its own files change.
+
+Staging (rhrqhbyzrhaafynfhdaf) readiness (read-only audit): ledger has 0001-0012, checksums match, 8 auth users, small data.
+PLAN: apply ONLY 0013-0019, 0100-0106, 0110-0114 now (19 files). Reason: other branches hold 0115-0118 (PR #121, Codex, in NP01 range - lane violation), 0201-0202 (B), 0305 (two different files: PR #121 and #122), 0402-0407, 0505; applying any higher version would make those OUT_OF_ORDER.
+Apply per file in order: file text + insert into core10.schema_migrations(version,name,checksum=sha256 of file bytes) in one transaction (as run.sh). Backup first: read-only snapshot of core10 DDL (functions, triggers, policies, views) + row dumps; Supabase daily backup as second net. 0014/0013 headers say "no hosted apply"/"runner only" - covered by Owner GO-2.
+Then update docs/coordination/MIGRATION_RESERVATIONS.json persistent_databases.
+
+Live (GO-3) readiness: worker core10-central serves version 025cf3a1 (rollback target; earlier 9a1c6aaa, b1d80c36), built from preview/core10-central-owner-app @243e137 (replay data, CSP connect-src 'none'). Level 2 needs: staging migrations, publishable key in core10-control-centre-config.js, build.mjs FORBIDDEN list allow config/owner-control/master-data, CSP connect-src 'self' https://rhrqhbyzrhaafynfhdaf.supabase.co, Supabase Auth site/redirect URL = worker URL. Never bundle config.js, v2/config.js, index.html/owner.html, core10-stocktake-offline.html, core10-stocktake-preview.js (IMG-ERP-SG). Coordinate with the Preview session (PR #113 stale) - one releaser.
+
+Coordination debt: 0305 double-claimed (PR #121 vs #122); 0115-0118 in NP01 range by Codex; branch build/chatgpt-laneb-zero-stage-guard edits 0301/0304 in place (checksum drift risk); PR #122 conflicts with trunk; Board rows B-012/B-013/B-014/B-015 stale.
+
+
 Per Owner directive issue #110. Resume from the last pushed SHA without chat history.
 
 | Item | Value |

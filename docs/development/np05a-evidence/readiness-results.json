@@ -1,0 +1,63 @@
+{
+  "checks": 95,
+  "passed": 95,
+  "posting_tables_checked": [
+    "stock_movements",
+    "stock_balances_v1",
+    "stock_transfers_v1",
+    "finance_accounts_v1",
+    "finance_periods_v1",
+    "finance_journals_v1",
+    "finance_journal_lines_v1",
+    "finance_reversals_v1"
+  ],
+  "posting_snapshot_sha256": "0358d753fbc8c61b26574381740b098072c6735877a21f87573746b78975cf26",
+  "posting_snapshot_unchanged": true,
+  "source_handoffs": [
+    {
+      "width": 390,
+      "lang": "en",
+      "batch": 12,
+      "recipe": 17,
+      "recipe_version": 1,
+      "audit_event_id": 338,
+      "fingerprint": "a5bc019a74dedc1592de4b124e8d02a2f5f6c33e4a21035350afa1fc9c686dfe",
+      "status": "NOT_CONNECTED"
+    },
+    {
+      "width": 390,
+      "lang": "bn",
+      "batch": 12,
+      "recipe": 17,
+      "recipe_version": 1,
+      "audit_event_id": 339,
+      "fingerprint": "a5bc019a74dedc1592de4b124e8d02a2f5f6c33e4a21035350afa1fc9c686dfe",
+      "status": "NOT_CONNECTED"
+    },
+    {
+      "width": 1440,
+      "lang": "en",
+      "batch": 12,
+      "recipe": 17,
+      "recipe_version": 1,
+      "audit_event_id": 344,
+      "fingerprint": "a5bc019a74dedc1592de4b124e8d02a2f5f6c33e4a21035350afa1fc9c686dfe",
+      "status": "NOT_CONNECTED"
+    },
+    {
+      "width": 1440,
+      "lang": "bn",
+      "batch": 12,
+      "recipe": 17,
+      "recipe_version": 1,
+      "audit_event_id": 345,
+      "fingerprint": "a5bc019a74dedc1592de4b124e8d02a2f5f6c33e4a21035350afa1fc9c686dfe",
+      "status": "NOT_CONNECTED"
+    }
+  ],
+  "master": "REAL_CANONICAL_0151_0153",
+  "synthetic_subject": true,
+  "stock": "NOT_CONNECTED",
+  "money": "NOT_CONNECTED",
+  "approval_completion": "NOT_CONNECTED"
+}

@@ -19,12 +19,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - lane: sales
-            pr: 109
-            head_sha: aa45845c4f7310824ae81dacbaff08660e4fc701
-          - lane: manufacturing
-            pr: 112
-            head_sha: 7e39b7517763e24c308b7f8316a3ac7219a84d2d
+          # sales (PR #109 @ 3d60a07) and manufacturing (PR #112 @ 7e39b75) are integrated into trunk
+          # (1d63a5a); their own workflows now run on trunk, so only unintegrated F3 stays pinned here.
           - lane: f3
             pr: 117
             head_sha: 3d128dc4df1b8860ce46a3aaae9960843d382c0f
