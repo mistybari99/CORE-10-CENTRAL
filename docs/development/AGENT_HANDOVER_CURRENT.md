@@ -262,7 +262,7 @@ NOTE: Sales 030x must reach staging BEFORE Finance 040x / Manufacturing 050x, or
 4. Full CI green on the branch, `build.mjs` + `verify.cjs` all PASS (live bundle unchanged), then merge into trunk.
 Then continue with review steps 1, 3, 4, 5 and the §7 build queue.
 
-### 7d. Trunk RED after §7c legacy move (found 2026-11-22 by Claude; fix FIRST)
+### 7d. Trunk RED after §7c legacy move — FIXED by Claude 2026-11-22 (2c8b816, 2778597, 0e4701f, this commit); confirm CI green
 Trunk head cb4cbe0 had 6 failing checks, all from tests still reading legacy files at the repo root:
 - `site-permission` — `tests/pack01/legacy-source-guard.cjs`: FIXED (reads legacy/islamia-erp, 9/9 PASS).
 - `legacy-route-visual` — `tests/pack01/legacy-route-visual.cjs`: `candidate` must serve the legacy app from
