@@ -92,6 +92,8 @@ jobs:
         run: bash tests/migrations/np03a-inventory-race.sh
       - name: B-012 purchase receipts real concurrent sessions (over-receipt, double GRN posting)
         run: bash tests/migrations/np03a-procurement-race.sh
+      - name: B-012 supplier returns and GRN cancel real concurrent sessions (over-return drafts, double return posting, cancel vs receive)
+        run: bash tests/migrations/np03a-supplier-return-race.sh
       - name: Registry evidence (each enforced RPC names an existing CI-run proof test)
         run: bash tests/migrations/control-registry-evidence.sh
       - name: B-009 legacy installer vs numbered migrations drift (reviewed list, no silent ignores)
