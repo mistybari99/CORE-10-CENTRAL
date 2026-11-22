@@ -32,6 +32,15 @@ test('source-only first-pass gap list distinguishes stricter safety policy from 
  assert.ok(data.gaps.some(x=>/unbuilt|still unbuilt|not implemented/i.test(x.finding)),
    'some real ERP ledger or approval capability must remain explicitly unbuilt');
  assert.equal(data.summary.synthetic_book_prototypes_built,2);
+ assert.equal(data.summary.port_intents_prototyped,8);
+ assert.equal(data.summary.server_authorized_port_intents,0);
+ for(const gap of ['W02-01','R01-03']){
+  const preview=data.gaps.find(x=>x.id===gap).build_proof.handoff_boundary;
+  assert.equal(preview.mode,'UNSIGNED_PORT_HANDOFF_PREVIEW_NOT_APPROVED');
+  assert.equal(preview.serverSignedContextVerified,false);
+  assert.equal(preview.realApprovalGranted,false);
+  assert.equal(preview.ERPPostingAuthorized,false);
+ }
  assert.ok(data.gaps.find(x=>x.id==='W02-01').status.includes('PENDING'));
  assert.ok(data.gaps.find(x=>x.id==='R01-03').status.includes('PENDING'));
  assert.ok(data.gaps.some(x=>/unknown/i.test(x.finding)));
