@@ -57,13 +57,13 @@ async function step(name, fn) {
       await ctx.addInitScript((l) => { try { localStorage.setItem("core10.preview.lang", l); } catch (_) {} }, lang);
       const page = await ctx.newPage(), errors = [], foreign = [], bad = [];
       page.on("pageerror", (e) => errors.push(e.message));
-      page.on("request", (r) => { const u = r.url(); if (!u.startsWith(origin + "/") && !/^(data|blob|about):/.test(u) && !((route === "control" || route === "setup") && u.startsWith(STAGING))) foreign.push(u); if (/\/(rest|auth|storage|functions)\/v1\/|supabase\.co/.test(u) && !((route === "control" || route === "setup") && u.startsWith(STAGING))) foreign.push("BACKEND " + u); });
+      page.on("request", (r) => { const u = r.url(); if (!u.startsWith(origin + "/") && !/^(data|blob|about):/.test(u) && !((route === "control" || route === "setup" || route === "master") && u.startsWith(STAGING))) foreign.push(u); if (/\/(rest|auth|storage|functions)\/v1\/|supabase\.co/.test(u) && !((route === "control" || route === "setup" || route === "master") && u.startsWith(STAGING))) foreign.push("BACKEND " + u); });
       page.on("response", (r) => { if (r.status() >= 400) bad.push(r.status() + " " + r.url()); });
       await page.goto(base + "/#/" + route, { waitUntil: "load" }); await page.waitForTimeout(1500);
       assert.equal(await page.getAttribute("html", "lang"), lang);
       assert.equal(await page.getAttribute(`[data-route="${route}"]`, "aria-current"), "page");
       const dataNotice = (await page.locator("#c10-data-status ." + lang).textContent()).trim();
-      if (route === "control" || route === "setup")
+      if (route === "control" || route === "setup" || route === "master")
         assert.match(dataNotice, lang === "bn" ? /স্টেজিং.*সংরক্ষণ/ : /staging.*saved/i, "signed staging route must not claim changes are unsaved");
       else
         assert.match(dataNotice, lang === "bn" ? /নমুনা.*সংরক্ষিত/ : /sample.*not saved/i, "replay route must disclose unsaved sample data");
@@ -76,6 +76,7 @@ async function step(name, fn) {
         text += "\n" + ft; fOver = await frame.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         if (route === "setup") assert.match(await frame.innerText("#b01-environment"), /core10-staging · https:\/\/rhrqhbyzrhaafynfhdaf\.supabase\.co/);
         if (route === "control") { await frame.waitForSelector("#occ-email"); assert.ok(await frame.isVisible("#occ-password"), "signed sign-in form"); }
+        if (route === "master") { await frame.waitForSelector("#md-email"); assert.ok(await frame.isVisible("#md-password"), "Master signed sign-in form"); }
       }
       const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       assert.ok(over <= 1 && fOver <= 1, `horizontal overflow shell=${over} module=${fOver}`);
@@ -85,6 +86,16 @@ async function step(name, fn) {
       await ctx.close();
     });
   }
+  await step("Master staging refuses wrong-password login and stays locked", async () => {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await page.goto(base + "/view/master-signed.html"); await page.waitForSelector("#md-email");
+    await page.fill("#md-email", "nobody@example.invalid");
+    await page.fill("#md-password", "totally-invalid-demo-password");
+    await page.click("#md-login button[type=submit]");
+    await page.waitForFunction(() => !!document.querySelector("#md-error")?.textContent);
+    assert.ok(!(await page.isVisible("#md-workspace")), "unauthenticated Master Data remains locked");
+    await page.close();
+  });
   await step("Owner control: a change is refused with the UI's own message and nothing is saved", async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await page.goto(base + "/view/control.html?lang=en"); await page.waitForSelector(".occ-row");

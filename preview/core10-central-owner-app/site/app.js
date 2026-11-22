@@ -5,7 +5,7 @@
     home: "/view/workspace.html?v=universal-owner",
     business: "/view/workspace.html?v=business-owner-branded",
     setup: "/live/core10-build01.html",
-    master: "/view/master.html",
+    master: "/view/master-signed.html",
     sales: "/view/sales.html",
     manufacturing: "/view/mfg.html",
     control: "/live/core10-owner-control-centre.html",
@@ -19,7 +19,7 @@
   function route() {
     var r = (location.hash.replace(/^#\/?/, "") || "home").split("?")[0];
     if (!Object.prototype.hasOwnProperty.call(ROUTES, r)) r = "home";
-    var signed = r === "control" || r === "setup";
+    var signed = r === "control" || r === "setup" || r === "master";
     dataStatus.querySelector(".bn").textContent = signed
       ? "CORE10 স্টেজিং · সাইন-ইন করলে পরিবর্তন সংরক্ষণ করা যায়"
       : "প্রিভিউ · নমুনা তথ্য · এখানে পরিবর্তন সংরক্ষিত হয় না";
