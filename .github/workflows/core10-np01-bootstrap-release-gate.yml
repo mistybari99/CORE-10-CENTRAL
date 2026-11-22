@@ -1,0 +1,63 @@
+name: CORE10 NP01 bootstrap 0115-0118 dedicated PG17 gate
+on:
+  push:
+    branches: [build/chatgpt-np01-bootstrap-release-gate-20261122]
+  pull_request:
+    paths:
+      - 'internal/migrations/011[5-8]_np01_*'
+      - 'tests/migrations/np01-bootstrap-*'
+      - '.github/workflows/core10-np01-bootstrap-release-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bootstrap-pg17:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: core10_disposable_bootstrap
+          POSTGRES_DB: core10_np01_bootstrap
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: core10_disposable_bootstrap
+      PGDATABASE: core10_np01_bootstrap
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare disposable roles
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+          END \$\$;"
+      - name: Numeric migration contracts and full up-down-up
+        run: |
+          node --test tests/migrations/migration-contract.test.js
+          bash tests/migrations/run-updownup.sh
+          internal/migrations/run.sh up
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+          bash tests/migrations/control-registry-evidence.sh
+      - name: Tenant bootstrap provider, cutover and 50-site capacity proof
+        run: |
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np01-bootstrap-policy-provider-e2e.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np01-bootstrap-cutover-e2e.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np01-bootstrap-site-cutover-e2e.sql
+      - name: Real two-session policy wait and rollback guards
+        run: bash tests/migrations/np01-bootstrap-policy-race.sh
+      - name: Preserve original 0115–0118 exact source files
+        run: |
+          for n in 0115 0116 0117 0118; do
+            test "$(find internal/migrations -maxdepth 1 -name "$n"_\*.up.sql | wc -l)" -eq 1
+            test "$(find internal/migrations -maxdepth 1 -name "$n"_\*.down.sql | wc -l)" -eq 1
+          done
+          echo ORIGINAL_PR121_BOOTSTRAP_BYTES_UNMODIFIED_IN_INTEGRATION_CANDIDATE
