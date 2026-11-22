@@ -115,9 +115,9 @@ This is why an eight-template demo must **never** be substituted for the 32 orig
 
 **Quality gates:** `node --test modules/paperops/tests/*.test.cjs` checks source field traceability, event selection, duplicate prevention, different site types, a 100-sheet cap and HTML escaping. This is implementation evidence for an isolated prototype, not business signoff, an ERP write path, an approved complete offline mode or permission to merge to trunk.
 
-## 5b. BUILT: 29 draft templates and traceable calculation checks
+## 5b. BUILT: 30 draft templates and traceable calculation checks
 
-The printable registry now has **29 draft definitions**: 8 original first-slice templates plus **21** added in `form-packs.js`. New source-traced sweets/shared forms include:
+The printable registry now has **30 draft definitions**: 8 original first-slice templates plus **22** added in `form-packs.js`, including an independently printable source-derived C-02 expense voucher in first 50-field review. New source-traced sweets/shared forms include:
 
 | Source-backed controls (draft, not release) | Printable form |
 |---|---|
@@ -181,7 +181,7 @@ Eight additional **industry-specific hypothesis packs** (`REST-KITCHEN`, `RETAIL
 | Periodic reviews | 117 | Cash position, weekly management, monthly P&L |
 | Periodic settlement | 37 | Match statement/bank for period, not daily default |
 
-**Explicit missing standalone source forms:** C-02 expense voucher, C-03 marketing spend ledger, C-06 cash position/budget, P-01 purchase request, P-03 approved PO, S-04 online and delivery ledger, S-05 commercial/tax wholesale invoice, F-01 new-product authorization, F-04 controlled yield trial, M-01 maintenance request, A-01 weekly management review. They remain **source-required** until independent functional equivalence has been built and Owner verified. A shared event template is not evidence of parity with any of these source documents.
+**Remaining source-only forms without a separate corresponding draft:** C-03 marketing spend ledger, C-06 cash position/budget, P-01 purchase request, P-03 approved PO, S-04 online and delivery ledger, S-05 commercial/tax wholesale invoice, F-01 new-product authorization, F-04 controlled yield trial, M-01 maintenance request, A-01 weekly management review. C-02 now has a separate *draft*, but its original supporting receipt/voucher and approval evidence is still mandatory. They remain **source-required** until independent functional equivalence has been built and Owner verified. A shared event template is not evidence of parity with any of these source documents.
 
 **Realistic synthetic business/accounting demonstration:** `demo-fixture.json` is a self-contained fake business `DEMO-SWEETS-01` with **3 synthetic sites**, **4 non-real item/lot IDs**, **3 synthetic payment accounts**, **4 fake employee role IDs**, source-referenced transfers/GRNs/orders and money values. `paper-demo.cjs` reconciles item stock, document-backed goods received, PO × accepted-quantity × rate × invoice, physical counts, independent custody, showroom cash/digital/credit splits, bank net-of-fee settlement, refunds, production batch and Jalebi yield, and monthly COGS/AR/AP. It intentionally marks 60+ receivables for periodic follow-up rather than treating ageing as a cash-book pass. There are **no passwords, logins, real accounts, data writes, hosted database test fixtures or external network requests**. All demo transactions stay ephemeral inside a Node process, and the fixture is committed with an unmistakable `synthetic_only` marker.
 
@@ -201,6 +201,33 @@ node --test modules/paperops/tests/*.test.cjs
 ```
 
 This is an **isolated offline prototype build**, **not a signed ERP feature, Owner-approved business book set, field-parity release or authorized staging/production test run**. No old source was modified. New code requires full field/approval equivalence and live shell/signed-context integration review before any merge/deployment.
+
+## 5e. 50 at a time — built and independently CI-checked Batch 001
+
+The Owner requested **small incremental field reviews, exactly 50 candidate old keys per batch**, rather than one overwhelming 1,160-key signoff. The new non-networked batch system is:
+
+- `field-review/batch-001.json`: immutable-order record of the **first 50 previously untraced source keys**, including their original BN/EN labels, source form, role and conditional-required/display candidate metadata, exact new print-form/field key, source warning IDs, candidate checker, and explicit approval gaps.
+- `field-batch-audit.cjs --check`: source/printed-label integrity checks for **exactly 50**, no repeats, no reordered source, every source flag mapped to a named candidate blocker, no false parity/Owner-signoff claim. Its `--next` command returns the **next distinct 50** names for the following build pass (no automatic approval).
+- `field-batch-001-checks.js`: three pure, source-informed proof controls. They do **not** authorize a payment, stock post or business release. Every introduced blocker is covered by positive and deliberate-mismatch tests.
+- `tests/field-batch-001.test.cjs` and `tests/field-batch-audit.test.cjs`: exercised with synthetic amount, denomination, cash-count, expense limit/receipt and per-item dispatch/receipt cases. The 12 original warning candidates from these 3 historical forms are each represented in the test cases.
+
+| Original source | First-batch key count | Code now built | Remaining work |
+|---|---:|---|---|
+| **C-02 Expense Voucher** | 19 | New standalone **EXP-VOUCHER** draft, including 19 source-labeled fields, expense receipts, approval policy/exception, fixed imprest and 'sales drawer untouched' checks | Full UI conditional parity, account-specific payment rules and Owner payment workflow |
+| **C-01 Cash Handover** | 16 | Existing **CASH-HANDOVER** enriched with original document/ledger/denomination source fields; independent sender/hub note-by-note totals, float policy and mismatch checks | Full physical count/sign-off flow, seal/timing/date and return-copy policy |
+| **W-02 Transfer Challan** | 15 | Existing **STK-TRANSFER** enriched with demand, delivery, vehicle, dates/grade, order reference; line-by-line sender vs receiver and demand excess checks | Full 53-field challan parity, crates/trays liability and Owner issue-vs-transfer rules |
+
+**Batch 001:** 50/50 original field identities and corresponding printable slots verified against source candidate metadata; **12 historical warning categories** have synthetic candidate test cases. This is **source-to-print location + partial logic checking**, **not** 50 fully accepted field implementations. The old static candidate matrix still has 86 previously critical-linked fields plus 1,160 originally requiring individual review; Batch 001 addresses 50 *of those 1,160* at the source/print level, leaving **1,110 for first-pass selection**. All still need full sign-off as relevant; no old form may be discarded solely on a passing unit test.
+
+Running this small-batch review locally:
+
+```bash
+node modules/paperops/field-batch-audit.cjs --check
+node modules/paperops/field-batch-audit.cjs --next
+node --test modules/paperops/tests/field-batch-001.test.cjs modules/paperops/tests/field-batch-audit.test.cjs
+```
+
+The `--next` result is the deterministic next 50-source-field build queue; no background work or auto-approval occurs.
 
 ## 6. Reproduction, safety and deployment
 
