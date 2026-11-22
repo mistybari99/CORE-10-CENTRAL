@@ -58,7 +58,8 @@ test("§7b.4 browser: mobile More, keyboard Escape, back, bn/en and desktop grou
     await mobile.locator('.c10-mobilebar [data-mobile-route="stock"]').click();
     await mobile.waitForFunction(() => document.body.dataset.view === "stock");
     assert.equal(await mobile.locator('.c10-mobilebar [data-mobile-route="stock"]').getAttribute("aria-current"), "page");
-    await mobile.goBack({ waitUntil: "load" });
+    // Hash-only navigation does not fire another page load. Verify the actual History API result.
+    await mobile.evaluate(() => history.back());
     await mobile.waitForFunction(() => document.body.dataset.view === "master");
     assert.equal(await mobile.locator("#c10-more-toggle").getAttribute("aria-current"), "page");
     await mobile.locator('[data-set-lang="en"]').click();
