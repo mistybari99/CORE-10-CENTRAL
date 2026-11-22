@@ -90,3 +90,16 @@ Live screenshots (390/1440, BN/EN): `evidence/live-*.png` (GitHub only, not serv
 | Rollback | versions `9a1c6aaa…` and `b1d80c36…` both return 200 from the versions API |
 
 Live screenshots: `evidence/live-go-p1/`. Test labels (`BROWSER-1440`, `fixture:kg`) in Draft modules were NOT relabelled (would require editing recorded server output); listed as a limitation.
+
+## GO-3 Level 2 live deployment (2026-11-22 UTC)
+
+| Item | Value |
+|---|---|
+| Authority | Owner GO-3, re-confirmed in Session A after GO-2 (staging 0013-0019, 0100-0106, 0110-0114 applied) |
+| Branch / commit | `preview/core10-central-level2` @ `e79bd3c` (from `preview/core10-central-owner-app` @ `243e137`; that branch untouched) |
+| Change | `#/control` = real trunk Owner Control Centre with signed CORE10 staging sign-in; config generated from trunk file + publishable key, URL asserted = `rhrqhbyzrhaafynfhdaf`; CSP `connect-src 'self' https://rhrqhbyzrhaafynfhdaf.supabase.co`; legacy `config.js`, `v2/config.js`, `index.html`/`owner.html`, stocktake files forbidden |
+| Active | deployment `84095bdd-50be-4ecd-bf15-62a539f9dc56` / version `38141fd4-09de-4f90-8f81-e12a850597b4` (100%), bindings: none, compat 2026-11-16 |
+| Worker sha256 | `e0f7578d41edd35527cb1b0cedbe29e0225ca01fc83f49468b2a284e96bb8c86` |
+| Rollback | version `025cf3a1-8d91-45ba-bd4f-e2f77ee24ac1`; source saved `rollback/core10-central-025cf3a1.worker.mjs` (sha256 = live bytes) |
+| Live verify | `verify.cjs` 49/49 at the public URL: bn/en x 390/1440 x 10 routes, headers/CSP, write methods 405, forbidden paths 404, staging Auth refuses a wrong password and no other host is contacted. Evidence `evidence/live-go3/` |
+| NOT VERIFIED | a successful Owner sign-in (needs the Owner's own staging account). Master/Sales/Manufacturing stay recorded replay (0150+ not on staging). |

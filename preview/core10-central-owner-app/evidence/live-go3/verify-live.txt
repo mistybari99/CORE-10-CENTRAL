@@ -1,0 +1,51 @@
+target https://core10-central.mistybari99.workers.dev
+PASS bundle: no legacy backend host, key material, gateway or harness
+PASS negative: every write method is 405, backend/legacy paths 404
+PASS bn 390px #/home: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 390px #/business: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 390px #/master: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 390px #/sales: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 390px #/manufacturing: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 390px #/control: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 390px #/features: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 390px #/approvals: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 390px #/staff: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 390px #/setup: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 1440px #/home: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 1440px #/business: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 1440px #/master: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 1440px #/sales: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 1440px #/manufacturing: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 1440px #/control: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 1440px #/features: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 1440px #/approvals: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 1440px #/staff: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS bn 1440px #/setup: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 390px #/home: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 390px #/business: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 390px #/master: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 390px #/sales: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 390px #/manufacturing: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 390px #/control: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 390px #/features: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 390px #/approvals: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 390px #/staff: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 390px #/setup: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 1440px #/home: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 1440px #/business: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 1440px #/master: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 1440px #/sales: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 1440px #/manufacturing: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 1440px #/control: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 1440px #/features: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 1440px #/approvals: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 1440px #/staff: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS en 1440px #/setup: renders, same-origin only, no backend call, no overflow, no error, no developer text
+PASS Owner control: a change is refused with the UI's own message and nothing is saved
+PASS Level 2: wrong password is refused by CORE10 staging Auth, and nothing else is contacted
+PASS /view/master.html: real module renders from recorded reads, no request leaves the page
+PASS /view/sales.html: real module renders from recorded reads, no request leaves the page
+PASS /view/mfg.html: real module renders from recorded reads, no request leaves the page
+PASS replay refuses every module write (master save, sales save/transition, manufacturing create/approve/handoff/waste)
+PASS no developer-report text on any Owner route
+PASS CORE10 OWNER PREVIEW VERIFY: 49/49 @ https://core10-central.mistybari99.workers.dev
