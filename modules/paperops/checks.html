@@ -55,6 +55,8 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;background:#f1f6f
 <p id="source"></p>
 <p id="state" class="status">তথ্য দিয়ে যাচাই করুন।</p>
 <div id="blocks"></div>
+<h3>যে তথ্য দিয়ে যাচাই হয়েছে (লোকাল প্রিন্ট কপি)</h3>
+<dl id="entered" class="result"></dl>
 <div class="banner">এই রিপোর্ট কেবল অসম্পূর্ণ যাচাইয়ের চেকলিস্ট। এটি কোনো অনুমোদিত ERP হিসাব, পেমেন্ট অর্ডার, স্টক সমন্বয় বা সরকারি নথি নয়।</div>
 <h3>পড়ার জন্য সংখ্যাগত সারাংশ</h3><pre id="details">—</pre>
 <p class="critical">NOT APPROVED · NOT POSTED · FIELD PARITY NOT CERTIFIED</p>
@@ -101,6 +103,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;background:#f1f6f
     el('state').textContent='তথ্য দিয়ে যাচাই করুন।';
     el('state').className='status';
     el('blocks').replaceChildren();
+    el('entered').replaceChildren();
     el('details').textContent='—';
     el('print').disabled=true;
     el('message').textContent='';
@@ -117,7 +120,15 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;background:#f1f6f
   el('check').addEventListener('click',function(){
     resetResult();
     try{
-      const x=api.evaluate(flow.value,gather()),r=x.result;
+      const inputs=gather(),x=api.evaluate(flow.value,inputs),r=x.result;
+      const schema=api.FLOWS.find(z=>z.id===flow.value);
+      for(const field of schema.fields){
+        if(!Object.prototype.hasOwnProperty.call(inputs,field.key))continue;
+        const label=document.createElement('dt'),value=document.createElement('dd');
+        label.textContent=(el('lang').value==='en'?field.en:field.bn);
+        value.textContent=field.type==='bool'?(inputs[field.key]?'হ্যাঁ / Yes':'না / No'):String(inputs[field.key]);
+        el('entered').append(label,value);
+      }
       const blocked=r.status==='BLOCK';
       el('state').className='status '+(blocked?'block':'review');
       el('state').textContent=blocked
