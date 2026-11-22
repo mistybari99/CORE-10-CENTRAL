@@ -70,9 +70,9 @@ main{display:block;margin:0;padding:0}.print-area{border:0;border-radius:0;paddi
 <label>ব্যবসার ধরন<select id="industry"><option value="sweets">মিষ্টি / খাদ্য</option><option value="paint">পেইন্ট</option><option value="generic">অন্যান্য (কমন খসড়া)</option></select></label>
 <label>ব্যবসার নাম<input id="business" maxlength="120" value="ডেমো মিষ্টি ব্যবসা"></label>
 <label>গ্রুপ নাম<input id="group" maxlength="120" value="CORE-10 Group"></label>
-<label>শাখা তালিকা: প্রতিটি লাইনে <code>ID | নাম | ঐচ্ছিক হেডার | ঐচ্ছিক #রং</code><textarea id="sites" spellcheck="false">khulna | খুলনা শোরুম
-factory | মূল কারখানা</textarea></label>
-<p class="hint">শাখার আলাদা হেডার বা থিম প্রয়োজন হলে একই লাইনে যোগ করুন। ID অনন্য হতে হবে। সর্বোচ্চ ৪০০ শাখা।</p>
+<label>শাখা তালিকা: প্রতিটি লাইনে <code>ID | নাম | ধরন | ঐচ্ছিক হেডার | ঐচ্ছিক #রং</code><textarea id="sites" spellcheck="false">khulna | খুলনা শোরুম | showroom
+factory | মূল কারখানা | factory</textarea></label>
+<p class="hint">ধরন: showroom / factory / warehouse / office / project। শুধু showroom-এ দৈনিক বিক্রি-ক্লোজিং; অন্য সাইটে ঘটনার ফর্ম ও আলাদা রেজিস্টার। সর্বোচ্চ ৪০০ সাইট, এক প্রিন্ট ব্যাচে ১০০ ফর্ম।</p>
 <h2>২. আজ ঘটে যাওয়া কাজ</h2>
 <label>ঘটনার ধরন<select id="eventType"></select></label>
 <label>শাখা<select id="eventSite"></select></label>
@@ -111,13 +111,13 @@ function readSites(){
   const lines=el('sites').value.split(/\r?\n/).filter(x=>x.trim()), out=[], brands={};
   for(const line of lines){
     const p=line.split('|').map(s=>s.trim());
-    if(p.length>4)throw Error('INVALID_SITE_LINE');
+    if(p.length>5)throw Error('INVALID_SITE_LINE');
     const id=p[0],name=p[1];
     if(!id||!name)throw Error('SITE_ID_AND_NAME_REQUIRED');
-    out.push({id,name});
+    out.push({id,name,kind:p[2]||'showroom'});
     const b={};
-    if(p[2])b.headerName=p[2];
-    if(p[3])b.color=p[3];
+    if(p[3])b.headerName=p[3];
+    if(p[4])b.color=p[4];
     brands[id]=b;
   }
   return {sites:out,brands};
@@ -173,7 +173,7 @@ el('generate').addEventListener('click',function(){
       siteBrands:brands
     });
     el('output').innerHTML=markup;
-    el('summary').textContent='প্রস্তুত: '+plan.count+'টি খসড়া শিট ('+plan.dailyCount+'টি দৈনিক + '+plan.eventCount+'টি ঘটনার)। অসম্পূর্ণ রেজিস্টারগুলো আলাদাভাবে রাখতে হবে।';
+    el('summary').textContent='প্রস্তুত: '+plan.count+'টি খসড়া শিট ('+plan.dailyCount+'টি শোরুম ক্লোজিং + '+plan.eventCount+'টি ঘটনার)। '+plan.excludedDailySites.length+'টি non-retail সাইটে অপ্রয়োজনীয় sales close বাদ। অসম্পূর্ণ রেজিস্টারগুলো আলাদাভাবে রাখতে হবে।';
     el('print').disabled=false;
     el('status').textContent='প্রিন্ট প্রিভিউ প্রস্তুত। কোনো ERP ডাটা পরিবর্তিত হয়নি।';
   }catch(err){el('print').disabled=true;el('status').textContent='কিট তৈরি হয়নি: '+err.message;}
