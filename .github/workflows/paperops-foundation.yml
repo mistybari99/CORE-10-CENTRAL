@@ -47,6 +47,8 @@ jobs:
         run: node modules/paperops/paper-demo.cjs
       - name: Verify signed-source packaging and expense cashbook synthetic reconciliation
         run: node modules/paperops/source-books-demo.cjs
+      - name: Verify no-write source-to-CORE10 Stock and Money port handoff intents
+        run: node modules/paperops/source-port-handoff-demo.cjs
       - name: PaperOps contract, safety and preservation tests
         run: node --test modules/paperops/tests/*.test.cjs
       - name: Cross-module live and retired-project guard when available
