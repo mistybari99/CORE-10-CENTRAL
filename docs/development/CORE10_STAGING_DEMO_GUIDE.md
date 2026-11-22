@@ -1,40 +1,26 @@
-# CORE10 staging demo — Owner-controlled, reversible-by-fresh-instance
+# CORE10 Owner staging — demo setup and signed Master Data (2026-11-22)
 
-Status 2026-11-22. **Staging only**: `rhrqhbyzrhaafynfhdaf` (`core10` schema). This is not a real operating business or a production database.
+## Scope
+Only CORE10 staging `rhrqhbyzrhaafynfhdaf` (schema `core10`). All records are synthetic test data, not real trading/financial postings. Separate legacy IMG-ERP-SG and other Supabase projects remain untouched.
 
-## Created fixture
+## Existing business and sample data
+- Tenant `core10-owner-group` ID 1, legal entity 1, Owner tenant_owner.
+- Draft business ID 3 `core10-demo-sweets-20261122`, `CORE10 DEMO Sweets (TEST ONLY)`, sweets_bakery template.
+- Four sites: Demo Showroom, Demo Factory, Demo Warehouse, and Owner-created trial showroom `ASIAN Paint` (belongs to the sweets demo, not a separate business).
+- Four items: `DEMO-RASGULLA` (রসগোল্লা), `DEMO-SANDESH` (সন্দেশ), `DEMO-SUGAR` (চিনি), `DEMO-MILK` (দুধ); three UOMs PCS/KG/BOX, two categories, two demo parties, one BDT retail price list, two test prices. Saved via signed canonical Master RPCs.
+- Synthetic tenants 9801/9802 retain separate businesses and cannot read Owner Master records (negative SQL test PASS).
 
-- Owner tenant `core10-owner-group` (`tenant_id=1`), legal entity `1`. Owner's existing signed account manages it.
-- `core10-demo-sweets-20261122` (`business_id=3`), display name `CORE10 DEMO Sweets (TEST ONLY)`, template `sweets_bakery`, status `draft`.
-- Three canonical sites: Demo Showroom, Demo Factory, Demo Warehouse. One `setup.business` event and one canonical audit event recorded.
-- Existing independent demo tenants `stg-a` (9801) and `stg-b` (9802) unchanged. Unrelated Supabase projects untouched.
+## Mobile workflow
+1. [Signed Business Setup](https://core10-central.mistybari99.workers.dev/#/setup): sign in with existing Owner staging account; screenshot previously verified login and four-site selector.
+2. [Signed Master Data](https://core10-central.mistybari99.workers.dev/#/master): same CORE10 staging Auth session may be reused, otherwise sign in. This route is signed database-backed, not recorded replay.
+3. Select the DEMO Sweets business. Search `রসগোল্লা`, inspect the four seeded items, UOMs, dummy parties and price list, and test an authorized edit. Human Owner mobile Master edit is still pending acceptance; full automated browser and signed database tests PASS.
+4. Never use these dummy SKUs for live commercial stock/accounting.
 
-## How the Owner opens it
+## Reset
+Fresh = a new clean TEST ONLY business instance, not erasure of previously audited events. CLI `node scripts/staging/create-fresh-owner-demo.mjs --fresh` uses protected environment credentials, the exact CORE10 staging endpoint and signed setup RPC, then verifies three sites. Mocked unit tests 5/5 PASS; networked Owner CLI acceptance remains untested. A manual new business in signed `/#/setup` also works. Do not hard-delete immutable audit records or bypass triggers. True archive/delete requires a separate tested forward migration and retention approval.
 
-1. Open [direct signed setup](https://core10-central.mistybari99.workers.dev/live/core10-build01.html) (or `/#/setup`).
-2. Sign in with the Owner's **existing** staging Auth credentials. Never send the password in chat or commit it.
-3. Select **CORE10 DEMO Sweets (TEST ONLY)** under Authorized Business. The three sites appear in the workspace.
-4. `draft` means setup/data exercise only: no production activation; stock/master/finance migrations are still not hosted on staging.
-
-The direct URL and `/#/setup` loaded over HTTPS (HTTP 200) on 2026-11-22. Successful interactive password sign-in **was not checked** from this session.
-
-## Clear/fresh reset policy
-
-**The reset is a fresh isolated demo draft, not deletion of history.** The access-change and canonical audit tables have immutable triggers and FKs to the business. A hard DELETE would break audit invariants. Do **not** bypass, disable or truncate them.
-
-For a fresh exercise, use `node scripts/staging/create-fresh-owner-demo.mjs --fresh`. It authenticates against the **exact staging host** with the Owner's normal password, checks the signed Owner tenant/legal entity, creates one uniquely named `draft` with the standard three sites through `build01_setup_v1`, then verifies the resulting signed context and workspace. Every invocation produces a different slug; previous demo business and audit remain inspectable. Credentials are read only from the `CORE10_DEMO_EMAIL` and `CORE10_DEMO_PASSWORD` environment variables and never printed or stored by the script. Protect environment variables on shared computers, and unset them afterward.
-
-A simpler manual fresh start is `/#/setup` → create a new business with a fresh `core10-demo-...` slug and `TEST ONLY` label, `sweets_bakery` template, Advanced mode and the three demo sites. This is **not** an erase operation.
-
-A true delete/archival lifecycle requires a later **forward migration**, Owner-approved retention policy, and cross-tenant/immutable-audit tests. None was added or applied here; 0115–0118 migration reservations remain unresolved.
-
-## Evidence and safety
-
-- Staging SQL in a `BEGIN ... ROLLBACK` rehearsal verified setup, idempotent request-key replay, three sites, tenant-scoped context and cross-tenant rejection before the commit.
-- After commit, signed-context SQL checks verified Owner read/manage, three sites, one audit event, replay without duplicate audit, and tenant 9801's refusal to see Owner business ID 3.
-- `node --test tests/staging/create-fresh-owner-demo.test.mjs`: 5/5 PASS (mocked network only). The networked CLI has **not** been exercised end-to-end with the Owner password.
-- No new migration, no Worker deployment, no edit to `main`, no service-role key.
-
-## Live release boundary
-
-The earlier `preview/core10-central-level2` shell wording fix is still **preview code only**. Do not deploy without mandatory `node build.mjs` → all-PASS `node verify.cjs` → multipart Worker PUT → all-PASS live verify; otherwise rollback. The live Worker version stays `201008ca-42a7-42cd-a08e-b968da6c4e51` as of these checks.
+## What is verified and what remains
+- Staging ledger: 40 versions, last `0200`; D063 0115–0118, Master 0150–0153 and Stock foundation 0200 applied by numeric order and exact-file SHA256. Owner bootstrap policy initialized at 0116.
+- Scoped backup evidence: `docs/development/staging-backups/2026-11-22-pre-go2`, `2026-11-22-pre-d063`, `2026-11-22-pre-master-stock`. These logical snapshots do not replace a full database restore.
+- Cloudflare Worker `core10-central`: version `4b6d179c-e1aa-4066-9fb6-6988dbc32432`, bundle SHA256 `3ae944b1cdcb49f4701457d629e99b61f4acff32fff7b77e2713d3f16568fc28`, local real Chromium `44991383787` **50/50 PASS**, live URL CI `44991642473` **50/50 PASS**. Previous stable rollback version `ceeea069-d630-460a-b1f0-5b12e5157da9`.
+- Sales/Manufacturing pages are recorded replay only; Stock core foundation has no signed operational posting in this release; Finance 0400+ not hosted. No production certification. D063 post-cutover maximum sites defaults to 50; auditable per-business Owner Control cap increase and new stress tests needed for 100–400.
