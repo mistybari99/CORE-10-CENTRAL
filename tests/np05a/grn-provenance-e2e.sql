@@ -89,6 +89,29 @@ SELECT pg_temp.expect(format('SELECT core10.mfg_verify_grn_source_v1(9511,9521,%
  SET LOCAL ROLE authenticated;
  SELECT set_config('request.jwt.claims',jsonb_build_object('sub',:'grn_reviewer')::text,false);
  SELECT pg_temp.expect(format('SELECT core10.mfg_verify_grn_source_v1(9511,9521,%s,%s,1,%s)',:batch_id,:actual_grn,:actual_lot),'MFG_GRN_SOURCE_UNVERIFIED');
+ -- The GRN writer must roll back its movement, lot and all receipts if Stock requires staged approval.
+ SELECT core10.procurement_inspect_v1(:pending_id,'[{"line_no":1,"accepted_qty":10}]',1,'grn_pending_inspect');
+ SELECT core10.control_set_v1(9511,NULL,'inventory.stock_event',true,1::smallint,'{}',NULL,false,0,
+  'Synthetic staged Stock policy','grn_stock_stage_business');
+ SELECT pg_temp.expect(format('SELECT core10.procurement_post_grn_v1(%s,2,%L)',:pending_id,'grn_pending_post'),'PROC_STOCK_APPROVAL_NOT_CONNECTED');
+ SELECT core10.control_set_v1(9511,NULL,'inventory.stock_event',true,0::smallint,'{}',NULL,false,1,
+  'Synthetic zero-stage Stock policy','grn_stock_direct_business');
+ SELECT core10.control_set_v1(9511,9521,'inventory.stock_event',true,2::smallint,'{}',NULL,false,0,
+  'Synthetic staged site Stock policy','grn_stock_stage_site');
+ SELECT pg_temp.expect(format('SELECT core10.procurement_post_grn_v1(%s,2,%L)',:pending_id,'grn_pending_post'),'PROC_STOCK_APPROVAL_NOT_CONNECTED');
+ RESET ROLE;
+ SELECT pg_temp.ok((SELECT status='inspected' AND version=2 FROM core10.goods_receipts_v1 WHERE id=:pending_id)
+  AND (SELECT stock_movement_id IS NULL AND lot_id IS NULL FROM core10.goods_receipt_lines_v1 WHERE grn_id=:pending_id)
+  AND (SELECT count(*)=3 FROM core10.stock_movements WHERE business_id=9511)
+  AND NOT EXISTS(SELECT 1 FROM core10.inventory_lots_v1 WHERE lot_code='GRN-PENDING-QA')
+  AND NOT EXISTS(SELECT 1 FROM core10.procurement_requests_v1 WHERE request_key='grn_pending_post')
+  AND NOT EXISTS(SELECT 1 FROM core10.canonical_audit_events_v1 WHERE business_id=9511 AND source_ref='grn:'||:pending_id||':posted'),
+  'staged Stock policy rolls back movement, lot, receipt and Audit');
+ SET LOCAL ROLE authenticated;
+ SELECT core10.control_set_v1(9511,9521,'inventory.stock_event',true,0::smallint,'{}',NULL,false,1,
+  'Synthetic zero-stage site Stock policy','grn_stock_direct_site');
+ SELECT pg_temp.ok(core10.procurement_post_grn_v1(:pending_id,2,'grn_pending_post')->>'status'='posted',
+  'the original request key remains usable under a zero-stage effective policy');
 \else
  SELECT pg_temp.expect(format('SELECT core10.mfg_verify_grn_source_v1(9511,9521,%s,1,1,1)',:batch_id),'NOT_CONNECTED:PROCUREMENT_GRN');
 \endif
