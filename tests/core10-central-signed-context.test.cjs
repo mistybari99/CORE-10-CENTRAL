@@ -70,6 +70,35 @@ test("§7b.4 browser: one sign-in, group/business/site scoped switching, role-sa
    await page.locator('[data-set-lang="en"]').click();
    assert.equal(await page.getAttribute("html","lang"),"en");
    assert.equal(await page.locator("#c10-context-note").textContent().then(s=>/server-authorized/.test(s)),true);
+   // An account switch must revoke previously rendered business/site names.
+   await page.evaluate(()=>window.__scopeTest.changeAccount());
+   await page.locator("#c10-context-refresh").click();
+   await page.locator("#c10-context-anon").waitFor({state:"visible"});
+   assert.equal(await page.locator("#c10-business option").count(),0);
+   await page.locator("#c10-shell-open-login").click();
+   await page.fill("#c10-shell-password","correct-password");
+   await page.locator("#c10-shell-submit").click();
+   await page.locator("#c10-context-signed").waitFor({state:"visible"});
+
+   // A delayed valid RPC response must not repopulate private UI after SIGNED_OUT.
+   const beforeCalls=await page.evaluate(()=>window.__scopeTest.calls.length);
+   await page.evaluate(()=>{
+     let resolve;
+     const promise=new Promise(r=>{resolve=r;});
+     window.__scopeTest.pending={promise,resolve};
+   });
+   await page.locator("#c10-context-refresh").click();
+   await page.waitForFunction(n=>window.__scopeTest.calls.length>n,beforeCalls);
+   await page.evaluate(()=>window.__scopeTest.expire());
+   await page.locator("#c10-context-anon").waitFor({state:"visible"});
+   await page.evaluate(()=>window.__scopeTest.resolve());
+   assert.equal(await page.locator("#c10-business option").count(),0);
+   assert.equal(await page.locator("#c10-site option").count(),0);
+   await page.locator("#c10-shell-open-login").click();
+   await page.fill("#c10-shell-password","correct-password");
+   await page.locator("#c10-shell-submit").click();
+   await page.locator("#c10-context-signed").waitFor({state:"visible"});
+
    // The server revokes scope: an old selection may not remain visible.
    await page.evaluate(()=>window.__scopeTest.revoke());
    await page.locator("#c10-context-refresh").click();
