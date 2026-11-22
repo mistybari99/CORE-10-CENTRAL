@@ -303,6 +303,25 @@ SELECT np06_arap_test.ok((
  core10.finance_arap_aging_v1(9611,'2026-11-30','ar')->'rows') r),
  'AR 10 days overdue aged bucket');
 
+-- P2 aging bucket edges: boundary dates must not jump a bucket early.
+-- Existing AR document due 2026-11-20; payment does not affect days overdue.
+SELECT np06_arap_test.ok((
+ SELECT bool_and((r->>'age_bucket')=v.bucket AND (r->>'days_overdue')::int=v.days)
+ FROM (VALUES
+  (DATE '2026-11-20','current',0),
+  (DATE '2026-11-21','1_30',1),
+  (DATE '2026-12-20','1_30',30),
+  (DATE '2026-12-21','31_60',31),
+  (DATE '2027-01-19','31_60',60),
+  (DATE '2027-01-20','61_90',61),
+  (DATE '2027-02-18','61_90',90),
+  (DATE '2027-02-19','90_plus',91)
+ ) AS v(as_of,bucket,days)
+ CROSS JOIN LATERAL jsonb_array_elements(
+  core10.finance_arap_aging_v1(9611,v.as_of,'ar')->'rows') r
+ WHERE (r->>'link_id')::bigint=:ar_link
+), 'AR aging bucket edges 0/1/30/31/60/61/90/91 are inclusive as documented');
+
 -- Trace must retain the REAL posted source journal + canonical Audit IDs.
 -- No source adapter is claimed: manual is explicitly UNATTESTED invoice evidence.
 SELECT np06_arap_test.ok((
