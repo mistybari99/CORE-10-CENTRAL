@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "status": "INITIAL_CRITICAL_CONTROL_OBLIGATIONS_NOT_FIELD_PARITY",
-  "description": "Selected high-risk source-backed control obligations. Partial means draft has a conceptual field, NOT complete migration. Gap means no operational replacement. Do not release a replacement while any applicable obligation remains unresolved.",
+  "description": "All 20 selected source-backed high-risk obligations now have a printable DRAFT template target. Previous 11 GAPS remain GAP until full field/formula parity, practical Owner acceptance and independent controls are verified; 9 remain PARTIAL. Draft target means prototype coverage only, never operational release.",
   "records": [
     {
       "id": "SHOWROOM_OPEN_SAFETY",
@@ -15,7 +15,8 @@
       "obligation_en": "Pre-opening safety, cold-chain, expired segregation and opening money verification cannot disappear.",
       "draft_target": "OPS-DAILY",
       "coverage": "partial",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "PREVIOUSLY_PARTIAL_SOURCE_TRACED_DRAFT"
     },
     {
       "id": "JALEBI_MEASUREMENT_SEPARATION",
@@ -27,9 +28,10 @@
         "scale"
       ],
       "obligation_en": "Fryer and independent measurer plus calibrated scale checks.",
-      "draft_target": null,
+      "draft_target": "SWT-JALEBI",
       "coverage": "gap",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "SOURCE_TRACED_PRINTABLE_DRAFT_NOT_FIELD_PARITY"
     },
     {
       "id": "JALEBI_YIELD_AND_UNSOLD",
@@ -41,9 +43,10 @@
         "unsold"
       ],
       "obligation_en": "Flour/oil/syrup and sold-versus-unsold reconcile to approved yield; unsold disposition is recorded.",
-      "draft_target": null,
+      "draft_target": "SWT-JALEBI",
       "coverage": "gap",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "SOURCE_TRACED_PRINTABLE_DRAFT_NOT_FIELD_PARITY"
     },
     {
       "id": "CASH_CUSTODY_PROOF",
@@ -57,7 +60,8 @@
       "obligation_en": "Two-party count, seal, actual recount, discrepancy and ledger references.",
       "draft_target": "CASH-HANDOVER",
       "coverage": "partial",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "PREVIOUSLY_PARTIAL_SOURCE_TRACED_DRAFT"
     },
     {
       "id": "GOODS_TWO_PARTY_TRANSFER",
@@ -72,7 +76,8 @@
       "obligation_en": "Dispatch/receipt quantities, difference, carrier and responsibility evidence.",
       "draft_target": "STK-TRANSFER",
       "coverage": "partial",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "PREVIOUSLY_PARTIAL_SOURCE_TRACED_DRAFT"
     },
     {
       "id": "PHYSICAL_COUNT_IS_NOT_ADJUSTMENT",
@@ -87,7 +92,8 @@
       "obligation_en": "Physical count requires independent discrepancy evidence before stock adjustment.",
       "draft_target": "STK-COUNT",
       "coverage": "partial",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "PREVIOUSLY_PARTIAL_SOURCE_TRACED_DRAFT"
     },
     {
       "id": "STOCK_LEDGER_CARRY_FORWARD",
@@ -100,9 +106,10 @@
         "count_sheet"
       ],
       "obligation_en": "Per-item opening, movement references, rolling balances and count-sheet-only correction.",
-      "draft_target": null,
+      "draft_target": "STK-LEDGER",
       "coverage": "gap",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "SOURCE_TRACED_PRINTABLE_DRAFT_NOT_FIELD_PARITY"
     },
     {
       "id": "GRN_ACCEPTANCE_QC",
@@ -117,7 +124,8 @@
       "obligation_en": "Order comparison, independent quantity/QC, hold area and rate-change approval.",
       "draft_target": "PUR-GRN",
       "coverage": "partial",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "PREVIOUSLY_PARTIAL_SOURCE_TRACED_DRAFT"
     },
     {
       "id": "THREE_WAY_BILL_MATCH",
@@ -130,9 +138,10 @@
         "pay_approved"
       ],
       "obligation_en": "PO, receipt and invoice match before any authorised payment.",
-      "draft_target": null,
+      "draft_target": "PUR-BILL-MATCH",
       "coverage": "gap",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "SOURCE_TRACED_PRINTABLE_DRAFT_NOT_FIELD_PARITY"
     },
     {
       "id": "QUOTE_SELECTION_PROOF",
@@ -143,9 +152,10 @@
         "single_approver"
       ],
       "obligation_en": "Lowest-price rule, justified exception and independent supplier choice.",
-      "draft_target": null,
+      "draft_target": "PUR-COMPARE",
       "coverage": "gap",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "SOURCE_TRACED_PRINTABLE_DRAFT_NOT_FIELD_PARITY"
     },
     {
       "id": "ORDER_FULFILMENT_ADVANCE",
@@ -157,9 +167,10 @@
         "balance"
       ],
       "obligation_en": "Order board, factory promises, customer advance and fulfilment reconciliation.",
-      "draft_target": null,
+      "draft_target": "SLS-ORDER",
       "coverage": "gap",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "SOURCE_TRACED_PRINTABLE_DRAFT_NOT_FIELD_PARITY"
     },
     {
       "id": "DISCOUNT_ABOVE_LIMIT",
@@ -172,7 +183,8 @@
       "obligation_en": "Approved threshold and independent decision; no unsupported discount.",
       "draft_target": "EXCEPTION",
       "coverage": "partial",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "PREVIOUSLY_PARTIAL_SOURCE_TRACED_DRAFT"
     },
     {
       "id": "RETURN_REFUND_AND_ROOT_CAUSE",
@@ -184,9 +196,10 @@
         "root_cause"
       ],
       "obligation_en": "Refund authority, returned goods disposition and cause investigation.",
-      "draft_target": null,
+      "draft_target": "SLS-RETURN",
       "coverage": "gap",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "SOURCE_TRACED_PRINTABLE_DRAFT_NOT_FIELD_PARITY"
     },
     {
       "id": "CHANNEL_SETTLEMENT_RECON",
@@ -199,9 +212,10 @@
         "on_a"
       ],
       "obligation_en": "Settlement statement to shop/online ledger reconciliation with missing money exception.",
-      "draft_target": null,
+      "draft_target": "FIN-SETTLEMENT",
       "coverage": "gap",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "SOURCE_TRACED_PRINTABLE_DRAFT_NOT_FIELD_PARITY"
     },
     {
       "id": "AGEING_AND_CREDIT_STOP",
@@ -213,9 +227,10 @@
         "credit_stopped"
       ],
       "obligation_en": "Receivables ageing, credit hold and advance balance.",
-      "draft_target": null,
+      "draft_target": "FIN-AR-AGING",
       "coverage": "gap",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "SOURCE_TRACED_PRINTABLE_DRAFT_NOT_FIELD_PARITY"
     },
     {
       "id": "FACTORY_PRESTART_AND_BATCH",
@@ -230,7 +245,8 @@
       "obligation_en": "Safety/hygiene, issue-slip-controlled materials, batch yield and independent verification.",
       "draft_target": "MFG-DAILY",
       "coverage": "partial",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "PREVIOUSLY_PARTIAL_SOURCE_TRACED_DRAFT"
     },
     {
       "id": "RECIPE_VERSION_NOT_DAILY_COPY",
@@ -243,7 +259,8 @@
       "obligation_en": "Approved recipe and product spec version referenced by production, not rewritten each shift.",
       "draft_target": "MFG-DAILY",
       "coverage": "partial",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "PREVIOUSLY_PARTIAL_SOURCE_TRACED_DRAFT"
     },
     {
       "id": "YIELD_TEST_INPUT_OUTPUT",
@@ -258,7 +275,8 @@
       "obligation_en": "Yield tests reconcile input with good, second-grade and waste, plus approval.",
       "draft_target": "MFG-DAILY",
       "coverage": "partial",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "PREVIOUSLY_PARTIAL_SOURCE_TRACED_DRAFT"
     },
     {
       "id": "GRADE_AND_SHELF_LIFE",
@@ -270,9 +288,10 @@
         "shelf_normal"
       ],
       "obligation_en": "Approved grading, rejection signs, storage and shelf-life reference.",
-      "draft_target": null,
+      "draft_target": "MFG-SPEC",
       "coverage": "gap",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "SOURCE_TRACED_PRINTABLE_DRAFT_NOT_FIELD_PARITY"
     },
     {
       "id": "MONTHLY_PROFIT_AR_AP",
@@ -285,9 +304,10 @@
         "payables"
       ],
       "obligation_en": "Monthly costs/profit and balances must reconcile to accounting records.",
-      "draft_target": null,
+      "draft_target": "FIN-MONTHLY",
       "coverage": "gap",
-      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE"
+      "release_gate": "FIELD_PARITY_PLUS_OWNER_PRACTICAL_ACCEPTANCE",
+      "prototype_status": "SOURCE_TRACED_PRINTABLE_DRAFT_NOT_FIELD_PARITY"
     }
   ]
 }
