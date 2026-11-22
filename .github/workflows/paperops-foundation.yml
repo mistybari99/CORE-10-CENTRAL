@@ -27,6 +27,8 @@ jobs:
         run: node modules/paperops/legacy-rule-extractor.cjs --check
       - name: Enforce old-field to new-field and blocker trace, no false parity claims
         run: node modules/paperops/paper-parity-audit.cjs
+      - name: Run eight synthetic paper-day scenarios (counts, routing, all drafts)
+        run: node modules/paperops/paper-pilot.cjs
       - name: PaperOps contract, safety and preservation tests
         run: node --test modules/paperops/tests/*.test.cjs
       - name: Cross-module live and retired-project guard when available
