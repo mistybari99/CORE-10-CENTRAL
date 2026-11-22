@@ -1,0 +1,957 @@
+{
+ "project_ref": "rhrqhbyzrhaafynfhdaf",
+ "schema": "core10",
+ "captured_on": "2026-11-22 after D063",
+ "purpose": "pre-Master/Stock 0150-0200; no auth.* or IMG-ERP-SG",
+ "tables": {
+  "sites": [
+   {
+    "id": 9831,
+    "kind": "showroom",
+    "label": "Showroom",
+    "tenant_id": 9801,
+    "business_id": 9821,
+    "request_key": "stg-seed-s1"
+   },
+   {
+    "id": 9832,
+    "kind": "factory",
+    "label": "Factory",
+    "tenant_id": 9801,
+    "business_id": 9821,
+    "request_key": "stg-seed-s2"
+   },
+   {
+    "id": 9833,
+    "kind": "showroom",
+    "label": "Other showroom",
+    "tenant_id": 9802,
+    "business_id": 9822,
+    "request_key": "stg-seed-s3"
+   },
+   {
+    "id": 5,
+    "kind": "showroom",
+    "label": "Demo Showroom",
+    "tenant_id": 1,
+    "business_id": 3,
+    "request_key": "industry-v2:owner-demo-sweets-chatgpt-20261122-v1:site:0001"
+   },
+   {
+    "id": 6,
+    "kind": "factory",
+    "label": "Demo Factory",
+    "tenant_id": 1,
+    "business_id": 3,
+    "request_key": "industry-v2:owner-demo-sweets-chatgpt-20261122-v1:site:0002"
+   },
+   {
+    "id": 7,
+    "kind": "warehouse",
+    "label": "Demo Warehouse",
+    "tenant_id": 1,
+    "business_id": 3,
+    "request_key": "industry-v2:owner-demo-sweets-chatgpt-20261122-v1:site:0003"
+   },
+   {
+    "id": 8,
+    "kind": "showroom",
+    "label": "ASIAN Paint",
+    "tenant_id": 1,
+    "business_id": 3,
+    "request_key": "bc3e51e8-7cfc-4640-aa94-bbbeef90f90b"
+   }
+  ],
+  "tenants": [
+   {
+    "id": 9801,
+    "slug": "stg-a",
+    "active": true,
+    "bootstrap_policy_initialized": false
+   },
+   {
+    "id": 9802,
+    "slug": "stg-b",
+    "active": true,
+    "bootstrap_policy_initialized": false
+   },
+   {
+    "id": 1,
+    "slug": "core10-owner-group",
+    "active": true,
+    "bootstrap_policy_initialized": true
+   }
+  ],
+  "businesses": [
+   {
+    "id": 9821,
+    "slug": "stg-sweets",
+    "status": "draft",
+    "tenant_id": 9801,
+    "request_key": "stg-seed-a",
+    "template_code": "sweets_bakery",
+    "legal_entity_id": 9811
+   },
+   {
+    "id": 9822,
+    "slug": "stg-other",
+    "status": "draft",
+    "tenant_id": 9802,
+    "request_key": "stg-seed-b",
+    "template_code": "restaurant",
+    "legal_entity_id": 9812
+   },
+   {
+    "id": 3,
+    "slug": "core10-demo-sweets-20261122",
+    "status": "draft",
+    "tenant_id": 1,
+    "request_key": "industry-v2:owner-demo-sweets-chatgpt-20261122-v1",
+    "template_code": "sweets_bakery",
+    "legal_entity_id": 1
+   }
+  ],
+  "legal_entities": [
+   {
+    "id": 9811,
+    "label": "Staging A",
+    "tenant_id": 9801
+   },
+   {
+    "id": 9812,
+    "label": "Staging B",
+    "tenant_id": 9802
+   },
+   {
+    "id": 1,
+    "label": "CORE10 Owner Group",
+    "tenant_id": 1
+   }
+  ],
+  "tenant_members": [
+   {
+    "role": "tenant_owner",
+    "active": true,
+    "user_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "tenant_id": 9801
+   },
+   {
+    "role": "tenant_owner",
+    "active": true,
+    "user_id": "da92a4cb-e624-44fd-972a-b6c7def869d4",
+    "tenant_id": 9802
+   },
+   {
+    "role": "tenant_owner",
+    "active": true,
+    "user_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "tenant_id": 1
+   }
+  ],
+  "stock_locations": [
+   {
+    "id": 5,
+    "code": "MAIN",
+    "site_id": 5,
+    "tenant_id": 1,
+    "business_id": 3
+   },
+   {
+    "id": 6,
+    "code": "MAIN",
+    "site_id": 6,
+    "tenant_id": 1,
+    "business_id": 3
+   },
+   {
+    "id": 7,
+    "code": "MAIN",
+    "site_id": 7,
+    "tenant_id": 1,
+    "business_id": 3
+   },
+   {
+    "id": 8,
+    "code": "MAIN",
+    "site_id": 8,
+    "tenant_id": 1,
+    "business_id": 3
+   }
+  ],
+  "schema_migrations": [
+   {
+    "name": "0001_s0_core10_schema",
+    "version": 1,
+    "checksum": "c51c4dae6c1325b79b60f887145d0be58217beb63146a017391cb6a3d49f13bc",
+    "applied_at": "2026-11-16T10:55:11.004711+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0002_np01_access_foundation",
+    "version": 2,
+    "checksum": "86199d64bcc178e2e14935db1615ca320806ca2ee74352fc8521b1fa4062648f",
+    "applied_at": "2026-11-16T10:55:12.6013+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0003_np01_access_governance",
+    "version": 3,
+    "checksum": "bc3f2b355eec181a175de9594fc8d8b55cb2472387b6eb2fb455aa94ac40cfef",
+    "applied_at": "2026-11-16T10:55:14.173102+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0004_np01_setup_prerequisite",
+    "version": 4,
+    "checksum": "de0dfafd1ed1a1c402ffea3c82c28cf708a5bc7288f5f0bde7fd14434b05aa81",
+    "applied_at": "2026-11-16T10:55:16.002852+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0005_np01_industry_prerequisite",
+    "version": 5,
+    "checksum": "3f73b92cfa0034663034532cb7a72759cc49079e63138b988b3b886bd59fb64a",
+    "applied_at": "2026-11-16T10:55:17.404645+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0006_np01_build01_access",
+    "version": 6,
+    "checksum": "38ed43e52622284b6dcaf738bffbe114fe8bb645fe96d02a8ebe9a455186cce2",
+    "applied_at": "2026-11-16T10:55:19.063401+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0007_np01_build02a_approval",
+    "version": 7,
+    "checksum": "5a180c2c23f2da4aa46a1486c54b0023bb0615a5455c9aa35ef507112e51b701",
+    "applied_at": "2026-11-16T10:55:20.43368+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0008_np01_canonical_audit",
+    "version": 8,
+    "checksum": "5225a2ad5cbc512cb964262c1aba897c7c1e208e9eec20ee6167503bf9e4854d",
+    "applied_at": "2026-11-16T10:55:21.803732+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0009_np01_gov002_approval",
+    "version": 9,
+    "checksum": "444daba14c15fadfbec72e2a9ef2da5748ebb2a1d2afb3bfc94d1d43e05a6d7b",
+    "applied_at": "2026-11-16T10:55:23.291764+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0010_np01_gov002_typed",
+    "version": 10,
+    "checksum": "25d8f867650e682cab86cd1cde62556c4c6a25f5c875b617c25bf8d1cd522ed3",
+    "applied_at": "2026-11-16T10:55:24.895649+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0011_np01_gov002_routed_review",
+    "version": 11,
+    "checksum": "ae7dcfe0ff07013f567c0d1423abd3723e98c3032e1d63cd924c4f9a64c0e7c2",
+    "applied_at": "2026-11-16T10:55:26.444777+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0012_np01_gov002_scoped_reports",
+    "version": 12,
+    "checksum": "8dc06969d64b6c636f645a350616b84dcfc7aed164713e20323bd7b5a5dcdb92",
+    "applied_at": "2026-11-16T10:55:27.902092+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0013_np01_journal_truncate_guard",
+    "version": 13,
+    "checksum": "4d3b8d1a5e62f91ac79e1ce6ebf4c32cef40e0b96afd6c2b524f79b1ec46579d",
+    "applied_at": "2026-11-22T03:34:45.025414+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0014_np01_gov002_threshold_units",
+    "version": 14,
+    "checksum": "a8322102b38ed92e7f549f19577448eb0cab14934058593e6b992414267147fa",
+    "applied_at": "2026-11-22T03:34:49.424427+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0015_np01_gov002_exception_triage",
+    "version": 15,
+    "checksum": "91bc59cf64f03b52b526d89ce9d1d267b35727c1bc3e418954db7c8807c8d4e7",
+    "applied_at": "2026-11-22T03:34:53.979518+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0016_np01_gov003_canonical_readiness",
+    "version": 16,
+    "checksum": "2be1d4d68fd75c005d64f289645387580745a6e70262d3f828d362fb1300cd2f",
+    "applied_at": "2026-11-22T03:34:58.59705+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0017_np01_unbound_rpc_fence",
+    "version": 17,
+    "checksum": "a4022411abae525ae2eae1dbacab83fab0ef908f11afbf40afa5c9995d4b2020",
+    "applied_at": "2026-11-22T03:35:03.192156+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0018_np01_approval_policy_control",
+    "version": 18,
+    "checksum": "54b928c15337bd7ac28c870c0dc354e025a3f896919c1ba6f0618cf52f320421",
+    "applied_at": "2026-11-22T03:35:07.71016+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0019_np01_review_control",
+    "version": 19,
+    "checksum": "1a5522ce289a494c9d4234ab5d6b6f0422a6a6305ce293cef382023d86e0a9e5",
+    "applied_at": "2026-11-22T03:35:11.906185+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0100_np02_control_tables",
+    "version": 100,
+    "checksum": "eae67a48e947b6f8f4bffefa22ae896c7fd64aacc55fbe90ab45d31e229b1111",
+    "applied_at": "2026-11-22T03:35:16.518396+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0101_np02_control_rpc",
+    "version": 101,
+    "checksum": "735eaca151a8889660f6399d1abe9b3a9a7fe60ead0b2daefb6b03dfa4dbba47",
+    "applied_at": "2026-11-22T03:35:21.051895+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0102_np02_control_seed",
+    "version": 102,
+    "checksum": "882a98ac159d80e45f53896cc4b31f0c0fd443f784466fc335cdc4c092a78ea7",
+    "applied_at": "2026-11-22T03:35:25.290888+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0103_np02_control_registry_evidence",
+    "version": 103,
+    "checksum": "92825e0a4ccb7982bd73b64295d606faca60ef5e5023fdac4323350ad59032f1",
+    "applied_at": "2026-11-22T03:35:29.678893+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0104_np02_control_audit_read",
+    "version": 104,
+    "checksum": "dbe33a2fa2513035980dc2e0e17229244a21db2f4bd5d5ce4d2a01313db7febe",
+    "applied_at": "2026-11-22T03:35:34.199455+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0105_np02_control_param_labels",
+    "version": 105,
+    "checksum": "3d7c768b50db0e910d237d7fd99281cd69dddfd9b68f722850b0d41d918563fb",
+    "applied_at": "2026-11-22T03:35:38.589702+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0106_np02_registry_review_promotion",
+    "version": 106,
+    "checksum": "0c4277da0759179a117b85580873d790d18fd92a01a217e42952fedd363f35e3",
+    "applied_at": "2026-11-22T03:35:42.727397+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0110_np01_submit_delegation_control",
+    "version": 110,
+    "checksum": "e0bffc49d8bd64f2b9ea7a5d0063132d5daf511b1c2462219ce0195db7441e93",
+    "applied_at": "2026-11-22T03:35:46.914931+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0111_np01_route_stages_control",
+    "version": 111,
+    "checksum": "b04275c829ae099cfb6e136c27e4f6840d848811475a91c4e1a80ed6be5ff2e7",
+    "applied_at": "2026-11-22T03:35:51.295105+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0112_np01_site_provision_control",
+    "version": 112,
+    "checksum": "624ab1f4093a4b51242e322c053262cd0ce92686d4c5001ab15b0af49abcadff",
+    "applied_at": "2026-11-22T03:35:55.418444+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0113_np01_gov003_control",
+    "version": 113,
+    "checksum": "4557027d8c43f855855914fc5ae92d39cf56d1ff25137b95cff04e238216b58c",
+    "applied_at": "2026-11-22T03:35:59.789717+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0114_np01_gov002_threshold_exception_control",
+    "version": 114,
+    "checksum": "257d15f378550b480f8698030fdd7d75b8da18c326fd89706330e95e6d8caa64",
+    "applied_at": "2026-11-22T03:36:04.479749+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0115_np01_bootstrap_policy_provider",
+    "version": 115,
+    "checksum": "5885cad794d7eb2d0fb6bea1bf7a8fc6726f15dce8534bfc149a235756f51be0",
+    "applied_at": "2026-11-22T05:47:40.731238+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0116_np01_bootstrap_provisioning",
+    "version": 116,
+    "checksum": "84dcb3b2eab734e63f5e5189e63df309f790aee3245351e08c0bb85e0bd0c38d",
+    "applied_at": "2026-11-22T05:47:43.853092+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0117_np01_bootstrap_owner_context",
+    "version": 117,
+    "checksum": "6048553f8ef672bdb0e17d6f7535c9338ac8b074ef220fd5ccf1ce263dcd323e",
+    "applied_at": "2026-11-22T05:47:47.051671+00:00",
+    "applied_by": "postgres"
+   },
+   {
+    "name": "0118_np01_site_provisioning_guard",
+    "version": 118,
+    "checksum": "42571d32443c79e88d1de17a9842c64da54d2102f4fbfcd3285e104ee814dd86",
+    "applied_at": "2026-11-22T05:47:49.712781+00:00",
+    "applied_by": "postgres"
+   }
+  ],
+  "audit_chain_heads_v1": [
+   {
+    "last_seq": 6,
+    "tenant_id": 9801,
+    "business_id": 9821,
+    "last_digest": "d98016d343acab69b17d8f860f01af2ef8f32531b14711209d28790b85ef8193"
+   },
+   {
+    "last_seq": 2,
+    "tenant_id": 1,
+    "business_id": 3,
+    "last_digest": "9e23452b6cd1a7c0390ef4af8967772d9b624d64cc2b72fbbbe843e7d7879beb"
+   },
+   {
+    "last_seq": 1,
+    "tenant_id": 1,
+    "business_id": null,
+    "last_digest": "742f31ffa382c70ca1fc6fc9ec7a4b4a0630668fbfc77d942c5e675ba5d4be08"
+   }
+  ],
+  "business_setup_runs_v1": [
+   {
+    "id": 3,
+    "payload": {
+     "mode": "advanced",
+     "name": "CORE10 DEMO Sweets (TEST ONLY)",
+     "slug": "core10-demo-sweets-20261122",
+     "brand": "#D38A2D",
+     "legal": 1,
+     "sites": [
+      {
+       "kind": "showroom",
+       "label": "Demo Showroom"
+      },
+      {
+       "kind": "factory",
+       "label": "Demo Factory"
+      },
+      {
+       "kind": "warehouse",
+       "label": "Demo Warehouse"
+      }
+     ],
+     "modules": [
+      "accounting",
+      "costing",
+      "pos",
+      "production",
+      "purchase",
+      "reports",
+      "stock"
+     ],
+     "template": "sweets_bakery"
+    },
+    "tenant_id": 1,
+    "created_at": "2026-11-22T05:04:09.649373+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "request_key": "industry-v2:owner-demo-sweets-chatgpt-20261122-v1"
+   }
+  ],
+  "access_change_events_v1": [
+   {
+    "id": 1,
+    "status": "applied",
+    "command": "business_member.revoke",
+    "site_id": null,
+    "actor_uid": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "tenant_id": 9801,
+    "event_kind": "base.access",
+    "after_state": {
+     "role": "manager",
+     "active": false
+    },
+    "business_id": 9821,
+    "executed_at": "2026-11-16T15:59:15.814784+00:00",
+    "request_key": "stg_1794844697_revoke",
+    "subject_uid": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+    "before_state": {
+     "role": "manager",
+     "active": true
+    },
+    "desired_role": null,
+    "desired_actions": null,
+    "input_signature": {
+     "role": null,
+     "site": null,
+     "actions": [],
+     "command": "business_member.revoke",
+     "subject": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+     "business": 9821
+    }
+   },
+   {
+    "id": 2,
+    "status": "applied",
+    "command": "business_member.grant",
+    "site_id": null,
+    "actor_uid": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "tenant_id": 9801,
+    "event_kind": "base.access",
+    "after_state": {
+     "role": "manager",
+     "active": true
+    },
+    "business_id": 9821,
+    "executed_at": "2026-11-16T15:59:17.617354+00:00",
+    "request_key": "stg_1794844697_regrant",
+    "subject_uid": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+    "before_state": {
+     "role": "manager",
+     "active": false
+    },
+    "desired_role": "manager",
+    "desired_actions": null,
+    "input_signature": {
+     "role": "manager",
+     "site": null,
+     "actions": [],
+     "command": "business_member.grant",
+     "subject": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+     "business": 9821
+    }
+   },
+   {
+    "id": 3,
+    "status": "applied",
+    "command": "business_member.revoke",
+    "site_id": null,
+    "actor_uid": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "tenant_id": 9801,
+    "event_kind": "base.access",
+    "after_state": {
+     "role": "manager",
+     "active": false
+    },
+    "business_id": 9821,
+    "executed_at": "2026-11-16T16:00:30.269029+00:00",
+    "request_key": "stg_1794844774_revoke",
+    "subject_uid": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+    "before_state": {
+     "role": "manager",
+     "active": true
+    },
+    "desired_role": null,
+    "desired_actions": null,
+    "input_signature": {
+     "role": null,
+     "site": null,
+     "actions": [],
+     "command": "business_member.revoke",
+     "subject": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+     "business": 9821
+    }
+   },
+   {
+    "id": 4,
+    "status": "applied",
+    "command": "business_member.grant",
+    "site_id": null,
+    "actor_uid": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "tenant_id": 9801,
+    "event_kind": "base.access",
+    "after_state": {
+     "role": "manager",
+     "active": true
+    },
+    "business_id": 9821,
+    "executed_at": "2026-11-16T16:00:32.573717+00:00",
+    "request_key": "stg_1794844774_regrant",
+    "subject_uid": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+    "before_state": {
+     "role": "manager",
+     "active": false
+    },
+    "desired_role": "manager",
+    "desired_actions": null,
+    "input_signature": {
+     "role": "manager",
+     "site": null,
+     "actions": [],
+     "command": "business_member.grant",
+     "subject": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+     "business": 9821
+    }
+   },
+   {
+    "id": 7,
+    "status": "applied",
+    "command": "setup.business",
+    "site_id": null,
+    "actor_uid": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "tenant_id": 1,
+    "event_kind": "setup.business",
+    "after_state": {
+     "status": "draft",
+     "business_id": 3
+    },
+    "business_id": 3,
+    "executed_at": "2026-11-22T05:04:09.649373+00:00",
+    "request_key": "owner-demo-sweets-chatgpt-20261122-v1",
+    "subject_uid": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "before_state": {},
+    "desired_role": null,
+    "desired_actions": null,
+    "input_signature": {
+     "mode": "advanced",
+     "slug": "core10-demo-sweets-20261122",
+     "legal": 1,
+     "sites": [
+      {
+       "kind": "showroom",
+       "label": "Demo Showroom"
+      },
+      {
+       "kind": "factory",
+       "label": "Demo Factory"
+      },
+      {
+       "kind": "warehouse",
+       "label": "Demo Warehouse"
+      }
+     ],
+     "request": "owner-demo-sweets-chatgpt-20261122-v1",
+     "template": "sweets_bakery",
+     "brand_hex": "#D38A2D",
+     "display_name": "CORE10 DEMO Sweets (TEST ONLY)"
+    }
+   },
+   {
+    "id": 8,
+    "status": "applied",
+    "command": "setup.site",
+    "site_id": 8,
+    "actor_uid": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "tenant_id": 1,
+    "event_kind": "setup.site",
+    "after_state": {
+     "site_id": 8,
+     "business_id": 3
+    },
+    "business_id": 3,
+    "executed_at": "2026-11-22T05:25:19.463368+00:00",
+    "request_key": "bc3e51e8-7cfc-4640-aa94-bbbeef90f90b",
+    "subject_uid": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "before_state": {},
+    "desired_role": null,
+    "desired_actions": null,
+    "input_signature": {
+     "kind": "showroom",
+     "label": "ASIAN Paint",
+     "request": "bc3e51e8-7cfc-4640-aa94-bbbeef90f90b",
+     "business": 3
+    }
+   }
+  ],
+  "business_configuration_v1": [
+   {
+    "brand_hex": "#D38A2D",
+    "tenant_id": 1,
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "setup_mode": "advanced",
+    "business_id": 3,
+    "display_name": "CORE10 DEMO Sweets (TEST ONLY)",
+    "setup_status": "draft"
+   }
+  ],
+  "canonical_audit_events_v1": [
+   {
+    "id": 1,
+    "action": "approval.approve",
+    "payload": {
+     "action": "approve",
+     "event_ref": "1",
+     "request_ref": "1"
+    },
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "event_at": "2026-11-16T15:59:12.291791+00:00",
+    "tenant_id": 9801,
+    "source_ref": "1",
+    "stream_seq": 1,
+    "business_id": 9821,
+    "request_key": "approval:1",
+    "event_digest": "4330230455cd3bebf4bc8651a1625f376eb38b6ee33d980c734a854886a81e8d",
+    "prior_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "source_domain": "approval",
+    "payload_sha256": "e56ce10a708336c0b181b9fa508b725cbc7d7ab3c053a1c9b09aa38aed705f80"
+   },
+   {
+    "id": 2,
+    "action": "access.business_member.revoke",
+    "payload": {
+     "kind": "base.access",
+     "command": "business_member.revoke",
+     "event_ref": "1"
+    },
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "event_at": "2026-11-16T15:59:15.825067+00:00",
+    "tenant_id": 9801,
+    "source_ref": "1",
+    "stream_seq": 2,
+    "business_id": 9821,
+    "request_key": "access:1",
+    "event_digest": "65958a3e3898364964c19588184dc358f768b0edb199db7518bcd0baeabfdd88",
+    "prior_digest": "4330230455cd3bebf4bc8651a1625f376eb38b6ee33d980c734a854886a81e8d",
+    "source_domain": "access",
+    "payload_sha256": "c5f3da474408fd91bd1e1e4f4c6de1903b2fe2a07608282c390e0de51fcf9b90"
+   },
+   {
+    "id": 3,
+    "action": "access.business_member.grant",
+    "payload": {
+     "kind": "base.access",
+     "command": "business_member.grant",
+     "event_ref": "2"
+    },
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "event_at": "2026-11-16T15:59:17.621952+00:00",
+    "tenant_id": 9801,
+    "source_ref": "2",
+    "stream_seq": 3,
+    "business_id": 9821,
+    "request_key": "access:2",
+    "event_digest": "ce193a469e34c4217f3b5d7ec2b8af8acaef58c13f67eb33afc645e850543db4",
+    "prior_digest": "65958a3e3898364964c19588184dc358f768b0edb199db7518bcd0baeabfdd88",
+    "source_domain": "access",
+    "payload_sha256": "1fdf16b1a0ac82492d4584a438d0e4fb2c65f6c1b67c4ac3fa04a433092eac11"
+   },
+   {
+    "id": 4,
+    "action": "approval.approve",
+    "payload": {
+     "action": "approve",
+     "event_ref": "2",
+     "request_ref": "2"
+    },
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "event_at": "2026-11-16T16:00:26.756955+00:00",
+    "tenant_id": 9801,
+    "source_ref": "2",
+    "stream_seq": 4,
+    "business_id": 9821,
+    "request_key": "approval:2",
+    "event_digest": "3f5d94420f706eb44d22412086dbb88a68460911a6413e79c27625835a0379cc",
+    "prior_digest": "ce193a469e34c4217f3b5d7ec2b8af8acaef58c13f67eb33afc645e850543db4",
+    "source_domain": "approval",
+    "payload_sha256": "ca159703e66a9cafa24cf1f6a38f95ad358c94601d30e1c390d6a6bd63b7efdf"
+   },
+   {
+    "id": 5,
+    "action": "access.business_member.revoke",
+    "payload": {
+     "kind": "base.access",
+     "command": "business_member.revoke",
+     "event_ref": "3"
+    },
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "event_at": "2026-11-16T16:00:30.277968+00:00",
+    "tenant_id": 9801,
+    "source_ref": "3",
+    "stream_seq": 5,
+    "business_id": 9821,
+    "request_key": "access:3",
+    "event_digest": "ab0755b465c014a5514c9d82c4bd6fcbe713654425df89e62e6076f92bfa02be",
+    "prior_digest": "3f5d94420f706eb44d22412086dbb88a68460911a6413e79c27625835a0379cc",
+    "source_domain": "access",
+    "payload_sha256": "d5f0b237f830c283053401f2545e88a87a0f9e884de7d1be7b1ae95f9443a436"
+   },
+   {
+    "id": 6,
+    "action": "access.business_member.grant",
+    "payload": {
+     "kind": "base.access",
+     "command": "business_member.grant",
+     "event_ref": "4"
+    },
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "event_at": "2026-11-16T16:00:32.578157+00:00",
+    "tenant_id": 9801,
+    "source_ref": "4",
+    "stream_seq": 6,
+    "business_id": 9821,
+    "request_key": "access:4",
+    "event_digest": "d98016d343acab69b17d8f860f01af2ef8f32531b14711209d28790b85ef8193",
+    "prior_digest": "ab0755b465c014a5514c9d82c4bd6fcbe713654425df89e62e6076f92bfa02be",
+    "source_domain": "access",
+    "payload_sha256": "b8c05fc88385b1798e007304a2fbeca4bdae84f2ce2582d7cdb6f1955cfe9ecc"
+   },
+   {
+    "id": 9,
+    "action": "access.setup.business",
+    "payload": {
+     "kind": "setup.business",
+     "command": "setup.business",
+     "event_ref": "7"
+    },
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "event_at": "2026-11-22T05:04:09.70496+00:00",
+    "tenant_id": 1,
+    "source_ref": "7",
+    "stream_seq": 1,
+    "business_id": 3,
+    "request_key": "access:7",
+    "event_digest": "01442b7dc231b7bd7fecbb6d05cbb59cb82bee25de344dead54ce778ac1596ff",
+    "prior_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "source_domain": "access",
+    "payload_sha256": "9a154aeeb8837db1a9820096a9adbd6e2b7d291f8aea44c8426363405ad1fc74"
+   },
+   {
+    "id": 10,
+    "action": "access.setup.site",
+    "payload": {
+     "kind": "setup.site",
+     "command": "setup.site",
+     "event_ref": "8"
+    },
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "event_at": "2026-11-22T05:25:19.519533+00:00",
+    "tenant_id": 1,
+    "source_ref": "8",
+    "stream_seq": 2,
+    "business_id": 3,
+    "request_key": "access:8",
+    "event_digest": "9e23452b6cd1a7c0390ef4af8967772d9b624d64cc2b72fbbbe843e7d7879beb",
+    "prior_digest": "01442b7dc231b7bd7fecbb6d05cbb59cb82bee25de344dead54ce778ac1596ff",
+    "source_domain": "access",
+    "payload_sha256": "bddd2ed92e575be964845749ff08d550749be0fb14a221f49fb992b7291481d1"
+   },
+   {
+    "id": 27,
+    "action": "control.bootstrap_setting_changed",
+    "payload": {
+     "scope": "tenant",
+     "reason": "Owner initializes CORE10 staging setup after approved bootstrap migration",
+     "enabled": true,
+     "version": 1,
+     "tenant_id": 1,
+     "feature_key": "setup001.provision",
+     "authorization": "tenant_owner",
+     "effective_from": "2026-11-22T05:47:43.87418+00:00",
+     "operation_sha256": "cd96c5d03f85f9fa63e854dc4c403a8c1fea94ffbdec3e8c4b7408c2aa17c0de"
+    },
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "event_at": "2026-11-22T05:47:43.87489+00:00",
+    "tenant_id": 1,
+    "source_ref": "bootstrap:v1",
+    "stream_seq": 1,
+    "business_id": null,
+    "request_key": "control:owner-d063-cutover-enable-20261122",
+    "event_digest": "742f31ffa382c70ca1fc6fc9ec7a4b4a0630668fbfc77d942c5e675ba5d4be08",
+    "prior_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "source_domain": "control",
+    "payload_sha256": "1aafa8e03ba08b1cb176b7f81387ec948c5f56a9cfa0b537e59d08e3a42d2aa3"
+   }
+  ],
+  "business_module_settings_v1": [
+   {
+    "tenant_id": 1,
+    "visibility": "locked",
+    "business_id": 3,
+    "module_code": "accounting",
+    "operational_enabled": false
+   },
+   {
+    "tenant_id": 1,
+    "visibility": "locked",
+    "business_id": 3,
+    "module_code": "costing",
+    "operational_enabled": false
+   },
+   {
+    "tenant_id": 1,
+    "visibility": "locked",
+    "business_id": 3,
+    "module_code": "pos",
+    "operational_enabled": false
+   },
+   {
+    "tenant_id": 1,
+    "visibility": "locked",
+    "business_id": 3,
+    "module_code": "production",
+    "operational_enabled": false
+   },
+   {
+    "tenant_id": 1,
+    "visibility": "locked",
+    "business_id": 3,
+    "module_code": "purchase",
+    "operational_enabled": false
+   },
+   {
+    "tenant_id": 1,
+    "visibility": "locked",
+    "business_id": 3,
+    "module_code": "reports",
+    "operational_enabled": false
+   },
+   {
+    "tenant_id": 1,
+    "visibility": "locked",
+    "business_id": 3,
+    "module_code": "stock",
+    "operational_enabled": false
+   }
+  ],
+  "control_setting_versions_v1": [
+   {
+    "id": 4,
+    "params": {},
+    "reason": "Owner initializes CORE10 staging setup after approved bootstrap migration",
+    "stages": 0,
+    "enabled": true,
+    "inherit": false,
+    "site_id": null,
+    "version": 1,
+    "tenant_id": 1,
+    "created_at": "2026-11-22T05:47:43.877627+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": null,
+    "feature_key": "setup001.provision",
+    "request_key": "owner-d063-cutover-enable-20261122",
+    "reverted_from": null,
+    "audit_event_id": 27,
+    "effective_from": "2026-11-22T05:47:43.87418+00:00",
+    "payload_sha256": "cd96c5d03f85f9fa63e854dc4c403a8c1fea94ffbdec3e8c4b7408c2aa17c0de"
+   }
+  ]
+ }
+}
