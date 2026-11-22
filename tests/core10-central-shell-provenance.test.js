@@ -24,7 +24,7 @@ test("§7b.3 imported shell and data are the same source Git trees and blobs",()
   }
   // The only intended change to the live shell from §7b.3 is this tested navigation slice.
   const changed=run("diff","--name-only","4345b6e4aa7ee593a455ee29dceccf55d61ade7f","HEAD","--","apps/central/site").split("\n").filter(Boolean).sort();
-  assert.deepEqual(changed,["apps/central/site/index.html","apps/central/site/app.css","apps/central/site/app.js"].sort(),
+  assert.deepEqual(changed,["apps/central/site/index.html","apps/central/site/app.css","apps/central/site/app.js","apps/central/site/shell-context.js"].sort(),
     "Undeclared shipped-site change since import");
   assert.equal(info.release_authorization,false);
   assert.equal(info.staging_changes,false);

@@ -7,6 +7,7 @@ on:
       - "docs/coordination/CENTRAL_SHELL_IMPORT_20261122.json"
       - "tests/core10-central-shell-provenance.test.js"
       - "tests/core10-central-mobile-nav.test.cjs"
+      - "tests/core10-central-signed-context.test.cjs"
       - "tests/core10-live-legacy-guard.test.js"
       - ".github/workflows/core10-central-shell-import-ci.yml"
   workflow_dispatch:
@@ -56,6 +57,8 @@ jobs:
           echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
       - name: NEW bilingual mobile and desktop route navigation browser regression
         run: node --test tests/core10-central-mobile-nav.test.cjs
+      - name: Signed shell context: synthetic authorized/denied adversarial browser tests
+        run: node --test tests/core10-central-signed-context.test.cjs
       - name: Canonical 56/56 local browser checks, full suite unchanged
         run: node apps/central/verify.cjs
       - name: Canonical 56/56 public Worker checks, NO deploy
