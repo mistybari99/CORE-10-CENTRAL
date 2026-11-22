@@ -26,6 +26,13 @@ test("explicit local config: refuses disabled, hosted and secret targets",()=>{
  assert.throws(()=>api.create({config:{...config,enabled:false}}),/NOT_CONFIGURED/);
  for(const url of ["https://project.supabase.co","http://example.com","http://127.0.0.1@evil.test","http://localhost/path"])
   assert.throws(()=>api.create({config:{...config,url}}));
+ // core10-staging mode: only the one CORE10 staging project over https; loopback and any other host refused
+ const stg={...config,mode:"core10-staging",url:"https://rhrqhbyzrhaafynfhdaf.supabase.co"};
+ assert.doesNotThrow(()=>api.create({config:stg,client:fixture().client}));
+ for(const url of ["https://kbuhnpqooycqbzrfejcs.supabase.co","https://luoeyyngayxpqecuuijb.supabase.co","http://rhrqhbyzrhaafynfhdaf.supabase.co","https://rhrqhbyzrhaafynfhdaf.supabase.co.evil.test","http://127.0.0.1:54321","https://rhrqhbyzrhaafynfhdaf.supabase.co/rest"])
+  assert.throws(()=>api.create({config:{...stg,url}}),/NONPRODUCTION_TARGET|INVALID_TARGET/,url);
+ assert.throws(()=>api.create({config:{...config,mode:"core10-staging"}}),/NONPRODUCTION_TARGET/);
+ assert.throws(()=>api.create({config:{...stg,mode:"production"}}),/NOT_CONFIGURED/);
  const token=["e30",Buffer.from(JSON.stringify({role:"service_role"})).toString("base64url"),"signature"].join(".");
  assert.throws(()=>api.create({config:{...config,publishableKey:token}}),/SECRET_KEY/);
 });
