@@ -5,8 +5,6 @@ let frame=false;
 const OWNER_LINKS=[
  {id:"core10-owner-dashboard-entry",text:"মালিকের ড্যাশবোর্ড · Owner dashboard",href:"./core10-owner-dashboard.html",biz:false,icon:"",
   label:"Open the Owner dashboard: businesses, sites, stock balances and open purchase work"},
- {id:"core10-stock-ops-entry",text:"স্টক কাজ · Stock operations",href:"./core10-stock-ops.html",biz:"core10-stock-ops-biz-entry",icon:"📥",
-  label:"Open Stock operations: receive, issue, transfer and adjust stock"},
  {id:"core10-purchase-entry",text:"ক্রয় · Purchases",href:"./core10-purchase.html",biz:"core10-purchase-biz-entry",icon:"🧾",
   label:"Open Purchases: purchase orders and goods receipts"}
 ];
@@ -20,7 +18,7 @@ function sync(){
  const centreKey="core10-owner-control-centre-entry",centre=document.getElementById(centreKey);
  const mdKey="core10-master-data-entry",md=document.getElementById(mdKey);
  const mdBizKey="core10-master-data-biz-entry",mdBiz=document.getElementById(mdBizKey);
- // Owner-only navigation (Owner dashboard, Stock operations, Purchases). Navigation only, never a permission:
+ // Owner-only navigation (Owner dashboard, Purchases). Navigation only, never a permission:
  // each page re-derives authority from the signed CORE10 context; ?biz only pre-selects a business CORE10 returns.
  const ownerHead=OWNER_LINKS.map(x=>x.id),ownerBiz=OWNER_LINKS.filter(x=>x.biz).map(x=>x.biz);
  if(!ctx||!ctx.profile||!ctx.profile.id){if(existing)existing.remove();if(centre)centre.remove();if(md)md.remove();if(mdBiz)mdBiz.remove();drop(ownerHead);drop(ownerBiz);return}

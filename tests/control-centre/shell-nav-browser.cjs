@@ -1,6 +1,6 @@
 "use strict";
 // B-011: Central shell navigation contract for Owner Control and Master Data links (real Chromium, 390 and 1440 px).
-// NP03A: plus the Owner-only Owner dashboard / Stock operations / Purchases links (owner header + per-business ?biz).
+// NP03A: plus the Owner-only Owner dashboard / Purchases links (owner header + per-business ?biz).
 // The legacy shell context is stubbed: it is navigation input only. Authority stays in CORE10 (tested in
 // master-data-browser.cjs and the SQL suites); these checks prove the links never appear outside the contract.
 const assert = require("node:assert"), fs = require("node:fs"), path = require("node:path");
@@ -49,12 +49,12 @@ const signedIn = (extra) => Object.assign({ profile: { id: "p-1" } }, extra || {
       const ids = await render(browser, w, { master: true, ctx: signedIn({ is_owner: true }) });
       assert.deepStrictEqual(ids, ["core10-master-data-entry=./core10-master-data.html", "core10-owner-control-centre-entry=./core10-owner-control-centre.html",
         "core10-owner-dashboard-entry=./core10-owner-dashboard.html", "core10-purchase-entry=./core10-purchase.html",
-        "core10-stock-ops-entry=./core10-stock-ops.html", "core10-studio-entry=./core10-control-studio.html"]);
+        "core10-studio-entry=./core10-control-studio.html"]);
     });
-    await step(`${w}px owner shell: Owner dashboard / Stock operations / Purchases are visible, bn+en labelled, tappable, no overflow`, async () => {
+    await step(`${w}px owner shell: Owner dashboard / Purchases are visible, bn+en labelled, tappable, no overflow`, async () => {
       const links = await render(browser, w, { master: true, ctx: signedIn({ is_owner: true }) }, true);
       const want = { "core10-owner-dashboard-entry": ["মালিকের ড্যাশবোর্ড", "Owner dashboard"],
-        "core10-stock-ops-entry": ["স্টক কাজ", "Stock operations"], "core10-purchase-entry": ["ক্রয়", "Purchases"] };
+        "core10-purchase-entry": ["ক্রয়", "Purchases"] };
       for (const [id, [bn, en]] of Object.entries(want)) {
         const l = links.find((x) => x.id === id);
         assert.ok(l, id + " missing");
@@ -78,12 +78,12 @@ const signedIn = (extra) => Object.assign({ profile: { id: "p-1" } }, extra || {
       assert.deepStrictEqual(await render(browser, w, { master: false, ctx: signedIn({ is_owner: "true" }), cur: 7, list: [{ id: 7 }], search: "workspace=business&biz=7" }),
         ["core10-master-data-biz-entry=./core10-master-data.html?biz=7", "core10-studio-entry=./core10-business-controls.html?biz=7"]);
     });
-    await step(`${w}px business workspace as Owner: Stock operations and Purchases pre-select that business only`, async () => {
+    await step(`${w}px business workspace as Owner: Purchases pre-selects that business only`, async () => {
       const ids = await render(browser, w, { master: false, ctx: signedIn({ is_owner: true }), cur: 7, list: [{ id: 7 }, { id: 8 }], search: "workspace=business&biz=7" });
       assert.deepStrictEqual(ids, ["core10-master-data-biz-entry=./core10-master-data.html?biz=7", "core10-purchase-biz-entry=./core10-purchase.html?biz=7",
-        "core10-stock-ops-biz-entry=./core10-stock-ops.html?biz=7", "core10-studio-entry=./core10-business-controls.html?biz=7"]);
+        "core10-studio-entry=./core10-business-controls.html?biz=7"]);
       const links = await render(browser, w, { master: false, ctx: signedIn({ is_owner: true }), cur: 7, list: [{ id: 7 }], search: "workspace=islamia&biz=7" }, true);
-      for (const [id, bn, en] of [["core10-stock-ops-biz-entry", "স্টক কাজ", "Stock operations"], ["core10-purchase-biz-entry", "ক্রয়", "Purchases"]]) {
+      for (const [id, bn, en] of [["core10-purchase-biz-entry", "ক্রয়", "Purchases"]]) {
         const l = links.find((x) => x.id === id);
         assert.ok(l, id + " missing");
         assert.ok(l.text.includes(bn) && l.text.includes(en), id + " label: " + l.text);
@@ -96,7 +96,7 @@ const signedIn = (extra) => Object.assign({ profile: { id: "p-1" } }, extra || {
       assert.deepStrictEqual(await render(browser, w, { master: false, ctx: signedIn(), cur: 99, list: [{ id: 7 }], search: "workspace=business&biz=99" }), []);
       assert.deepStrictEqual(await render(browser, w, { master: false, ctx: signedIn(), cur: 7, list: [{ id: 7 }], search: "workspace=business&biz=7x" }), []);
     });
-    await step(`${w}px tampered/foreign ?biz as Owner: no Stock operations / Purchases links pre-select it`, async () => {
+    await step(`${w}px tampered/foreign ?biz as Owner: no Purchases link pre-selects it`, async () => {
       const owner = signedIn({ is_owner: true });
       assert.deepStrictEqual(await render(browser, w, { master: false, ctx: owner, cur: 7, list: [{ id: 7 }], search: "workspace=business&biz=99" }), []);
       assert.deepStrictEqual(await render(browser, w, { master: false, ctx: owner, cur: 99, list: [{ id: 7 }], search: "workspace=business&biz=99" }), []);
