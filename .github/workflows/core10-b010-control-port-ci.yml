@@ -66,6 +66,8 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-approval-e2e.sql
       - name: "B-012 purchase order -> GRN -> QC -> stock (0203 - Master supplier, Owner Control, lot/expiry, partial receipt)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-procurement-e2e.sql
+      - name: "B-012 purchase order approvals (0206 - GOV-002 one-checker and two-stage routes, maker-only request, Owner switches, stage/route drift, edited draft)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-po-approval-e2e.sql
       - name: "B-012 owner multi-business dashboard reads (0204 - figures, drill-down, scope per persona)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-owner-dashboard-e2e.sql
       - name: "B-012 P4 scale: 10 businesses x 400 sites (reads, budgets, RPC writes)"

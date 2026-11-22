@@ -135,7 +135,7 @@ SELECT pg_temp.expect($q$SELECT pg_temp.po(NULL,91111,91151,'$q$||:'L1'||$q$'::j
 SELECT pg_temp.as_user('f1111111-1111-4111-8111-111111111111');
 SELECT pg_temp.cset('procurement.purchase_order',true,1,'{"separate_approver":false}',2,'proc-ctl-0007');
 SELECT pg_temp.po(NULL,91111,91151,'[{"item_id":91101,"quantity":1,"unit_price":1}]',0,'proc-po-0004') AS p4 \gset
-SELECT pg_temp.expect($q$SELECT core10.procurement_advance_po_v1($q$||(:'p4'::jsonb->>'po_id')||$q$,'approve',1,'proc-stg-0001')$q$,'PROC_APPROVAL_NOT_CONNECTED');
+SELECT pg_temp.expect($q$SELECT core10.procurement_advance_po_v1($q$||(:'p4'::jsonb->>'po_id')||$q$,'approve',1,'proc-stg-0001')$q$,'PROC_APPROVAL_REQUIRED');
 -- cancel and close
 SELECT pg_temp.ok((core10.procurement_advance_po_v1((:'p4'::jsonb->>'po_id')::bigint,'cancel',1,'proc-cx-00001')->>'status')='cancelled','cancel a draft');
 SELECT pg_temp.expect($q$SELECT core10.procurement_advance_po_v1($q$||(:'p3'::jsonb->>'po_id')||$q$,'cancel',3,'proc-cx-00002')$q$,'PROC_INVALID_TRANSITION');
@@ -161,6 +161,6 @@ SELECT pg_temp.ok((SELECT count(*) FROM core10.stock_movements WHERE business_id
 SELECT pg_temp.ok((SELECT count(*) FROM core10.goods_receipt_lines_v1 l JOIN core10.goods_receipts_v1 g ON g.id=l.grn_id
  WHERE g.status='posted' AND l.accepted_qty>0 AND l.stock_movement_id IS NULL)=0,'every accepted posted line has its movement');
 SELECT pg_temp.ok((SELECT count(*) FROM core10.purchase_orders_v1 WHERE business_id=9121)=0,'tenant B untouched');
-SELECT pg_temp.ok((SELECT count(*) FROM core10.control_rpc_map_v1 WHERE rpc_name LIKE 'procurement_%' AND status='enforced')=5,'five procurement writers enforced');
+SELECT pg_temp.ok((SELECT count(*) FROM core10.control_rpc_map_v1 WHERE rpc_name LIKE 'procurement_%' AND status='enforced' AND test_ref='tests/migrations/np03a-procurement-e2e.sql')=5,'five procurement writers enforced');
 ROLLBACK;
 \echo 'PASS np03a-procurement-e2e'
