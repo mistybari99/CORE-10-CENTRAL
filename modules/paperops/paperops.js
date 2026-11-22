@@ -18,7 +18,7 @@
       rule: t('সাধারণ দিনের একটি সারাংশ। ক্যাশ হস্তান্তর, স্টক স্থানান্তর, বড় ব্যয় বা অনুমোদন প্রয়োজন হলে পৃথক প্রমাণপত্র লাগবে।', 'One routine daily summary. Cash custody, stock transfer, material expenses and exceptions still require separate evidence.'),
       sections: [
         s('দিন ও দায়িত্ব', 'Shift and responsibility', [
-          f('date', 'তারিখ', 'Date'), f('shift', 'শিফট / সময়', 'Shift / time'),
+          f('date', 'তারিখ', 'Date'), f('shift', 'শিফট', 'Shift'),
           f('prepared', 'প্রস্তুতকারী', 'Prepared by'), f('opening_ref', 'প্রারম্ভিক স্টক / পূর্বদিনের ক্লোজিং নং', 'Opening / previous closing reference'),
           f('hygiene', 'খোলার সময়: পরিচ্ছন্নতা / নিরাপত্তা যাচাই এবং সমস্যা নং', 'Opening hygiene / safety check and exception ref'),
           f('coldchain', 'ফ্রিজ / চিলার অবস্থা ও তাপমাত্রা (সমস্যা হলে নথি)', 'Fridge / chiller condition and temperature (record exceptions)', ['sweets']),
@@ -36,6 +36,15 @@
           f('counted_cash', 'গণনাকৃত নগদ ৳', 'Counted cash BDT'),
           f('variance', 'পার্থক্য ৳ ও Exception নং', 'Variance BDT and exception reference'),
           f('closure_notes', 'বিশেষ নোট / পরের শিফটের কাজ', 'Exceptions / next-shift action')
+        ]),
+        s('R-01: দিনের পরিচয় ও উদ্বোধনী পরীক্ষা (খসড়া উৎস)', 'R-01: day/opening source evidence (draft)', [
+          f("day_type", "দিনের ধরন", "Day type"),
+          f("duty_manager", "ডিউটি ম্যানেজার", "Duty manager"),
+          f("open_time", "শাটার খোলার সময়", "Shutter opening time"),
+          f("safety_defect", "ত্রুটির বিবরণ", "Defect"),
+          f("float_set", "নির্ধারিত খুচরা (সেটিংস থেকে)", "Fixed float (from settings)"),
+          f("open_diff", "পার্থক্য", "Difference"),
+          f("imp_cash", "ইমপ্রেস্ট — নগদ", "Imprest — cash")
         ])
       ], signatures: [t('প্রস্তুতকারী', 'Prepared by'), t('স্বতন্ত্র যাচাইকারী', 'Independent checker')]
     },
@@ -147,6 +156,17 @@
         s('তদন্ত ও অনুমোদন', 'Investigation and approval', [
           f('cause', 'পার্থক্যের কারণ / সমর্থনকারী দলিল নং', 'Variance cause and source documents'),
           f('decision', 'অনুমোদনের সিদ্ধান্ত / রেফারেন্স', 'Approval decision / reference')
+        ]),
+        s('পুরোনো W-03 গণনা ও স্টক স্থগিতের প্রমাণ', 'Original W-03 count/freeze evidence', [
+          f("start_time", "শুরুর সময়", "Start time"),
+          f("end_time", "শেষ সময়", "End time"),
+          f("counted_by", "গণনাকারী (Counted by)", "Counted by"),
+          f("storekeeper", "স্টোরকিপার", "Storekeeper"),
+          f("kind", "ধরন", "Kind"),
+          f("movement", "গণনার সময় মালামাল প্রাপ্তি বা ইস্যু হয়েছে?", "Were goods received or issued during the count?"),
+          f("movement_detail", "বিবরণ", "Details"),
+          f("item", "আইটেম", "Item"),
+          f("unit", "একক", "Unit")
         ])
       ], signatures: [t('গণনাকারী', 'Counter'), t('স্বতন্ত্র যাচাইকারী', 'Independent checker'), t('সমন্বয় অনুমোদনকারী', 'Adjustment approver')]
     },
