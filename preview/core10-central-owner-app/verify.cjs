@@ -5,7 +5,7 @@ const fs = require("node:fs"), path = require("node:path");
 const { chromium } = require("playwright");
 const HERE = __dirname, ROOT = path.resolve(HERE, "../..");
 const SHOTS = process.env.REVIEW_SHOTS || "";
-const ROUTES = ["home", "business", "master", "sales", "manufacturing", "control", "features", "approvals", "staff", "setup"];
+const ROUTES = ["home", "business", "master", "stock", "sales", "manufacturing", "control", "features", "approvals", "staff", "setup"];
 const STAGING = "https://rhrqhbyzrhaafynfhdaf.supabase.co/";
 const DRAFT_ROUTES = new Set(["sales", "manufacturing"]);
 // Developer-report markers that must not appear in visible Owner-facing text.
@@ -57,7 +57,7 @@ async function step(name, fn) {
       await ctx.addInitScript((l) => { try { localStorage.setItem("core10.preview.lang", l); } catch (_) {} }, lang);
       const page = await ctx.newPage(), errors = [], foreign = [], bad = [];
       page.on("pageerror", (e) => errors.push(e.message));
-      page.on("request", (r) => { const u = r.url(); if (!u.startsWith(origin + "/") && !/^(data|blob|about):/.test(u) && !((route === "control" || route === "setup" || route === "master" || route === "business") && u.startsWith(STAGING))) foreign.push(u); if (/\/(rest|auth|storage|functions)\/v1\/|supabase\.co/.test(u) && !((route === "control" || route === "setup" || route === "master" || route === "business") && u.startsWith(STAGING))) foreign.push("BACKEND " + u); });
+      page.on("request", (r) => { const u = r.url(); if (!u.startsWith(origin + "/") && !/^(data|blob|about):/.test(u) && !((route === "control" || route === "setup" || route === "master" || route === "business" || route === "stock") && u.startsWith(STAGING))) foreign.push(u); if (/\/(rest|auth|storage|functions)\/v1\/|supabase\.co/.test(u) && !((route === "control" || route === "setup" || route === "master" || route === "business" || route === "stock") && u.startsWith(STAGING))) foreign.push("BACKEND " + u); });
       page.on("response", (r) => { if (r.status() >= 400) bad.push(r.status() + " " + r.url()); });
       await page.goto(base + "/#/" + route, { waitUntil: "load" }); await page.waitForTimeout(1500);
       assert.equal(await page.getAttribute("html", "lang"), lang);
@@ -65,7 +65,7 @@ async function step(name, fn) {
       const dataNotice = (await page.locator("#c10-data-status ." + lang).textContent()).trim();
       if (route === "business")
         assert.match(dataNotice, lang === "bn" ? /স্টেজিং.*শুধু পড়া/ : /staging.*read-only/i, "signed business route must say read-only");
-      else if (route === "control" || route === "setup" || route === "master")
+      else if (route === "control" || route === "setup" || route === "master" || route === "stock")
         assert.match(dataNotice, lang === "bn" ? /স্টেজিং.*সংরক্ষণ/ : /staging.*saved/i, "signed staging route must not claim changes are unsaved");
       else
         assert.match(dataNotice, lang === "bn" ? /নমুনা.*সংরক্ষিত/ : /sample.*not saved/i, "replay route must disclose unsaved sample data");
@@ -79,6 +79,7 @@ async function step(name, fn) {
         if (route === "setup") assert.match(await frame.innerText("#b01-environment"), /core10-staging · https:\/\/rhrqhbyzrhaafynfhdaf\.supabase\.co/);
         if (route === "control") { await frame.waitForSelector("#occ-email"); assert.ok(await frame.isVisible("#occ-password"), "signed sign-in form"); }
         if (route === "master") { await frame.waitForSelector("#md-email"); assert.ok(await frame.isVisible("#md-password"), "Master signed sign-in form"); }
+        if (route === "stock") { await frame.waitForSelector("#st-email"); assert.ok(await frame.isVisible("#st-password"), "Stock signed sign-in form"); assert.ok(!(await frame.isVisible("#st-form")), "anonymous Stock write form hidden"); }
         if (route === "business") { await frame.waitForSelector("#od-root"); assert.match(await frame.innerText("#od-root"), lang === "bn" ? /সাইন-ইন প্রয়োজন/ : /Sign-in required/i, "unsigned dashboard must not reveal portfolio or stock"); }
       }
       const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -89,6 +90,24 @@ async function step(name, fn) {
       await ctx.close();
     });
   }
+  await step("Stock staging rejects incorrect password; signed write form stays hidden", async () => {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await page.goto(base + "/view/stock-signed.html"); await page.waitForSelector("#st-email");
+    await page.fill("#st-email", "nobody@example.invalid");
+    await page.fill("#st-password", "invalid-staging-password");
+    await page.locator("#st-login button[type=submit]").click();
+    await page.waitForFunction(() => !!document.querySelector("#st-login-error")?.textContent);
+    assert.ok(!(await page.isVisible("#st-form")), "unauthenticated stock command form must remain hidden");
+    await page.close();
+  });
+  await step("Stock signed source uses canonical 0201-0206 RPCs and never legacy config or a nonexistent read RPC", async () => {
+    const s = await (await fetch(base + "/view/stock-signed.js")).text();
+    assert.match(s, /inventory_list_commands_v1/);
+    assert.match(s, /create_inventory_command_v1/);
+    assert.match(s, /advance_inventory_command_v1/);
+    assert.match(s, /p_reason/);
+    assert.ok(!/\bBOS_CONFIG\s*\./.test(s) && !/read_inventory_commands_v1/.test(s));
+  });
   await step("Master staging refuses wrong-password login and stays locked", async () => {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
     await page.goto(base + "/view/master-signed.html"); await page.waitForSelector("#md-email");

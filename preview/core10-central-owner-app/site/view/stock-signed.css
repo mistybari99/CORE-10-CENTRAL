@@ -1,0 +1,16 @@
+:root{color-scheme:dark;font-family:system-ui,"Noto Sans Bengali",sans-serif;background:#111925;color:#e8f0f6}
+*{box-sizing:border-box}body{margin:0;padding:18px;line-height:1.45}main{max-width:1040px;margin:auto}
+h1{font-size:1.45rem}h2{font-size:1.1rem;margin:0 0 12px}
+p{margin:8px 0 16px}.muted{color:#aebcc8}.panel{padding:18px;background:#1b2a3c;border:1px solid #34495e;border-radius:14px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:14px}
+label{display:grid;gap:7px;margin:0 0 12px;font-weight:600}
+input,select,button{font:inherit;min-height:44px;border-radius:8px}
+input,select{width:100%;border:1px solid #61758b;background:#142233;color:white;padding:10px}
+button{color:#f6fbff;background:#244b6b;border:1px solid #567a95;padding:9px 14px;cursor:pointer}
+button.primary{background:#176a60}button:disabled{opacity:.5;cursor:not-allowed}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+ul{padding:0;list-style:none}.entry{padding:13px 4px;border-bottom:1px solid #415367;overflow-wrap:anywhere}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+#st-status[data-error="true"]{color:#ffc5ba}#st-status[data-error="false"]{color:#92e0c2}
+small{color:#bed1df}.note{border-left:3px solid #cfa765;padding:9px 12px;background:#2a2930}
+@media(max-width:460px){body{padding:12px}.panel{padding:12px}}

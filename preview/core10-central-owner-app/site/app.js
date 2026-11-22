@@ -6,6 +6,7 @@
     business: "/view/owner-dashboard-signed.html",
     setup: "/live/core10-build01.html",
     master: "/view/master-signed.html",
+    stock: "/view/stock-signed.html",
     sales: "/view/sales.html",
     manufacturing: "/view/mfg.html",
     control: "/live/core10-owner-control-centre.html",
@@ -19,7 +20,7 @@
   function route() {
     var r = (location.hash.replace(/^#\/?/, "") || "home").split("?")[0];
     if (!Object.prototype.hasOwnProperty.call(ROUTES, r)) r = "home";
-    var signed = r === "control" || r === "setup" || r === "master";
+    var signed = r === "control" || r === "setup" || r === "master" || r === "stock";
     dataStatus.querySelector(".bn").textContent = r === "business"
       ? "CORE10 স্টেজিং · সাইন-ইন করে লাইভ ব্যবসার তথ্য দেখুন (শুধু পড়া)"
       : signed ? "CORE10 স্টেজিং · সাইন-ইন করলে পরিবর্তন সংরক্ষণ করা যায়"
