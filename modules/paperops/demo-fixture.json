@@ -1,0 +1,385 @@
+{
+  "schema_version": 1,
+  "synthetic_only": true,
+  "account": {
+    "id": "DEMO-ACCOUNT-01",
+    "tenant": "DEMO-TENANT-ISOLATED",
+    "businessId": "DEMO-SWEETS-01",
+    "businessName": "CORE10 DEMO SWEETS — TEST ONLY",
+    "industry": "sweets_bakery",
+    "currency": "BDT",
+    "date": "2026-11-22",
+    "caution": "No real customer, no credentials, no Supabase tables, no production account."
+  },
+  "sites": [
+    {
+      "id": "showroom",
+      "name": "খুলনা ডেমো শোরুম",
+      "kind": "showroom"
+    },
+    {
+      "id": "factory",
+      "name": "ডেমো মিষ্টি কারখানা",
+      "kind": "factory"
+    },
+    {
+      "id": "warehouse",
+      "name": "ডেমো কাঁচামাল গোডাউন",
+      "kind": "warehouse"
+    }
+  ],
+  "staff": [
+    {
+      "id": "DEMO-STAFF-1",
+      "role": "maker"
+    },
+    {
+      "id": "DEMO-STAFF-2",
+      "role": "checker"
+    },
+    {
+      "id": "DEMO-STAFF-3",
+      "role": "approver"
+    },
+    {
+      "id": "DEMO-STAFF-4",
+      "role": "receiver"
+    }
+  ],
+  "cashAccounts": [
+    {
+      "id": "CASH-001",
+      "kind": "cash_drawer",
+      "currency": "BDT"
+    },
+    {
+      "id": "BANK-001",
+      "kind": "bank",
+      "currency": "BDT"
+    },
+    {
+      "id": "PSP-001",
+      "kind": "digital_settlement",
+      "currency": "BDT"
+    }
+  ],
+  "items": [
+    {
+      "id": "SUGAR-KG",
+      "name": "ডেমো চিনি",
+      "uom": "kg",
+      "lot": "LOT-SUG-01",
+      "siteId": "warehouse"
+    },
+    {
+      "id": "MILK-L",
+      "name": "ডেমো দুধ",
+      "uom": "L",
+      "lot": "LOT-MILK-01",
+      "siteId": "factory"
+    },
+    {
+      "id": "RAS-PCS",
+      "name": "ডেমো রসগোল্লা",
+      "uom": "pcs",
+      "lot": "LOT-RAS-01",
+      "siteId": "showroom"
+    },
+    {
+      "id": "JAL-KG",
+      "name": "ডেমো জিলাপি",
+      "uom": "kg",
+      "lot": "LOT-JAL-01",
+      "siteId": "factory"
+    }
+  ],
+  "stock": [
+    {
+      "itemId": "SUGAR-KG",
+      "siteId": "warehouse",
+      "movementRefs": [
+        "GRN-001",
+        "ISSUE-001"
+      ],
+      "opening": "50",
+      "received": "30",
+      "returnedIn": "0",
+      "issued": "12",
+      "sold": "0",
+      "wasted": "0",
+      "returnedOut": "0",
+      "physicalClose": "68"
+    },
+    {
+      "itemId": "MILK-L",
+      "siteId": "factory",
+      "movementRefs": [
+        "MILK-RECEIPT-01",
+        "MILK-ISSUE-01"
+      ],
+      "opening": "40",
+      "received": "20",
+      "returnedIn": "0",
+      "issued": "30",
+      "sold": "0",
+      "wasted": "1",
+      "returnedOut": "0",
+      "physicalClose": "29"
+    },
+    {
+      "itemId": "RAS-PCS",
+      "siteId": "showroom",
+      "movementRefs": [
+        "W02-001",
+        "SALES-CLOSE-01"
+      ],
+      "opening": "120",
+      "received": "60",
+      "returnedIn": "0",
+      "issued": "0",
+      "sold": "150",
+      "wasted": "5",
+      "returnedOut": "0",
+      "physicalClose": "25"
+    }
+  ],
+  "daySales": {
+    "cash": "2500.00",
+    "digital": "1200.00",
+    "credit": "0.00",
+    "total": "3700.00",
+    "showroomCloseRef": "R01-001"
+  },
+  "cashClosing": {
+    "openingFloat": "500",
+    "cashSales": "2500",
+    "receipts": "0",
+    "approvedExpenses": "300",
+    "refunds": "200",
+    "bankDeposits": "1000",
+    "handovers": "500",
+    "countedClose": "1000"
+  },
+  "cashHandover": {
+    "closingRef": "R01-001",
+    "sealRef": "BAG-001",
+    "cashLedgerRef": "CASH-001",
+    "dispatchedCash": "500",
+    "receivedCash": "500",
+    "floatLeft": "500",
+    "approvedFloat": "500",
+    "sentBy": "DEMO-STAFF-1",
+    "receivedBy": "DEMO-STAFF-4"
+  },
+  "stockTransfer": {
+    "sourceLocation": "factory",
+    "destinationLocation": "showroom",
+    "challanRef": "W02-001",
+    "issuedBy": "DEMO-STAFF-1",
+    "receivedBy": "DEMO-STAFF-4",
+    "sentQty": "60",
+    "receivedQty": "60",
+    "foodGoods": true,
+    "productionDate": "2026-11-22",
+    "grade": "G1"
+  },
+  "grn": {
+    "poRef": "PO-001",
+    "grnRef": "GRN-001",
+    "invoiceRef": "BILL-001",
+    "orderedQty": "30",
+    "deliveredQty": "30",
+    "acceptedQty": "30",
+    "heldQty": "0",
+    "returnedQty": "0",
+    "receivedBy": "DEMO-STAFF-1",
+    "qcBy": "DEMO-STAFF-2",
+    "heldSegregated": true,
+    "qcPassed": true
+  },
+  "purchase": {
+    "itemId": "SUGAR-KG",
+    "unitRateBDT": "100.00",
+    "poTotal": "3000.00",
+    "acceptedAmount": "3000.00",
+    "invoiceAmount": "3000.00",
+    "paymentProposed": "3000.00",
+    "approvedBy": "DEMO-STAFF-3",
+    "preparedBy": "DEMO-STAFF-1"
+  },
+  "digitalSettlement": {
+    "paperRecorded": "1200.00",
+    "statementGross": "1200.00",
+    "processingFee": "24.00",
+    "bankReceived": "1176.00",
+    "personalAccount": false
+  },
+  "factoryBatch": {
+    "batchRef": "BATCH-001",
+    "recipeVersion": "RECIPE-RAS-v1",
+    "issueSlipRef": "ISSUE-001",
+    "issuedKg": "12",
+    "usedKg": "11",
+    "returnedKg": "1",
+    "expectedOutputKg": "16",
+    "goodOutputKg": "15",
+    "secondGradeKg": "0.5",
+    "wasteKg": "0.5",
+    "prestartSafetyOk": true,
+    "scaleChecked": true,
+    "producedBy": "DEMO-STAFF-1",
+    "yieldCheckedBy": "DEMO-STAFF-2",
+    "qcReleased": true,
+    "qcRef": "QC-001",
+    "yieldTestRef": "YIELD-TEST-001"
+  },
+  "jalebiYield": {
+    "flourIssuedKg": "10",
+    "openDoughKg": "2",
+    "closeDoughKg": "1",
+    "approvedBaseConversionPercent": "80",
+    "approvedKgPerKgFlour": "1.5",
+    "jalebiSales": "2000",
+    "approvedPricePerKg": "200",
+    "unsoldKg": "6.875",
+    "samplesKg": "0",
+    "oilIssuedL": "3",
+    "openOilL": "2",
+    "closeOilL": "1",
+    "syrupReceivedL": "5",
+    "openSyrupL": "1",
+    "closeSyrupL": "2",
+    "producedBy": "DEMO-STAFF-1",
+    "measuredBy": "DEMO-STAFF-2",
+    "scaleChecked": true,
+    "issueSlipRef": "ISSUE-001",
+    "unsoldDecision": "HOLD_FOR_QC",
+    "approvedToleranceKg": "0.05"
+  },
+  "quote": {
+    "quotes": [
+      {
+        "supplier": "DEMO-SUPPLIER-A",
+        "rate": "100"
+      },
+      {
+        "supplier": "DEMO-SUPPLIER-B",
+        "rate": "105"
+      }
+    ],
+    "selectedSupplier": "DEMO-SUPPLIER-A",
+    "comparisonThreshold": "1000"
+  },
+  "order": {
+    "orderRef": "ORDER-001",
+    "boardRef": "BOARD-001",
+    "deliveryDate": "2026-11-23",
+    "takenBy": "DEMO-STAFF-1",
+    "boardCheckedBy": "DEMO-STAFF-2",
+    "totalAmount": "600",
+    "discountAmount": "50",
+    "advanceAmount": "200",
+    "advanceReceiptRef": "ADV-001",
+    "discountApprovalRef": "DISC-001",
+    "notCollected": false
+  },
+  "discount": {
+    "saleRef": "ORDER-001",
+    "originalAmount": "600",
+    "discountAmount": "50",
+    "approvedLimit": "60",
+    "preparedBy": "DEMO-STAFF-1"
+  },
+  "refund": {
+    "originalSaleRef": "SALE-RETURN-001",
+    "returnRef": "RETURN-001",
+    "rootCause": "Demo packaging defect",
+    "refundAmount": "200",
+    "refundLimit": "250",
+    "productReturned": true,
+    "productQuarantined": true,
+    "foodIllnessReported": false,
+    "managementEscalated": false,
+    "receivedBy": "DEMO-STAFF-1",
+    "paidBy": "DEMO-STAFF-4",
+    "refundVoucherRef": "REFUND-001"
+  },
+  "receivable": {
+    "totalDue": "800",
+    "days0to30": "500",
+    "days31to60": "200",
+    "daysOver60": "100",
+    "creditLimit": "1000",
+    "creditStopped": false
+  },
+  "monthly": {
+    "sales": "20000",
+    "openStock": "6000",
+    "purchases": "9000",
+    "closeStock": "5000",
+    "operatingExpenses": "2500",
+    "payroll": "3000",
+    "bankCharges": "300",
+    "receivables": "800",
+    "payables": "2000",
+    "checkedBy": "DEMO-STAFF-2",
+    "preparedBy": "DEMO-STAFF-1"
+  },
+  "events": [
+    {
+      "type": "supplier_delivery",
+      "siteId": "warehouse",
+      "eventId": "GRN-001"
+    },
+    {
+      "type": "purchase_bill",
+      "siteId": "warehouse",
+      "eventId": "BILL-001"
+    },
+    {
+      "type": "stock_ledger",
+      "siteId": "warehouse",
+      "eventId": "STOCK-BOOK-SUGAR-01"
+    },
+    {
+      "type": "production_batch",
+      "siteId": "factory",
+      "eventId": "BATCH-001"
+    },
+    {
+      "type": "jalebi_shift",
+      "siteId": "factory",
+      "eventId": "JAL-001"
+    },
+    {
+      "type": "stock_transfer",
+      "siteId": "factory",
+      "eventId": "W02-001"
+    },
+    {
+      "type": "cash_handover",
+      "siteId": "showroom",
+      "eventId": "CASH-001"
+    },
+    {
+      "type": "customer_order",
+      "siteId": "showroom",
+      "eventId": "ORDER-001"
+    },
+    {
+      "type": "customer_return",
+      "siteId": "showroom",
+      "eventId": "RETURN-001"
+    },
+    {
+      "type": "digital_settlement",
+      "siteId": "showroom",
+      "eventId": "SETTLEMENT-001"
+    },
+    {
+      "type": "monthly_review",
+      "siteId": "showroom",
+      "eventId": "MONTH-001"
+    }
+  ]
+}

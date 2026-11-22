@@ -1,0 +1,60 @@
+name: PaperOps isolated foundation
+on:
+  push:
+    branches:
+      - build/paperops-foundation-20261122
+    paths:
+      - 'modules/paperops/**'
+      - '.github/workflows/paperops-foundation.yml'
+  pull_request:
+    branches:
+      - ccr-15ed11dd-n3hw5h
+    paths:
+      - 'modules/paperops/**'
+      - '.github/workflows/paperops-foundation.yml'
+  workflow_dispatch:
+jobs:
+  paperops:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reproduce all legacy form rule candidates without executing frozen code
+        run: node modules/paperops/legacy-rule-extractor.cjs --check
+      - name: Verify all 1246 original fields have preserved cadence and unapproved mapping status
+        run: node modules/paperops/field-routing.cjs --check
+      - name: Verify consecutive first three 50-field batches and mapped source warnings
+        run: node modules/paperops/field-batch-audit.cjs --check
+      - name: Classify field semantics and unresolved source rules without inventing mandatory paper
+        run: node modules/paperops/field-semantic-triage.cjs --check
+      - name: Recheck all first 150 source declarations against frozen original forms
+        run: node modules/paperops/field-deep-source-recheck.cjs --check
+      - name: Trace exactly 16 source show and six conditionally required branches
+        run: node modules/paperops/source-conditional-recheck.cjs
+      - name: Require 11 source backed open gaps after full first 150 recheck
+        run: node modules/paperops/field-functional-gap-audit.cjs
+      - name: Verify previously missed dynamic R-01 cash, goods and fridge warning branches
+        run: node modules/paperops/r01-hidden-source-audit.cjs
+      - name: Enforce old-field to new-field and blocker trace, no false parity claims
+        run: node modules/paperops/paper-parity-audit.cjs
+      - name: Run eight synthetic paper-day scenarios (counts, routing, all drafts)
+        run: node modules/paperops/paper-pilot.cjs
+      - name: Run isolated synthetic demo accounts, inventory, money and ERP-write denial
+        run: node modules/paperops/paper-demo.cjs
+      - name: Verify signed-source packaging and expense cashbook synthetic reconciliation
+        run: node modules/paperops/source-books-demo.cjs
+      - name: Verify no-write source-to-CORE10 Stock and Money port handoff intents
+        run: node modules/paperops/source-port-handoff-demo.cjs
+      - name: Verify 7 scoped finance/packaging posting proposals are non-postable and replay-safe
+        run: node modules/paperops/source-books-posting-demo.cjs
+      - name: PaperOps contract, safety and preservation tests
+        run: node --test modules/paperops/tests/*.test.cjs
+      - name: Cross-module live and retired-project guard when available
+        run: |
+          if [ -f tests/core10-live-legacy-guard.test.js ]; then
+            node tests/core10-live-legacy-guard.test.js
+          fi
