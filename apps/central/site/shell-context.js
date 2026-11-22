@@ -133,6 +133,10 @@ logout.addEventListener("click",async()=>{
   try{await client.auth.signOut();}catch(_){/* Never restore old private view on failure. */}
   message("সাইন আউট হয়েছে।","Signed out.");
 });
+win.addEventListener("core10:language-change",()=>{
+  if(scope&&actor) message("স্বাক্ষরিত স্টেজিং · সার্ভার-অনুমোদিত প্রসঙ্গ","Signed staging · server-authorized context");
+  else message("সাইন-ইন করে আপনার অনুমোদিত গ্রুপ ও ব্যবসা দেখুন।","Sign in to view your authorized group and businesses.");
+});
 if(!configReady()){
   open.disabled=true;message("CORE10 স্টেজিং সাইন-ইন উপলব্ধ নয়।","CORE10 staging sign-in unavailable.");
   return;
