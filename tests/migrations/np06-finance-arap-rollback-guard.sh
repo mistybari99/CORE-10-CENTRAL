@@ -117,7 +117,9 @@ state_before="$(psql -X -At -F ':' -c "SELECT
  (SELECT count(*) FROM core10.control_overrides_v1)")"
 # Rejected rollback must preserve exact RPC definitions and explicit ACLs, not only privilege outcomes.
 rpc_fingerprint_before="$(psql -X -At -c "SELECT md5(string_agg(p.oid::regprocedure::text || ':' || pg_get_functiondef(p.oid) || ':' || coalesce(p.proacl::text,''), E'\\n' ORDER BY p.oid::regprocedure::text)) FROM pg_proc p WHERE p.oid IN ('core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)'::regprocedure,'core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)'::regprocedure,'core10.finance_arap_aging_v1(bigint,date,text)'::regprocedure,'core10.finance_arap_trace_v1(bigint)'::regprocedure)")"
-[[ -n "$rpc_fingerprint_before" ]]
+[[ "$rpc_fingerprint_before" =~ ^[0-9a-f]{32}$ ]]
+# Fail closed if a function was removed/replaced but the remaining RPCs still hash.
+[[ "$(psql -X -At -c "SELECT count(*) FROM pg_proc p WHERE p.oid IN ('core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)'::regprocedure,'core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)'::regprocedure,'core10.finance_arap_aging_v1(bigint,date,text)'::regprocedure,'core10.finance_arap_trace_v1(bigint)'::regprocedure)")" == 4 ]]
 # Rejected rollback must preserve the three 0403 integrity triggers, including enabled state.
 trigger_fingerprint_before="$(psql -X -At -c "SELECT md5(string_agg(t.tgrelid::regclass::text || ':' || t.tgname || ':' || pg_get_triggerdef(t.oid) || ':' || t.tgenabled::text, E'\\n' ORDER BY t.tgrelid::regclass::text,t.tgname)) FROM pg_trigger t WHERE NOT t.tgisinternal AND t.tgname IN ('finance_arap_source_integrity_v1','finance_arap_settlement_integrity_v1','finance_arap_no_allocated_reversal_v1')")"
 [[ "$trigger_fingerprint_before" =~ ^[0-9a-f]{32}$ ]]
