@@ -97,6 +97,10 @@ SQL
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.canonical_audit_events_v1 WHERE action IN ('finance.arap_link','finance.arap_allocate')")" == 0 ]]
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.control_setting_versions_v1 WHERE feature_key IN ('finance.arap_link','finance.arap_allocate')")" == 0 ]]
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.control_overrides_v1 WHERE feature_key='finance.arap_link'")" == 1 ]]
+# A rejected rollback must preserve the exact applied migration ledger record,
+# not merely leave version 0403 present with a changed or missing checksum.
+ledger_before="$(psql -X -At -c "SELECT version || ':' || name || ':' || checksum FROM core10.schema_migrations WHERE version IN (402,403) ORDER BY version")"
+[[ "$(printf '%s\\n' "$ledger_before" | wc -l | tr -d ' ')" == 2 ]]
 output="$(mktemp)"
 trap 'rm -f "$output"; cleanup' EXIT
 if internal/migrations/run.sh down >"$output" 2>&1; then
@@ -110,6 +114,7 @@ if ! grep -q 'FIN_ARAP_INTEGRITY_ROLLBACK_DENIED_HISTORY' "$output"; then
   exit 1
 fi
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=403")" == 1 ]]
+[[ "$(psql -X -At -c "SELECT version || ':' || name || ':' || checksum FROM core10.schema_migrations WHERE version IN (402,403) ORDER BY version")" == "$ledger_before" ]]
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.control_overrides_v1 WHERE feature_key='finance.arap_link'")" == 1 ]]
 [[ "$(psql -X -At -c "SELECT count(*) FROM pg_trigger WHERE tgname='finance_arap_source_integrity_v1' AND NOT tgisinternal")" == 1 ]]
 # Failed rollback is atomic: keep both authenticated mutation grants intact.
