@@ -1,0 +1,587 @@
+{
+  "schema_version": 1,
+  "context": "CORE10 sweets legacy to offline PaperOps crosswalk",
+  "status": "FIELD_CONTROL_MAPPING_DRAFT_NOT_PARITY_CERTIFICATE",
+  "warning": "A mapped field name and a passing prototype gate do not prove equivalent source rules or release readiness. Ledger row source IDs and signatures must be reviewed against original owner workflows.",
+  "count": 20,
+  "records": [
+    {
+      "obligation_id": "SHOWROOM_OPEN_SAFETY",
+      "legacy_form": "R-01",
+      "legacy_field_keys": [
+        "safety",
+        "fridges",
+        "expired_removed",
+        "open_counted"
+      ],
+      "legacy_flag_codes": [
+        "expired_loss",
+        "open_float_diff"
+      ],
+      "print_form": "OPS-DAILY",
+      "print_field_keys": [
+        "hygiene",
+        "coldchain",
+        "expiry",
+        "opening_ref"
+      ],
+      "candidate_gate": null,
+      "unresolved": "table/control specifics not tested",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "JALEBI_MEASUREMENT_SEPARATION",
+      "legacy_form": "R-02",
+      "legacy_field_keys": [
+        "produced_slot",
+        "measured_slot",
+        "measured_by",
+        "scale"
+      ],
+      "legacy_flag_codes": [
+        "producer_is_measurer",
+        "scale_off"
+      ],
+      "print_form": "SWT-JALEBI",
+      "print_field_keys": [
+        "producer",
+        "measurer",
+        "scale",
+        "issue_ref"
+      ],
+      "candidate_gate": "jalebiYield",
+      "unresolved": "more legacy exceptions remain",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "JALEBI_YIELD_AND_UNSOLD",
+      "legacy_form": "R-02",
+      "legacy_field_keys": [
+        "tot_flour",
+        "tot_oil",
+        "jalebi_sales",
+        "unsold"
+      ],
+      "legacy_flag_codes": [
+        "jalebi_diff",
+        "jalebi_diff_small"
+      ],
+      "print_form": "SWT-JALEBI",
+      "print_field_keys": [
+        "flour_used",
+        "expected",
+        "sold",
+        "unsold",
+        "samples",
+        "variance",
+        "oil",
+        "syrup",
+        "unsold_decision"
+      ],
+      "candidate_gate": "jalebiYield",
+      "unresolved": "old oil/syrup exceptions not fully ported",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "CASH_CUSTODY_PROOF",
+      "legacy_form": "C-01",
+      "legacy_field_keys": [
+        "seal_no",
+        "counted_total",
+        "received_total",
+        "diff"
+      ],
+      "legacy_flag_codes": [
+        "hub_diff",
+        "float_mismatch"
+      ],
+      "print_form": "CASH-HANDOVER",
+      "print_field_keys": [
+        "closing_ref",
+        "seal",
+        "amount",
+        "counted",
+        "difference",
+        "proof"
+      ],
+      "candidate_gate": "cashHandover",
+      "unresolved": "old denomination and separate hub role field parity pending",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "GOODS_TWO_PARTY_TRANSFER",
+      "legacy_form": "W-02",
+      "legacy_field_keys": [
+        "sent",
+        "received",
+        "diff",
+        "receiver_counted",
+        "liability"
+      ],
+      "legacy_flag_codes": [
+        "shortage",
+        "excess",
+        "same_location"
+      ],
+      "print_form": "STK-TRANSFER",
+      "print_field_keys": [
+        "source",
+        "destination",
+        "dispatch_time",
+        "receipt_time",
+        "variance_ref"
+      ],
+      "candidate_gate": "stockTransfer",
+      "unresolved": "dispatch/receipt row identities and signatures need scenario acceptance",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "PHYSICAL_COUNT_IS_NOT_ADJUSTMENT",
+      "legacy_form": "W-03",
+      "legacy_field_keys": [
+        "count",
+        "book",
+        "var",
+        "reason",
+        "witness"
+      ],
+      "legacy_flag_codes": [
+        "count_variance",
+        "counter_is_storekeeper"
+      ],
+      "print_form": "STK-COUNT",
+      "print_field_keys": [
+        "scope",
+        "cause",
+        "decision"
+      ],
+      "candidate_gate": "stockBalance",
+      "unresolved": "independent witness, freeze and tolerance policy not fully encoded",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "STOCK_LEDGER_CARRY_FORWARD",
+      "legacy_form": "W-04",
+      "legacy_field_keys": [
+        "opening",
+        "grn_no",
+        "issue_no",
+        "bal",
+        "count_sheet"
+      ],
+      "legacy_flag_codes": [
+        "no_paper",
+        "negative_balance",
+        "adj_no_sheet"
+      ],
+      "print_form": "STK-LEDGER",
+      "print_field_keys": [
+        "item",
+        "location",
+        "opening",
+        "count_sheet",
+        "approval"
+      ],
+      "candidate_gate": "stockBalance",
+      "unresolved": "row-level source and balance identifiers not structurally modeled",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "GRN_ACCEPTANCE_QC",
+      "legacy_form": "P-04",
+      "legacy_field_keys": [
+        "po_no",
+        "counted",
+        "quality",
+        "held_apart",
+        "rate_approver"
+      ],
+      "legacy_flag_codes": [
+        "grn_hold",
+        "hold_not_apart",
+        "rate_approver_is_receiver"
+      ],
+      "print_form": "PUR-GRN",
+      "print_field_keys": [
+        "supplier",
+        "po",
+        "invoice",
+        "qc",
+        "difference"
+      ],
+      "candidate_gate": "goodsReceived",
+      "unresolved": "rate and source item matching requires richer row evidence",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "THREE_WAY_BILL_MATCH",
+      "legacy_form": "P-05",
+      "legacy_field_keys": [
+        "po",
+        "grn",
+        "bill",
+        "held",
+        "pay_approved"
+      ],
+      "legacy_flag_codes": [
+        "pay_on_mismatch",
+        "bill_amount_differs"
+      ],
+      "print_form": "PUR-BILL-MATCH",
+      "print_field_keys": [
+        "po",
+        "grn",
+        "bill",
+        "po_total",
+        "accepted_total",
+        "invoice_total",
+        "hold",
+        "decision"
+      ],
+      "candidate_gate": "threeWay",
+      "unresolved": "accepted-item unit/price multi-line parity not fully checked",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "QUOTE_SELECTION_PROOF",
+      "legacy_form": "P-02",
+      "legacy_field_keys": [
+        "lowest",
+        "sel_approved",
+        "single_approver"
+      ],
+      "legacy_flag_codes": [
+        "not_lowest",
+        "single_quote",
+        "single_approver_is_collector"
+      ],
+      "print_form": "PUR-COMPARE",
+      "print_field_keys": [
+        "requisition",
+        "limit",
+        "lowest",
+        "selected",
+        "reason",
+        "approved"
+      ],
+      "candidate_gate": "quoteSelection",
+      "unresolved": "legal and policy threshold approval still external",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "ORDER_FULFILMENT_ADVANCE",
+      "legacy_form": "S-01",
+      "legacy_field_keys": [
+        "board_no",
+        "factory_deadline",
+        "advance",
+        "balance"
+      ],
+      "legacy_flag_codes": [
+        "adv_over_total",
+        "board_checker_is_maker"
+      ],
+      "print_form": "SLS-ORDER",
+      "print_field_keys": [
+        "order_no",
+        "factory",
+        "date",
+        "gross",
+        "discount",
+        "advance",
+        "balance",
+        "not_collected"
+      ],
+      "candidate_gate": "customerOrder",
+      "unresolved": "delivery, refund and no-items legacy branches outstanding",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "DISCOUNT_ABOVE_LIMIT",
+      "legacy_form": "S-02",
+      "legacy_field_keys": [
+        "limit_text",
+        "approved_by",
+        "approved_time"
+      ],
+      "legacy_flag_codes": [
+        "approver_is_maker",
+        "disc_over_price"
+      ],
+      "print_form": "EXCEPTION",
+      "print_field_keys": [
+        "type",
+        "source",
+        "amount",
+        "decision"
+      ],
+      "candidate_gate": "discountApproval",
+      "unresolved": "source form approval timestamp and tier policy pending",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "RETURN_REFUND_AND_ROOT_CAUSE",
+      "legacy_form": "S-03",
+      "legacy_field_keys": [
+        "refund_amt",
+        "approved_by",
+        "p_fate",
+        "root_cause"
+      ],
+      "legacy_flag_codes": [
+        "approver_is_maker",
+        "illness_complaint",
+        "complaint_open"
+      ],
+      "print_form": "SLS-RETURN",
+      "print_field_keys": [
+        "sale_ref",
+        "refund",
+        "decision",
+        "root",
+        "intake",
+        "resolution"
+      ],
+      "candidate_gate": "returnRefund",
+      "unresolved": "end-customer remedy and physical goods fate need proof",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "CHANNEL_SETTLEMENT_RECON",
+      "legacy_form": "C-04",
+      "legacy_field_keys": [
+        "st_bkash",
+        "st_nagad",
+        "st_card",
+        "sh_a",
+        "on_a"
+      ],
+      "legacy_flag_codes": [
+        "dig_bank_diff",
+        "app_bank_diff",
+        "no_statement"
+      ],
+      "print_form": "FIN-SETTLEMENT",
+      "print_field_keys": [
+        "statement",
+        "ledger",
+        "missing",
+        "personal",
+        "action"
+      ],
+      "candidate_gate": "digitalSettlement",
+      "unresolved": "channel fees and separate statement lines not fully structured",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "AGEING_AND_CREDIT_STOP",
+      "legacy_form": "C-05",
+      "legacy_field_keys": [
+        "a30",
+        "a60",
+        "a60p",
+        "credit_stopped"
+      ],
+      "legacy_flag_codes": [
+        "recv_aging_mismatch",
+        "credit_not_stopped"
+      ],
+      "print_form": "FIN-AR-AGING",
+      "print_field_keys": [
+        "limit_ref",
+        "advances",
+        "overdue",
+        "stop",
+        "action"
+      ],
+      "candidate_gate": "receivableAging",
+      "unresolved": "per-party ageing/limit rows need data validation",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "FACTORY_PRESTART_AND_BATCH",
+      "legacy_form": "F-05",
+      "legacy_field_keys": [
+        "safety",
+        "machines",
+        "issue_slip",
+        "batch_verify",
+        "yield_report"
+      ],
+      "legacy_flag_codes": [
+        "safety_defect",
+        "scale_off",
+        "self_yield_approval"
+      ],
+      "print_form": "MFG-DAILY",
+      "print_field_keys": [
+        "batch",
+        "recipe",
+        "prestart",
+        "food_hygiene",
+        "expected",
+        "actual",
+        "qc"
+      ],
+      "candidate_gate": "factoryBatch",
+      "unresolved": "daily batch checklist and all exceptions still under review",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "RECIPE_VERSION_NOT_DAILY_COPY",
+      "legacy_form": "F-03",
+      "legacy_field_keys": [
+        "version",
+        "yield_no",
+        "spec_version"
+      ],
+      "legacy_flag_codes": [],
+      "print_form": "MFG-DAILY",
+      "print_field_keys": [
+        "recipe",
+        "product",
+        "batch"
+      ],
+      "candidate_gate": "factoryBatch",
+      "unresolved": "versioned recipe and signed approval not enforced outside paper input",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "YIELD_TEST_INPUT_OUTPUT",
+      "legacy_form": "F-04",
+      "legacy_field_keys": [
+        "input",
+        "good",
+        "second",
+        "waste",
+        "approver"
+      ],
+      "legacy_flag_codes": [
+        "same_day_batches",
+        "measurer_is_craftsman"
+      ],
+      "print_form": "MFG-DAILY",
+      "print_field_keys": [
+        "expected",
+        "actual",
+        "waste",
+        "deviation"
+      ],
+      "candidate_gate": "factoryBatch",
+      "unresolved": "three-distinct-day yield tests not yet coded",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "GRADE_AND_SHELF_LIFE",
+      "legacy_form": "F-02",
+      "legacy_field_keys": [
+        "version",
+        "g1_look",
+        "rj_mold",
+        "shelf_normal"
+      ],
+      "legacy_flag_codes": [
+        "same_incharge"
+      ],
+      "print_form": "MFG-SPEC",
+      "print_field_keys": [
+        "product",
+        "version",
+        "reject",
+        "shelf",
+        "expiry"
+      ],
+      "candidate_gate": null,
+      "unresolved": "versioned master QC criteria not yet centrally enforced",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    },
+    {
+      "obligation_id": "MONTHLY_PROFIT_AR_AP",
+      "legacy_form": "A-02",
+      "legacy_field_keys": [
+        "cogs",
+        "gross",
+        "net",
+        "receivables",
+        "payables"
+      ],
+      "legacy_flag_codes": [
+        "checker_is_preparer",
+        "cogs_negative"
+      ],
+      "print_form": "FIN-MONTHLY",
+      "print_field_keys": [
+        "month",
+        "cogs",
+        "gross",
+        "net",
+        "ar",
+        "ap",
+        "leak"
+      ],
+      "candidate_gate": "monthlyProfit",
+      "unresolved": "full monthly sales by location and accounting statement tie-out pending",
+      "parity": "NOT_PROVEN",
+      "owner_acceptance": "NOT_REQUESTED",
+      "evidence": "FROZEN_SOURCE_PLUS_DRAFT_TEMPLATE_MAPPING",
+      "can_release": false
+    }
+  ]
+}
