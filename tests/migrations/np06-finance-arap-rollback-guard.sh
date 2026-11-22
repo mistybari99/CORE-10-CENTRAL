@@ -115,6 +115,9 @@ state_before="$(psql -X -At -F ':' -c "SELECT
  (SELECT count(*) FROM core10.canonical_audit_events_v1),
  (SELECT count(*) FROM core10.control_setting_versions_v1),
  (SELECT count(*) FROM core10.control_overrides_v1)")"
+# Rejected rollback must preserve exact RPC definitions and explicit ACLs, not only privilege outcomes.
+rpc_fingerprint_before="$(psql -X -At -c "SELECT md5(string_agg(p.oid::regprocedure::text || ':' || pg_get_functiondef(p.oid) || ':' || coalesce(p.proacl::text,''), E'\\n' ORDER BY p.oid::regprocedure::text)) FROM pg_proc p WHERE p.oid IN ('core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)'::regprocedure,'core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)'::regprocedure,'core10.finance_arap_aging_v1(bigint,date,text)'::regprocedure,'core10.finance_arap_trace_v1(bigint)'::regprocedure)")"
+[[ -n "$rpc_fingerprint_before" ]]
 output="$(mktemp)"
 trap 'rm -f "$output"; cleanup' EXIT
 if internal/migrations/run.sh down >"$output" 2>&1; then
@@ -133,6 +136,7 @@ fi
  (SELECT count(*) FROM core10.canonical_audit_events_v1),
  (SELECT count(*) FROM core10.control_setting_versions_v1),
  (SELECT count(*) FROM core10.control_overrides_v1)")" == "$state_before" ]]
+[[ "$(psql -X -At -c "SELECT md5(string_agg(p.oid::regprocedure::text || ':' || pg_get_functiondef(p.oid) || ':' || coalesce(p.proacl::text,''), E'\\n' ORDER BY p.oid::regprocedure::text)) FROM pg_proc p WHERE p.oid IN ('core10.finance_link_open_item_v1(bigint,bigint,bigint,text,date,text)'::regprocedure,'core10.finance_allocate_payment_v1(bigint,bigint,numeric,text)'::regprocedure,'core10.finance_arap_aging_v1(bigint,date,text)'::regprocedure,'core10.finance_arap_trace_v1(bigint)'::regprocedure)")" == "$rpc_fingerprint_before" ]]
 [[ "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=403")" == 1 ]]
 [[ "$(psql -X -At -c "SELECT version || ':' || name || ':' || checksum FROM core10.schema_migrations WHERE version IN (402,403) ORDER BY version")" == "$ledger_before" ]]
 [[ "$(psql -X -At -c "SELECT row_to_json(o)::text FROM core10.control_overrides_v1 o WHERE tenant_id=96811 AND business_id=96813 AND request_key='arapOverrideOnly1'")" == "$override_before" ]]
