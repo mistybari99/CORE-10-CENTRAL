@@ -61,6 +61,9 @@ jobs:
           node-version: "22"
       - name: Migration static contract
         run: node --test tests/migrations/migration-contract.test.js
+      - name: Prepare disposable Supabase role fixtures for registry ACL check
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF; END \$\$;"
       - name: Full PostgreSQL 17 up-down-up
         run: bash tests/migrations/run-updownup.sh
       - name: Canonical control registry
