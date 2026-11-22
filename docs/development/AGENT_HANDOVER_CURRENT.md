@@ -70,6 +70,17 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
   Staging business #3 now has synthetic (TEST ONLY) six posted inventory commands, eight canonical
   stock movements, six balance rows, zero unreconciled; four original site MAIN locations were
   provisioned earlier and reused, four Master items intact. No Finance journal/real customer posts.
+- Owner Stock write workbench `/#/stock` is LIVE on existing Cloudflare Worker
+  version `65f60417-5b76-4524-830a-c74018b7ff58` (100% deployment
+  `c282ed0c-106d-4cd3-9e7a-504e700e114a`), rollback
+  `2d9894b8-279d-4772-91f6-be46a54d98e3`.
+  Real canonical signed Stock 0201–0206 RPCs used, no legacy A048 read RPC. Source
+  preview `fd917d8321643463201e2c1ed2e5e092840916f9` and verified Worker candidate
+  `5e88f8352676b645a86f49d8a4bf115f3eec2003`; bundle 955520 B,
+  SHA256 `ba530d45179f9ea146bccb0a04899213a3e396adf7fe6030b28eebf938a5f4b2`.
+  Local full Chromium run `44997262303` 56/56 PASS and PUBLIC run `44997571687`
+  **56/56 PASS**. Owner signed DB workflow draft→confirm→post→list in BEGIN/ROLLBACK
+  PASS; no stock rows persisted from that test. Owner manual mobile input acceptance pending.
 - Dashboard Owner `/#/business`: signed read-only real portfolio/site/Stock integration preview source
   `a7b36cfa`, deterministic bundle candidate `27b2e254`, local browser CI `44995895627`
   **50/50 PASS**, Cloudflare existing Worker version `2d9894b8-279d-4772-91f6-be46a54d98e3`
@@ -98,18 +109,20 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
   DB connection) from the Owner. Never commit them.
 
 ## 5. Next build steps (priority order)
-1. **Owner Business read-only LIVE acceptance**: `/#/business` is now signed CORE10
-   staging on Worker v`2d9894b8`; deterministic pre-publish build & full Chromium
-   run `44995895627` **50/50 PASS**, exact public URL run `44996166820` **50/50 PASS**,
-   bundle 936636 bytes SHA256 `bd9253d7c0ee16bf76d3a0abc5cd3e950479b1a694a7d7cf404e10ce0088fc0f`.
-   Rollback version `4b6d179c` preserved. Owner still needs to personally check
-   the signed Business dashboard, read Stock amounts and Master editing on their phone.
-2. **Build signed Stock input UI**: staging 0201–0206 gives real receive/issue/transfer/adjust,
-   PO/GRN/QC and Owner dashboard APIs, but `/#/business` is READ-ONLY.
-   Build a separate signed staging Inventory/Procurement write workbench on isolated branch
-   (must use the real canonical Control + Auth/RPC and reject unauthorized posts).
-   Real demo ledger rows: factory RAS20/SAND15, showroom RAS10/SAND5,
-   warehouse SUGAR25/MILK10; all TEST ONLY.
+1. **Owner signed Business, Master and Stock mobile acceptance**: all three are now live.
+   Owner Business `/#/business` read-only Worker `2d9894b8` had public 50/50 PASS; signed
+   Master `/#/master` accepts canonical items and prices; newly signed `/#/stock` deployed Worker
+   `65f60417-5b76-4524-830a-c74018b7ff58`, pre-publish local `44997262303` 56/56 PASS,
+   exact public live `44997571687` **56/56 PASS**, bundle SHA256
+   `ba530d45179f9ea146bccb0a04899213a3e396adf7fe6030b28eebf938a5f4b2`.
+   Signed Owner backend Draft→Confirm→Post→List test in ROLLBACK PASS. Mobile Owner
+   password login and manual real button Post still needs Owner acceptance. Keep samples TEST ONLY.
+2. **Finish Stock/Procurement adoption**: `/#/stock` now signed staging command UI
+   for receive/issue/transfer/adjust Draft, Confirm, Post, and list. Staging 0201–0206,
+   four Owner demo items and four locations remain. Owner manual mobile acceptance and
+   a guided PO/GRN/QC signed input UI are the next Stock features. The legacy A048 Inventory
+   client calls a nonexistent `read_inventory_commands_v1`; never ship it directly; the
+   new route uses `inventory_list_commands_v1` and includes `p_reason` on create.
 3. **Sales stage 030x first**: reconcile merged Sales PR109 with open 10 security
    correction cases, resolve competing 0305 PR121/PR122 with Board and enforce FORWARD-only
    fixes. Exact-head CI + independent P1 review + scoped backup + signed staging
@@ -154,3 +167,16 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
   local 50/50 PASS `44995895627`, candidate `27b2e254`, Worker active
   `2d9894b8-279d-4772-91f6-be46a54d98e3`; public gate `44996166820` **50/50 PASS**, live release confirmed. Next: verify public gate + release doc,
   then build signed Stock/Procurement write UI and Sales 030x.
+- 2026-11-22 agent=ChatGPT: shipped signed Stock command UI on preview
+  source `fd917d8321643463201e2c1ed2e5e092840916f9` (6 edited/added files),
+  route `/#/stock` with real signed Owner receive/issue/transfer/adjust draft,
+  confirm, post, list. Found legacy `read_inventory_commands_v1` nonexistent;
+  uses actual 0201–0206 `inventory_list_commands_v1`, `create_inventory_command_v1`
+  with p_reason, `advance_inventory_command_v1`. Signed Owner transaction
+  create→confirm→post→list PASS and rolled back; no stored demo stocks changed.
+  Local full Chromium run `44997262303` **56/56 PASS**, candidate `5e88f835`;
+  Cloudflare existing Worker `65f60417-5b76-4524-830a-c74018b7ff58`
+  active 100%, public run `44997571687` **56/56 PASS**;
+  rollback `2d9894b8`. Preview release README `e9dd90d`.
+  NEXT: Owner manual signed Stock write UI acceptance, add signed PO/GRN/QC
+  workflows, then Sales 030x/Finance 040x/Manufacturing 050x numeric integration.
