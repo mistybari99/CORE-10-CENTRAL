@@ -25,7 +25,7 @@ Language to the Owner: short, clear Bangla.
 | Migrations | `internal/migrations/NNNN_*.up.sql` + `.down.sql`; runner `internal/migrations/run.sh` |
 | Number ranges | `docs/coordination/MIGRATION_RESERVATIONS.json` (also records what is applied on staging) |
 | Work split rules | `docs/coordination/WORK_SPLIT_AND_PROTOCOL.md`, GitHub Issue #110 |
-| Staging backup | `docs/development/staging-backups/2026-11-22-pre-go2/` |
+| Staging backup | `docs/development/staging-backups/2026-11-22-pre-go2/`, `2026-11-22-pre-d063/`, `2026-11-22-pre-master-stock/` |
 | Board / Decision Book | Google Sheets (links in CLAUDE_TRUNK_HANDOFF.md); update if you have access, else write NOT WRITTEN |
 
 NEVER TOUCH: Supabase `kbuhnpqooycqbzrfejcs` (IMG-ERP-SG, old ERP) and `luoeyyngayxpqecuuijb`. Never bundle
@@ -55,14 +55,7 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
 - Staging safety snapshots: `docs/development/staging-backups/2026-11-22-pre-go2/`,
   `2026-11-22-pre-d063/` (current 14-table snapshot without auth secrets), and
   `2026-11-22-pre-master-stock/`. Each is a scoped logical backup; full restore still relies on managed backup.
-- Cloudflare Worker `core10-central` active version **`ceeea069-d630-460a-b1f0-5b12e5157da9`**
-  deployment `aaa6039c-752e-4645-aaf2-76b0596a732a`, rollback version `201008ca-42a7-42cd-a08e-b968da6c4e51`.
-  Shell signed staging save-status fix shipped; deterministic bundle sha256
-  `0a97d1a234e0fd39e9c5946698767dc525b8aeeebe652b9d9bcd014cc36b70ee`,
-  GitHub full local browser gate run `44989935242` 49/49 PASS, full **LIVE** gate
-  `44990275034` 49/49 PASS. `/#/setup` and `/#/control` signed; `/#/sales`, `/#/manufacturing`
-  replay/recorded read. `/#/master` signed conversion **on preview branch only** at `35ef4f6ae654f6258c2315fed3d56db3bf7365c0`,
-  awaiting full browser CI `44991383787`; not live until build/verify/deploy/live verify all PASS.
+- Cloudflare Worker `core10-central` LIVE version `4b6d179c-e1aa-4066-9fb6-6988dbc32432`, deployment `7a58b970-2e62-405f-abe3-e4cd064611ee` at 100%. Previous rollback `ceeea069-d630-460a-b1f0-5b12e5157da9`. `/#/setup`, `/#/control`, and NOW `/#/master` are signed CORE10 staging, whereas Sales and Manufacturing remain recorded replay. New signed Master UI source `35ef4f6`, verified candidate `f0e8e036`, Worker 903404 bytes SHA256 `3ae944b1cdcb49f4701457d629e99b61f4acff32fff7b77e2713d3f16568fc28`. Full local browser CI `44991383787` 50/50 PASS and full live public URL CI `44991642473` 50/50 PASS; wrong-password refusal checked. Release README preview commit `1fac3aa`. Owner has not yet manually confirmed item editing on new Master mobile page.
 - F3 crosslane PR #117 stale SHA pin fixed on trunk `bd5aec72826a5ff0b2fd1827bc1396e3390d9067`, CI
   `44989810303` SUCCESS. Sales PR #109 security cases, 0305 double claim and 0201–0202 Stock remain work.
   **NEVER TOUCH** old IMG-ERP-SG Supabase project `kbuhnpqooycqbzrfejcs` or `luoeyyngayxpqecuuijb`;
@@ -85,46 +78,26 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
   DB connection) from the Owner. Never commit them.
 
 ## 5. Next build steps (priority order)
-1. **Finish signed Master UI LIVE**: source `preview/core10-central-level2` at `35ef4f6`, browser gate
-   run `44991383787` pending at handover. Inspect full CI; only if ALL PASS, publish exact
-   verified `dist/worker.mjs` to existing Worker, then `REVIEW_BASE=...` verify all PASS; on failure
-   rollback to `ceeea069-d630-460a-b1f0-5b12e5157da9`. Update preview README and this handover.
-   Existing 4 synthetic signed Owner items are ready for display.
-2. **Next numeric migrations**: Stock lane 0201/0202 and any outstanding 020x must be settled/tests corrected
-   **before** Sales 0300–030x and Finance 0400–040x; do NOT apply higher migrations that strand lower
-   unintegrated numbers. Sales PR #109 has 10 open `tests/np03b/correction-security.sql` cases to fix
-   via FORWARD migrations; **never edit 0301/0304**. Resolve 0305 double claim PR #121/#122
-   on the Board before hosting. Then Finance 0400–0401 and Manufacturing 0500–0504, signed UI
-   activation in order, with real staging-row rehearsal, per-file SHA ledger and scoped backup.
-3. **Owner acceptance and proper new businesses**: Owner screenshot proved signed demo setup and
-   its 4 sites; all data is synthetic. Invite Owner to use `/#/master` **after live signed release**
-   to create/read their own demo items. Maintain a clean fresh-instance reset; do not delete
-   immutable audit. For Owner Goal1 there are no real businesses besides the temporary TEST ONLY draft.
-4. **100–400 site capacity post-0118**: default max 50. Use an audited business-specific signed
-   Owner Control setting and stress test 100–400 on a synthetic business, never bypass the cap.
-   10/10 industry setup tests and old 400-site simulation PASS before 0118 and rolled back;
-   post-D063 400 must be proven separately.
-5. **Finance F3 PR #117**: crosslane exact-head pin fixed at `bd5aec` (CI SUCCESS);
-   rollback test that assumes 0403 is newest remains held until corrected and re-tested.
-6. **Keep live truthfulness**: `/#/setup` and `/#/control` are signed staging and clearly marked;
-   `/#/master` pending #1; Sales and Manufacturing replay must never claim real saved data.
-   No production certification until every write path passes E2E signed/RLS and operation tests.
-7. **Later Goal2**: platform-operator role, migration range, tested cross-tenant support access,
-   customer disclosure and audit; still deferred.
+1. Signed Master is LIVE: `/#/master` Worker `4b6d179c`, local 50/50 and live 50/50 PASS. Owner should check the four seeded sample items on mobile, then test a permitted item edit. Do not claim verified successful human Master login/edit yet.
+2. Numeric migrations: staging max `0200` (40). Reconcile Stock 0201+, Sales 030x security PR109 and 0305 Board double claim PR121/122 before Finance 0400+, Manufacturing 0500+. Correct Sales 10 failed cases through FORWARD migrations, never edit old 0301/0304; no jumps over lower unhosted numbers.
+3. Build actual Stock/Sales/Finance/Manufacturing signed staging end-to-end, after PG17, cross-tenant negative, Owner Control, backup and SHA256 ledger tests. Finance PR117 newest-migration rollback test still open; F3 SHA pin already fixed `bd5aec`.
+4. Site 100–400 after D063: default 50, audited per-business Owner Control max_sites increase required before post-D063 400-site proof. Old 400-site PASS was pre-D063 only.
+5. Synthetic business ID 3 has 4 sites (including Owner trial ASIAN Paint), 4 items, 3 UOMs, 2 categories, 2 parties and 1 retail list with two prices. Fresh-instance script available. Never erase immutable audit; no real operating business or production posting yet. Legacy IMG-ERP-SG/other Supabase projects untouched.
+6. Goal2 platform-operator SaaS/customer separation remains deferred.
 
-- 2026-11-22 agent=ChatGPT: accelerated BUILD under Owner GO (all current data synthetic).
-  Signed Owner SQL tests 10/10 industry templates + 400-site setup/workspace/replay PASS inside rollback
-  against pre-0118 staging. F3 pinned PR117 exact SHA updated `bd5aec7`, crosslane CI PASS.
-  Level2 full Worker build/browser CI run `44989935242` 49/49 PASS; deployed
-  `ceeea069-d630-460a-b1f0-5b12e5157da9` (rollback `201008ca`), live URL browser CI
-  `44990275034` 49/49 PASS, preview README updated `cd370b9`.
-- 2026-11-22 agent=ChatGPT: original D063 0115–0118 PR121 blobs and tests isolated on PR127, fixed
-  B009 4 reviewed drift cases, 8/8 PG17 CI SUCCESS, merged into trunk `8ba0661`.
-  CORE10 staging backup `3b5e7c8`, applied D063 0115–0118 per-file SHA ledger + signed Owner
-  bootstrap policy same 0116 transaction. Staging signed post-D063 Owner setup/replay PASS.
-  More backup `3740ea5`; staging Master 0150–0153 and Stock 0200 applied numeric/SHA.
-  Ledger now 40 rows, max 0200; 4 synthetic Master items + UOM/category/party/pricelist/price data
-  saved using signed Owner RPCs after cross-tenant/negative tests. New signed Master UI candidate
-  preview commit `35ef4f6` and negative browser regression; local full CI pending `44991383787`
-  at this snapshot. No IMG-ERP-SG, other Supabase project, main merge, or real financial posts.
-  Next: #1 signed Master live gate, #2 Stock then Sales/Finance/Manufacturing numeric staged work.
+## 6. Progress log (append newest at the bottom: date, agent, what, commit/deploy, next)
+- 2026-11-22 Claude Session A: GO-2 staging apply (e609b8a); GO-3 live Level 2 (PR #126, v38141fd4);
+  Owner account + own tenant; setup page core10-staging mode (a408d7e, 6f058dc) and live v201008ca. Next: §5.1.
+- 2026-11-22 agent=ChatGPT: signed setup/control staging banner fix + regression test on preview branch
+  commit `8d30615ee4648bc2ac38d80d9655eaaf01a80192`; route smoke 4/4 PASS and Preview static CI PASS;
+  no staging migration or deploy (Worker still `201008ca-42a7-42cd-a08e-b968da6c4e51`); full build/verify pending.
+  Next: Owner opens signed setup, then complete build/verify/live-gated publish; §5.2 remains blocked on Board.
+- 2026-11-22 agent=ChatGPT: built actual Owner-group staging DEMO Sweets draft #3 + 3 sites through existing
+  `build01_setup_v1`; signed-context SQL tests (replay, workspace, isolation, audit) PASS. Fresh-instance
+  runner, tests 5/5 local PASS, reset/audit guide committed `8907369b636e7fff5c408025e8262c9d9ca81342`;
+  CI was queued at observation; no migration or Worker deploy, live `201008ca-42a7-42cd-a08e-b968da6c4e51`.
+  Next: Owner tests existing sign-in at /live/core10-build01.html; finish browser acceptance, build/verify/live gate,
+  decide policy-based archival before any hard deletion, then resolve §5.2 0115-0118 migration reservations.
+- 2026-11-22 agent=ChatGPT: Owner acceleration BUILD. Signed setup 10/10 templates and 400-site pre-D063 rollback stress PASS; Finance F3 SHA pin fixed `bd5aec`, CI success. Cloudflare truthful signed banner version `ceeea069` (build/live 49/49 PASS).
+- 2026-11-22 agent=ChatGPT: original D063 0115-0118 code and tests integrated via PR127 after 8/8 PG17 CI PASS, merge `8ba0661`. Snapshot pre-D063 `3b5e7c8`; Owner bootstrap policy activated atomically at 0116 hosted. Staging signed setup after D063 PASS. Snapshot pre-Master/Stock `3740ea5`; staged 0150-0153 and 0200 with exact SHA ledger; 40 migrations, max 0200. Signed four dummy Master items and reference data persisted, cross-tenant negative PASS.
+- 2026-11-22 agent=ChatGPT: Master staging signed frontend `35ef4f6`, full local Chromium CI `44991383787` 50/50 PASS, exact Worker candidate `f0e8e036`; deployed Worker `4b6d179c-e1aa-4066-9fb6-6988dbc32432` 100%, public LIVE CI `44991642473` 50/50 PASS, previous rollback `ceeea069`, preview README `1fac3aa`. Owner personal Master mobile item-edit acceptance still pending. Next: Stock/Sales numeric backlog then Finance/Manufacturing.
