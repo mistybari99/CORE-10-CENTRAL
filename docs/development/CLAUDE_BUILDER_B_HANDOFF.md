@@ -114,16 +114,45 @@ Reuse table (P2):
   `inventory_list_balances_v1` for a site-only staff member over a whole business (no site filter) = 1,523 ms (budget
   1,500 ms) because `can_site` runs per balance row. Fix next: resolve the caller's readable sites once (or require
   `p_site` for site-only staff), then rerun. The scale file is committed but NOT yet a CI step (it would fail).
-- **GitHub CI is RED at `bed68b9` and `3456a35`** (green at `6c7a3fa`):
-  1. `core10-b010-control-port-ci` job `control-port` failed (runs 44960292006, 44960789001). The log tail shows only
-     cleanup; the failing step is not read yet. It was introduced by 0203 or 0204 (or their CI steps). First action
-     on resume: read the full job log, reproduce locally with the exact CI step order (all steps share ONE database:
-     committed race seeds can collide with e2e ids or change counts), fix, push.
-  2. `NP03B Sales Order Foundation PG17` job `sales` failed: `SALES_CORRECTION_ACCEPTANCE_FAIL: 10 unresolved security
-     cases`. That is the NP03B lane's own test running on this PR. Check whether it is also red on trunk `5efece2`;
-     if not, find which 02xx object it trips.
-- Resume order: (1) fix CI red, (2) balance read fix + wire scale test into CI, (3) PO approval stages via GOV-002
-  (same pattern as 0202), (4) Central shell link for the dashboard (Session A file).
+- **Red CI at `bed68b9` / `3456a35` / `4a8e446`: RESOLVED (2026-11-22, integrator Agent D).**
+  1. `core10-b010-control-port-ci` (runs 44960292006, 44960789001, 44980645823): root cause was NOT 0203/0204. The PR
+     base `ccr-15ed11dd-n3hw5h` moved and now carries NP01 0110-0114. 0111 pins every GOV-002 submission made under
+     an explicit `gov002.review` setting to a route of exactly that many stages (`CONTROL_STAGE_MISMATCH` otherwise;
+     a 1-stage route is `['tenant_owner']`). The 0202 e2e set `gov002.review` explicitly (off, then on, stages 1) and
+     then requested on the un-routed one-checker policy. Fix `aa6d9e52` (test fixture only): the switch is proven in
+     a savepoint that also proves the NP01 interplay (un-routed refused, explicit 1-stage route requests, approves,
+     posts with one stage receipt), then rolled back. The new 0206 e2e had the same stale fixture; fixed the same
+     way in `03d5349` (adds: business owner cannot decide a `['tenant_owner']` stage, request pinned to 1 stage).
+     0202/0206 SQL unchanged: they fail closed correctly. No assertion removed.
+  2. `NP03B Sales Order Foundation PG17` (`SALES_CORRECTION_ACCEPTANCE_FAIL: 10 unresolved security cases`) was the
+     Sales lane's own failure, not ours: Session A reverted the Sales integration on trunk in `6d24ad8` (open security
+     findings), so the workflow no longer exists on this branch after merging trunk.
+- Integration (2026-11-22): merged `agentA/ci-fix` (aa6d9e52), `agentB/scale` (a010702a, 0205), `agentC/po-approval`
+  (5f0d1eab, 0206), then trunk `ccr-15ed11dd-n3hw5h` @ `e609b8a1` (merge commit `99716a3`, no conflicts; migration
+  numbers unique, 0205/0206 are B-012's). Only conflict: this file (both agent sections kept).
+- Done from the resume order: (1) CI red fixed, (2) balance read fix 0205 + scale test in CI, (3) PO approval via
+  GOV-002 0206. Still open: (4) Central shell link for the dashboard (Session A file).
+- Note: trunk `e609b8a` applied 0013-0019, 0100-0106, 0110-0114 to CORE10 staging (Session A). Staging has no 02xx
+  or 04xx; if 04xx is applied to a persistent database before 02xx, 0200-0206 would be refused as OUT_OF_ORDER.
+
+#### Integration summary: 0205 + 0206 and local results at `03d5349`
+
+- 0205: `inventory_list_balances_v1` resolves the caller's readable sites once (same rule as `can_site`, denies
+  still win); staff whole-business balance read 1.2-1.5 s -> 15-19 ms. Scale test is a CI step.
+- 0206: PO approval stages > 0 go through the one GOV-002 journal (maker-only request, route length = stages,
+  `CONTROL_DISABLED` for `procurement.purchase_order` and `gov002.review`, stage/route drift and edited draft fail
+  closed, stages 0 unchanged); registry `enforced`.
+- Local PG17.12, every step of `core10-b010-control-port-ci` in order on one fresh database (incl. up/down/up, all
+  e2e, 0206 e2e, scale, registry gate + self-test, 4 race scripts, registry evidence, B-009 drift + self-test, client
+  contract, 3 real-browser tests at 390/1440 and shell nav): **28/28 PASS** (Chromium preinstalled, install step
+  skipped). Other PR workflows touching migrations, replayed step by step on a fresh PG17 cluster each:
+  `core10-s0-migrations-ci` 2/2 PASS; `core10-np06-finance-ci` job `finance-pg17` 10/10 PASS (job `np01-compat-pg17`
+  NOT RUN locally: it fetches and merges PR #111); `np01-s1c-remainder-ci` 17/17 PASS; `core10-s1c-canonical-approval-ci`
+  7/7 SQL+node PASS (Python reviewer browser smoke NOT RUN locally: no Python Playwright); `core10-np05a-manufacturing-ci`
+  19/19 PASS incl. both browsers.
+- GitHub CI at `03d5349` (PR #123): `core10-b010-control-port-ci` success (run 44982036105), `core10-s0-migrations-ci`
+  success, `core10-np06-finance-ci` success, `core10-np05a-manufacturing-ci` success, `CORE10 S1-c canonical approval
+  and audit PG17` success, `CORE 10 - Browser Smoke + Forbidden Files` success. Re-check at the doc-only head.
 
 ### Not done / NOT_CONNECTED
 
@@ -163,7 +192,7 @@ Reuse table (P2):
 
 ### Agent C — 0206 PO approval
 
-- Branch `agentC/po-approval` (from `build/claude-np03a-stock`), local commit only, not pushed.
+- Branch `agentC/po-approval` (from `build/claude-np03a-stock`); merged into `build/claude-np03a-stock` and pushed by the integrator.
 - `internal/migrations/0206_np03a_po_approval.up.sql` / `.down.sql`: purchase-order approval stages > 0 now go
   through the ONE canonical GOV-002 journal, the same adapter pattern as 0202 (no second approval cycle).
   - `purchase_orders_v1.approval_request_id` (FK `approval_requests`).
