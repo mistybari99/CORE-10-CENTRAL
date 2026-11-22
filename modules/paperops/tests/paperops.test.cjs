@@ -8,6 +8,7 @@ const paperops = require('../paperops.js');
 const inventory = require('../legacy-inventory.json');
 const extracted = require('../legacy-field-index.json');
 const obligations = require('../control-obligations.json');
+const ruleCandidates = require('../legacy-rule-candidates.json');
 const repoRoot = path.resolve(__dirname, '../../..');
 
 const baseJob = {
@@ -161,4 +162,29 @@ test('early daily and factory paper forms visibly retain safety controls', () =>
   assert.match(factory, /যন্ত্র \/ পাল্লা \/ নিরাপত্তা/);
   assert.match(grn, /অর্ডারে/);
   assert.match(grn, /আটক\/ফেরত/);
+});
+
+test('source-derived rule candidates cover all old forms without being certified', () => {
+  assert.equal(ruleCandidates.status,'REQUIRES_FIELD_BY_FIELD_OWNER_VALIDATION');
+  assert.equal(ruleCandidates.totals.forms,32);
+  assert.equal(ruleCandidates.totals.field_keys,1246);
+  assert.ok(ruleCandidates.totals.always_required_candidate_fields>200);
+  assert.ok(ruleCandidates.totals.conditionally_required_candidate_fields>100);
+  assert.ok(ruleCandidates.totals.conditional_visibility_candidate_fields>170);
+  assert.ok(ruleCandidates.totals.calculator_candidates>=30);
+  assert.ok(ruleCandidates.totals.flag_candidates>100);
+  for (const sourceForm of ruleCandidates.forms) {
+    const indexed = extracted.forms.find(x=>x.legacy_code===sourceForm.legacy_code);
+    assert.ok(indexed,'unindexed old form: '+sourceForm.legacy_code);
+    assert.equal(indexed.source,sourceForm.source);
+    assert.deepEqual(new Set(sourceForm.fields.map(x=>x.key)),
+      new Set(indexed.extracted_field_keys),
+      'lost original field key: '+sourceForm.legacy_code);
+    for (const field of sourceForm.fields) {
+      assert.ok(field.label_bn && field.label_en);
+      assert.ok(['ALWAYS','CONDITIONAL','NOT_DECLARED'].includes(field.required_candidate));
+      assert.ok(['CONDITIONAL','NOT_DECLARED'].includes(field.visible_candidate));
+      assert.ok(['CHECKER','DEFAULT_OR_UNDECLARED'].includes(field.role_candidate));
+    }
+  }
 });
