@@ -14,6 +14,7 @@
     stock_count: Object.freeze({formId:'STK-COUNT',name_bn:'স্টক গণনা',name_en:'Physical stock count'}),
     production_batch: Object.freeze({formId:'MFG-DAILY',name_bn:'কারখানা ব্যাচ উৎপাদন',name_en:'Production batch',industries:['sweets','paint','general_manufacturing']}),
     paint_tint: Object.freeze({formId:'PAINT-TINT',name_bn:'পেইন্ট শেড মিক্সিং (প্রস্তাবিত)',name_en:'Paint tinting (proposed)',industries:['paint']}),
+    expense_voucher: Object.freeze({formId:'EXP-VOUCHER',name_bn:'ইমপ্রেস্ট ব্যয় ভাউচার (শুধু খরচের সময়)',name_en:'Imprest expense voucher (on expense)'}),
     exception: Object.freeze({formId:'EXCEPTION',name_bn:'গরমিল বা বিশেষ অনুমোদন',name_en:'Exception / special approval'}),
     jalebi_shift: Object.freeze({formId:'SWT-JALEBI',name_bn:'জিলাপির আলাদা হিসাব',name_en:'Jalebi counter measures',industries:['sweets']}),
     stock_ledger: Object.freeze({formId:'STK-LEDGER',name_bn:'স্টক লেজারের চলমান পৃষ্ঠা',name_en:'Stock ledger page'}),
