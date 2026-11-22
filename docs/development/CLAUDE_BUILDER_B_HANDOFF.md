@@ -371,3 +371,60 @@ Not done / NOT_CONNECTED: lot UI (no screen), `procurement_list_lots_v1` still s
 lot: raw `insufficient_lot_stock`), lot creation outside GRN (manufacturing output lots: NP05A port), approval stages
 for lot features (max 0), one-time Control override consumed at posting can still deadlock-abort against a hold
 (PG aborts one; retry), no hosted apply (GO-2 needed).
+
+
+### Checkpoint 6 — 0208 locations, purchase return/cancel UI, 0209 lots, board requests (2026-11-22, Agent M integrator)
+
+Landed on `build/claude-np03a-stock` (Draft PR #123 into trunk; nothing hosted, nothing merged to trunk/main):
+- Agent J (`0376670b`, `a685e3f8`): `0208_np03a_location_list` — `inventory_list_locations_v1(business, site)`, scoped
+  read-only location list (same rows as the `location_scope_read` row policy per persona, explicit site denies win,
+  `can_post`, 2000 cap, `truncated`); test `tests/migrations/np03a-locations-e2e.sql`. Purchases screen: store
+  locations from 0208 (the test-only gateway table read of `core10.stock_locations` is removed from client, gateway
+  and harness), GRN cancel with reason, return to supplier (draft / post / cancel with confirmation, maker-checker
+  wording, formula), lot expiry list (N-days filter, keyset paging), bn/en messages.
+- Agent K (`f20d6066`): `0209_np03a_lot_balances_fefo_recall` (see "Agent K — 0209 lots" above) + e2e, race + seed.
+- Merges: J then K (one conflict: workflow steps, union in order 0207 → 0208 → 0209); trunk `ccr-15ed11dd-n3hw5h`
+  @ `327029db` (§7b/§7c legacy move to `legacy/islamia-erp/`, central shell import; no conflict, no trunk change to
+  0200–0206 or to our tests; migration numbers unique, ours are 0207/0208/0209).
+- Agent M (`bcc9bbdf`): (1) supplier-return post through the 0209 lot-aware engine whose received lot no longer holds
+  the quantity raised raw `insufficient_lot_stock` → `core10-purchase-client.js` maps the raw engine messages
+  `insufficient_lot_stock` / `lot_blocked_stock` / `insufficient_stock` to `PROC_INSUFFICIENT_STOCK` (bn/en "this
+  store does not have that much stock"), no SQL change; new browser step proves it at 1440 en and 390 bn with no
+  movement written (mutant without the mapping fails). (2) Calendar time bombs removed: lot expiry dates in
+  `purchase-browser.cjs` (2027-01-31 / 2027-05-01, incl. the Bangla-digit date check) and
+  `np03a-procurement-e2e.sql` (2027-11-01) are now `current_date + N`; same assertions.
+
+**IMPORTANT for Session A review (trunk owner):** 0209 re-creates the HOSTED 0200 engine functions
+`core10.post_stock_event` and `core10.transfer_stock_v1` (`CREATE OR REPLACE`, same signature, same checks in the
+same order, plus one `_stock_lot_apply_v1` call under the same balance row lock), and backfills
+`stock_movement_lots_v1` from existing movements (fails closed on conflict). Its down restores the exact 0200 bodies
+(and 0202 `_inventory_approval_payload_v1` / `_inventory_command_json_v1`). This changes the behaviour of the one
+stock ledger for every caller (lot-less issues now refuse held/recalled lot stock: `lot_blocked_stock`), so it needs
+careful trunk-owner review and an Owner GO-2 before any hosted apply. 0207–0209 are branch-only.
+
+Board requests (Coordination Board, filed by this lane):
+- **B-012-REQ1** (row 43) → ChatGPT lane B-038 stock workbench (`/#/stock`, PR #126): balances list, command cancel,
+  the 0202 `inventory_request_approval_v1` path, bn/en `INV_*` / `CONTROL_*` messages, paging, item picker, PG17
+  tests; can now use 0208 `inventory_list_locations_v1` and 0209 lot reads/commands.
+- **B-012-REQ2** (row 44) → NP06 Finance lane: AP link for GRN posting (supplier liability) and supplier returns
+  (debit note); B-012 writes stock only, no money/COGS/accounting result is produced here.
+
+Open items:
+- PO approval threshold currency — Owner decision (business base currency vs price-list; threshold fails closed).
+- Lot UI (hold/release, recall, FEFO suggestion, lot balances) — RPCs exist in 0209, no screen yet.
+- Supplier-return draft checks location stock, not lot stock (post checks the lot; UI now shows the stock message).
+- Manufacturing output lots via an NP05A port (0209 creates lots only from GRN).
+- Lot features have no approval stages (Owner Control max_stages 0).
+- Signed staging GO-2 (apply 0207–0209) and GO-3 (publish purchase screen) need Owner GO; nothing hosted from here.
+
+Local results at `bcc9bbdf` (PG17.12 disposable cluster, one fresh cluster per workflow job, steps in workflow order):
+| Workflow / job | Result |
+|---|---|
+| core10-b010-control-port-ci / control-port (incl. 5 Chromium tests) | 34/34 PASS (Chromium install skipped: preinstalled) |
+| — purchase browser / shell nav / OCC / master data / owner dashboard | 18/18, 16/16, 19/19, 17/17, 7/7 PASS |
+| core10-s0-migrations-ci / migrations | 2/2 PASS |
+| core10-s1c-canonical-approval-ci / s1c-approval-audit | 6/6 SQL+JS PASS; python Playwright smoke NOT RUN locally (module not installed; runs on GitHub) |
+| np01-s1c-remainder-ci / np01-negative-proof | 17/17 PASS |
+| core10-np06-finance-ci / finance-pg17 | 10/10 PASS |
+| core10-np05a-manufacturing-ci / manufacturing | 19/19 PASS (browser install skipped) |
+GitHub CI: see PR #123 checks for the pushed head.
