@@ -19,7 +19,10 @@
       sections: [
         s('দিন ও দায়িত্ব', 'Shift and responsibility', [
           f('date', 'তারিখ', 'Date'), f('shift', 'শিফট / সময়', 'Shift / time'),
-          f('prepared', 'প্রস্তুতকারী', 'Prepared by'), f('opening_ref', 'প্রারম্ভিক স্টক / পূর্বদিনের ক্লোজিং নং', 'Opening / previous closing reference')
+          f('prepared', 'প্রস্তুতকারী', 'Prepared by'), f('opening_ref', 'প্রারম্ভিক স্টক / পূর্বদিনের ক্লোজিং নং', 'Opening / previous closing reference'),
+          f('hygiene', 'খোলার সময়: পরিচ্ছন্নতা / নিরাপত্তা যাচাই এবং সমস্যা নং', 'Opening hygiene / safety check and exception ref'),
+          f('coldchain', 'ফ্রিজ / চিলার অবস্থা ও তাপমাত্রা (সমস্যা হলে নথি)', 'Fridge / chiller condition and temperature (record exceptions)', ['sweets']),
+          f('expiry', 'মেয়াদোত্তীর্ণ / অনিরাপদ পণ্য আলাদা করা হয়েছে কি?', 'Expired / unsafe goods segregated?', ['sweets'])
         ]),
         s('পণ্যভিত্তিক মিল', 'Item-level reconciliation', [], table('পণ্য / ইউনিট / খোলা / প্রাপ্তি / বিক্রি / ফেরত / অপচয় / বন্ধ', 'Item / unit / open / received / sold / returned / waste / close', [
           ['পণ্য / কোড', 'Item / code'], ['একক', 'Unit'], ['খোলা', 'Open'], ['প্রাপ্তি', 'Received'], ['বিক্রি', 'Sold'], ['ফেরত', 'Returned'], ['অপচয়', 'Waste'], ['বন্ধ', 'Close']
@@ -81,7 +84,7 @@
         ]),
         s('আইটেম ও মান', 'Items and QC', [], table('প্রাপ্তি ও যাচাই', 'Receipt & inspection', [
           ['পণ্য / কোড', 'Item / code'], ['ব্যাচ / লট / শেড', 'Batch / lot / shade'], ['একক', 'Unit'],
-          ['চালানে', 'Delivered'], ['গৃহীত', 'Accepted'], ['আটক/ফেরত', 'Hold / return'], ['কারণ', 'Reason']
+          ['অর্ডারে', 'Ordered'], ['চালানে', 'Delivered'], ['গৃহীত', 'Accepted'], ['আটক/ফেরত', 'Hold / return'], ['কারণ', 'Reason']
         ], 8)),
         s('নিয়ন্ত্রণ', 'Controls', [
           f('expiry', 'মেয়াদ / সংরক্ষণ অবস্থা (প্রযোজ্য হলে)', 'Expiry / storage condition (if relevant)', ['sweets']),
@@ -117,7 +120,9 @@
         s('ব্যাচ পরিচয়', 'Batch identity', [
           f('batch', 'ব্যাচ নং', 'Batch number'), f('product', 'পণ্য / প্রোডাক্ট কোড', 'Product / SKU'),
           f('recipe', 'অনুমোদিত রেসিপি/ফর্মুলা ও ভার্সন', 'Approved recipe/formula and version'),
-          f('shift', 'শিফট / তারিখ', 'Shift / date')
+          f('shift', 'শিফট / তারিখ', 'Shift / date'),
+          f('prestart', 'প্রারম্ভিক যন্ত্র / পাল্লা / নিরাপত্তা পরীক্ষা ও সমস্যা নং', 'Pre-start machine / scale / safety check and exception ref'),
+          f('food_hygiene', 'খাদ্য-স্বাস্থ্যবিধি / পাত্র-ফ্রিজ পরীক্ষা (সমস্যা হলে নথি)', 'Food hygiene / pot / chiller check (record exceptions)', ['sweets'])
         ]),
         s('কাঁচামাল', 'Materials', [], table('ইস্যু ও ব্যবহার', 'Issued and used', [
           ['কাঁচামাল / কোড', 'Material / code'], ['ব্যাচ', 'Lot'], ['ইস্যু নং', 'Issue ref'], ['একক', 'Unit'],
