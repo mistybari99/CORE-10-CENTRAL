@@ -57,7 +57,7 @@ jobs:
           echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
       - name: NEW bilingual mobile and desktop route navigation browser regression
         run: node --test tests/core10-central-mobile-nav.test.cjs
-      - name: Signed shell context: synthetic authorized/denied adversarial browser tests
+      - name: Signed shell context adversarial browser tests
         run: node --test tests/core10-central-signed-context.test.cjs
       - name: Canonical 56/56 local browser checks, full suite unchanged
         run: node apps/central/verify.cjs
