@@ -119,11 +119,37 @@ SELECT pg_temp.as_user('a3333333-3333-4333-8333-333333333333');
 SELECT pg_temp.expect($q$SELECT pg_temp.req($q$||:p3||$q$,'poa-off-r001')$q$,'CONTROL_DISABLED:procurement.purchase_order');
 SELECT pg_temp.as_user('a1111111-1111-4111-8111-111111111111');
 SELECT pg_temp.cset('procurement.purchase_order',true,1,'{}',2,'poa-ctl-0003');
+-- An explicit gov002.review setting cannot be reset to the catalog default at business scope, and NP01 0111 pins
+-- every GOV-002 submission under an explicit setting to a route of exactly that stage count. Prove the switch inside
+-- a savepoint, then return the business to the default so the un-routed one-checker and the two-stage sections below
+-- keep their meaning (same pattern as np03a-inventory-approval-e2e.sql).
+SAVEPOINT poa_gov002_switch;
 SELECT pg_temp.cset('gov002.review',false,1,'{}',0,'poa-ctl-0004');
 SELECT pg_temp.as_user('a3333333-3333-4333-8333-333333333333');
 SELECT pg_temp.expect($q$SELECT pg_temp.req($q$||:p3||$q$,'poa-off-r002')$q$,'CONTROL_DISABLED:gov002.review');
 SELECT pg_temp.as_user('a1111111-1111-4111-8111-111111111111');
 SELECT pg_temp.cset('gov002.review',true,1,'{}',1,'poa-ctl-0005');
+SELECT pg_temp.as_user('a3333333-3333-4333-8333-333333333333');
+-- NP01 0111: explicit one-stage review needs a one-stage route; the un-routed policy is refused.
+SELECT pg_temp.expect($q$SELECT pg_temp.req($q$||:p3||$q$,'poa-off-r00a')$q$,'CONTROL_STAGE_MISMATCH');
+SELECT pg_temp.as_user('a1111111-1111-4111-8111-111111111111');
+SELECT core10.configure_approval_route_v1((SELECT core10.publish_approval_policy_v1(14011,'procurement','purchase_order',120,'poa-policy-1s')),
+ ARRAY['tenant_owner'],'poa-route-1s');
+SELECT pg_temp.as_user('a3333333-3333-4333-8333-333333333333');
+SELECT pg_temp.req(:p3,'poa-off-r00b') AS q3s \gset
+SELECT pg_temp.as_user('a2222222-2222-4222-8222-222222222222');
+SELECT pg_temp.expect($q$SELECT core10.decide_approval($q$||:q3s||$q$,'approve','poa-off-dec0')$q$,'approval_not_authorized');
+SELECT pg_temp.as_user('a1111111-1111-4111-8111-111111111111');
+SELECT core10.decide_approval(:q3s,'approve','poa-off-dec0');
+SELECT pg_temp.as_user('a2222222-2222-4222-8222-222222222222');
+SELECT pg_temp.appr(:p3,1,'poa-off-a000') AS a3s \gset
+SELECT pg_temp.ok((:'a3s'::jsonb->>'status')='approved' AND (:'a3s'::jsonb->>'approval_request_id')::bigint=:q3s
+ AND (:'a3s'::jsonb->>'approval_stage_count')::int=1,'explicit one-stage route approves the PO');
+RESET ROLE;
+SELECT pg_temp.ok((SELECT count(*) FROM core10.approval_stage_receipts_v1 WHERE request_id=:q3s)=1,'one stage receipt');
+SELECT pg_temp.ok((SELECT route_stages_pinned_v1 FROM core10.approval_requests WHERE id=:q3s)=1,'request pinned to one stage');
+SET LOCAL ROLE authenticated;
+ROLLBACK TO SAVEPOINT poa_gov002_switch;
 SELECT pg_temp.as_user('a3333333-3333-4333-8333-333333333333');
 SELECT pg_temp.req(:p3,'poa-off-r003') AS q3 \gset
 SELECT pg_temp.as_user('a1111111-1111-4111-8111-111111111111');
