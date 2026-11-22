@@ -12,7 +12,7 @@
   const present=v=>typeof v==='string'&&v.trim().length>0;
   function integerScaled(value, key, digits, positiveOnly=false) {
     const s=typeof value==='number'&&Number.isFinite(value)?String(value):value;
-    const re=digits===0?/^\\d+$/:new RegExp('^\\d+(?:\\.\\d{1,'+digits+'})?
+    const re=digits===0?/^\d+$/:new RegExp('^\\d+(?:\\.\\d{1,'+digits+'})?$');
     if(typeof s!=='string'||!re.test(s.trim())) throw Error('INVALID_DECIMAL:'+key);
     const parts=s.trim().split('.'),factor=10**digits;
     const n=Number(parts[0])*factor+Number((parts[1]||'').padEnd(digits,'0'));
