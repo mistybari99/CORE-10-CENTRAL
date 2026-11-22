@@ -229,6 +229,37 @@ node --test modules/paperops/tests/field-batch-001.test.cjs modules/paperops/tes
 
 The `--next` result is the deterministic next 50-source-field build queue; no background work or auto-approval occurs.
 
+## 5f. BUILT — Two more exact 50-field source batches (002 + 003)
+
+The Owner requested executing the next **two small 50-source-field steps at once**, preserving the no-false-approval rule. The branch now includes three audited blocks (001, 002, 003), **150 distinct formerly-untraced source-field IDs** with exact BN/EN source labels in actual print fields. **1,010 of the original 1,160** await the same first-pass print-field review. The original 86 high-risk keys and the 11 GAP + 9 PARTIAL business obligations remain separately tracked and unapproved.
+
+| Batch | Original source | Newly mapped source fields | Printable destination | Check status |
+|---|---|---:|---|---|
+| 002 | W-02 goods transfer | 33 | Additional **TRANSFER-DETAIL** event-only proof (goods/grade, crates/trays outstanding, damaged goods, source documents and payment) | Source flag checks reuse B001 transfer calculator |
+| 002 | W-03 independent physical count | 9 | Existing **STK-COUNT**, with start/end, counter vs keeper, frozen stock movement and item/unit | New W-03 tolerance/role candidate calculator |
+| 002 | R-01 showroom opening | 8 | Existing **OPS-DAILY** closing, with opening duty manager, approved float and imprest references | New source-informed R-01 calculator |
+| 003 | R-01 further showroom evidence | 50 | Additional **SWEETS-SHOP-CHECK** (food-safety, fridge/freezer, expiry, receiving, cleaning, voucher references), only on applicable operation/event | Same R-01 calculator, focused synthetic negative tests |
+
+**Why add-on forms?** 83 source-derived details are not blindly attached to every shop's routine sales close or every transfer. The paper kit can include `transfer_detail` and `shop_open_controls` events, which print dedicated **DRAFT supplements only when relevant**. This is a workload-minimization *proposal*, not a license to skip statutory, original required, food-safety or signed records. The ordinary daily form is still produced for a showroom. Whether each evidence item is required on every opening must be decided against Owner process and approved local policy, not by this draft.
+
+**Source-informed checkers, not parity certification:** `field-batch-002-003-checks.js` has read-only/zero-backend prototype functions:
+
+- W-03 count line book-vs-physical variance, independently counted/witnessed stock, no goods movement during count, approved quantity percent and/or financial tolerance. Small vs outside variance are both reported for review, and a count never posts an adjustment. Undefined tolerance causes an explicit missing-policy requirement.
+- R-01 independent opening and closing cash float, imprest cash+receipts, received vs written goods and cleaning checkers, category sales vs total, first/second cash counts, expiry losses, independent wastage approval and signers; fridge thresholds are external and may be signed/negative for freezers. No acceptable fridge temperature is invented.
+- Extracted original source warning families W-02 **5**, W-03 **4** and R-01 **11** are mapped to candidate program blocker names and deliberately-triggered negative tests. Across all three batches there are **27 distinct historical warning families** (43 listed references when repeated original forms appear in multiple batches). The repository still indexes all 163 historical warnings; 27 is *not* whole-form rule parity.
+
+**Hard gates:** `field-review/batch-002.json` and `field-review/batch-003.json` contain **exactly 50** immutable source IDs each with real destinations, required/conditional/role candidate metadata and `parity_certified:false`. `field-batch-audit.cjs` now checks batch order 001→002→003, forbids duplicate source IDs, verifies original source flags against executable candidate maps, and refuses false approval. The new `tests/field-batch-002-003.test.cjs` uses fake stock counts, money, fridge/freezer readings and tampered source-field mappings.
+
+Reproduce and identify the next 50 distinct source fields:
+
+```bash
+node modules/paperops/field-batch-audit.cjs --check
+node modules/paperops/field-batch-audit.cjs --next
+node --test modules/paperops/tests/field-batch-002-003.test.cjs
+```
+
+**Current form registry = 32 bilingual printable DRAFT/HYPOTHESIS templates.** Tests are code/synthetic-input evidence only: no scanned signed paper, accounting mutation, RLS integration, legal acceptance, complete source branch parity or permission to merge. The existing source preservation and live/module guards remain mandatory.
+
 ## 6. Reproduction, safety and deployment
 
 Open `modules/paperops/index.html` locally in a modern browser, choose form/industry, business-wide or branch-specific scope, apply optional header/logo/colour, preview, then use Print/PDF. Save/import a JSON settings file locally if desired. Do not put confidential identifiers in a file shared publicly.
