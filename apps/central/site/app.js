@@ -68,6 +68,7 @@
     try { localStorage.setItem("core10.preview.lang", l); } catch (_) {}
     Array.prototype.forEach.call(document.querySelectorAll("[data-set-lang]"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.setLang === l)); });
     route();
+    window.dispatchEvent(new Event("core10:language-change"));
   }
   Array.prototype.forEach.call(document.querySelectorAll("[data-set-lang]"), function (b) { b.addEventListener("click", function () { setLang(b.dataset.setLang); }); });
   moreToggle.addEventListener("click", function () {
