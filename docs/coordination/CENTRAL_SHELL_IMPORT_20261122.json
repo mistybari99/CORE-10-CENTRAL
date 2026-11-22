@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-22",
+  "owner_review": "docs/development/APP_ORGANIZATION_REVIEW.md step 3",
+  "source_branch": "preview/core10-central-level2",
+  "source_commit": "e9dd90d2c1616711378f657c4e5e0ce08e0d9db9",
+  "source_dir": "preview/core10-central-owner-app",
+  "target_dir": "apps/central",
+  "unchanged_git_objects": {
+    "build.mjs": "910842afe468ba88829a0e24dccb40f27247f1dc",
+    "data": "64a2f150692938d9fb180f004968f458a96fb314",
+    "local-serve.mjs": "f6d721a7355397b9a239fade3eb2f7c9ffb62636",
+    "site": "f354a29b700971a5147ea437f3dab08b6f06e835",
+    "worker-runtime.mjs": "6b980785b1cb8793414f7c3f73740c290de3b271"
+  },
+  "verify_original_blob": "b30f843539991f1b6c4837ef18d6fa13b8e49f28",
+  "verify_only_change": "path.join(ROOT, \"config.js\") -> path.join(ROOT, \"legacy/islamia-erp/config.js\")",
+  "expected_worker_sha256": "ba530d45179f9ea146bccb0a04899213a3e396adf7fe6030b28eebf938a5f4b2",
+  "expected_local_browser_tests": 56,
+  "expected_public_browser_tests": 56,
+  "old_worker_unchanged": true,
+  "release_authorization": false,
+  "staging_changes": false
+}

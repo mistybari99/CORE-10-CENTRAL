@@ -4,7 +4,7 @@ const root=path.resolve(__dirname,"..");
 const baseline=require("../data/core10_legacy_preservation_v1.json");
 const registry=require("../data/report_registry.json");
 const parity=require("../core10-legacy-parity.js");
-const files=fs.readdirSync(root).filter(n=>/\.(?:js|css|html|webmanifest|svg)$/i.test(n)).sort();
+const files=[...new Set([...fs.readdirSync(root),...fs.readdirSync(path.join(root,"legacy/islamia-erp"))])].filter(n=>/\.(?:js|css|html|webmanifest|svg)$/i.test(n)).sort();
 const good=parity.check(baseline,registry,files);
 assert.deepEqual(good.errors,[],JSON.stringify(good.errors.slice(0,5)));
 assert.equal(good.checked.reports,193);
