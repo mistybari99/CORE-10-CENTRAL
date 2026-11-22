@@ -23,7 +23,7 @@ jobs:
           # (1d63a5a); their own workflows now run on trunk, so only unintegrated F3 stays pinned here.
           - lane: f3
             pr: 117
-            head_sha: 053f3f2f1dead442ab610c739e6c47e18886b150
+            head_sha: dc74cdea679f30b428c190daac327d17299e3102
     services:
       postgres:
         image: postgres:17
