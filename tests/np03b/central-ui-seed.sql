@@ -21,3 +21,9 @@ SELECT core10.configure_approval_route_v1(:policy_id,ARRAY['tenant_owner'],'cent
 SELECT core10.publish_approval_policy_v1(101,'manufacturing','batch_release',120,
  'central_mfg_release_policy') AS release_policy_id \gset
 SELECT core10.configure_approval_route_v1(:release_policy_id,ARRAY['tenant_owner'],'central_mfg_release_route');
+
+-- Inventoried stock at both sites through the existing guarded ledger.
+SELECT core10.post_stock_event(5001,8102,90,'central_stock_showroom');
+SELECT core10.post_stock_event(5002,8102,12.5,'central_stock_factory');
+INSERT INTO core10.site_grants(tenant_id,business_id,site_id,user_id,actions,denied_actions)
+ VALUES(1,101,1002,'33333333-3333-4333-8333-333333333333','{}',ARRAY['stock.read']);

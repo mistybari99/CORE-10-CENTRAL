@@ -5,7 +5,7 @@
   const S = { api:null, operations:null, context:null, workspace:null, busy:false, lang:"bn", epoch:0, requests:new Map() };
   const original = new Map(Array.from(document.querySelectorAll("[data-i18n]"), el => [el, el.textContent]));
   const EN = {
-    sales:"Sales",manufacturing:"Manufacturing",approvals:"Approvals",closeOperation:"Close workspace",
+    sales:"Sales",manufacturing:"Manufacturing",approvals:"Approvals",stock:"Stock",closeOperation:"Close workspace",
     workspace:"Setup & access",studio:"Control Studio",builder:"Template builder",title:"Business Setup, Login & Permissions Integration",
     subtitle:"One identity, the same business and site, and server-enforced permissions.",boundary:"Approved non-production environment and synthetic test data only.",
     configuration:"Checking explicit connection configuration…",notPayment:"Business setup and access changes do not post stock, payroll, payments or accounting.",
@@ -53,9 +53,11 @@
     $("b01-operations").hidden = !operationOpen && !approvalsAvailable;
     $("b01-open-sales").hidden = operationOpen || !managed || !operationSite;
     $("b01-open-manufacturing").hidden = !managed || !operationSite || (operationOpen && operation !== "approvals");
+    $("b01-open-stock").hidden = operationOpen || !operationSite;
     $("b01-open-approvals").hidden = !approvalsAvailable || (operationOpen && operation !== "manufacturing");
     $("b01-close-operation").hidden = !operationOpen;
     $("b01-open-sales").disabled = $("b01-open-manufacturing").disabled = $("b01-open-approvals").disabled = S.busy;
+    $("b01-open-stock").disabled = S.busy;
     formEnabled("b01-login-form",configured&&!signed);
     formEnabled("b01-setup-form",signed&&!!S.context.legal_entities?.length);
     formEnabled("b01-site-form",signed&&managed);
@@ -103,6 +105,7 @@
   }
   $("b01-open-sales").addEventListener("click", () => openOperation("sales"));
   $("b01-open-manufacturing").addEventListener("click", () => openOperation("manufacturing"));
+  $("b01-open-stock").addEventListener("click", () => openOperation("stock"));
   $("b01-open-approvals").addEventListener("click", () => openOperation("approvals"));
   $("b01-close-operation").addEventListener("click", () => S.operations?.close());
   $("b01-site").addEventListener("change", controls);

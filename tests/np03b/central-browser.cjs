@@ -50,22 +50,36 @@ async function launch() {
             onAuthStateChange(listener){listeners.add(listener);return {data:{subscription:{unsubscribe(){listeners.delete(listener);}}}};}
           },schema(name){
             if(name!=="core10")throw Error("TEST_WRONG_SCHEMA");
-            return {async rpc(rpc,args){
-              const response=await fetch("/central-fixture/"+rpc,{method:"POST",
+            async function query(path,args) {
+              const response=await fetch("/central-fixture/"+path,{method:"POST",
                 headers:{"content-type":"application/json","x-test-persona":actor||""},body:JSON.stringify(args)});
               const data=await response.json();
               return response.ok?{data}:{error:data};
-            }};
+            }
+            return {
+              rpc(rpc,args){return query(rpc,args);},
+              from(table) {
+                const args={order:[]};
+                return {
+                  select(columns){args.columns=columns;return this;},
+                  eq(field,value){args[field]=value;return this;},
+                  in(field,values){if(field!=="id")throw Error("BAD_FIXTURE_FILTER");args.ids=values;return this;},
+                  order(field){args.order.push(field);return this;},
+                  range(start,end){args.offset=start;args.limit=end-start+1;return this;},
+                  then(resolve,reject){return query("stock/"+table,args).then(resolve,reject);}
+                };
+              }
+            };
           }};
         }};`
     }));
     let delay = null;
-    await page.route("**/central-fixture/*", async route => {
-      const rpc = new URL(route.request().url()).pathname.split("/").at(-1);
+    await page.route("**/central-fixture/**", async route => {
+      const rpc = new URL(route.request().url()).pathname.split("/central-fixture/").at(-1);
       calls.push({ rpc, args: route.request().postDataJSON() });
       if (rpc.startsWith("pack02_")) return route.fulfill({ status: 404, json: { message: "RPC_NOT_ALLOWED" } });
       const request = route.request();
-      const response = await fetch(rpcBase + "/rpc/" + rpc, {
+      const response = await fetch(rpcBase + (rpc.startsWith("stock/") ? "/" : "/rpc/") + rpc, {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -129,6 +143,15 @@ async function launch() {
       const { page, calls, errors, hold } = await open(width, OWNER);
       if (width === 1440) await page.locator("#b01-language").click();
       await page.locator("#b01-site").selectOption("1002");
+      const stock = page.locator("#b01-operation-host");
+      await page.locator("#b01-open-stock").click();
+      await stock.getByText("MAIN · #5002").waitFor();
+      assert.equal(await stock.getByText("MAIN · #5001").count(),0);
+      const stockRead = calls.find(call => call.rpc === "stock/stock_summary");
+      assert.deepEqual([stockRead.args.tenant_id,stockRead.args.business_id,stockRead.args.site_id],[1,101,1002]);
+      assert.ok(await stock.getByText(width === 390 ? "নথিভুক্ত মজুত ১২.৫" : "Recorded on hand 12.5").isVisible());
+      assert.equal(await stock.getByRole("button",{name:width===390 ? "পরের পৃষ্ঠা" : "Next"}).isDisabled(),true);
+      await page.locator("#b01-close-operation").click();
       await page.locator("#b01-open-sales").click();
       await page.waitForFunction(() => !document.querySelector("#b01-operation-host").hidden &&
         document.querySelector("#b01-operation-host .so-order-list, #b01-operation-host .so-empty"));
@@ -277,6 +300,10 @@ async function launch() {
     const { page, calls } = await open(390, MANAGER);
     assert.equal(await page.locator("#b01-open-manufacturing").isVisible(), false);
     assert.equal(await page.locator("#b01-open-sales").isVisible(), false);
+    assert.equal(await page.locator('#b01-site option[value="1002"]').count(),0);
+    await page.locator("#b01-open-stock").click();
+    await page.locator("#b01-operation-host").getByText("MAIN · #5001").waitFor();
+    await page.locator("#b01-close-operation").click();
     await page.locator("#b01-open-approvals").click();
     await page.locator(".c10np-empty").waitFor();
     assert.equal(await page.locator(".c10np-card button").count(),0);

@@ -55,6 +55,19 @@ SELECT pg_temp.expect('SELECT core10.post_stock_event(991111,99101,1,''inv-forei
 SELECT pg_temp.expect('SELECT core10.transfer_stock_v1(991111,991121,99101,1,''inv-foreign-002'')','transfer_not_authorized');
 SELECT pg_temp.as_user('');
 SELECT pg_temp.expect('SELECT core10.post_stock_event(991111,99101,1,''inv-unsigned-01'')','invalid_stock_event');
+-- Central reads the existing view using the caller's RLS permissions.
+INSERT INTO core10.site_grants(tenant_id,business_id,site_id,user_id,actions)
+ VALUES(991,9911,99111,'d3333333-3333-4333-8333-333333333333',ARRAY['stock.read']);
+SET LOCAL ROLE authenticated;
+SELECT pg_temp.as_user('d3333333-3333-4333-8333-333333333333');
+SELECT pg_temp.ok((SELECT count(*)=1 AND min(net_movement)=50 FROM core10.stock_summary
+ WHERE business_id=9911),'Stock reader sees only its authorized site');
+SELECT pg_temp.ok(NOT EXISTS(SELECT 1 FROM core10.stock_summary WHERE site_id=99112),
+ 'Stock reader cannot read a different site');
+SELECT pg_temp.as_user('d5555555-5555-4555-8555-555555555555');
+SELECT pg_temp.ok(NOT EXISTS(SELECT 1 FROM core10.stock_summary WHERE tenant_id=991),
+ 'Stock reader cannot read another tenant');
+RESET ROLE;
 -- every balance reconciles with the one movement ledger
 SELECT pg_temp.ok(NOT EXISTS(SELECT 1 FROM core10.inventory_reconciliation_v1 WHERE NOT reconciled),'all balances reconciled');
 SELECT pg_temp.ok((SELECT count(*) FROM core10.inventory_reconciliation_v1 WHERE business_id=9911)=2,'two balance rows');

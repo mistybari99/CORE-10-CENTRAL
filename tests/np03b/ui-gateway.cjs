@@ -28,6 +28,31 @@ const RPCS={
  transition_sales_order_v1:[['p_business','bigint'],['p_site','bigint'],['p_order','bigint'],['p_action','text'],['p_expected','bigint'],['p_approval','bigint'],['p_key','text']]
 };
 const TABLE_RPCS=new Set(['my_routed_review_tasks_v1','my_approval_status_v1','my_approval_activity_v1']);
+const STOCK_READS={
+ stock_summary:{columns:'location_id,item_id,net_movement',site:true},
+ stock_locations:{columns:'id,code',site:true},
+ items:{columns:'id,sku',site:false}
+};
+function stockRead(name,args) {
+ const spec=STOCK_READS[name];
+ const positive=n=>Number.isSafeInteger(n)&&n>0;
+ if(!spec||args.columns!==spec.columns||!positive(args.tenant_id)||!positive(args.business_id)
+   ||(spec.site&&!positive(args.site_id))) throw Error('BAD_STOCK_SELECT');
+ const scope=`tenant_id=${args.tenant_id} AND business_id=${args.business_id}`
+  +(spec.site?` AND site_id=${args.site_id}`:'');
+ let filter;
+ if(name==='stock_summary'){
+  if(!Number.isSafeInteger(args.offset)||args.offset<0||args.limit!==26||
+    args.order?.join(',')!=='location_id,item_id')throw Error('BAD_STOCK_PAGE');
+  filter=`ORDER BY location_id,item_id LIMIT ${args.limit} OFFSET ${args.offset}`;
+ }else{
+  if(!Array.isArray(args.ids)||args.ids.length<1||args.ids.length>25||!args.ids.every(positive))
+   throw Error('BAD_STOCK_IDS');
+  filter=`AND id IN (${args.ids.join(',')})`;
+ }
+ return `SELECT coalesce(jsonb_agg(to_jsonb(rows)), '[]'::jsonb)
+  FROM (SELECT ${spec.columns} FROM core10.${name} WHERE ${scope} ${filter}) AS rows;`;
+}
 const FILES=['core10-control-studio.css','core10-build01.css','core10-sales-order.css','core10-sales-order-client.js','core10-sales-order-ui.js','core10-sales-order-entry.js','core10-sales-invoice-ui.js'];
 function sql(s){const box=process.env.NP03B_TEST_CONTAINER;if(box&&!/^core10-np03b-[a-z0-9-]+$/.test(box))throw Error('BAD_TEST_CONTAINER');
  const args=box?['exec','-i','-e','PGUSER=postgres','-e','PGDATABASE='+process.env.PGDATABASE,box,'psql','-X','-q','-At','-v','ON_ERROR_STOP=1']:['-X','-q','-At','-v','ON_ERROR_STOP=1'];
@@ -47,16 +72,23 @@ function start(port=0){
   }
   if(req.method==='GET'&&url.pathname==='/harness.js')return send(200,fs.readFileSync(path.join(__dirname,'ui-harness.js'),'utf8'),'application/javascript');
   const file=url.pathname.slice(1);if(req.method==='GET'&&(FILES.includes(file)||file==='core10-sales-master-catalog.js'))return send(200,fs.readFileSync(path.join(ROOT,file),'utf8'),file.endsWith('.css')?'text/css':'application/javascript');
-  if(req.method==='POST'&&url.pathname.startsWith('/rpc/')){
-   const name=url.pathname.slice(5),persona=String(req.headers['x-test-persona']||'');if(!Object.hasOwn(RPCS,name))return send(404,{message:'RPC_NOT_ALLOWED'});
+  const readOnly=url.pathname.startsWith('/stock/');
+  if(req.method==='POST'&&(readOnly||url.pathname.startsWith('/rpc/'))){
+   const name=url.pathname.slice(readOnly?7:5),persona=String(req.headers['x-test-persona']||'');if(!Object.hasOwn(readOnly?STOCK_READS:RPCS,name))return send(404,{message:'RPC_NOT_ALLOWED'});
    if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(persona))return send(403,{message:'SALES_SCOPE_DENIED'});
    let raw='';req.on('data',b=>{raw+=b;if(raw.length>262144)req.destroy();});req.on('end',()=>{let args;try{args=JSON.parse(raw||'{}');}catch{return send(400,{message:'BAD_JSON'});}
-    if(!args||typeof args!=='object'||Array.isArray(args)||Object.keys(args).some(k=>!RPCS[name].some(([n])=>n===k)))return send(400,{message:'BAD_ARGS'});
-    const params=RPCS[name].filter(([n])=>Object.hasOwn(args,n)).map(([n,t])=>n+' => '+(args[n]===null?'NULL':quote(typeof args[n]==='object'?JSON.stringify(args[n]):String(args[n])))+'::'+t).join(',');
-    const call=`core10.${name}(${params})`;
-    const result=TABLE_RPCS.has(name)
-     ? `SELECT coalesce(jsonb_agg(to_jsonb(row)), '[]'::jsonb) FROM ${call} AS row;`
-     : `SELECT to_jsonb(${call});`;
+    if(!args||typeof args!=='object'||Array.isArray(args))return send(400,{message:'BAD_ARGS'});
+    let result;
+    if(readOnly){
+     try{result=stockRead(name,args);}catch{return send(400,{message:'BAD_STOCK_QUERY'});}
+    }else{
+     if(Object.keys(args).some(k=>!RPCS[name].some(([n])=>n===k)))return send(400,{message:'BAD_ARGS'});
+     const params=RPCS[name].filter(([n])=>Object.hasOwn(args,n)).map(([n,t])=>n+' => '+(args[n]===null?'NULL':quote(typeof args[n]==='object'?JSON.stringify(args[n]):String(args[n])))+'::'+t).join(',');
+     const call=`core10.${name}(${params})`;
+     result=TABLE_RPCS.has(name)
+      ? `SELECT coalesce(jsonb_agg(to_jsonb(row)), '[]'::jsonb) FROM ${call} AS row;`
+      : `SELECT to_jsonb(${call});`;
+    }
     const r=sql(`SET ROLE authenticated; DO $test$ BEGIN PERFORM set_config('request.jwt.claim.sub',${quote(persona)},false); END $test$; ${result}`);
     if(r.status!==0)return send(400,{message:(r.stderr.match(/ERROR:\s+(.*)/)||[])[1]||'RPC_FAILED'});
     try{return send(200,JSON.parse(r.stdout.trim().split('\n').at(-1)));}catch{return send(500,{message:'BAD_SQL_RESPONSE'});}

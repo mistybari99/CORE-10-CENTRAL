@@ -35,8 +35,8 @@
           workspace.actor_uid !== context.actor_uid) {
         throw Error("CENTRAL_OPERATION_SCOPE_DENIED");
       }
-      if (!["sales", "manufacturing", "approvals"].includes(module)) throw Error("CENTRAL_OPERATION_UNKNOWN");
-      if (module !== "approvals" && (!site || business.can_manage !== true)) {
+      if (!["sales", "manufacturing", "approvals", "stock"].includes(module)) throw Error("CENTRAL_OPERATION_UNKNOWN");
+      if (module !== "approvals" && (!site || (module !== "stock" && business.can_manage !== true))) {
         throw Error("CENTRAL_OPERATION_SCOPE_DENIED");
       }
 
@@ -57,6 +57,15 @@
           active.dispose = sales.destroy;
           active.requestLeave = sales.requestLeave;
           await sales.ready;
+        } else if (module === "stock") {
+          active.dispose = root.CORE10_CENTRAL_STOCK.mount({
+            host, client, lang, scope: { tenantId: Number(site.tenant_id), businessId, siteId },
+            async authorize() {
+              if (generation !== version) throw Error("BUILD01_SESSION_CHANGED");
+              await authenticate(expectedActor);
+              if (generation !== version) throw Error("BUILD01_SESSION_CHANGED");
+            }
+          });
         } else if (module === "approvals") {
           const { mountCanonicalGov002ReviewerWorkspace } =
             await import("./modules/approvals/c10_np01_reviewer_workspace_v1.mjs");

@@ -19,6 +19,7 @@ const OPERATIONS_RPC=new Set([
  "my_routed_review_tasks_v1","my_approval_status_v1","my_approval_activity_v1",
  "decide_approval","withdraw_typed_approval_v1"
 ]);
+const STOCK_READ=new Set(["/rest/v1/stock_summary","/rest/v1/stock_locations","/rest/v1/items"]);
 const TYPES={".html":"text/html; charset=utf-8",".js":"application/javascript; charset=utf-8",".mjs":"application/javascript; charset=utf-8",".css":"text/css; charset=utf-8"};
 function loopback(value){const u=new URL(value);if(u.protocol!=="http:"||!["localhost","127.0.0.1","[::1]"].includes(u.hostname)||u.username||u.password||u.pathname!=="/"||u.search||u.hash)throw Error("LOOPBACK_TARGET_REQUIRED");return u.origin;}
 function createGateway(options){
@@ -48,6 +49,9 @@ function createGateway(options){
     const suffix=p.slice("/auth/v1".length);
     if(AUTH.get(suffix)!==req.method)return respond(404,"Auth route unavailable");
     target=auth+suffix+url.search;
+   }else if(STOCK_READ.has(p)){
+    if(!operationsEnabled||req.method!=="GET"||req.headers["accept-profile"]!=="core10")return respond(404,"Stock read unavailable");
+    target=rest+p.slice("/rest/v1".length)+url.search;
    }else if(p.startsWith("/rest/v1/rpc/")){
     if(req.method!=="POST"||url.search||
       !(RPC.has(p.slice("/rest/v1/rpc/".length))||
@@ -70,7 +74,7 @@ function createGateway(options){
    // Only this surface and its explicit original dependencies are reachable.
    const allowed=new Set(["core10-build01.html","core10-build01.js","core10-build01-pack02.js","core10-build01.css","core10-build01-client.js","core10-enterprise-client.js","core10-control-studio.css","vendor/supabase.js",
     "core10-pack02-workspace.js","core10-pack02-workspace.css","core10-pack02-controls.js",
-    "core10-pack02-signed.js","core10-pack02-app.js","core10-central-operations.js",
+    "core10-pack02-signed.js","core10-pack02-app.js","core10-central-operations.js","core10-central-stock.js",
     "core10-sales-order.css","core10-sales-master-catalog.js","core10-sales-order-client.js",
     "core10-sales-order-ui.js","core10-sales-invoice-ui.js","core10-sales-order-entry.js",
     "core10-operational-flow.css","modules/manufacturing/manufacturing.css",

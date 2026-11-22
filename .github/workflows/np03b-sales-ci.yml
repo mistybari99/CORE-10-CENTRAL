@@ -3,7 +3,7 @@ on:
   push:
     branches: ['build/codex-np03b-sales']
   pull_request:
-    paths: ['internal/migrations/**','tests/np03b/**','core10-sales*','core10-build01*','core10-central-operations.js','modules/manufacturing/**','modules/approvals/**','internal/core10-pages-package.js','tests/e2e/static_server.js','.github/workflows/np03b-sales-ci.yml']
+    paths: ['internal/migrations/**','tests/np03b/**','core10-sales*','core10-build01*','core10-central-operations.js','core10-central-stock.js','modules/manufacturing/**','modules/approvals/**','internal/core10-pages-package.js','tests/e2e/static_server.js','.github/workflows/np03b-sales-ci.yml']
   workflow_dispatch:
 permissions:
   contents: read
