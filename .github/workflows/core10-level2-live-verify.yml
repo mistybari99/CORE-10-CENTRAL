@@ -1,4 +1,4 @@
-name: CORE10 Level2 deployed Worker 49-check live gate
+name: CORE10 Level2 deployed Worker 50-check live gate
 on:
   push:
     branches: [preview/core10-central-level2]
@@ -29,9 +29,9 @@ jobs:
       - name: Rebuild and verify exact released candidate artifact checksum
         run: |
           node preview/core10-central-owner-app/build.mjs
-          echo "0a97d1a234e0fd39e9c5946698767dc525b8aeeebe652b9d9bcd014cc36b70ee  preview/core10-central-owner-app/dist/worker.mjs" | sha256sum -c -
+          echo "3ae944b1cdcb49f4701457d629e99b61f4acff32fff7b77e2713d3f16568fc28  preview/core10-central-owner-app/dist/worker.mjs" | sha256sum -c -
           node --check preview/core10-central-owner-app/dist/worker.mjs
-      - name: FULL deployed live Worker verification — all 49 must PASS
+      - name: FULL deployed live Worker verification — all 50 must PASS
         env:
           REVIEW_BASE: https://core10-central.mistybari99.workers.dev
         run: node preview/core10-central-owner-app/verify.cjs
