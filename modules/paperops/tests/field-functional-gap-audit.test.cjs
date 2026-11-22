@@ -29,6 +29,10 @@ test('source-only first-pass gap list distinguishes stricter safety policy from 
  for(const required of ['C02-01','C02-02','C01-01','W02-01','W03-01','R01-01','R01-02','R01-03'])
   assert.ok(ids.has(required));
  assert.ok(data.gaps.some(x=>/stricter/i.test(x.finding)));
- assert.ok(data.gaps.some(x=>/not built/i.test(x.finding)));
+ assert.ok(data.gaps.some(x=>/unbuilt|still unbuilt|not implemented/i.test(x.finding)),
+   'some real ERP ledger or approval capability must remain explicitly unbuilt');
+ assert.equal(data.summary.synthetic_book_prototypes_built,2);
+ assert.ok(data.gaps.find(x=>x.id==='W02-01').status.includes('PENDING'));
+ assert.ok(data.gaps.find(x=>x.id==='R01-03').status.includes('PENDING'));
  assert.ok(data.gaps.some(x=>/unknown/i.test(x.finding)));
 });
