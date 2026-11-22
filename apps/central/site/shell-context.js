@@ -27,7 +27,7 @@ function clearPrivate(purge){
   ++epoch;actor="";scope=null;chosen={tenant:null,business:null,site:null};blocked=false;
   signed.hidden=true;anon.hidden=false;panel.hidden=true;open.setAttribute("aria-expanded","false");
   group.replaceChildren();business.replaceChildren();site.replaceChildren();password.value="";
-  if(purge&&had)scrubEmbedded();
+  if(purge==="force"||(purge&&had))scrubEmbedded();
 }
 function configReady(){
   return !!cfg&&cfg.url===TARGET&&typeof cfg.key==="string"&&/^sb_publishable_[A-Za-z0-9_-]+$/.test(cfg.key)
@@ -88,7 +88,7 @@ async function currentUser(){
 async function load(wanted){
   if(!client)return;
   const n=++epoch;
-  blocked=true;for(const el of [group,business,site,refresh,logout])el.disabled=true;
+  blocked=true;signed.hidden=true;for(const el of [group,business,site,refresh,logout])el.disabled=true;
   try{
     const before=await currentUser();
     if(n!==epoch)return;
@@ -96,12 +96,12 @@ async function load(wanted){
     const r=await client.schema("core10").rpc("build01_context_v1",{});
     const after=await currentUser();
     if(n!==epoch)return;
-    if(before!==after||!after||r.error){clearPrivate(true);message("সেশন বা অনুমতি বদলেছে। আবার সাইন ইন বা রিফ্রেশ করুন।","Session or permissions changed. Sign in or refresh again.");return;}
+    if(before!==after||!after||r.error){clearPrivate("force");message("সেশন বা অনুমতি বদলেছে। আবার সাইন ইন বা রিফ্রেশ করুন।","Session or permissions changed. Sign in or refresh again.");return;}
     const clean=verified(r.data,after);
     if(actor&&actor!==after){clearPrivate(true);message("অ্যাকাউন্ট বদলেছে; আবার প্রসঙ্গ যাচাই করুন।","Account changed; revalidate the context.");return;}
     actor=after;scope=clean;present(clean,wanted);
   }catch(_){
-    if(n===epoch){clearPrivate(true);message("সার্ভার থেকে অনুমোদিত প্রসঙ্গ যাচাই করা যায়নি।","Could not verify authorized context with the server.");}
+    if(n===epoch){clearPrivate("force");message("সার্ভার থেকে অনুমোদিত প্রসঙ্গ যাচাই করা যায়নি।","Could not verify authorized context with the server.");}
   }finally{
     if(n===epoch){blocked=false;refresh.disabled=false;logout.disabled=false;}
   }
@@ -129,7 +129,7 @@ form.addEventListener("submit",async(e)=>{
 logout.addEventListener("click",async()=>{
   if(!client||blocked)return;
   // Purge cached labels and the embedded private view BEFORE waiting for a network sign-out.
-  clearPrivate(true);message("সাইন আউট হচ্ছে…","Signing out…");
+  clearPrivate("force");message("সাইন আউট হচ্ছে…","Signing out…");
   try{await client.auth.signOut();}catch(_){/* Never restore old private view on failure. */}
   message("সাইন আউট হয়েছে।","Signed out.");
 });
@@ -143,7 +143,7 @@ if(!configReady()){
 }
 client=win.supabase.createClient(cfg.url,cfg.key,{auth:{detectSessionInUrl:false}});
 client.auth.onAuthStateChange((event)=>{
-  if(event==="SIGNED_OUT"){clearPrivate(true);message("সাইন আউট হয়েছে।","Signed out.");}
+  if(event==="SIGNED_OUT"){clearPrivate("force");message("সাইন আউট হয়েছে।","Signed out.");}
   else if(event==="SIGNED_IN"||event==="INITIAL_SESSION"||event==="TOKEN_REFRESHED")
     Promise.resolve().then(()=>request());
 });
