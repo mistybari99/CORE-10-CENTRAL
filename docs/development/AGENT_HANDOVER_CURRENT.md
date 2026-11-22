@@ -209,3 +209,21 @@ trunk (like B-009 did for A018 inventory). After a port is integrated and green,
 - Deferred by Owner: #77/#75 A025 simulation, #67 research docs, #54 D049 docs, #85 work-order doc, #60 preview v1.
 Suggested build order for Goal 1: Sales (fix) → Finance F3 → Paint (#95) → Procurement/QC (#97, #73) →
 Workforce/Payroll (#55) → Assets (#59) → CRM (#65).
+
+### 7a. Sales (PR #109) security analysis — 2026-11-22 Claude
+Reproduced on PG17 (trunk 98384ab + `git revert 6d24ad8`, DB must be named `core10_np03b_ci`): 10 cases open, 11 pass.
+Open: P1-02 fabricated approval id accepted at zero stage (order confirm + invoice validate); P1-01 privileged
+UPDATE/DELETE/INSERT on CONFIRMED order header/lines accepted; P2-02 DELETE of a referenced master party accepted;
+P1-01 invoice draft/validate accept a tampered or audit-mismatched source.
+Fix plan (forward migration in Sales range, e.g. `0310_np03b_sales_security_corrections`; never edit 0301/0304):
+1. Any non-null approval id must resolve to an approved `approval_requests` row of the same business/domain and
+   source key (`sales-order:<id>` / invoice key); otherwise `SALES_APPROVAL_INVALID`.
+2. Immutability triggers on `sales_orders_v1`/`sales_order_lines_v1` when status <> draft (allow only status/version
+   transitions done by the RPCs) → `SALES_ORDER_IMMUTABLE`.
+3. BEFORE DELETE trigger on `master_parties_v1` when referenced by sales docs → `SALES_PARTY_REFERENCED`.
+4. Invoice draft/validate recompute a digest of the order (header + lines) and compare with the payload digest stored
+   in the order's canonical confirmation Audit event; mismatch → `SALES_SOURCE_AUDIT_MISMATCH`.
+CONFLICT TO RESOLVE: after fix 2, the test's own tamper setup (plain UPDATE of a confirmed order inside SAVEPOINT
+`tamper`/`line_tamper`) will itself raise and abort the script. The test needs a reviewed adjustment so the tamper
+cases are either expected to be blocked by the trigger (stronger) or simulated with the trigger bypassed by the
+table owner in a controlled way. Decide with the Sales lane before changing the test; never weaken assertions.
