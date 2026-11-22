@@ -22,14 +22,16 @@ test('first batch contains exactly 50 originally unmapped fields and no repeated
 });
 test('persistent batch queue advances by exactly 50 and does not recheck the same fields',()=>{
  const result=run();
- assert.equal(result.checked_batches,1);
- assert.equal(result.checked_field_count,50);
+ assert.equal(result.checked_batches,3);
+ assert.equal(result.checked_field_count,150);
  assert.equal(result.original_unmapped_candidates,1160);
- assert.equal(result.remaining_first_pass,1110);
- assert.equal(result.flag_categories_checked,12);
- assert.equal(result.next_batch_number,2);
+ assert.equal(result.remaining_first_pass,1010);
+ assert.equal(result.flag_categories_checked,43);
+ assert.equal(result.unique_source_flag_categories,27);
+ assert.equal(result.next_batch_number,4);
  assert.equal(result.next_50.length,50);
- const seen=new Set(report.entries.map(x=>x.source_id));
+ const seen=new Set([report,require('../field-review/batch-002.json'),require('../field-review/batch-003.json')].flatMap(b=>b.entries.map(x=>x.source_id)));
+ assert.equal(seen.size,150);
  assert.ok(result.next_50.every(x=>!seen.has(x)));
  assert.equal(result.ready_for_release,false);
 });
@@ -47,7 +49,7 @@ test('audit refuses false release, changed original label, missing print field, 
 });
 test('first 50 preserve original required/conditional metadata and only draft templates',()=>{
  const ids=['EXP-VOUCHER','CASH-HANDOVER','STK-TRANSFER'];
- assert.equal(registry.TEMPLATES.length,30);
+ assert.equal(registry.TEMPLATES.length,32);
  for(const id of ids){
   const t=registry.TEMPLATES.find(x=>x.id===id);
   assert.ok(t&&t.status==='draft');
