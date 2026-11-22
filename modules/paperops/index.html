@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CORE-10 · PaperOps Print Studio (Draft)</title>
+<style>
+:root{font-family:system-ui,"Noto Sans Bengali",sans-serif;color:#17262a;background:#f4f7f6}
+*{box-sizing:border-box}body{margin:0}.top{background:#174c4c;color:white;padding:17px max(18px,calc((100vw - 1200px)/2))}
+.top h1{font-size:1.3rem;margin:0}.top p{font-size:.85rem;margin:4px 0;color:#dbefed}
+.layout{max-width:1200px;margin:16px auto;padding:0 14px;display:grid;grid-template-columns:minmax(275px,340px) minmax(0,1fr);gap:16px;align-items:start}
+.editor,.preview-wrap{background:white;border:1px solid #d4dfdc;border-radius:12px;padding:18px}
+.editor{position:sticky;top:12px}.editor h2{font-size:1.1rem;margin:0 0 12px}
+label{display:block;font-size:.86rem;font-weight:650;margin:10px 0}
+input,select{width:100%;font:inherit;padding:8px 10px;border:1px solid #97aaa5;border-radius:7px;background:white;color:#17262a;min-height:38px}
+input[type=color]{padding:3px;height:40px}.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+button{font:inherit;background:#174c4c;color:white;border:0;border-radius:8px;padding:10px 14px;cursor:pointer;min-height:40px}
+button.secondary{background:#e5f0ed;color:#174c4c;border:1px solid #a3bdb4}button:disabled{opacity:.55;cursor:not-allowed}
+:focus-visible{outline:3px solid #b87212;outline-offset:2px}
+.hint{font-size:.78rem;color:#475c57;line-height:1.55}.status{font-size:.84rem;min-height:22px;color:#174c4c}
+.preview-wrap{overflow-x:auto}.empty{padding:30px;text-align:center;color:#647a75}
+.paperops-form{color:#152422;background:white;border:1px solid #d5dfda;padding:18px;font-size:12px;line-height:1.5}
+.paperops-head{display:flex;gap:14px;align-items:center;border-bottom:3px solid var(--accent);padding-bottom:10px}
+.paperops-logo{width:62px;height:62px;object-fit:contain}.paperops-head h1{font-size:18px;margin:5px 0}
+.paperops-organization{font-size:16px;font-weight:800;margin:0;color:var(--accent)}.paperops-subtitle{margin:1px 0;font-size:11px}
+.paperops-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 16px;margin:10px 0;padding:9px 0;border-bottom:1px solid #cfdad7}
+.paperops-rule{font-size:11px;line-height:1.5;background:#eef5f2;padding:9px;border-left:3px solid var(--accent)}
+.paperops-section{margin:15px 0;break-inside:avoid-page}.paperops-section h2{font-size:13px;margin:0 0 8px;padding:5px 8px;background:#eef5f2;border-left:3px solid var(--accent)}
+.paperops-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 14px}
+.paperops-field{min-height:45px;font-size:11px}.paperops-line{border-bottom:1px dotted #869992;min-height:20px}
+.paperops-table{border-collapse:collapse;width:100%;margin:8px 0 4px;table-layout:fixed;font-size:10px}
+.paperops-table caption{text-align:left;font-weight:bold;padding:0 0 5px}.paperops-table th,.paperops-table td{border:1px solid #9eb1aa;padding:4px;word-break:normal;overflow-wrap:anywhere}
+.paperops-table th{background:#e6eeeb}.paperops-table td{height:25px}
+.paperops-signatures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:28px 0 15px}
+.paperops-signatures>div{font-size:10px}.paperops-signatures .paperops-line{min-height:32px}
+.paperops-footer{font-size:9px;border-top:1px solid #a7bcb5;padding-top:7px;color:#405750}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.editor{position:static}.paperops-form{min-width:580px}}
+@media print{
+  @page{size:A4 portrait;margin:11mm}
+  :root{background:white}body{background:white}
+  .top,.editor,.empty,.actions,.status{display:none!important}
+  .layout{display:block;margin:0;padding:0}.preview-wrap{padding:0;border:0;border-radius:0;overflow:visible}
+  .paperops-form{border:0;min-width:0;padding:0;font-size:10px}
+  .paperops-table{font-size:8px}.paperops-table td{height:22px}
+  .paperops-section{break-inside:avoid-page}
+  .paperops-rule,.paperops-section h2,.paperops-table th{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<header class="top"><h1>CORE-10 PaperOps · Print Studio</h1><p>অফলাইন প্রিন্ট প্রোটোটাইপ — এটি ERP-তে ডাটা পাঠায় না এবং ফর্মগুলো এখনো মাঠপর্যায়ে অনুমোদিত নয়।</p></header>
+<main class="layout">
+<section class="editor" aria-labelledby="settings-title">
+<h2 id="settings-title">ফর্ম ও শাখার সেটিংস</h2>
+<label>ব্যবসার ধরন<select id="industry"><option value="sweets">মিষ্টি / খাদ্য উৎপাদন</option><option value="paint">পেইন্ট</option><option value="generic">অন্যান্য / কমন</option></select></label>
+<label>ফর্ম<select id="form"></select></label>
+<label>ফর্মের ভাষা<select id="lang"><option value="bn">বাংলা</option><option value="en">English</option></select></label>
+<label>ফর্ম ব্যবহারের পরিধি<select id="scope"><option value="business">পুরো ব্যবসার জন্য কমন</option><option value="site">নির্দিষ্ট শাখা / কারখানা / গোডাউন</option></select></label>
+<label>গ্রুপের নাম<input id="group" maxlength="120" value="CORE-10 Group"></label>
+<label>ব্যবসার নাম *<input id="business" required maxlength="120" value="ডেমো মিষ্টি ব্যবসা"></label>
+<label>শাখা / কারখানার নাম<input id="site" maxlength="120" placeholder="যেমন: খুলনা শোরুম"></label>
+<label>প্রিন্ট হেডারের নাম (ইচ্ছামতো)<input id="header" maxlength="120" placeholder="ফাঁকা রাখলে ব্যবসার নাম"></label>
+<label>নির্বাচিত ফর্মের কাস্টম নাম<input id="title" maxlength="140" placeholder="ফাঁকা রাখলে স্ট্যান্ডার্ড নাম"></label>
+<div class="row2"><label>থিমের রং<input id="color" type="color" value="#174c4c"></label><label>টেবিলের সারি<select id="rows"><option>5</option><option selected>8</option><option>12</option><option>18</option></select></label></div>
+<label>লোগো (PNG / JPEG / WebP; ৫০০ KB সর্বোচ্চ)<input id="logo" type="file" accept="image/png,image/jpeg,image/webp"></label>
+<p class="hint">কমন ফর্মে শাখার নাম থাকবে না। শাখাভিত্তিক ফর্মে নির্দিষ্ট শাখার নাম, লোগো, থিম ও ফর্মের নাম ব্যবহার করা যাবে। একই ফর্মের আলাদা প্রিন্ট সেটিংস JSON আকারে সংরক্ষণ করা যায়; কোনো সার্ভারে আপলোড হয় না।</p>
+<div class="actions"><button id="previewButton" type="button">প্রিভিউ তৈরি</button><button id="printButton" type="button" disabled>প্রিন্ট / PDF</button><button id="saveButton" type="button" class="secondary">সেটিংস ডাউনলোড</button></div>
+<label>আগের সেটিংস ফিরিয়ে আনুন (JSON)<input id="load" type="file" accept=".json,application/json"></label>
+<p id="status" class="status" role="status" aria-live="polite"></p>
+</section>
+<section class="preview-wrap" aria-label="Printable form preview"><div id="paper"><div class="empty">ফর্ম ও শাখার সেটিংস দিয়ে “প্রিভিউ তৈরি” চাপুন।</div></div></section>
+</main>
+<script src="./paperops.js"></script>
+<script>
+(function(){
+  'use strict';
+  const api = window.CORE10_PAPEROPS;
+  const el = id => document.getElementById(id);
+  let logoData = '';
+  const fields = ['industry','form','lang','scope','group','business','site','header','title','color','rows'];
+  function updateForms(){
+    const old = el('form').value;
+    const forms = api.availableForms(el('industry').value);
+    el('form').replaceChildren();
+    for (const f of forms) {
+      const opt = document.createElement('option');
+      opt.value = f.id;
+      opt.textContent = f.title[el('lang').value] + ' · ' + f.id + (f.status === 'hypothesis' ? ' · প্রস্তাবিত' : '');
+      el('form').append(opt);
+    }
+    if(forms.some(x=>x.id===old)) el('form').value=old;
+  }
+  function job(){
+    const id = el('form').value;
+    const brand = {headerName:el('header').value.trim(),color:el('color').value,logo:logoData,
+      formTitles:el('title').value.trim() ? {[id]:el('title').value.trim()} : {}};
+    return {
+      industry:el('industry').value, lang:el('lang').value, scope:el('scope').value,
+      groupName:el('group').value.trim(), businessName:el('business').value.trim(),
+      siteName:el('site').value.trim(), tableRows:Number(el('rows').value),
+      businessBrand:el('scope').value==='business' ? brand : {},
+      siteBrand:el('scope').value==='site' ? brand : {}
+    };
+  }
+  function preview(){
+    try {
+      el('paper').innerHTML = api.renderPrintMarkup(el('form').value,job());
+      el('printButton').disabled=false;
+      el('status').textContent='প্রিভিউ প্রস্তুত। এখন প্রিন্ট বা PDF করা যাবে।';
+    } catch(err) {
+      el('printButton').disabled=true;
+      el('status').textContent='ফর্ম তৈরি হয়নি: '+err.message;
+    }
+  }
+  el('industry').addEventListener('change',function(){updateForms();el('printButton').disabled=true;});
+  el('lang').addEventListener('change',updateForms);
+  el('previewButton').addEventListener('click',preview);
+  el('printButton').addEventListener('click',function(){if(!this.disabled)window.print();});
+  el('logo').addEventListener('change',function(){
+    const file=this.files&&this.files[0]; if(!file){logoData='';return;}
+    if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>500000){
+      logoData='';this.value='';el('status').textContent='লোগোটি PNG/JPEG/WebP এবং ৫০০ KB-এর মধ্যে হতে হবে।';return;
+    }
+    const reader=new FileReader();
+    reader.onload=()=>{logoData=String(reader.result||'');el('status').textContent='লোগো প্রস্তুত; প্রিভিউ আবার তৈরি করুন।';};
+    reader.onerror=()=>{logoData='';el('status').textContent='লোগো পড়া যায়নি।';};
+    reader.readAsDataURL(file);
+  });
+  el('saveButton').addEventListener('click',function(){
+    const data={version:1,formId:el('form').value,settings:job()};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='core10-paperops-settings.json';a.click();
+    URL.revokeObjectURL(url);
+    el('status').textContent='সেটিংস ফাইল তৈরি হয়েছে; এতে ব্যবসা ও শাখার নাম থাকতে পারে। নিরাপদে রাখুন।';
+  });
+  el('load').addEventListener('change',function(){
+    const file=this.files&&this.files[0];if(!file)return;
+    if(file.size>1000000){el('status').textContent='সেটিংস ফাইল ১ MB-এর বেশি হতে পারবে না।';return;}
+    const reader=new FileReader();
+    reader.onload=function(){
+      try{
+        const data=JSON.parse(String(reader.result));
+        if(data.version!==1||!data.settings||typeof data.settings!=='object')throw Error('INVALID_SETTINGS');
+        const s=data.settings;
+        if(!api.INDUSTRIES.includes(s.industry)||!['business','site'].includes(s.scope))throw Error('INVALID_SETTINGS');
+        for(const key of ['industry','lang','scope']) if(typeof s[key]==='string')el(key).value=s[key];
+        for(const [key,property] of [['group','groupName'],['business','businessName'],['site','siteName']])
+          el(key).value=typeof s[property]==='string'?s[property].slice(0,120):'';
+        el('rows').value=[5,8,12,18].includes(s.tableRows)?String(s.tableRows):'8';
+        updateForms();
+        if(api.availableForms(s.industry).some(f=>f.id===data.formId))el('form').value=data.formId;
+        const b=s.scope==='site'?s.siteBrand:s.businessBrand;
+        const v=b&&typeof b==='object'?b:{};
+        el('header').value=typeof v.headerName==='string'?v.headerName.slice(0,120):'';
+        el('title').value=v.formTitles&&typeof v.formTitles[el('form').value]==='string'?v.formTitles[el('form').value].slice(0,140):'';
+        el('color').value=/^#[0-9a-fA-F]{6}$/.test(v.color||'')?v.color:'#174c4c';
+        logoData=typeof v.logo==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(v.logo)&&v.logo.length<750000?v.logo:'';
+        el('status').textContent='সেটিংস ফিরেছে। প্রিভিউ তৈরি করে যাচাই করুন।';
+        el('printButton').disabled=true;
+      }catch(err){el('status').textContent='অবৈধ সেটিংস ফাইল: '+err.message;}
+    };
+    reader.readAsText(file);
+    this.value='';
+  });
+  updateForms();
+  preview();
+})();
+</script>
+</body>
+</html>
