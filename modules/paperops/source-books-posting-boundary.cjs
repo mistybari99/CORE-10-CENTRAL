@@ -102,10 +102,10 @@ function planPostingCandidates({syntheticFixture,build01Context,authenticatedAct
   if(!Number.isSafeInteger(total)||total<=0||total>MAX_INT)fail('FINANCE_TOTAL_UNSAFE');
   const credit=[{side:'CR',sourceCashAccount:v.cashAccountId,
     account:'UNRESOLVED_IMPREST_CASH_CHART_ACCOUNT',amountBDT:currency(total)}];
-  if(money(v.lines.reduce((sum,line)=>sum+money(line.amountBDT,'CHECK_AMOUNT'),0)/100,'C02_TOTAL_CHECK')!==total)
-   fail('DEBIT_TOTAL_INCORRECT');
   const book=syntheticFixture.expense.cashbookRows.filter(x=>x.sourceVoucherId===v.id);
   if(book.length!==1)fail('EXACTLY_ONE_CASHBOOK_SOURCE_ROW_REQUIRED');
+  if(money(book[0].amountBDT,'SOURCE_CASHBOOK_AMOUNT')!==total)
+   fail('CASHBOOK_ORIGINAL_VOUCHER_MISMATCH');
   proposals.push(makeRow('FINANCE_EXPENSE_DRAFT',v.id,binding,{
    debit,credit,source:'C-02',sourceVoucherRef:v.id,sourceR01Ref:v.sheetRef,
    sourceCashbookRef:book[0].id,unverifiedCashbookAccount:v.cashAccountId,
@@ -152,6 +152,10 @@ function validateRow(row){
   fail('UNAUTHORIZED_OR_UNKNOWN_DRAFT');
  const body={kind:row.kind,scope:row.scope,sourceRef:row.sourceRef,payload:row.payload};
  if(hash(body)!==row.sourceDigest)fail('DRAFT_DIGEST_MISMATCH');
+ if(!row.scope||!Number.isSafeInteger(row.scope.tenantId)||row.scope.tenantId<=0||
+   !Number.isSafeInteger(row.scope.businessId)||row.scope.businessId<=0)
+  fail('INVALID_DRAFT_CANONICAL_SCOPE');
+ key(row.sourceRef,'SOURCE_REFERENCE');
  const expectedKey='paperops:'+row.scope.tenantId+':'+row.scope.businessId+':'+row.kind+':'+row.sourceRef;
  if(row.idempotencyKey!==expectedKey)fail('DRAFT_IDEMPOTENCY_KEY_MISMATCH');
  if(row.kind==='FINANCE_EXPENSE_DRAFT'){
@@ -170,8 +174,19 @@ function validateRow(row){
   const p=row.payload;
   if(!Number.isSafeInteger(p.cratesDelta)||!Number.isSafeInteger(p.traysDelta)||
     !Number.isSafeInteger(p.declaredCratesDue)||!Number.isSafeInteger(p.declaredTraysDue)||
-    p.siteFromId===p.siteToId||p.needsRealSignedTransferAndReturnLedger!==true)
+    p.declaredCratesDue<0||p.declaredTraysDue<0||
+    !Number.isSafeInteger(p.siteFromId)||p.siteFromId<=0||
+    !Number.isSafeInteger(p.siteToId)||p.siteToId<=0||
+    p.siteFromId===p.siteToId||p.needsRealSignedTransferAndReturnLedger!==true||
+    !['OPENING','ISSUE','RETURN'].includes(p.kind))
    fail('INVALID_RETURNABLE_PACKAGING_DRAFT');
+  key(p.sourceSenderRef,'PACKAGING_SENDER_EVIDENCE');
+  key(p.sourceReceiverRef,'PACKAGING_RECEIVER_EVIDENCE');
+  if(p.cratesDelta===0&&p.traysDelta===0)fail('EMPTY_PACKAGING_DRAFT');
+  if(p.kind==='RETURN'){
+   key(p.originalIssueId,'RETURN_ORIGINAL_ISSUE');
+   if(p.cratesDelta>0||p.traysDelta>0)fail('RETURN_DIRECTION_INVERTED');
+  }else if(p.cratesDelta<0||p.traysDelta<0)fail('ISSUE_DIRECTION_INVERTED');
  }
 }
 function simulateDraftQueue(previous,plan){
@@ -181,6 +196,8 @@ function simulateDraftQueue(previous,plan){
   fail('FORBIDDEN_REAL_LEDGER_COMMIT');
  const drafts=plan.proposals;
  if(!Array.isArray(drafts)||!drafts.length)fail('EMPTY_DRAFT_QUEUE');
+ if(new Set(drafts.map(p=>p.idempotencyKey)).size!==drafts.length)
+  fail('DUPLICATE_SOURCE_IN_SAME_DRAFT_BATCH');
  if(hash(drafts.map(p=>({key:p.idempotencyKey,digest:p.sourceDigest})))!==plan.proposalDigest)
   fail('DRAFT_BATCH_DIGEST_MISMATCH');
  const seen=new Map();
