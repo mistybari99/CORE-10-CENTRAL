@@ -54,10 +54,10 @@ jobs:
           npm install -D playwright@1.63.0
           npx playwright install --with-deps chromium
           echo "NODE_PATH=$RUNNER_TEMP/core10-playwright/node_modules" >> "$GITHUB_ENV"
-      - name: Canonical 56/56 local browser checks, full suite unchanged
-        run: node apps/central/verify.cjs
       - name: NEW bilingual mobile and desktop route navigation browser regression
         run: node --test tests/core10-central-mobile-nav.test.cjs
+      - name: Canonical 56/56 local browser checks, full suite unchanged
+        run: node apps/central/verify.cjs
       - name: Canonical 56/56 public Worker checks, NO deploy
         env:
           REVIEW_BASE: https://core10-central.mistybari99.workers.dev
