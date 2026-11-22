@@ -3,7 +3,7 @@
   "scope": "RECHECK_OF_PREVIOUSLY_MAPPED_BATCHES_001_002_003_ONLY",
   "old_candidate_field_ids": 150,
   "status": "EVIDENCE_BACKED_OPEN_GAPS_NOT_OWNER_APPROVED",
-  "statement": "The 150 historical source field declarations and 16 conditional syntax branches have been independently rechecked; these operational discrepancies prevent any statement of complete 150-field business parity. All risks below are evidence-backed gaps or differing safety policies, not proof the new ERP is faulty in production. Two of the eleven now have synthetic-only source-ledger implementations; they remain OPEN until full signed real-core integration and Owner approval.",
+  "statement": "The 150 historical source field declarations and 16 conditional syntax branches have been independently rechecked; these operational discrepancies prevent any statement of complete 150-field business parity. All risks below are evidence-backed gaps or differing safety policies, not proof the new ERP is faulty in production. Two of the eleven now have synthetic-only source-ledger implementations; they remain OPEN until full signed real-core integration and Owner approval. A separate no-write eight-intent Stock/Money port handoff preview now binds synthetic source IDs and independent candidate roles, while continuing to refuse all server authorization claims and ERP posting.",
   "scope_limit": "First 150 source candidates from original 1160 not individually mapped; 1010 remain for first pass. 86 previously critical-linked keys and source 20 obligations separately tracked.",
   "summary": {
     "open_functional_gaps": 11,
@@ -11,7 +11,9 @@
     "owner_accepted": 0,
     "ready_for_trunk": false,
     "ready_for_live": false,
-    "synthetic_book_prototypes_built": 2
+    "synthetic_book_prototypes_built": 2,
+    "port_intents_prototyped": 8,
+    "server_authorized_port_intents": 0
   },
   "gaps": [
     {
@@ -93,7 +95,16 @@
           "W-02:trays_back",
           "W-02:trays_due"
         ],
-        "owner_accepted": false
+        "owner_accepted": false,
+        "handoff_boundary": {
+          "module": "modules/paperops/source-port-handoff.cjs",
+          "checker": "modules/paperops/tests/source-port-handoff.test.cjs",
+          "mode": "UNSIGNED_PORT_HANDOFF_PREVIEW_NOT_APPROVED",
+          "integrationIntent": "STOCK_PORT_RETURNABLE_CUSTODY_PROPOSED",
+          "serverSignedContextVerified": false,
+          "realApprovalGranted": false,
+          "ERPPostingAuthorized": false
+        }
       }
     },
     {
@@ -183,7 +194,16 @@
           "R-01:v_amt",
           "R-01:v_total"
         ],
-        "owner_accepted": false
+        "owner_accepted": false,
+        "handoff_boundary": {
+          "module": "modules/paperops/source-port-handoff.cjs",
+          "checker": "modules/paperops/tests/source-port-handoff.test.cjs",
+          "mode": "UNSIGNED_PORT_HANDOFF_PREVIEW_NOT_APPROVED",
+          "integrationIntent": "MONEY_PORT_IMPREST_EXPENSE_AND_CASHBOOK_CROSSCHECK_PROPOSED",
+          "serverSignedContextVerified": false,
+          "realApprovalGranted": false,
+          "ERPPostingAuthorized": false
+        }
       }
     },
     {
