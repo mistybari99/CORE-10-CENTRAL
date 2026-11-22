@@ -16,6 +16,13 @@
   };
   var html = document.documentElement, frame = document.getElementById("c10-frame"), draft = document.getElementById("c10-draft"), dataStatus = document.getElementById("c10-data-status");
   var DRAFT = { sales: true, manufacturing: true };
+  var moreToggle = document.getElementById("c10-more-toggle"), morePanel = document.getElementById("c10-mobile-more");
+  var primaryRoutes = { home: true, business: true, stock: true, approvals: true };
+  function closeMore(restoreFocus) {
+    if (morePanel.hidden) return;
+    morePanel.hidden = true; moreToggle.setAttribute("aria-expanded", "false");
+    if (restoreFocus) moreToggle.focus();
+  }
   var lang = "bn"; try { lang = localStorage.getItem("core10.preview.lang") === "en" ? "en" : "bn"; } catch (_) {}
   function route() {
     var r = (location.hash.replace(/^#\/?/, "") || "home").split("?")[0];
@@ -32,6 +39,11 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-route]"), function (a) {
       if (a.dataset.route === r) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-mobile-route]"), function (a) {
+      if (a.dataset.mobileRoute === r) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    if (primaryRoutes[r]) moreToggle.removeAttribute("aria-current"); else moreToggle.setAttribute("aria-current", "page");
+    closeMore(false);
     var src = ROUTES[r];
     draft.hidden = !DRAFT[r];
     {
@@ -47,6 +59,18 @@
     frame.removeAttribute("src"); route();
   }
   Array.prototype.forEach.call(document.querySelectorAll("[data-set-lang]"), function (b) { b.addEventListener("click", function () { setLang(b.dataset.setLang); }); });
+  moreToggle.addEventListener("click", function () {
+    var opening = morePanel.hidden;
+    morePanel.hidden = !opening;
+    moreToggle.setAttribute("aria-expanded", String(opening));
+    if (opening) morePanel.querySelector("a").focus();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !morePanel.hidden) closeMore(true);
+  });
+  document.addEventListener("pointerdown", function (e) {
+    if (!morePanel.hidden && !morePanel.contains(e.target) && !moreToggle.contains(e.target)) closeMore(false);
+  });
   window.addEventListener("hashchange", route);
   setLang(lang);
 })();
