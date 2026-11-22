@@ -18,9 +18,13 @@
  function uid(x){if(typeof x!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x))fail("BUILD01_INVALID_SUBJECT");return x.toLowerCase();}
  function actions(x){if(!Array.isArray(x)||x.length>2||new Set(x).size!==x.length||x.some(a=>!["stock.read","stock.post"].includes(a)))fail("BUILD01_INVALID_ACTIONS");return [...x].sort();}
  function config(c){
-  if(!obj(c)||c.enabled!==true||c.mode!=="isolated-development")fail("BUILD01_NOT_CONFIGURED");
+  if(!obj(c)||c.enabled!==true||!["isolated-development","core10-staging"].includes(c.mode))fail("BUILD01_NOT_CONFIGURED");
   let u;try{u=new URL(c.url);}catch{fail("BUILD01_INVALID_TARGET");}
-  if(u.protocol!=="http:"||!["127.0.0.1","localhost","[::1]"].includes(u.hostname)||u.username||u.password||u.pathname!=="/"||u.search||u.hash)fail("BUILD01_NONPRODUCTION_TARGET_REQUIRED");
+  if(u.username||u.password||u.pathname!=="/"||u.search||u.hash)fail("BUILD01_NONPRODUCTION_TARGET_REQUIRED");
+  // Loopback for isolated development; the ONE CORE10 staging project for the Owner preview (GO-3). Nothing else.
+  const loop=c.mode==="isolated-development"&&u.protocol==="http:"&&["127.0.0.1","localhost","[::1]"].includes(u.hostname);
+  const staging=c.mode==="core10-staging"&&u.protocol==="https:"&&u.hostname==="rhrqhbyzrhaafynfhdaf.supabase.co";
+  if(!loop&&!staging)fail("BUILD01_NONPRODUCTION_TARGET_REQUIRED");
   if(typeof c.publishableKey!=="string"||!c.publishableKey.trim())fail("BUILD01_PUBLISHABLE_KEY_REQUIRED");
   // Legacy anon JWTs are allowed for the isolated runtime; service-role JWTs are not.
   const part=c.publishableKey.split(".")[1];

@@ -1,5 +1,8 @@
 # Claude lane — restartable handoff (trunk / NP02 Control)
 
+> **Start with `docs/development/AGENT_HANDOVER_CURRENT.md`** (single handover file for any agent; progress log at its end).
+
+
 ## SESSION A STATE — 2026-11-22 (GO-2 done; read this first)
 
 New Session A (replaced the 2026-11-21 one). Owner re-confirmed GO-2 and GO-3 (after staging) in this session.
@@ -13,7 +16,15 @@ New Session A (replaced the 2026-11-21 one). Owner re-confirmed GO-2 and GO-3 (a
 - Supabase advisors: 48 "authenticated can execute SECURITY DEFINER" WARN + 6 "RLS no policy" INFO = intended RPC-only design (each RPC checks scope itself; RPC-only tables deny direct access). **Owner action:** Auth "leaked password protection" is OFF (dashboard setting, Owner's call before real users).
 - NOT applied (by design): 0115+ / 0150+ / 0200+ / 0400+ / 0500+. Next hosted version must be > 0114 in numeric order; 0115-0118 (PR #121) must be settled via the Board first.
 
-Next: GO-3 live (Level 2 list below), then integration items (Sales #109 security, F3 #117 rollback test, 0305 double claim, crosslane F3 pin).
+**GO-3 live: DONE 2026-11-22.** Branch `preview/core10-central-level2` @ `887b395`, Draft PR #126 (base = Preview branch, which was left untouched; the Preview session is idle/completed, so Session A was the single releaser). Worker `core10-central` deployment `84095bdd…` / version `38141fd4-09de-4f90-8f81-e12a850597b4`; rollback version `025cf3a1` (source in `rollback/`). `#/control` = real Owner Control Centre, signed staging sign-in; CSP connect-src only self + staging. Live verify 49/49 (390/1440, bn/en, headers, CSP, staging Auth refuses wrong password). Owner sign-in VERIFIED by the Owner on 2026-11-22 (own account, empty group shown as expected). Follow-up: shell banner says "nothing saved" — wrong for signed `#/control`.
+
+**Owner account + ownership model (Owner directive 2026-11-22).**
+- Goal 1 (now): Owner's own businesses. Goal 2 (later, A024 deferred): sell to outside customers (single business up to many), each customer fully isolated, Owner keeps platform control.
+- Staging: Owner auth user confirmed; new tenant `core10-owner-group` (id 1) + legal entity "CORE10 Owner Group" (id 1); Owner = `tenant_owner` there (removed from sample tenant 9801). No password set yet: Owner sets it in the SQL editor (we never hold it). Everything else on staging stays synthetic demo personas.
+- Gap: no platform-level role exists (top role = tenant_owner). Planned design (needs Owner decisions, NOT built): `platform_operator` above tenants: create/suspend tenants, module/plan licensing, usage/health metadata, NO access to customer business data except time-boxed, customer-granted, audited support access; own migration range + cross-tenant negative tests.
+- Owner decision (2026-11-22): platform owner must ALSO have an option to view customer data when he chooses. Design: off by default, explicit per-tenant switch by the platform owner, every view audited and visible to the customer, disclosed in the customer contract.
+
+Next: integration items (Sales #109 security, F3 #117 rollback test, 0305 double claim, crosslane F3 pin).
 
 ## SESSION A STATE — 2026-11-21 (superseded by 2026-11-22 above)
 
