@@ -1,0 +1,701 @@
+{
+  "schema_version": 1,
+  "status": "246_LANE_OPEN__NO_RELEASE_AUTHORIZATION",
+  "parent_pr": 132,
+  "parent_head_at_branch_creation": "98169c2bf6ebbf3bae875bdee11e51ff06766c48",
+  "ownership_manifest_blob": "9857e4a97f4410e6b58de65ab0a76985849bcaf2",
+  "scope": {
+    "total": 246,
+    "critical_86": 86,
+    "mapped_150": 150,
+    "reserved_10": 10,
+    "codex_excluded": 1000
+  },
+  "rules": {
+    "issue_count_is_not_unique_defect_count": true,
+    "overlap_counted_by_original_field_id": true
+  },
+  "total_original_gaps": 11,
+  "total_high_risk_obligations": 20,
+  "intersecting_field_ids": [
+    "R-01:open_diff"
+  ],
+  "distinct_field_ids_with_any_finding": [
+    "C-01:seal_no",
+    "C-01:counted_total",
+    "C-01:received_total",
+    "C-01:diff",
+    "W-02:sent",
+    "W-02:received",
+    "W-02:diff",
+    "W-02:receiver_counted",
+    "W-02:liability",
+    "W-03:count",
+    "W-03:book",
+    "W-03:var",
+    "W-03:reason",
+    "W-03:witness",
+    "R-01:safety",
+    "R-01:open_counted",
+    "R-01:fridges",
+    "R-01:expired_removed",
+    "C-04:st_bkash",
+    "C-04:st_nagad",
+    "C-04:st_card",
+    "C-04:sh_a",
+    "C-04:on_a",
+    "C-05:a30",
+    "C-05:a60",
+    "C-05:a60p",
+    "C-05:credit_stopped",
+    "R-02:produced_slot",
+    "R-02:measured_slot",
+    "R-02:measured_by",
+    "R-02:scale",
+    "R-02:tot_flour",
+    "R-02:tot_oil",
+    "R-02:jalebi_sales",
+    "R-02:unsold",
+    "P-04:po_no",
+    "P-04:counted",
+    "P-04:quality",
+    "P-04:rate_approver",
+    "P-04:held_apart",
+    "W-04:opening",
+    "W-04:grn_no",
+    "W-04:issue_no",
+    "W-04:bal",
+    "W-04:count_sheet",
+    "P-02:lowest",
+    "P-02:sel_approved",
+    "P-02:single_approver",
+    "P-05:po",
+    "P-05:grn",
+    "P-05:bill",
+    "P-05:held",
+    "P-05:pay_approved",
+    "S-01:advance",
+    "S-01:balance",
+    "S-01:board_no",
+    "S-01:factory_deadline",
+    "S-02:limit_text",
+    "S-02:approved_by",
+    "S-02:approved_time",
+    "S-03:refund_amt",
+    "S-03:approved_by",
+    "S-03:p_fate",
+    "S-03:root_cause",
+    "A-02:cogs",
+    "A-02:gross",
+    "A-02:net",
+    "A-02:payables",
+    "A-02:receivables",
+    "F-05:safety",
+    "F-05:machines",
+    "F-05:issue_slip",
+    "F-05:batch_verify",
+    "F-05:yield_report",
+    "F-02:version",
+    "F-02:g1_look",
+    "F-02:rj_mold",
+    "F-02:shelf_normal",
+    "F-03:version",
+    "F-03:yield_no",
+    "F-03:spec_version",
+    "F-04:input",
+    "F-04:good",
+    "F-04:second",
+    "F-04:waste",
+    "F-04:approver",
+    "C-02:receipt",
+    "C-02:money_account_id",
+    "C-02:no_receipt_reason",
+    "C-02:pay_mode",
+    "C-02:sum_cr",
+    "C-02:imprest_text",
+    "C-01:count",
+    "C-01:rcount",
+    "C-01:diff_reason",
+    "W-02:order_no",
+    "W-02:crates_sent",
+    "W-02:crates_back",
+    "W-02:crates_due",
+    "W-02:trays_sent",
+    "W-02:trays_back",
+    "W-02:trays_due",
+    "W-02:cash_amount",
+    "W-03:counted_by",
+    "W-03:storekeeper",
+    "W-03:movement",
+    "W-03:movement_detail",
+    "R-01:safety_defect",
+    "R-01:float_set",
+    "R-01:open_diff",
+    "R-01:imp_cash",
+    "R-01:imp_receipts",
+    "R-01:imp_text",
+    "R-01:temp",
+    "R-01:expired_shown",
+    "R-01:expired_informed",
+    "R-01:t2_1",
+    "R-01:t2_2",
+    "R-01:vouchers",
+    "R-01:v_no",
+    "R-01:v_amt",
+    "R-01:v_total"
+  ],
+  "functional_gaps": [
+    {
+      "id": "C02-01",
+      "status": "OPEN_WITH_BLOCKER",
+      "field_ids": [
+        "C-02:pay_mode"
+      ],
+      "original_status": "BUSINESS_POLICY_DECISION_REQUIRED",
+      "blocker": "OWNER_DECIDE_EMPTY_AS_CASH_VS_EXPLICIT_SAFE_PAYMENT_MODE",
+      "risk": "MEDIUM",
+      "source_fragment": "Paid how (empty = cash)",
+      "source": "modules/paperops/field-review/functional-gaps-001-003.json",
+      "local_correction": null,
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "C02-02",
+      "status": "OPEN_WITH_BLOCKER",
+      "field_ids": [
+        "C-02:receipt",
+        "C-02:no_receipt_reason"
+      ],
+      "original_status": "SOURCE_SEVERITY_PARITY_PENDING",
+      "blocker": "VERIFY_SOURCE_FLAG_SEVERITY_AND_OWNER_MISSING_RECEIPT_APPROVAL_FLOW",
+      "risk": "HIGH",
+      "source_fragment": "Reason if a receipt is missing",
+      "source": "modules/paperops/field-review/functional-gaps-001-003.json",
+      "local_correction": null,
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "C02-03",
+      "status": "OPEN_WITH_BLOCKER",
+      "field_ids": [
+        "C-02:money_account_id"
+      ],
+      "original_status": "ACCOUNT_SOURCE_INTEGRATION_PENDING",
+      "blocker": "RECOVER_ACCOUNT_PROVIDER_SEMANTICS_AND_SIGNED_TENANT_ACCOUNT_SCOPE",
+      "risk": "HIGH",
+      "source_fragment": "formOpts(\"expense_10_2\")",
+      "source": "modules/paperops/field-review/functional-gaps-001-003.json",
+      "local_correction": null,
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "C01-01",
+      "status": "OPEN_WITH_BLOCKER",
+      "field_ids": [
+        "C-01:count",
+        "C-01:rcount",
+        "C-01:diff_reason"
+      ],
+      "original_status": "REAL_CUSTODY_CHAIN_PENDING",
+      "blocker": "PHYSICAL_CUSTODY_2_ROLE_SIGNOFF_AND_SOURCE_LEDGER_REVERSAL_TEST",
+      "risk": "HIGH",
+      "source_fragment": "Hub count by notes",
+      "source": "modules/paperops/field-review/functional-gaps-001-003.json",
+      "local_correction": null,
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "W02-01",
+      "status": "OPEN_WITH_BLOCKER",
+      "field_ids": [
+        "W-02:crates_sent",
+        "W-02:crates_back",
+        "W-02:crates_due",
+        "W-02:trays_sent",
+        "W-02:trays_back",
+        "W-02:trays_due"
+      ],
+      "original_status": "SOURCE_BOOK_AND_SCOPE_DRY_RUN_BUILT_REAL_ERP_SECURITY_AND_POSTING_PENDING",
+      "blocker": "OWNER_DEFINE_OPENING_CARRY_FORWARD_EVIDENCE_AND_SIGNED_ORIGINAL_SOURCE_PLUS_ERP_EVENT_LEDGER_ROLLOUT",
+      "risk": "HIGH",
+      "source_fragment": "Crates outstanding",
+      "source": "modules/paperops/field-review/functional-gaps-001-003.json",
+      "local_correction": null,
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "W02-02",
+      "status": "OPEN_WITH_BLOCKER",
+      "field_ids": [
+        "W-02:cash_amount",
+        "W-02:order_no"
+      ],
+      "original_status": "CONDITIONAL_RUNTIME_RULE_PENDING",
+      "blocker": "PROVE_PAYMENT_AND_CUSTOMER_ORDER_CONDITIONS_THEN_DECIDE_STRICTER_AUTHORITY",
+      "risk": "HIGH",
+      "source_fragment": "Cash amount",
+      "source": "modules/paperops/field-review/functional-gaps-001-003.json",
+      "local_correction": null,
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "W03-01",
+      "status": "OPEN_WITH_BLOCKER",
+      "field_ids": [
+        "W-03:movement",
+        "W-03:movement_detail",
+        "W-03:counted_by",
+        "W-03:storekeeper"
+      ],
+      "original_status": "INVENTORY_POSTING_PARITY_PENDING",
+      "blocker": "COUNT_FREEZE_CONTINUITY_TEST_AND_AUTHORIZED_VARIANCE_ADJUSTMENT_DESIGN",
+      "risk": "HIGH",
+      "source_fragment": "Were goods received or issued during the count?",
+      "source": "modules/paperops/field-review/functional-gaps-001-003.json",
+      "local_correction": null,
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "R01-01",
+      "status": "OPEN_WITH_BLOCKER",
+      "field_ids": [
+        "R-01:safety_defect",
+        "R-01:expired_shown",
+        "R-01:expired_informed",
+        "R-01:temp",
+        "R-01:t2_1",
+        "R-01:t2_2"
+      ],
+      "original_status": "SOURCE_POLICY_AND_CONTINUITY_PENDING",
+      "blocker": "FOOD_SAFETY_TEMPERATURE_POLICY_AND_EVENT_FOLLOWUP_EVIDENCE",
+      "risk": "HIGH",
+      "source_fragment": "Second temperature 1 °C (busy day)",
+      "source": "modules/paperops/field-review/functional-gaps-001-003.json",
+      "local_correction": null,
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "R01-02",
+      "status": "OPEN_WITH_BLOCKER",
+      "field_ids": [
+        "R-01:imp_text",
+        "R-01:open_diff",
+        "C-02:sum_cr",
+        "C-02:imprest_text"
+      ],
+      "original_status": "SOURCE_HELPER_RECONSTRUCTION_PENDING",
+      "blocker": "TRACE_ORIGINAL_O_AND_N_HELPER_IMPLEMENTATION_AND_EDGE_CASES",
+      "risk": "HIGH",
+      "source_fragment": "O(\"open_counted\")",
+      "source": "modules/paperops/field-review/functional-gaps-001-003.json",
+      "local_correction": "PINNED_OLD_N_O_SOURCE_HELPERS_IMPLEMENTED__NO_ERP_AUTH",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "R01-03",
+      "status": "OPEN_WITH_BLOCKER",
+      "field_ids": [
+        "R-01:vouchers",
+        "R-01:v_no",
+        "R-01:v_amt",
+        "R-01:v_total"
+      ],
+      "original_status": "SOURCE_BOOK_AND_SCOPE_DRY_RUN_BUILT_REAL_ERP_SECURITY_AND_POSTING_PENDING",
+      "blocker": "CONNECT_SIGNED_C02_SOURCE_TO_R01_AND_CANONICAL_IMMUTABLE_CASHBOOK_LEDGER_WITH_APPROVAL_AND_REVERSALS",
+      "risk": "HIGH",
+      "source_fragment": "Total expenses",
+      "source": "modules/paperops/field-review/functional-gaps-001-003.json",
+      "local_correction": null,
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "R01-04",
+      "status": "OPEN_WITH_BLOCKER",
+      "field_ids": [
+        "R-01:float_set",
+        "R-01:open_diff",
+        "R-01:imp_cash",
+        "R-01:imp_receipts"
+      ],
+      "original_status": "FULL_DAILY_CASH_LEDGER_PARITY_PENDING",
+      "blocker": "CROSS_RECONCILE_CASH_RECEIPTS_ADVANCES_REFUNDS_DEPOSITS_AND_REVERSALS",
+      "risk": "HIGH",
+      "source_fragment": "Fixed float (from settings)",
+      "source": "modules/paperops/field-review/functional-gaps-001-003.json",
+      "local_correction": null,
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    }
+  ],
+  "high_risk_obligations": [
+    {
+      "id": "SHOWROOM_OPEN_SAFETY",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "R-01",
+      "field_ids": [
+        "R-01:safety",
+        "R-01:fridges",
+        "R-01:expired_removed",
+        "R-01:open_counted"
+      ],
+      "candidate_gate": null,
+      "blocker": "table/control specifics not tested",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "JALEBI_MEASUREMENT_SEPARATION",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "R-02",
+      "field_ids": [
+        "R-02:produced_slot",
+        "R-02:measured_slot",
+        "R-02:measured_by",
+        "R-02:scale"
+      ],
+      "candidate_gate": "jalebiYield",
+      "blocker": "more legacy exceptions remain",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "JALEBI_YIELD_AND_UNSOLD",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "R-02",
+      "field_ids": [
+        "R-02:tot_flour",
+        "R-02:tot_oil",
+        "R-02:jalebi_sales",
+        "R-02:unsold"
+      ],
+      "candidate_gate": "jalebiYield",
+      "blocker": "old oil/syrup exceptions not fully ported",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "CASH_CUSTODY_PROOF",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "C-01",
+      "field_ids": [
+        "C-01:seal_no",
+        "C-01:counted_total",
+        "C-01:received_total",
+        "C-01:diff"
+      ],
+      "candidate_gate": "cashHandover",
+      "blocker": "old denomination and separate hub role field parity pending",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "GOODS_TWO_PARTY_TRANSFER",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "W-02",
+      "field_ids": [
+        "W-02:sent",
+        "W-02:received",
+        "W-02:diff",
+        "W-02:receiver_counted",
+        "W-02:liability"
+      ],
+      "candidate_gate": "stockTransfer",
+      "blocker": "dispatch/receipt row identities and signatures need scenario acceptance",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "PHYSICAL_COUNT_IS_NOT_ADJUSTMENT",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "W-03",
+      "field_ids": [
+        "W-03:count",
+        "W-03:book",
+        "W-03:var",
+        "W-03:reason",
+        "W-03:witness"
+      ],
+      "candidate_gate": "stockBalance",
+      "blocker": "independent witness, freeze and tolerance policy not fully encoded",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "STOCK_LEDGER_CARRY_FORWARD",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "W-04",
+      "field_ids": [
+        "W-04:opening",
+        "W-04:grn_no",
+        "W-04:issue_no",
+        "W-04:bal",
+        "W-04:count_sheet"
+      ],
+      "candidate_gate": "stockBalance",
+      "blocker": "row-level source and balance identifiers not structurally modeled",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "GRN_ACCEPTANCE_QC",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "P-04",
+      "field_ids": [
+        "P-04:po_no",
+        "P-04:counted",
+        "P-04:quality",
+        "P-04:held_apart",
+        "P-04:rate_approver"
+      ],
+      "candidate_gate": "goodsReceived",
+      "blocker": "rate and source item matching requires richer row evidence",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "THREE_WAY_BILL_MATCH",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "P-05",
+      "field_ids": [
+        "P-05:po",
+        "P-05:grn",
+        "P-05:bill",
+        "P-05:held",
+        "P-05:pay_approved"
+      ],
+      "candidate_gate": "threeWay",
+      "blocker": "accepted-item unit/price multi-line parity not fully checked",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "QUOTE_SELECTION_PROOF",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "P-02",
+      "field_ids": [
+        "P-02:lowest",
+        "P-02:sel_approved",
+        "P-02:single_approver"
+      ],
+      "candidate_gate": "quoteSelection",
+      "blocker": "legal and policy threshold approval still external",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "ORDER_FULFILMENT_ADVANCE",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "S-01",
+      "field_ids": [
+        "S-01:board_no",
+        "S-01:factory_deadline",
+        "S-01:advance",
+        "S-01:balance"
+      ],
+      "candidate_gate": "customerOrder",
+      "blocker": "delivery, refund and no-items legacy branches outstanding",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "DISCOUNT_ABOVE_LIMIT",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "S-02",
+      "field_ids": [
+        "S-02:limit_text",
+        "S-02:approved_by",
+        "S-02:approved_time"
+      ],
+      "candidate_gate": "discountApproval",
+      "blocker": "source form approval timestamp and tier policy pending",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "RETURN_REFUND_AND_ROOT_CAUSE",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "S-03",
+      "field_ids": [
+        "S-03:refund_amt",
+        "S-03:approved_by",
+        "S-03:p_fate",
+        "S-03:root_cause"
+      ],
+      "candidate_gate": "returnRefund",
+      "blocker": "end-customer remedy and physical goods fate need proof",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "CHANNEL_SETTLEMENT_RECON",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "C-04",
+      "field_ids": [
+        "C-04:st_bkash",
+        "C-04:st_nagad",
+        "C-04:st_card",
+        "C-04:sh_a",
+        "C-04:on_a"
+      ],
+      "candidate_gate": "digitalSettlement",
+      "blocker": "channel fees and separate statement lines not fully structured",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "AGEING_AND_CREDIT_STOP",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "C-05",
+      "field_ids": [
+        "C-05:a30",
+        "C-05:a60",
+        "C-05:a60p",
+        "C-05:credit_stopped"
+      ],
+      "candidate_gate": "receivableAging",
+      "blocker": "per-party ageing/limit rows need data validation",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "FACTORY_PRESTART_AND_BATCH",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "F-05",
+      "field_ids": [
+        "F-05:safety",
+        "F-05:machines",
+        "F-05:issue_slip",
+        "F-05:batch_verify",
+        "F-05:yield_report"
+      ],
+      "candidate_gate": "factoryBatch",
+      "blocker": "daily batch checklist and all exceptions still under review",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "RECIPE_VERSION_NOT_DAILY_COPY",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "F-03",
+      "field_ids": [
+        "F-03:version",
+        "F-03:yield_no",
+        "F-03:spec_version"
+      ],
+      "candidate_gate": "factoryBatch",
+      "blocker": "versioned recipe and signed approval not enforced outside paper input",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "YIELD_TEST_INPUT_OUTPUT",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "F-04",
+      "field_ids": [
+        "F-04:input",
+        "F-04:good",
+        "F-04:second",
+        "F-04:waste",
+        "F-04:approver"
+      ],
+      "candidate_gate": "factoryBatch",
+      "blocker": "three-distinct-day yield tests not yet coded",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "GRADE_AND_SHELF_LIFE",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "F-02",
+      "field_ids": [
+        "F-02:version",
+        "F-02:g1_look",
+        "F-02:rj_mold",
+        "F-02:shelf_normal"
+      ],
+      "candidate_gate": null,
+      "blocker": "versioned master QC criteria not yet centrally enforced",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    },
+    {
+      "id": "MONTHLY_PROFIT_AR_AP",
+      "status": "OPEN_WITH_BLOCKER",
+      "source_form": "A-02",
+      "field_ids": [
+        "A-02:cogs",
+        "A-02:gross",
+        "A-02:net",
+        "A-02:receivables",
+        "A-02:payables"
+      ],
+      "candidate_gate": "monthlyProfit",
+      "blocker": "full monthly sales by location and accounting statement tie-out pending",
+      "source": "modules/paperops/control-trace.json",
+      "canonical_runtime_integrated": false,
+      "signed_tested": false,
+      "owner_policy_accepted": false
+    }
+  ],
+  "no_real_business_data": true,
+  "no_owner_acceptance": true
+}
