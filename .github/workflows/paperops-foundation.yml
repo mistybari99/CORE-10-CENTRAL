@@ -4,7 +4,7 @@ on:
     branches:
       - build/paperops-foundation-20261122
     paths:
-      - 'modules/paperops/**'
+      - 'modules/**'
       - 'core10-*.html'
       - 'core10-*.js'
       - 'tests/core10-root-config-boundary.test.cjs'
@@ -13,7 +13,7 @@ on:
     branches:
       - ccr-15ed11dd-n3hw5h
     paths:
-      - 'modules/paperops/**'
+      - 'modules/**'
       - 'core10-*.html'
       - 'core10-*.js'
       - 'tests/core10-root-config-boundary.test.cjs'
