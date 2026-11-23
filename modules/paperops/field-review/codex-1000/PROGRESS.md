@@ -8,6 +8,7 @@
 | A004 | 50 | 8 high, 2 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45115730237 |
 | A005 | 50 | 8 high, 2 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45116116749 |
 | A006 | 50 | 5 high, 4 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45116892316 |
+| A007 | 50 | 8 high, 1 medium open | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45276544185 |
 
 A002 covers R-01:waste_qty through C-04:on_c. Both original C-04:who declarations are preserved under one manifest ID. Evidence commits for the two exact runs are 6349dc78039f52ec7a867d1f8c3fe9e38b78174d and 1778382a1a9bd48bbf83921570bec8f9cfc7353a.
 
@@ -19,6 +20,8 @@ A005 exact evidence commit: d12ccd24901b29bba8a96e9942d9fc4fa96600d0. It covers 
 
 A006 exact evidence commit: 4dadc009fbed01db368689486e605b6d84bf2f8d. The 50 IDs extend from S-06:desc through S-04:c_bad.
 
-A007 audit evidence is ready for exact-head CI. Parent 456de1905707f125eaf9c0a82b5009698bf41156 corrected manifest position 304 from S-04:cashier to R-01:cashier. The other 999 Codex positions and the ChatGPT ownership lane are unchanged. A007 now contains 50 source-verified declarations and nine open findings (8 high, 1 medium). Historical attribution finding A007-F001 is resolved at the parent commit.
+A007 exact evidence commit: 2426f0f026af82c171fde9b2ba74637ccbce7212. Parent corrected slot 304 to R-01:cashier. A007-F001 is resolved as a source attribution correction.
 
-Full gates previously passed: 6/20. Coordination Board / Decision Book: NOT WRITTEN.
+A008 covers W-01:t_ret through P-01:rate_diff, with 50 verified declarations. Its exact-head CI is pending.
+
+Full gates passed: 7/20. Coordination Board / Decision Book: NOT WRITTEN.
