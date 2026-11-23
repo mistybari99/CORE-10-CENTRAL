@@ -156,10 +156,12 @@
       "risk": "MEDIUM",
       "source_fragment": "Paid how (empty = cash)",
       "source": "modules/paperops/field-review/functional-gaps-001-003.json",
-      "local_correction": null,
+      "local_correction": "PINNED_OLD_BLANK_EQUALS_CASH_DECLARATION__NEW_EXPLICIT_MODE_OWNER_POLICY_HOLD",
       "canonical_runtime_integrated": false,
       "signed_tested": false,
-      "owner_policy_accepted": false
+      "owner_policy_accepted": false,
+      "local_evidence": "modules/paperops/field-review/chatgpt-246/c02-account-source.cjs; modules/paperops/tests/chatgpt-246-c02-account-source.test.cjs",
+      "remaining_dependency": "Owner ratify empty payment mode policy and canonical signed payment method guard"
     },
     {
       "id": "C02-02",
@@ -190,10 +192,12 @@
       "risk": "HIGH",
       "source_fragment": "formOpts(\"expense_10_2\")",
       "source": "modules/paperops/field-review/functional-gaps-001-003.json",
-      "local_correction": null,
+      "local_correction": "PINNED_MONEYSRC_HASACCOUNTS_FORMOPTS_SOURCE_PROVIDER_SCOPE_GATE__NO_SIGNED_MONEY_API",
       "canonical_runtime_integrated": false,
       "signed_tested": false,
-      "owner_policy_accepted": false
+      "owner_policy_accepted": false,
+      "local_evidence": "modules/paperops/field-review/chatgpt-246/c02-account-source.cjs; modules/paperops/tests/chatgpt-246-c02-account-source.test.cjs",
+      "remaining_dependency": "Signed Money account provider must independently attest active tenant/site/capability/account options"
     },
     {
       "id": "C01-01",
@@ -327,10 +331,12 @@
       "risk": "HIGH",
       "source_fragment": "Total expenses",
       "source": "modules/paperops/field-review/functional-gaps-001-003.json",
-      "local_correction": null,
+      "local_correction": "OWNED_R01_VOUCHER_TO_C02_AND_CASHBOOK_SOURCE_LINKAGE_WITH_DUPLICATE_AND_ACTOR_GUARDS__NO_POST",
       "canonical_runtime_integrated": false,
       "signed_tested": false,
-      "owner_policy_accepted": false
+      "owner_policy_accepted": false,
+      "local_evidence": "modules/paperops/field-review/chatgpt-246/r01-money-day-ledger.cjs; modules/paperops/tests/chatgpt-246-r01-money-day-ledger.test.cjs",
+      "remaining_dependency": "Canonical immutable Money cashbook source UUID/replay, signed approvals, tenant site and voucher reversal integrity"
     },
     {
       "id": "R01-04",
@@ -346,10 +352,12 @@
       "risk": "HIGH",
       "source_fragment": "Fixed float (from settings)",
       "source": "modules/paperops/field-review/functional-gaps-001-003.json",
-      "local_correction": null,
+      "local_correction": "OWNED_R01_OPEN_FLOAT_AND_FIXED_IMPREST_BALANCE_PLUS_EXTERNAL_MONEY_EVENT_LINEAGE__NO_SOURCE_CASH_FORMULA_CLAIM",
       "canonical_runtime_integrated": false,
       "signed_tested": false,
-      "owner_policy_accepted": false
+      "owner_policy_accepted": false,
+      "local_evidence": "modules/paperops/field-review/chatgpt-246/r01-money-day-ledger.cjs; modules/paperops/tests/chatgpt-246-r01-money-day-ledger.test.cjs",
+      "remaining_dependency": "Signed daily Money Sales/Advance/Refund/Deposit/Reversal audit; Codex owns other R01 cash fields; Owner reconciliation signoff"
     }
   ],
   "high_risk_obligations": [
@@ -702,7 +710,7 @@
   ],
   "no_real_business_data": true,
   "no_owner_acceptance": true,
-  "local_corrections_count": 4,
+  "local_corrections_count": 8,
   "remaining_open_original_gaps": 11,
   "new_reserved_r01_gate": {
     "field_count": 10,
@@ -712,6 +720,10 @@
   },
   "next_signed_dependencies": {
     "C01-01": "Signed Cash custody and hub identities; canonical Money receipt ledger crossref; double approval and immutable reversal proof",
-    "W03-01": "Signed Stock snapshot/movement version, freeze/adjust policy from Control, independent approval, transaction replay and audit/reversal"
+    "W03-01": "Signed Stock snapshot/movement version, freeze/adjust policy from Control, independent approval, transaction replay and audit/reversal",
+    "C02-01": "Owner ratify empty payment mode policy and canonical signed payment method guard",
+    "C02-03": "Signed Money account provider must independently attest active tenant/site/capability/account options",
+    "R01-03": "Canonical immutable Money cashbook source UUID/replay, signed approvals, tenant site and voucher reversal integrity",
+    "R01-04": "Signed daily Money Sales/Advance/Refund/Deposit/Reversal audit; Codex owns other R01 cash fields; Owner reconciliation signoff"
   }
 }
