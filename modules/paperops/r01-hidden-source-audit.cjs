@@ -8,7 +8,7 @@ const report=require('./field-review/r01-hidden-source-flags.json');
 const checker=require('./r01-hidden-warning-checks.js');
 const file=path.resolve(__dirname,'../../legacy/islamia-erp/forms.js');
 function audit(){
- const source=fs.readFileSync(file,'utf8');
+ const source=require('./field-review/chatgpt-246/source-helper-conditions.cjs').readFrozen('forms');
  const start=source.indexOf('e.forms["R-01"]={');
  assert.ok(start>=0,'FROZEN_R01_FORM_MISSING');
  const after=source.indexOf('e.forms[',start+1);
