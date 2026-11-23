@@ -1915,7 +1915,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C02_SOURCE_PROVIDER_SCOPE_AND_ROLE_GUARD__NOT_AUTH"
     },
     {
       "source_id": "C-02:receipt_photos",
@@ -2016,7 +2017,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C02_EXPLICIT_MODE_HOLD__OWNER_DECISION_PENDING"
     },
     {
       "source_id": "C-02:cash_morning",
@@ -3425,7 +3427,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_OWNED_IMPREST_SOURCE_AND_EXTERNAL_MONEY_INTEGRITY_HOLD__NO_FORMULA_PARITY"
     },
     {
       "source_id": "R-01:open_diff",
@@ -3445,7 +3448,7 @@
       "owner_accepted": false,
       "release_authorized": false,
       "erp_post_authorized": false,
-      "local_nonposting_correction": "PINNED_OLD_N_O_VISIBILITY_RECONSTRUCTED"
+      "local_nonposting_correction": "R01_OWNED_IMPREST_SOURCE_AND_EXTERNAL_MONEY_INTEGRITY_HOLD__NO_FORMULA_PARITY"
     },
     {
       "source_id": "R-01:imp_cash",
@@ -3463,7 +3466,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_OWNED_IMPREST_SOURCE_AND_EXTERNAL_MONEY_INTEGRITY_HOLD__NO_FORMULA_PARITY"
     },
     {
       "source_id": "R-01:imp_receipts",
@@ -3481,7 +3485,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_OWNED_IMPREST_SOURCE_AND_EXTERNAL_MONEY_INTEGRITY_HOLD__NO_FORMULA_PARITY"
     },
     {
       "source_id": "R-01:imp_text",
@@ -4200,7 +4205,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_VOUCHER_CASHBOOK_SOURCE_VALIDATION__NO_POST"
     },
     {
       "source_id": "R-01:v_no",
@@ -4218,7 +4224,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_VOUCHER_CASHBOOK_SOURCE_VALIDATION__NO_POST"
     },
     {
       "source_id": "R-01:v_head",
@@ -4252,7 +4259,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_VOUCHER_CASHBOOK_SOURCE_VALIDATION__NO_POST"
     },
     {
       "source_id": "R-01:v_rec",
@@ -4286,7 +4294,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_VOUCHER_CASHBOOK_SOURCE_VALIDATION__NO_POST"
     },
     {
       "source_id": "R-01:drawer_none",
@@ -4469,7 +4478,11 @@
     "verified_real_money_postings": 0,
     "verified_real_stock_postings": 0,
     "c01_cash_handover": "modules/paperops/field-review/chatgpt-246/c01-cash-custody.cjs",
-    "w03_stock_count": "modules/paperops/field-review/chatgpt-246/w03-stock-count-freeze.cjs"
+    "w03_stock_count": "modules/paperops/field-review/chatgpt-246/w03-stock-count-freeze.cjs",
+    "c02_account_provider": "modules/paperops/field-review/chatgpt-246/c02-account-source.cjs",
+    "r01_daily_money_review": "modules/paperops/field-review/chatgpt-246/r01-money-day-ledger.cjs",
+    "owner_policy_accepted": false,
+    "signed_money_api_invoked": false
   },
   "additional_critical_declarations_verified": [
     "C-01:seal_no",
