@@ -114,7 +114,7 @@ function reconcileDay({scope:s,day,accountProvider,control,opening,sourceVoucher
   voucherMap.set(v.voucherRef,amount);
   putEvent(v,'C02_EXPENSE',amount,v.money_account_id,'OUT');
  }
- const refundedByAdvance=new Map(),reversed=new Set(),pendingReversal=new Set();
+ const refundedByAdvance=new Map(),pendingReversal=new Set();
  for(const e of sourceMoneyEvents){
   scoped(e,s,'EXTERNAL_MONEY');
   id(e.sourceRef,'MONEY_SOURCE');
@@ -135,6 +135,7 @@ function reconcileDay({scope:s,day,accountProvider,control,opening,sourceVoucher
    id(e.originalAdvanceRef,'ORIGINAL_ADVANCE_REF');
    const original=moneyMap.get(e.originalAdvanceRef);
    if(!original||original.kind!=='ORDER_ADVANCE')throw Error('R01_REFUND_WITHOUT_KNOWN_ADVANCE');
+   if(e.accountId!==original.accountId)throw Error('R01_REFUND_MONEY_ACCOUNT_DIFFERS_FROM_ADVANCE');
    const already=refundedByAdvance.get(e.originalAdvanceRef)||0n;
    if(already+amount>original.amount)throw Error('R01_REFUND_EXCEEDS_ORIGINAL_ADVANCE');
    refundedByAdvance.set(e.originalAdvanceRef,already+amount);
@@ -150,7 +151,7 @@ function reconcileDay({scope:s,day,accountProvider,control,opening,sourceVoucher
    id(e.originalEventRef,'ORIGINAL_EVENT');
    const original=moneyMap.get(e.originalEventRef);
    if(!original||original.kind==='REVERSAL')throw Error('R01_REVERSAL_UNKNOWN_OR_NESTED_EVENT');
-   if(reversed.has(e.originalEventRef)||pendingReversal.has(e.originalEventRef))
+   if(pendingReversal.has(e.originalEventRef))
     throw Error('R01_DOUBLE_REVERSAL_OR_REPLAY');
    pendingReversal.add(e.originalEventRef);
    if(amount!==original.amount||e.accountId!==original.accountId)
