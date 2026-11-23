@@ -11,6 +11,7 @@ on:
       - "core10-control-studio-entry.js"
       - "core10-master-data*"
       - "core10-owner-dashboard*"
+      - "core10-purchase*"
       - "tests/control-centre/**"
       - "tests/c10_np02_*"
       - "internal/enterprise-sql/**"
@@ -68,6 +69,14 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-procurement-e2e.sql
       - name: "B-012 purchase order approvals (0206 - GOV-002 one-checker and two-stage routes, maker-only request, Owner switches, stage/route drift, edited draft)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-po-approval-e2e.sql
+      - name: "B-012 GRN cancel, return to supplier, lot expiry read (0207 - open PO quantity freed, accepted minus returned, stock check, Owner switches, replay, cross-tenant, site-scoped lots)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-supplier-return-e2e.sql
+      - name: "B-012 scoped stock-location list (0208 - same rows as the row policy per persona, explicit site denies, can_post, site filter, cross-tenant, 2000 cap, catalog security)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-locations-e2e.sql
+      - name: "B-012 lots on the one ledger (0209 - lot breakdown of movements, lot balances, FEFO, hold/release, lot commands, genealogy, recall, Owner switches, replay, cross-tenant)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-lots-e2e.sql
+      - name: "B-012 purchase order approval in BDT (0210 - Owner decision 2026-11-23; BDT threshold above/at/below minimum, precision rule, non-BDT unit refused, pre-0210 payload fails closed, cross-tenant)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-po-approval-bdt-e2e.sql
       - name: "B-012 owner multi-business dashboard reads (0204 - figures, drill-down, scope per persona)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-owner-dashboard-e2e.sql
       - name: "B-012 P4 scale: 10 businesses x 400 sites (reads, budgets, RPC writes)"
@@ -90,6 +99,10 @@ jobs:
         run: bash tests/migrations/np03a-inventory-race.sh
       - name: B-012 purchase receipts real concurrent sessions (over-receipt, double GRN posting)
         run: bash tests/migrations/np03a-procurement-race.sh
+      - name: B-012 supplier returns and GRN cancel real concurrent sessions (over-return drafts, double return posting, cancel vs receive)
+        run: bash tests/migrations/np03a-supplier-return-race.sh
+      - name: B-012 lots real concurrent sessions (hold vs named-lot issue, concurrent lot-less FEFO issue)
+        run: bash tests/migrations/np03a-lots-race.sh
       - name: Registry evidence (each enforced RPC names an existing CI-run proof test)
         run: bash tests/migrations/control-registry-evidence.sh
       - name: B-009 legacy installer vs numbered migrations drift (reviewed list, no silent ignores)
@@ -129,12 +142,23 @@ jobs:
           PGDATABASE=odui internal/migrations/run.sh up
           PGDATABASE=odui psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/od-seed.sql
           PGDATABASE=odui node tests/control-centre/owner-dashboard-browser.cjs
+      - name: B-012 Purchase and goods receipt screen in a real browser against the real SQL functions (390 and 1440 px, bn/en)
+        env: { PU_SHOTS: pu-shots }
+        run: |
+          psql -X -q -c "CREATE DATABASE puui"
+          PGDATABASE=puui internal/migrations/run.sh up
+          PGDATABASE=puui psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/pu-seed.sql
+          PGDATABASE=puui node tests/control-centre/purchase-browser.cjs
       - name: B-011 Central shell navigation contract (Owner Control / Master Data links, 390 and 1440 px)
         run: node tests/control-centre/shell-nav-browser.cjs
       - name: Master Data screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with: { name: master-data-screenshots, path: md-shots, if-no-files-found: ignore }
+      - name: Purchase screen screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: purchase-screenshots, path: pu-shots, if-no-files-found: ignore }
       - name: Owner Control Centre screenshots
         if: always()
         uses: actions/upload-artifact@v4

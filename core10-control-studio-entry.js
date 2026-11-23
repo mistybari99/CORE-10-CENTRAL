@@ -2,6 +2,13 @@
 (function(){"use strict";
 const app=document.getElementById("app");if(!app)return;
 let frame=false;
+const OWNER_LINKS=[
+ {id:"core10-owner-dashboard-entry",text:"মালিকের ড্যাশবোর্ড · Owner dashboard",href:"./core10-owner-dashboard.html",biz:false,icon:"",
+  label:"Open the Owner dashboard: businesses, sites, stock balances and open purchase work"},
+ {id:"core10-purchase-entry",text:"ক্রয় · Purchases",href:"./core10-purchase.html",biz:"core10-purchase-biz-entry",icon:"🧾",
+  label:"Open Purchases: purchase orders and goods receipts"}
+];
+function drop(ids){for(const i of ids){const e=document.getElementById(i);if(e)e.remove()}}
 function sync(){
  frame=false;
  const A=window.BOS_APP,B=window.BOS,ctx=A&&A.S&&A.S.ctx;
@@ -11,9 +18,12 @@ function sync(){
  const centreKey="core10-owner-control-centre-entry",centre=document.getElementById(centreKey);
  const mdKey="core10-master-data-entry",md=document.getElementById(mdKey);
  const mdBizKey="core10-master-data-biz-entry",mdBiz=document.getElementById(mdBizKey);
- if(!ctx||!ctx.profile||!ctx.profile.id){if(existing)existing.remove();if(centre)centre.remove();if(md)md.remove();if(mdBiz)mdBiz.remove();return}
+ // Owner-only navigation (Owner dashboard, Purchases). Navigation only, never a permission:
+ // each page re-derives authority from the signed CORE10 context; ?biz only pre-selects a business CORE10 returns.
+ const ownerHead=OWNER_LINKS.map(x=>x.id),ownerBiz=OWNER_LINKS.filter(x=>x.biz).map(x=>x.biz);
+ if(!ctx||!ctx.profile||!ctx.profile.id){if(existing)existing.remove();if(centre)centre.remove();if(md)md.remove();if(mdBiz)mdBiz.remove();drop(ownerHead);drop(ownerBiz);return}
  if(master){
-  if(ctx.is_owner!==true){if(existing)existing.remove();if(centre)centre.remove();if(md)md.remove();return}
+  if(ctx.is_owner!==true){if(existing)existing.remove();if(centre)centre.remove();if(md)md.remove();drop(ownerHead);return}
   const header=app.querySelector("header.top");if(!header)return;
   // B-021: canonical DEC-08 Owner Control Centre (core10.control_* RPCs on CORE10 staging only).
   if(!centre){
@@ -29,6 +39,11 @@ function sync(){
    m.style.cssText=(document.getElementById(centreKey)||{style:{cssText:""}}).style.cssText;
    header.appendChild(m)
   }
+  for(const x of OWNER_LINKS)if(!document.getElementById(x.id)){
+   const o=document.createElement("a");o.id=x.id;o.textContent=x.text;o.href=x.href;o.setAttribute("aria-label",x.label);
+   o.style.cssText=(document.getElementById(centreKey)||{style:{cssText:""}}).style.cssText;
+   header.appendChild(o)
+  }
   if(!existing){
    const a=document.createElement("a");a.id=key;a.textContent="Control Studio";
    a.href="./core10-control-studio.html";a.setAttribute("aria-label","Open Universal Owner Control Studio");
@@ -42,9 +57,9 @@ function sync(){
  const id=idMatch?Number(idMatch[1]):null;
  const valid=match&&Number.isSafeInteger(id)&&B&&B.biz&&
   String(B.biz.cur())===String(id)&&(B.biz.list()||[]).some(x=>Number(x.id)===id);
- if(centre)centre.remove();if(md)md.remove();
+ if(centre)centre.remove();if(md)md.remove();drop(ownerHead);
  const section=app.querySelector(".bo-section .bo-actions");
- if(!valid||!section){if(existing)existing.remove();if(mdBiz)mdBiz.remove();return}
+ if(!valid||!section){if(existing)existing.remove();if(mdBiz)mdBiz.remove();drop(ownerBiz);return}
  // B-011: Master Data for the selected business. Navigation only: the page re-derives every permission from the
  // signed CORE10 context (build01_context_v1 + can_manage); ?biz only pre-selects among businesses CORE10 returns.
  if(!mdBiz||mdBiz.getAttribute("href")!=="./core10-master-data.html?biz="+id){
@@ -53,6 +68,17 @@ function sync(){
   m.href="./core10-master-data.html?biz="+id;m.setAttribute("aria-label","Master Data for this business: items, customers and suppliers, price lists and units");
   m.style.cssText="display:flex;align-items:center;min-height:55px;padding:12px;border:1px solid #9a7f58;border-radius:11px;background:#233446;color:#f6dfb5;text-decoration:none;font:700 14px system-ui,sans-serif";
   section.appendChild(m)
+ }
+ // Owner-only business links: shown only when the signed context says is_owner === true.
+ if(ctx.is_owner!==true)drop(ownerBiz);
+ else for(const x of OWNER_LINKS){
+  if(!x.biz)continue;
+  const bid=x.biz,href=x.href+"?biz="+id,cur=document.getElementById(bid);
+  if(cur&&cur.getAttribute("href")===href)continue;
+  if(cur)cur.remove();
+  const o=document.createElement("a");o.id=bid;o.textContent=x.icon+" "+x.text;o.href=href;o.setAttribute("aria-label",x.label+" for this business");
+  o.style.cssText="display:flex;align-items:center;min-height:55px;padding:12px;border:1px solid #9a7f58;border-radius:11px;background:#233446;color:#f6dfb5;text-decoration:none;font:700 14px system-ui,sans-serif";
+  section.appendChild(o)
  }
  if(!existing){
   const a=document.createElement("a");a.id=key;a.textContent="⚙ Business Controls";

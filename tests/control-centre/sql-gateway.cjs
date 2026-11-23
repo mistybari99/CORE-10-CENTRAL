@@ -7,6 +7,7 @@ const { spawnSync } = require("node:child_process");
 const ROOT = path.resolve(__dirname, "../..");
 const RPCS = new Set(require(path.join(ROOT, "core10-owner-control-client.js")).RPCS.concat(require(path.join(ROOT, "core10-master-data-client.js")).RPCS)
   .concat(require(path.join(ROOT, "core10-owner-dashboard-client.js")).RPCS));
+require(path.join(ROOT, "core10-purchase-client.js")).RPCS.forEach((n) => RPCS.add(n));
 const FILES = {
   "/harness.html": "tests/control-centre/harness.html", "/harness.js": "tests/control-centre/harness.js",
   "/core10-owner-control-client.js": "core10-owner-control-client.js",
@@ -19,6 +20,11 @@ const FILES = {
   "/core10-owner-dashboard-client.js": "core10-owner-dashboard-client.js", "/core10-owner-dashboard-ui.js": "core10-owner-dashboard-ui.js",
   "/core10-owner-dashboard.css": "core10-owner-dashboard.css"
 };
+Object.assign(FILES, {
+  "/pu-harness.html": "tests/control-centre/pu-harness.html", "/pu-harness.js": "tests/control-centre/pu-harness.js",
+  "/core10-purchase-client.js": "core10-purchase-client.js", "/core10-purchase-ui.js": "core10-purchase-ui.js",
+  "/core10-purchase.css": "core10-purchase.css"
+});
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8", ".css": "text/css; charset=utf-8" };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
