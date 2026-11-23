@@ -1,0 +1,1262 @@
+{
+  "schema_version": 1,
+  "batch": "A001",
+  "source": {
+    "path": "forms.js",
+    "legacy_trunk_path": "legacy/islamia-erp/forms.js",
+    "git_blob": "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d",
+    "parent_commit": "98169c2bf6ebbf3bae875bdee11e51ff06766c48",
+    "sha256": "53ca5ac41a8f663fbcc76c4be5a7ec1d5a937d97dcf4020f709ff69eecae9e73"
+  },
+  "owner_accepted": false,
+  "parity_certified": false,
+  "field_parity_certified": false,
+  "source_runtime_equivalent": false,
+  "production_ready": false,
+  "erp_posted": false,
+  "rules": {
+    "order": {
+      "behavior": "No R-01 calculator enforces these attestations or checks the order references.",
+      "fragments": [
+        {
+          "offset_utf16": 23388,
+          "text": "board_recon\",t(\"বোর্ড ও অর্ডার ফরমের বইয়ের রিকনসিলিয়েশন\",\"Board and order book reconciled\")),u(\"board_cleared\",t(\"আজকের সব অর্ডার বোর্ড থেকে মোছা\",\"Today's or"
+        }
+      ],
+      "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
+      "target_authority": "PROPOSED; canonical enforcement unverified"
+    },
+    "category": {
+      "behavior": "Sum the eight N category inputs. When total_entered passes n(), subtract entered total from category sum. Nonzero emits red cat_total_mismatch. Otherwise cat_match is blank.",
+      "fragments": [
+        {
+          "offset_utf16": 32226,
+          "text": "const f=s(N.map(([e])=>o[\"cat_\"+e]));if(d.cat_sum=f,n(o.total_entered)){const e=f-r(o.total_entered);d.cat_match=0===e?t(\"মিল আছে ✓\",\"Matches ✓\"):t(\"অমিল ৳ \"+q("
+        }
+      ],
+      "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
+      "target_authority": "PROPOSED; canonical enforcement unverified"
+    },
+    "online": {
+      "behavior": "Informational subset of total. The close calculator does not consume online_sales.",
+      "fragments": [
+        {
+          "offset_utf16": 24192,
+          "text": "c(\"online_sales\",t(\"এর মধ্যে অনলাইন\",\"of which online\")),c(\"party_cash\",t(\"পার্টি ও পাইকারি ক্যাশ\",\"Party & wholesale cash\")),a(\"party_invoice\",t(\"ইনভয়েস নং\",\""
+        }
+      ],
+      "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
+      "target_authority": "PROPOSED; canonical enforcement unverified"
+    },
+    "goods": {
+      "behavior": "goods_based is an entered amount; no stock-price join in R-01. When present, goods_based minus retail is compared with inclusive percentage (only for positive retail) OR absolute tolerance. Nonzero is yellow within either tolerance, red otherwise; absent both settings records missing settings.",
+      "fragments": [
+        {
+          "offset_utf16": 32560,
+          "text": "const w=r(o.total_entered),y=w-r(o.party_cash);if(d.retail=y,n(o.goods_based)){const e=r(o.goods_based)-y,n=c(\"goods_money_tol_pct\"),s=c(\"goods_money_tol_max\");"
+        }
+      ],
+      "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
+      "target_authority": "PROPOSED; canonical enforcement unverified"
+    },
+    "digital": {
+      "behavior": "Five amounts summed into d_total and deducted from expected drawer balance. Required checkboxes carry no source account or settlement identity.",
+      "fragments": [
+        {
+          "offset_utf16": 33080,
+          "text": "d.d_total=s([\"d_bkash\",\"d_nagad\",\"d_card\",\"d_bank\",\"d_other\"].map(e=>o[e]));const g=(n(o.open_counted)?r(o.open_counted):null===l?0:l)+w-d.d_total+r(o.dues)+r(o"
+        }
+      ],
+      "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
+      "target_authority": "PROPOSED; canonical enforcement unverified"
+    },
+    "adjustments": {
+      "behavior": "Add dues and new_adv; subtract prior_adv; add signed rounding. No R-01 transaction identity or adjustment cap is evidenced.",
+      "fragments": [
+        {
+          "offset_utf16": 33226,
+          "text": "+r(o.dues)+r(o.new_adv)-r(o.prior_adv)-r(o.refund)-r(o.credit_sales)-r(o.midday_hub)+r(o.rounding),v=e.den(\"cash_count\");if(d.counted_total=v,d.expected=g,v>0){"
+        }
+      ],
+      "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
+      "target_authority": "PROPOSED; canonical enforcement unverified"
+    },
+    "info": {
+      "behavior": "Informational fields; no direct contribution to expected balance. Source does not prove whether the entered sales total is gross or net of these events.",
+      "fragments": [
+        {
+          "offset_utf16": 25485,
+          "text": "d(\"disc_n\",t(\"ডিসকাউন্ট (টি)\",\"Discounts (no.)\")),c(\"disc_amt\",t(\"ডিসকাউন্ট ৳ (তথ্য)\",\"Discount ৳ (info)\")),d(\"cancel_n\",t(\"বাতিল বিক্রয় (টি)\",\"Cancelled sales"
+        }
+      ],
+      "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
+      "target_authority": "PROPOSED; canonical enforcement unverified"
+    },
+    "references": {
+      "behavior": "Each amount is subtracted. Each reference is visible when its corresponding amount parses greater than zero. No req syntax on these references and negative amounts reverse the arithmetic direction.",
+      "fragments": [
+        {
+          "offset_utf16": 33264,
+          "text": "-r(o.refund)-r(o.credit_sales)-r(o.midday_hub)+r(o.rounding),v=e.den(\"cash_count\");if(d.counted_total=v,d.expected=g,v>0){const e=v-g;d.short_over=e,d.so_nonzer"
+        }
+      ],
+      "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
+      "target_authority": "PROPOSED; canonical enforcement unverified"
+    },
+    "cash": {
+      "behavior": "Expected starts with counted opening cash, else configured drawer_float, else 0. Add total, dues, advances and signed rounding; subtract digital, allocated advances, refunds, credit sales and midday transfers. Count from den(); short/over and reason only arise for count > 0 and reason only for nonzero difference. Red without tolerance or beyond it; yellow within inclusive tolerance.",
+      "fragments": [
+        {
+          "offset_utf16": 33156,
+          "text": "const g=(n(o.open_counted)?r(o.open_counted):null===l?0:l)+w-d.d_total+r(o.dues)+r(o.new_adv)-r(o.prior_adv)-r(o.refund)-r(o.credit_sales)-r(o.midday_hub)+r(o.r"
+        }
+      ],
+      "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
+      "target_authority": "PROPOSED; canonical enforcement unverified"
+    },
+    "witness": {
+      "behavior": "Witness show/req is !pin. Count required syntactically. Red second_count_mismatch only when first count > 0 and second entered differs. Red witness_is_maker when selected witness matches e.me.",
+      "fragments": [
+        {
+          "offset_utf16": 33659,
+          "text": "n(o.second_count)&&v>0&&r(o.second_count)!==v&&a.push(x(\"second_count_mismatch\",\"red\",\"সাক্ষীর গণনা প্রথম গণনার সমান নয়\",\"Witness count differs from the first "
+        }
+      ],
+      "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
+      "target_authority": "PROPOSED; canonical enforcement unverified"
+    },
+    "hub": {
+      "behavior": "Deposit = count minus leave_float, including zero count; fixed float mismatch yellow. No direct constraint here for negative deposit or linking the handoff metadata to an accepted receipt.",
+      "fragments": [
+        {
+          "offset_utf16": 33986,
+          "text": "d.hub_deposit=v-r(o.leave_float),n(o.leave_float)&&null!==l&&r(o.leave_float)!==l&&a.push(x(\"float_left_diff\",\"yellow\",\"রেখে যাওয়া খুচরা নির্ধারিত খুচরার সমান "
+        }
+      ],
+      "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
+      "target_authority": "PROPOSED; canonical enforcement unverified"
+    },
+    "stock": {
+      "behavior": "Fixed stock rows by category. kept is free text and exp_qty is not consumed by the R-01 calculator. Sum exp_amt over stock rows; positive total emits yellow expired_loss. Quantity, expiration date and loss value are not correlated by this rule.",
+      "fragments": [
+        {
+          "offset_utf16": 34412,
+          "text": "const S=s(C.map(e=>e.exp_amt));return S>0&&a.push(x(\"expired_loss\",\"yellow\",\"মেয়াদ শেষ পণ্যের ক্ষতি\",\"Loss on expired goods\",S)),o.second_sig&&o.second_sig===e"
+        }
+      ],
+      "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
+      "target_authority": "PROPOSED; canonical enforcement unverified"
+    }
+  },
+  "warning_map": {
+    "cat_total_mismatch": "red",
+    "goods_money_gap": "yellow or red",
+    "cash_short_over": "yellow or red",
+    "second_count_mismatch": "red",
+    "witness_is_maker": "red",
+    "float_left_diff": "yellow",
+    "expired_loss": "yellow"
+  },
+  "fields": [
+    {
+      "source_id": "R-01:board_recon",
+      "data_origin": "Sales order book, delivery events and Money customer-advance allocations; board reconciliation and removal are human attestations. Preserve order IDs and pending balances before board clearance.",
+      "rule_group": "order",
+      "issue_id": "A001-F001",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 23385,
+        "literal": "u(\"board_recon\",t(\"বোর্ড ও অর্ডার ফরমের বইয়ের রিকনসিলিয়েশন\",\"Board and order book reconciled\"))",
+        "constructor_alias": "u",
+        "label_bn": "বোর্ড ও অর্ডার ফরমের বইয়ের রিকনসিলিয়েশন",
+        "label_en": "Board and order book reconciled"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:board_cleared",
+      "data_origin": "Sales order book, delivery events and Money customer-advance allocations; board reconciliation and removal are human attestations. Preserve order IDs and pending balances before board clearance.",
+      "rule_group": "order",
+      "issue_id": "A001-F001",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 23483,
+        "literal": "u(\"board_cleared\",t(\"আজকের সব অর্ডার বোর্ড থেকে মোছা\",\"Today's orders wiped from the board\"))",
+        "constructor_alias": "u",
+        "label_bn": "আজকের সব অর্ডার বোর্ড থেকে মোছা",
+        "label_en": "Today's orders wiped from the board"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:delivery_orders",
+      "data_origin": "Sales order book, delivery events and Money customer-advance allocations; board reconciliation and removal are human attestations. Preserve order IDs and pending balances before board clearance.",
+      "rule_group": "order",
+      "issue_id": "A001-F001",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 23577,
+        "literal": "a(\"delivery_orders\",t(\"আজ ডেলিভারি — অর্ডার নং\",\"Delivered today — order nos.\"))",
+        "constructor_alias": "a",
+        "label_bn": "আজ ডেলিভারি — অর্ডার নং",
+        "label_en": "Delivered today — order nos."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:prior_adv_ok",
+      "data_origin": "Sales order book, delivery events and Money customer-advance allocations; board reconciliation and removal are human attestations. Preserve order IDs and pending balances before board clearance.",
+      "rule_group": "order",
+      "issue_id": "A001-F001",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 23658,
+        "literal": "u(\"prior_adv_ok\",t(\"(−) আগে নেওয়া অ্যাডভান্স সমন্বয় = ওই অর্ডারগুলোর অ্যাডভান্সের যোগ\",\"Prior advance adjusted = sum of those orders' advances\"))",
+        "constructor_alias": "u",
+        "label_bn": "(−) আগে নেওয়া অ্যাডভান্স সমন্বয় = ওই অর্ডারগুলোর অ্যাডভান্সের যোগ",
+        "label_en": "Prior advance adjusted = sum of those orders' advances"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:total_entered",
+      "data_origin": "Sales posted invoice and POS category projection by site and shift.",
+      "rule_group": "category",
+      "issue_id": "A001-F002",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 23951,
+        "literal": "c(\"total_entered\",t(\"মোট বিক্রয় (বই / মেশিনের মোট)\",\"Total sales (book / machine total)\"),{req:!0})",
+        "constructor_alias": "c",
+        "label_bn": "মোট বিক্রয় (বই / মেশিনের মোট)",
+        "label_en": "Total sales (book / machine total)"
+      },
+      "type": "M",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:cat_sum",
+      "data_origin": "Sales posted invoice and POS category projection by site and shift.",
+      "rule_group": "category",
+      "issue_id": "A001-F002",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24052,
+        "literal": "g(\"cat_sum\",t(\"ক্যাটাগরির যোগফল\",\"Category total\"),\"money\")",
+        "constructor_alias": "g",
+        "label_bn": "ক্যাটাগরির যোগফল",
+        "label_en": "Category total"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:cat_match",
+      "data_origin": "Sales posted invoice and POS category projection by site and shift.",
+      "rule_group": "category",
+      "issue_id": "A001-F002",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24112,
+        "literal": "g(\"cat_match\",t(\"যোগফল = মোট বিক্রয়?\",\"Category total = total sales?\"),\"text\")",
+        "constructor_alias": "g",
+        "label_bn": "যোগফল = মোট বিক্রয়?",
+        "label_en": "Category total = total sales?"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:online_sales",
+      "data_origin": "Sales channel breakdown from posted invoices.",
+      "rule_group": "online",
+      "issue_id": "A001-F003",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24192,
+        "literal": "c(\"online_sales\",t(\"এর মধ্যে অনলাইন\",\"of which online\"))",
+        "constructor_alias": "c",
+        "label_bn": "এর মধ্যে অনলাইন",
+        "label_en": "of which online"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:party_cash",
+      "data_origin": "Sales wholesale invoices and Stock sale issues joined to the effective price list, scoped to business/site. Gross sales less party_cash gives retail.",
+      "rule_group": "goods",
+      "issue_id": "A001-F004",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24249,
+        "literal": "c(\"party_cash\",t(\"পার্টি ও পাইকারি ক্যাশ\",\"Party & wholesale cash\"))",
+        "constructor_alias": "c",
+        "label_bn": "পার্টি ও পাইকারি ক্যাশ",
+        "label_en": "Party & wholesale cash"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:party_invoice",
+      "data_origin": "Sales wholesale invoices and Stock sale issues joined to the effective price list, scoped to business/site. Gross sales less party_cash gives retail.",
+      "rule_group": "goods",
+      "issue_id": "A001-F004",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24318,
+        "literal": "a(\"party_invoice\",t(\"ইনভয়েস নং\",\"Invoice no.\"))",
+        "constructor_alias": "a",
+        "label_bn": "ইনভয়েস নং",
+        "label_en": "Invoice no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:goods_based",
+      "data_origin": "Sales wholesale invoices and Stock sale issues joined to the effective price list, scoped to business/site. Gross sales less party_cash gives retail.",
+      "rule_group": "goods",
+      "issue_id": "A001-F004",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24367,
+        "literal": "c(\"goods_based\",t(\"মালামাল থেকে হিসাবের খুচরা বিক্রি (স্টক লেজারের আজকের বিক্রি × মূল্য তালিকা, পার্টি বাদ)\",\"Retail sales worked out from goods (stock ledger × price list, minus party)\"))",
+        "constructor_alias": "c",
+        "label_bn": "মালামাল থেকে হিসাবের খুচরা বিক্রি (স্টক লেজারের আজকের বিক্রি × মূল্য তালিকা, পার্টি বাদ)",
+        "label_en": "Retail sales worked out from goods (stock ledger × price list, minus party)"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:retail",
+      "data_origin": "Sales wholesale invoices and Stock sale issues joined to the effective price list, scoped to business/site. Gross sales less party_cash gives retail.",
+      "rule_group": "goods",
+      "issue_id": "A001-F004",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24556,
+        "literal": "g(\"retail\",t(\"খুচরা বিক্রয় (মোট − পার্টি ও পাইকারি)\",\"Retail sales (total − party & wholesale)\"),\"money\")",
+        "constructor_alias": "g",
+        "label_bn": "খুচরা বিক্রয় (মোট − পার্টি ও পাইকারি)",
+        "label_en": "Retail sales (total − party & wholesale)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:gm_text",
+      "data_origin": "Sales wholesale invoices and Stock sale issues joined to the effective price list, scoped to business/site. Gross sales less party_cash gives retail.",
+      "rule_group": "goods",
+      "issue_id": "A001-F004",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24663,
+        "literal": "g(\"gm_text\",t(\"মালামাল বনাম টাকা\",\"Goods vs money\"),\"text\",{show:e=>n(e.d.goods_based)})",
+        "constructor_alias": "g",
+        "label_bn": "মালামাল বনাম টাকা",
+        "label_en": "Goods vs money"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>n(e.d.goods_based)",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:d_bkash",
+      "data_origin": "Money payment settlement by verified merchant account and tender; keep independent attestations for device and personal-account checks.",
+      "rule_group": "digital",
+      "issue_id": "A001-F005",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24752,
+        "literal": "c(\"d_bkash\",t(\"ডিজিটাল — বিকাশ\",\"Digital — bKash\"))",
+        "constructor_alias": "c",
+        "label_bn": "ডিজিটাল — বিকাশ",
+        "label_en": "Digital — bKash"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:d_nagad",
+      "data_origin": "Money payment settlement by verified merchant account and tender; keep independent attestations for device and personal-account checks.",
+      "rule_group": "digital",
+      "issue_id": "A001-F005",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24804,
+        "literal": "c(\"d_nagad\",t(\"ডিজিটাল — নগদ (Nagad)\",\"Digital — Nagad\"))",
+        "constructor_alias": "c",
+        "label_bn": "ডিজিটাল — নগদ (Nagad)",
+        "label_en": "Digital — Nagad"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:d_card",
+      "data_origin": "Money payment settlement by verified merchant account and tender; keep independent attestations for device and personal-account checks.",
+      "rule_group": "digital",
+      "issue_id": "A001-F005",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24862,
+        "literal": "c(\"d_card\",t(\"ডিজিটাল — কার্ড\",\"Digital — card\"))",
+        "constructor_alias": "c",
+        "label_bn": "ডিজিটাল — কার্ড",
+        "label_en": "Digital — card"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:d_bank",
+      "data_origin": "Money payment settlement by verified merchant account and tender; keep independent attestations for device and personal-account checks.",
+      "rule_group": "digital",
+      "issue_id": "A001-F005",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24912,
+        "literal": "c(\"d_bank\",t(\"ডিজিটাল — ব্যাংক\",\"Digital — bank\"))",
+        "constructor_alias": "c",
+        "label_bn": "ডিজিটাল — ব্যাংক",
+        "label_en": "Digital — bank"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:d_other",
+      "data_origin": "Money payment settlement by verified merchant account and tender; keep independent attestations for device and personal-account checks.",
+      "rule_group": "digital",
+      "issue_id": "A001-F005",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 24963,
+        "literal": "c(\"d_other\",t(\"ডিজিটাল — অন্য\",\"Digital — other\"))",
+        "constructor_alias": "c",
+        "label_bn": "ডিজিটাল — অন্য",
+        "label_en": "Digital — other"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:d_total",
+      "data_origin": "Money payment settlement by verified merchant account and tender; keep independent attestations for device and personal-account checks.",
+      "rule_group": "digital",
+      "issue_id": "A001-F005",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25014,
+        "literal": "g(\"d_total\",t(\"মোট ডিজিটাল\",\"Total digital\"),\"money\")",
+        "constructor_alias": "g",
+        "label_bn": "মোট ডিজিটাল",
+        "label_en": "Total digital"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:d_phone",
+      "data_origin": "Money payment settlement by verified merchant account and tender; keep independent attestations for device and personal-account checks.",
+      "rule_group": "digital",
+      "issue_id": "A001-F005",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25068,
+        "literal": "u(\"d_phone\",t(\"ব্যবসার ফোন / মেশিনে দেখা হয়েছে\",\"Checked on the business phone / machine\"),{req:!0})",
+        "constructor_alias": "u",
+        "label_bn": "ব্যবসার ফোন / মেশিনে দেখা হয়েছে",
+        "label_en": "Checked on the business phone / machine"
+      },
+      "type": "CK",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:d_nopersonal",
+      "data_origin": "Money payment settlement by verified merchant account and tender; keep independent attestations for device and personal-account checks.",
+      "rule_group": "digital",
+      "issue_id": "A001-F005",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25170,
+        "literal": "u(\"d_nopersonal\",t(\"ব্যক্তিগত নম্বরে কোনো লেনদেন হয়নি\",\"No transaction on a personal number\"),{req:!0})",
+        "constructor_alias": "u",
+        "label_bn": "ব্যক্তিগত নম্বরে কোনো লেনদেন হয়নি",
+        "label_en": "No transaction on a personal number"
+      },
+      "type": "CK",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:dues",
+      "data_origin": "Money receipts, customer advance liability entries and audited signed rounding adjustment.",
+      "rule_group": "adjustments",
+      "issue_id": "A001-F006",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25275,
+        "literal": "c(\"dues\",t(\"পূর্বের বকেয়া আদায়\",\"Earlier dues collected\"))",
+        "constructor_alias": "c",
+        "label_bn": "পূর্বের বকেয়া আদায়",
+        "label_en": "Earlier dues collected"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:new_adv",
+      "data_origin": "Money receipts, customer advance liability entries and audited signed rounding adjustment.",
+      "rule_group": "adjustments",
+      "issue_id": "A001-F006",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25336,
+        "literal": "c(\"new_adv\",t(\"নতুন অর্ডারের অ্যাডভান্স\",\"Advance on new orders\"))",
+        "constructor_alias": "c",
+        "label_bn": "নতুন অর্ডারের অ্যাডভান্স",
+        "label_en": "Advance on new orders"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:prior_adv",
+      "data_origin": "Money receipts, customer advance liability entries and audited signed rounding adjustment.",
+      "rule_group": "adjustments",
+      "issue_id": "A001-F006",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25403,
+        "literal": "c(\"prior_adv\",t(\"(−) পূর্বের অ্যাডভান্স সমন্বয়\",\"(−) Earlier advance adjusted\"))",
+        "constructor_alias": "c",
+        "label_bn": "(−) পূর্বের অ্যাডভান্স সমন্বয়",
+        "label_en": "(−) Earlier advance adjusted"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:disc_n",
+      "data_origin": "Sales discount and cancellation events and related approval audit entries.",
+      "rule_group": "info",
+      "issue_id": "A001-F007",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25485,
+        "literal": "d(\"disc_n\",t(\"ডিসকাউন্ট (টি)\",\"Discounts (no.)\"))",
+        "constructor_alias": "d",
+        "label_bn": "ডিসকাউন্ট (টি)",
+        "label_en": "Discounts (no.)"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:disc_amt",
+      "data_origin": "Sales discount and cancellation events and related approval audit entries.",
+      "rule_group": "info",
+      "issue_id": "A001-F007",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25535,
+        "literal": "c(\"disc_amt\",t(\"ডিসকাউন্ট ৳ (তথ্য)\",\"Discount ৳ (info)\"))",
+        "constructor_alias": "c",
+        "label_bn": "ডিসকাউন্ট ৳ (তথ্য)",
+        "label_en": "Discount ৳ (info)"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:cancel_n",
+      "data_origin": "Sales discount and cancellation events and related approval audit entries.",
+      "rule_group": "info",
+      "issue_id": "A001-F007",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25593,
+        "literal": "d(\"cancel_n\",t(\"বাতিল বিক্রয় (টি)\",\"Cancelled sales (no.)\"))",
+        "constructor_alias": "d",
+        "label_bn": "বাতিল বিক্রয় (টি)",
+        "label_en": "Cancelled sales (no.)"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:refund",
+      "data_origin": "Money linked refund/transfer vouchers and Sales credit memo or invoice with AR ledger reference; custody handoff for hub transfer.",
+      "rule_group": "references",
+      "issue_id": "A001-F008",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25655,
+        "literal": "c(\"refund\",t(\"(−) রিফান্ড\",\"(−) Refund\"))",
+        "constructor_alias": "c",
+        "label_bn": "(−) রিফান্ড",
+        "label_en": "(−) Refund"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:refund_ref",
+      "data_origin": "Money linked refund/transfer vouchers and Sales credit memo or invoice with AR ledger reference; custody handoff for hub transfer.",
+      "rule_group": "references",
+      "issue_id": "A001-F008",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25697,
+        "literal": "a(\"refund_ref\",t(\"রিটার্ন ও অভিযোগ রেজিস্টার নং\",\"Return & complaint register no.\"),{show:e=>r(e.d.refund)>0})",
+        "constructor_alias": "a",
+        "label_bn": "রিটার্ন ও অভিযোগ রেজিস্টার নং",
+        "label_en": "Return & complaint register no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>r(e.d.refund)>0",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:credit_sales",
+      "data_origin": "Money linked refund/transfer vouchers and Sales credit memo or invoice with AR ledger reference; custody handoff for hub transfer.",
+      "rule_group": "references",
+      "issue_id": "A001-F008",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25808,
+        "literal": "c(\"credit_sales\",t(\"(−) আজ বাকিতে বিক্রি\",\"(−) Sold on credit today\"))",
+        "constructor_alias": "c",
+        "label_bn": "(−) আজ বাকিতে বিক্রি",
+        "label_en": "(−) Sold on credit today"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:credit_memo",
+      "data_origin": "Money linked refund/transfer vouchers and Sales credit memo or invoice with AR ledger reference; custody handoff for hub transfer.",
+      "rule_group": "references",
+      "issue_id": "A001-F008",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25879,
+        "literal": "a(\"credit_memo\",t(\"মেমো নং\",\"Memo no.\"),{show:e=>r(e.d.credit_sales)>0})",
+        "constructor_alias": "a",
+        "label_bn": "মেমো নং",
+        "label_en": "Memo no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>r(e.d.credit_sales)>0",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:midday_hub",
+      "data_origin": "Money linked refund/transfer vouchers and Sales credit memo or invoice with AR ledger reference; custody handoff for hub transfer.",
+      "rule_group": "references",
+      "issue_id": "A001-F008",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 25952,
+        "literal": "c(\"midday_hub\",t(\"(−) দিনের মাঝে হাবে পাঠানো\",\"(−) Sent to the hub during the day\"))",
+        "constructor_alias": "c",
+        "label_bn": "(−) দিনের মাঝে হাবে পাঠানো",
+        "label_en": "(−) Sent to the hub during the day"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:midday_slip",
+      "data_origin": "Money linked refund/transfer vouchers and Sales credit memo or invoice with AR ledger reference; custody handoff for hub transfer.",
+      "rule_group": "references",
+      "issue_id": "A001-F008",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 26037,
+        "literal": "a(\"midday_slip\",t(\"ক্যাশ হ্যান্ডওভার স্লিপ নং\",\"Cash handover slip no.\"),{show:e=>r(e.d.midday_hub)>0})",
+        "constructor_alias": "a",
+        "label_bn": "ক্যাশ হ্যান্ডওভার স্লিপ নং",
+        "label_en": "Cash handover slip no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>r(e.d.midday_hub)>0",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:rounding",
+      "data_origin": "Money receipts, customer advance liability entries and audited signed rounding adjustment.",
+      "rule_group": "adjustments",
+      "issue_id": "A001-F006",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 26141,
+        "literal": "c(\"rounding\",t(\"± রাউন্ডিং\",\"± Rounding\"),{hint:t(\"কম হলে মাইনাস চিহ্ন দিন\",\"Use a minus sign for less\")})",
+        "constructor_alias": "c",
+        "label_bn": "± রাউন্ডিং",
+        "label_en": "± Rounding"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:cash_count",
+      "data_origin": "Denomination count by maker; Finance cash close projection and exception reason; retain scope and evidence per drawer/shift.",
+      "rule_group": "cash",
+      "issue_id": "A001-F009",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 26248,
+        "literal": "f(\"cash_count\",t(\"ক্যাশ নোট ধরে গণনা — আগে গুনুন\",\"Cash counted by notes — count first\"),{req:!0})",
+        "constructor_alias": "f",
+        "label_bn": "ক্যাশ নোট ধরে গণনা — আগে গুনুন",
+        "label_en": "Cash counted by notes — count first"
+      },
+      "type": "DEN",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:counted_total",
+      "data_origin": "Denomination count by maker; Finance cash close projection and exception reason; retain scope and evidence per drawer/shift.",
+      "rule_group": "cash",
+      "issue_id": "A001-F009",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 26347,
+        "literal": "g(\"counted_total\",t(\"গণনায় প্রাপ্ত মোট\",\"Counted total\"),\"money\")",
+        "constructor_alias": "g",
+        "label_bn": "গণনায় প্রাপ্ত মোট",
+        "label_en": "Counted total"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:expected",
+      "data_origin": "Denomination count by maker; Finance cash close projection and exception reason; retain scope and evidence per drawer/shift.",
+      "rule_group": "cash",
+      "issue_id": "A001-F009",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 26414,
+        "literal": "g(\"expected\",t(\"প্রত্যাশিত ড্রয়ার ব্যালেন্স\",\"Expected drawer balance\"),\"money\",{show:e=>!e.cf||e.den(\"cash_count\")>0})",
+        "constructor_alias": "g",
+        "label_bn": "প্রত্যাশিত ড্রয়ার ব্যালেন্স",
+        "label_en": "Expected drawer balance"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>!e.cf||e.den(\"cash_count\")>0",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:short_over",
+      "data_origin": "Denomination count by maker; Finance cash close projection and exception reason; retain scope and evidence per drawer/shift.",
+      "rule_group": "cash",
+      "issue_id": "A001-F009",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 26535,
+        "literal": "g(\"short_over\",t(\"কম / বেশি (গণনা − প্রত্যাশিত)\",\"Short / over (count − expected)\"),\"money\",{big:!0,show:e=>!e.cf||e.den(\"cash_count\")>0})",
+        "constructor_alias": "g",
+        "label_bn": "কম / বেশি (গণনা − প্রত্যাশিত)",
+        "label_en": "Short / over (count − expected)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>!e.cf||e.den(\"cash_count\")>0",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:so_reason",
+      "data_origin": "Denomination count by maker; Finance cash close projection and exception reason; retain scope and evidence per drawer/shift.",
+      "rule_group": "cash",
+      "issue_id": "A001-F009",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 26674,
+        "literal": "i(\"so_reason\",t(\"কম/বেশির কারণ (শূন্য হলেও যাচাই)\",\"Reason for short/over\"),{show:e=>e.v.so_nonzero,req:e=>e.v.so_nonzero})",
+        "constructor_alias": "i",
+        "label_bn": "কম/বেশির কারণ (শূন্য হলেও যাচাই)",
+        "label_en": "Reason for short/over"
+      },
+      "type": "TA",
+      "requirements": "e=>e.v.so_nonzero",
+      "visibility": "e=>e.v.so_nonzero",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:witness",
+      "data_origin": "Independent authenticated count event and actor reference within the scoped drawer/site.",
+      "rule_group": "witness",
+      "issue_id": "A001-F010",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 26798,
+        "literal": "m(\"witness\",t(\"দ্বিতীয়বার গণনা — সাক্ষী\",\"Second count — witness\"),{req:e=>!e.pin,show:e=>!e.pin})",
+        "constructor_alias": "m",
+        "label_bn": "দ্বিতীয়বার গণনা — সাক্ষী",
+        "label_en": "Second count — witness"
+      },
+      "type": "ST",
+      "requirements": "e=>!e.pin",
+      "visibility": "e=>!e.pin",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Legacy staff picker; exact runtime roster unverified"
+    },
+    {
+      "source_id": "R-01:second_count",
+      "data_origin": "Independent authenticated count event and actor reference within the scoped drawer/site.",
+      "rule_group": "witness",
+      "issue_id": "A001-F010",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 26898,
+        "literal": "c(\"second_count\",t(\"সাক্ষীর গণনায় প্রাপ্ত\",\"Witness's counted total\"),{req:!0})",
+        "constructor_alias": "c",
+        "label_bn": "সাক্ষীর গণনায় প্রাপ্ত",
+        "label_en": "Witness's counted total"
+      },
+      "type": "M",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:leave_float",
+      "data_origin": "Money custody transfer event with sender, carrier, receiver, immutable voucher serial and balanced ledger posting.",
+      "rule_group": "hub",
+      "issue_id": "A001-F011",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 26979,
+        "literal": "c(\"leave_float\",t(\"পরদিনের জন্য রেখে যাওয়া খুচরা\",\"Float left for tomorrow\"),{req:!0})",
+        "constructor_alias": "c",
+        "label_bn": "পরদিনের জন্য রেখে যাওয়া খুচরা",
+        "label_en": "Float left for tomorrow"
+      },
+      "type": "M",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:hub_deposit",
+      "data_origin": "Money custody transfer event with sender, carrier, receiver, immutable voucher serial and balanced ledger posting.",
+      "rule_group": "hub",
+      "issue_id": "A001-F011",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 27067,
+        "literal": "g(\"hub_deposit\",t(\"হাবে জমা = গণনায় প্রাপ্ত − রেখে যাওয়া\",\"Hub deposit = counted − float left\"),\"money\",{big:!0})",
+        "constructor_alias": "g",
+        "label_bn": "হাবে জমা = গণনায় প্রাপ্ত − রেখে যাওয়া",
+        "label_en": "Hub deposit = counted − float left"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:slip_no",
+      "data_origin": "Money custody transfer event with sender, carrier, receiver, immutable voucher serial and balanced ledger posting.",
+      "rule_group": "hub",
+      "issue_id": "A001-F011",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 27183,
+        "literal": "a(\"slip_no\",t(\"ক্যাশ হ্যান্ডওভার স্লিপ নং\",\"Cash handover slip no.\"))",
+        "constructor_alias": "a",
+        "label_bn": "ক্যাশ হ্যান্ডওভার স্লিপ নং",
+        "label_en": "Cash handover slip no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:counterfoil",
+      "data_origin": "Money custody transfer event with sender, carrier, receiver, immutable voucher serial and balanced ledger posting.",
+      "rule_group": "hub",
+      "issue_id": "A001-F011",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 27253,
+        "literal": "u(\"counterfoil\",t(\"কাউন্টারফয়েল বইয়ে আছে\",\"Counterfoil is in the book\"))",
+        "constructor_alias": "u",
+        "label_bn": "কাউন্টারফয়েল বইয়ে আছে",
+        "label_en": "Counterfoil is in the book"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:carrier",
+      "data_origin": "Money custody transfer event with sender, carrier, receiver, immutable voucher serial and balanced ledger posting.",
+      "rule_group": "hub",
+      "issue_id": "A001-F011",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 27328,
+        "literal": "a(\"carrier\",t(\"বহনকারী\",\"Carrier\"))",
+        "constructor_alias": "a",
+        "label_bn": "বহনকারী",
+        "label_en": "Carrier"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:carry_time",
+      "data_origin": "Money custody transfer event with sender, carrier, receiver, immutable voucher serial and balanced ledger posting.",
+      "rule_group": "hub",
+      "issue_id": "A001-F011",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 27364,
+        "literal": "l(\"carry_time\",t(\"সময়\",\"Time\"))",
+        "constructor_alias": "l",
+        "label_bn": "সময়",
+        "label_en": "Time"
+      },
+      "type": "TM",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:kept",
+      "data_origin": "Stock lot/expiry and quarantine events with item/UOM, cost basis and checker; use Finance valuation for loss evidence.",
+      "rule_group": "stock",
+      "issue_id": "A001-F012",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 27484,
+        "literal": "a(\"kept\",t(\"পরদিনের জন্য রাখা (পরিমাণ · রং)\",\"Kept for tomorrow (qty · colour)\"))",
+        "constructor_alias": "a",
+        "label_bn": "পরদিনের জন্য রাখা (পরিমাণ · রং)",
+        "label_en": "Kept for tomorrow (qty · colour)"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "stock: Sweets / Cake / Jalebi-curd / Bakery-other",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:exp_qty",
+      "data_origin": "Stock lot/expiry and quarantine events with item/UOM, cost basis and checker; use Finance valuation for loss evidence.",
+      "rule_group": "stock",
+      "issue_id": "A001-F012",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 27566,
+        "literal": "d(\"exp_qty\",t(\"মেয়াদ শেষ / প্রায় শেষ — পরিমাণ\",\"Expired / near expiry — qty\"))",
+        "constructor_alias": "d",
+        "label_bn": "মেয়াদ শেষ / প্রায় শেষ — পরিমাণ",
+        "label_en": "Expired / near expiry — qty"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "stock: Sweets / Cake / Jalebi-curd / Bakery-other",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    },
+    {
+      "source_id": "R-01:exp_amt",
+      "data_origin": "Stock lot/expiry and quarantine events with item/UOM, cost basis and checker; use Finance valuation for loss evidence.",
+      "rule_group": "stock",
+      "issue_id": "A001-F012",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED for constructor and quoted expressions; runtime and canonical enforcement unverified",
+      "evidence": {
+        "offset_utf16": 27647,
+        "literal": "c(\"exp_amt\",t(\"— মূল্য\",\"— value\"))",
+        "constructor_alias": "c",
+        "label_bn": "— মূল্য",
+        "label_en": "— value"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "stock: Sweets / Cake / Jalebi-curd / Bakery-other",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED"
+    }
+  ]
+}
