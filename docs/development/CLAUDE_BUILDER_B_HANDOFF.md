@@ -434,3 +434,29 @@ Local results at `bcc9bbdf` (PG17.12 disposable cluster, one fresh cluster per w
 | core10-file-classification-ci / classification (after the classification fix) | 3 node tests PASS (3/3, 1/1, 1/1) |
 | after second trunk sync `3087de93` (trunk @ `2e06b753`, B-040 signed shell context; no conflict): core10-central-shell-import-ci 10/10, core10-file-classification-ci 4/4, core10-legacy-quarantine-ci 11/11 PASS (Chromium install skipped) | PASS |
 GitHub CI: see PR #123 checks for the pushed head.
+
+### Checkpoint 7 — Owner decision: PO approval currency BDT (0210)
+Owner decision 2026-11-23 (typed by the Owner in chat): the currency for purchase-order approval thresholds is **BDT**.
+This closes the open item "PO approval threshold currency" above (0206/0207 notes on `currency_total`).
+- Code commit `514d2f5176b565d2391a50ef07e5448ba0094558` on `build/claude-np03a-stock` (Draft PR #123), NOT hosted.
+- `internal/migrations/0210_np03a_po_approval_bdt.up.sql`: CREATE OR REPLACE `_proc_po_approval_payload_v1` →
+  `unit` = `'BDT'`, `amount` = `total_amount::numeric(20,2)` (JSON number, ≤ 2 decimals). Request and approve gate both
+  rebuild through this one builder, so submission and verification payloads are identical. `procurement_request_po_approval_v1`
+  = 0206 body except an earlier request blocks a new one only when its payload digest equals the current payload.
+  0206 (hosted) is unchanged; 0207 `procurement_advance_po_v1` and the 0206 gate are not redefined (they call the builder).
+- Pre-0210 requests (unit `currency_total`) fail closed: approve → `approval_stale_or_payload_changed`; the PO stays a
+  draft; the maker requests again and the fresh BDT request goes through threshold/route/stage checks. Proven on a real
+  upgrade path (0209 DB with genuine 0206 approved + pending requests → apply 0210 → stale approve refused, both POs
+  re-requested, re-approved). Down restores the exact 0206 bodies (BDT requests then fail closed the same way).
+- GOV-002 rules are unchanged: amount < minimum → `approval_threshold_not_met`; a threshold with fewer decimals than the
+  total → `approval_threshold_precision_invalid`; non-BDT unit (e.g. USD, KG) → `approval_threshold_unit_or_amount_invalid`;
+  `currency_total` cannot be configured at all (`invalid_approval_threshold`). Threshold must be set on a new policy version
+  before any request uses it (`approval_threshold_policy_in_use`).
+- Test `tests/migrations/np03a-po-approval-bdt-e2e.sql` (tenants 2001/2002) + CI step after the 0209 step; it fails without 0210.
+- Local PG17.12: core10-b010-control-port-ci 35/35 PASS (Chromium install skipped, preinstalled); throwaway merge with trunk
+  `origin/ccr-15ed11dd-n3hw5h` @ `7b82b9d7` (clean, doc-only trunk delta, deleted after): b010 31/31 SQL+node PASS (browser
+  steps skipped there), s0 2/2, s1c 6/6, np01-s1c 17/17, np06 16/16, np05a 15/15 non-browser, legacy quarantine 13/13 PASS.
+  np06-crosslane and np01-bootstrap-release-gate NOT RUN locally (matrix / service DB harness; not triggered by PR #123).
+- GitHub CI on `514d2f51`: 10/10 SUCCESS (b010, s0, s1c, np06, np05a, A044, A045, browser smoke, §7b classification, §7c quarantine).
+- Not done: no business/PO currency column (single fixed BDT by Owner decision; multi-currency needs a new Owner decision);
+  staging apply of 0207–0210 needs Owner GO-2.
