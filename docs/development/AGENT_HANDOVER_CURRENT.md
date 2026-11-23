@@ -280,3 +280,8 @@ Trunk head cb4cbe0 had 6 failing checks, all from tests still reading legacy fil
 - `Combined schema / assets` and `Combined schema / intent` — inspect logs (A055 assets / D049 intent browser
   journeys load legacy root assets); same fix pattern.
 Rule: change paths/packaging only; never delete or relax an assertion. Run each failing step locally, then push.
+- 2026-11-23 agent=Claude: Owner GO "live করো". Built from trunk `2e06b75` `apps/central/build.mjs` (worker sha256 2cfc7865…);
+  local verify 56/56 + legacy-guard, legacy-move-integrity, shell-provenance, mobile-nav, signed-context PASS. Deployed Worker
+  `core10-central` deployment `9aadd95c-a8af-4f90-956c-ccc76deaae5a` / version `1a99371f-2cf2-4546-bc18-321f76224a7e` (100%);
+  public verify 56/56 PASS. Rollback: version `65f60417-5b76-4524-830a-c74018b7ff58` (prior live, source bytes backed up).
+  Live now includes §7b.4 mobile bottom nav + Group▸Business▸Site signed context (#140, #142). No staging/DB change.
