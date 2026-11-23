@@ -33,7 +33,11 @@ test('only the eleven actual owned C02/R01 field IDs are marked with these local
  for(const id of selected){
   const row=fields.fields.find(x=>x.source_id===id);
   assert.ok(row,id);assert.equal(theirs.has(id),false,id);
-  assert.match(row.local_nonposting_correction,/C02|R01/);
+  // R-01:advance_taken retains its earlier independent source-custody gate.
+  // The new cashbook review consumes that evidence without changing its owner proof.
+  if(id==='R-01:advance_taken')
+   assert.match(row.local_nonposting_correction,/SYNTHETIC_SOURCE_CUSTODY_AND_ORDER/);
+  else assert.match(row.local_nonposting_correction,/C02|R01/);
   assert.equal(row.signed_tested,false);
   assert.equal(row.canonical_runtime_integrated,false);
   assert.equal(row.owner_accepted,false);
