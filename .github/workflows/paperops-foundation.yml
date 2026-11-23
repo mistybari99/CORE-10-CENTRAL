@@ -25,6 +25,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify frozen-source SHA and bridge only the old test path in ephemeral CI checkout
+        run: |
+          node -e "require('./modules/paperops/field-review/chatgpt-246/source-helper-conditions.cjs').verifyEvidence()"
+          if [ ! -f legacy/islamia-erp/forms.js ]; then
+            test "$(git hash-object forms.js)" = "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d"
+            mkdir -p legacy/islamia-erp
+            ln -s ../../forms.js legacy/islamia-erp/forms.js
+          fi
       - name: Reproduce all legacy form rule candidates without executing frozen code
         run: node modules/paperops/legacy-rule-extractor.cjs --check
       - name: Verify all 1246 original fields have preserved cadence and unapproved mapping status
