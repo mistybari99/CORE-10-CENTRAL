@@ -113,6 +113,12 @@ test('R01 external refund/deposit/reversal are integrity-reviewed but NOT Codex-
    originalAdvanceRef:'DEMO-ADV-1',dayRef:v.day.dayRef,cashbookRef:v.day.cashbookRef,
    amountBDT:'51',accountId:'DEMO-SALES-DRAWER',evidenceRef:'DEMO-X',
    makerActor:'DEMO-M1',checkerActor:'DEMO-M2'}));}),/REFUND_EXCEEDS_ORIGINAL_ADVANCE/);
+ assert.throws(()=>edit(v=>{addAdvance(v);
+  v.sourceMoneyEvents.push(at({kind:'CUSTOMER_REFUND',sourceRef:'DEMO-CROSS-ACCOUNT-REF',
+   originalAdvanceRef:'DEMO-ADV-1',dayRef:v.day.dayRef,cashbookRef:v.day.cashbookRef,
+   amountBDT:'10',accountId:'DEMO-FOREIGN-ACCOUNT',evidenceRef:'DEMO-REF-PROOF',
+   makerActor:'DEMO-M1',checkerActor:'DEMO-M2'}));}),
+  /REFUND_MONEY_ACCOUNT_DIFFERS_FROM_ADVANCE/);
  const deposit=edit(v=>{v.sourceMoneyEvents.push(at({kind:'BANK_DEPOSIT',sourceRef:'DEMO-DP1',
    destinationAccountRef:'DEMO-BANK-01',dayRef:v.day.dayRef,cashbookRef:v.day.cashbookRef,
    amountBDT:'40',accountId:'DEMO-SALES-DRAWER',evidenceRef:'DEMO-BANK-SLIP',
