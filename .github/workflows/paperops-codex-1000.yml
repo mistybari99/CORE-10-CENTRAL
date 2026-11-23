@@ -1,0 +1,36 @@
+name: PaperOps Codex source audit
+on:
+  pull_request:
+    branches: [build/paperops-foundation-20261122]
+    paths:
+      - 'modules/paperops/field-review/codex-1000/**'
+      - '.github/workflows/paperops-codex-1000.yml'
+permissions:
+  contents: read
+jobs:
+  source-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs
+      - run: node --test modules/paperops/field-review/codex-1000/audit.test.cjs
+  paperops-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node modules/paperops/legacy-rule-extractor.cjs --check
+      - run: node modules/paperops/field-routing.cjs --check
+      - run: node modules/paperops/field-batch-audit.cjs --check
+      - run: node --test modules/paperops/tests/ownership-split-246-1000.test.cjs
+      - run: node --test modules/paperops/tests/*.test.cjs
+      - run: node --test tests/core10-live-legacy-guard.test.js

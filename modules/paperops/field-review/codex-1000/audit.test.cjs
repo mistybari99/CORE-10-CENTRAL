@@ -69,3 +69,38 @@ test('goods reconciliation numeric examples include inclusive OR tolerance', () 
   assert.equal(severity(0, 2, 5, 2), 'yellow');
   assert.equal(severity(0, 2, 5, null), 'red');
 });
+
+test('category reconciliation reports discrepancy only when entered total is present', () => {
+  assert.match(source, /if\(d\.cat_sum=f,n\(o\.total_entered\)\)/);
+  const mismatch = (sum, entered) => entered === undefined ? null : sum - entered;
+  assert.equal(mismatch(100, 100), 0);
+  assert.equal(mismatch(90, 100), -10);
+  assert.equal(mismatch(0, undefined), null);
+});
+test('drawer arithmetic includes all signed terms and excludes informational discounts', () => {
+  assert.match(source, /\+w-d\.d_total\+r\(o\.dues\)\+r\(o\.new_adv\)-r\(o\.prior_adv\)-r\(o\.refund\)-r\(o\.credit_sales\)-r\(o\.midday_hub\)\+r\(o\.rounding\)/);
+  const expected = ({ opening = 0, sales = 0, tenders = [], dues = 0, advance = 0,
+    prior = 0, refund = 0, credit = 0, transfer = 0, rounding = 0 }) =>
+    opening + sales - tenders.reduce((total, amount) => total + amount, 0) +
+    dues + advance - prior - refund - credit - transfer + rounding;
+  assert.equal(expected({ opening: 20, sales: 200, tenders: [10, 20, 30, 40, 50],
+    dues: 10, advance: 20, prior: 5, refund: 5, credit: 7, transfer: 10, rounding: -1 }), 72);
+  assert.equal(expected({ sales: 100, refund: -1 }), 101);
+  assert.equal(expected({}), 0);
+});
+test('deposit calculation preserves negative and zero results in original expression', () => {
+  assert.match(source, /d\.hub_deposit=v-r\(o\.leave_float\)/);
+  const deposit = (count, left) => count - left;
+  assert.deepEqual([[10, 3], [3, 10], [0, 0]].map(args => deposit(...args)), [7, -7, 0]);
+});
+test('second count discrepancy is separate from identity check', () => {
+  assert.match(source, /n\(o\.second_count\)&&v>0&&r\(o\.second_count\)!==v/);
+  assert.match(source, /n\(o\.witness\)&&o\.witness===e\.me/);
+  const mismatch = (first, second) => second !== undefined && first > 0 && second !== first;
+  assert.deepEqual([[40, 40], [40, 39], [0, 1]].map(args => mismatch(...args)), [false, true, false]);
+});
+test('expired loss warning only considers summed amount greater than zero', () => {
+  assert.match(source, /const S=s\(C\.map\(e=>e\.exp_amt\)\);return S>0&&a\.push\(x\("expired_loss","yellow"/);
+  const warning = amounts => amounts.reduce((total, amount) => total + amount, 0) > 0;
+  assert.deepEqual([[4, 2], [-4], [4, -4]].map(warning), [true, false, false]);
+});
