@@ -186,7 +186,7 @@
       "source_id": "C-01:seal_no",
       "lane": "CRITICAL_86",
       "status": "CRITICAL_OBLIGATION_LINKED__OPEN",
-      "source_constructor_proof": null,
+      "source_constructor_proof": "(\"seal_no\",t(\"সিল / ব্যাগ নং\",\"Seal / bag no.\"))",
       "source_condition": "NOT_YET_RECONCILED",
       "source_required": "NOT_YET_RECONCILED",
       "critical_obligation_ids": [
@@ -198,13 +198,19 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "critical_source_declaration_recovered": true,
+      "critical_source_labels": {
+        "bn": "সিল / ব্যাগ নং",
+        "en": "Seal / bag no."
+      },
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:counted_total",
       "lane": "CRITICAL_86",
       "status": "CRITICAL_OBLIGATION_LINKED__OPEN",
-      "source_constructor_proof": null,
+      "source_constructor_proof": "(\"counted_total\",t(\"গণনায় প্রাপ্ত মোট\",\"Counted total\"),\"money\")",
       "source_condition": "NOT_YET_RECONCILED",
       "source_required": "NOT_YET_RECONCILED",
       "critical_obligation_ids": [
@@ -216,13 +222,19 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "critical_source_declaration_recovered": true,
+      "critical_source_labels": {
+        "bn": "গণনায় প্রাপ্ত মোট",
+        "en": "Counted total"
+      },
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:received_total",
       "lane": "CRITICAL_86",
       "status": "CRITICAL_OBLIGATION_LINKED__OPEN",
-      "source_constructor_proof": null,
+      "source_constructor_proof": "(\"received_total\",t(\"হাবে গণনায় প্রাপ্ত\",\"Counted at the hub\"),\"money\",{who:\"checker\"})",
       "source_condition": "NOT_YET_RECONCILED",
       "source_required": "NOT_YET_RECONCILED",
       "critical_obligation_ids": [
@@ -234,13 +246,19 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "critical_source_declaration_recovered": true,
+      "critical_source_labels": {
+        "bn": "হাবে গণনায় প্রাপ্ত",
+        "en": "Counted at the hub"
+      },
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:diff",
       "lane": "CRITICAL_86",
       "status": "CRITICAL_OBLIGATION_LINKED__OPEN",
-      "source_constructor_proof": null,
+      "source_constructor_proof": "(\"diff\",t(\"পার্থক্য\",\"Difference\"),\"money\",{who:\"checker\",big:!0,show:t=>e.num(t.denC(\"rcount\"))>0})",
       "source_condition": "NOT_YET_RECONCILED",
       "source_required": "NOT_YET_RECONCILED",
       "critical_obligation_ids": [
@@ -252,7 +270,13 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "critical_source_declaration_recovered": true,
+      "critical_source_labels": {
+        "bn": "পার্থক্য",
+        "en": "Difference"
+      },
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "W-02:sent",
@@ -348,7 +372,7 @@
       "source_id": "W-03:count",
       "lane": "CRITICAL_86",
       "status": "CRITICAL_OBLIGATION_LINKED__OPEN",
-      "source_constructor_proof": null,
+      "source_constructor_proof": "(\"count\",t(\"গণনায় প্রাপ্ত\",\"Counted\"),{req:!0})",
       "source_condition": "NOT_YET_RECONCILED",
       "source_required": "NOT_YET_RECONCILED",
       "critical_obligation_ids": [
@@ -360,13 +384,19 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "critical_source_declaration_recovered": true,
+      "critical_source_labels": {
+        "bn": "গণনায় প্রাপ্ত",
+        "en": "Counted"
+      },
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "W-03:book",
       "lane": "CRITICAL_86",
       "status": "CRITICAL_OBLIGATION_LINKED__OPEN",
-      "source_constructor_proof": null,
+      "source_constructor_proof": "(\"book\",t(\"লেজারে বাকি (Book)\",\"Book balance (ledger)\"),{req:!0,show:e=>(!e.cf||n(e.row.count))&&!e.sbBook})",
       "source_condition": "NOT_YET_RECONCILED",
       "source_required": "NOT_YET_RECONCILED",
       "critical_obligation_ids": [
@@ -378,13 +408,19 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "critical_source_declaration_recovered": true,
+      "critical_source_labels": {
+        "bn": "লেজারে বাকি (Book)",
+        "en": "Book balance (ledger)"
+      },
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "W-03:var",
       "lane": "CRITICAL_86",
       "status": "CRITICAL_OBLIGATION_LINKED__OPEN",
-      "source_constructor_proof": null,
+      "source_constructor_proof": "(\"var\",t(\"পার্থক্য (গণনা − লেজার)\",\"Variance (count − book)\"),\"num\",{show:e=>n(e.row.count)&&n(e.row.book)})",
       "source_condition": "NOT_YET_RECONCILED",
       "source_required": "NOT_YET_RECONCILED",
       "critical_obligation_ids": [
@@ -396,13 +432,19 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "critical_source_declaration_recovered": true,
+      "critical_source_labels": {
+        "bn": "পার্থক্য (গণনা − লেজার)",
+        "en": "Variance (count − book)"
+      },
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "W-03:reason",
       "lane": "CRITICAL_86",
       "status": "CRITICAL_OBLIGATION_LINKED__OPEN",
-      "source_constructor_proof": null,
+      "source_constructor_proof": "(\"reason\",t(\"কারণ\",\"Reason\"),{wide:!0,req:e=>n(e.row.count)&&n(e.row.book)&&r(e.row.count)!==r(e.row.book)})",
       "source_condition": "NOT_YET_RECONCILED",
       "source_required": "NOT_YET_RECONCILED",
       "critical_obligation_ids": [
@@ -414,13 +456,19 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "critical_source_declaration_recovered": true,
+      "critical_source_labels": {
+        "bn": "কারণ",
+        "en": "Reason"
+      },
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "W-03:witness",
       "lane": "CRITICAL_86",
       "status": "CRITICAL_OBLIGATION_LINKED__OPEN",
-      "source_constructor_proof": null,
+      "source_constructor_proof": "(\"witness\",t(\"সাক্ষী / দ্বিতীয় জন\",\"Witness / second person\"),{req:e=>!e.pin,show:e=>!e.pin})",
       "source_condition": "NOT_YET_RECONCILED",
       "source_required": "NOT_YET_RECONCILED",
       "critical_obligation_ids": [
@@ -432,7 +480,13 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "critical_source_declaration_recovered": true,
+      "critical_source_labels": {
+        "bn": "সাক্ষী / দ্বিতীয় জন",
+        "en": "Witness / second person"
+      },
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "R-01:safety",
@@ -2064,7 +2118,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:carrier",
@@ -2080,7 +2135,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:send_time",
@@ -2096,7 +2152,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:count",
@@ -2114,7 +2171,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:leave_float",
@@ -2130,7 +2188,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:handover",
@@ -2146,7 +2205,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:words",
@@ -2162,7 +2222,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:with_sheet",
@@ -2178,7 +2239,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:vouchers_count",
@@ -2194,7 +2256,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:other_docs",
@@ -2210,7 +2273,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:rcount",
@@ -2228,7 +2292,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:diff_reason",
@@ -2246,7 +2311,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:ledger_date",
@@ -2262,7 +2328,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:ledger_line",
@@ -2278,7 +2345,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:seal_ok",
@@ -2294,7 +2362,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "C-01:copy_returned",
@@ -2310,7 +2379,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "C01_PINNED_CASH_COUNT_CUSTODY_AND_LEDGER_REFERENCE_VALIDATION"
     },
     {
       "source_id": "W-02:ttype",
@@ -3110,7 +3180,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "W-03:end_time",
@@ -3126,7 +3197,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "W-03:counted_by",
@@ -3144,7 +3216,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "W-03:storekeeper",
@@ -3162,7 +3235,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "W-03:kind",
@@ -3178,7 +3252,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "W-03:movement",
@@ -3196,7 +3271,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "W-03:movement_detail",
@@ -3214,7 +3290,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "W-03:item",
@@ -3230,7 +3307,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "W-03:unit",
@@ -3246,7 +3324,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W03_FROZEN_COUNT_MOVEMENT_RECONCILIATION_AND_VARIANCE_REVIEW"
     },
     {
       "source_id": "R-01:day_type",
@@ -4388,6 +4467,19 @@
     "r01_reserved_gate": "modules/paperops/field-review/chatgpt-246/r01-custody-order-source-gate.cjs",
     "field_approved_for_live_use": 0,
     "verified_real_money_postings": 0,
-    "verified_real_stock_postings": 0
-  }
+    "verified_real_stock_postings": 0,
+    "c01_cash_handover": "modules/paperops/field-review/chatgpt-246/c01-cash-custody.cjs",
+    "w03_stock_count": "modules/paperops/field-review/chatgpt-246/w03-stock-count-freeze.cjs"
+  },
+  "additional_critical_declarations_verified": [
+    "C-01:seal_no",
+    "C-01:counted_total",
+    "C-01:received_total",
+    "C-01:diff",
+    "W-03:count",
+    "W-03:book",
+    "W-03:var",
+    "W-03:reason",
+    "W-03:witness"
+  ]
 }
