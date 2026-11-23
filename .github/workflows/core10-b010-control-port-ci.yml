@@ -75,6 +75,8 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-locations-e2e.sql
       - name: "B-012 lots on the one ledger (0209 - lot breakdown of movements, lot balances, FEFO, hold/release, lot commands, genealogy, recall, Owner switches, replay, cross-tenant)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-lots-e2e.sql
+      - name: "B-012 purchase order approval in BDT (0210 - Owner decision 2026-11-23; BDT threshold above/at/below minimum, precision rule, non-BDT unit refused, pre-0210 payload fails closed, cross-tenant)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-po-approval-bdt-e2e.sql
       - name: "B-012 owner multi-business dashboard reads (0204 - figures, drill-down, scope per persona)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-owner-dashboard-e2e.sql
       - name: "B-012 P4 scale: 10 businesses x 400 sites (reads, budgets, RPC writes)"
