@@ -70,7 +70,9 @@ function decide(id,input){
     id==='R-01:open_diff'?'open_counted':'imp_cash';
   const result=oldHelper.oldO(field,d);
   value=result.visible;
-  reason='ORIGINAL_N_AND_O_HELPER_RECOVERED__'+result.why;
+  reason=result.why==='UNKNOWN_COUNT_FIRST'?
+    'OLD_O_HELPER_NOT_PROVEN_FOR_UNGROUNDED_MOCK_INPUT__SOURCE_RECOVERED':
+    'ORIGINAL_N_AND_O_HELPER_RECOVERED__'+result.why;
   // Historical test compatibility only: an externally computed presence hint
   // is NOT equivalent to a raw original field. Prefer sourceData.imp_cash.
   if(id==='R-01:imp_text'&&value===null&&d.cf===true&&
