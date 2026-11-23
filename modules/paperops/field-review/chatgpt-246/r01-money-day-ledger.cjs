@@ -81,6 +81,7 @@ function reconcileDay({scope:s,day,accountProvider,control,opening,sourceVoucher
  const uniqueSource=new Set([day.dayRef,day.cashbookRef,
   control.sourceRef,control.floatControlRef,control.imprestControlRef]);
  const moneyMap=new Map(),voucherMap=new Map(),ledgerRefs=new Set(),events=[];
+ const receiptProofRefs=new Set(),externalMoneyProofRefs=new Set();
  let expense=0n,advances=0n,spend=0n,receipts=openingReceipts;
  function putEvent(e,k,amount,accountId,direction){
   id(e.sourceRef,'SOURCE_EVENT');
@@ -107,6 +108,10 @@ function reconcileDay({scope:s,day,accountProvider,control,opening,sourceVoucher
   if(v.pay_mode!=='cash')flag('R01_NONCASH_C02_REQUIRES_SEPARATE_SIGNED_BOOK');
   if(v.receiptAttached!==true||!v.receiptProofRef||!RE.test(v.receiptProofRef))
    flag('R01_C02_RECEIPT_EVIDENCE_REQUIRED:'+v.voucherRef);
+  else{
+   if(receiptProofRefs.has(v.receiptProofRef))throw Error('R01_REPLAYED_C02_RECEIPT_PROOF');
+   receiptProofRefs.add(v.receiptProofRef);
+  }
   if(!RE.test(v.preparedBy||'')||!RE.test(v.checkedBy||'')||
      v.preparedBy===v.checkedBy)flag('R01_C02_INDEPENDENT_VOUCHER_ACTORS_REQUIRED:'+v.voucherRef);
   expense+=amount;
@@ -121,6 +126,9 @@ function reconcileDay({scope:s,day,accountProvider,control,opening,sourceVoucher
   const amount=cents(e.amountBDT,'MONEY_EVENT_AMOUNT');
   if(amount===0n)throw Error('R01_ZERO_MONEY_EVENT');
   id(e.accountId,'MONEY_ACCOUNT');id(e.evidenceRef,'MONEY_EVENT_EVIDENCE');
+  if(externalMoneyProofRefs.has(e.evidenceRef)||receiptProofRefs.has(e.evidenceRef))
+   throw Error('R01_DUPLICATE_EXTERNAL_MONEY_EVIDENCE');
+  externalMoneyProofRefs.add(e.evidenceRef);
   if(e.dayRef!==day.dayRef||e.cashbookRef!==day.cashbookRef)
    throw Error('R01_EXTERNAL_MONEY_DAILY_REF_MISMATCH');
   if(!RE.test(e.makerActor||'')||!RE.test(e.checkerActor||'')||e.makerActor===e.checkerActor)
