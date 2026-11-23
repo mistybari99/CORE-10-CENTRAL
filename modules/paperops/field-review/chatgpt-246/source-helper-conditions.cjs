@@ -27,6 +27,12 @@ function sourceFile(name){
   }
   throw Error('FROZEN_SOURCE_MISSING:'+name);
 }
+function readFrozen(name){
+  if(!['forms','entry'].includes(name))throw Error('UNAPPROVED_SOURCE_READ:'+name);
+  const bytes=sourceFile(name+'.js');
+  if(gitBlob(bytes)!==PIN[name])throw Error('FROZEN_SOURCE_BLOB_CHANGED:'+name);
+  return bytes.toString('utf8');
+}
 function verifyEvidence(forms=sourceFile('forms.js'),entry=sourceFile('entry.js')){
   const a=Buffer.isBuffer(forms)?forms:Buffer.from(forms);
   const b=Buffer.isBuffer(entry)?entry:Buffer.from(entry);
@@ -55,4 +61,4 @@ function oldO(field,normal){
     return Object.freeze({visible:null,why:'RAW_SOURCE_FIELD_NOT_OBSERVED'});
   return Object.freeze({visible:legacyHas(data[field]),why:'EXACT_PINNED_N_AND_O_HELPERS'});
 }
-module.exports={PIN,EXACT,verifyEvidence,legacyHas,oldO};
+module.exports={PIN,EXACT,readFrozen,verifyEvidence,legacyHas,oldO};
