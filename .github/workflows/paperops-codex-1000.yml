@@ -32,5 +32,26 @@ jobs:
       - run: node modules/paperops/field-routing.cjs --check
       - run: node modules/paperops/field-batch-audit.cjs --check
       - run: node --test modules/paperops/tests/ownership-split-246-1000.test.cjs
+      - name: Provide frozen form path expected by inherited tests
+        shell: bash
+        run: |
+          expected=f2cb1c5e09210496106ace1bf33ddc40d2d6df1d
+          test "$(git hash-object forms.js)" = "$expected"
+          if [ ! -e legacy/islamia-erp/forms.js ]; then
+            mkdir -p legacy/islamia-erp
+            cp forms.js legacy/islamia-erp/forms.js
+          fi
+          test "$(git hash-object legacy/islamia-erp/forms.js)" = "$expected"
       - run: node --test modules/paperops/tests/*.test.cjs
-      - run: node --test tests/core10-live-legacy-guard.test.js
+      - name: Run canonical cross-module guard against the audit checkout
+        shell: bash
+        run: |
+          expected=c059a34b65a83d25fb94f19ae2f55f93b954b090
+          guard=tests/core10-live-legacy-guard.test.js
+          if [ ! -f "$guard" ]; then
+            git fetch --no-tags --depth=1 origin refs/heads/ccr-15ed11dd-n3hw5h
+            mkdir -p tests
+            git show "FETCH_HEAD:$guard" > "$guard"
+          fi
+          test "$(git hash-object "$guard")" = "$expected"
+          node --test "$guard"

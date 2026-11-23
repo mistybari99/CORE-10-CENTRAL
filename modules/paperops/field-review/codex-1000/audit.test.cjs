@@ -104,3 +104,31 @@ test('expired loss warning only considers summed amount greater than zero', () =
   const warning = amounts => amounts.reduce((total, amount) => total + amount, 0) > 0;
   assert.deepEqual([[4, 2], [-4], [4, -4]].map(warning), [true, false, false]);
 });
+
+test('close displays distinguish print mode, counted cash, and zero count', () => {
+  for (const name of ['expected', 'short_over']) {
+    assert.equal(field(name).visibility, 'e=>!e.cf||e.den("cash_count")>0');
+  }
+  assert.equal(field('so_reason').requirements, 'e=>e.v.so_nonzero');
+  assert.equal(field('so_reason').visibility, field('so_reason').requirements);
+  const visible = (entryMode, count) => !entryMode || count > 0;
+  assert.deepEqual([visible(true, 1), visible(true, -1), visible(true, 0), visible(false, 0)],
+    [true, false, false, true]);
+});
+test('A001 rule fragments preserve the original dynamic warning levels', () => {
+  const { warning_map: warnings, rules } = report;
+  for (const [group, flag] of [
+    ['category', 'cat_total_mismatch'], ['goods', 'goods_money_gap'],
+    ['cash', 'cash_short_over'], ['witness', 'second_count_mismatch'],
+    ['witness', 'witness_is_maker'], ['hub', 'float_left_diff'], ['stock', 'expired_loss']
+  ]) {
+    const fragments = rules[group].fragments.map(fragment => fragment.text);
+    const level = warnings[flag];
+    if (level === 'yellow or red') {
+      assert.ok(fragments.some(fragment => fragment.includes('"yellow":"red"')));
+      assert.ok(fragments.some(fragment => fragment.startsWith('x("' + flag + '",')));
+    } else {
+      assert.ok(fragments.some(fragment => fragment.startsWith('x("' + flag + '","' + level + '"')));
+    }
+  }
+});

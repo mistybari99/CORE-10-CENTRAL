@@ -1,11 +1,7 @@
 # Codex original-source audit
 
-## A001 in progress
+A001 covers the first 50 ordered R-01 IDs from board_recon through exp_amt. It has 12 open findings (10 high and 2 medium), grouped source evidence and synthetic fixtures. See batch-A001.json and issues.json.
 
-- Exact source constructor evidence checked locally for 50/50 ordered IDs, R-01:board_recon through R-01:exp_amt.
-- Completed batch gates: 0/20. Remaining: A001–A020. A002 starts only after the A001 gate.
-- Findings: 10 high, 2 medium, 0 low. See issues.json.
-- Synthetic condition and audit guard tests: 21/21 on Node 24.22.3. Full Node 22 suite, cross-module guard, exact-head CI and remaining rule evidence and fixtures pending.
-- Proof level: static original-source excerpts. Runtime helper semantics and canonical server behavior are unresolved.
-- The parent stores the frozen blob at forms.js. Its Git blob matches legacy/islamia-erp/forms.js on trunk.
-- Coordination Board / Decision Book: NOT WRITTEN.
+The initial Node 22 audit job passed 21 tests. The initial full suite passed 140 tests and failed 3 because this parent tracks the frozen source at root. The workflow now stages the original blob under the path expected by inherited tests and runs the hash-pinned canonical guard against the audit checkout. Both are temporary checkout operations. Exact-head rerun pending.
+
+A001 gate remains pending until CI passes. A002–A020 remain queued in manifest order. Coordination Board and Decision Book: NOT WRITTEN.

@@ -6,7 +6,8 @@
     "legacy_trunk_path": "legacy/islamia-erp/forms.js",
     "git_blob": "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d",
     "parent_commit": "98169c2bf6ebbf3bae875bdee11e51ff06766c48",
-    "sha256": "53ca5ac41a8f663fbcc76c4be5a7ec1d5a937d97dcf4020f709ff69eecae9e73"
+    "sha256": "53ca5ac41a8f663fbcc76c4be5a7ec1d5a937d97dcf4020f709ff69eecae9e73",
+    "ci_compatibility": "Legacy tests use relocated path. CI stages a byte-identical copy of the pinned Git blob in the ephemeral checkout."
   },
   "owner_accepted": false,
   "parity_certified": false,
@@ -32,6 +33,18 @@
         {
           "offset_utf16": 32226,
           "text": "const f=s(N.map(([e])=>o[\"cat_\"+e]));if(d.cat_sum=f,n(o.total_entered)){const e=f-r(o.total_entered);d.cat_match=0===e?t(\"মিল আছে ✓\",\"Matches ✓\"):t(\"অমিল ৳ \"+q("
+        },
+        {
+          "offset_utf16": 15817,
+          "text": "const N=["
+        },
+        {
+          "offset_utf16": 32226,
+          "text": "const f=s(N.map"
+        },
+        {
+          "offset_utf16": 32409,
+          "text": "0!==e&&a.push(x(\"cat_total_mismatch\",\"red\""
         }
       ],
       "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
@@ -54,6 +67,26 @@
         {
           "offset_utf16": 32560,
           "text": "const w=r(o.total_entered),y=w-r(o.party_cash);if(d.retail=y,n(o.goods_based)){const e=r(o.goods_based)-y,n=c(\"goods_money_tol_pct\"),s=c(\"goods_money_tol_max\");"
+        },
+        {
+          "offset_utf16": 32587,
+          "text": "y=w-r(o.party_cash)"
+        },
+        {
+          "offset_utf16": 32645,
+          "text": "e=r(o.goods_based)-y"
+        },
+        {
+          "offset_utf16": 32759,
+          "text": "y>0&&Math.abs(e)/y*100<=n"
+        },
+        {
+          "offset_utf16": 32812,
+          "text": "l=t||o?\"yellow\":\"red\""
+        },
+        {
+          "offset_utf16": 33002,
+          "text": "x(\"goods_money_gap\",l"
         }
       ],
       "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
@@ -65,6 +98,10 @@
         {
           "offset_utf16": 33080,
           "text": "d.d_total=s([\"d_bkash\",\"d_nagad\",\"d_card\",\"d_bank\",\"d_other\"].map(e=>o[e]));const g=(n(o.open_counted)?r(o.open_counted):null===l?0:l)+w-d.d_total+r(o.dues)+r(o"
+        },
+        {
+          "offset_utf16": 33080,
+          "text": "d.d_total=s([\"d_bkash\",\"d_nagad\",\"d_card\",\"d_bank\",\"d_other\"].map(e=>o[e]))"
         }
       ],
       "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
@@ -109,6 +146,30 @@
         {
           "offset_utf16": 33156,
           "text": "const g=(n(o.open_counted)?r(o.open_counted):null===l?0:l)+w-d.d_total+r(o.dues)+r(o.new_adv)-r(o.prior_adv)-r(o.refund)-r(o.credit_sales)-r(o.midday_hub)+r(o.r"
+        },
+        {
+          "offset_utf16": 33165,
+          "text": "n(o.open_counted)?r(o.open_counted):null===l?0:l"
+        },
+        {
+          "offset_utf16": 33325,
+          "text": "v=e.den(\"cash_count\")"
+        },
+        {
+          "offset_utf16": 33347,
+          "text": "if(d.counted_total=v,d.expected=g,v>0)"
+        },
+        {
+          "offset_utf16": 33413,
+          "text": "d.so_nonzero=0!==e"
+        },
+        {
+          "offset_utf16": 33486,
+          "text": "Math.abs(k)<=b?\"yellow\":\"red\""
+        },
+        {
+          "offset_utf16": 33568,
+          "text": "x(\"cash_short_over\",t"
         }
       ],
       "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
@@ -120,6 +181,22 @@
         {
           "offset_utf16": 33659,
           "text": "n(o.second_count)&&v>0&&r(o.second_count)!==v&&a.push(x(\"second_count_mismatch\",\"red\",\"সাক্ষীর গণনা প্রথম গণনার সমান নয়\",\"Witness count differs from the first "
+        },
+        {
+          "offset_utf16": 33659,
+          "text": "n(o.second_count)&&v>0&&r(o.second_count)!==v"
+        },
+        {
+          "offset_utf16": 33713,
+          "text": "x(\"second_count_mismatch\",\"red\""
+        },
+        {
+          "offset_utf16": 33848,
+          "text": "n(o.witness)&&o.witness===e.me"
+        },
+        {
+          "offset_utf16": 33887,
+          "text": "x(\"witness_is_maker\",\"red\""
         }
       ],
       "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
@@ -131,6 +208,18 @@
         {
           "offset_utf16": 33986,
           "text": "d.hub_deposit=v-r(o.leave_float),n(o.leave_float)&&null!==l&&r(o.leave_float)!==l&&a.push(x(\"float_left_diff\",\"yellow\",\"রেখে যাওয়া খুচরা নির্ধারিত খুচরার সমান "
+        },
+        {
+          "offset_utf16": 33986,
+          "text": "d.hub_deposit=v-r(o.leave_float)"
+        },
+        {
+          "offset_utf16": 34047,
+          "text": "r(o.leave_float)!==l"
+        },
+        {
+          "offset_utf16": 34076,
+          "text": "x(\"float_left_diff\",\"yellow\""
         }
       ],
       "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
@@ -142,6 +231,14 @@
         {
           "offset_utf16": 34412,
           "text": "const S=s(C.map(e=>e.exp_amt));return S>0&&a.push(x(\"expired_loss\",\"yellow\",\"মেয়াদ শেষ পণ্যের ক্ষতি\",\"Loss on expired goods\",S)),o.second_sig&&o.second_sig===e"
+        },
+        {
+          "offset_utf16": 34412,
+          "text": "const S=s(C.map(e=>e.exp_amt))"
+        },
+        {
+          "offset_utf16": 34450,
+          "text": "S>0&&a.push(x(\"expired_loss\",\"yellow\""
         }
       ],
       "helper_status": "Source expressions inspected as text. Coercion, checkbox semantics, PIN and denomination implementation runtime remain unverified.",
@@ -1258,5 +1355,9 @@
       "default": "NOT_DECLARED",
       "option_source": "NOT_DECLARED"
     }
-  ]
+  ],
+  "scope_review": {
+    "source_runtime": "Legacy formulas and declared conditions verified as text. The engine implementation and coercion, denomination, PIN, sign enforcement, currency rounding and authorization behavior remain UNKNOWN.",
+    "permission_boundary": "R-01 has a hub checker section outside A001. No explicit who declarations on A001 fields. Proposed evidence and roles must be enforced by scoped canonical systems."
+  }
 }
