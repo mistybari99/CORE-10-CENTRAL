@@ -440,6 +440,26 @@
       "classification": "TRUNK_UNSHIPPED"
     },
     {
+      "path": "core10-purchase-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-purchase-ui.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-purchase.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-purchase.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-purchase.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
       "path": "core10-shell.js",
       "classification": "TRUNK_UNSHIPPED"
     },

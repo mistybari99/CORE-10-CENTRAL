@@ -393,6 +393,10 @@ Landed on `build/claude-np03a-stock` (Draft PR #123 into trunk; nothing hosted, 
   movement written (mutant without the mapping fails). (2) Calendar time bombs removed: lot expiry dates in
   `purchase-browser.cjs` (2027-01-31 / 2027-05-01, incl. the Bangla-digit date check) and
   `np03a-procurement-e2e.sql` (2027-11-01) are now `current_date + N`; same assertions.
+- Agent M: trunk's new §7b gate `core10-file-classification-ci` (job `classification`) failed on `bcc9bbdf` and
+  `64da3ee6`: our five root files `core10-purchase{-client.js,-ui.js,.css,.html,.js}` were tracked but unclassified
+  in `docs/coordination/FILE_CLASSIFICATION.json`. Root-cause fix: they are added as `TRUNK_UNSHIPPED` (the Purchases
+  screen is not in the preview LIVE pins); the gate itself is unchanged.
 
 **IMPORTANT for Session A review (trunk owner):** 0209 re-creates the HOSTED 0200 engine functions
 `core10.post_stock_event` and `core10.transfer_stock_v1` (`CREATE OR REPLACE`, same signature, same checks in the
@@ -427,4 +431,5 @@ Local results at `bcc9bbdf` (PG17.12 disposable cluster, one fresh cluster per w
 | np01-s1c-remainder-ci / np01-negative-proof | 17/17 PASS |
 | core10-np06-finance-ci / finance-pg17 | 10/10 PASS |
 | core10-np05a-manufacturing-ci / manufacturing | 19/19 PASS (browser install skipped) |
+| core10-file-classification-ci / classification (after the classification fix) | 3 node tests PASS (3/3, 1/1, 1/1) |
 GitHub CI: see PR #123 checks for the pushed head.
