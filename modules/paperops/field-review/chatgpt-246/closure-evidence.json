@@ -2918,7 +2918,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W02_RETURNABLES_SOURCE_PINNED_MANUAL_DECLARATION_TO_MOVEMENT_AND_PHYSICAL_COUNT_SYNTHETIC_GATE_NOT_SIGNED"
     },
     {
       "source_id": "W-02:crates_back",
@@ -2936,7 +2937,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W02_RETURNABLES_SOURCE_PINNED_MANUAL_DECLARATION_TO_MOVEMENT_AND_PHYSICAL_COUNT_SYNTHETIC_GATE_NOT_SIGNED"
     },
     {
       "source_id": "W-02:crates_due",
@@ -2954,7 +2956,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W02_RETURNABLES_SOURCE_PINNED_MANUAL_DECLARATION_TO_MOVEMENT_AND_PHYSICAL_COUNT_SYNTHETIC_GATE_NOT_SIGNED"
     },
     {
       "source_id": "W-02:trays_sent",
@@ -2972,7 +2975,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W02_RETURNABLES_SOURCE_PINNED_MANUAL_DECLARATION_TO_MOVEMENT_AND_PHYSICAL_COUNT_SYNTHETIC_GATE_NOT_SIGNED"
     },
     {
       "source_id": "W-02:trays_back",
@@ -2990,7 +2994,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W02_RETURNABLES_SOURCE_PINNED_MANUAL_DECLARATION_TO_MOVEMENT_AND_PHYSICAL_COUNT_SYNTHETIC_GATE_NOT_SIGNED"
     },
     {
       "source_id": "W-02:trays_due",
@@ -3008,7 +3013,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W02_RETURNABLES_SOURCE_PINNED_MANUAL_DECLARATION_TO_MOVEMENT_AND_PHYSICAL_COUNT_SYNTHETIC_GATE_NOT_SIGNED"
     },
     {
       "source_id": "W-02:crates_match",
@@ -4498,7 +4504,8 @@
     "owner_policy_accepted": false,
     "signed_money_api_invoked": false,
     "w02_customer_payment": "modules/paperops/field-review/chatgpt-246/w02-customer-payment-source.cjs",
-    "r01_food_safety": "modules/paperops/field-review/chatgpt-246/r01-food-safety-review.cjs"
+    "r01_food_safety": "modules/paperops/field-review/chatgpt-246/r01-food-safety-review.cjs",
+    "w02_returnables_physical_review": "modules/paperops/field-review/chatgpt-246/w02-returnables-reconciliation.cjs"
   },
   "additional_critical_declarations_verified": [
     "C-01:seal_no",

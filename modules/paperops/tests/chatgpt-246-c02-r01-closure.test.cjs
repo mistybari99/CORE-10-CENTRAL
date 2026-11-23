@@ -9,7 +9,7 @@ const selected=['C-02:pay_mode','C-02:money_account_id','R-01:vouchers',
  'R-01:v_no','R-01:v_amt','R-01:v_total','R-01:float_set',
  'R-01:open_diff','R-01:imp_cash','R-01:imp_receipts','R-01:advance_taken'];
 test('C02 and R01 actual source corrections remain explicitly OPEN signed/runtime gaps',()=>{
- assert.equal(gaps.local_corrections_count,10);
+ assert.equal(gaps.local_corrections_count,11);
  assert.equal(gaps.total_original_gaps,11);
  assert.equal(gaps.remaining_open_original_gaps,11);
  assert.equal(gaps.total_high_risk_obligations,20);

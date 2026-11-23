@@ -9,8 +9,8 @@ test('new W02-02 and R01-01 source-review gates remain original gaps OPEN, never
  assert.equal(issues.total_original_gaps,11);
  assert.equal(issues.remaining_open_original_gaps,11);
  assert.equal(issues.total_high_risk_obligations,20);
- assert.equal(issues.local_corrections_count,10);
- assert.equal(issues.functional_gaps.filter(x=>x.local_correction!==null).length,10);
+ assert.equal(issues.local_corrections_count,11);
+ assert.equal(issues.functional_gaps.filter(x=>x.local_correction!==null).length,11);
  for(const [id,file] of [['W02-02','w02-customer-payment-source.cjs'],['R01-01','r01-food-safety-review.cjs']]){
   const g=issues.functional_gaps.find(x=>x.id===id);
   assert.equal(g.status,'OPEN_WITH_BLOCKER');

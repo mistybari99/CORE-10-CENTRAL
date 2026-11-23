@@ -234,10 +234,12 @@
       "risk": "HIGH",
       "source_fragment": "Crates outstanding",
       "source": "modules/paperops/field-review/functional-gaps-001-003.json",
-      "local_correction": null,
+      "local_correction": "W02_PINNED_RETURNABLES_SIX_ORIGINAL_MANUAL_FIELDS__SYNTHETIC_LEDGER_TO_PHYSICAL_AND_CARRY_FORWARD_EVIDENCE_GATE_NO_STOCK_POST",
       "canonical_runtime_integrated": false,
       "signed_tested": false,
-      "owner_policy_accepted": false
+      "owner_policy_accepted": false,
+      "local_evidence": "modules/paperops/field-review/chatgpt-246/w02-returnables-reconciliation.cjs; modules/paperops/tests/chatgpt-246-w02-returnables-reconciliation.test.cjs; modules/paperops/source-books.cjs",
+      "remaining_dependency": "Authentic custody signatures, approved opening carry-forward source, canonical tenant/site Stock movements and independent physical approval, immutable returnable ledger/reversal and Owner policy"
     },
     {
       "id": "W02-02",
@@ -714,7 +716,7 @@
   ],
   "no_real_business_data": true,
   "no_owner_acceptance": true,
-  "local_corrections_count": 10,
+  "local_corrections_count": 11,
   "remaining_open_original_gaps": 11,
   "new_reserved_r01_gate": {
     "field_count": 10,
@@ -730,6 +732,7 @@
     "R01-03": "Canonical immutable Money cashbook source UUID/replay, signed approvals, tenant site and voucher reversal integrity",
     "R01-04": "Signed daily Money Sales/Advance/Refund/Deposit/Reversal audit; Codex owns other R01 cash fields; Owner reconciliation signoff",
     "W02-02": "Owner ratify stricter missing order/cash evidence rules, signed Sales order approval and tenant-scoped Money receipt plus account provenance",
-    "R01-01": "Owner-approved food safety limits, independent physical food-safety/expired stock signoff, signed Quality/Stock event and Control fridge policy"
+    "R01-01": "Owner-approved food safety limits, independent physical food-safety/expired stock signoff, signed Quality/Stock event and Control fridge policy",
+    "W02-01": "Authentic custody signatures, approved opening carry-forward source, canonical tenant/site Stock movements and independent physical approval, immutable returnable ledger/reversal and Owner policy"
   }
 }
