@@ -9,6 +9,7 @@
 | A005 | 50 | 8 high, 2 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45116116749 |
 | A006 | 50 | 5 high, 4 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45116892316 |
 | A007 | 50 | 8 high, 1 medium open | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45276544185 |
+| A008 | 50 | 8 high, 2 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45277069689 |
 
 A002 covers R-01:waste_qty through C-04:on_c. Both original C-04:who declarations are preserved under one manifest ID. Evidence commits for the two exact runs are 6349dc78039f52ec7a867d1f8c3fe9e38b78174d and 1778382a1a9bd48bbf83921570bec8f9cfc7353a.
 
@@ -22,6 +23,8 @@ A006 exact evidence commit: 4dadc009fbed01db368689486e605b6d84bf2f8d. The 50 IDs
 
 A007 exact evidence commit: 2426f0f026af82c171fde9b2ba74637ccbce7212. Parent corrected slot 304 to R-01:cashier. A007-F001 is resolved as a source attribution correction.
 
-A008 covers W-01:t_ret through P-01:rate_diff, with 50 verified declarations. Its exact-head CI is pending.
+A008 exact evidence commit: 0c3c5301a9f4c2dcbf271095cbb5ff49119b0157. It covers W-01:t_ret through P-01:rate_diff.
 
-Full gates passed: 7/20. Coordination Board / Decision Book: NOT WRITTEN.
+A009 covers P-01:urgent_count through P-03:desc. Its exact-head CI is pending.
+
+Full gates passed: 8/20. Coordination Board / Decision Book: NOT WRITTEN.
