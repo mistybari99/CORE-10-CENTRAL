@@ -38,6 +38,7 @@ function assertSource(){
  for(const q of ['const t=e.den("count"),o=r(e.d.leave_float),s=t-o',
    'const c=e.denC("rcount"),l=c-s','c>0&&0!==l&&a.push(x("hub_diff","red"',
    'null==d&&i.push("drawer_float")','diff_nonzero:c>0&&0!==l',
+   '"float_mismatch","yellow"',
    '"ledger_line",t(','"rcount",t('])
   if(!form.includes(q))throw Error('C01_ORIGINAL_SOURCE_RULE_DRIFT:'+q);
  return Object.freeze({sourceBlob:source.PIN.forms,form:'C-01',oldExecuted:false});
@@ -123,9 +124,12 @@ function reconcileCashCustody({synthetic_only,scope:s,dispatch,hub,ledger,policy
  // The old C-01 warning is red when c>0 and l!==0; zero hub count
  // does NOT produce this original warning, but the new guard rejects it.
  const originalWarnings=[];
+ if(declaredFloat!==expectedFloat)
+  originalWarnings.push({code:'float_mismatch',severity:'yellow'});
  if(received.total>0&&diff!==0)originalWarnings.push({code:'hub_diff',severity:'red'});
- if(!ledger.ledgerLineRef||!ID.test(ledger.ledgerLineRef))
+ if(typeof ledger.ledgerLineRef!=='string'||!ID.test(ledger.ledgerLineRef))
   fail('C01_CANONICAL_CASHBOOK_LINE_REFERENCE_MISSING');
+ else unique(ledger.ledgerLineRef,'CASHBOOK_LINE');
  if(ledger.entryDirection!=='CASH_RECEIPT')fail('C01_UNKNOWN_CASHBOOK_DIRECTION');
  const declaredLedger=scaled(ledger.amountBDT,'LEDGER_AMOUNT');
  if(diff===0&&declaredLedger!==received.total)
