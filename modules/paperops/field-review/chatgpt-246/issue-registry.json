@@ -208,10 +208,11 @@
       "risk": "HIGH",
       "source_fragment": "Hub count by notes",
       "source": "modules/paperops/field-review/functional-gaps-001-003.json",
-      "local_correction": null,
+      "local_correction": "LOCAL_CUSTODY_COUNT_FLOAT_INDEPENDENCE_LEDGER_BACKREF_AND_REVERSAL_HOLD_GUARD_BUILT",
       "canonical_runtime_integrated": false,
       "signed_tested": false,
-      "owner_policy_accepted": false
+      "owner_policy_accepted": false,
+      "local_evidence": "modules/paperops/field-review/chatgpt-246/c01-cash-custody.cjs; modules/paperops/tests/chatgpt-246-c01-cash-custody.test.cjs"
     },
     {
       "id": "W02-01",
@@ -265,10 +266,11 @@
       "risk": "HIGH",
       "source_fragment": "Were goods received or issued during the count?",
       "source": "modules/paperops/field-review/functional-gaps-001-003.json",
-      "local_correction": null,
+      "local_correction": "LOCAL_FREEZE_MOVEMENT_LEDGER_VARIANCE_AND_INDEPENDENT_REVIEW_GUARD_BUILT",
       "canonical_runtime_integrated": false,
       "signed_tested": false,
-      "owner_policy_accepted": false
+      "owner_policy_accepted": false,
+      "local_evidence": "modules/paperops/field-review/chatgpt-246/w03-stock-count-freeze.cjs; modules/paperops/tests/chatgpt-246-w03-stock-count.test.cjs"
     },
     {
       "id": "R01-01",
@@ -700,12 +702,16 @@
   ],
   "no_real_business_data": true,
   "no_owner_acceptance": true,
-  "local_corrections_count": 2,
+  "local_corrections_count": 4,
   "remaining_open_original_gaps": 11,
   "new_reserved_r01_gate": {
     "field_count": 10,
     "status": "LOCAL_SYNTHETIC_GUARD_BUILT__SIGNED_SALES_STOCK_MONEY_AND_OWNER_POLICY_OPEN",
     "code": "modules/paperops/field-review/chatgpt-246/r01-custody-order-source-gate.cjs",
     "test": "modules/paperops/tests/chatgpt-246-r01-custody-order.test.cjs"
+  },
+  "next_signed_dependencies": {
+    "C01-01": "Signed Cash custody and hub identities; canonical Money receipt ledger crossref; double approval and immutable reversal proof",
+    "W03-01": "Signed Stock snapshot/movement version, freeze/adjust policy from Control, independent approval, transaction replay and audit/reversal"
   }
 }
