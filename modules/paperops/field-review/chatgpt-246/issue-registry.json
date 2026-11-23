@@ -251,10 +251,12 @@
       "risk": "HIGH",
       "source_fragment": "Cash amount",
       "source": "modules/paperops/field-review/functional-gaps-001-003.json",
-      "local_correction": null,
+      "local_correction": "PINNED_W02_ORDER_NO_AND_CASH_AMOUNT_VISIBILITY__SCOPED_ORDER_PAYMENT_PROVENANCE_HOLDS_NO_POST",
       "canonical_runtime_integrated": false,
       "signed_tested": false,
-      "owner_policy_accepted": false
+      "owner_policy_accepted": false,
+      "local_evidence": "modules/paperops/field-review/chatgpt-246/w02-customer-payment-source.cjs; modules/paperops/tests/chatgpt-246-w02-customer-payment.test.cjs",
+      "remaining_dependency": "Owner ratify stricter missing order/cash evidence rules, signed Sales order approval and tenant-scoped Money receipt plus account provenance"
     },
     {
       "id": "W03-01",
@@ -292,10 +294,12 @@
       "risk": "HIGH",
       "source_fragment": "Second temperature 1 °C (busy day)",
       "source": "modules/paperops/field-review/functional-gaps-001-003.json",
-      "local_correction": null,
+      "local_correction": "PINNED_R01_SAFETY_EXPIRED_AND_BUSY_TEMPERATURE_VISIBILITY__CONTROL_LIMIT_SOURCE_AND_ESCALATION_HOLDS_NO_POST",
       "canonical_runtime_integrated": false,
       "signed_tested": false,
-      "owner_policy_accepted": false
+      "owner_policy_accepted": false,
+      "local_evidence": "modules/paperops/field-review/chatgpt-246/r01-food-safety-review.cjs; modules/paperops/tests/chatgpt-246-r01-food-safety.test.cjs",
+      "remaining_dependency": "Owner-approved food safety limits, independent physical food-safety/expired stock signoff, signed Quality/Stock event and Control fridge policy"
     },
     {
       "id": "R01-02",
@@ -710,7 +714,7 @@
   ],
   "no_real_business_data": true,
   "no_owner_acceptance": true,
-  "local_corrections_count": 8,
+  "local_corrections_count": 10,
   "remaining_open_original_gaps": 11,
   "new_reserved_r01_gate": {
     "field_count": 10,
@@ -724,6 +728,8 @@
     "C02-01": "Owner ratify empty payment mode policy and canonical signed payment method guard",
     "C02-03": "Signed Money account provider must independently attest active tenant/site/capability/account options",
     "R01-03": "Canonical immutable Money cashbook source UUID/replay, signed approvals, tenant site and voucher reversal integrity",
-    "R01-04": "Signed daily Money Sales/Advance/Refund/Deposit/Reversal audit; Codex owns other R01 cash fields; Owner reconciliation signoff"
+    "R01-04": "Signed daily Money Sales/Advance/Refund/Deposit/Reversal audit; Codex owns other R01 cash fields; Owner reconciliation signoff",
+    "W02-02": "Owner ratify stricter missing order/cash evidence rules, signed Sales order approval and tenant-scoped Money receipt plus account provenance",
+    "R01-01": "Owner-approved food safety limits, independent physical food-safety/expired stock signoff, signed Quality/Stock event and Control fridge policy"
   }
 }
