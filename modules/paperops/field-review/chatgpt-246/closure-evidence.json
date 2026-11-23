@@ -504,7 +504,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_SAFETY_FRIDGE_BUSY_EXPIRY_SOURCE_AND_CONTROL_POLICY_HOLD__QUALITY_STOCK_PENDING"
     },
     {
       "source_id": "R-01:open_counted",
@@ -558,7 +559,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_SAFETY_FRIDGE_BUSY_EXPIRY_SOURCE_AND_CONTROL_POLICY_HOLD__QUALITY_STOCK_PENDING"
     },
     {
       "source_id": "C-04:st_bkash",
@@ -2590,7 +2592,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W02_ORDER_PAYMENT_SOURCE_VISIBILITY_AND_EVIDENCE_HOLD__SIGNED_SALES_MONEY_PENDING"
     },
     {
       "source_id": "W-02:order_no",
@@ -2608,7 +2611,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W02_ORDER_PAYMENT_SOURCE_VISIBILITY_AND_EVIDENCE_HOLD__SIGNED_SALES_MONEY_PENDING"
     },
     {
       "source_id": "W-02:prod_dates",
@@ -3148,7 +3152,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W02_ORDER_PAYMENT_SOURCE_VISIBILITY_AND_EVIDENCE_HOLD__SIGNED_SALES_MONEY_PENDING"
     },
     {
       "source_id": "W-02:cash_amount",
@@ -3166,7 +3171,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "W02_ORDER_PAYMENT_SOURCE_VISIBILITY_AND_EVIDENCE_HOLD__SIGNED_SALES_MONEY_PENDING"
     },
     {
       "source_id": "W-03:start_time",
@@ -3343,7 +3349,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_SAFETY_FRIDGE_BUSY_EXPIRY_SOURCE_AND_CONTROL_POLICY_HOLD__QUALITY_STOCK_PENDING"
     },
     {
       "source_id": "R-01:shift",
@@ -3409,7 +3416,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_SAFETY_FRIDGE_BUSY_EXPIRY_SOURCE_AND_CONTROL_POLICY_HOLD__QUALITY_STOCK_PENDING"
     },
     {
       "source_id": "R-01:float_set",
@@ -3603,7 +3611,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_SAFETY_FRIDGE_BUSY_EXPIRY_SOURCE_AND_CONTROL_POLICY_HOLD__QUALITY_STOCK_PENDING"
     },
     {
       "source_id": "R-01:temp_ok",
@@ -3619,7 +3628,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_SAFETY_FRIDGE_BUSY_EXPIRY_SOURCE_AND_CONTROL_POLICY_HOLD__QUALITY_STOCK_PENDING"
     },
     {
       "source_id": "R-01:fridge_defect",
@@ -3685,7 +3695,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_SAFETY_FRIDGE_BUSY_EXPIRY_SOURCE_AND_CONTROL_POLICY_HOLD__QUALITY_STOCK_PENDING"
     },
     {
       "source_id": "R-01:expired_informed",
@@ -3703,7 +3714,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_SAFETY_FRIDGE_BUSY_EXPIRY_SOURCE_AND_CONTROL_POLICY_HOLD__QUALITY_STOCK_PENDING"
     },
     {
       "source_id": "R-01:key_shutter",
@@ -4137,7 +4149,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_SAFETY_FRIDGE_BUSY_EXPIRY_SOURCE_AND_CONTROL_POLICY_HOLD__QUALITY_STOCK_PENDING"
     },
     {
       "source_id": "R-01:t2_2",
@@ -4155,7 +4168,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "R01_SAFETY_FRIDGE_BUSY_EXPIRY_SOURCE_AND_CONTROL_POLICY_HOLD__QUALITY_STOCK_PENDING"
     },
     {
       "source_id": "R-01:parcel_check",
@@ -4482,7 +4496,9 @@
     "c02_account_provider": "modules/paperops/field-review/chatgpt-246/c02-account-source.cjs",
     "r01_daily_money_review": "modules/paperops/field-review/chatgpt-246/r01-money-day-ledger.cjs",
     "owner_policy_accepted": false,
-    "signed_money_api_invoked": false
+    "signed_money_api_invoked": false,
+    "w02_customer_payment": "modules/paperops/field-review/chatgpt-246/w02-customer-payment-source.cjs",
+    "r01_food_safety": "modules/paperops/field-review/chatgpt-246/r01-food-safety-review.cjs"
   },
   "additional_critical_declarations_verified": [
     "C-01:seal_no",
