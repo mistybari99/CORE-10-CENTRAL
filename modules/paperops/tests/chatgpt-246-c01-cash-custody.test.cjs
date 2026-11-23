@@ -53,7 +53,9 @@ test('C01 red original hub_diff warning remains separate from stricter review ho
 test('C01 ledger source, float policy and independent roles cannot silently diverge',()=>{
  assert.throws(()=>edit(o=>{o.ledger.dailySourceRef='DEMO-WRONG'}),/CASHBOOK_DAILY_SOURCE_MISMATCH/);
  assert.throws(()=>edit(o=>{o.hub.handoverRef='OTHER-C01'}),/HANDOVER_SOURCE_REF_MISMATCH/);
- assert.ok(edit(o=>{o.policy.approvedDrawerFloatBDT='1000'}).blockers.includes('C01_APPROVED_FLOAT_MISMATCH'));
+ const floatMismatch=edit(o=>{o.policy.approvedDrawerFloatBDT='1000'});
+ assert.ok(floatMismatch.blockers.includes('C01_APPROVED_FLOAT_MISMATCH'));
+ assert.deepEqual(floatMismatch.sourceWarnings,[{code:'float_mismatch',severity:'yellow'}]);
  assert.ok(edit(o=>{o.hub.receiverActor=o.dispatch.senderActor}).blockers.includes('C01_INDEPENDENT_SENDER_CARRIER_RECEIVER_REQUIRED'));
  assert.ok(edit(o=>{o.ledger.amountBDT='1900'}).blockers.includes('C01_CASHBOOK_AMOUNT_MISMATCH'));
  assert.ok(edit(o=>{o.hub.sealIntact=false}).blockers.includes('C01_SEAL_INTEGRITY_NOT_PROVED'));
@@ -68,6 +70,7 @@ test('C01 rejects duplicate/replay, cross-tenant, precision, extra voucher refs 
  assert.throws(()=>edit(o=>{o.dispatch.denominations[0].count='9007199254740993'}),/NUMBER_OVERFLOW/);
  assert.throws(()=>edit(o=>{o.dispatch.denominations[1].denominationBDT='1000'}),/ZERO_OR_DUPLICATE_DENOMINATION/);
  assert.throws(()=>edit(o=>{o.hub.hubEvidenceRef=o.dispatch.sendEvidenceRef}),/DUPLICATE_OR_REPLAYED_SOURCE_REF/);
+ assert.throws(()=>edit(o=>{o.ledger.ledgerLineRef=o.ledger.sourceLedgerRef}),/DUPLICATE_OR_REPLAYED_SOURCE_REF/);
  assert.throws(()=>edit(o=>{o.synthetic_only=false}),/SYNTHETIC_SCOPE_ONLY/);
 });
 test('C01 correction is a proposed controlled reversal, never an unlogged direct edit',()=>{
