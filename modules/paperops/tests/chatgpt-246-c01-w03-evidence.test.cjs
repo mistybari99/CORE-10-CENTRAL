@@ -22,7 +22,7 @@ test('C01/W03 local corrections have actual source gates and remain ORIGINAL GAP
  assert.equal(registry.remaining_open_original_gaps,11);
  assert.equal(registry.total_original_gaps,11);
  assert.equal(registry.total_high_risk_obligations,20);
- assert.equal(registry.local_corrections_count,4);
+ assert.equal(registry.local_corrections_count,8);
  assert.equal(closure.owner_approved_fields,0);
  assert.equal(closure.canonical_runtime_signed_postings,0);
  assert.equal(closure.local_nonposting_source_logic.field_approved_for_live_use,0);
