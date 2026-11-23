@@ -455,7 +455,7 @@ This closes the open item "PO approval threshold currency" above (0206/0207 note
 - Test `tests/migrations/np03a-po-approval-bdt-e2e.sql` (tenants 2001/2002) + CI step after the 0209 step; it fails without 0210.
 - Local PG17.12: core10-b010-control-port-ci 35/35 PASS (Chromium install skipped, preinstalled); throwaway merge with trunk
   `origin/ccr-15ed11dd-n3hw5h` @ `7b82b9d7` (clean, doc-only trunk delta, deleted after): b010 31/31 SQL+node PASS (browser
-  steps skipped there), s0 2/2, s1c 6/6, np01-s1c 17/17, np06 16/16, np05a 15/15 non-browser, legacy quarantine 13/13 PASS.
+  steps skipped there), s0 2/2, s1c 6/6, np01-s1c 17/17, np06 16/16, np05a 17/17 non-browser, legacy quarantine 13/13 PASS.
   np06-crosslane and np01-bootstrap-release-gate NOT RUN locally (matrix / service DB harness; not triggered by PR #123).
 - GitHub CI on `514d2f51`: 10/10 SUCCESS (b010, s0, s1c, np06, np05a, A044, A045, browser smoke, §7b classification, §7c quarantine).
 - Not done: no business/PO currency column (single fixed BDT by Owner decision; multi-currency needs a new Owner decision);
