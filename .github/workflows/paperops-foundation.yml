@@ -4,13 +4,19 @@ on:
     branches:
       - build/paperops-foundation-20261122
     paths:
-      - 'modules/paperops/**'
+      - 'modules/**'
+      - 'core10-*.html'
+      - 'core10-*.js'
+      - 'tests/core10-root-config-boundary.test.cjs'
       - '.github/workflows/paperops-foundation.yml'
   pull_request:
     branches:
       - ccr-15ed11dd-n3hw5h
     paths:
-      - 'modules/paperops/**'
+      - 'modules/**'
+      - 'core10-*.html'
+      - 'core10-*.js'
+      - 'tests/core10-root-config-boundary.test.cjs'
       - '.github/workflows/paperops-foundation.yml'
   workflow_dispatch:
 jobs:
@@ -23,6 +29,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify frozen forms SHA and provide parent-only ephemeral path compatibility
+        run: |
+          expected=f2cb1c5e09210496106ace1bf33ddc40d2d6df1d
+          if [ -f legacy/islamia-erp/forms.js ]; then
+            test "$(git hash-object legacy/islamia-erp/forms.js)" = "$expected"
+          elif [ -f forms.js ]; then
+            test "$(git hash-object forms.js)" = "$expected"
+            mkdir -p legacy/islamia-erp
+            ln -s ../../forms.js legacy/islamia-erp/forms.js
+          else
+            echo 'FROZEN_FORMS_SOURCE_MISSING' >&2
+            exit 1
+          fi
       - name: Reproduce all legacy form rule candidates without executing frozen code
         run: node modules/paperops/legacy-rule-extractor.cjs --check
       - name: Verify all 1246 original fields have preserved cadence and unapproved mapping status
@@ -53,8 +72,16 @@ jobs:
         run: node modules/paperops/source-books-posting-demo.cjs
       - name: PaperOps contract, safety and preservation tests
         run: node --test modules/paperops/tests/*.test.cjs
-      - name: Cross-module live and retired-project guard when available
+      - name: Verify root CORE10 page load order and signed-session adapter (Node 22)
+        run: node --test tests/core10-root-config-boundary.test.cjs
+      - name: Run unmodified pinned canonical cross-module guard (mandatory)
         run: |
-          if [ -f tests/core10-live-legacy-guard.test.js ]; then
-            node tests/core10-live-legacy-guard.test.js
+          expected=c059a34b65a83d25fb94f19ae2f55f93b954b090
+          guard=tests/core10-live-legacy-guard.test.js
+          if [ ! -f "$guard" ]; then
+            git fetch --no-tags --depth=1 origin refs/heads/ccr-15ed11dd-n3hw5h
+            mkdir -p tests
+            git show "FETCH_HEAD:$guard" > "$guard"
           fi
+          test "$(git hash-object "$guard")" = "$expected"
+          node --test "$guard"

@@ -280,8 +280,9 @@ async function businessView(){
 async function boot(){
  shell();
  try{
-  if(!W||!window.supabase||!window.BOS_CONFIG)throw Object.assign(new Error("Supabase client/config not available"),{code:"SIGNED_SUPABASE_CLIENT_REQUIRED"});
-  const client=window.supabase.createClient(window.BOS_CONFIG.url,window.BOS_CONFIG.key);
+  const cfg=window.CORE10_CONTROL_CENTRE_CONFIG,lib=window.supabase;
+  if(!W||!cfg?.url||!cfg?.key||!lib||typeof lib.createClient!=="function")throw Object.assign(new Error("Supabase client/config not available"),{code:"SIGNED_SUPABASE_CLIENT_REQUIRED"});
+  const client=lib.createClient(cfg.url,cfg.key);
   S.api=W.create({client});
   S.businesses=await S.api.listBusinesses();
   if(bizParam){await businessView();return}

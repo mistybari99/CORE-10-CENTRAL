@@ -65,7 +65,7 @@ async function init(){
   }catch(err){status("Server refused: "+String(err.code||err.message),true)}finally{b.disabled=false}
  });
  try{
-  const cfg=window.BOS_CONFIG,lib=window.supabase;
+  const cfg=window.CORE10_CONTROL_CENTRE_CONFIG,lib=window.supabase;
   if(!cfg?.url||!cfg?.key||!lib?.createClient)throw Error("SIGNED_CONFIG_REQUIRED");
   st.api=window.CORE10_OPERATIONS_API.create({client:lib.createClient(cfg.url,cfg.key)});
   const list=await st.api.businesses(),want=new URLSearchParams(location.search).get("biz");

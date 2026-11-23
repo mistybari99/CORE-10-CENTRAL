@@ -64,7 +64,7 @@ async function init(){
   }catch(err){status("Denied or stale: "+String(err.code||err.message),true)}finally{btn.disabled=false}
  });
  try{
-  const cfg=window.BOS_CONFIG,lib=window.supabase;
+  const cfg=window.CORE10_CONTROL_CENTRE_CONFIG,lib=window.supabase;
   if(!cfg?.url||!cfg?.key||!lib?.createClient)throw Error("SIGNED_CLIENT_CONFIG_MISSING");
   apiState.api=window.CORE10_INVENTORY_API.create({client:lib.createClient(cfg.url,cfg.key)});
   apiState.businesses=await apiState.api.businesses();
