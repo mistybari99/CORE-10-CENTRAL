@@ -173,10 +173,11 @@
       "risk": "HIGH",
       "source_fragment": "Reason if a receipt is missing",
       "source": "modules/paperops/field-review/functional-gaps-001-003.json",
-      "local_correction": null,
+      "local_correction": "ORIGINAL_NO_RECEIPT_YELLOW_AND_MISSING_REASON_RED_SOURCE_GATES_IMPLEMENTED_SYNTHETIC_NO_POST",
       "canonical_runtime_integrated": false,
       "signed_tested": false,
-      "owner_policy_accepted": false
+      "owner_policy_accepted": false,
+      "local_evidence": "modules/paperops/field-review/chatgpt-246/receipt-warning-severity.cjs; modules/paperops/tests/chatgpt-246-receipt-severity.test.cjs"
     },
     {
       "id": "C02-03",
@@ -307,7 +308,8 @@
       "local_correction": "PINNED_OLD_N_O_SOURCE_HELPERS_IMPLEMENTED__NO_ERP_AUTH",
       "canonical_runtime_integrated": false,
       "signed_tested": false,
-      "owner_policy_accepted": false
+      "owner_policy_accepted": false,
+      "local_evidence": "modules/paperops/field-review/chatgpt-246/source-helper-conditions.cjs; modules/paperops/tests/chatgpt-246-source-helpers.test.cjs"
     },
     {
       "id": "R01-03",
@@ -697,5 +699,13 @@
     }
   ],
   "no_real_business_data": true,
-  "no_owner_acceptance": true
+  "no_owner_acceptance": true,
+  "local_corrections_count": 2,
+  "remaining_open_original_gaps": 11,
+  "new_reserved_r01_gate": {
+    "field_count": 10,
+    "status": "LOCAL_SYNTHETIC_GUARD_BUILT__SIGNED_SALES_STOCK_MONEY_AND_OWNER_POLICY_OPEN",
+    "code": "modules/paperops/field-review/chatgpt-246/r01-custody-order-source-gate.cjs",
+    "test": "modules/paperops/tests/chatgpt-246-r01-custody-order.test.cjs"
+  }
 }
