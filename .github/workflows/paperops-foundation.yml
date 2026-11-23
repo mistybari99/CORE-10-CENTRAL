@@ -3,12 +3,14 @@ on:
   push:
     branches:
       - build/paperops-foundation-20261122
+      - build/chatgpt-paperops-246-20261123
     paths:
       - 'modules/paperops/**'
       - '.github/workflows/paperops-foundation.yml'
   pull_request:
     branches:
       - ccr-15ed11dd-n3hw5h
+      - build/paperops-foundation-20261122
     paths:
       - 'modules/paperops/**'
       - '.github/workflows/paperops-foundation.yml'
