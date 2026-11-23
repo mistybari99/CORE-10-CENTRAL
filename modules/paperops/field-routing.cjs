@@ -11,12 +11,11 @@ function buildRouting(original,policy,trace){
   z.obligations.push(row.obligation_id);
   if(!z.targets.includes(row.print_form))z.targets.push(row.print_form);
  }
- const all=original.forms.map(form=>{
-  const p=formsById.get(form.legacy_code);
-  if(!p)throw Error('MISSING_FORM_POLICY:'+form.legacy_code);
-  const fields=form.fields.map(f=>{
+ const toRoutedField=(form,f)=>{
+   const p=formsById.get(form.legacy_code);
+   if(!p)throw Error('MISSING_FORM_POLICY:'+form.legacy_code);
    const key=form.legacy_code+':'+f.key,critical=traced.get(key);
-   return {id:key,key:f.key,label_bn:f.label_bn,label_en:f.label_en,
+   const result={id:key,key:f.key,label_bn:f.label_bn,label_en:f.label_en,
     form_cadence:p.cadence,form_trigger:p.trigger,
     legacy_constructor:f.constructor_alias,
     required_candidate:f.required_candidate,visible_candidate:f.visible_candidate,
@@ -26,21 +25,39 @@ function buildRouting(original,policy,trace){
     critical_draft_targets:critical?critical.targets:[],
     review_state:critical?'SOURCE_TO_DRAFT_LINK_NOT_PARITY':'FIELD_SPECIFIC_MAPPING_OUTSTANDING',
     preserve_original:true,auto_delete:false,owner_accepted:false};
-  });
+   if(f.source_order_after_form)result.source_mutation={
+    kind:f.source_declaration_kind,source_file:f.source_mutation_file,
+    source_order_after_form:f.source_order_after_form,offset_utf16:f.source_mutation_offset_utf16};
+   return result;
+ };
+ const all=original.forms.map(form=>{
+  const p=formsById.get(form.legacy_code);
+  if(!p)throw Error('MISSING_FORM_POLICY:'+form.legacy_code);
+  const fields=form.fields.filter(f=>!f.source_order_after_form).map(f=>toRoutedField(form,f));
   return {legacy_form:form.legacy_code,cadence:p.cadence,trigger:p.trigger,
    proposed_print_target:p.draft_form||null,
    source_flag_candidates:form.flag_candidates,
    incomplete_formula_review:form.calc_candidate.body_found?'CALC_BODY_CANDIDATE_ONLY':'CALC_BODY_NOT_MATCHED',
    source_fields:fields,field_count:fields.length};
  });
+ // Source scan order is contractually frozen for the 246/1000 split. Place a
+ // later cross-form header extension at the source-tail slot, with its actual
+ // owner ID, owner policy, and explicit provenance (not the anchor form's policy).
+ for(const owner of original.forms)for(const field of owner.fields){
+  if(!field.source_order_after_form)continue;
+  const anchor=all.find(f=>f.legacy_form===field.source_order_after_form);
+  if(!anchor)throw Error('CROSS_FORM_ORDER_ANCHOR_MISSING:'+field.source_order_after_form);
+  anchor.source_fields.push(toRoutedField(owner,field));
+  anchor.field_count=anchor.source_fields.length;
+ }
  const fields=all.flatMap(f=>f.source_fields);
- const countByCadence=Object.fromEntries([...new Set(all.map(x=>x.cadence))].sort().map(kind=>[kind,all.filter(x=>x.cadence===kind).reduce((n,f)=>n+f.field_count,0)]));
+ const countByCadence=Object.fromEntries([...new Set(fields.map(f=>f.form_cadence))].sort().map(kind=>[kind,fields.filter(f=>f.form_cadence===kind).length]));
  return {schema_version:1,status:'CLASSIFIED_CANDIDATE_ONLY_NO_FORM_PARITY_OR_RELEASE_APPROVAL',
   notice:'1246 legacy candidate fields are individually preserved and assigned proposed form-level storage cadence. Source-linked critical keys are not field parity. Unmapped keys cannot be deleted, hidden, or assumed optional. Original legal/custody/approval records must be retained.',
   summary:{historical_forms:all.length,fields:fields.length,critically_traced:fields.filter(x=>x.critical_trace.length>0).length,
    awaiting_field_mapping:fields.filter(x=>x.critical_trace.length===0).length,flag_candidates:all.reduce((n,x)=>n+x.source_flag_candidates.length,0),by_route:countByCadence,
    separate_original_source_forms:all.filter(x=>!x.proposed_print_target).map(x=>x.legacy_form)},
-  forms:all};
+  forms:all,source_late_header_mutations:original.late_header_mutations||[]};
 }
 function generate(){
  return buildRouting(require('./legacy-rule-candidates.json'),

@@ -47,6 +47,32 @@ function inspectSources(sources){
       });
     }
   }
+  // Later files may append a guarded field to a previously declared form.
+  // Do not treat such a push as a declaration belonging to the last form in that file.
+  const lateHeaderMutations=[];
+  const headerPush=/e\.forms\["([A-Z]-\d{2})"\]\.head\.push\(\s*([A-Za-z_$][A-Za-z0-9_$]*)\("([a-z][a-z0-9_]*)",t\("([^"]{1,180})","([^"]{1,180})"\)\)\)/g;
+  for(const source of sources){
+    const declarations=[...source.content.matchAll(/e\.forms\["([A-Z]-\d{2})"\]\s*=\s*\{\s*title:/g)];
+    for(const match of source.content.matchAll(headerPush)){
+      const headerForm=match[1],alias=match[2],key=match[3],bn=match[4],en=match[5];
+      const preceding=declarations.filter(x=>x.index<match.index).at(-1);
+      if(!preceding)throw Error('UNANCHORED_HEADER_MUTATION:'+source.path+':'+key);
+      const anchor=entries.find(x=>x.legacy_code===preceding[1]);
+      const owner=entries.find(x=>x.legacy_code===headerForm);
+      if(!anchor||!owner)throw Error('HEADER_MUTATION_FORM_MISSING:'+headerForm+':'+key);
+      if(anchor===owner)continue; // Same-form header pushes remain in their original block.
+      const matches=anchor.fields.filter(f=>f.key===key&&f.constructor_alias===alias&&f.label_bn===bn&&f.label_en===en);
+      if(matches.length!==1||owner.fields.some(f=>f.key===key))
+        throw Error('AMBIGUOUS_CROSS_FORM_HEADER_MUTATION:'+headerForm+':'+key);
+      const field=matches[0];
+      anchor.fields.splice(anchor.fields.indexOf(field),1);
+      owner.fields.push({...field,source_order_after_form:anchor.legacy_code,
+        source_declaration_kind:'GUARDED_CROSS_FORM_HEADER_PUSH',
+        source_mutation_file:source.path,source_mutation_offset_utf16:match.index});
+      lateHeaderMutations.push({source_file:source.path,source_form:headerForm,
+        source_order_after_form:anchor.legacy_code,key,offset_utf16:match.index,guarded:true});
+    }
+  }
   const totals={forms:entries.length,field_keys:entries.reduce((n,x)=>n+x.fields.length,0),
     always_required_candidate_fields:entries.reduce((n,x)=>n+x.fields.filter(f=>f.required_candidate==='ALWAYS').length,0),
     conditionally_required_candidate_fields:entries.reduce((n,x)=>n+x.fields.filter(f=>f.required_candidate==='CONDITIONAL').length,0),
@@ -55,7 +81,7 @@ function inspectSources(sources){
     flag_candidates:entries.reduce((n,x)=>n+x.flag_candidates_count,0)};
   return {schema_version:1,kind:'SOURCE_DERIVED_HEURISTIC_RULE_CANDIDATES',status:'REQUIRES_FIELD_BY_FIELD_OWNER_VALIDATION',sources:sources.map(x=>x.path),
   notice:'Do not execute legacy JS. Parsed minified constructors, first calc block and straightforward flag constructors; calculations are excerpts, not validated formulas. All thresholds remain unapproved. Field absence never means safe to omit.',
-  totals,forms:entries};
+  totals,forms:entries,late_header_mutations:lateHeaderMutations};
 }
 const root=path.resolve(__dirname,'../..');
 const legacyPaths=["forms.js","forms_cash.js","forms_stock.js","forms_sales.js","forms_factory.js"];

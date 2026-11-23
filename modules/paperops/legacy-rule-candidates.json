@@ -2519,6 +2519,19 @@
           "required_candidate": "ALWAYS",
           "visible_candidate": "NOT_DECLARED",
           "role_candidate": "CHECKER"
+        },
+        {
+          "key": "cashier",
+          "label_bn": "ক্যাশিয়ার (Cashier)",
+          "label_en": "Cashier",
+          "constructor_alias": "u",
+          "required_candidate": "NOT_DECLARED",
+          "visible_candidate": "NOT_DECLARED",
+          "role_candidate": "DEFAULT_OR_UNDECLARED",
+          "source_order_after_form": "S-04",
+          "source_declaration_kind": "GUARDED_CROSS_FORM_HEADER_PUSH",
+          "source_mutation_file": "forms_cash.js",
+          "source_mutation_offset_utf16": 44009
         }
       ],
       "calc_candidate": {
@@ -5026,15 +5039,6 @@
           "required_candidate": "NOT_DECLARED",
           "visible_candidate": "NOT_DECLARED",
           "role_candidate": "CHECKER"
-        },
-        {
-          "key": "cashier",
-          "label_bn": "ক্যাশিয়ার (Cashier)",
-          "label_en": "Cashier",
-          "constructor_alias": "u",
-          "required_candidate": "NOT_DECLARED",
-          "visible_candidate": "NOT_DECLARED",
-          "role_candidate": "DEFAULT_OR_UNDECLARED"
         }
       ],
       "calc_candidate": {
@@ -12615,6 +12619,16 @@
       ],
       "flag_candidates_count": 3,
       "source_caution": "HEURISTIC: compiled/minified source may append dynamic overrides; not executable rules; no automatic signoff."
+    }
+  ],
+  "late_header_mutations": [
+    {
+      "source_file": "forms_cash.js",
+      "source_form": "R-01",
+      "source_order_after_form": "S-04",
+      "key": "cashier",
+      "offset_utf16": 44009,
+      "guarded": true
     }
   ]
 }

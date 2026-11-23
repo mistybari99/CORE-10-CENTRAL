@@ -10,9 +10,9 @@
     "flag_candidates": 163,
     "by_route": {
       "BATCH_OR_SHIFT": 60,
-      "CONTINUOUS_LEDGER": 195,
+      "CONTINUOUS_LEDGER": 194,
       "CUSTODY_EVENT": 98,
-      "DAILY_CLOSE": 153,
+      "DAILY_CLOSE": 154,
       "PERIODIC_RECON": 37,
       "PERIODIC_REVIEW": 117,
       "POLICY_TRIGGERED": 107,
@@ -10054,23 +10054,29 @@
           "owner_accepted": false
         },
         {
-          "id": "S-04:cashier",
+          "id": "R-01:cashier",
           "key": "cashier",
           "label_bn": "ক্যাশিয়ার (Cashier)",
           "label_en": "Cashier",
-          "form_cadence": "CONTINUOUS_LEDGER",
-          "form_trigger": "online_delivery_or_settlement",
+          "form_cadence": "DAILY_CLOSE",
+          "form_trigger": "showroom_open",
           "legacy_constructor": "u",
           "required_candidate": "NOT_DECLARED",
           "visible_candidate": "NOT_DECLARED",
           "role_candidate": "DEFAULT_OR_UNDECLARED",
-          "proof_route": "ORIGINAL_SOURCE_DOCUMENT_REQUIRED",
+          "proof_route": "OPS-DAILY",
           "critical_trace": [],
           "critical_draft_targets": [],
           "review_state": "FIELD_SPECIFIC_MAPPING_OUTSTANDING",
           "preserve_original": true,
           "auto_delete": false,
-          "owner_accepted": false
+          "owner_accepted": false,
+          "source_mutation": {
+            "kind": "GUARDED_CROSS_FORM_HEADER_PUSH",
+            "source_file": "forms_cash.js",
+            "source_order_after_form": "S-04",
+            "offset_utf16": 44009
+          }
         }
       ],
       "field_count": 32
@@ -25086,6 +25092,16 @@
         }
       ],
       "field_count": 36
+    }
+  ],
+  "source_late_header_mutations": [
+    {
+      "source_file": "forms_cash.js",
+      "source_form": "R-01",
+      "source_order_after_form": "S-04",
+      "key": "cashier",
+      "offset_utf16": 44009,
+      "guarded": true
     }
   ]
 }

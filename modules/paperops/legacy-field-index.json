@@ -2,7 +2,7 @@
   "schema_version": 1,
   "status": "AUTO_EXTRACTED_FIELDS_NOT_PARITY_AUDITED",
   "source": "Frozen sweets forms, 2026-11-22",
-  "method": "Single-pass pattern of minified form field constructors: field-id + t(bn,en); counts are indicative, and omit dynamic/computed fields. Each section's tail may include later overrides. Use the original code as authority.",
+  "method": "Single-pass minified field constructor scan with guarded cross-form header mutations attributed to their true target form. Source scan slots retain deterministic audit order; dynamic/computed fields may still be omitted. Use original frozen source as authority.",
   "total_forms": 32,
   "total_extracted_fields": 1246,
   "forms": [
@@ -328,9 +328,10 @@
         "second_sig",
         "hub_ledger",
         "hub_time",
-        "hub_received"
+        "hub_received",
+        "cashier"
       ],
-      "count_extracted": 153,
+      "count_extracted": 154,
       "signals": {
         "required_syntax_mentions": 22,
         "conditional_display_syntax_mentions": 17,
@@ -672,10 +673,9 @@
         "c_bad",
         "to_weekly",
         "checked_by",
-        "reviewed_by",
-        "cashier"
+        "reviewed_by"
       ],
-      "count_extracted": 32,
+      "count_extracted": 31,
       "signals": {
         "required_syntax_mentions": 9,
         "conditional_display_syntax_mentions": 3,
@@ -1731,6 +1731,16 @@
         "reconciliation_word_mentions": 0,
         "worklist_mentions": 0
       }
+    }
+  ],
+  "late_header_mutations": [
+    {
+      "source_file": "forms_cash.js",
+      "source_form": "R-01",
+      "source_order_after_form": "S-04",
+      "key": "cashier",
+      "offset_utf16": 44009,
+      "guarded": true
     }
   ]
 }
