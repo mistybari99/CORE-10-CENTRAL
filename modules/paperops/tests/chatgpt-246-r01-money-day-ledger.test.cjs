@@ -150,3 +150,23 @@ test('R01 invalid/replayed records, cross-tenant/source, precision and impossibl
    amountBDT:'10',accountId:'DEMO-SALES-DRAWER',evidenceRef:'DEMO-REF-PROOF',
    makerActor:'DEMO-MAKER',checkerActor:'DEMO-CHECKER'}));}),/REFUND_WITHOUT_KNOWN_ADVANCE/);
 });
+
+test('R01 repeated C02 voucher receipts and duplicate external Money evidence cannot masquerade as independent proof',()=>{
+ assert.throws(()=>edit(v=>{
+  v.sourceVouchers.push(at({...v.sourceVouchers[0],
+   sourceRef:'DEMO-C02-DOC2',voucherRef:'DEMO-C02-2',receiptProofRef:'DEMO-RECEIPT1'}));
+ }),/R01_REPLAYED_C02_RECEIPT_PROOF/);
+ assert.throws(()=>edit(v=>{
+  addAdvance(v);
+  v.sourceMoneyEvents.push(at({kind:'BANK_DEPOSIT',sourceRef:'DEMO-DUP-PROOF-DP',
+   destinationAccountRef:'DEMO-BANK',dayRef:v.day.dayRef,cashbookRef:v.day.cashbookRef,
+   amountBDT:'10',accountId:'DEMO-SALES-DRAWER',
+   evidenceRef:'DEMO-MONEY-RECEIPT',makerActor:'DEMO-MAKER',checkerActor:'DEMO-CHECKER'}));
+ }),/R01_DUPLICATE_EXTERNAL_MONEY_EVIDENCE/);
+ assert.throws(()=>edit(v=>{
+  v.sourceMoneyEvents.push(at({kind:'ORDER_ADVANCE',sourceRef:'DEMO-A1',
+   dayRef:v.day.dayRef,cashbookRef:v.day.cashbookRef,orderRef:'DEMO-O1',
+   accountId:'DEMO-SALES-DRAWER',amountBDT:'1',
+   evidenceRef:'DEMO-RECEIPT1',makerActor:'DEMO-MAKER',checkerActor:'DEMO-CHECKER'}));
+ }),/R01_DUPLICATE_EXTERNAL_MONEY_EVIDENCE/);
+});
