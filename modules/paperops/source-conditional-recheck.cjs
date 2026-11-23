@@ -3,6 +3,7 @@
  * Inferred normalized inputs must be independently verified against the frozen source.
  */
 const deep=require('./field-review/deep-source-recheck-001-003.json');
+const oldHelper=require('./field-review/chatgpt-246/source-helper-conditions.cjs');
 const expr={
  'C-02:money_account_id':'!(!e.moneySrc||!e.moneySrc.hasAccounts("expense_10_2"))',
  'C-02:approved_by':'e.v.over_limit',
@@ -60,21 +61,26 @@ function decide(id,input){
  else if(id==='R-01:safety_defect')value=same(d,'safety','no');
  else if(id==='R-01:expired_informed')value=same(d,'expiredShown','yes');
  else if(id==='R-01:t2_1'||id==='R-01:t2_2')value=same(d,'dayType','busy');
- else if(id==='R-01:imp_text'){
-  const cf=boolean(d,'cf');
-  const provided=boolean(d,'imprestCashIsPresent');
-  // Old expression is !e.cf || n(e.d.imp_cash). n(...) helper remains unproven.
-  if(cf===false)value=true;
-  else if(cf===true&&provided===true)value=true;
-  else if(cf===true&&provided===false)value=false;
+ else if(id==='C-02:sum_cr'||id==='C-02:imprest_text'||
+         id==='R-01:open_diff'||id==='R-01:imp_text'){
+  // Original forms.js: O=e=>t=>!t.cf||n(t.d[e]); entry.js:
+  // $=e=>!(null==e||""===e||!1===e), t.has=$. Pinned and NOT executed.
+  oldHelper.verifyEvidence();
+  const field=id==='C-02:sum_cr'||id==='C-02:imprest_text'?'cash_now':
+    id==='R-01:open_diff'?'open_counted':'imp_cash';
+  const result=oldHelper.oldO(field,d);
+  value=result.visible;
+  reason='ORIGINAL_N_AND_O_HELPER_RECOVERED__'+result.why;
+  // Historical test compatibility only: an externally computed presence hint
+  // is NOT equivalent to a raw original field. Prefer sourceData.imp_cash.
+  if(id==='R-01:imp_text'&&value===null&&d.cf===true&&
+      typeof d.imprestCashIsPresent==='boolean'){
+    value=d.imprestCashIsPresent;
+    reason='UNVERIFIED_NORMALIZED_PRESENCE_HINT__NO_RUNTIME_PARITY';
+  }
  }
- // Do not claim to know the behavior of O("cash_now") or O("open_counted")
- // without examining the O helper definition itself.
- if(id==='C-02:sum_cr'||id==='C-02:imprest_text'||id==='R-01:open_diff')
-  reason='OLD_O_HELPER_NOT_PROVEN__NEVER_ASSUME_FIELD_OPTIONAL';
- else if(id==='R-01:imp_text')
-  reason='OLD_N_PRESENCE_HELPER_SEMANTICS_NOT_FORMALLY_PROVEN';
- else reason='SOURCE_EXPRESSION_RECONSTRUCTED__RUNTIME_PARITY_NOT_PROVEN';
+ if(!['C-02:sum_cr','C-02:imprest_text','R-01:open_diff','R-01:imp_text'].includes(id))
+  reason='SOURCE_EXPRESSION_RECONSTRUCTED__RUNTIME_PARITY_NOT_PROVEN';
  const status=value===null?'UNKNOWN_MUST_REVIEW':value?'VISIBLE':'HIDDEN';
  return Object.freeze({source_id:id,source_expression:expr[id],status,
   required:requiredIfVisible.has(id)?value===true?'REQUIRED':value===false?'NOT_REQUIRED':'UNKNOWN_MUST_REVIEW':'NOT_DECLARED_BY_SOURCE',
@@ -96,7 +102,9 @@ function audit(){
  if(requiredIfVisible.size!==6)throw Error('MISSING_REQUIRED_SOURCE_BRANCH');
  return {total_visible_conditions:conditional.length,conditional_required:requiredIfVisible.size,
   source_expressions_verified:16,helper_dependent_conditions:['C-02:sum_cr','C-02:imprest_text','R-01:open_diff','R-01:imp_text'],
-  parityCertified:false,allConditionalRulesApproved:false};
+  parityCertified:false,allConditionalRulesApproved:false,
+  old_helpers_source_verified:oldHelper.verifyEvidence().sourceRuleVerified,
+  signed_erp_posting_authorized:false};
 }
 if(require.main===module)console.log(JSON.stringify(audit(),null,2));
 module.exports={decide,audit,expr};
