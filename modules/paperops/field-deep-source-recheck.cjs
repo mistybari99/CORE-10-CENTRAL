@@ -61,7 +61,7 @@ function redoSourceEvidence(src,semantic,batches){
  }
 }
 function generate(){
- const src=fs.readFileSync(path.resolve(__dirname,'../../legacy/islamia-erp/forms.js'),'utf8');
+ const src=require('./field-review/chatgpt-246/source-helper-conditions.cjs').readFrozen('forms');
  const semantic=require('./field-review/semantic-triage-001-003.json');
  const batches=[1,2,3].map(n=>require('./field-review/batch-'+String(n).padStart(3,'0')+'.json'));
  return redoSourceEvidence(src,semantic,batches);
