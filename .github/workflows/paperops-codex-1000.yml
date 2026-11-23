@@ -23,6 +23,7 @@ jobs:
       - run: node modules/paperops/field-review/codex-1000/audit.cjs 4
       - run: node modules/paperops/field-review/codex-1000/audit.cjs 5
       - run: node modules/paperops/field-review/codex-1000/audit.cjs 6
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 7
       - run: node --test modules/paperops/field-review/codex-1000/audit*.test.cjs
   paperops-regression:
     runs-on: ubuntu-latest

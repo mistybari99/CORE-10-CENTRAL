@@ -1,0 +1,1364 @@
+{
+  "schema_version": 1,
+  "batch": "A007",
+  "source": {
+    "path": "forms.js",
+    "legacy_trunk_path": "legacy/islamia-erp/forms.js",
+    "git_blob": "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d",
+    "parent_commit": "456de1905707f125eaf9c0a82b5009698bf41156",
+    "sha256": "53ca5ac41a8f663fbcc76c4be5a7ec1d5a937d97dcf4020f709ff69eecae9e73",
+    "ci_compatibility": "Legacy tests use relocated path. CI stages a byte-identical copy of the pinned Git blob in the ephemeral checkout.",
+    "supplements": {
+      "forms_cash.js": "ce58ef83daa19273b766f3eac63db5f97cc741ffb26ed21076ab948032c14022",
+      "forms_stock.js": "f6d8cfb25718ab6ec90d23cbbfbc9a1b18b1489c693b8b1413c339e32e058e81"
+    }
+  },
+  "rules": {
+    "review": {
+      "behavior": "Forwarding is a checkbox. Checker is required, owner review is optional and both have checker scope. The S-04 calculator does not use these values or prove forwarding or separation.",
+      "fragments": [
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 41838,
+          "text": "u(\"checked_by\",t(\"যাচাইকারী (Checked by) — দৈনিক হিসাব রিকনসিলিয়েশনের কর্মী\",\"Checked by — daily reconciliation staff\"),{who:\"checker\",req:!0}),u(\"reviewed_by\",t(\"রিভিউকারী (Reviewed by) — মালিক\",\"Reviewed by — owner\"),{who:\"chec"
+        }
+      ],
+      "helper_status": "BOS presence/coercion, persistence and canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "cashier": {
+      "behavior": "Mutation appends a staff picker only if R-01 and its header exist and the header has no cashier. There is no declared required, default or cashier-only access rule. No authentic cashier session is proven.",
+      "fragments": [
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 43921,
+          "text": "e.forms[\"R-01\"]&&e.forms[\"R-01\"].head&&!e.forms[\"R-01\"].head.some(e=>\"cashier\"===e.id)&&e.forms[\"R-01\"].head.push(u(\"cashier\",t(\"ক্যাশিয়ার (Cashier)\",\"Cashier\")))})();"
+        }
+      ],
+      "helper_status": "BOS presence/coercion, persistence and canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "purchase": {
+      "behavior": "Paper and supplier are required. PR reference is required only for PR; PO progress is section-visible only for PO. Prior, today and remaining quantities and last delivery are entered fields and do not reconcile to the PO in this calculator.",
+      "fragments": [
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 2090,
+          "text": "show:e=>\"po\"===e.d.paper,fields:[l(\"po_prev\",t(\"এই পারচেজ অর্ডারে আগে প্রাপ্ত\",\"Received earlier on this PO\")),l(\"po_today\",t(\"আজ প্রাপ্ত\",\"Received today\")),l(\"po_rest\",t(\"বাকি\",\"Remaining\")),u(\"po_last\",t(\"শেষ ডেলিভারি\",\"Last de"
+        }
+      ],
+      "helper_status": "BOS presence/coercion, persistence and canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "quantities": {
+      "behavior": "Unit uses item lookup. Variance requires count and memo presence and is count minus memo; amount requires count and rate and is their product. Totals aggregate independently. Shortage and excess are summed separately as positive magnitudes, both yellow. Missing bill rate on counted row is yellow. Mixed UOM can inflate totals.",
+      "fragments": [
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 5975,
+          "text": "var:r&&a(t.memo)?o(t.counted)-o(t.memo):void 0,amt:r&&a(t.rate)?o(t.counted)*o(t.rate):void 0}});s.t_memo=n(t.map(e=>e.memo)),s.t_count=n(t.map(e=>e.counted)),s.t_var=n(i.map(e=>e.var)),s.t_amt=n(i.map(e=>e.amt)),s.has_reduced=t.s"
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 6446,
+          "text": "S(\"grn_short\",\"yellow\",\"মেমোর চেয়ে কম পাওয়া গেছে — সেদিনই সাপ্লায়ারের ডেবিট নোট ও বহনকারীর সই\",\"Received less than the memo: debit note and carrier signature the same day\",l,{unit:\"qty\"})),d>0&&r.push(S(\"grn_excess\",\"yellow\",\"ম"
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 6650,
+          "text": "S(\"grn_excess\",\"yellow\",\"মেমোর চেয়ে বেশি পাওয়া গেছে\",\"Received more than the memo\",d,{unit:\"qty\"}));const c=e=>n(t.map(t=>t.quality===e&&a(t.counted)&&a(t.rate)?o(t.counted)*o(t.rate):0));return s.has_hold&&(r.push(S(\"grn_hold\","
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 7603,
+          "text": "S(\"grn_rate_missing\",\"yellow\",\"কিছু লাইনে বিল অনুযায়ী দর লেখা নেই — বিল যাচাই করা যাবে না\",\"Some lines have no bill rate, so the bill check is impossible\",void 0)),{v:s,rows:{lines:i},flags:r,needs:[]}}};const G=[[\"prod\",t(\"উৎপাদ"
+        }
+      ],
+      "helper_status": "BOS presence/coercion, persistence and canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "qc": {
+      "behavior": "Any reduced-quality line shows and requires new rate and shows phone approval. The calculator uses the original line rate for amount projections. Yellow for hold/return/reduced, red for hold not separated or matching receiver and reduced-rate approver.",
+      "fragments": [
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 6188,
+          "text": "s.has_reduced=t.some(e=>\"reduced\"===e.quality),s.has_hold=t.some(e=>\"hold\"===e.quality);const l=n(t.map(e=>a(e.counted)&&a(e.memo)?Math.max(0,o(e.memo)-o(e.counted)):0)),d=n(t.map(e=>a(e.counted)&&a(e.memo)?Math.max(0,o(e.counted)"
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 6867,
+          "text": "S(\"grn_hold\",\"yellow\",\"মালামাল আটক রাখা হয়েছে\",\"Goods held back\",c(\"hold\")||void 0)),e.d.held_apart||r.push(S(\"hold_not_apart\",\"red\",\"আটক মালামাল আলাদা রাখা হয়নি\",\"Held goods are not kept apart\",void 0))),t.some(e=>\"return\"===e."
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 6976,
+          "text": "S(\"hold_not_apart\",\"red\",\"আটক মালামাল আলাদা রাখা হয়নি\",\"Held goods are not kept apart\",void 0))),t.some(e=>\"return\"===e.quality)&&r.push(S(\"grn_return\",\"yellow\",\"মালামাল ফেরত যাচ্ছে\",\"Goods going back to the supplier\",c(\"return\")"
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 7114,
+          "text": "S(\"grn_return\",\"yellow\",\"মালামাল ফেরত যাচ্ছে\",\"Goods going back to the supplier\",c(\"return\")||void 0)),s.has_reduced&&(r.push(S(\"grn_reduced\",\"yellow\",\"দর কমিয়ে গ্রহণ\",\"Accepted at a lower rate\",c(\"reduced\")||void 0)),a(e.d.rate_"
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 7240,
+          "text": "S(\"grn_reduced\",\"yellow\",\"দর কমিয়ে গ্রহণ\",\"Accepted at a lower rate\",c(\"reduced\")||void 0)),a(e.d.rate_approver)&&a(e.d.receiver)&&e.d.rate_approver===e.d.receiver&&r.push(S(\"rate_approver_is_receiver\",\"red\",\"দর কমানোর অনুমোদনকার"
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 7413,
+          "text": "S(\"rate_approver_is_receiver\",\"red\",\"দর কমানোর অনুমোদনকারী ও গ্রহণকারী একই জন\",\"The rate approver and the receiver are the same person\",void 0))),t.some(e=>a(e.counted)&&!a(e.rate))&&r.push(S(\"grn_rate_missing\",\"yellow\",\"কিছু লাইন"
+        }
+      ],
+      "helper_status": "BOS presence/coercion, persistence and canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "custody": {
+      "behavior": "Posting and management verification are attestations; checker requirement is declared, source does not evidence actual storage posting, a distinct checker, or validating receipt attachments.",
+      "fragments": [
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 5640,
+          "text": "{who:\"checker\",title:t(\"যাচাই (ব্যবস্থাপনা পূরণ করবে)\",\"Check (management fills)\"),fields:[u(\"mgmt_checked\",t(\"যাচাইকারী (Checked by) — ব্যবস্থাপনা: রসিদ যাচাই করেছি\",\"Checked by management: receipt checked\"),{who:\"checker\",req:!0"
+        }
+      ],
+      "helper_status": "BOS presence/coercion, persistence and canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "payment": {
+      "behavior": "Payment selection is required; other requires notes, cash requires amount. Present noncredit payment reveals optional ledger date and line. Owner payment note requests two ledger sides; no Money posting demonstrated.",
+      "fragments": [
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 4856,
+          "text": "g(\"pay\",t(\"পেমেন্ট\",\"Payment\"),C,{req:!0}),s(\"pay_other\",t(\"অন্য — লিখুন\",\"Other — write it\"),{show:e=>\"other\"===e.d.pay,req:e=>\"other\"===e.d.pay}),d(\"cash_amount\",t(\"নগদ হলে ৳\",\"Cash amount ৳\"),{show:e=>\"cash\"===e.d.pay,req:e=>\"c"
+        }
+      ],
+      "helper_status": "BOS presence/coercion, persistence and canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "context": {
+      "behavior": "Required purpose offers production, staff, sample or trial. Staff and non-production reasons emit yellow; staff value absent emits separate yellow. Calc does not link deductions or a manufacturing batch.",
+      "fragments": [
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 11731,
+          "text": "\"staff\"===e.d.purpose?(r.push(S(\"issue_staff\",\"yellow\",\"স্টাফ / ব্যক্তিগত ব্যবহারে ইস্যু — বেতন থেকে কর্তন\",\"Issued for staff / personal use: salary deduction\",a(e.d.staff_value)?o(e.d.staff_value):void 0)),a(e.d.staff_value)||r.p"
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 11761,
+          "text": "S(\"issue_staff\",\"yellow\",\"স্টাফ / ব্যক্তিগত ব্যবহারে ইস্যু — বেতন থেকে কর্তন\",\"Issued for staff / personal use: salary deduction\",a(e.d.staff_value)?o(e.d.staff_value):void 0)),a(e.d.staff_value)||r.push(S(\"staff_value_missing\",\"y"
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 11965,
+          "text": "S(\"staff_value_missing\",\"yellow\",\"স্টাফ / ব্যক্তিগত ইস্যুর মূল্য লেখা নেই\",\"Value of the staff / personal issue is not written\",void 0))):\"sample\"!==e.d.purpose&&\"trial\"!==e.d.purpose||r.push(S(\"issue_non_production\",\"yellow\",\"উৎপ"
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 12157,
+          "text": "S(\"issue_non_production\",\"yellow\",\"উৎপাদন ছাড়া অন্য কারণে ইস্যু\",\"Issued for a reason other than production\",void 0)),{v:s,rows:{lines:l},flags:r,needs:[]}}};const D=[[\"return\",t(\"ফেরত\",\"Return\")],[\"count_adj\",t(\"কাউন্টের সমন্বয়"
+        }
+      ],
+      "helper_status": "BOS presence/coercion, persistence and canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "usage": {
+      "behavior": "Item and issued quantity required. Net is issued minus return only when not_overnight is truthy. Otherwise recorded return produces yellow and full issue counts as used. Return above issued emits red and can still produce negative net. Totals sum raw values independently.",
+      "fragments": [
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 11120,
+          "text": "i=!e.d.not_overnight,l=t.map(t=>({unit:R(e,t.item),net:a(t.issued)?o(t.issued)-(i?0:o(t.ret)):void 0}));return s.t_issued=n(t.map(e=>e.issued)),s.t_ret=n(t.map(e=>e.ret)),s.t_net=i?s.t_issued:s.t_issued-s.t_ret,s.has_return=s.t_re"
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 11378,
+          "text": "S(\"kept_overnight\",\"yellow\",\"ফেরত লেখা আছে কিন্তু “রাতে রাখা হয়নি” টিক নেই — পুরোটাই ব্যবহৃত ধরা হলো\",\"A return is written but “not kept overnight” is not ticked: the whole quantity counts as used\",s.t_ret,{unit:\"qty\"})),t.some(e"
+        },
+        {
+          "source_file": "forms_stock.js",
+          "offset_utf16": 11640,
+          "text": "S(\"return_exceeds\",\"red\",\"ফেরত ইস্যুর চেয়ে বেশি\",\"Returned more than was issued\",void 0)),\"staff\"===e.d.purpose?(r.push(S(\"issue_staff\",\"yellow\",\"স্টাফ / ব্যক্তিগত ব্যবহারে ইস্যু — বেতন থেকে কর্তন\",\"Issued for staff / personal us"
+        }
+      ],
+      "helper_status": "BOS presence/coercion, persistence and canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    }
+  },
+  "warning_map": {
+    "grn_short": "yellow",
+    "grn_excess": "yellow",
+    "grn_rate_missing": "yellow",
+    "grn_hold": "yellow",
+    "hold_not_apart": "red",
+    "grn_return": "yellow",
+    "grn_reduced": "yellow",
+    "rate_approver_is_receiver": "red",
+    "issue_staff": "yellow",
+    "staff_value_missing": "yellow",
+    "issue_non_production": "yellow",
+    "kept_overnight": "yellow",
+    "return_exceeds": "red"
+  },
+  "fields": [
+    {
+      "source_id": "S-04:to_weekly",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 41694,
+        "literal": "m(\"to_weekly\",t(\"সাপ্তাহিক রিভিউ নোটে\",\"Carried to the weekly review note\"))",
+        "constructor_alias": "m",
+        "label_bn": "সাপ্তাহিক রিভিউ নোটে",
+        "label_en": "Carried to the weekly review note"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "review",
+      "issue_id": "A007-F002",
+      "data_origin": "Sales weekly exception queue and authenticated independent reviewers",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-04:checked_by",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 41838,
+        "literal": "u(\"checked_by\",t(\"যাচাইকারী (Checked by) — দৈনিক হিসাব রিকনসিলিয়েশনের কর্মী\",\"Checked by — daily reconciliation staff\"),{who:\"checker\",req:!0})",
+        "constructor_alias": "u",
+        "label_bn": "যাচাইকারী (Checked by) — দৈনিক হিসাব রিকনসিলিয়েশনের কর্মী",
+        "label_en": "Checked by — daily reconciliation staff"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "\"checker\"",
+      "collection": "checker section",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or scoped lookup; see declaration and rule evidence",
+      "rule_group": "review",
+      "issue_id": "A007-F002",
+      "data_origin": "Sales weekly exception queue and authenticated independent reviewers",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-04:reviewed_by",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 41983,
+        "literal": "u(\"reviewed_by\",t(\"রিভিউকারী (Reviewed by) — মালিক\",\"Reviewed by — owner\"),{who:\"checker\"})",
+        "constructor_alias": "u",
+        "label_bn": "রিভিউকারী (Reviewed by) — মালিক",
+        "label_en": "Reviewed by — owner"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "\"checker\"",
+      "collection": "checker section",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or scoped lookup; see declaration and rule evidence",
+      "rule_group": "review",
+      "issue_id": "A007-F002",
+      "data_origin": "Sales weekly exception queue and authenticated independent reviewers",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-01:cashier",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 44035,
+        "literal": "u(\"cashier\",t(\"ক্যাশিয়ার (Cashier)\",\"Cashier\"))",
+        "constructor_alias": "u",
+        "label_bn": "ক্যাশিয়ার (Cashier)",
+        "label_en": "Cashier"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "header mutation",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or scoped lookup; see declaration and rule evidence",
+      "rule_group": "cashier",
+      "issue_id": "A007-F003",
+      "data_origin": "Scoped R-01 shift assignment and authenticated cashier identity",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:time",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 1356,
+        "literal": "c(\"time\",t(\"সময়\",\"Time\"))",
+        "constructor_alias": "c",
+        "label_bn": "সময়",
+        "label_en": "Time"
+      },
+      "type": "TM",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "purchase",
+      "issue_id": "A007-F004",
+      "data_origin": "PO, PR, supplier master and received quantities from Procurement/Stock",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:supplier",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 1383,
+        "literal": "q(\"supplier\",t(\"সাপ্লায়ার\",\"Supplier\"),{req:!0})",
+        "constructor_alias": "q",
+        "label_bn": "সাপ্লায়ার",
+        "label_en": "Supplier"
+      },
+      "type": "SUP",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or scoped lookup; see declaration and rule evidence",
+      "rule_group": "purchase",
+      "issue_id": "A007-F004",
+      "data_origin": "PO, PR, supplier master and received quantities from Procurement/Stock",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:memo_no",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 1433,
+        "literal": "s(\"memo_no\",t(\"তাদের মেমো / চালান নং\",\"Their memo / challan no.\"))",
+        "constructor_alias": "s",
+        "label_bn": "তাদের মেমো / চালান নং",
+        "label_en": "Their memo / challan no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "purchase",
+      "issue_id": "A007-F004",
+      "data_origin": "PO, PR, supplier master and received quantities from Procurement/Stock",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:paper",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 1500,
+        "literal": "g(\"paper\",t(\"যে কাগজে ক্রয়\",\"Purchase made on\"),[[\"po\",t(\"পারচেজ অর্ডার (PO)\",\"Purchase order (PO)\")],[\"pr\",t(\"জরুরি ক্রয় — পারচেজ রিকুইজিশন (PR)\",\"Urgent purchase — purchase requisition (PR)\")],[\"direct\",t(\"শোরুমে সরাসরি ক্রয়\",\"Direct purchase at the showroom\")]],{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "যে কাগজে ক্রয়",
+        "label_en": "Purchase made on"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or scoped lookup; see declaration and rule evidence",
+      "rule_group": "purchase",
+      "issue_id": "A007-F004",
+      "data_origin": "PO, PR, supplier master and received quantities from Procurement/Stock",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:pr_no",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 1893,
+        "literal": "s(\"pr_no\",t(\"পারচেজ রিকুইজিশন (PR) নং\",\"Purchase Requisition (PR) no.\"),{show:e=>\"pr\"===e.d.paper,req:e=>\"pr\"===e.d.paper})",
+        "constructor_alias": "s",
+        "label_bn": "পারচেজ রিকুইজিশন (PR) নং",
+        "label_en": "Purchase Requisition (PR) no."
+      },
+      "type": "T",
+      "requirements": "e=>\"pr\"===e.d.paper",
+      "visibility": "e=>\"pr\"===e.d.paper",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "purchase",
+      "issue_id": "A007-F004",
+      "data_origin": "PO, PR, supplier master and received quantities from Procurement/Stock",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:po_prev",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 2123,
+        "literal": "l(\"po_prev\",t(\"এই পারচেজ অর্ডারে আগে প্রাপ্ত\",\"Received earlier on this PO\"))",
+        "constructor_alias": "l",
+        "label_bn": "এই পারচেজ অর্ডারে আগে প্রাপ্ত",
+        "label_en": "Received earlier on this PO"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "PO progress section",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "purchase",
+      "issue_id": "A007-F004",
+      "data_origin": "PO, PR, supplier master and received quantities from Procurement/Stock",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:po_today",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 2201,
+        "literal": "l(\"po_today\",t(\"আজ প্রাপ্ত\",\"Received today\"))",
+        "constructor_alias": "l",
+        "label_bn": "আজ প্রাপ্ত",
+        "label_en": "Received today"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "PO progress section",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "purchase",
+      "issue_id": "A007-F004",
+      "data_origin": "PO, PR, supplier master and received quantities from Procurement/Stock",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:po_rest",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 2248,
+        "literal": "l(\"po_rest\",t(\"বাকি\",\"Remaining\"))",
+        "constructor_alias": "l",
+        "label_bn": "বাকি",
+        "label_en": "Remaining"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "PO progress section",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "purchase",
+      "issue_id": "A007-F004",
+      "data_origin": "PO, PR, supplier master and received quantities from Procurement/Stock",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:po_last",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 2283,
+        "literal": "u(\"po_last\",t(\"শেষ ডেলিভারি\",\"Last delivery\"))",
+        "constructor_alias": "u",
+        "label_bn": "শেষ ডেলিভারি",
+        "label_en": "Last delivery"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "PO progress section",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "purchase",
+      "issue_id": "A007-F004",
+      "data_origin": "PO, PR, supplier master and received quantities from Procurement/Stock",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:scale_checked",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 2811,
+        "literal": "u(\"scale_checked\",t(\"পাল্লা আজ পরীক্ষিত\",\"Scale checked today\"),{req:!0})",
+        "constructor_alias": "u",
+        "label_bn": "পাল্লা আজ পরীক্ষিত",
+        "label_en": "Scale checked today"
+      },
+      "type": "CK",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "quantities",
+      "issue_id": "A007-F005",
+      "data_origin": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:item",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 2901,
+        "literal": "m(\"item\",t(\"আইটেম\",\"Item\"),{req:!0,wide:!0})",
+        "constructor_alias": "m",
+        "label_bn": "আইটেম",
+        "label_en": "Item"
+      },
+      "type": "ITEM",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or scoped lookup; see declaration and rule evidence",
+      "rule_group": "quantities",
+      "issue_id": "A007-F005",
+      "data_origin": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:unit",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 2946,
+        "literal": "y(\"unit\",t(\"একক\",\"Unit\"),\"text\")",
+        "constructor_alias": "y",
+        "label_bn": "একক",
+        "label_en": "Unit"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "quantities",
+      "issue_id": "A007-F005",
+      "data_origin": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:memo",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 2979,
+        "literal": "l(\"memo\",t(\"মেমোতে লেখা\",\"Written on the memo\"),{show:e=>!e.sbMemo})",
+        "constructor_alias": "l",
+        "label_bn": "মেমোতে লেখা",
+        "label_en": "Written on the memo"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>!e.sbMemo",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "quantities",
+      "issue_id": "A007-F005",
+      "data_origin": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:var",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 3119,
+        "literal": "y(\"var\",t(\"পার্থক্য (প্রাপ্ত − মেমো)\",\"Variance (received − memo)\"),\"num\",{show:e=>a(e.row.counted)&&a(e.row.memo)})",
+        "constructor_alias": "y",
+        "label_bn": "পার্থক্য (প্রাপ্ত − মেমো)",
+        "label_en": "Variance (received − memo)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>a(e.row.counted)&&a(e.row.memo)",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "quantities",
+      "issue_id": "A007-F005",
+      "data_origin": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:rate",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 3236,
+        "literal": "d(\"rate\",t(\"দর ৳ (বিল অনুযায়ী)\",\"Rate ৳ (as per the bill)\"))",
+        "constructor_alias": "d",
+        "label_bn": "দর ৳ (বিল অনুযায়ী)",
+        "label_en": "Rate ৳ (as per the bill)"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "quantities",
+      "issue_id": "A007-F005",
+      "data_origin": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:amt",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 3298,
+        "literal": "y(\"amt\",t(\"মোট ৳\",\"Total ৳\"),\"money\",{show:e=>a(e.row.counted)&&a(e.row.rate)})",
+        "constructor_alias": "y",
+        "label_bn": "মোট ৳",
+        "label_en": "Total ৳"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>a(e.row.counted)&&a(e.row.rate)",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "quantities",
+      "issue_id": "A007-F005",
+      "data_origin": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:remark",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 3433,
+        "literal": "s(\"remark\",t(\"মন্তব্য\",\"Remark\"),{wide:!0})",
+        "constructor_alias": "s",
+        "label_bn": "মন্তব্য",
+        "label_en": "Remark"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "quantities",
+      "issue_id": "A007-F005",
+      "data_origin": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:t_memo",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 3487,
+        "literal": "y(\"t_memo\",t(\"মোট — মেমোতে লেখা\",\"Total — on the memo\"),\"num\")",
+        "constructor_alias": "y",
+        "label_bn": "মোট — মেমোতে লেখা",
+        "label_en": "Total — on the memo"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "quantities",
+      "issue_id": "A007-F005",
+      "data_origin": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:t_count",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 3550,
+        "literal": "y(\"t_count\",t(\"মোট — গণনায় প্রাপ্ত\",\"Total — counted\"),\"num\")",
+        "constructor_alias": "y",
+        "label_bn": "মোট — গণনায় প্রাপ্ত",
+        "label_en": "Total — counted"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "quantities",
+      "issue_id": "A007-F005",
+      "data_origin": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:t_var",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 3613,
+        "literal": "y(\"t_var\",t(\"মোট পার্থক্য\",\"Total variance\"),\"num\")",
+        "constructor_alias": "y",
+        "label_bn": "মোট পার্থক্য",
+        "label_en": "Total variance"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "quantities",
+      "issue_id": "A007-F005",
+      "data_origin": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:t_amt",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 3665,
+        "literal": "y(\"t_amt\",t(\"সর্বমোট ৳\",\"Grand total ৳\"),\"money\",{big:!0})",
+        "constructor_alias": "y",
+        "label_bn": "সর্বমোট ৳",
+        "label_en": "Grand total ৳"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "quantities",
+      "issue_id": "A007-F005",
+      "data_origin": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:qc_all",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 3801,
+        "literal": "u(\"qc_all\",t(\"সব লাইনে মান যাচাই হয়েছে\",\"Quality checked on every line\"),{req:!0})",
+        "constructor_alias": "u",
+        "label_bn": "সব লাইনে মান যাচাই হয়েছে",
+        "label_en": "Quality checked on every line"
+      },
+      "type": "CK",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "qc",
+      "issue_id": "A007-F006",
+      "data_origin": "GRN QC disposition and approval evidence, scoped receiver and independent approver",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:new_rate",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 4125,
+        "literal": "d(\"new_rate\",t(\"নতুন দর ৳\",\"New rate ৳\"),{show:e=>e.v.has_reduced,req:e=>e.v.has_reduced})",
+        "constructor_alias": "d",
+        "label_bn": "নতুন দর ৳",
+        "label_en": "New rate ৳"
+      },
+      "type": "M",
+      "requirements": "e=>e.v.has_reduced",
+      "visibility": "e=>e.v.has_reduced",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "qc",
+      "issue_id": "A007-F006",
+      "data_origin": "GRN QC disposition and approval evidence, scoped receiver and independent approver",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:rate_phone",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 4363,
+        "literal": "u(\"rate_phone\",t(\"ফোনে অনুমোদন\",\"Approved by phone\"),{show:e=>e.v.has_reduced})",
+        "constructor_alias": "u",
+        "label_bn": "ফোনে অনুমোদন",
+        "label_en": "Approved by phone"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>e.v.has_reduced",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "qc",
+      "issue_id": "A007-F006",
+      "data_origin": "GRN QC disposition and approval evidence, scoped receiver and independent approver",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:posted",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 4674,
+        "literal": "u(\"posted\",t(\"স্টোর লেজারে এন্ট্রি (Posting) করা হয়েছে\",\"Posted in the store ledger\"))",
+        "constructor_alias": "u",
+        "label_bn": "স্টোর লেজারে এন্ট্রি (Posting) করা হয়েছে",
+        "label_en": "Posted in the store ledger"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "custody",
+      "issue_id": "A007-F007",
+      "data_origin": "Canonical GRN and Stock movement, scoped verification and immutable evidence",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:ledger_ref",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 4762,
+        "literal": "s(\"ledger_ref\",t(\"পাতা / লাইন নং\",\"Page / line no.\"))",
+        "constructor_alias": "s",
+        "label_bn": "পাতা / লাইন নং",
+        "label_en": "Page / line no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "custody",
+      "issue_id": "A007-F007",
+      "data_origin": "Canonical GRN and Stock movement, scoped verification and immutable evidence",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:pay",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 4856,
+        "literal": "g(\"pay\",t(\"পেমেন্ট\",\"Payment\"),C,{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "পেমেন্ট",
+        "label_en": "Payment"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or scoped lookup; see declaration and rule evidence",
+      "rule_group": "payment",
+      "issue_id": "A007-F008",
+      "data_origin": "Money payment vouchers and reconciled cash/bank journal",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:pay_other",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 4899,
+        "literal": "s(\"pay_other\",t(\"অন্য — লিখুন\",\"Other — write it\"),{show:e=>\"other\"===e.d.pay,req:e=>\"other\"===e.d.pay})",
+        "constructor_alias": "s",
+        "label_bn": "অন্য — লিখুন",
+        "label_en": "Other — write it"
+      },
+      "type": "T",
+      "requirements": "e=>\"other\"===e.d.pay",
+      "visibility": "e=>\"other\"===e.d.pay",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "payment",
+      "issue_id": "A007-F008",
+      "data_origin": "Money payment vouchers and reconciled cash/bank journal",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:cash_amount",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 5004,
+        "literal": "d(\"cash_amount\",t(\"নগদ হলে ৳\",\"Cash amount ৳\"),{show:e=>\"cash\"===e.d.pay,req:e=>\"cash\"===e.d.pay})",
+        "constructor_alias": "d",
+        "label_bn": "নগদ হলে ৳",
+        "label_en": "Cash amount ৳"
+      },
+      "type": "M",
+      "requirements": "e=>\"cash\"===e.d.pay",
+      "visibility": "e=>\"cash\"===e.d.pay",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "payment",
+      "issue_id": "A007-F008",
+      "data_origin": "Money payment vouchers and reconciled cash/bank journal",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:ledger_date",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 5143,
+        "literal": "p(\"ledger_date\",t(\"ক্যাশ ও ব্যাংক লেজারের তারিখ\",\"Cash & bank ledger date\"),{show:e=>a(e.d.pay)&&\"credit\"!==e.d.pay})",
+        "constructor_alias": "p",
+        "label_bn": "ক্যাশ ও ব্যাংক লেজারের তারিখ",
+        "label_en": "Cash & bank ledger date"
+      },
+      "type": "D",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>a(e.d.pay)&&\"credit\"!==e.d.pay",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "payment",
+      "issue_id": "A007-F008",
+      "data_origin": "Money payment vouchers and reconciled cash/bank journal",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:ledger_line",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 5261,
+        "literal": "s(\"ledger_line\",t(\"লেজারের লাইন নং\",\"Ledger line no.\"),{show:e=>a(e.d.pay)&&\"credit\"!==e.d.pay})",
+        "constructor_alias": "s",
+        "label_bn": "লেজারের লাইন নং",
+        "label_en": "Ledger line no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>a(e.d.pay)&&\"credit\"!==e.d.pay",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "payment",
+      "issue_id": "A007-F008",
+      "data_origin": "Money payment vouchers and reconciled cash/bank journal",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:photos",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 5411,
+        "literal": "k(\"photos\",t(\"মালামাল / মেমো / বিলের ছবি\",\"Photos of goods / memo / bill\"))",
+        "constructor_alias": "k",
+        "label_bn": "মালামাল / মেমো / বিলের ছবি",
+        "label_en": "Photos of goods / memo / bill"
+      },
+      "type": "PHOTO",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "custody",
+      "issue_id": "A007-F007",
+      "data_origin": "Canonical GRN and Stock movement, scoped verification and immutable evidence",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:carrier",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 5487,
+        "literal": "s(\"carrier\",t(\"সাপ্লায়ার / বহনকারী (Supplier / Carrier) — নাম\",\"Supplier / carrier — name\"))",
+        "constructor_alias": "s",
+        "label_bn": "সাপ্লায়ার / বহনকারী (Supplier / Carrier) — নাম",
+        "label_en": "Supplier / carrier — name"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "custody",
+      "issue_id": "A007-F007",
+      "data_origin": "Canonical GRN and Stock movement, scoped verification and immutable evidence",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:receiver",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 5581,
+        "literal": "h(\"receiver\",t(\"গ্রহণকারী (Received by)\",\"Received by\"))",
+        "constructor_alias": "h",
+        "label_bn": "গ্রহণকারী (Received by)",
+        "label_en": "Received by"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or scoped lookup; see declaration and rule evidence",
+      "rule_group": "qc",
+      "issue_id": "A007-F006",
+      "data_origin": "GRN QC disposition and approval evidence, scoped receiver and independent approver",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "P-04:mgmt_checked",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 5731,
+        "literal": "u(\"mgmt_checked\",t(\"যাচাইকারী (Checked by) — ব্যবস্থাপনা: রসিদ যাচাই করেছি\",\"Checked by management: receipt checked\"),{who:\"checker\",req:!0})",
+        "constructor_alias": "u",
+        "label_bn": "যাচাইকারী (Checked by) — ব্যবস্থাপনা: রসিদ যাচাই করেছি",
+        "label_en": "Checked by management: receipt checked"
+      },
+      "type": "CK",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "\"checker\"",
+      "collection": "checker section",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "custody",
+      "issue_id": "A007-F007",
+      "data_origin": "Canonical GRN and Stock movement, scoped verification and immutable evidence",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "W-01:shift",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 8085,
+        "literal": "g(\"shift\",t(\"শিফট\",\"Shift\"),T)",
+        "constructor_alias": "g",
+        "label_bn": "শিফট",
+        "label_en": "Shift"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or scoped lookup; see declaration and rule evidence",
+      "rule_group": "context",
+      "issue_id": "A007-F009",
+      "data_origin": "Manufacturing batch and Stock issue linked to payroll only through approved workflow",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "W-01:batch_no",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 8116,
+        "literal": "s(\"batch_no\",t(\"ব্যাচ / ক্রম নং\",\"Batch / serial no.\"))",
+        "constructor_alias": "s",
+        "label_bn": "ব্যাচ / ক্রম নং",
+        "label_en": "Batch / serial no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "context",
+      "issue_id": "A007-F009",
+      "data_origin": "Manufacturing batch and Stock issue linked to payroll only through approved workflow",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "W-01:product",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 8172,
+        "literal": "s(\"product\",t(\"তৈরির পণ্য\",\"Product being made\"))",
+        "constructor_alias": "s",
+        "label_bn": "তৈরির পণ্য",
+        "label_en": "Product being made"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "context",
+      "issue_id": "A007-F009",
+      "data_origin": "Manufacturing batch and Stock issue linked to payroll only through approved workflow",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "W-01:purpose",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 8222,
+        "literal": "g(\"purpose\",t(\"ইস্যুর উদ্দেশ্য\",\"Purpose of the issue\"),G,{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "ইস্যুর উদ্দেশ্য",
+        "label_en": "Purpose of the issue"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or scoped lookup; see declaration and rule evidence",
+      "rule_group": "context",
+      "issue_id": "A007-F009",
+      "data_origin": "Manufacturing batch and Stock issue linked to payroll only through approved workflow",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "W-01:item",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 8758,
+        "literal": "m(\"item\",t(\"আইটেম\",\"Item\"),{req:!0,wide:!0})",
+        "constructor_alias": "m",
+        "label_bn": "আইটেম",
+        "label_en": "Item"
+      },
+      "type": "ITEM",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or scoped lookup; see declaration and rule evidence",
+      "rule_group": "usage",
+      "issue_id": "A007-F010",
+      "data_origin": "Scoped issue and return movement lines by item, lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "W-01:unit",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 8803,
+        "literal": "y(\"unit\",t(\"একক\",\"Unit\"),\"text\")",
+        "constructor_alias": "y",
+        "label_bn": "একক",
+        "label_en": "Unit"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "usage",
+      "issue_id": "A007-F010",
+      "data_origin": "Scoped issue and return movement lines by item, lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "W-01:issued",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 8836,
+        "literal": "l(\"issued\",t(\"ইস্যু — ওজন\",\"Issued — weight\"),{req:!0})",
+        "constructor_alias": "l",
+        "label_bn": "ইস্যু — ওজন",
+        "label_en": "Issued — weight"
+      },
+      "type": "N",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "usage",
+      "issue_id": "A007-F010",
+      "data_origin": "Scoped issue and return movement lines by item, lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "W-01:ret",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 8892,
+        "literal": "l(\"ret\",t(\"একই দিনে ফেরত\",\"Returned the same day\"))",
+        "constructor_alias": "l",
+        "label_bn": "একই দিনে ফেরত",
+        "label_en": "Returned the same day"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "usage",
+      "issue_id": "A007-F010",
+      "data_origin": "Scoped issue and return movement lines by item, lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "W-01:net",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 8944,
+        "literal": "y(\"net\",t(\"নিট ব্যবহার\",\"Net use\"),\"num\",{show:e=>a(e.row.issued)})",
+        "constructor_alias": "y",
+        "label_bn": "নিট ব্যবহার",
+        "label_en": "Net use"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>a(e.row.issued)",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "usage",
+      "issue_id": "A007-F010",
+      "data_origin": "Scoped issue and return movement lines by item, lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "W-01:reason",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 9012,
+        "literal": "s(\"reason\",t(\"কারণ / মন্তব্য\",\"Reason / remark\"),{wide:!0})",
+        "constructor_alias": "s",
+        "label_bn": "কারণ / মন্তব্য",
+        "label_en": "Reason / remark"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "lines",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "usage",
+      "issue_id": "A007-F010",
+      "data_origin": "Scoped issue and return movement lines by item, lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "W-01:t_issued",
+      "source_file": "forms_stock.js",
+      "evidence": {
+        "offset_utf16": 9082,
+        "literal": "y(\"t_issued\",t(\"সর্বমোট ইস্যু\",\"Total issued\"),\"num\")",
+        "constructor_alias": "y",
+        "label_bn": "সর্বমোট ইস্যু",
+        "label_en": "Total issued"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "usage",
+      "issue_id": "A007-F010",
+      "data_origin": "Scoped issue and return movement lines by item, lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; runtime enforcement UNKNOWN"
+    }
+  ],
+  "owner_accepted": false,
+  "parity_certified": false,
+  "field_parity_certified": false,
+  "source_runtime_equivalent": false,
+  "production_ready": false,
+  "erp_posted": false
+}

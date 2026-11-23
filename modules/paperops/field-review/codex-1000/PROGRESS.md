@@ -19,6 +19,6 @@ A005 exact evidence commit: d12ccd24901b29bba8a96e9942d9fc4fa96600d0. It covers 
 
 A006 exact evidence commit: 4dadc009fbed01db368689486e605b6d84bf2f8d. The 50 IDs extend from S-06:desc through S-04:c_bad.
 
-A007 is blocked. Of manifest positions 301–350, 49 have matched declarations. At position 304 the manifest expects S-04:cashier. The C-03/S-06/S-04 source extractor includes code after the final S-04 definition; the only cashier mutation targets R-01. See A007-source-scan.json for the byte-offset proof. The manifest ID is preserved, and is excluded from the verified count. An Owner-approved ownership manifest correction is required before the A007 gate can pass.
+A007 audit evidence is ready for exact-head CI. Parent 456de1905707f125eaf9c0a82b5009698bf41156 corrected manifest position 304 from S-04:cashier to R-01:cashier. The other 999 Codex positions and the ChatGPT ownership lane are unchanged. A007 now contains 50 source-verified declarations and nine open findings (8 high, 1 medium). Historical attribution finding A007-F001 is resolved at the parent commit.
 
-Full batch gates passed: 6/20. Remaining: 700 fields across A007–A020. Coordination Board / Decision Book: NOT WRITTEN.
+Full gates previously passed: 6/20. Coordination Board / Decision Book: NOT WRITTEN.

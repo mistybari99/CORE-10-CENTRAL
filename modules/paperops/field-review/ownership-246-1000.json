@@ -7,7 +7,7 @@
     "frozen_legacy": "legacy/islamia-erp/forms.js (READ ONLY; do not execute)",
     "original_field_index": "modules/paperops/legacy-field-index.json",
     "deterministic_order": "modules/paperops/field-routing-report.json:forms.flatMap(f => f.source_fields)",
-    "order_blob_sha": "1fba77671b33d439b354500b144275e50e5bcdcd",
+    "order_blob_sha": "1362e52e2462307c626449118746ce266985a740",
     "prior_batches": [
       "modules/paperops/field-review/batch-001.json",
       "modules/paperops/field-review/batch-002.json",
@@ -18,7 +18,14 @@
       "b7a66a00cfcbc65c08d0126e98560833fdae4651",
       "85c9cbcfcab330d5721f2e59754eb364009a885d"
     ],
-    "rule": "critical86=review_state != FIELD_SPECIFIC_MAPPING_OUTSTANDING; mapped150=batch001+002+003 source_id order; remaining1010=pending excluding mapped150; chatgptExtra10=remaining1010.slice(0,10); codex1000=remaining1010.slice(10)."
+    "rule": "critical86=review_state != FIELD_SPECIFIC_MAPPING_OUTSTANDING; mapped150=batch001+002+003 source_id order; remaining1010=pending excluding mapped150; chatgptExtra10=remaining1010.slice(0,10); codex1000=remaining1010.slice(10).",
+    "cross_form_a007_evidence": {
+      "owner_form": "R-01",
+      "source_file": "forms_cash.js",
+      "offset_utf16": 44009,
+      "scan_order_anchor": "S-04",
+      "codex_position_one_based": 304
+    }
   },
   "verified_counts": {
     "legacy_total": 1246,
@@ -343,7 +350,7 @@
       "S-04:to_weekly",
       "S-04:checked_by",
       "S-04:reviewed_by",
-      "S-04:cashier",
+      "R-01:cashier",
       "P-04:time",
       "P-04:supplier",
       "P-04:memo_no",

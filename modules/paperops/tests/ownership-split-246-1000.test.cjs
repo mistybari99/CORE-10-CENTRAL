@@ -63,6 +63,11 @@ test('Codex owns exactly twenty immutable consecutive 50 field blocks, excluding
   ['R-01:drawer_none','R-01:ho_count','R-01:ho_range','R-01:ho_written','R-01:stock_locked',
    'R-01:orders_taken','R-01:order_range','R-01:delivered_n','R-01:pending_next','R-01:advance_taken']);
 });
+test('A007 source-correct cashier keeps the Codex 304th slot and never reassigns 999 neighbors',()=>{
+ assert.equal(manifest.lane_A_codex.ownership_keys[303],'R-01:cashier');
+ assert.equal(manifest.lane_A_codex.ownership_keys.includes('S-04:cashier'),false);
+ assert.equal(report.forms.flatMap(f=>f.source_fields)[498].id,'R-01:cashier');
+});
 test('tampering with an ownership set or swapping a field is caught even when totals remain unchanged',()=>{
  const copy=structuredClone(manifest),tmp=copy.lane_A_codex.ownership_keys[0];
  copy.lane_A_codex.ownership_keys[0]=copy.lane_B_chatgpt.reserved_next_10_keys[0];

@@ -9,7 +9,17 @@ const manifestPath = path.join(__dirname, '../ownership-246-1000.json');
 function hash(text) {
   return createHash('sha256').update(text).digest('hex');
 }
+const cashierGuard = 'e.forms["R-01"]&&e.forms["R-01"].head&&!e.forms["R-01"].head.some(e=>"cashier"===e.id)&&e.forms["R-01"].head.push(';
 function inspect(source, key, occurrence = 0, count = 1) {
+  if (key === 'R-01:cashier') {
+    const literal = 'u("cashier",t("ক্যাশিয়ার (Cashier)","Cashier"))';
+    const mutation = cashierGuard + literal + ')';
+    const offset = source.indexOf(mutation);
+    assert.ok(offset >= 0 && offset === source.lastIndexOf(mutation), 'Missing or ambiguous R-01 cashier mutation');
+    return { offset_utf16: offset + cashierGuard.length, literal, constructor_alias: 'u',
+      label_bn: 'ক্যাশিয়ার (Cashier)', label_en: 'Cashier' };
+  }
+  assert.notEqual(key, 'S-04:cashier', 'Cashier mutation belongs to R-01');
   const [form, field] = key.split(':');
   const marker = 'e.forms["' + form + '"]={';
   const start = source.indexOf(marker);
