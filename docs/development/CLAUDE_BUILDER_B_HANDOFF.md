@@ -432,4 +432,5 @@ Local results at `bcc9bbdf` (PG17.12 disposable cluster, one fresh cluster per w
 | core10-np06-finance-ci / finance-pg17 | 10/10 PASS |
 | core10-np05a-manufacturing-ci / manufacturing | 19/19 PASS (browser install skipped) |
 | core10-file-classification-ci / classification (after the classification fix) | 3 node tests PASS (3/3, 1/1, 1/1) |
+| after second trunk sync `3087de93` (trunk @ `2e06b753`, B-040 signed shell context; no conflict): core10-central-shell-import-ci 10/10, core10-file-classification-ci 4/4, core10-legacy-quarantine-ci 11/11 PASS (Chromium install skipped) | PASS |
 GitHub CI: see PR #123 checks for the pushed head.
