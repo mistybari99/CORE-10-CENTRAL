@@ -1,0 +1,608 @@
+{
+  "batch": "A006",
+  "status": "DECLARATIONS_CHECKED_RULE_REVIEW_IN_PROGRESS",
+  "source_file": "forms_cash.js",
+  "sha256": "ce58ef83daa19273b766f3eac63db5f97cc741ffb26ed21076ab948032c14022",
+  "fields": [
+    {
+      "source_id": "S-06:desc",
+      "constructors": [
+        {
+          "offset_utf16": 36073,
+          "literal": "i(\"desc\",t(\"বিবরণ\",\"Description\"),{wide:!0})",
+          "constructor_alias": "i",
+          "label_bn": "বিবরণ",
+          "label_en": "Description"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:inv",
+      "constructors": [
+        {
+          "offset_utf16": 36118,
+          "literal": "d(\"inv\",t(\"ইনভয়েস ৳\",\"Invoice ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "ইনভয়েস ৳",
+          "label_en": "Invoice ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:ret",
+      "constructors": [
+        {
+          "offset_utf16": 36154,
+          "literal": "d(\"ret\",t(\"রিটার্ন / ডিসকাউন্ট ৳ (−)\",\"Return / discount ৳ (−)\"))",
+          "constructor_alias": "d",
+          "label_bn": "রিটার্ন / ডিসকাউন্ট ৳ (−)",
+          "label_en": "Return / discount ৳ (−)"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:coll",
+      "constructors": [
+        {
+          "offset_utf16": 36220,
+          "literal": "d(\"coll\",t(\"আদায় ৳ (−)\",\"Collected ৳ (−)\"))",
+          "constructor_alias": "d",
+          "label_bn": "আদায় ৳ (−)",
+          "label_en": "Collected ৳ (−)"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:bal",
+      "constructors": [
+        {
+          "offset_utf16": 36265,
+          "literal": "f(\"bal\",t(\"বকেয়া ৳\",\"Balance due ৳\"),\"money\",{show:e=>{return t=e.row,Object.values(t||{}).some(r);var t}})",
+          "constructor_alias": "f",
+          "label_bn": "বকেয়া ৳",
+          "label_en": "Balance due ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:sign",
+      "constructors": [
+        {
+          "offset_utf16": 36374,
+          "literal": "u(\"sign\",t(\"স্বাক্ষর\",\"Signature\"))",
+          "constructor_alias": "u",
+          "label_bn": "স্বাক্ষর",
+          "label_en": "Signature"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:total_due",
+      "constructors": [
+        {
+          "offset_utf16": 36421,
+          "literal": "f(\"total_due\",t(\"মোট বকেয়া (Total Due)\",\"Total due\"),\"money\",{big:!0})",
+          "constructor_alias": "f",
+          "label_bn": "মোট বকেয়া (Total Due)",
+          "label_en": "Total due"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:ag30",
+      "constructors": [
+        {
+          "offset_utf16": 36558,
+          "literal": "d(\"ag30\",t(\"30 দিনের কম ৳\",\"Under 30 days ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "30 দিনের কম ৳",
+          "label_en": "Under 30 days ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:ag60",
+      "constructors": [
+        {
+          "offset_utf16": 36605,
+          "literal": "d(\"ag60\",t(\"31–60 দিন ৳\",\"31–60 days ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "31–60 দিন ৳",
+          "label_en": "31–60 days ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:ag60p",
+      "constructors": [
+        {
+          "offset_utf16": 36647,
+          "literal": "d(\"ag60p\",t(\"60+ দিন ৳\",\"60+ days ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "60+ দিন ৳",
+          "label_en": "60+ days ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:ag_text",
+      "constructors": [
+        {
+          "offset_utf16": 36686,
+          "literal": "f(\"ag_text\",t(\"বয়সের যোগ = মোট বকেয়া?\",\"Age total = total due?\"),\"text\")",
+          "constructor_alias": "f",
+          "label_bn": "বয়সের যোগ = মোট বকেয়া?",
+          "label_en": "Age total = total due?"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:limit_state",
+      "constructors": [
+        {
+          "offset_utf16": 36761,
+          "literal": "f(\"limit_state\",t(\"ক্রেডিট সীমার ভেতরে / বাইরে\",\"Inside / outside the credit limit\"),\"text\")",
+          "constructor_alias": "f",
+          "label_bn": "ক্রেডিট সীমার ভেতরে / বাইরে",
+          "label_en": "Inside / outside the credit limit"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:credit_stop",
+      "constructors": [
+        {
+          "offset_utf16": 36854,
+          "literal": "m(\"credit_stop\",t(\"নতুন বাকি বন্ধ\",\"New credit stopped\"))",
+          "constructor_alias": "m",
+          "label_bn": "নতুন বাকি বন্ধ",
+          "label_en": "New credit stopped"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:stop_date",
+      "constructors": [
+        {
+          "offset_utf16": 36912,
+          "literal": "h(\"stop_date\",t(\"শুরুর তারিখ\",\"Start date\"),{show:e=>!!e.d.credit_stop})",
+          "constructor_alias": "h",
+          "label_bn": "শুরুর তারিখ",
+          "label_en": "Start date"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:decided_by",
+      "constructors": [
+        {
+          "offset_utf16": 36985,
+          "literal": "u(\"decided_by\",t(\"সিদ্ধান্তগ্রহণকারী (Decided by)\",\"Decided by\"),{show:e=>!!e.d.credit_stop})",
+          "constructor_alias": "u",
+          "label_bn": "সিদ্ধান্তগ্রহণকারী (Decided by)",
+          "label_en": "Decided by"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:m_inv_n",
+      "constructors": [
+        {
+          "offset_utf16": 37140,
+          "literal": "l(\"m_inv_n\",t(\"ইনভয়েস (টি)\",\"Invoices (no.)\"))",
+          "constructor_alias": "l",
+          "label_bn": "ইনভয়েস (টি)",
+          "label_en": "Invoices (no.)"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:m_inv_amt",
+      "constructors": [
+        {
+          "offset_utf16": 37188,
+          "literal": "d(\"m_inv_amt\",t(\"মোট ৳\",\"Total ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "মোট ৳",
+          "label_en": "Total ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:on_time",
+      "constructors": [
+        {
+          "offset_utf16": 37224,
+          "literal": "l(\"on_time\",t(\"সময়মতো পেমেন্ট (বার)\",\"On-time payments (times)\"))",
+          "constructor_alias": "l",
+          "label_bn": "সময়মতো পেমেন্ট (বার)",
+          "label_en": "On-time payments (times)"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:late",
+      "constructors": [
+        {
+          "offset_utf16": 37291,
+          "literal": "l(\"late\",t(\"দেরিতে পেমেন্ট (বার)\",\"Late payments (times)\"))",
+          "constructor_alias": "l",
+          "label_bn": "দেরিতে পেমেন্ট (বার)",
+          "label_en": "Late payments (times)"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:remark",
+      "constructors": [
+        {
+          "offset_utf16": 37351,
+          "literal": "i(\"remark\",t(\"মন্তব্য\",\"Remark\"),{wide:!0})",
+          "constructor_alias": "i",
+          "label_bn": "মন্তব্য",
+          "label_en": "Remark"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:keeper",
+      "constructors": [
+        {
+          "offset_utf16": 37395,
+          "literal": "u(\"keeper\",t(\"হিসাবরক্ষক (Ledger Keeper)\",\"Ledger keeper\"))",
+          "constructor_alias": "u",
+          "label_bn": "হিসাবরক্ষক (Ledger Keeper)",
+          "label_en": "Ledger keeper"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:checked_by",
+      "constructors": [
+        {
+          "offset_utf16": 37505,
+          "literal": "u(\"checked_by\",t(\"যাচাইকারী (Checked by) — ব্যবস্থাপনা\",\"Checked by — management\"),{who:\"checker\"})",
+          "constructor_alias": "u",
+          "label_bn": "যাচাইকারী (Checked by) — ব্যবস্থাপনা",
+          "label_en": "Checked by — management"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:week_from",
+      "constructors": [
+        {
+          "offset_utf16": 38874,
+          "literal": "h(\"week_from\",t(\"সপ্তাহ — থেকে\",\"Week from\"),{req:!0})",
+          "constructor_alias": "h",
+          "label_bn": "সপ্তাহ — থেকে",
+          "label_en": "Week from"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:week_to",
+      "constructors": [
+        {
+          "offset_utf16": 38929,
+          "literal": "h(\"week_to\",t(\"সপ্তাহ — পর্যন্ত\",\"Week to\"),{req:!0})",
+          "constructor_alias": "h",
+          "label_bn": "সপ্তাহ — পর্যন্ত",
+          "label_en": "Week to"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:date",
+      "constructors": [
+        {
+          "offset_utf16": 39409,
+          "literal": "h(\"date\",t(\"তারিখ\",\"Date\"),{req:!0})",
+          "constructor_alias": "h",
+          "label_bn": "তারিখ",
+          "label_en": "Date"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:platform",
+      "constructors": [
+        {
+          "offset_utf16": 39446,
+          "literal": "i(\"platform\",t(\"প্ল্যাটফর্ম\",\"Platform\"))",
+          "constructor_alias": "i",
+          "label_bn": "প্ল্যাটফর্ম",
+          "label_en": "Platform"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:order_no",
+      "constructors": [
+        {
+          "offset_utf16": 39488,
+          "literal": "i(\"order_no\",t(\"কাস্টমার অর্ডার ফরম নং\",\"Customer order form no.\"),{req:!0})",
+          "constructor_alias": "i",
+          "label_bn": "কাস্টমার অর্ডার ফরম নং",
+          "label_en": "Customer order form no."
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:amt",
+      "constructors": [
+        {
+          "offset_utf16": 39565,
+          "literal": "d(\"amt\",t(\"অঙ্ক ৳\",\"Amount ৳\"),{req:!0})",
+          "constructor_alias": "d",
+          "label_bn": "অঙ্ক ৳",
+          "label_en": "Amount ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:path",
+      "constructors": [
+        {
+          "offset_utf16": 39606,
+          "literal": "b(\"path\",t(\"টাকার পথ\",\"Money path\"),[[\"merchant\",t(\"মার্চেন্ট\",\"Merchant\")],[\"cod\",t(\"ক্যাশ অন ডেলিভারি\",\"Cash on delivery\")],[\"foodapp\",t(\"ফুড অ্যাপ\",\"Food app\")]])",
+          "constructor_alias": "b",
+          "label_bn": "টাকার পথ",
+          "label_en": "Money path"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:showroom",
+      "constructors": [
+        {
+          "offset_utf16": 39772,
+          "literal": "_(\"showroom\",t(\"শোরুম\",\"Showroom\"))",
+          "constructor_alias": "_",
+          "label_bn": "শোরুম",
+          "label_en": "Showroom"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:delivery",
+      "constructors": [
+        {
+          "offset_utf16": 39808,
+          "literal": "b(\"delivery\",t(\"ডেলিভারি\",\"Delivery\"),[[\"shop\",t(\"দোকান থেকে\",\"From the shop\")],[\"own\",t(\"নিজস্ব\",\"Own\")],[\"courier\",t(\"কুরিয়ার\",\"Courier\")],[\"foodapp\",t(\"ফুড অ্যাপ\",\"Food app\")]])",
+          "constructor_alias": "b",
+          "label_bn": "ডেলিভারি",
+          "label_en": "Delivery"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:dcharge",
+      "constructors": [
+        {
+          "offset_utf16": 39990,
+          "literal": "d(\"dcharge\",t(\"ডেলিভারি চার্জ ৳\",\"Delivery charge ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "ডেলিভারি চার্জ ৳",
+          "label_en": "Delivery charge ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:outcome",
+      "constructors": [
+        {
+          "offset_utf16": 40045,
+          "literal": "g(\"outcome\",t(\"ফলাফল\",\"Outcome\"),[[\"handed\",t(\"হাতে দেওয়া\",\"Handed over\")],[\"returned\",t(\"ফেরত\",\"Returned\")]])",
+          "constructor_alias": "g",
+          "label_bn": "ফলাফল",
+          "label_en": "Outcome"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:return_ref",
+      "constructors": [
+        {
+          "offset_utf16": 40157,
+          "literal": "i(\"return_ref\",t(\"রিটার্ন ও অভিযোগ রেজিস্টার নং\",\"Return & complaint register no.\"),{show:e=>\"returned\"===e.row.outcome})",
+          "constructor_alias": "i",
+          "label_bn": "রিটার্ন ও অভিযোগ রেজিস্টার নং",
+          "label_en": "Return & complaint register no."
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:money_in",
+      "constructors": [
+        {
+          "offset_utf16": 40279,
+          "literal": "m(\"money_in\",t(\"টাকা এসেছে\",\"Money received\"))",
+          "constructor_alias": "m",
+          "label_bn": "টাকা এসেছে",
+          "label_en": "Money received"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:match_src",
+      "constructors": [
+        {
+          "offset_utf16": 40326,
+          "literal": "i(\"match_src\",t(\"মিলের উৎস\",\"Source of the match\"))",
+          "constructor_alias": "i",
+          "label_bn": "মিলের উৎস",
+          "label_en": "Source of the match"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:tot_amt",
+      "constructors": [
+        {
+          "offset_utf16": 40388,
+          "literal": "f(\"tot_amt\",t(\"মোট অঙ্ক\",\"Total amount\"),\"money\",{big:!0})",
+          "constructor_alias": "f",
+          "label_bn": "মোট অঙ্ক",
+          "label_en": "Total amount"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:tot_dch",
+      "constructors": [
+        {
+          "offset_utf16": 40447,
+          "literal": "f(\"tot_dch\",t(\"মোট ডেলিভারি চার্জ\",\"Total delivery charge\"),\"money\")",
+          "constructor_alias": "f",
+          "label_bn": "মোট ডেলিভারি চার্জ",
+          "label_en": "Total delivery charge"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:led_total",
+      "constructors": [
+        {
+          "offset_utf16": 40585,
+          "literal": "f(\"led_total\",t(\"এই লেজারের মোট\",\"This ledger's total\"),\"money\")",
+          "constructor_alias": "f",
+          "label_bn": "এই লেজারের মোট",
+          "label_en": "This ledger's total"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:forms_total",
+      "constructors": [
+        {
+          "offset_utf16": 40650,
+          "literal": "d(\"forms_total\",t(\"= কাস্টমার অর্ডার ফরমের অনলাইন-টিকের মোট\",\"= total of the online-ticked customer order forms\"),{req:!0})",
+          "constructor_alias": "d",
+          "label_bn": "= কাস্টমার অর্ডার ফরমের অনলাইন-টিকের মোট",
+          "label_en": "= total of the online-ticked customer order forms"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:rec_text",
+      "constructors": [
+        {
+          "offset_utf16": 40907,
+          "literal": "f(\"rec_text\",t(\"মিল\",\"Match\"),\"text\")",
+          "constructor_alias": "f",
+          "label_bn": "মিল",
+          "label_en": "Match"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:to_10_3",
+      "constructors": [
+        {
+          "offset_utf16": 40945,
+          "literal": "m(\"to_10_3\",t(\"কুরিয়ার ও ফুড অ্যাপের প্রাপ্য → ডিজিটাল পেমেন্ট রিকনসিলিয়েশন রেজিস্টারে\",\"Courier & food-app dues → digital payment reconciliation register\"))",
+          "constructor_alias": "m",
+          "label_bn": "কুরিয়ার ও ফুড অ্যাপের প্রাপ্য → ডিজিটাল পেমেন্ট রিকনসিলিয়েশন রেজিস্টারে",
+          "label_en": "Courier & food-app dues → digital payment reconciliation register"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:limit_text",
+      "constructors": [
+        {
+          "offset_utf16": 41105,
+          "literal": "f(\"limit_text\",t(\"অর্ডার-সীমা (লোকেশন সেটিংস শিট) পার হয়েছে?\",\"Order limit (location settings) exceeded?\"),\"text\")",
+          "constructor_alias": "f",
+          "label_bn": "অর্ডার-সীমা (লোকেশন সেটিংস শিট) পার হয়েছে?",
+          "label_en": "Order limit (location settings) exceeded?"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:over_days",
+      "constructors": [
+        {
+          "offset_utf16": 41221,
+          "literal": "f(\"over_days\",t(\"যে দিন পার হয়েছে\",\"Day(s) exceeded\"),\"text\",{show:e=>e.v.over_n>0})",
+          "constructor_alias": "f",
+          "label_bn": "যে দিন পার হয়েছে",
+          "label_en": "Day(s) exceeded"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:over_approver",
+      "constructors": [
+        {
+          "offset_utf16": 41307,
+          "literal": "u(\"over_approver\",t(\"অনুমোদনকারী (Approved by)\",\"Approved by\"),{show:e=>e.v.over_n>0,req:e=>e.v.over_n>0})",
+          "constructor_alias": "u",
+          "label_bn": "অনুমোদনকারী (Approved by)",
+          "label_en": "Approved by"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:c_msgs",
+      "constructors": [
+        {
+          "offset_utf16": 41458,
+          "literal": "l(\"c_msgs\",t(\"মেসেজ / খোঁজ\",\"Messages / enquiries\"))",
+          "constructor_alias": "l",
+          "label_bn": "মেসেজ / খোঁজ",
+          "label_en": "Messages / enquiries"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:c_orders",
+      "constructors": [
+        {
+          "offset_utf16": 41511,
+          "literal": "l(\"c_orders\",t(\"অর্ডার\",\"Orders\"))",
+          "constructor_alias": "l",
+          "label_bn": "অর্ডার",
+          "label_en": "Orders"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:c_returns",
+      "constructors": [
+        {
+          "offset_utf16": 41546,
+          "literal": "l(\"c_returns\",t(\"ফেরত বা অভিযোগ\",\"Returns or complaints\"))",
+          "constructor_alias": "l",
+          "label_bn": "ফেরত বা অভিযোগ",
+          "label_en": "Returns or complaints"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:c_good",
+      "constructors": [
+        {
+          "offset_utf16": 41605,
+          "literal": "l(\"c_good\",t(\"রিভিউ: ভালো\",\"Reviews: good\"))",
+          "constructor_alias": "l",
+          "label_bn": "রিভিউ: ভালো",
+          "label_en": "Reviews: good"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:c_bad",
+      "constructors": [
+        {
+          "offset_utf16": 41650,
+          "literal": "l(\"c_bad\",t(\"রিভিউ: খারাপ\",\"Reviews: bad\"))",
+          "constructor_alias": "l",
+          "label_bn": "রিভিউ: খারাপ",
+          "label_en": "Reviews: bad"
+        }
+      ]
+    }
+  ]
+}
