@@ -64,7 +64,7 @@ async function shell(){
 async function boot(){
  await shell();
  try{
-  const cfg=window.BOS_CONFIG,lib=window.supabase;
+  const cfg=window.CORE10_CONTROL_CENTRE_CONFIG,lib=window.supabase;
   if(!cfg||!cfg.url||!cfg.key||!lib||typeof lib.createClient!=="function")throw Object.assign(new Error("SIGNED_SUPABASE_CLIENT_REQUIRED"),{code:"SIGNED_SUPABASE_CLIENT_REQUIRED"});
   state.api=window.CORE10_WORKFORCE_API.create({client:lib.createClient(cfg.url,cfg.key)});
   const mine=await state.api.call("my_businesses",{});

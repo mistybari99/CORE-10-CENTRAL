@@ -109,7 +109,7 @@ async function init(){
   busy(()=>state.api.move(Number(row.dataset.site),group,Number(row.dataset.version),key(),reason),button);
  });
  try{
-  const cfg=window.BOS_CONFIG,lib=window.supabase;
+  const cfg=window.CORE10_CONTROL_CENTRE_CONFIG,lib=window.supabase;
   if(!cfg||!cfg.url||!cfg.key||!lib||typeof lib.createClient!=="function")
    throw Error("SIGNED_CLIENT_CONFIGURATION_MISSING");
   state.api=window.CORE10_SITE_TOPOLOGY_API.create({client:lib.createClient(cfg.url,cfg.key)});

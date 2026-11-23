@@ -11,7 +11,7 @@ async function init(){
  builder=window.CORE10_BUILDER_INSTANCE;
  if(!builder)return;
  builder.onChange(()=>{requestKey=null;$("createStagingDraft").disabled=!api||!api.status().draftWritesEnabled});
- const cfg=window.BOS_CONFIG,lib=window.supabase;
+ const cfg=window.CORE10_CONTROL_CENTRE_CONFIG,lib=window.supabase;
  if(!cfg||!cfg.url||!cfg.key||!lib||typeof lib.createClient!=="function"){
   status("Supabase client configuration unavailable. Preview export still works.");return;
  }
