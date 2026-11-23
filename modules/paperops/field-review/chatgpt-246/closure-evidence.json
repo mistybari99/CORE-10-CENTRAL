@@ -1810,7 +1810,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "ORIGINAL_YELLOW_RED_MISSING_RECEIPT_WARNINGS"
     },
     {
       "source_id": "C-02:amount",
@@ -1926,7 +1927,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "ORIGINAL_YELLOW_RED_MISSING_RECEIPT_WARNINGS"
     },
     {
       "source_id": "C-02:drawer_untouched",
@@ -2026,7 +2028,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "PINNED_OLD_N_O_VISIBILITY_RECONSTRUCTED"
     },
     {
       "source_id": "C-02:imprest_text",
@@ -2044,7 +2047,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "PINNED_OLD_N_O_VISIBILITY_RECONSTRUCTED"
     },
     {
       "source_id": "C-01:sheet_no",
@@ -3361,7 +3365,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "PINNED_OLD_N_O_VISIBILITY_RECONSTRUCTED"
     },
     {
       "source_id": "R-01:imp_cash",
@@ -3415,7 +3420,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "PINNED_OLD_N_O_VISIBILITY_RECONSTRUCTED"
     },
     {
       "source_id": "R-01:name",
@@ -4217,7 +4223,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "SYNTHETIC_SOURCE_CUSTODY_AND_ORDER_RECONCILIATION_GATE__NOT_SOURCE_CALC_PARITY"
     },
     {
       "source_id": "R-01:ho_count",
@@ -4233,7 +4240,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "SYNTHETIC_SOURCE_CUSTODY_AND_ORDER_RECONCILIATION_GATE__NOT_SOURCE_CALC_PARITY"
     },
     {
       "source_id": "R-01:ho_range",
@@ -4249,7 +4257,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "SYNTHETIC_SOURCE_CUSTODY_AND_ORDER_RECONCILIATION_GATE__NOT_SOURCE_CALC_PARITY"
     },
     {
       "source_id": "R-01:ho_written",
@@ -4265,7 +4274,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "SYNTHETIC_SOURCE_CUSTODY_AND_ORDER_RECONCILIATION_GATE__NOT_SOURCE_CALC_PARITY"
     },
     {
       "source_id": "R-01:stock_locked",
@@ -4281,7 +4291,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "SYNTHETIC_SOURCE_CUSTODY_AND_ORDER_RECONCILIATION_GATE__NOT_SOURCE_CALC_PARITY"
     },
     {
       "source_id": "R-01:orders_taken",
@@ -4297,7 +4308,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "SYNTHETIC_SOURCE_CUSTODY_AND_ORDER_RECONCILIATION_GATE__NOT_SOURCE_CALC_PARITY"
     },
     {
       "source_id": "R-01:order_range",
@@ -4313,7 +4325,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "SYNTHETIC_SOURCE_CUSTODY_AND_ORDER_RECONCILIATION_GATE__NOT_SOURCE_CALC_PARITY"
     },
     {
       "source_id": "R-01:delivered_n",
@@ -4329,7 +4342,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "SYNTHETIC_SOURCE_CUSTODY_AND_ORDER_RECONCILIATION_GATE__NOT_SOURCE_CALC_PARITY"
     },
     {
       "source_id": "R-01:pending_next",
@@ -4345,7 +4359,8 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "SYNTHETIC_SOURCE_CUSTODY_AND_ORDER_RECONCILIATION_GATE__NOT_SOURCE_CALC_PARITY"
     },
     {
       "source_id": "R-01:advance_taken",
@@ -4361,9 +4376,18 @@
       "signed_tested": false,
       "owner_accepted": false,
       "release_authorized": false,
-      "erp_post_authorized": false
+      "erp_post_authorized": false,
+      "local_nonposting_correction": "SYNTHETIC_SOURCE_CUSTODY_AND_ORDER_RECONCILIATION_GATE__NOT_SOURCE_CALC_PARITY"
     }
   ],
   "canonical_runtime_signed_postings": 0,
-  "owner_approved_fields": 0
+  "owner_approved_fields": 0,
+  "local_nonposting_source_logic": {
+    "helper_gate": "modules/paperops/field-review/chatgpt-246/source-helper-conditions.cjs",
+    "receipt_warning_gate": "modules/paperops/field-review/chatgpt-246/receipt-warning-severity.cjs",
+    "r01_reserved_gate": "modules/paperops/field-review/chatgpt-246/r01-custody-order-source-gate.cjs",
+    "field_approved_for_live_use": 0,
+    "verified_real_money_postings": 0,
+    "verified_real_stock_postings": 0
+  }
 }
