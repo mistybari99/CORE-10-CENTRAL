@@ -1,0 +1,23 @@
+[
+  {
+    "issue_id": "A007-F001",
+    "severity": "HIGH",
+    "source_ids": [
+      "S-04:cashier"
+    ],
+    "status": "BLOCKED_SOURCE_FORM_MISMATCH",
+    "owner_lane": "ChatGPT B / Owner manifest decision",
+    "source": {
+      "source_id": "S-04:cashier",
+      "source_file": "forms_cash.js",
+      "status": "SOURCE_FORM_MISMATCH",
+      "constructors": [],
+      "actual_mutation": {
+        "offset_utf16": 44009,
+        "text": "e.forms[\"R-01\"].head.push(u(\"cashier\",t(\"ক্যাশিয়ার (Cashier)\",\"Cashier\")))"
+      }
+    },
+    "observed_gap": "The inventory assigned an R-01 runtime header mutation to the trailing S-04 block. S-04 declares no cashier constructor.",
+    "required_correction": "Resolve the inventory attribution and exact ownership split under Owner approval. Keep the A007 gate pending until the corrected assignment has exact source evidence."
+  }
+]
