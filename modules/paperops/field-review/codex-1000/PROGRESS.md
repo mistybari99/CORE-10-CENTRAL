@@ -1,7 +1,9 @@
 # Codex original-source audit
 
-A001 covers the first 50 ordered R-01 IDs from board_recon through exp_amt. It has 12 open findings (10 high and 2 medium), grouped source evidence and synthetic fixtures. See batch-A001.json and issues.json.
+A001 covers 50 ordered R-01 IDs from board_recon through exp_amt. The report has grouped rule evidence, synthetic fixtures and 12 open findings (10 high and 2 medium). See batch-A001.json and issues.json.
 
-The initial Node 22 audit job passed 21 tests. The initial full suite passed 140 tests and failed 3 because this parent tracks the frozen source at root. The workflow now stages the original blob under the path expected by inherited tests and runs the hash-pinned canonical guard against the audit checkout. Both are temporary checkout operations. Exact-head rerun pending.
+Run 45112442555 passed all 143 inherited PaperOps tests. CI stages the byte-identical frozen form at the path used by historical tests. The canonical guard ran against the audit checkout and failed on an inherited legacy loader in core10-asset-maintenance-assets.html. This requires a parent-lane correction.
 
-A001 gate remains pending until CI passes. A002–A020 remain queued in manifest order. Coordination Board and Decision Book: NOT WRITTEN.
+The new warning test was corrected to accept an exact warning invocation within a larger verified source excerpt. Exact-head CI rerun pending.
+
+A001 remains open. A002–A020 are queued in manifest order. Coordination Board and Decision Book: NOT WRITTEN.

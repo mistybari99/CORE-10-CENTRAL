@@ -128,7 +128,7 @@ test('A001 rule fragments preserve the original dynamic warning levels', () => {
       assert.ok(fragments.some(fragment => fragment.includes('"yellow":"red"')));
       assert.ok(fragments.some(fragment => fragment.startsWith('x("' + flag + '",')));
     } else {
-      assert.ok(fragments.some(fragment => fragment.startsWith('x("' + flag + '","' + level + '"')));
+      assert.ok(fragments.some(fragment => fragment.includes('x("' + flag + '","' + level + '"')));
     }
   }
 });
