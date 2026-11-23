@@ -9,7 +9,7 @@ const manifestPath = path.join(__dirname, '../ownership-246-1000.json');
 function hash(text) {
   return createHash('sha256').update(text).digest('hex');
 }
-function inspect(source, key) {
+function inspect(source, key, occurrence = 0, count = 1) {
   const [form, field] = key.split(':');
   const marker = 'e.forms["' + form + '"]={';
   const start = source.indexOf(marker);
@@ -19,8 +19,9 @@ function inspect(source, key) {
   const formText = source.slice(start, end);
   const pattern = /([A-Za-z_$][\w$]*)\("([a-z][a-z0-9_]*)",t\("([^"]+)","([^"]+)"\)/g;
   const matches = [...formText.matchAll(pattern)].filter(match => match[2] === field);
-  assert.equal(matches.length, 1, 'Missing or ambiguous original constructor: ' + key);
-  const match = matches[0];
+  assert.equal(matches.length, count, 'Missing or ambiguous original constructor: ' + key);
+  const match = matches[occurrence];
+  assert.ok(match, 'Missing constructor occurrence: ' + key);
   let depth = 0;
   let quote = null;
   let escaped = false;
@@ -43,7 +44,7 @@ function inspect(source, key) {
   const literal = source.slice(offset, cursor + 1);
   return { offset_utf16: offset, literal, constructor_alias: match[1], label_bn: match[3], label_en: match[4] };
 }
-function verify(report, manifest, source, expectedBatch) {
+function verify(report, manifest, source, expectedBatch, supplements = {}) {
   const keys = manifest.lane_A_codex.ownership_keys;
   const lane = manifest.lane_B_chatgpt;
   const protectedKeys = [...lane.critical_86_keys, ...lane.mapped_150_keys, ...lane.reserved_next_10_keys];
@@ -60,8 +61,14 @@ function verify(report, manifest, source, expectedBatch) {
     assert.equal(report[field], false, 'False approval or missing guard: ' + field);
   }
   assert.equal(hash(source), report.source.sha256, 'Frozen source drift');
+  for (const [file, digest] of Object.entries(report.source.supplements ?? {})) {
+    assert.equal(hash(supplements[file]), digest, 'Frozen source drift: ' + file);
+  }
   for (const field of report.fields) {
-    assert.deepEqual(field.evidence, inspect(source, field.source_id));
+    const text = field.source_file ? supplements[field.source_file] : source;
+    const count = field.source_id === 'C-04:who' ? 2 : 1;
+    assert.deepEqual(field.evidence, inspect(text, field.source_id, 0, count));
+    if (count === 2) assert.deepEqual(field.alternate_evidence, inspect(text, field.source_id, 1, count));
     for (const [property, sourceName] of [['requirements', 'req'], ['visibility', 'show'], ['role', 'who']]) {
       const condition = field.evidence.literal.match(new RegExp('\\b' + sourceName + ':([^,}]+)'))?.[1] ?? 'NOT_DECLARED';
       assert.equal(field[property], condition, 'Original source condition mismatch: ' + field.source_id + ' ' + sourceName);
@@ -74,7 +81,8 @@ function verify(report, manifest, source, expectedBatch) {
   for (const [id, rule] of Object.entries(report.rules)) {
     assert.ok(rule.fragments.length > 0, 'Missing rule evidence: ' + id);
     for (const fragment of rule.fragments) {
-      assert.equal(source.slice(fragment.offset_utf16, fragment.offset_utf16 + fragment.text.length), fragment.text);
+      const text = fragment.source_file ? supplements[fragment.source_file] : source;
+      assert.equal(text.slice(fragment.offset_utf16, fragment.offset_utf16 + fragment.text.length), fragment.text);
       assert.ok(fragment.text.length > 0);
     }
   }
@@ -84,11 +92,13 @@ function readBatch(number = 1) {
   const report = JSON.parse(fs.readFileSync(path.join(__dirname, 'batch-A' + String(number).padStart(3, '0') + '.json'), 'utf8'));
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   const source = fs.readFileSync(path.join(root, report.source.path), 'utf8');
-  return { report, manifest, source };
+  const supplements = Object.fromEntries(Object.keys(report.source.supplements ?? {}).map(file =>
+    [file, fs.readFileSync(path.join(root, file), 'utf8')]));
+  return { report, manifest, source, supplements };
 }
 if (require.main === module) {
   const number = Number(process.argv[2] ?? 1);
-  const { report, manifest, source } = readBatch(number);
-  console.log(report.batch + ' source evidence rows checked: ' + verify(report, manifest, source, number));
+  const { report, manifest, source, supplements } = readBatch(number);
+  console.log(report.batch + ' source evidence rows checked: ' + verify(report, manifest, source, number, supplements));
 }
 module.exports = { hash, inspect, readBatch, verify };
