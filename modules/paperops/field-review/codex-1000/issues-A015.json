@@ -1,0 +1,213 @@
+[
+  {
+    "issue_id": "A015-F001",
+    "source_ids": [
+      "M-01:reported_by",
+      "M-01:requested_by",
+      "M-01:p_other_text",
+      "M-01:work_stopped",
+      "M-01:work_which",
+      "M-01:work_alt",
+      "M-01:goods_state",
+      "M-01:goods_result",
+      "M-01:goods_moved",
+      "M-01:photos"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 27353,
+        "text": "a(\"goods_result\",t(\"ফল\",\"Result\"),{show:e=>\"checked\"===e.d.goods_state,req:e=>\"checked\"===e.d.goods_state}),p(\"goods_moved\",t(\"পণ্য সরানো হয়েছে\",\"Goods moved\"),{show:e=>\"checked\"===e.d.good"
+      }
+    ],
+    "observed_gap": "Reporter required. Other problem and stopped-work details are conditional. Checked goods requires result and displays move checkbox. Evidence is descriptive; no lot quarantine or movement is validated.",
+    "dependency": "Asset incident, affected Stock lots and custody/QC checks",
+    "correction": "Require linked assets/lots and quarantine or clearance evidence scoped to site and incident.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A015-F002",
+    "source_ids": [
+      "M-01:assigned",
+      "M-01:tech_name",
+      "M-01:est_cost",
+      "M-01:approved_by"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 30561,
+        "text": "t.approved_by!==t.reported_by&&t.approved_by!==t.requested_by||o.push(q(\"approver_same\",\"red\",\"অনুমোদনকারী ও রিপোর্টকারী/অনুরোধকারী একই জন\",\"Approver is the reporter / requester\")),{v:a,flag"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 30631,
+        "text": "q(\"approver_same\",\"red\",\"অনুমোদনকারী ও রিপোর্টকারী/অনুরোধকারী একই জন\",\"Approver is the reporter / requester\")),{v:a,flags:o,needs:i}}};const B=[t(\"ইসলামিয়া মিষ্টি ঘর — মেইন\",\"ISLAMIYA MISTY"
+      }
+    ],
+    "observed_gap": "Estimate and approver required. External technician name/phone is optional in declarations. Named approver matching reporter or requester red.",
+    "dependency": "Asset service assignment and independently approved estimate",
+    "correction": "Confirm scoped repair vendor and independent approval for the actual approved estimate version.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A015-F003",
+    "source_ids": [
+      "M-01:done_date",
+      "M-01:done_time",
+      "M-01:downtime",
+      "M-01:times_year",
+      "M-01:replace_proposal",
+      "M-01:received_by",
+      "M-01:photos_done"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 29556,
+        "text": "a.downtime=Number.isFinite(s)?Math.round(10*s)/10:void 0,Number.isFinite(s)&&s<0&&o.push(q(\"done_before_found\",\"red\",\"মেরামত শেষের সময় শনাক্তের সময়ের আগে\",\"Repair finish time is before the"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 29645,
+        "text": "q(\"done_before_found\",\"red\",\"মেরামত শেষের সময় শনাক্তের সময়ের আগে\",\"Repair finish time is before the time found\"))}r(t.actual_cost)&&r(t.est_cost)&&s(t.actual_cost)>s(t.est_cost)&&o.push(q("
+      }
+    ],
+    "observed_gap": "Finite completion minus detection rounds to tenth-hour; negative duration red. Repair count and proposal are entered; acceptance and photo evidence are not verified in calc.",
+    "dependency": "Asset history, signed completion and service attachments",
+    "correction": "Use authoritative timestamps and repair history, with signed closure evidence.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A015-F004",
+    "source_ids": [
+      "M-01:actual_cost",
+      "M-01:cost_type",
+      "M-01:receipt",
+      "M-01:pay",
+      "M-01:pay_other",
+      "M-01:voucher_no",
+      "M-01:ledger_line"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 29994,
+        "text": "const n=P(e,\"expense_max\");return\"imprest\"===t.pay&&s(t.actual_cost)>0&&(null===n?i.push(\"expense_max\"):s(t.actual_cost)>n&&o.push(q(\"imprest_over_limit\",\"yellow\",\"ইমপ্রেস্ট থেকে খরচ এককালীন"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 29833,
+        "text": "q(\"cost_over_estimate\",\"yellow\",\"প্রকৃত খরচ অনুমোদিত আনুমানিক খরচের চেয়ে বেশি\",\"Actual cost is above the approved estimate\",A(s(t.actual_cost)-s(t.est_cost))));const n=P(e,\"expense_max\");re"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 30125,
+        "text": "q(\"imprest_over_limit\",\"yellow\",\"ইমপ্রেস্ট থেকে খরচ এককালীন সীমার উপরে\",\"Imprest payment above the single-expense limit\",s(t.actual_cost)))),s(t.actual_cost)>0&&!t.receipt&&o.push(q(\"no_rece"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 30305,
+        "text": "q(\"no_receipt\",\"yellow\",\"রসিদ সংযুক্ত নেই\",\"No receipt attached\",s(t.actual_cost))),\"owner\"===t.pay&&o.push(q(\"owner_personal\",\"yellow\",\"মালিকের ব্যক্তিগত টাকায় পেমেন্ট\",\"Paid from the owne"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 30413,
+        "text": "q(\"owner_personal\",\"yellow\",\"মালিকের ব্যক্তিগত টাকায় পেমেন্ট\",\"Paid from the owner's personal money\",s(t.actual_cost)||void 0)),!r(t.approved_by)||t.approved_by!==t.reported_by&&t.approved_"
+      }
+    ],
+    "observed_gap": "Actual above estimate and imprest amount strictly above configured cap warn yellow; unset cap requests settings. Positive cost without receipt yellow; owner pay yellow. Other text and imprest voucher visibility do not enforce attachment or ledger link.",
+    "dependency": "Money voucher, approved estimate, receipts and imprest policy",
+    "correction": "Validate expense and scope against exact approved amount, capped account and verified voucher.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A015-F005",
+    "source_ids": [
+      "A-01:week_from",
+      "A-01:week_to"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 36000,
+        "text": "t.week_to<t.week_from&&o.push(q(\"week_range\",\"red\",\"সপ্তাহের শেষ তারিখ শুরুর আগে\",\"Week end is before its start\")),\"yes\"===t.split&&o.push(q(\"split_expenses\",\"yellow\",\"সীমার নিচে ভাগ করা খরচ"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 36030,
+        "text": "q(\"week_range\",\"red\",\"সপ্তাহের শেষ তারিখ শুরুর আগে\",\"Week end is before its start\")),\"yes\"===t.split&&o.push(q(\"split_expenses\",\"yellow\",\"সীমার নিচে ভাগ করা খরচ ধরা পড়েছে\",\"Split expenses b"
+      }
+    ],
+    "observed_gap": "Both dates required. End before start red, equality accepted by this check. No week-length or source-record range check.",
+    "dependency": "Week calendar and scoped period controls",
+    "correction": "Aggregate exact report-window source records under explicit business calendar boundaries.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A015-F006",
+    "source_ids": [
+      "A-01:sales",
+      "A-01:cash_so",
+      "A-01:gm_gap",
+      "A-01:days_cash",
+      "A-01:days_gm",
+      "A-01:wastage",
+      "A-01:complaints",
+      "A-01:discount",
+      "A-01:orders_taken",
+      "A-01:orders_given",
+      "A-01:online",
+      "A-01:outside_ok",
+      "A-01:jal_diff",
+      "A-01:jal_oil",
+      "A-01:jal_juice"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 32587,
+        "text": "rows:()=>{const o=(e.ENV&&e.ENV.locs||[]).filter(e=>\"showroom\"===e.kind&&!1!==e.is_active&&[\"live\",\"setting_up\",null,void 0].includes(e.status));return[...o.length?o.map(e=>({bn:e.name_bn,en"
+      }
+    ],
+    "observed_gap": "Showroom table rows use active/live or setting-up eligible location lookup or hardcoded fallback, plus Other. Measures are typed entries; calculator neither aggregates across stores nor validates quantities, signed gaps or coverage.",
+    "dependency": "R-01 close, R-02 yield, Sales, Stock wastage and outside-sourcing ledger",
+    "correction": "Derive weekly summaries per canonical scoped site from signed source reports and preserve each computation.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A015-F007",
+    "source_ids": [
+      "A-01:yield_diff",
+      "A-01:chhana_short",
+      "A-01:supplier_due",
+      "A-01:receivable",
+      "A-01:open_adv"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 32978,
+        "text": "g(\"fac\",null,[d(\"yield_diff\",t(\"ফলনের পার্থক্য\",\"Yield difference\")),d(\"chhana_short\",t(\"ছানার ঘাটতি\",\"Chhana shortage\")),l(\"supplier_due\",t(\"সাপ্লায়ারের বকেয়া ৳\",\"Supplier dues ৳\")),l(\"re"
+      }
+    ],
+    "observed_gap": "Factory/hub fixed rows. Amounts and shortages are entered and not aggregated or reconciled by calculator. No sign, UOM, cutoff or open advance policy validated.",
+    "dependency": "Manufacturing yield and shortage, AP/AR cycle and advance balances",
+    "correction": "Use linked Manufacturing and Money reconciliations with a common cutoff and scoped totals.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

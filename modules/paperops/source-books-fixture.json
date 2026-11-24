@@ -1,0 +1,257 @@
+{
+  "synthetic_only": true,
+  "scope": {
+    "synthetic_only": true,
+    "tenantId": "DEMO-TENANT-ISOLATED",
+    "businessId": "DEMO-SWEETS-01",
+    "sites": [
+      "DEMO-FACTORY-01",
+      "DEMO-SHOP-01"
+    ]
+  },
+  "packaging": {
+    "scope": {
+      "synthetic_only": true,
+      "tenantId": "DEMO-TENANT-ISOLATED",
+      "businessId": "DEMO-SWEETS-01",
+      "sites": [
+        "DEMO-FACTORY-01",
+        "DEMO-SHOP-01"
+      ]
+    },
+    "events": [
+      {
+        "tenantId": "DEMO-TENANT-ISOLATED",
+        "businessId": "DEMO-SWEETS-01",
+        "fromSiteId": "DEMO-FACTORY-01",
+        "toSiteId": "DEMO-SHOP-01",
+        "senderId": "DEMO-FACTORY-KEEPER",
+        "receiverId": "DEMO-SHOP-CHECKER",
+        "senderProofRef": "DEMO-SIGN-SEND-0",
+        "receiverProofRef": "DEMO-SIGN-RECV-0",
+        "id": "DEMO-PK-OPEN",
+        "type": "OPENING",
+        "sourceRef": "DEMO-W02-OPEN",
+        "sourceKind": "SIGNED_LEGACY_OPENING_CARRY_FORWARD",
+        "crates": "2",
+        "trays": "4",
+        "declaredOutstanding": {
+          "crates": "2",
+          "trays": "4"
+        }
+      },
+      {
+        "tenantId": "DEMO-TENANT-ISOLATED",
+        "businessId": "DEMO-SWEETS-01",
+        "fromSiteId": "DEMO-FACTORY-01",
+        "toSiteId": "DEMO-SHOP-01",
+        "senderId": "DEMO-FACTORY-KEEPER",
+        "receiverId": "DEMO-SHOP-CHECKER",
+        "senderProofRef": "DEMO-SIGN-SEND-1",
+        "receiverProofRef": "DEMO-SIGN-RECV-1",
+        "id": "DEMO-PK-ISS1",
+        "type": "ISSUE",
+        "sourceRef": "DEMO-W02-001",
+        "sourceKind": "SIGNED_W02_TRANSFER_OR_RETURN",
+        "crates": "5",
+        "trays": "8",
+        "declaredOutstanding": {
+          "crates": "7",
+          "trays": "12"
+        }
+      },
+      {
+        "tenantId": "DEMO-TENANT-ISOLATED",
+        "businessId": "DEMO-SWEETS-01",
+        "fromSiteId": "DEMO-FACTORY-01",
+        "toSiteId": "DEMO-SHOP-01",
+        "senderId": "DEMO-FACTORY-KEEPER",
+        "receiverId": "DEMO-SHOP-CHECKER",
+        "senderProofRef": "DEMO-SIGN-SEND-2",
+        "receiverProofRef": "DEMO-SIGN-RECV-2",
+        "id": "DEMO-PK-RET1",
+        "type": "RETURN",
+        "originalIssueId": "DEMO-PK-ISS1",
+        "sourceRef": "DEMO-W02-RET1",
+        "sourceKind": "SIGNED_W02_TRANSFER_OR_RETURN",
+        "crates": "2",
+        "trays": "3",
+        "declaredOutstanding": {
+          "crates": "5",
+          "trays": "9"
+        }
+      },
+      {
+        "tenantId": "DEMO-TENANT-ISOLATED",
+        "businessId": "DEMO-SWEETS-01",
+        "fromSiteId": "DEMO-FACTORY-01",
+        "toSiteId": "DEMO-SHOP-01",
+        "senderId": "DEMO-FACTORY-KEEPER",
+        "receiverId": "DEMO-SHOP-CHECKER",
+        "senderProofRef": "DEMO-SIGN-SEND-3",
+        "receiverProofRef": "DEMO-SIGN-RECV-3",
+        "id": "DEMO-PK-ISS2",
+        "type": "ISSUE",
+        "sourceRef": "DEMO-W02-002",
+        "sourceKind": "SIGNED_W02_TRANSFER_OR_RETURN",
+        "crates": "1",
+        "trays": "2",
+        "declaredOutstanding": {
+          "crates": "6",
+          "trays": "11"
+        }
+      },
+      {
+        "tenantId": "DEMO-TENANT-ISOLATED",
+        "businessId": "DEMO-SWEETS-01",
+        "fromSiteId": "DEMO-FACTORY-01",
+        "toSiteId": "DEMO-SHOP-01",
+        "senderId": "DEMO-FACTORY-KEEPER",
+        "receiverId": "DEMO-SHOP-CHECKER",
+        "senderProofRef": "DEMO-SIGN-SEND-4",
+        "receiverProofRef": "DEMO-SIGN-RECV-4",
+        "id": "DEMO-PK-RET2",
+        "type": "RETURN",
+        "originalIssueId": "DEMO-PK-ISS1",
+        "sourceRef": "DEMO-W02-RET2",
+        "sourceKind": "SIGNED_W02_TRANSFER_OR_RETURN",
+        "crates": "3",
+        "trays": "5",
+        "declaredOutstanding": {
+          "crates": "3",
+          "trays": "6"
+        }
+      }
+    ]
+  },
+  "expense": {
+    "scope": {
+      "synthetic_only": true,
+      "tenantId": "DEMO-TENANT-ISOLATED",
+      "businessId": "DEMO-SWEETS-01",
+      "sites": [
+        "DEMO-FACTORY-01",
+        "DEMO-SHOP-01"
+      ]
+    },
+    "cashAccountId": "DEMO-CASH-01",
+    "openingCashBDT": "1000",
+    "openingReceiptsBDT": "0",
+    "approvedImprestBDT": "1000",
+    "imprestPolicyRef": "DEMO-IMPREST-01",
+    "vouchers": [
+      {
+        "id": "DEMO-C02-001",
+        "sheetRef": "DEMO-R01-20261122",
+        "preparedBy": "DEMO-CASHIER",
+        "paidBy": "DEMO-IMPREST-KEEPER",
+        "preparedProofRef": "DEMO-PREPARE-1",
+        "paidProofRef": "DEMO-PAY-1",
+        "drawerUntouched": true,
+        "payMode": "cash",
+        "cashAccountId": "DEMO-CASH-01",
+        "approvedExpenseMax": "100",
+        "expenseLimitPolicyRef": "DEMO-EXPENSE-LIMIT-01",
+        "cashNowBDT": "880",
+        "receiptsTotalBDT": "120",
+        "lines": [
+          {
+            "head": "Cleaning",
+            "paidTo": "DEMO-SUPPLIER-A",
+            "amountBDT": "70",
+            "receipt": "yes",
+            "receiptRef": "DEMO-RECEIPT-001"
+          },
+          {
+            "head": "Packaging",
+            "paidTo": "DEMO-SUPPLIER-B",
+            "amountBDT": "50",
+            "receipt": "yes",
+            "receiptRef": "DEMO-RECEIPT-002"
+          }
+        ],
+        "tenantId": "DEMO-TENANT-ISOLATED",
+        "businessId": "DEMO-SWEETS-01",
+        "siteId": "DEMO-SHOP-01"
+      },
+      {
+        "id": "DEMO-C02-002",
+        "sheetRef": "DEMO-R01-20261122",
+        "preparedBy": "DEMO-CASHIER",
+        "paidBy": "DEMO-IMPREST-KEEPER",
+        "preparedProofRef": "DEMO-PREPARE-2",
+        "paidProofRef": "DEMO-PAY-2",
+        "drawerUntouched": true,
+        "payMode": "cash",
+        "cashAccountId": "DEMO-CASH-01",
+        "approvedExpenseMax": "100",
+        "expenseLimitPolicyRef": "DEMO-EXPENSE-LIMIT-01",
+        "cashNowBDT": "830",
+        "receiptsTotalBDT": "170",
+        "lines": [
+          {
+            "head": "Stationery",
+            "paidTo": "DEMO-SUPPLIER-C",
+            "amountBDT": "50",
+            "receipt": "yes",
+            "receiptRef": "DEMO-RECEIPT-003"
+          }
+        ],
+        "tenantId": "DEMO-TENANT-ISOLATED",
+        "businessId": "DEMO-SWEETS-01",
+        "siteId": "DEMO-SHOP-01"
+      }
+    ],
+    "cashbookRows": [
+      {
+        "id": "DEMO-CASH-BOOK-1",
+        "sourceVoucherId": "DEMO-C02-001",
+        "amountBDT": "120",
+        "tenantId": "DEMO-TENANT-ISOLATED",
+        "businessId": "DEMO-SWEETS-01",
+        "siteId": "DEMO-SHOP-01",
+        "direction": "OUT",
+        "accountId": "DEMO-CASH-01",
+        "cashbookRef": "DEMO-LEDGER-R01",
+        "enteredBy": "DEMO-CASHIER",
+        "checkedBy": "DEMO-ACCOUNTANT"
+      },
+      {
+        "id": "DEMO-CASH-BOOK-2",
+        "sourceVoucherId": "DEMO-C02-002",
+        "amountBDT": "50",
+        "tenantId": "DEMO-TENANT-ISOLATED",
+        "businessId": "DEMO-SWEETS-01",
+        "siteId": "DEMO-SHOP-01",
+        "direction": "OUT",
+        "accountId": "DEMO-CASH-01",
+        "cashbookRef": "DEMO-LEDGER-R01",
+        "enteredBy": "DEMO-CASHIER",
+        "checkedBy": "DEMO-ACCOUNTANT"
+      }
+    ],
+    "dailyClose": {
+      "tenantId": "DEMO-TENANT-ISOLATED",
+      "businessId": "DEMO-SWEETS-01",
+      "siteId": "DEMO-SHOP-01",
+      "dailyRef": "DEMO-R01-20261122",
+      "cashbookRef": "DEMO-LEDGER-R01",
+      "salesDrawerUntouched": true,
+      "voucherRows": [
+        {
+          "voucherRef": "DEMO-C02-001",
+          "amountBDT": "120",
+          "receiptsAttached": true
+        },
+        {
+          "voucherRef": "DEMO-C02-002",
+          "amountBDT": "50",
+          "receiptsAttached": true
+        }
+      ],
+      "vTotalBDT": "170",
+      "imprestCashNowBDT": "830",
+      "imprestReceiptsTotalBDT": "170"
+    }
+  }
+}

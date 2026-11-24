@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CORE-10 PaperOps · Event-Driven Paper Kit</title>
+<style>
+:root{font-family:system-ui,"Noto Sans Bengali",sans-serif;color:#162b2b;background:#f2f7f6}
+*{box-sizing:border-box}body{margin:0}
+header{background:#174c4c;color:white;padding:15px max(16px,calc((100vw - 1150px)/2))}
+header h1{font-size:1.35rem;margin:0}header p{margin:5px 0;font-size:.85rem}
+main{max-width:1150px;margin:12px auto;padding:0 14px;display:grid;grid-template-columns:340px minmax(0,1fr);gap:14px}
+.panel,.print-area{background:white;border:1px solid #cadbd5;border-radius:10px;padding:15px}
+label{display:block;margin:10px 0;font-size:13px;font-weight:600}
+input,select,textarea{display:block;width:100%;padding:8px;border:1px solid #97afa4;border-radius:7px;font:inherit;color:#162b2b;background:white}
+input,select{min-height:40px}textarea{min-height:90px;resize:vertical}
+button{border:0;background:#174c4c;color:white;padding:9px 12px;border-radius:7px;font:inherit;cursor:pointer;min-height:40px}
+button:disabled{opacity:.55;cursor:not-allowed}
+button.secondary{background:#e6f1ee;color:#174c4c;border:1px solid #a7c7bd}
+button.remove{background:#7f3030;font-size:12px;padding:5px 8px;min-height:30px}
+a{color:#c5eaff}
+h2{font-size:17px;margin:12px 0 8px}h3{font-size:14px;margin:12px 0 4px}
+.hint,.notice{font-size:12px;color:#3d5952;line-height:1.5}.notice{background:#fff5d6;padding:10px;border:1px solid #eed497;border-radius:8px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#eventList{display:grid;gap:6px;max-height:165px;overflow:auto}
+.event-row{display:flex;justify-content:space-between;gap:10px;padding:7px;background:#f0f5f3;border-radius:7px;font-size:12px;overflow-wrap:anywhere}
+#status{font-size:12px;min-height:20px;color:#174c4c}
+.print-area{overflow-x:auto}.paperops-kit-sheet{margin-bottom:20px}
+.paperops-form{background:#fff;color:#152422;border:1px solid #cad9d4;padding:18px;font-size:12px}
+.paperops-head{display:flex;gap:12px;align-items:center;border-bottom:3px solid var(--accent);padding-bottom:10px}
+.paperops-logo{width:62px;height:62px;object-fit:contain}.paperops-head h1{font-size:18px;margin:6px 0}
+.paperops-organization{margin:0;font-weight:800;font-size:16px;color:var(--accent)}.paperops-subtitle{font-size:11px}
+.paperops-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0;padding:9px 0;border-bottom:1px solid #cbdad3;font-size:11px}
+.paperops-rule{font-size:11px;background:#f1f5f3;padding:9px;border-left:3px solid var(--accent)}
+.paperops-section{margin:15px 0;break-inside:avoid-page}.paperops-section h2{margin:0 0 8px;padding:5px 8px;font-size:13px;background:#f1f5f3;border-left:3px solid var(--accent)}
+.paperops-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 14px}
+.paperops-field{min-height:45px;font-size:11px}.paperops-line{min-height:20px;border-bottom:1px dotted #879d93}
+.paperops-table{border-collapse:collapse;width:100%;table-layout:fixed;margin:8px 0;font-size:10px}
+.paperops-table caption{text-align:left;font-weight:bold;padding-bottom:5px}
+.paperops-table th,.paperops-table td{border:1px solid #a8bdb1;padding:4px;overflow-wrap:anywhere}
+.paperops-table th{background:#e9f1ed}.paperops-table td{height:25px}
+.paperops-signatures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin:30px 0 15px;font-size:10px}
+.paperops-signatures .paperops-line{min-height:30px}
+.paperops-footer,.paperops-kit-trace{font-size:9px;color:#52665e;border-top:1px solid #c6d4cf;padding-top:6px}
+#missingBooks{font-size:12px;background:#fff9e8;border:1px solid #e6d8a9;padding:12px;border-radius:7px}
+#missingBooks ul{margin:5px 0;padding-left:22px}
+@media(max-width:880px){main{grid-template-columns:1fr}.paperops-form{min-width:580px}}
+@media print{
+@page{size:A4 portrait;margin:11mm}
+:root,body{background:white}
+header,.panel,#missingBooks,#status,.notice,.controls{display:none!important}
+main{display:block;margin:0;padding:0}.print-area{border:0;border-radius:0;padding:0;overflow:visible}
+.paperops-kit-sheet{break-after:page;page-break-after:always;margin:0}
+.paperops-kit-sheet:last-child{break-after:auto;page-break-after:auto}
+.paperops-form{min-width:0;border:0;padding:0;font-size:10px}
+.paperops-table{font-size:8px}.paperops-table td{height:22px}
+.paperops-section{break-inside:avoid-page}
+.paperops-rule,.paperops-section h2,.paperops-table th{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<header><h1>CORE-10 PaperOps · Smart Paper Kit</h1>
+<p>সাধারণ দিনে মাত্র একটি ক্লোজিং ফর্ম প্রতি শাখা; ঘটনার প্রয়োজন অনুযায়ী বাড়তি ফর্ম। <a href="./index.html">একক ফর্ম স্টুডিও</a> · <a href="./checks.html">অফলাইন হিসাব-কন্ট্রোল যাচাই</a></p></header>
+<main>
+<section class="panel" aria-label="Form kit settings">
+<div class="notice"><strong>পরীক্ষামূলক:</strong> এখানে সব লেজার, ট্যাক্স, পে-রোল ও সম্পূর্ণ হিসাবের ফর্ম এখনো নেই। এই প্রিন্ট সেটকে সম্পূর্ণ অফলাইন ব্যবসা চালানোর কিট হিসেবে ব্যবহার করবেন না।</div>
+<h2>১. ব্যবসা ও শাখা</h2>
+<label>তারিখ<input id="day" type="date" required></label>
+<label>ব্যবসার ধরন<select id="industry">
+<option value="sweets_bakery">মিষ্টি, বেকারি ও খাদ্য উৎপাদন</option>
+<option value="restaurant">রেস্টুরেন্ট, ফাস্ট ফুড ও ক্লাউড কিচেন</option>
+<option value="paint_hardware">পেইন্ট, হার্ডওয়্যার ও ডিলারশিপ</option>
+<option value="retail_wholesale">রিটেইল, হোলসেল ও ডিস্ট্রিবিউশন</option>
+<option value="general_manufacturing">সাধারণ ম্যানুফ্যাকচারিং</option>
+<option value="construction">কনস্ট্রাকশন ও প্রজেক্ট</option>
+<option value="import_export">ইমপোর্ট, এক্সপোর্ট ও ইন্টারন্যাশনাল ট্রেড</option>
+<option value="ecommerce">ই-কমার্স ও অনলাইন স্টোর</option>
+<option value="technology_digital">টেকনোলজি ও সফটওয়্যার</option>
+<option value="services">সার্ভিস ও এজেন্সি</option>
+</select></label>
+<label>ব্যবসার নাম<input id="business" maxlength="120" value="ডেমো মিষ্টি ব্যবসা"></label>
+<label>গ্রুপ নাম<input id="group" maxlength="120" value="CORE-10 Group"></label>
+<label>শাখা তালিকা: প্রতিটি লাইনে <code>ID | নাম | ধরন | ঐচ্ছিক হেডার | ঐচ্ছিক #রং</code><textarea id="sites" spellcheck="false">khulna | খুলনা শোরুম | showroom
+factory | মূল কারখানা | factory</textarea></label>
+<p class="hint">ধরন: showroom / factory / warehouse / office / project। শুধু showroom-এ দৈনিক বিক্রি-ক্লোজিং; অন্য সাইটে ঘটনার ফর্ম ও আলাদা রেজিস্টার। সর্বোচ্চ ৪০০ সাইট, এক প্রিন্ট ব্যাচে ১০০ ফর্ম।</p>
+<h2>২. আজ ঘটে যাওয়া কাজ</h2>
+<label>ঘটনার ধরন<select id="eventType"></select></label>
+<label>শাখা<select id="eventSite"></select></label>
+<label>কাগজের রেফারেন্স / ঘটনা নম্বর<input id="eventRef" maxlength="120" placeholder="যেমন: GRN-001"></label>
+<div class="controls"><button id="addEvent" type="button" class="secondary">ঘটনার ফর্ম যোগ করুন</button></div>
+<div id="eventList" aria-live="polite"></div>
+<h2>৩. প্রিন্ট সেটিংস</h2>
+<div class="grid2"><label>ভাষা<select id="lang"><option value="bn">বাংলা</option><option value="en">English</option></select></label>
+<label>থিম<input id="color" type="color" value="#174c4c"></label></div>
+<label>কমন লোগো (স্থানীয় ফাইল, ৫০০ KB-এর মধ্যে)<input type="file" id="logo" accept="image/png,image/jpeg,image/webp"></label>
+<div class="controls"><button id="generate" type="button">স্মার্ট কিট তৈরি</button><button id="print" type="button" disabled>নির্বাচিত ব্যাচ প্রিন্ট/PDF</button></div>
+<label>প্রিন্টের ব্যাচ (প্রতি ব্যাচে সর্বোচ্চ ১০০টি শিট)<select id="batch" disabled></select></label>
+<p id="status" role="status" aria-live="polite"></p>
+</section>
+<section class="print-area">
+<div id="summary" class="notice">শাখা ও ঘটনার তথ্য দিয়ে “স্মার্ট কিট তৈরি” করুন।</div>
+<div id="missingBooks"><strong>সম্পূর্ণ অফলাইন পরিচালনায় আরও যে রেজিস্টার লাগবে</strong><ul id="books"></ul></div>
+<div id="output"></div>
+</section>
+</main>
+<script src="./paperops.js"></script>
+<script src="./form-packs.js"></script>
+<script src="./paper-kit.js"></script>
+<script>
+(function(){
+'use strict';
+const api=window.CORE10_PAPER_KIT, el=id=>document.getElementById(id);
+let events=[], businessLogo='', kitBatches=[],kitSettings=null;
+const today=new Date();
+el('day').value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+function updateEventOptions(){
+  const prev=el('eventType').value;
+  const industry=el('industry').value,cls=window.CORE10_PAPEROPS.industryClass(industry);
+  el('eventType').replaceChildren();
+  for(const [id,d] of Object.entries(api.EVENT_TYPES)){
+    if(d.industries&&!d.industries.includes(industry)&&!d.industries.includes(cls))continue;
+    const option=document.createElement('option');option.value=id;
+    option.textContent=d.name_bn;el('eventType').append(option);
+  }
+  if([...el('eventType').options].some(x=>x.value===prev))el('eventType').value=prev;
+}
+el('industry').addEventListener('change',function(){
+  events=[];drawEvents();updateEventOptions();el('print').disabled=true;
+  el('status').textContent='নতুন ব্যবসার ধরন বেছে নেওয়া হয়েছে; আগের ঘটনার তালিকা রিসেট হয়েছে।';
+});
+for(const b of api.INDEPENDENT_BOOKS){
+  const li=document.createElement('li');
+  li.textContent=b.name_bn+(b.status==='POLICY_REQUIRED'
+    ?' — অনুমোদিত স্থানীয় আইন/কমপ্লায়েন্স নিয়ম প্রয়োজন'
+    :' — প্রিন্টযোগ্য খসড়া পাওয়া যায়, কিন্তু হিসাব/নিয়ন্ত্রণ যাচাই বাকি');
+  el('books').append(li);
+}
+function readSites(){
+  const lines=el('sites').value.split(/\r?\n/).filter(x=>x.trim()), out=[], brands={};
+  for(const line of lines){
+    const p=line.split('|').map(s=>s.trim());
+    if(p.length>5)throw Error('INVALID_SITE_LINE');
+    const id=p[0],name=p[1];
+    if(!id||!name)throw Error('SITE_ID_AND_NAME_REQUIRED');
+    out.push({id,name,kind:p[2]||'showroom'});
+    const b={};
+    if(p[3])b.headerName=p[3];
+    if(p[4])b.color=p[4];
+    brands[id]=b;
+  }
+  return {sites:out,brands};
+}
+function syncSites(){
+  try{
+    const {sites}=readSites(),old=el('eventSite').value;
+    el('eventSite').replaceChildren();
+    for(const s of sites){
+      const option=document.createElement('option');option.value=s.id;option.textContent=s.name;el('eventSite').append(option);
+    }
+    if(sites.some(s=>s.id===old))el('eventSite').value=old;
+  }catch(e){el('status').textContent=e.message;}
+}
+function drawEvents(){
+  el('eventList').replaceChildren();
+  for(let i=0;i<events.length;i++){
+    const e=events[i],row=document.createElement('div');row.className='event-row';
+    const span=document.createElement('span');
+    span.textContent=api.EVENT_TYPES[e.type].name_bn+' · '+e.siteId+' · '+e.eventId;
+    const button=document.createElement('button');button.type='button';button.className='remove';
+    button.textContent='বাদ';button.addEventListener('click',()=>{events.splice(i,1);drawEvents();el('print').disabled=true;});
+    row.append(span,button);el('eventList').append(row);
+  }
+}
+el('sites').addEventListener('change',syncSites);
+el('addEvent').addEventListener('click',function(){
+  try{
+    const type=el('eventType').value,siteId=el('eventSite').value,eventId=el('eventRef').value.trim();
+    if(!type||!siteId||!eventId)throw Error('ঘটনার ধরন, শাখা ও রেফারেন্স নম্বর আবশ্যক');
+    if(events.some(e=>e.type===type&&e.siteId===siteId&&e.eventId===eventId))throw Error('একই ঘটনা আগে যোগ করা হয়েছে');
+    events.push({type,siteId,eventId});drawEvents();el('eventRef').value='';el('print').disabled=true;
+    el('status').textContent='ঘটনা যুক্ত হয়েছে। প্রিন্ট সেট পুনরায় তৈরি করুন।';
+  }catch(err){el('status').textContent=err.message;}
+});
+el('logo').addEventListener('change',function(){
+  const file=this.files&&this.files[0]; if(!file){businessLogo='';return;}
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>500000){
+    businessLogo='';this.value='';el('status').textContent='অবৈধ লোগো। সর্বোচ্চ ৫০০ KB PNG/JPEG/WebP ব্যবহার করুন।';return;
+  }
+  const reader=new FileReader();
+  reader.onload=()=>{businessLogo=String(reader.result||'');el('print').disabled=true;el('status').textContent='লোগো লোড হয়েছে; আবার কিট তৈরি করুন।';};
+  reader.readAsDataURL(file);
+});
+function previewBatch(){
+  if(!kitBatches.length||!kitSettings)throw Error('KIT_NOT_PREPARED');
+  const selected=Number(el('batch').value);
+  if(!Number.isInteger(selected)||selected<0||selected>=kitBatches.length)throw Error('INVALID_BATCH_SELECTION');
+  const pack=kitBatches[selected];
+  el('output').innerHTML=api.printKit(pack,kitSettings);
+  el('print').disabled=false;
+  el('status').textContent='ব্যাচ '+pack.batchNumber+'/'+kitBatches.length+
+    ' · '+pack.count+'টি শিট প্রিন্টের জন্য প্রস্তুত। পরের ব্যাচ আলাদা নির্বাচন করুন; কোনো ERP ডাটা পরিবর্তিত হয়নি।';
+}
+el('batch').addEventListener('change',function(){try{previewBatch();}catch(err){el('print').disabled=true;el('status').textContent=err.message;}});
+el('generate').addEventListener('click',function(){
+  try{
+    const {sites,brands}=readSites();
+    const plan=api.planDay({date:el('day').value,industry:el('industry').value,businessName:el('business').value,
+      sites,events});
+    kitBatches=api.partitionKit(plan,100);
+    if(!kitBatches.length)throw Error('EMPTY_PLAN_REQUIRES_OPERATIONAL_EVENT');
+    kitSettings={
+      groupName:el('group').value,lang:el('lang').value,tableRows:8,
+      businessBrand:{color:el('color').value,logo:businessLogo},
+      siteBrands:brands
+    };
+    el('batch').replaceChildren();
+    for(const pack of kitBatches){
+      const option=document.createElement('option');
+      option.value=String(pack.batchNumber-1);
+      option.textContent='ব্যাচ '+pack.batchNumber+'/'+kitBatches.length+' · শিট '+pack.firstSheet+'–'+pack.lastSheet;
+      el('batch').append(option);
+    }
+    el('batch').disabled=false;
+    el('summary').textContent='প্রস্তুত: '+plan.count+'টি খসড়া শিট ('+plan.dailyCount+'টি শোরুম ক্লোজিং + '+plan.eventCount+'টি ঘটনার)। মোট '+kitBatches.length+'টি আলাদা প্রিন্ট ব্যাচ; কোনো শিট বাদ দেওয়া হয়নি। '+plan.excludedDailySites.length+'টি non-retail সাইটে অপ্রয়োজনীয় sales close বাদ। অসম্পূর্ণ রেজিস্টারগুলো আলাদাভাবে রাখতে হবে।';
+    previewBatch();
+  }catch(err){kitBatches=[];kitSettings=null;el('batch').disabled=true;el('print').disabled=true;el('status').textContent='কিট তৈরি হয়নি: '+err.message;}
+});
+el('print').addEventListener('click',function(){if(!this.disabled)window.print();});
+updateEventOptions();
+syncSites();
+})();
+</script>
+</body>
+</html>

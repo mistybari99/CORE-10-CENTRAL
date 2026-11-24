@@ -1,0 +1,302 @@
+[
+  {
+    "issue_id": "A007-F001",
+    "severity": "HIGH",
+    "source_ids": [
+      "S-04:cashier"
+    ],
+    "status": "RESOLVED_SOURCE_ATTRIBUTION",
+    "owner_lane": "ChatGPT B / Owner manifest decision",
+    "source": {
+      "source_id": "S-04:cashier",
+      "source_file": "forms_cash.js",
+      "status": "SOURCE_FORM_MISMATCH",
+      "constructors": [],
+      "actual_mutation": {
+        "offset_utf16": 44009,
+        "text": "e.forms[\"R-01\"].head.push(u(\"cashier\",t(\"ক্যাশিয়ার (Cashier)\",\"Cashier\")))"
+      }
+    },
+    "observed_gap": "The inventory assigned an R-01 runtime header mutation to the trailing S-04 block. S-04 declares no cashier constructor.",
+    "required_correction": "Resolve the inventory attribution and exact ownership split under Owner approval. Keep the A007 gate pending until the corrected assignment has exact source evidence.",
+    "resolution_commit": "456de1905707f125eaf9c0a82b5009698bf41156",
+    "corrected_source_id": "R-01:cashier"
+  },
+  {
+    "issue_id": "A007-F002",
+    "source_ids": [
+      "S-04:to_weekly",
+      "S-04:checked_by",
+      "S-04:reviewed_by"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 41838,
+        "text": "u(\"checked_by\",t(\"যাচাইকারী (Checked by) — দৈনিক হিসাব রিকনসিলিয়েশনের কর্মী\",\"Checked by — daily reconciliation staff\"),{who:\"checker\",req:!0}),u(\"reviewed_by\",t(\"রিভিউকারী (Reviewed by) — মালিক\",\"Reviewed by — owner\"),{who:\"chec"
+      }
+    ],
+    "observed_gap": "Forwarding is a checkbox. Checker is required, owner review is optional and both have checker scope. The S-04 calculator does not use these values or prove forwarding or separation.",
+    "dependency": "Sales weekly exception queue and authenticated independent reviewers",
+    "correction": "Confirm receipt of the handoff and require distinct, scoped maker and review actors where policy requires.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A007-F003",
+    "source_ids": [
+      "R-01:cashier"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 43921,
+        "text": "e.forms[\"R-01\"]&&e.forms[\"R-01\"].head&&!e.forms[\"R-01\"].head.some(e=>\"cashier\"===e.id)&&e.forms[\"R-01\"].head.push(u(\"cashier\",t(\"ক্যাশিয়ার (Cashier)\",\"Cashier\")))})();"
+      }
+    ],
+    "observed_gap": "Mutation appends a staff picker only if R-01 and its header exist and the header has no cashier. There is no declared required, default or cashier-only access rule. No authentic cashier session is proven.",
+    "dependency": "Scoped R-01 shift assignment and authenticated cashier identity",
+    "correction": "Derive cashier from the approved shift assignment and validate the actor against the scoped drawer session.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A007-F004",
+    "source_ids": [
+      "P-04:time",
+      "P-04:supplier",
+      "P-04:memo_no",
+      "P-04:paper",
+      "P-04:pr_no",
+      "P-04:po_prev",
+      "P-04:po_today",
+      "P-04:po_rest",
+      "P-04:po_last"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 2090,
+        "text": "show:e=>\"po\"===e.d.paper,fields:[l(\"po_prev\",t(\"এই পারচেজ অর্ডারে আগে প্রাপ্ত\",\"Received earlier on this PO\")),l(\"po_today\",t(\"আজ প্রাপ্ত\",\"Received today\")),l(\"po_rest\",t(\"বাকি\",\"Remaining\")),u(\"po_last\",t(\"শেষ ডেলিভারি\",\"Last de"
+      }
+    ],
+    "observed_gap": "Paper and supplier are required. PR reference is required only for PR; PO progress is section-visible only for PO. Prior, today and remaining quantities and last delivery are entered fields and do not reconcile to the PO in this calculator.",
+    "dependency": "PO, PR, supplier master and received quantities from Procurement/Stock",
+    "correction": "Require scoped approved procurement references and compute cumulative receipt quantities by item and UOM.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A007-F005",
+    "source_ids": [
+      "P-04:scale_checked",
+      "P-04:item",
+      "P-04:unit",
+      "P-04:memo",
+      "P-04:var",
+      "P-04:rate",
+      "P-04:amt",
+      "P-04:remark",
+      "P-04:t_memo",
+      "P-04:t_count",
+      "P-04:t_var",
+      "P-04:t_amt"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 5975,
+        "text": "var:r&&a(t.memo)?o(t.counted)-o(t.memo):void 0,amt:r&&a(t.rate)?o(t.counted)*o(t.rate):void 0}});s.t_memo=n(t.map(e=>e.memo)),s.t_count=n(t.map(e=>e.counted)),s.t_var=n(i.map(e=>e.var)),s.t_amt=n(i.map(e=>e.amt)),s.has_reduced=t.s"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 6446,
+        "text": "S(\"grn_short\",\"yellow\",\"মেমোর চেয়ে কম পাওয়া গেছে — সেদিনই সাপ্লায়ারের ডেবিট নোট ও বহনকারীর সই\",\"Received less than the memo: debit note and carrier signature the same day\",l,{unit:\"qty\"})),d>0&&r.push(S(\"grn_excess\",\"yellow\",\"ম"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 6650,
+        "text": "S(\"grn_excess\",\"yellow\",\"মেমোর চেয়ে বেশি পাওয়া গেছে\",\"Received more than the memo\",d,{unit:\"qty\"}));const c=e=>n(t.map(t=>t.quality===e&&a(t.counted)&&a(t.rate)?o(t.counted)*o(t.rate):0));return s.has_hold&&(r.push(S(\"grn_hold\","
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 7603,
+        "text": "S(\"grn_rate_missing\",\"yellow\",\"কিছু লাইনে বিল অনুযায়ী দর লেখা নেই — বিল যাচাই করা যাবে না\",\"Some lines have no bill rate, so the bill check is impossible\",void 0)),{v:s,rows:{lines:i},flags:r,needs:[]}}};const G=[[\"prod\",t(\"উৎপাদ"
+      }
+    ],
+    "observed_gap": "Unit uses item lookup. Variance requires count and memo presence and is count minus memo; amount requires count and rate and is their product. Totals aggregate independently. Shortage and excess are summed separately as positive magnitudes, both yellow. Missing bill rate on counted row is yellow. Mixed UOM can inflate totals.",
+    "dependency": "Scoped item/UOM, independent measurement, supplier bill and GRN lines",
+    "correction": "Validate unit precision and rate provenance, total like units only and retain shortage/excess evidence per line.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A007-F006",
+    "source_ids": [
+      "P-04:qc_all",
+      "P-04:new_rate",
+      "P-04:rate_phone",
+      "P-04:receiver"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 6188,
+        "text": "s.has_reduced=t.some(e=>\"reduced\"===e.quality),s.has_hold=t.some(e=>\"hold\"===e.quality);const l=n(t.map(e=>a(e.counted)&&a(e.memo)?Math.max(0,o(e.memo)-o(e.counted)):0)),d=n(t.map(e=>a(e.counted)&&a(e.memo)?Math.max(0,o(e.counted)"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 6867,
+        "text": "S(\"grn_hold\",\"yellow\",\"মালামাল আটক রাখা হয়েছে\",\"Goods held back\",c(\"hold\")||void 0)),e.d.held_apart||r.push(S(\"hold_not_apart\",\"red\",\"আটক মালামাল আলাদা রাখা হয়নি\",\"Held goods are not kept apart\",void 0))),t.some(e=>\"return\"===e."
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 6976,
+        "text": "S(\"hold_not_apart\",\"red\",\"আটক মালামাল আলাদা রাখা হয়নি\",\"Held goods are not kept apart\",void 0))),t.some(e=>\"return\"===e.quality)&&r.push(S(\"grn_return\",\"yellow\",\"মালামাল ফেরত যাচ্ছে\",\"Goods going back to the supplier\",c(\"return\")"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 7114,
+        "text": "S(\"grn_return\",\"yellow\",\"মালামাল ফেরত যাচ্ছে\",\"Goods going back to the supplier\",c(\"return\")||void 0)),s.has_reduced&&(r.push(S(\"grn_reduced\",\"yellow\",\"দর কমিয়ে গ্রহণ\",\"Accepted at a lower rate\",c(\"reduced\")||void 0)),a(e.d.rate_"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 7240,
+        "text": "S(\"grn_reduced\",\"yellow\",\"দর কমিয়ে গ্রহণ\",\"Accepted at a lower rate\",c(\"reduced\")||void 0)),a(e.d.rate_approver)&&a(e.d.receiver)&&e.d.rate_approver===e.d.receiver&&r.push(S(\"rate_approver_is_receiver\",\"red\",\"দর কমানোর অনুমোদনকার"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 7413,
+        "text": "S(\"rate_approver_is_receiver\",\"red\",\"দর কমানোর অনুমোদনকারী ও গ্রহণকারী একই জন\",\"The rate approver and the receiver are the same person\",void 0))),t.some(e=>a(e.counted)&&!a(e.rate))&&r.push(S(\"grn_rate_missing\",\"yellow\",\"কিছু লাইন"
+      }
+    ],
+    "observed_gap": "Any reduced-quality line shows and requires new rate and shows phone approval. The calculator uses the original line rate for amount projections. Yellow for hold/return/reduced, red for hold not separated or matching receiver and reduced-rate approver.",
+    "dependency": "GRN QC disposition and approval evidence, scoped receiver and independent approver",
+    "correction": "Bind actual accepted valuation to approved reduced rate, enforce quarantine and require authenticated separation.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A007-F007",
+    "source_ids": [
+      "P-04:posted",
+      "P-04:ledger_ref",
+      "P-04:photos",
+      "P-04:carrier",
+      "P-04:mgmt_checked"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 5640,
+        "text": "{who:\"checker\",title:t(\"যাচাই (ব্যবস্থাপনা পূরণ করবে)\",\"Check (management fills)\"),fields:[u(\"mgmt_checked\",t(\"যাচাইকারী (Checked by) — ব্যবস্থাপনা: রসিদ যাচাই করেছি\",\"Checked by management: receipt checked\"),{who:\"checker\",req:!0"
+      }
+    ],
+    "observed_gap": "Posting and management verification are attestations; checker requirement is declared, source does not evidence actual storage posting, a distinct checker, or validating receipt attachments.",
+    "dependency": "Canonical GRN and Stock movement, scoped verification and immutable evidence",
+    "correction": "Derive posting status and ledger reference from the canonical movement and retain verifiable, access-scoped receipt evidence.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A007-F008",
+    "source_ids": [
+      "P-04:pay",
+      "P-04:pay_other",
+      "P-04:cash_amount",
+      "P-04:ledger_date",
+      "P-04:ledger_line"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 4856,
+        "text": "g(\"pay\",t(\"পেমেন্ট\",\"Payment\"),C,{req:!0}),s(\"pay_other\",t(\"অন্য — লিখুন\",\"Other — write it\"),{show:e=>\"other\"===e.d.pay,req:e=>\"other\"===e.d.pay}),d(\"cash_amount\",t(\"নগদ হলে ৳\",\"Cash amount ৳\"),{show:e=>\"cash\"===e.d.pay,req:e=>\"c"
+      }
+    ],
+    "observed_gap": "Payment selection is required; other requires notes, cash requires amount. Present noncredit payment reveals optional ledger date and line. Owner payment note requests two ledger sides; no Money posting demonstrated.",
+    "dependency": "Money payment vouchers and reconciled cash/bank journal",
+    "correction": "Require authorized payment mode and linked Money voucher for a paid receipt with an explicit owner-funded journal policy.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A007-F009",
+    "source_ids": [
+      "W-01:shift",
+      "W-01:batch_no",
+      "W-01:product",
+      "W-01:purpose"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 11731,
+        "text": "\"staff\"===e.d.purpose?(r.push(S(\"issue_staff\",\"yellow\",\"স্টাফ / ব্যক্তিগত ব্যবহারে ইস্যু — বেতন থেকে কর্তন\",\"Issued for staff / personal use: salary deduction\",a(e.d.staff_value)?o(e.d.staff_value):void 0)),a(e.d.staff_value)||r.p"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 11761,
+        "text": "S(\"issue_staff\",\"yellow\",\"স্টাফ / ব্যক্তিগত ব্যবহারে ইস্যু — বেতন থেকে কর্তন\",\"Issued for staff / personal use: salary deduction\",a(e.d.staff_value)?o(e.d.staff_value):void 0)),a(e.d.staff_value)||r.push(S(\"staff_value_missing\",\"y"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 11965,
+        "text": "S(\"staff_value_missing\",\"yellow\",\"স্টাফ / ব্যক্তিগত ইস্যুর মূল্য লেখা নেই\",\"Value of the staff / personal issue is not written\",void 0))):\"sample\"!==e.d.purpose&&\"trial\"!==e.d.purpose||r.push(S(\"issue_non_production\",\"yellow\",\"উৎপ"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 12157,
+        "text": "S(\"issue_non_production\",\"yellow\",\"উৎপাদন ছাড়া অন্য কারণে ইস্যু\",\"Issued for a reason other than production\",void 0)),{v:s,rows:{lines:l},flags:r,needs:[]}}};const D=[[\"return\",t(\"ফেরত\",\"Return\")],[\"count_adj\",t(\"কাউন্টের সমন্বয়"
+      }
+    ],
+    "observed_gap": "Required purpose offers production, staff, sample or trial. Staff and non-production reasons emit yellow; staff value absent emits separate yellow. Calc does not link deductions or a manufacturing batch.",
+    "dependency": "Manufacturing batch and Stock issue linked to payroll only through approved workflow",
+    "correction": "Require an authorized source event and preserve purpose-specific custody, valuation and approval. Do not infer payroll authority.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A007-F010",
+    "source_ids": [
+      "W-01:item",
+      "W-01:unit",
+      "W-01:issued",
+      "W-01:ret",
+      "W-01:net",
+      "W-01:reason",
+      "W-01:t_issued"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 11120,
+        "text": "i=!e.d.not_overnight,l=t.map(t=>({unit:R(e,t.item),net:a(t.issued)?o(t.issued)-(i?0:o(t.ret)):void 0}));return s.t_issued=n(t.map(e=>e.issued)),s.t_ret=n(t.map(e=>e.ret)),s.t_net=i?s.t_issued:s.t_issued-s.t_ret,s.has_return=s.t_re"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 11378,
+        "text": "S(\"kept_overnight\",\"yellow\",\"ফেরত লেখা আছে কিন্তু “রাতে রাখা হয়নি” টিক নেই — পুরোটাই ব্যবহৃত ধরা হলো\",\"A return is written but “not kept overnight” is not ticked: the whole quantity counts as used\",s.t_ret,{unit:\"qty\"})),t.some(e"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 11640,
+        "text": "S(\"return_exceeds\",\"red\",\"ফেরত ইস্যুর চেয়ে বেশি\",\"Returned more than was issued\",void 0)),\"staff\"===e.d.purpose?(r.push(S(\"issue_staff\",\"yellow\",\"স্টাফ / ব্যক্তিগত ব্যবহারে ইস্যু — বেতন থেকে কর্তন\",\"Issued for staff / personal us"
+      }
+    ],
+    "observed_gap": "Item and issued quantity required. Net is issued minus return only when not_overnight is truthy. Otherwise recorded return produces yellow and full issue counts as used. Return above issued emits red and can still produce negative net. Totals sum raw values independently.",
+    "dependency": "Scoped issue and return movement lines by item, lot and UOM",
+    "correction": "Accept returns only with validated custody/date and deny excessive quantities before posting. Aggregate only compatible units.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

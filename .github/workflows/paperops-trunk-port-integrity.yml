@@ -1,0 +1,25 @@
+name: PaperOps trunk-port integrity (isolated Draft)
+on:
+  pull_request:
+    branches: [ccr-15ed11dd-n3hw5h]
+    paths:
+      - 'modules/paperops/**'
+      - 'internal/migrations/0211_*'
+      - 'tests/paperops-trunk-port-integrity.test.cjs'
+      - '.github/workflows/paperops-trunk-port-integrity.yml'
+permissions:
+  contents: read
+jobs:
+  exact-bridge-provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Pin exact imported subtree, legacy ownership and current Sales isolation
+        run: node --test tests/paperops-trunk-port-integrity.test.cjs

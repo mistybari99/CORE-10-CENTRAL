@@ -1,0 +1,307 @@
+[
+  {
+    "issue_id": "A005-F001",
+    "source_ids": [
+      "R-02:e_diff",
+      "R-02:e_days",
+      "R-02:decided_by"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 26791,
+        "text": "n.diff_out=!0,s.push(A(\"jalebi_diff\",\"red\",\"জিলাপির প্রত্যাশিত ও প্রকৃতের পার্থক্য সীমার বাইরে\",\"Expected-vs-actual jalebi gap outside the limit\",Math.abs(e),{unit:\"qty\"})))}}const D=e=>\"l\"===e.unit?t(\"লিটার\",\""
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 26812,
+        "text": "A(\"jalebi_diff\",\"red\",\"জিলাপির প্রত্যাশিত ও প্রকৃতের পার্থক্য সীমার বাইরে\",\"Expected-vs-actual jalebi gap outside the limit\",Math.abs(e),{unit:\"qty\"})))}}const D=e=>\"l\"===e.unit?t(\"লিটার\",\"Litre\"):t(\"কেজি\",\"KG\""
+      }
+    ],
+    "observed_gap": "The assigned exception/named-decision fields do not drive the yield calculation. Calculated diff_out follows the rounded quantity gap and inclusive tolerances.",
+    "dependency": "Manufacturing variance disposition, actor and lot history",
+    "correction": "Manufacturing variance disposition, actor and lot history",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A005-F002",
+    "source_ids": [
+      "R-02:e_noslip",
+      "R-02:e_nomeasure",
+      "R-02:e_same",
+      "R-02:e_roster",
+      "R-02:e_syrup",
+      "R-02:produced_by",
+      "R-02:checked_by"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 27476,
+        "text": "r(o.produced_by)&&o.produced_by===o.measured_by?s.push(A(\"producer_is_measurer\",\"red\",\"উৎপাদনকারী ও পরিমাপকারী একই জন\",\"Producer and measurer are the same person\")):o.e_same&&s.push(A(\"exc_same_person\",\"yellow\""
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 27531,
+        "text": "A(\"producer_is_measurer\",\"red\",\"উৎপাদনকারী ও পরিমাপকারী একই জন\",\"Producer and measurer are the same person\")):o.e_same&&s.push(A(\"exc_same_person\",\"yellow\",\"গরমিল: উৎপাদনকারী ও পরিমাপকারী একই ব্যক্তি\",\"Exceptio"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 27658,
+        "text": "A(\"exc_same_person\",\"yellow\",\"গরমিল: উৎপাদনকারী ও পরিমাপকারী একই ব্যক্তি\",\"Exception: producer and measurer are the same person\")),o.e_noslip&&s.push(A(\"exc_noslip\",\"yellow\",\"গরমিল: স্লিপ ছাড়া মালামাল প্রাপ্ত\""
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 27808,
+        "text": "A(\"exc_noslip\",\"yellow\",\"গরমিল: স্লিপ ছাড়া মালামাল প্রাপ্ত\",\"Exception: goods received without a slip\")),o.e_nomeasure&&s.push(A(\"exc_nomeasure\",\"yellow\",\"গরমিল: মাপ নেওয়া হয়নি\",\"Exception: measure not taken"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 27936,
+        "text": "A(\"exc_nomeasure\",\"yellow\",\"গরমিল: মাপ নেওয়া হয়নি\",\"Exception: measure not taken\")),(o.e_roster||\"no\"===o.roster)&&s.push(A(\"exc_roster\",\"yellow\",\"গরমিল: রোস্টার মানা হয়নি\",\"Exception: roster not followed\"))"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 28060,
+        "text": "A(\"exc_roster\",\"yellow\",\"গরমিল: রোস্টার মানা হয়নি\",\"Exception: roster not followed\")),o.e_syrup&&s.push(A(\"exc_syrup\",\"yellow\",\"গরমিল: রস কম পড়ায় আলাদা চিনির রস\",\"Exception: separate sugar syrup because syru"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 28165,
+        "text": "A(\"exc_syrup\",\"yellow\",\"গরমিল: রস কম পড়ায় আলাদা চিনির রস\",\"Exception: separate sugar syrup because syrup ran short\")),{v:n,flags:s,needs:O(i)}}};const j=[[\"1\",t(\"1 · অনলাইন বিজ্ঞাপন ও বুস্ট (ভ্যাটসহ)\",\"1 · On"
+      }
+    ],
+    "observed_gap": "Flags capture missing slip, no measurement, roster deviation and extra syrup. Producer equals measured_by emits red; otherwise same-person attestation can emit yellow. checked_by is separate from measured_by.",
+    "dependency": "Stock issue slip and independently signed batch measurement and review",
+    "correction": "Stock issue slip and independently signed batch measurement and review",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A005-F003",
+    "source_ids": [
+      "C-03:month",
+      "C-03:brand",
+      "C-03:brand_other"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 33106,
+        "text": "c[i]=(c[i]||0)+a(s.amt),null===y?(l.push(\"mkt_limit_\"+i),_+=a(s.amt),{state:x}):c[i]>y?(m=!0,h.add(i),u+=Math.min(a(s.amt),c[i]-y),r(s.approved_by)||p++,{state:t(\"সীমার বাইরে\",\"Outside the limit\")}):{state:t(\"স"
+      }
+    ],
+    "observed_gap": "Month and brand are selected; other reveals free text. Limit aggregation within supplied rows groups by head and doesn't independently filter by month or brand.",
+    "dependency": "Scoped accounting period and approved brand master",
+    "correction": "Scoped accounting period and approved brand master",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A005-F004",
+    "source_ids": [
+      "C-03:date",
+      "C-03:head",
+      "C-03:campaign",
+      "C-03:campaign_id",
+      "C-03:period",
+      "C-03:source",
+      "C-03:receipt",
+      "C-03:ledger",
+      "C-03:result"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 30536,
+        "text": "e.optsX(\"marketing_heads\",j),{req:!0,wide:!0,list:\"marketing_heads\"}),i(\"campaign\",t(\"পণ্য বা ক্যাম্পেইন\",\"Product or campaign\"),{wide:!0}),b(\"campaign_id\",t(\"ক্যাম্পেইন (তালিকা থেকে)\",\"Campaign (from the list)"
+      }
+    ],
+    "observed_gap": "Head required; campaign has free text and configured selection. Source options include imprest, bank, card, mobile and owner personal. Printed prior approval and drawer rules do not prove server enforcement or linkage.",
+    "dependency": "Campaign master, vendor evidence and scoped payment or stock voucher",
+    "correction": "Campaign master, vendor evidence and scoped payment or stock voucher",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A005-F005",
+    "source_ids": [
+      "C-03:amt",
+      "C-03:nonpay",
+      "C-03:tot_amt",
+      "C-03:tot_nonpay",
+      "C-03:reg_total"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 33355,
+        "text": "d.tot_amt=s(i.map(e=>e.amt)),d.tot_nonpay=s(i.map(e=>e.nonpay)),d.reg_total=d.tot_amt,d.any_over=m,d.limit_text=l.length?x:m?t(\"বাইরে\",\"Outside\"):i.some(e=>r(e.amt))?t(\"ভেতরে ✓\",\"Inside ✓\"):\"—\",_>0&&n.push(A(\"m"
+      }
+    ],
+    "observed_gap": "Cash amount required when nonpay is absent under BOS presence helper. Separate totals sum raw inputs; register total is cash amount only. Presence and posting validation are separate.",
+    "dependency": "Money payments and Stock noncash issue valuation",
+    "correction": "Money payments and Stock noncash issue valuation",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A005-F006",
+    "source_ids": [
+      "C-03:approved_by",
+      "C-03:approve_time",
+      "C-03:state",
+      "C-03:limit_text",
+      "C-03:over_approver"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 33186,
+        "text": "c[i]>y?(m=!0,h.add(i),u+=Math.min(a(s.amt),c[i]-y),r(s.approved_by)||p++,{state:t(\"সীমার বাইরে\",\"Outside the limit\")}):{state:t(\"সীমার ভেতরে ✓\",\"Within the limit ✓\")}});d.tot_amt=s(i.map(e=>e.amt)),d.tot_nonpay"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 33561,
+        "text": "A(\"mkt_limit_missing\",\"red\",\"মার্কেটিং খাতের মাসিক সীমা তালিকায় নেই\",\"Marketing head monthly limit is not set in the list\",_)),m&&n.push(A(\"mkt_over_limit\",\"yellow\",\"মার্কেটিং খরচ খাতের সীমার বাইরে\",\"Marketing"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 33699,
+        "text": "A(\"mkt_over_limit\",\"yellow\",\"মার্কেটিং খরচ খাতের সীমার বাইরে\",\"Marketing spend over the head limit\",u)),p&&n.push(A(\"mkt_approval_missing\",\"red\",\"সীমার বাইরের মার্কেটিং খরচে অনুমোদনকারী নেই\",\"No approver on ove"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 33813,
+        "text": "A(\"mkt_approval_missing\",\"red\",\"সীমার বাইরের মার্কেটিং খরচে অনুমোদনকারী নেই\",\"No approver on over-limit marketing spend\",u));const g=r(o.d.ledger_total)?T(d.reg_total-a(o.d.ledger_total)):null,b=r(o.d.stmt_tota"
+      }
+    ],
+    "observed_gap": "Positive amount with head contributes to cumulative monthly head spend. Finite option limit overrides site fallback. Strict overage warns yellow, missing limit or missing approval on over-limit row red. Any overage shows and requires over-approver.",
+    "dependency": "Versioned head limits, documented prior authorization and exception approval",
+    "correction": "Versioned head limits, documented prior authorization and exception approval",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A005-F007",
+    "source_ids": [
+      "C-03:ledger_total",
+      "C-03:stmt_total",
+      "C-03:rec_text",
+      "C-03:entered_by",
+      "C-03:checked_by",
+      "C-03:owner_by"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 33938,
+        "text": "const g=r(o.d.ledger_total)?T(d.reg_total-a(o.d.ledger_total)):null,b=r(o.d.stmt_total)?T(d.reg_total-a(o.d.stmt_total)):null;return d.rec_text=null===g&&null===b?\"—\":0===(g||0)&&0===(b||0)?t(\"মিল আছে ✓\",\"Match"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 34294,
+        "text": "A(\"mkt_ledger_diff\",\"red\",\"রেজিস্টারের মোট ক্যাশ ও ব্যাংক লেজারের সাথে মেলেনি\",\"Register total differs from the cash & bank ledger\",g)),b&&n.push(A(\"mkt_statement_diff\",\"red\",\"রেজিস্টারের মোট স্টেটমেন্ট ও ইনভয়"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 34440,
+        "text": "A(\"mkt_statement_diff\",\"red\",\"রেজিস্টারের মোট স্টেটমেন্ট ও ইনভয়েসের সাথে মেলেনি\",\"Register total differs from statements and invoices\",b)),{v:d,rows:{lines:y},flags:n,needs:O(l)}}},e.forms[\"S-06\"]={title:t(\"পা"
+      }
+    ],
+    "observed_gap": "Submitted register total reconciles independently to entered ledger and statement totals, rounded to cents. Missing one side can display Matches when other delta is zero. Checker role labels do not establish owner identity or separation.",
+    "dependency": "Money ledger, bank statement/invoice evidence and authenticated reviewers",
+    "correction": "Money ledger, bank statement/invoice evidence and authenticated reviewers",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A005-F008",
+    "source_ids": [
+      "S-06:page_no",
+      "S-06:party",
+      "S-06:firm",
+      "S-06:phone",
+      "S-06:address",
+      "S-06:rate_basis"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 34906,
+        "text": "g(\"rate_basis\",t(\"দরের ভিত্তি\",\"Rate basis\"),[[\"list\",t(\"পাইকারি তালিকা\",\"Wholesale list\")],[\"special\",t(\"বিশেষ\",\"Special\")]]),d(\"credit_limit\",t(\"ক্রেডিট সীমা (Credit Limit) ৳\",\"Credit limit ৳\"),{req:!0}),l(\"c"
+      }
+    ],
+    "observed_gap": "Party required; identity/contact details are free text. Rate list/special selection is not used by the ledger calculation.",
+    "dependency": "Party master and effective wholesale price contract",
+    "correction": "Party master and effective wholesale price contract",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A005-F009",
+    "source_ids": [
+      "S-06:credit_limit",
+      "S-06:credit_days",
+      "S-06:approved_by"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 38121,
+        "text": "m=null!==h&&T(n-h)>0;return i.limit_state=null===h?\"—\":m?t(\"বাইরে\",\"Outside\"):t(\"ভেতরে ✓\",\"Inside ✓\"),m&&(s.push(A(\"over_credit_limit\",\"yellow\",\"বকেয়া ক্রেডিট সীমার বাইরে\",\"Dues are beyond the credit limit\",T("
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 38234,
+        "text": "A(\"over_credit_limit\",\"yellow\",\"বকেয়া ক্রেডিট সীমার বাইরে\",\"Dues are beyond the credit limit\",T(n-h))),e.d.credit_stop||s.push(A(\"credit_not_stopped\",\"red\",\"সীমা পেরিয়েছে কিন্তু নতুন বাকি বন্ধ হয়নি\",\"Limit c"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 38362,
+        "text": "A(\"credit_not_stopped\",\"red\",\"সীমা পেরিয়েছে কিন্তু নতুন বাকি বন্ধ হয়নি\",\"Limit crossed but new credit not stopped\",T(n-h)))),null===h||r(e.d.approved_by)||s.push(A(\"credit_no_approver\",\"yellow\",\"ক্রেডিট সীমার"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 38526,
+        "text": "A(\"credit_no_approver\",\"yellow\",\"ক্রেডিট সীমার অনুমোদনকারীর নাম নেই\",\"No approver named for the credit limit\")),a(e.d.ag60p)>0&&s.push(A(\"party_60plus\",\"yellow\",\"60+ দিনের বকেয়া আছে\",\"60+ days dues exist\",a(e."
+      }
+    ],
+    "observed_gap": "Rounded balance−limit above zero warns yellow and an unchecked stop attestation warns red. Missing approver with a limit warns yellow. Credit days do not enter calc.",
+    "dependency": "Scoped credit policy, independent approval and hard transaction guard",
+    "correction": "Scoped credit policy, independent approval and hard transaction guard",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A005-F010",
+    "source_ids": [
+      "S-06:opening",
+      "S-06:date",
+      "S-06:inv_no"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 37689,
+        "text": "n=T(n+a(e.inv)-a(e.ret)-a(e.coll)),{bal:n}));i.total_due=n;const d=T(a(e.d.ag30)+a(e.d.ag60)+a(e.d.ag60p)),c=r(e.d.ag30)||r(e.d.ag60)||r(e.d.ag60p);i.ag_text=c?d===n?t(\"মিল আছে ✓\",\"Matches ✓\"):t(\"অমিল ৳ \"+C(T(d"
+      }
+    ],
+    "observed_gap": "Balance starts from parsed brought-forward and rounds each row after invoice minus return and collections. Row date is required; invoice ref has no declared required syntax. No canonical invoice validation shown.",
+    "dependency": "AR statement from immutable opening carry-forward and posted invoices/returns/collections",
+    "correction": "AR statement from immutable opening carry-forward and posted invoices/returns/collections",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]
