@@ -13,6 +13,7 @@
 | A009 | 50 | 6 high, 1 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45277459759 |
 | A010 | 50 | 7 high | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45277816442 |
 | A011 | 50 | 6 high, 2 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45321255178 |
+| A012 | 50 | 6 high, 1 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45321501676 |
 
 A002 covers R-01:waste_qty through C-04:on_c. Both original C-04:who declarations are preserved under one manifest ID. Evidence commits for the two exact runs are 6349dc78039f52ec7a867d1f8c3fe9e38b78174d and 1778382a1a9bd48bbf83921570bec8f9cfc7353a.
 
@@ -34,6 +35,8 @@ A010 exact evidence commit: 05ed405b43250171356ee474fa90a316d312ccc1. It covers 
 
 A011 exact evidence commit: 7dcf669055a551d450e3409d264307f8b85a5e5b. It covers P-06:credit_days through S-01:deliv_mode.
 
-A012 covers S-01:address through S-02:memo_no. Its exact-head CI is pending.
+A012 exact evidence commit: 6af57bfe2b950309f8d1c103818c3e47dfeaf8fa. It covers S-01:address through S-02:memo_no.
 
-Full gates passed: 11/20. Coordination Board / Decision Book: NOT WRITTEN.
+A013 covers S-02:item through S-03:deadline. Its exact-head CI is pending.
+
+Full gates passed: 12/20. Coordination Board / Decision Book: NOT WRITTEN.
