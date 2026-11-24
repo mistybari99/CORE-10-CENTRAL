@@ -2,7 +2,7 @@
   "schema_version": 1,
   "status": "AUTO_EXTRACTED_FIELDS_NOT_PARITY_AUDITED",
   "source": "Frozen sweets forms, 2026-11-22",
-  "method": "Single-pass minified field constructor scan with guarded cross-form header mutations attributed to their true target form. Source scan slots retain deterministic audit order; dynamic/computed fields may still be omitted. Use original frozen source as authority.",
+  "method": "Single-pass minified field constructor scan with guarded cross-form header mutations and shared recipe row helpers attributed to their true target form. Source scan slots retain deterministic audit order; dynamic/computed fields may still be omitted. Use original frozen source as authority.",
   "total_forms": 32,
   "total_extracted_fields": 1246,
   "forms": [
@@ -1586,14 +1586,11 @@
         "daytag_list",
         "craft_incharge",
         "factory_incharge",
-        "approver",
-        "name",
-        "qty",
-        "unit"
+        "approver"
       ],
-      "count_extracted": 50,
+      "count_extracted": 47,
       "signals": {
-        "required_syntax_mentions": 21,
+        "required_syntax_mentions": 17,
         "conditional_display_syntax_mentions": 5,
         "reviewer_role_syntax_mentions": 2,
         "approval_word_mentions": 4,
@@ -1625,11 +1622,14 @@
         "yield_no",
         "spec_version",
         "informant",
-        "approver"
+        "approver",
+        "name",
+        "qty",
+        "unit"
       ],
-      "count_extracted": 21,
+      "count_extracted": 24,
       "signals": {
-        "required_syntax_mentions": 9,
+        "required_syntax_mentions": 13,
         "conditional_display_syntax_mentions": 2,
         "reviewer_role_syntax_mentions": 2,
         "approval_word_mentions": 5,
@@ -1742,5 +1742,38 @@
       "offset_utf16": 44009,
       "guarded": true
     }
-  ]
+  ],
+  "recipe_row_helper": {
+    "source_file": "forms_factory.js",
+    "source_form": "F-03",
+    "row_keys": [
+      "item",
+      "name",
+      "qty",
+      "unit"
+    ],
+    "row_contexts": [
+      {
+        "collection": "a",
+        "section_bn": "Section A · ধাপ (Step) 1 — বেস তৈরি (ছানা / খোয়া / খামির / ব্যাটার / দুধ জ্বাল)",
+        "section_en": "Section A · Step 1: making the base (chhana / khoa / dough / batter / boiled milk)",
+        "min_rows_declared": 4,
+        "offset_utf16": 18046
+      },
+      {
+        "collection": "b",
+        "section_bn": "Section B · ধাপ (Step) 2 — পণ্য তৈরি",
+        "section_en": "Section B · Step 2: making the product",
+        "min_rows_declared": 5,
+        "offset_utf16": 18345
+      },
+      {
+        "collection": "c",
+        "section_bn": "Section C · প্যাকেজিং — পণ্যের উপকরণের সাথে নয়, আলাদা",
+        "section_en": "Section C · Packaging: kept apart from the product ingredients",
+        "min_rows_declared": 2,
+        "offset_utf16": 18511
+      }
+    ]
+  }
 }

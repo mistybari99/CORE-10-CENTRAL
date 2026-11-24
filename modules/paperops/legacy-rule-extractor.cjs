@@ -13,6 +13,50 @@ function scanBalanced(s,index,left,right){
   return "";
 }
 function uniqueMatches(s,re){return [...new Set([...s.matchAll(re)].map(m=>m[1]))].sort();}
+function attributeRecipeRows(entries,source){
+  const spec=entries.find(x=>x.legacy_code==='F-02');
+  const recipe=entries.find(x=>x.legacy_code==='F-03');
+  const text=source.content;
+  const specStart=text.indexOf('e.forms["F-02"]={');
+  const specEnd=text.indexOf(';const F=[',specStart);
+  const recipeStart=text.indexOf('e.forms["F-03"]={',specEnd);
+  const recipeEnd=text.indexOf('e.forms["F-04"]={',recipeStart);
+  const marker='O=()=>[';
+  const offset=text.indexOf(marker,specEnd);
+  if(!spec||!recipe||specStart<0||specEnd<=specStart||offset<=specEnd||
+      recipeStart<=offset||recipeEnd<=recipeStart||/\bO\(/.test(text.slice(specStart,specEnd)))
+    throw Error('RECIPE_HELPER_SOURCE_BOUNDARY');
+  const helper=scanBalanced(text,offset+marker.length-1,'[',']');
+  const matches=[...helper.matchAll(/\b([A-Za-z_$][\w$]*)\("([a-z][a-z0-9_]*)",t\("([^"]+)","([^"]+)"\)/g)];
+  if(matches.map(m=>m[2]).join(',')!=='item,name,qty,unit')
+    throw Error('RECIPE_HELPER_DECLARATIONS_CHANGED');
+  const block=text.slice(recipeStart,recipeEnd);
+  const consumes=[...block.matchAll(/title:t\("([^"]+)","([^"]+)"\),fields:\[b\("([abc])",null,O\(\),\{min:(\d+)\}\)/g)];
+  if(consumes.map(m=>m[3]+':'+m[4]).join(',')!=='a:4,b:5,c:2'||
+      [...block.matchAll(/\bO\(\)/g)].length!==3)
+    throw Error('RECIPE_HELPER_CONSUMERS_CHANGED');
+  const rowContexts=consumes.map(m=>({collection:m[3],section_bn:m[1],section_en:m[2],
+    min_rows_declared:Number(m[4]),offset_utf16:recipeStart+m.index+m[0].indexOf('b("')}));
+  for(const m of matches){
+    const key=m[2];
+    const call=m[1]+scanBalanced(helper,m.index+m[1].length,'(',')');
+    const provenance={kind:'SHARED_RECIPE_ROW_HELPER',source_file:source.path,
+      helper_offset_utf16:offset,offset_utf16:offset+marker.length-1+m.index,
+      literal:call,constructor_alias:m[1],label_bn:m[3],label_en:m[4],row_contexts:rowContexts};
+    if(key==='item'){
+      const header=recipe.fields.find(f=>f.key===key);
+      if(!header||header.label_en===m[4])throw Error('RECIPE_HEADER_ITEM_NOT_DISTINCT');
+      header.recipe_row_source=provenance;
+      continue;
+    }
+    const misplaced=spec.fields.find(f=>f.key===key);
+    if(!misplaced||misplaced.constructor_alias!==m[1]||misplaced.label_bn!==m[3]||
+        misplaced.label_en!==m[4]||recipe.fields.some(f=>f.key===key))
+      throw Error('RECIPE_ATTRIBUTION_DRIFT:'+key);
+    spec.fields.splice(spec.fields.indexOf(misplaced),1);
+    recipe.fields.push({...misplaced,source_order_after_form:'F-02',recipe_row_source:provenance});
+  }
+}
 function inspectSources(sources){
   const entries=[];
   for(const source of sources){
@@ -50,6 +94,8 @@ function inspectSources(sources){
   // Later files may append a guarded field to a previously declared form.
   // Do not treat such a push as a declaration belonging to the last form in that file.
   const lateHeaderMutations=[];
+  const factory=sources.find(x=>x.path==='forms_factory.js');
+  if(factory)attributeRecipeRows(entries,factory);
   const headerPush=/e\.forms\["([A-Z]-\d{2})"\]\.head\.push\(\s*([A-Za-z_$][A-Za-z0-9_$]*)\("([a-z][a-z0-9_]*)",t\("([^"]{1,180})","([^"]{1,180})"\)\)\)/g;
   for(const source of sources){
     const declarations=[...source.content.matchAll(/e\.forms\["([A-Z]-\d{2})"\]\s*=\s*\{\s*title:/g)];
@@ -98,7 +144,7 @@ if(process.argv.includes('--check')){
  assert.deepEqual(report,actual,'rule candidate report stale: regenerate and review source deltas');
  console.log('PaperOps legacy rule extraction checked:',report.totals);
 }else if(process.argv.includes('--write')){
- fs.writeFileSync(path.join(__dirname,'legacy-rule-candidates.json'),JSON.stringify(report,null,2)+'\\n');
+ fs.writeFileSync(path.join(__dirname,'legacy-rule-candidates.json'),JSON.stringify(report,null,2)+'\n');
  console.log('Wrote PaperOps heuristic source candidate report:',report.totals);
 }else{
  console.log(JSON.stringify(report.totals,null,2));
