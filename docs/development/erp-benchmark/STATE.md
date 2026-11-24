@@ -34,3 +34,5 @@ Observed 2026-11-24; reverify at session start. Board ERP-BENCH-001, docs-only. 
  
 ## Agent progress log
 2026-11-24 ChatGPT: initialized research mandate, seed registry and checkpoint on isolated research branch. Board claim ERP-BENCH-001. Current scope docs only. Next A01 and G01 can be researched independently; existing builders continue their lanes. Record subsequent log as date | agent | packet | before SHA | commit/PR | actual evidence | delivery maturity | blockers | next step | Board row. Do not overwrite history.
+
+2026-11-24 ChatGPT: Owner requested strict agent-wide maintenance and exact research division. Added STRICT_PROTOCOL.md and RESEARCH_PARTS.md; ten read-only Deep Research parts preserve eight existing lanes; first DR01 and DR08 independently, DR10 synthesis after coverage. No product/CI/branch-protection changes. Mandatory review gates documented; executable enforcement and canonical adoption pending integrator. Master Decision Book update pending. All DRxx remain not started as distinct research sessions; earlier seed evidence retained.
