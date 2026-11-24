@@ -1,0 +1,657 @@
+{
+  "batch": "A007",
+  "status": "BLOCKED_SOURCE_FORM_MISMATCH",
+  "sources": {
+    "forms_cash.js": "ce58ef83daa19273b766f3eac63db5f97cc741ffb26ed21076ab948032c14022",
+    "forms_stock.js": "f6d8cfb25718ab6ec90d23cbbfbc9a1b18b1489c693b8b1413c339e32e058e81"
+  },
+  "fields": [
+    {
+      "source_id": "S-04:to_weekly",
+      "source_file": "forms_cash.js",
+      "constructors": [
+        {
+          "offset_utf16": 41694,
+          "literal": "m(\"to_weekly\",t(\"সাপ্তাহিক রিভিউ নোটে\",\"Carried to the weekly review note\"))",
+          "constructor_alias": "m",
+          "label_bn": "সাপ্তাহিক রিভিউ নোটে",
+          "label_en": "Carried to the weekly review note"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:checked_by",
+      "source_file": "forms_cash.js",
+      "constructors": [
+        {
+          "offset_utf16": 41838,
+          "literal": "u(\"checked_by\",t(\"যাচাইকারী (Checked by) — দৈনিক হিসাব রিকনসিলিয়েশনের কর্মী\",\"Checked by — daily reconciliation staff\"),{who:\"checker\",req:!0})",
+          "constructor_alias": "u",
+          "label_bn": "যাচাইকারী (Checked by) — দৈনিক হিসাব রিকনসিলিয়েশনের কর্মী",
+          "label_en": "Checked by — daily reconciliation staff"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:reviewed_by",
+      "source_file": "forms_cash.js",
+      "constructors": [
+        {
+          "offset_utf16": 41983,
+          "literal": "u(\"reviewed_by\",t(\"রিভিউকারী (Reviewed by) — মালিক\",\"Reviewed by — owner\"),{who:\"checker\"})",
+          "constructor_alias": "u",
+          "label_bn": "রিভিউকারী (Reviewed by) — মালিক",
+          "label_en": "Reviewed by — owner"
+        }
+      ]
+    },
+    {
+      "source_id": "S-04:cashier",
+      "source_file": "forms_cash.js",
+      "status": "SOURCE_FORM_MISMATCH",
+      "constructors": [],
+      "actual_mutation": {
+        "offset_utf16": 44009,
+        "text": "e.forms[\"R-01\"].head.push(u(\"cashier\",t(\"ক্যাশিয়ার (Cashier)\",\"Cashier\")))"
+      }
+    },
+    {
+      "source_id": "P-04:time",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 1356,
+          "literal": "c(\"time\",t(\"সময়\",\"Time\"))",
+          "constructor_alias": "c",
+          "label_bn": "সময়",
+          "label_en": "Time"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:supplier",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 1383,
+          "literal": "q(\"supplier\",t(\"সাপ্লায়ার\",\"Supplier\"),{req:!0})",
+          "constructor_alias": "q",
+          "label_bn": "সাপ্লায়ার",
+          "label_en": "Supplier"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:memo_no",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 1433,
+          "literal": "s(\"memo_no\",t(\"তাদের মেমো / চালান নং\",\"Their memo / challan no.\"))",
+          "constructor_alias": "s",
+          "label_bn": "তাদের মেমো / চালান নং",
+          "label_en": "Their memo / challan no."
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:paper",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 1500,
+          "literal": "g(\"paper\",t(\"যে কাগজে ক্রয়\",\"Purchase made on\"),[[\"po\",t(\"পারচেজ অর্ডার (PO)\",\"Purchase order (PO)\")],[\"pr\",t(\"জরুরি ক্রয় — পারচেজ রিকুইজিশন (PR)\",\"Urgent purchase — purchase requisition (PR)\")],[\"direct\",t(\"শোরুমে সরাসরি ক্রয়\",\"Direct purchase at the showroom\")]],{req:!0})",
+          "constructor_alias": "g",
+          "label_bn": "যে কাগজে ক্রয়",
+          "label_en": "Purchase made on"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:pr_no",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 1893,
+          "literal": "s(\"pr_no\",t(\"পারচেজ রিকুইজিশন (PR) নং\",\"Purchase Requisition (PR) no.\"),{show:e=>\"pr\"===e.d.paper,req:e=>\"pr\"===e.d.paper})",
+          "constructor_alias": "s",
+          "label_bn": "পারচেজ রিকুইজিশন (PR) নং",
+          "label_en": "Purchase Requisition (PR) no."
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:po_prev",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 2123,
+          "literal": "l(\"po_prev\",t(\"এই পারচেজ অর্ডারে আগে প্রাপ্ত\",\"Received earlier on this PO\"))",
+          "constructor_alias": "l",
+          "label_bn": "এই পারচেজ অর্ডারে আগে প্রাপ্ত",
+          "label_en": "Received earlier on this PO"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:po_today",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 2201,
+          "literal": "l(\"po_today\",t(\"আজ প্রাপ্ত\",\"Received today\"))",
+          "constructor_alias": "l",
+          "label_bn": "আজ প্রাপ্ত",
+          "label_en": "Received today"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:po_rest",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 2248,
+          "literal": "l(\"po_rest\",t(\"বাকি\",\"Remaining\"))",
+          "constructor_alias": "l",
+          "label_bn": "বাকি",
+          "label_en": "Remaining"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:po_last",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 2283,
+          "literal": "u(\"po_last\",t(\"শেষ ডেলিভারি\",\"Last delivery\"))",
+          "constructor_alias": "u",
+          "label_bn": "শেষ ডেলিভারি",
+          "label_en": "Last delivery"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:scale_checked",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 2811,
+          "literal": "u(\"scale_checked\",t(\"পাল্লা আজ পরীক্ষিত\",\"Scale checked today\"),{req:!0})",
+          "constructor_alias": "u",
+          "label_bn": "পাল্লা আজ পরীক্ষিত",
+          "label_en": "Scale checked today"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:item",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 2901,
+          "literal": "m(\"item\",t(\"আইটেম\",\"Item\"),{req:!0,wide:!0})",
+          "constructor_alias": "m",
+          "label_bn": "আইটেম",
+          "label_en": "Item"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:unit",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 2946,
+          "literal": "y(\"unit\",t(\"একক\",\"Unit\"),\"text\")",
+          "constructor_alias": "y",
+          "label_bn": "একক",
+          "label_en": "Unit"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:memo",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 2979,
+          "literal": "l(\"memo\",t(\"মেমোতে লেখা\",\"Written on the memo\"),{show:e=>!e.sbMemo})",
+          "constructor_alias": "l",
+          "label_bn": "মেমোতে লেখা",
+          "label_en": "Written on the memo"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:var",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 3119,
+          "literal": "y(\"var\",t(\"পার্থক্য (প্রাপ্ত − মেমো)\",\"Variance (received − memo)\"),\"num\",{show:e=>a(e.row.counted)&&a(e.row.memo)})",
+          "constructor_alias": "y",
+          "label_bn": "পার্থক্য (প্রাপ্ত − মেমো)",
+          "label_en": "Variance (received − memo)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:rate",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 3236,
+          "literal": "d(\"rate\",t(\"দর ৳ (বিল অনুযায়ী)\",\"Rate ৳ (as per the bill)\"))",
+          "constructor_alias": "d",
+          "label_bn": "দর ৳ (বিল অনুযায়ী)",
+          "label_en": "Rate ৳ (as per the bill)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:amt",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 3298,
+          "literal": "y(\"amt\",t(\"মোট ৳\",\"Total ৳\"),\"money\",{show:e=>a(e.row.counted)&&a(e.row.rate)})",
+          "constructor_alias": "y",
+          "label_bn": "মোট ৳",
+          "label_en": "Total ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:remark",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 3433,
+          "literal": "s(\"remark\",t(\"মন্তব্য\",\"Remark\"),{wide:!0})",
+          "constructor_alias": "s",
+          "label_bn": "মন্তব্য",
+          "label_en": "Remark"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:t_memo",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 3487,
+          "literal": "y(\"t_memo\",t(\"মোট — মেমোতে লেখা\",\"Total — on the memo\"),\"num\")",
+          "constructor_alias": "y",
+          "label_bn": "মোট — মেমোতে লেখা",
+          "label_en": "Total — on the memo"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:t_count",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 3550,
+          "literal": "y(\"t_count\",t(\"মোট — গণনায় প্রাপ্ত\",\"Total — counted\"),\"num\")",
+          "constructor_alias": "y",
+          "label_bn": "মোট — গণনায় প্রাপ্ত",
+          "label_en": "Total — counted"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:t_var",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 3613,
+          "literal": "y(\"t_var\",t(\"মোট পার্থক্য\",\"Total variance\"),\"num\")",
+          "constructor_alias": "y",
+          "label_bn": "মোট পার্থক্য",
+          "label_en": "Total variance"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:t_amt",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 3665,
+          "literal": "y(\"t_amt\",t(\"সর্বমোট ৳\",\"Grand total ৳\"),\"money\",{big:!0})",
+          "constructor_alias": "y",
+          "label_bn": "সর্বমোট ৳",
+          "label_en": "Grand total ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:qc_all",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 3801,
+          "literal": "u(\"qc_all\",t(\"সব লাইনে মান যাচাই হয়েছে\",\"Quality checked on every line\"),{req:!0})",
+          "constructor_alias": "u",
+          "label_bn": "সব লাইনে মান যাচাই হয়েছে",
+          "label_en": "Quality checked on every line"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:new_rate",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 4125,
+          "literal": "d(\"new_rate\",t(\"নতুন দর ৳\",\"New rate ৳\"),{show:e=>e.v.has_reduced,req:e=>e.v.has_reduced})",
+          "constructor_alias": "d",
+          "label_bn": "নতুন দর ৳",
+          "label_en": "New rate ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:rate_phone",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 4363,
+          "literal": "u(\"rate_phone\",t(\"ফোনে অনুমোদন\",\"Approved by phone\"),{show:e=>e.v.has_reduced})",
+          "constructor_alias": "u",
+          "label_bn": "ফোনে অনুমোদন",
+          "label_en": "Approved by phone"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:posted",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 4674,
+          "literal": "u(\"posted\",t(\"স্টোর লেজারে এন্ট্রি (Posting) করা হয়েছে\",\"Posted in the store ledger\"))",
+          "constructor_alias": "u",
+          "label_bn": "স্টোর লেজারে এন্ট্রি (Posting) করা হয়েছে",
+          "label_en": "Posted in the store ledger"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:ledger_ref",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 4762,
+          "literal": "s(\"ledger_ref\",t(\"পাতা / লাইন নং\",\"Page / line no.\"))",
+          "constructor_alias": "s",
+          "label_bn": "পাতা / লাইন নং",
+          "label_en": "Page / line no."
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:pay",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 4856,
+          "literal": "g(\"pay\",t(\"পেমেন্ট\",\"Payment\"),C,{req:!0})",
+          "constructor_alias": "g",
+          "label_bn": "পেমেন্ট",
+          "label_en": "Payment"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:pay_other",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 4899,
+          "literal": "s(\"pay_other\",t(\"অন্য — লিখুন\",\"Other — write it\"),{show:e=>\"other\"===e.d.pay,req:e=>\"other\"===e.d.pay})",
+          "constructor_alias": "s",
+          "label_bn": "অন্য — লিখুন",
+          "label_en": "Other — write it"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:cash_amount",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 5004,
+          "literal": "d(\"cash_amount\",t(\"নগদ হলে ৳\",\"Cash amount ৳\"),{show:e=>\"cash\"===e.d.pay,req:e=>\"cash\"===e.d.pay})",
+          "constructor_alias": "d",
+          "label_bn": "নগদ হলে ৳",
+          "label_en": "Cash amount ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:ledger_date",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 5143,
+          "literal": "p(\"ledger_date\",t(\"ক্যাশ ও ব্যাংক লেজারের তারিখ\",\"Cash & bank ledger date\"),{show:e=>a(e.d.pay)&&\"credit\"!==e.d.pay})",
+          "constructor_alias": "p",
+          "label_bn": "ক্যাশ ও ব্যাংক লেজারের তারিখ",
+          "label_en": "Cash & bank ledger date"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:ledger_line",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 5261,
+          "literal": "s(\"ledger_line\",t(\"লেজারের লাইন নং\",\"Ledger line no.\"),{show:e=>a(e.d.pay)&&\"credit\"!==e.d.pay})",
+          "constructor_alias": "s",
+          "label_bn": "লেজারের লাইন নং",
+          "label_en": "Ledger line no."
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:photos",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 5411,
+          "literal": "k(\"photos\",t(\"মালামাল / মেমো / বিলের ছবি\",\"Photos of goods / memo / bill\"))",
+          "constructor_alias": "k",
+          "label_bn": "মালামাল / মেমো / বিলের ছবি",
+          "label_en": "Photos of goods / memo / bill"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:carrier",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 5487,
+          "literal": "s(\"carrier\",t(\"সাপ্লায়ার / বহনকারী (Supplier / Carrier) — নাম\",\"Supplier / carrier — name\"))",
+          "constructor_alias": "s",
+          "label_bn": "সাপ্লায়ার / বহনকারী (Supplier / Carrier) — নাম",
+          "label_en": "Supplier / carrier — name"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:receiver",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 5581,
+          "literal": "h(\"receiver\",t(\"গ্রহণকারী (Received by)\",\"Received by\"))",
+          "constructor_alias": "h",
+          "label_bn": "গ্রহণকারী (Received by)",
+          "label_en": "Received by"
+        }
+      ]
+    },
+    {
+      "source_id": "P-04:mgmt_checked",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 5731,
+          "literal": "u(\"mgmt_checked\",t(\"যাচাইকারী (Checked by) — ব্যবস্থাপনা: রসিদ যাচাই করেছি\",\"Checked by management: receipt checked\"),{who:\"checker\",req:!0})",
+          "constructor_alias": "u",
+          "label_bn": "যাচাইকারী (Checked by) — ব্যবস্থাপনা: রসিদ যাচাই করেছি",
+          "label_en": "Checked by management: receipt checked"
+        }
+      ]
+    },
+    {
+      "source_id": "W-01:shift",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 8085,
+          "literal": "g(\"shift\",t(\"শিফট\",\"Shift\"),T)",
+          "constructor_alias": "g",
+          "label_bn": "শিফট",
+          "label_en": "Shift"
+        }
+      ]
+    },
+    {
+      "source_id": "W-01:batch_no",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 8116,
+          "literal": "s(\"batch_no\",t(\"ব্যাচ / ক্রম নং\",\"Batch / serial no.\"))",
+          "constructor_alias": "s",
+          "label_bn": "ব্যাচ / ক্রম নং",
+          "label_en": "Batch / serial no."
+        }
+      ]
+    },
+    {
+      "source_id": "W-01:product",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 8172,
+          "literal": "s(\"product\",t(\"তৈরির পণ্য\",\"Product being made\"))",
+          "constructor_alias": "s",
+          "label_bn": "তৈরির পণ্য",
+          "label_en": "Product being made"
+        }
+      ]
+    },
+    {
+      "source_id": "W-01:purpose",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 8222,
+          "literal": "g(\"purpose\",t(\"ইস্যুর উদ্দেশ্য\",\"Purpose of the issue\"),G,{req:!0})",
+          "constructor_alias": "g",
+          "label_bn": "ইস্যুর উদ্দেশ্য",
+          "label_en": "Purpose of the issue"
+        }
+      ]
+    },
+    {
+      "source_id": "W-01:item",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 8758,
+          "literal": "m(\"item\",t(\"আইটেম\",\"Item\"),{req:!0,wide:!0})",
+          "constructor_alias": "m",
+          "label_bn": "আইটেম",
+          "label_en": "Item"
+        }
+      ]
+    },
+    {
+      "source_id": "W-01:unit",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 8803,
+          "literal": "y(\"unit\",t(\"একক\",\"Unit\"),\"text\")",
+          "constructor_alias": "y",
+          "label_bn": "একক",
+          "label_en": "Unit"
+        }
+      ]
+    },
+    {
+      "source_id": "W-01:issued",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 8836,
+          "literal": "l(\"issued\",t(\"ইস্যু — ওজন\",\"Issued — weight\"),{req:!0})",
+          "constructor_alias": "l",
+          "label_bn": "ইস্যু — ওজন",
+          "label_en": "Issued — weight"
+        }
+      ]
+    },
+    {
+      "source_id": "W-01:ret",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 8892,
+          "literal": "l(\"ret\",t(\"একই দিনে ফেরত\",\"Returned the same day\"))",
+          "constructor_alias": "l",
+          "label_bn": "একই দিনে ফেরত",
+          "label_en": "Returned the same day"
+        }
+      ]
+    },
+    {
+      "source_id": "W-01:net",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 8944,
+          "literal": "y(\"net\",t(\"নিট ব্যবহার\",\"Net use\"),\"num\",{show:e=>a(e.row.issued)})",
+          "constructor_alias": "y",
+          "label_bn": "নিট ব্যবহার",
+          "label_en": "Net use"
+        }
+      ]
+    },
+    {
+      "source_id": "W-01:reason",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 9012,
+          "literal": "s(\"reason\",t(\"কারণ / মন্তব্য\",\"Reason / remark\"),{wide:!0})",
+          "constructor_alias": "s",
+          "label_bn": "কারণ / মন্তব্য",
+          "label_en": "Reason / remark"
+        }
+      ]
+    },
+    {
+      "source_id": "W-01:t_issued",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 9082,
+          "literal": "y(\"t_issued\",t(\"সর্বমোট ইস্যু\",\"Total issued\"),\"num\")",
+          "constructor_alias": "y",
+          "label_bn": "সর্বমোট ইস্যু",
+          "label_en": "Total issued"
+        }
+      ]
+    }
+  ]
+}

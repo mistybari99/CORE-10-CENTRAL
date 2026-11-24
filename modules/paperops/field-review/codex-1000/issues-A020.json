@@ -1,0 +1,405 @@
+[
+  {
+    "issue_id": "A020-F001",
+    "source_ids": [
+      "F-04:base_use",
+      "F-04:sugar",
+      "F-04:mid",
+      "F-04:headcount",
+      "F-04:minutes",
+      "F-04:dash"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 22433,
+        "text": "s(\"base_use\",t(\"5 · বেস ব্যবহার\",\"5 · Base used\"),{req:e=>!e.row.dash}),s(\"sugar\",t(\"6 · চিনি / সিরা"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 22505,
+        "text": "s(\"sugar\",t(\"6 · চিনি / সিরা / অন্য উপকরণ\",\"6 · Sugar / syrup / other\"),{req:e=>!e.row.dash}),s(\"mid"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 22599,
+        "text": "s(\"mid\",t(\"7 · মাঝের ওজন — ভাজা বা বেকের পর\",\"7 · Mid weight after frying or baking\"),{req:e=>!e.row"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 23373,
+        "text": "s(\"headcount\",t(\"15 · কর্মী সংখ্যা (Headcount)\",\"15 · Headcount\"),{req:e=>!e.row.dash}),s(\"minutes\","
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 23461,
+        "text": "s(\"minutes\",t(\"16 · মোট সময় (মিনিট)\",\"16 · Total time (minutes)\"),{req:e=>!e.row.dash}),l(\"dash\",t("
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 23550,
+        "text": "l(\"dash\",t(\"খালি ঘরগুলো এই পণ্যে খাটে না (দাগ দেওয়া)\",\"Empty boxes do not apply to this product (da"
+      }
+    ],
+    "observed_gap": "The field requirement for base use, sugar/syrup, mid weight, headcount and minutes is !row.dash. The source tells staff to weigh or count and to leave inapplicable entries blank. The dash is a human attestation.",
+    "dependency": "Manufacturing / Quality yield trial observations with signed measurement and applicability evidence",
+    "correction": "Reconcile the scoped source references against the named canonical provider and require independent approval before applying any product, finance or stock changes.",
+    "owner_lane": "Canonical module owner per dependency",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A020-F002",
+    "source_ids": [
+      "F-04:total",
+      "F-04:per_unit",
+      "F-04:second_pct",
+      "F-04:waste_pct"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 19850,
+        "text": "R=(e,t)=>r(t)>0&&a(e)?Math.round(r(e)/r(t)*1e4)/100:void 0,j=[[\"input\",t(\"গড় — মূল উপকরণ\",\"Average:"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 24580,
+        "text": "const t=a(e.good)||a(e.second)||a(e.waste)?r(e.good)+r(e.second)+r(e.waste):void 0;return{base_pct:R"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 24705,
+        "text": "per_unit:(o=e.good,n=e.input,r(n)>0&&a(o)?Math.round(r(o)/r(n)*1e4)/1e4:void 0),second_pct:R(e.secon"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 24947,
+        "text": "filter(e=>void 0!==e&&Number.isFinite(e));return n.length?Math.round(o(n)/n.length*1e4)/1e4:void 0})"
+      }
+    ],
+    "observed_gap": "Total is good + second + waste when any is present. Per-unit yield requires positive input and present good; it rounds to four decimal places. Second and waste percentages require positive total and present numerator; they round to two decimal places. Only finite present results enter the average, rounded to four decimals.",
+    "dependency": "Manufacturing yield calculation and Quality-approved target with effective recipe, units and immutable batch inputs",
+    "correction": "Reconcile the scoped source references against the named canonical provider and require independent approval before applying any product, finance or stock changes.",
+    "owner_lane": "Canonical module owner per dependency",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A020-F003",
+    "source_ids": [
+      "F-04:craftsman",
+      "F-04:measurer",
+      "F-04:factory_incharge",
+      "F-04:verifier"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 19801,
+        "text": "const B=[1,2,3].map(e=>t(\"ব্যাচ \"+e,\"Batch \"+e)),R=(e,t)=>r(t)>0&&a(e)?Math.round(r(e)/r(t)*1e4)/100"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 25053,
+        "text": "const d=t.map(e=>e.date).filter(a);return new Set(d).size<d.length&&n.push(v(\"same_day_batches\",\"yel"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 25334,
+        "text": "v(\"measurer_is_craftsman\",\"red\",\"পরিমাপকারী ও ওই ব্যাচের কারিগর একই জন\",\"The person who measured als"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 24341,
+        "text": "p(\"verifier\",t(\"যাচাইকারী (Checked by)\",\"Checked by\"),{who:\"checker\",req:!0}),p(\"approver\",t(\"অনুমোদ"
+      }
+    ],
+    "observed_gap": "Three fixed batch labels. Repeated non-empty date produces yellow same_day_batches; same non-empty measurer and craftsman yields red measurer_is_craftsman. The factory manager and checker are separately declared; no proof of independently authenticated people or calendar completeness.",
+    "dependency": "Manufacturing batch register and independently authorized Quality/Approval actors",
+    "correction": "Reconcile the scoped source references against the named canonical provider and require independent approval before applying any product, finance or stock changes.",
+    "owner_lane": "Canonical module owner per dependency",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A020-F004",
+    "source_ids": [
+      "F-01:brand",
+      "F-01:brand_other",
+      "F-01:product",
+      "F-01:new_code",
+      "F-01:target",
+      "F-01:est_price",
+      "F-01:reason"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 26071,
+        "text": "()=>e.biz?e.biz.brandOpts(K,[\"other\"]):K,{req:!0}),n(\"brand_other\",t(\"অন্য ব্র্যান্ড (লিখুন)\",\"Other"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 26192,
+        "text": "show:e=>\"other\"===e.d.brand}),n(\"product\",t(\"পণ্যের নাম\",\"Product name\"),{req:!0}),n(\"new_code\",t(\"ন"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 26275,
+        "text": "n(\"new_code\",t(\"নতুন আইটেম কোড\",\"New item code\"),{req:!0}),h(\"start_date\",t(\"শুরুর তারিখ\",\"Start dat"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 26619,
+        "text": "n(\"target\",t(\"লক্ষ্য কাস্টমার\",\"Target customer\")),d(\"est_price\",t(\"আনুমানিক বিক্রয়মূল্য\",\"Estimate"
+      }
+    ],
+    "observed_gap": "Brand options use the business provider when present or the listed source fallback, with other revealing its text field. Product and new code are declared required. Target, estimate and reason are inputs, with no registry uniqueness guarantee here.",
+    "dependency": "Master Data approved brand/product/code and trial rationale under business scope",
+    "correction": "Reconcile the scoped source references against the named canonical provider and require independent approval before applying any product, finance or stock changes.",
+    "owner_lane": "Canonical module owner per dependency",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A020-F005",
+    "source_ids": [
+      "F-01:start_date",
+      "F-01:review_date",
+      "F-01:review_hint",
+      "F-01:day_tag"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 651,
+        "text": "key:\"newprod_review_days\",group:\"C\",label:t(\"নতুন প্রোডাক্ট চালুর কত দিন পর পর্যালোচনা\",\"Days after "
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 29640,
+        "text": "null===c?(i.review_hint=q,d.push(\"newprod_review_days\")):a(n.start_date)?i.review_hint=((e,t)=>{cons"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 29775,
+        "text": "r.setDate(r.getDate()+t),r.toLocaleDateString(\"en-CA\")})(n.start_date,r(c)):i.review_hint=\"—\";const "
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 30295,
+        "text": "e.s[\"daytag_\"+new Date(n.review_date+\"T12:00:00\").getDay()];i.day_tag=t||q}const p=e.env.byCode&&e.e"
+      }
+    ],
+    "observed_gap": "Review hint uses newprod_review_days and start date; missing setting yields Data needed and a needs key, given setting without start date yields em dash. Review-day tag uses the weekday of the declared review date and location setting; no effective-date or time-zone policy is proved.",
+    "dependency": "Control versioned review-day/day-tag policy and business calendar",
+    "correction": "Reconcile the scoped source references against the named canonical provider and require independent approval before applying any product, finance or stock changes.",
+    "owner_lane": "Canonical module owner per dependency",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A020-F006",
+    "source_ids": [
+      "F-01:recipe_no",
+      "F-01:yield_no",
+      "F-01:spec_no"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 26835,
+        "text": "Section B · Recipe, yield, quality & cost\"),fields:[n(\"recipe_no\",t(\"রেসিপি কার্ড নং\",\"Recipe card n"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 19293,
+        "text": "n(\"yield_no\",t(\"ফলন টেস্ট শিট নং\",\"Yield test sheet no.\")),n(\"spec_version\",t(\"প্রোডাক্ট স্পেক কার্ড"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 27000,
+        "text": "n(\"spec_no\",t(\"প্রোডাক্ট স্পেক কার্ড নং\",\"Product spec card no.\")),d(\"unit_cost\",t(\"একক খরচ ৳\",\"Unit"
+      }
+    ],
+    "observed_gap": "Recipe, yield sheet and product spec are textual references with no validated version or approval lookup in this calculator.",
+    "dependency": "Master Data / Manufacturing / Quality immutable approved recipe, yield and product-spec revisions",
+    "correction": "Reconcile the scoped source references against the named canonical provider and require independent approval before applying any product, finance or stock changes.",
+    "owner_lane": "Canonical module owner per dependency",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A020-F007",
+    "source_ids": [
+      "F-01:ref",
+      "F-01:amount",
+      "F-01:trial_total"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 25664,
+        "text": "L=[t(\"মালামাল ইস্যু স্লিপ — ট্রায়াল\",\"Material issue slip: trial\"),t(\"মালামাল ইস্যু স্লিপ — ট্রায়া"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 27205,
+        "text": "b(\"trial\",null,[n(\"ref\",t(\"কাগজ ও লাইন নং\",\"Paper & line no.\")),d(\"amount\",t(\"টাকা ৳\",\"Amount ৳\"))],"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 29869,
+        "text": "const h=e.rows(\"trial\");i.trial_total=o(h.map(e=>e.amount));const l=h.map(()=>({}));if(a(n.tasters))"
+      }
+    ],
+    "observed_gap": "Four fixed trial rows include two material issue references and two marketing expense references. Trial total uses the sum of row amounts. Blank or duplicate reference behavior and Stock/Money authorizations are not proved by the sum.",
+    "dependency": "Stock issue and Money expense vouchers with transaction-level audit lineage",
+    "correction": "Reconcile the scoped source references against the named canonical provider and require independent approval before applying any product, finance or stock changes.",
+    "owner_lane": "Canonical module owner per dependency",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A020-F008",
+    "source_ids": [
+      "F-01:tasters",
+      "F-01:op_good",
+      "F-01:op_mid",
+      "F-01:op_bad",
+      "F-01:op_text",
+      "F-01:key_point"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 27738,
+        "text": "show:e=>a(e.d.tasters)}),i(\"key_point\",t(\"মূল কথা\",\"Key point\"))]},{title:t(\"Section E · বিক্রি — পর"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 29978,
+        "text": "r(n.op_good)+r(n.op_mid)+r(n.op_bad)-r(n.tasters);i.op_text=0===e?t(\"মিল আছে ✓\",\"Matches ✓\"):t(\"অমিল"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 30120,
+        "text": "v(\"opinion_mismatch\",\"yellow\",\"মতামতের যোগফল পরীক্ষকের সংখ্যার সমান নয়\",\"Opinion counts do not add "
+      }
+    ],
+    "observed_gap": "Taster-presence gates the displayed result. Count delta equals good + average + poor minus tasters; nonzero gives yellow opinion_mismatch. A comment is manually entered.",
+    "dependency": "Manufacturing / Quality trial feedback with scoped evidence and independent reviewer",
+    "correction": "Reconcile the scoped source references against the named canonical provider and require independent approval before applying any product, finance or stock changes.",
+    "owner_lane": "Canonical module owner per dependency",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A020-F009",
+    "source_ids": [
+      "F-01:sold_qty",
+      "F-01:sold_amt",
+      "F-01:returns",
+      "F-01:repeat"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 28086,
+        "text": "Take total sales from the daily showroom sheet.\"),\"ok\"),s(\"sold_qty\",t(\"মোট বিক্রি — পরিমাণ\",\"Total "
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 28142,
+        "text": "s(\"sold_qty\",t(\"মোট বিক্রি — পরিমাণ\",\"Total sold: quantity\")),d(\"sold_amt\",t(\"মোট বিক্রি — টাকা\",\"To"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 28544,
+        "text": "s(\"repeat\",t(\"পুনরায় ক্রয়কারী কাস্টমার\",\"Repeat customers\"))]},{title:t(\"প্রস্তুতকারী ও যাচাইকারী\""
+      }
+    ],
+    "observed_gap": "The form instructs staff to take sales totals from the showroom day sheet, but the fields are manual and the calculator does not query a sales ledger or compute repeat customers.",
+    "dependency": "Sales daily close, returns/complaints and approved repeat-customer definition",
+    "correction": "Reconcile the scoped source references against the named canonical provider and require independent approval before applying any product, finance or stock changes.",
+    "owner_lane": "Canonical module owner per dependency",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A020-F010",
+    "source_ids": [
+      "F-01:unit_cost",
+      "F-01:price_used",
+      "F-01:margin"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 30378,
+        "text": "e.env.byCode&&e.env.byCode.get(n.new_code)||null,u=p&&r(p.sell_price)>0?r(p.sell_price):a(n.est_pric"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 30429,
+        "text": "p&&r(p.sell_price)>0?r(p.sell_price):a(n.est_price)?r(n.est_price):void 0;return i.price_used=u,i.ma"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 30561,
+        "text": "u-r(n.unit_cost):void 0,void 0!==i.margin&&i.margin<0&&s.push(v(\"negative_margin\",\"yellow\",\"প্রতি এক"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 30623,
+        "text": "v(\"negative_margin\",\"yellow\",\"প্রতি এককে মার্জিন ঋণাত্মক\",\"Margin per unit is negative\",i.margin)),a"
+      }
+    ],
+    "observed_gap": "By-code item price is used only when positive; else an entered estimate if present. Margin uses that selected price minus present unit cost; only negative margin produces a yellow warning. Historic arithmetic proves neither approved costing nor sales pricing authority.",
+    "dependency": "Effective Master price, Finance unit-cost basis, business/site currency and approved review",
+    "correction": "Reconcile the scoped source references against the named canonical provider and require independent approval before applying any product, finance or stock changes.",
+    "owner_lane": "Canonical module owner per dependency",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A020-F011",
+    "source_ids": [
+      "F-01:preparer",
+      "F-01:verifier",
+      "F-01:chief_mgmt",
+      "F-01:decision",
+      "F-01:change_what",
+      "F-01:owner"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 28743,
+        "text": "The checker is someone who did not make the product and is not the preparer.\"),\"warn\"),p(\"preparer\","
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 29418,
+        "text": "who:\"checker\",show:e=>\"change\"===e.c.decision,req:e=>\"change\"===e.c.decision}),p(\"owner\",t(\"মালিকের "
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 30769,
+        "text": "v(\"verifier_is_preparer\",\"red\",\"যাচাইকারী ও প্রস্তুতকারী একই জন\",\"Checker and preparer are the same "
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 29497,
+        "text": "p(\"owner\",t(\"মালিকের স্বাক্ষর\",\"Owner's signature\"),{who:\"checker\",req:!0})]}],calc(e){const n=e.d,i"
+      }
+    ],
+    "observed_gap": "Same non-empty verifier and preparer triggers red; the source instructions also exclude the maker, which the calculator does not check. Checker options keep/change/drop. Change text is required and visible only for checker decision change. Owner and chief management fields are required checker declarations, without authenticated approval.",
+    "dependency": "Approval/Audit signed product-release decision, independent actors and immutable version transition",
+    "correction": "Reconcile the scoped source references against the named canonical provider and require independent approval before applying any product, finance or stock changes.",
+    "owner_lane": "Canonical module owner per dependency",
+    "status": "OPEN"
+  }
+]
