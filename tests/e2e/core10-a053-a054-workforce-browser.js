@@ -69,8 +69,8 @@ window.supabase={createClient:function(){return {auth:{getUser:async()=>({data:{
     const errors=[],external=[];page.__errors=errors;page.__external=external;
     page.on("pageerror",e=>errors.push(e.message));
     page.on("request",r=>{if(!r.url().startsWith(base)&&!r.url().startsWith("blob:")&&!r.url().startsWith("data:"))external.push(r.url())});
-    await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
-    await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:fixture(persona,variant)}));
+    await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:fixture(persona,variant)}));
+    await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
     await page.goto(base+"/core10-workforce-"+pageName+".html",{waitUntil:"load"});
     await page.waitForFunction(()=>/^(Ready|প্রস্তুত)/.test(document.querySelector("#wf-status")?.textContent||""),{timeout:20000});
     return page;

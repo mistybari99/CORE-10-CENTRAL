@@ -33,6 +33,11 @@ NEVER TOUCH: Supabase `kbuhnpqooycqbzrfejcs` (IMG-ERP-SG, old ERP) and `luoeyyng
 No merge to `main` without Owner. No production DB. No secrets in git (publishable key is fine; never service_role/sb_secret).
 
 ## 3. Current state (2026-11-22)
+- **§7b.4 first canonical signed shell context BUILT/MERGED:** PR #142 merged only canonical trunk `d8b69a0c91ba865e38ac08fd79a33d86a9eb0368`, exact head `f9778d3ba161c782e9d56a29739536bc7c056fb8` (Board B-040). Shell sign-in uses existing CORE10 staging Auth; Group ▸ Business ▸ Site list comes from signed `build01_context_v1`, actor-before/after and cross-tenant validation; each context choice revalidates; privacy purge, stale async/result and account-switch guards. Source and real browser synthetic adversarial tests in `tests/core10-central-signed-context.test.cjs`. Exact HEAD shell CI `45049736364` SUCCESS (new scope/security/race tests, older nav, full local **56/56**, old public Worker read-only **56/56**, historical import safety) and Double Audit `45049736374` SUCCESS. **No staging/data/migration, main, protected IMG or Worker deployment.** Important: this is NOT universal SSO; Setup Build01 still uses an independent nonpersisted auth client, and context does not filter embedded modules. NEXT role-aware module homes + per-module signed context propagation, unified token CSS + bn/en; then §7a Sales 030x.
+- **§7b.4 first app-navigation BUILD MERGED:** PR #140 merged canonical trunk `d442281cb73e240d016f0ecf530f531941c47db8` (exact head `439032c5fdf6bb8400536003bb59149be2df37b7`): existing 11 routes regrouped into desktop workspaces/operations/admin; mobile 4 tabs + More for all other routes, bn/en, keyboard, active states, browser Back corrected by replacing nested iframe route history. No signed backend, approval, role, migration or Form Engine modification. Exact-head shell CI `45041736695` SUCCESS: original §7b.3 byte-for-byte gate preserved, new Playwright 2/2, current local 56/56 and old public Worker read-only 56/56 PASS; Double Audit `45041736755` SUCCESS. No Worker deployment, staging, `main` or protected Supabase changes. **NEXT:** single signed shell session/context Group ▸ Business ▸ Site, role/entitlement module navigation and shared token CSS + bn/en dictionaries; then §7a Sales 030x.
+- **§7b.3 canonical shell source imported:** PR #134 merged trunk `dc9f9c7eef3d5e78403f148e7fc06d03964c62b6`. Existing preview `site/`, `data/`, `build.mjs`, `local-serve.mjs`, `worker-runtime.mjs` imported as *exact* Git tree/blob objects into `apps/central/`; `verify.cjs` copied with sole approved old-IMG config path adjustment following §7c. Import manifest/provenance test and CI added. Exact-head `4345b6e4` **4/4 CI SUCCESS**, deterministic Worker SHA256 `ba530d45179f9ea146bccb0a04899213a3e396adf7fe6030b28eebf938a5f4b2` unchanged, both local **56/56** and public Worker **56/56** PASS. No live deployment, staging/main/Owner data change. Next §7b unified sign-in, Group ▸ Business ▸ Site context, module/nav/roles/mobile, token CSS and bilingual dictionaries; then §7a Sales 030x.
+- **§7b.1 classification COMPLETE:** PR #133 merged canonical trunk `ff4c06b1b2ef4a00bda85652e4947e043fde938a`; root exact 132-file inventory (23 LIVE, 108 TRUNK_UNSHIPPED, 1 TOOLING), 463 LEGACY_FROZEN source references, all 37 Worker preview source pins checked at exact historical commits, including nine draft-head Sales/Mfg sources (replay, not staging). `docs/coordination/FILE_CLASSIFICATION.json`, `tests/core10-file-classification.test.js`, own CI workflow. Exact HEAD `399bedc` 3/3 GitHub Actions SUCCESS incl real Control Port browser gate. No Worker deploy, staging SQL or production changes. **NEXT: §7b.3 bring byte-identical preview shell onto trunk at `apps/central/`, then shared sign-in/context/menu, token CSS + bn/en dictionaries.**
+- **Owner-approved §7c legacy quarantine COMPLETE:** PR #131 merged only into canonical trunk at `f92072f22e273e379b001de4cfba80bcd7d7f79d` (2026-11-22). All 463 old IMG-ERP blobs (221 root + 242 `v2/`) moved with original Git blob hashes under `legacy/islamia-erp/`; `docs/coordination/LEGACY_MOVE_MANIFEST_20261122.json` and SHA256 + negative mutation test lock them. 25 unshipped CORE10 HTML views disconnected from old `./config.js` loader; shipped CORE10/module denylist test added. Legacy Pages package/test paths moved. 21/21 exact-head PR CI workflows SUCCESS; PostgreSQL 17 and live Worker local/public `verify.cjs` 56/56 each PASS (CI `45010718551`). Old browser suites use checksum-verified **CI-only** frozen fixtures with both protected Supabase hostnames blocked. No staging migration, database changes, live Worker deploy or `main` merge. Next: §7b steps 1,3,4,5, then §7a Sales 030x.
 - CORE10 staging only `rhrqhbyzrhaafynfhdaf` PG17: **46 applied migration rows**, maximum `0206`:
   0001–0019, 0100–0106, 0110–0118, 0150–0153, 0200–0206. Each hosted file applied sequentially
   with exact source SHA256 in the same committed transaction as its ledger record. Sales 030x,
@@ -108,7 +113,8 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
 - **Credentials**: you need your own Cloudflare API token (Workers edit) and Supabase access (Management API token or
   DB connection) from the Owner. Never commit them.
 
-## 5. Next build steps (priority order)
+## 5. Next build steps (priority order) — see also §7, §7a, §7b, §7c (latest queue)
+**Owner's 2026-11-22 build sequence overrides the historical ordering below:** §7c legacy move completed via PR #131 (`f92072f`); §7b.1 file classification + exact pin CI merged via PR #133 (`ff4c06b`). **§7b.3 completed via PR #134 (`dc9f9c7`)**; **§7b.4 first navigation slice merged via PR #140 (`d442281`)**, 2/2 mobile, 56/56 local + 56/56 public read-only, Double Audit green. **§7b.4 first signed Group ▸ Business ▸ Site shell context MERGED PR #142 (`d8b69a0`, exact 56 local + 56 public read-only + adversarial security PASS), but not universal SSO or module data filtering. NEXT §7b.4/5 remainder:** per-module signed context propagation, role homes/entitlements and shared token CSS + bn/en dictionaries. Then §7a Sales 030x forward-only security patch and staged apply; only after Sales migrate Finance F3 040x and Manufacturing 050x, followed by Paint, Procurement/QC, Payroll, Assets, CRM. The previously numbered steps remain background/acceptance obligations, not permission to skip this order.
 1. **Owner signed Business, Master and Stock mobile acceptance**: all three are now live.
    Owner Business `/#/business` read-only Worker `2d9894b8` had public 50/50 PASS; signed
    Master `/#/master` accepts canonical items and prices; newly signed `/#/stock` deployed Worker
@@ -181,7 +187,17 @@ No merge to `main` without Owner. No production DB. No secrets in git (publishab
   NEXT: Owner manual signed Stock write UI acceptance, add signed PO/GRN/QC
   workflows, then Sales 030x/Finance 040x/Manufacturing 050x numeric integration.
 
-## 7. Open PR audit and integration queue (2026-11-22, Claude; trunk ff5152a → 1a60e79)
+- 2026-11-22 agent=ChatGPT: completed §7c IMG-ERP 463-blob byte-identical move to `legacy/islamia-erp/`; PR #131 merged canonical trunk `f92072f22e273e379b001de4cfba80bcd7d7f79d` (build HEAD `01f75b0242e2eb124666f9cd95644a8ee55206a8`). GitHub Actions exact-head 21/21 PASS; PG17 full up/down/up, SHA256 negative guard, legacy Pages tests and unchanged Worker local/public 56/56 PASS (`45010718551`). No deployment or staging/main writes; Owner Business #3 and other staging data still synthetic TEST ONLY. NEXT: §7b FILE_CLASSIFICATION + apps/central shell/UX, then §7a Sales 030x.
+
+- 2026-11-22 agent=ChatGPT: built §7b.1 executable root/source classification, merged PR #133 canonical trunk `ff4c06b1b2ef4a00bda85652e4947e043fde938a` (PR HEAD `399bedc53cfa320aae6df20f32f6ed3307fccc0e`); 132 root files classified, 463 legacy frozen referenced, 37 pinned LIVE paths verified including 9 draft sources. Exact-head 3/3 CI PASS (classification, double audit, real Control Port). No staging, protected Supabase, live Worker or main writes; test data unchanged. NEXT: §7b.3 copy live shell to `apps/central/` with byte-identical 56/56 gate, then shared session/UI and Sales 030x.
+
+- 2026-11-22 agent=ChatGPT: §7b.3 imported pinned live shell, data, runtime and builder to `apps/central/` with exact original source Git objects and sole verifier sentinel path update; merged PR #134 canonical trunk `dc9f9c7eef3d5e78403f148e7fc06d03964c62b6` (PR HEAD `4345b6e4aa7ee593a455ee29dceccf55d61ade7f`). 4/4 exact-head CI PASS; original Worker SHA256 `ba530d45179f9ea146bccb0a04899213a3e396adf7fe6030b28eebf938a5f4b2`, local/public 56/56 PASS, PG17/REV009 PASS. No production deploy, main, staging or protected Supabase change. Demo/signed data remains synthetic TEST ONLY. NEXT: §7b single auth/context/nav/mobile, tokens/bn-en, then §7a Sales 030x.
+- 2026-11-22 agent=ChatGPT: checked latest Claude and ChatGPT builder PRs; PaperOps PR #132 and Claude 0207 Purchases stayed isolated. Built §7b.4 first bilingual navigation/mobile slice on branch `build/chatgpt-central-mobile-nav-20261122` (Board B-039), original 11 routes unchanged, Android bottom bar+More, three desktop groups, Escape/active/hash/back integration including real nested-iframe history correction. PR #140 exact head `439032c5fdf6bb8400536003bb59149be2df37b7`, CI `45041736695` complete SUCCESS historical import gate + current-scope provenance + new Playwright 2/2 + local 56/56 + public read-only 56/56, Double Audit `45041736755` SUCCESS; merged canonical trunk `d442281cb73e240d016f0ecf530f531941c47db8`. No staging, Worker deploy, main, protected hosts or signed data writes. NEXT: shared sign-in/context, role-aware shell, design tokens and dictionaries, then Sales 030x security.
+
+- 2026-11-22 agent=ChatGPT: Board B-040, PR #142 built standalone signed CORE10 staging shell Group ▸ Business ▸ Site from canonical `build01_context_v1` read RPC (0117), no new roles/SQL. Fail-closed actor/scope/tenant validation, signout/private iframe purge, delayed-response/account-change race tests, Bengali/English, 390/1440; preserved all existing module permissions and routes. Exact PR HEAD `f9778d3ba161c782e9d56a29739536bc7c056fb8` shell CI `45049736364` SUCCESS (new adversarial browser PASS; local 56/56; public read-only 56/56; historical byte-integrity) and Double Audit `45049736374` SUCCESS. Merged PR #142 canonical trunk `d8b69a0c91ba865e38ac08fd79a33d86a9eb0368`. No staging/Worker/main/IMG/Form/Finance/Stock data change. Known gap: Build01 nonpersisted auth means this is NOT complete module SSO, selection is display-only. NEXT role-aware integration and tokens/dictionaries, Sales security.
+
+## 7. Open PR audit and integration queue (2026-11-22, Claude; updated by ChatGPT after §7c)
+**Build progress:** Owner legacy §7c PR #131 MERGED `f92072f`, 21/21 exact-head CI PASS (incl PG17, checksum preservation, Pages and live Worker 56/56 local/public); §7b.1 classification PR #133 MERGED `ff4c06b`, 3/3 exact-head CI PASS. §7b.3 app shell exact-source import PR #134 MERGED `dc9f9c7`, 4/4 exact-head CI SUCCESS, deterministic Worker unchanged, 56/56 local/public. §7b.4 navigation-first PR #140 MERGED `d442281`, new mobile+Back 2/2, original local 56/56, old public 56/56 and Double Audit PASS; no deploy. **§7b.4 signed-context PR #142 MERGED `d8b69a0`, CI `45049736364` full PASS and Double Audit `45049736374`; NOT universal SSO, no deployment. NEXT §7b role-aware per-module context + i18n/tokens** (role menus, signed module propagation, CSS tokens + bn/en), then §7a Sales security before 040x/050x; never port an old PR wholesale.
 Rule: never merge an old PR wholesale. Old branches (based on `main`, `preview/c10-integrated-20261111-v1` or the
 A018 catalog) predate the numbered-migration trunk; their logic must be PORTED as new numbered migrations + tests on
 trunk (like B-009 did for A018 inventory). After a port is integrated and green, close the old PR with a link (Owner OK).
@@ -209,3 +225,63 @@ trunk (like B-009 did for A018 inventory). After a port is integrated and green,
 - Deferred by Owner: #77/#75 A025 simulation, #67 research docs, #54 D049 docs, #85 work-order doc, #60 preview v1.
 Suggested build order for Goal 1: Sales (fix) → Finance F3 → Paint (#95) → Procurement/QC (#97, #73) →
 Workforce/Payroll (#55) → Assets (#59) → CRM (#65).
+
+### 7a. Sales (PR #109) security analysis — 2026-11-22 Claude
+Reproduced on PG17 (trunk 98384ab + `git revert 6d24ad8`, DB must be named `core10_np03b_ci`): 10 cases open, 11 pass.
+Open: P1-02 fabricated approval id accepted at zero stage (order confirm + invoice validate); P1-01 privileged
+UPDATE/DELETE/INSERT on CONFIRMED order header/lines accepted; P2-02 DELETE of a referenced master party accepted;
+P1-01 invoice draft/validate accept a tampered or audit-mismatched source.
+Fix plan (forward migration in Sales range, e.g. `0310_np03b_sales_security_corrections`; never edit 0301/0304):
+1. Any non-null approval id must resolve to an approved `approval_requests` row of the same business/domain and
+   source key (`sales-order:<id>` / invoice key); otherwise `SALES_APPROVAL_INVALID`.
+2. Immutability triggers on `sales_orders_v1`/`sales_order_lines_v1` when status <> draft (allow only status/version
+   transitions done by the RPCs) → `SALES_ORDER_IMMUTABLE`.
+3. BEFORE DELETE trigger on `master_parties_v1` when referenced by sales docs → `SALES_PARTY_REFERENCED`.
+4. Invoice draft/validate recompute a digest of the order (header + lines) and compare with the payload digest stored
+   in the order's canonical confirmation Audit event; mismatch → `SALES_SOURCE_AUDIT_MISMATCH`.
+CONFLICT TO RESOLVE: after fix 2, the test's own tamper setup (plain UPDATE of a confirmed order inside SAVEPOINT
+`tamper`/`line_tamper`) will itself raise and abort the script. The test needs a reviewed adjustment so the tamper
+cases are either expected to be blocked by the trigger (stronger) or simulated with the trigger bypassed by the
+table owner in a controlled way. Decide with the Sales lane before changing the test; never weaken assertions.
+
+### 7b. App organization review — 2026-11-22
+**Step 1 BUILT/MERGED:** `docs/coordination/FILE_CLASSIFICATION.json` + `tests/core10-file-classification.test.js` + CI; PR #133 `ff4c06b`, 3/3 green. §7c step 2 retired-project guard was built with PR #131. Step 3 BUILT/MERGED: PR #134 `dc9f9c7`, byte-identical preview source import in `apps/central/` with only verifier path adjustment; exact-head 4/4 CI, unchanged Worker SHA and 56/56 local+public PASS. Step 4 navigation-first slice **BUILT/MERGED PR #140 (`d442281`)**: grouped desktop modules, 4+More mobile bar, bilingual labels, Escape and correct browser Back; original shell routes preserved. CI `45041736695` current 56/56 local + old public 56/56 + new Playwright 2/2, historical import gates preserved; Double Audit `45041736755` PASS. Step 4 first signed shell context **BUILT/MERGED PR #142 (`d8b69a0`)**, signed canonical RPC, source/security validation, delayed-response/logout adversarial browser; local/public 56/56 and Double Audit PASS. It is NOT universal module SSO; Setup Build01 and module-selection propagation remain separate. Remainder step 4: role/entitlement homes and propagation. Step 5: design tokens + bn/en dictionaries. Deploy only via handover §4.
+Full survey + safe reorganization plan: branch `review/app-organization-20261122` @ `2e4f6bc`,
+`docs/development/APP_ORGANIZATION_REVIEW.md` (+ 22 screenshots). Read before any UI/shell/file-move work.
+Top steps: (1) FILE_CLASSIFICATION.json + test, (2) test blocking legacy config/v2/old Supabase from live code,
+(3) move live shell (site/, build.mjs, verify.cjs) onto trunk under apps/central/ (byte-identical build gate),
+(4) one sign-in + Group ▸ Business ▸ Site context bar, regrouped menu, role homes, Android bottom bar,
+(5) one design-token CSS + bn/en dictionaries. Moving legacy IMG-ERP files to legacy/ needs Owner approval.
+NOTE: Sales 030x must reach staging BEFORE Finance 040x / Manufacturing 050x, or later Sales applies are OUT_OF_ORDER.
+
+### 7c. Owner decision 2026-11-22: move legacy IMG-ERP files (COMPLETED)
+**Completed and merged via PR #131 / trunk `f92072f`:** 463 original blobs SHA256-identical, frozen historical Pages paths and tests updated, 25 ROOT CORE10 draft legacy loaders disconnected, live/module guard added; 21/21 exact-head CI success. No staging/deploy or protected project access. Historical Owner-approval checklist below retained for traceability:
+1. On a branch from trunk, `git mv` the legacy files (root `index.html`, `owner.html`, `business.html`, `sw.js`,
+   `config.js`, `v2/`, and the ~201 non-`core10` root JS/HTML/CSS listed as "frozen legacy" in the review §
+   FILE_CLASSIFICATION) into `legacy/islamia-erp/` — content byte-identical, history kept. Do NOT delete anything.
+   Do NOT touch Supabase `kbuhnpqooycqbzrfejcs`.
+2. Same change: update the legacy-preservation tests and the old Pages package required-file list to the new paths
+   (never weaken: they must still prove every preserved file exists byte-identical), and repoint any `core10-*.html`
+   that loads `./config.js` to nothing legacy (they must load only CORE10 configs).
+3. Add the guard test from review step 2 (no `config.js`/`v2/`/`BOS_CONFIG`/`kbuhnpqooycqbzrfejcs` in live/module code).
+4. Full CI green on the branch, `build.mjs` + `verify.cjs` all PASS (live bundle unchanged), then merge into trunk.
+Then continue with review steps 1, 3, 4, 5 and the §7 build queue.
+
+### 7d. Trunk RED after §7c legacy move — FIXED by Claude 2026-11-22 (2c8b816, 2778597, 0e4701f, this commit); confirm CI green
+Trunk head cb4cbe0 had 6 failing checks, all from tests still reading legacy files at the repo root:
+- `site-permission` — `tests/pack01/legacy-source-guard.cjs`: FIXED (reads legacy/islamia-erp, 9/9 PASS).
+- `legacy-route-visual` — `tests/pack01/legacy-route-visual.cjs`: `candidate` must serve the legacy app from
+  `legacy/islamia-erp/` (index.html blob f2f74144 unchanged) while root-level `core10-control-studio-entry.js`
+  still resolves (the legacy index loads it) — e.g. serve legacy dir first, fall back to repo root for core10-* files.
+- `isolated-demo-artifact` — `tests/core10-a040-pages-parity.test.js` MISSING_PAGES_DEMO_ASSET:owner.html:
+  `internal/core10-pages-package.js` file list must copy `legacy/islamia-erp/owner.html` (+other legacy assets) into
+  the artifact at the SAME published paths; keep the assertions.
+- `Packaged browser safety and module journeys` — fixture 404 where 200 expected: same packaging path issue.
+- `Combined schema / assets` and `Combined schema / intent` — inspect logs (A055 assets / D049 intent browser
+  journeys load legacy root assets); same fix pattern.
+Rule: change paths/packaging only; never delete or relax an assertion. Run each failing step locally, then push.
+- 2026-11-23 agent=Claude: Owner GO "live করো". Built from trunk `2e06b75` `apps/central/build.mjs` (worker sha256 2cfc7865…);
+  local verify 56/56 + legacy-guard, legacy-move-integrity, shell-provenance, mobile-nav, signed-context PASS. Deployed Worker
+  `core10-central` deployment `9aadd95c-a8af-4f90-956c-ccc76deaae5a` / version `1a99371f-2cf2-4546-bc18-321f76224a7e` (100%);
+  public verify 56/56 PASS. Rollback: version `65f60417-5b76-4524-830a-c74018b7ff58` (prior live, source bytes backed up).
+  Live now includes §7b.4 mobile bottom nav + Group▸Business▸Site signed context (#140, #142). No staging/DB change.

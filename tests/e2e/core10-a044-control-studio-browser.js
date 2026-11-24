@@ -62,8 +62,8 @@ window.supabase={createClient:function(){
     const errors=[],external=[];
     page.on("pageerror",e=>errors.push(e.message));
     page.on("request",r=>{if(!r.url().startsWith(base))external.push(r.url())});
-    await page.route("**/vendor/supabase.js",route=>route.fulfill({contentType:"application/javascript",body:""}));
-    await page.route("**/config.js",route=>route.fulfill({contentType:"application/javascript",body:fixture}));
+    await page.route("**/vendor/supabase.js",route=>route.fulfill({contentType:"application/javascript",body:fixture}));
+    await page.route("**/config.js",route=>route.fulfill({contentType:"application/javascript",body:""}));
     page.on("dialog",dialog=>dialog.accept());
     await page.goto(base+"/"+(surface==="central"?"core10-control-studio.html":
       "core10-business-controls.html?biz=101"),{waitUntil:"load"});

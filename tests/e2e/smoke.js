@@ -19,7 +19,7 @@ const check = (ok, msg) => { console.log((ok ? 'PASS ' : 'FAIL ') + msg); if (!o
   page.on('response', r => { if (r.url().startsWith(base) && r.status() >= 400) badRequests.push(r.status() + ' ' + r.url()); });
   page.on('requestfailed', r => { if (r.url().startsWith(base)) badRequests.push('failed ' + r.url()); });
   try {
-    await page.goto(base + '/index.html', { waitUntil: 'load' });
+    await page.goto(base + '/legacy/islamia-erp/index.html', { waitUntil: 'load' });
     check((await page.title()).includes('ISLAMIYA'), 'title contains ISLAMIYA: ' + await page.title());
     const inputs = page.locator('input');
     await inputs.first().waitFor({ timeout: 20000 }).catch(() => {});
@@ -33,19 +33,19 @@ const check = (ok, msg) => { console.log((ok ? 'PASS ' : 'FAIL ') + msg); if (!o
 
     // every local script/link referenced by the three entry pages resolves 200
     for (const f of ['index.html', 'owner.html', 'business.html']) {
-      const html = fs.readFileSync(path.join(ROOT, f), 'utf8');
+      const html = fs.readFileSync(path.join(ROOT, 'legacy/islamia-erp', f), 'utf8');
       const refs = [...new Set([...html.matchAll(/<(?:script|link)\b[^>]*?\b(?:src|href)=["']([^"']+)["']/gi)].map(m => m[1])
         .filter(u => !/^(https?:|\/\/|data:|#)/i.test(u)))];
       const bad = [];
       for (const u of refs) {
-        const r = await context.request.get(new URL(u, base + '/' + f).href);
+        const r = await context.request.get(new URL(u, base + '/legacy/islamia-erp/' + f).href);
         if (r.status() !== 200) bad.push(r.status() + ' ' + u);
       }
       check(bad.length === 0, f + ': ' + refs.length + ' local refs resolve 200' + (bad.length ? ' BAD: ' + bad.join(', ') : ''));
     }
 
     // manifest
-    const mr = await context.request.get(base + '/manifest.json');
+    const mr = await context.request.get(base + '/legacy/islamia-erp/manifest.json');
     let mok = false;
     try { const j = await mr.json(); mok = mr.status() === 200 && !!(j.name || j.short_name); } catch (e) {}
     check(mok, 'manifest.json parses');

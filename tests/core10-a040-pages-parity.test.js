@@ -4,7 +4,7 @@ const {verify}=require("../internal/core10-pages-package.js");
 const input=process.argv[2];
 if(!input||!path.isAbsolute(input))throw Error("ABSOLUTE_PAGES_ARTIFACT_REQUIRED");
 const dir=path.resolve(input),files=verify(dir);
-for(const p of ["owner.html","core10-owner-business-entry.js","core10-stocktake-preview.html",
+for(const p of ["legacy/islamia-erp/owner.html","core10-owner-business-entry.js","core10-stocktake-preview.html",
  "core10-stocktake-preview.css","core10-stocktake-preview.js","core10-enterprise-client.js","core10-owner-icon.svg"])
  assert.ok(files.includes(p),"MISSING_PAGES_DEMO_ASSET:"+p);
 for(const p of ["internal/core10-a040-preview-package.js",

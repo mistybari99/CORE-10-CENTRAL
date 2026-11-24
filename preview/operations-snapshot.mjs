@@ -77,7 +77,9 @@ export const SNAPSHOT_SCRIPT = String.raw`(function () {
 export const SNAPSHOT_CSS = `.preview-fixture-banner{position:relative;z-index:20;padding:16px 20px;background:#fffbf3;border-bottom:2px solid #d7b580;color:#423723;font:14px/1.6 system-ui,sans-serif}.preview-fixture-banner strong{display:block}.preview-fixture-banner p{margin:5px 0}.preview-fixture-banner a{color:#704052;font-weight:700;margin-right:16px}.preview-fixture-banner a:focus-visible{outline:3px solid #704052;outline-offset:3px}`;
 
 export function snapshotHTML(html) {
-  if (!html.includes('<script src="./config.js"></script>') ||
+  // §7c: legacy config loaders were disconnected and replaced by a fixed marker comment; accept either form.
+  if (!(html.includes('<script src="./config.js"></script>') ||
+        html.includes("<!-- Unshipped CORE10 view: legacy runtime configuration disconnected. -->")) ||
       !html.includes('<script src="./vendor/supabase.js"></script>') ||
       !/<script src="\.\/core10-(?:operational-flow|inventory-commands)-client\.js"><\/script>/.test(html) ||
       !html.includes("<body>")) {

@@ -8,7 +8,7 @@ test('browser fixture serves packaged assets and denies repository internals ove
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = 'http://127.0.0.1:' + server.address().port;
   try {
-    for (const route of ['/index.html', '/owner.html', '/v2/index.html', '/core10-crm-lifecycle.html']) {
+    for (const route of ['/legacy/islamia-erp/index.html', '/legacy/islamia-erp/owner.html', '/legacy/islamia-erp/v2/index.html', '/core10-crm-lifecycle.html']) {
       assert.equal((await fetch(base + route)).status, 200, route);
     }
     for (const route of ['/AGENTS.md', '/.git/config', '/internal/core10-pages-package.js', '/internal/enterprise-sql/c10_a018_demo_backend.sql', '/tests/e2e/static_server.js', '/docs/development/CURRENT_HANDOFF.md', '/setup-example.html', '/%2e%2e/AGENTS.md']) {

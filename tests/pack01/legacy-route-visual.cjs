@@ -9,7 +9,10 @@ const {chromium}=require("playwright");
 const {PNG}=require("pngjs");
 const main="c39052910758ca285a7a4d56e9c4f4873cb7d99c";
 const original=path.resolve(process.env.CORE10_D051_ORIGINAL_ROOT||"/__d051_missing__");
-const candidate=path.resolve(__dirname,"../..");
+// §7c: the candidate legacy app now lives byte-identical under legacy/islamia-erp/; shared CORE10
+// assets it loads by relative path stay at the repo root (served as a fallback, same as the Pages artifact).
+const repoRoot=path.resolve(__dirname,"../..");
+const candidate=path.join(repoRoot,"legacy","islamia-erp");
 const git=(root,args)=>execFileSync("git",args,{cwd:root,encoding:"utf8"}).trim();
 assert.equal(git(original,["rev-parse","HEAD"]),main,"D051 original snapshot SHA mismatch");
 assert.equal(git(original,["hash-object","index.html"]),
@@ -25,8 +28,13 @@ const server=http.createServer((req,res)=>{
   const view=parts.shift(),base=view==="original"?original:view==="candidate"?candidate:null;
   if(!base||!["GET","HEAD"].includes(req.method)){res.writeHead(404);res.end();return;}
   const rel=decodeURIComponent(parts.join("/")||"index.html");
-  const file=path.resolve(base,rel);
-  if(!file.startsWith(base+path.sep)||rel.startsWith(".")||rel.includes("/.")||
+  let file=path.resolve(base,rel);
+  if(view==="candidate"&&!fs.existsSync(file)){
+   const shared=path.resolve(repoRoot,rel);
+   if(shared.startsWith(repoRoot+path.sep)&&fs.existsSync(shared))file=shared;
+  }
+  const root=file.startsWith(base+path.sep)?base:repoRoot;
+  if(!file.startsWith(root+path.sep)||rel.startsWith(".")||rel.includes("/.")||
      !fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404);res.end();return;}
   res.writeHead(200,{"content-type":mime[path.extname(file)]||"application/octet-stream","cache-control":"no-store"});
   res.end(req.method==="HEAD"?"":fs.readFileSync(file));

@@ -2,7 +2,8 @@
 // D051 partial evidence: protect specific legacy source bytes against the
 // verified PREVIEW branch base. Not a live render/DB/production parity proof.
 const assert=require("node:assert/strict"),{execFileSync}=require("node:child_process"),path=require("node:path");
-const root=path.resolve(__dirname,"../..");
+// §7c: frozen legacy bytes now live (byte-identical) under legacy/islamia-erp/.
+const root=path.resolve(__dirname,"../../legacy/islamia-erp");
 const base="e76cf8a3db1a385726a1637683c972e99a193fec";
 const protectedBlobs=Object.freeze({
  "index.html":"f2f74144e13ed865f45d84d6e683d49d2972cb5d",
@@ -36,7 +37,7 @@ assert.equal(gitBlob(originalHtml),"fa1856bae67fed10764d7e797c6922378a209361",
  "D051 original main HTML must be reconstructible with only known additive Preview script");
 assert.equal(gitBlob(html),protectedBlobs["index.html"],
  "D051 Preview index Git blob unexpected");
-assert.ok(fs.existsSync(path.join(root,"core10-control-studio-entry.js")),
+assert.ok(fs.existsSync(path.join(__dirname,"../..","core10-control-studio-entry.js")),
  "D051 additive Preview script source must exist");
 console.log("PASS D051 main-vs-Preview index difference: only 1 additional Control Studio script tag; VISUAL PARITY NOT CERTIFIED");
 
