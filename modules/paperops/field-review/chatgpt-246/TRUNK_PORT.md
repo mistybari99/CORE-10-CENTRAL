@@ -111,3 +111,38 @@ and reversal acceptance are separate release dependencies.
 W02-01 remains OPEN for signed evidence publication and staging acceptance.
 Hosted staging, release and posting approvals are separate.
 Coordination Board and Master Decision Book: NOT WRITTEN.
+
+## Private close publication Draft
+
+Draft `0212_np03a_w02_close_publication` adds a private finalization
+transaction on top of the numbered registry. The server first verifies the
+same actor's GoTrue session, previously observed Stock and Control context,
+and the count's registered Ed25519 signatures. The trusted persistence port
+independently resolves the session and invokes the private PostgreSQL
+function. The function checks actual scoped Owner permissions and the
+active opening-reviewer assignment before creating a record.
+
+The transaction rechecks the pending Stock revision and both sites'
+effective Control settings, then commits the next close, its covered
+transfers, the retained signed envelope and the canonical Audit receipt
+together. Reusing the same request key with identical evidence returns the
+original receipt. A different actor or payload conflicts. The reader
+returns the published close as the next opening, and every API response
+still has `canPost:false`.
+
+The draft uses short no-wait table locks at publication time to prevent a
+transfer or registry change between revision check and commit. Audit lock
+waits are bounded, with a retry result. This locking choice is part of the
+disposable rehearsal and affects concurrent Stock writers during the save.
+Stock writer procedures remain byte-identical. A failed save rolls back the
+close, coverage and Audit record.
+
+No application or production caller is granted access by the migration.
+The harness provisions a disposable role that can execute the private
+function and uses actual GoTrue sessions for publication. Initial signed
+source publication, real key enrollment and custody, hosted acceptance,
+reversal and posting remain open.
+
+The ordered upgrade test imports only the byte-identical 0207–0210 pairs
+from Stock Lane `ad4b956e1523cbc8e7d016f9392150bf3267774c` into a disposable
+checkout. The published review branch does not claim those migrations.

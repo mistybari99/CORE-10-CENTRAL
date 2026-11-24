@@ -1,9 +1,10 @@
 name: PaperOps canonical port
 on:
   pull_request:
-    branches: [ccr-15ed11dd-n3hw5h]
+    branches: [ccr-15ed11dd-n3hw5h, integration/paperops-trunk-port-20261124]
     paths:
       - 'modules/paperops/**'
+      - 'internal/migrations/0212_np03a_w02_close_publication.*.sql'
       - '.github/workflows/paperops-canonical-port.yml'
 permissions:
   contents: read
@@ -57,4 +58,52 @@ jobs:
         with:
           node-version: '22'
       - name: Genuine local GoTrue and canonical scoped Stock and Control reads
+        run: bash modules/paperops/tests/w02-signed/run.sh
+  np03a-ordered-publication:
+    if: github.base_ref == 'integration/paperops-trunk-port-20261124'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_w02_ordered
+          POSTGRES_PASSWORD: w02_disposable_local
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 15
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: w02_disposable_local
+      PGDATABASE: core10_w02_ordered
+      CORE10_W02_DISPOSABLE: W02_LOCAL_ONLY
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Import exact pending NP03A migration pairs for the disposable test
+        shell: bash
+        run: |
+          stock=ad4b956e1523cbc8e7d016f9392150bf3267774c
+          git fetch --no-tags --depth=1 origin "$stock"
+          for version in 0207 0208 0209 0210; do
+            mapfile -t files < <(git ls-tree -r --name-only "$stock" internal/migrations/ | rg "/${version}_")
+            test "${#files[@]}" -eq 2
+            for file in "${files[@]}"; do
+              test ! -e "$file"
+              git show "$stock:$file" > "$file"
+              test "$(git hash-object "$file")" = "$(git rev-parse "$stock:$file")"
+            done
+          done
+      - name: Test ordered migration rollback and reapply
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          node --test tests/migrations/migration-contract.test.js
+          bash tests/migrations/run-updownup.sh
+          psql -X -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+      - name: Rehearse signed publication with the pending versions present
         run: bash modules/paperops/tests/w02-signed/run.sh

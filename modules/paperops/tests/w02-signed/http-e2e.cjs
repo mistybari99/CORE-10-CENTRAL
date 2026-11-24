@@ -7,6 +7,7 @@ const {once} = require('node:events');
 const {test} = require('node:test');
 const {setTimeout: delay} = require('node:timers/promises');
 const {createW02StockReview} = require('../../field-review/chatgpt-246/w02-canonical-stock-review.cjs');
+const {createW02ClosePublisher} = require('../../field-review/chatgpt-246/w02-close-publisher.cjs');
 const {evidenceMessage} = require('../../field-review/chatgpt-246/w02-custody-evidence.cjs');
 const {digest} = require('../../source-port-handoff.cjs');
 
@@ -230,7 +231,7 @@ async function proveCanonicalRegistry(owner, foreign, oneSite) {
   const inspect = extras => adapter({...selection, accessToken: owner, ...extras});
   const args = {p_business: 9711, p_from_site: 97111, p_to_site: 97112};
   const read = () => rpc(owner, 'w02_custody_snapshot_v1', args);
-  const members = Object.entries(custodyActors).map(([role, actor]) => ({
+  const members = Object.entries({...custodyActors, openingReviewer: users.owner}).map(([role, actor]) => ({
     role, actor, ...generateKeyPairSync('ed25519')
   }));
   const historicWitness = generateKeyPairSync('ed25519').publicKey.export({type: 'spki', format: 'der'}).toString('hex');
@@ -248,7 +249,7 @@ async function proveCanonicalRegistry(owner, foreign, oneSite) {
     const member = members.find(entry => entry.role === role);
     return sign(null, evidenceMessage(role, member.actor, scope, payload), member.privateKey).toString('base64url');
   }
-  async function signedRegistryEvidence(state) {
+  async function signedRegistryEvidence(state, record = 'REG-COUNT-01') {
     const {actorId, ...close} = state.priorClose;
     const prior = {kind: 'APPROVED_PRIOR_CLOSE', ...close};
     const window = {openingDigest: digest(prior), movements: state.movements.map(row => ({
@@ -257,7 +258,7 @@ async function proveCanonicalRegistry(owner, foreign, oneSite) {
       quantity: row.quantity, challan: row.challan.record, line: row.challan.line, sourceSha256: row.challan.sourceSha256
     }))};
     await delay(15);
-    const count = {record: 'REG-COUNT-01', at: new Date().toISOString(), windowDigest: digest(window),
+    const count = {record, at: new Date().toISOString(), windowDigest: digest(window),
       stockRevision: state.revision, crates: 3, trays: 1};
     return {
       opening: {payload: prior, signature: signRole('openingReviewer', prior)},
@@ -294,7 +295,7 @@ async function proveCanonicalRegistry(owner, foreign, oneSite) {
       INSERT INTO core10.w02_keys_v1(pair_id,role,actor_id,spki_hex) VALUES ${values};
       WITH opened AS (
         INSERT INTO core10.w02_closes_v1(pair_id,record_ref,approved_by,closed_at,crates,trays,source_sha256)
-        VALUES (${pair},'REG-CLOSE-01','${custodyActors.openingReviewer}','${openingAt}',2,1,'${priorHash}') RETURNING id
+        VALUES (${pair},'REG-CLOSE-01','${users.owner}','${openingAt}',2,1,'${priorHash}') RETURNING id
       )
       INSERT INTO core10.w02_close_transfers_v1(pair_id,close_id,stock_ref)
       SELECT ${pair},opened.id,t.id FROM opened CROSS JOIN core10.stock_transfers_v1 t WHERE t.business_id=9711;
@@ -390,8 +391,102 @@ async function proveCanonicalRegistry(owner, foreign, oneSite) {
     assert.equal(fresh.canPost, false);
   });
 
+  await test('private publication is atomic with immutable coverage and Audit, and retries replay the receipt', async () => {
+    const state = await read();
+    const evidence = await signedRegistryEvidence(state);
+    const reviewed = await inspect({evidence});
+    const requestKey = 'w02-fixture-close-publication';
+    const input = {...selection, accessToken: owner, requestKey, priorObservation: reviewed.observation, evidence};
+    const rpcName = '_w02_publish_verified_close_v1';
+    for (const token of [owner, oneSite, null]) {
+      assert.equal((await http(restUrl + '/rpc/' + rpcName,
+        {token, body: {...args, p_request: requestKey, p_evidence: evidence, p_verification: null}})).ok, false);
+    }
+    const role = 'core10_w02_pub_' + process.env.PGDATABASE.split('_').at(-1);
+    trustedFixtureSql(`CREATE ROLE ${role} NOLOGIN;
+      GRANT USAGE ON SCHEMA core10 TO ${role};
+      GRANT EXECUTE ON FUNCTION core10.${rpcName}(bigint,bigint,bigint,text,jsonb,jsonb) TO ${role}`);
+    const sqlJson = value => `convert_from(decode('${Buffer.from(JSON.stringify(value)).toString('hex')}','hex'),'UTF8')::jsonb`;
+    const key = (value) => `convert_from(decode('${Buffer.from(value).toString('hex')}','hex'),'UTF8')`;
+    let beforeWrite;
+    const persist = async ({accessToken, businessId, fromSiteId, toSiteId, requestKey: req, evidence: body, verification}) => {
+      const user = ok(await http(authUrl + '/user', {token: accessToken, method: 'GET'}), 'Authenticate publisher');
+      const claims = JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64url'));
+      assert.equal(claims.sub, user.id);
+      for (const id of [claims.sub, claims.session_id]) assert.match(id, /^[0-9a-f-]{36}$/);
+      if (verification && beforeWrite) await beforeWrite();
+      const saved = trustedFixtureSql(`BEGIN; SET LOCAL ROLE ${role};
+        SET LOCAL request.jwt.claims = '${JSON.stringify({sub: claims.sub, session_id: claims.session_id})}';
+        SELECT core10.${rpcName}(${businessId},${fromSiteId},${toSiteId},${key(req)},
+             ${sqlJson(body)},${verification ? sqlJson(verification) : 'NULL'}); COMMIT;`);
+      return saved ? JSON.parse(saved) : null;
+    };
+    const publish = createW02ClosePublisher({authUrl, restUrl, persist});
+    try {
+      await assert.rejects(publish({...input, accessToken: foreign}), /W02_PUBLISH_SCOPE_DENIED/);
+      const forged = structuredClone(evidence);
+      forged.count.witnessSignature = forged.count.counterSignature;
+      await assert.rejects(publish({...input, evidence: forged}), /W02_EVIDENCE_SIGNATURE_INVALID/);
+      await publishFixtureInTransaction('LOCK TABLE core10.stock_transfers_v1 IN ROW EXCLUSIVE MODE', async () => {
+        await assert.rejects(publish(input), /W02_PUBLICATION_RETRY/);
+      });
+      const changePolicy = async () => {
+        const scope = {p_business: 9711, p_site: 97111};
+        const policy = (await rpc(owner, 'control_read_v1', scope)).find(row => row.feature_key === 'inventory.transfer');
+        await rpc(owner, 'control_set_v1', {...scope, p_feature: 'inventory.transfer', p_enabled: true,
+          p_stages: policy.stages, p_params: {...policy.params, max_qty: policy.params.max_qty - 1},
+          p_effective_from: null, p_inherit: false, p_expected_version: policy.version,
+          p_reason: 'W02 isolated publication policy race', p_request_key: 'w02-publication-policy-race'});
+      };
+      beforeWrite = changePolicy;
+      await assert.rejects(publish(input), /W02_STALE_CONTROL_POLICY/);
+      const afterPolicy = await inspect({evidence});
+      beforeWrite = async () => {
+        trustedFixtureSql(insertLine((await move('publication-race-out')).stock_ref, 'PUBLICATION-RACE-OUT'));
+        trustedFixtureSql(insertLine((await move('publication-race-return', true)).stock_ref, 'PUBLICATION-RACE-RETURN'));
+      };
+      await assert.rejects(publish({...input, priorObservation: afterPolicy.observation}), /W02_STALE_CANONICAL_REVISION/);
+      beforeWrite = null;
+      assert.equal(trustedFixtureSql('SELECT count(*) FROM core10.w02_close_publications_v1'), '0');
+      const freshEvidence = await signedRegistryEvidence(await read());
+      const fresh = await inspect({evidence: freshEvidence});
+      const ready = {...input, evidence: freshEvidence, priorObservation: fresh.observation};
+      const stockBefore = await rpc(owner, 'inventory_list_commands_v1', {p_business: 9711});
+      trustedFixtureSql(`CREATE FUNCTION core10.w02_fixture_fail_save_v1() RETURNS trigger
+        LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'W02_FIXTURE_SAVE_FAILED'; END $$;
+        CREATE TRIGGER w02_fixture_fail_save BEFORE INSERT ON core10.w02_close_publications_v1
+        FOR EACH ROW EXECUTE FUNCTION core10.w02_fixture_fail_save_v1()`);
+      try {
+        await assert.rejects(publish(ready), /W02_FIXTURE_SAVE_FAILED/);
+        assert.equal((await read()).revision, fresh.stockRevision);
+        assert.equal(trustedFixtureSql(`SELECT count(*) FROM core10.canonical_audit_events_v1
+          WHERE action='w02.close_published'`), '0');
+      } finally {
+        trustedFixtureSql(`DROP TRIGGER w02_fixture_fail_save ON core10.w02_close_publications_v1;
+          DROP FUNCTION core10.w02_fixture_fail_save_v1()`);
+      }
+      const committed = await publish(ready);
+      assert.equal(committed.status, 'EVIDENCE_PUBLISHED');
+      assert.equal(committed.canPost, false);
+      assert.equal(committed.replayed, false);
+      const replay = await publish(ready);
+      assert.deepEqual(replay, {...committed, replayed: true});
+      await assert.rejects(publish({...ready, evidence: forged}), /W02_PUBLICATION_REPLAY_CONFLICT/);
+      assert.equal(trustedFixtureSql('SELECT count(*) FROM core10.w02_close_publications_v1'), '1');
+      assert.equal(trustedFixtureSql(`SELECT count(*) FROM core10.canonical_audit_events_v1
+        WHERE action='w02.close_published' AND id=${committed.auditEventId}`), '1');
+      const closed = await read();
+      assert.equal(closed.priorClose.record, evidence.count.payload.record);
+      assert.equal(closed.movements.length, 0);
+      assert.notEqual(closed.revision, state.revision);
+      assert.deepEqual(await rpc(owner, 'inventory_list_commands_v1', {p_business: 9711}), stockBefore);
+    } finally {
+      trustedFixtureSql(`DROP OWNED BY ${role}; DROP ROLE ${role}`);
+    }
+  });
+
   await test('net-zero later Stock changes revision and revoking the current witness key never falls back', async () => {
-    const old = await read(), evidence = await signedRegistryEvidence(old);
+    const old = await read(), evidence = await signedRegistryEvidence(old, 'REG-COUNT-02');
     trustedFixtureSql(insertLine((await move('late-out')).stock_ref, 'LATE-OUT'));
     trustedFixtureSql(insertLine((await move('late-return', true)).stock_ref, 'LATE-RETURN'));
     const newest = await read();
