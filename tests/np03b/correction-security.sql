@@ -51,43 +51,30 @@ SELECT np03b_correction.denies('P1-01 confirmed line INSERT',format(
  'INSERT INTO core10.sales_order_lines_v1 SELECT order_id,tenant_id,business_id,site_id,2,item_id,variant_id,uom_id,quantity,unit_price,discount_percent,tax_percent,line_total FROM core10.sales_order_lines_v1 WHERE order_id=%s',:source),'SALES_.*IMMUTABLE');
 SELECT np03b_correction.denies('P2-02 referenced customer maintenance DELETE',
  'DELETE FROM core10.master_parties_v1 WHERE id=7001','foreign key constraint|SALES_.*REFERENCE');
--- All order/line/header values remain self-consistent and Master-valid, but no
--- longer match the true canonical confirmation event. Canonical Audit is untouched.
-SAVEPOINT tamper;
-UPDATE core10.sales_orders_v1 SET document=jsonb_set(document,'{lines,0,quantity}','1'),total=300 WHERE id=:source;
-UPDATE core10.sales_order_lines_v1 SET quantity=1,line_total=300 WHERE order_id=:source;
-SET LOCAL ROLE authenticated;
-SELECT np03b_correction.denies('P1-01 tampered source before invoice',format(
- 'SELECT core10.save_sales_invoice_draft_v1(101,1001,NULL,0,%s,2,NULL,'''',''correction_tampered_create'')',:source),'SALES_.*(SOURCE|AUDIT|IMMUTABLE)');
-RESET ROLE;
--- Keep observations outside the rolled-back tamper savepoint in psql variables.
-SELECT secure,observed FROM np03b_correction.results WHERE label='P1-01 tampered source before invoice' \gset tamper_
-ROLLBACK TO tamper;
-INSERT INTO np03b_correction.results VALUES('P1-01 tampered source before invoice',:'tamper_secure',:'tamper_observed');
-SAVEPOINT association;
-UPDATE core10.sales_order_commands_v1 SET audit_event_id=(SELECT audit_event_id FROM core10.sales_order_commands_v1 WHERE order_id=:other AND receipt->>'status'='confirmed')
- WHERE order_id=:source AND receipt->>'status'='confirmed';
-SET LOCAL ROLE authenticated;
-SELECT np03b_correction.denies('P1-01 mismatched real confirmation Audit',format(
- 'SELECT core10.save_sales_invoice_draft_v1(101,1001,NULL,0,%s,2,NULL,'''',''correction_wrong_audit'')',:source),'SALES_.*(SOURCE|AUDIT|IMMUTABLE)');
-RESET ROLE;
-SELECT secure,observed FROM np03b_correction.results WHERE label='P1-01 mismatched real confirmation Audit' \gset association_
-ROLLBACK TO association;
-INSERT INTO np03b_correction.results VALUES('P1-01 mismatched real confirmation Audit',:'association_secure',:'association_observed');
+-- The corrected source is now immutable at the actual mutation boundary.
+-- Privileged DML is rejected BEFORE invoice creation; do not attempt to change
+-- the source and then pretend the invoice was correctly denied after corruption.
+SELECT np03b_correction.denies('P1-01 tampered source before invoice',
+ format('UPDATE core10.sales_orders_v1 SET document=jsonb_set(document,%L,%L),total=300 WHERE id=%s',
+ '{lines,0,quantity}','1',:source),'SALES_.*(SOURCE|AUDIT|IMMUTABLE)');
+SELECT np03b_correction.denies('P1-01 mismatched real confirmation Audit',
+ format('UPDATE core10.sales_order_commands_v1 SET audit_event_id=(SELECT audit_event_id FROM core10.sales_order_commands_v1 WHERE order_id=%s AND receipt->>%L=%L) WHERE order_id=%s AND receipt->>%L=%L',
+ :other,'status','confirmed',:source,'status','confirmed'),'SALES_.*(SOURCE|AUDIT|IMMUTABLE)');
+
 SET LOCAL ROLE authenticated;
 SELECT core10.save_sales_invoice_draft_v1(101,1001,NULL,0,:source,2,NULL,'Synthetic','correction_invoice') AS invoice \gset
 SELECT np03b_correction.denies('P1-02 invoice zero-stage fabricated approval',format(
  'SELECT core10.validate_sales_invoice_draft_v1(101,1001,%s,1,999999,''correction_inject_invoice'')',(:'invoice'::jsonb->>'invoice_id')::bigint),'SALES_.*APPROVAL');
 RESET ROLE;
-SAVEPOINT line_tamper;
-UPDATE core10.sales_order_lines_v1 SET quantity=3 WHERE order_id=:source;
+SELECT np03b_correction.denies('P1-01 changed source line before validation',
+ format('UPDATE core10.sales_order_lines_v1 SET quantity=3 WHERE order_id=%s',:source),
+ 'SALES_.*(SOURCE|AUDIT|IMMUTABLE)');
 SET LOCAL ROLE authenticated;
-SELECT np03b_correction.denies('P1-01 changed source line before validation',format(
- 'SELECT core10.validate_sales_invoice_draft_v1(101,1001,%s,1,NULL,''correction_line_validate'')',(:'invoice'::jsonb->>'invoice_id')::bigint),'SALES_.*(SOURCE|AUDIT|IMMUTABLE)');
-RESET ROLE;
-SELECT secure,observed FROM np03b_correction.results WHERE label='P1-01 changed source line before validation' \gset line_
-ROLLBACK TO line_tamper;
-INSERT INTO np03b_correction.results VALUES('P1-01 changed source line before validation',:'line_secure',:'line_observed');
+-- A legitimate, unchanged confirmed Sales snapshot still validates.
+SELECT core10.validate_sales_invoice_draft_v1(
+ 101,1001,(:'invoice'::jsonb->>'invoice_id')::bigint,1,NULL,
+ 'correction_valid_original');
+
 SET LOCAL ROLE authenticated;
 SELECT core10.publish_approval_policy_v1(101,'sales','confirm',1440,'correction_confirm_policy');
 SELECT core10.submit_typed_approval_v1(101,'sales','confirm','sales-order:'||:draft,1,
