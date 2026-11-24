@@ -3,6 +3,7 @@
 const {createHash} = require('node:crypto');
 const {assertSource} = require('./w02-returnables-reconciliation.cjs');
 const {configureCustody} = require('./w02-custody-evidence.cjs');
+const {canonical, digest} = require('../../source-port-handoff.cjs');
 
 const FEATURES = ['inventory.stock_event', 'inventory.transfer'];
 const PAGE_SIZE = 200;
@@ -111,11 +112,61 @@ async function readPostedCommands(rpc, business, site) {
   fail('W02_COMMAND_WINDOW_INCOMPLETE');
 }
 
+async function reviewRegistry({rpc, currentScope, scope, actor, evidence, priorObservation, hold}) {
+  const read = () => rpc('w02_custody_snapshot_v1', {
+    p_business: scope.businessId, p_from_site: scope.fromSiteId, p_to_site: scope.toSiteId
+  });
+  const state = await read();
+  const blocked = {
+    CONTROL_DISABLED: 'W02_STOCK_CONTROL_DISABLED',
+    PAIR_NOT_CONFIGURED: 'W02_CANONICAL_PAIR_REQUIRED',
+    WINDOW_INCOMPLETE: 'W02_COMMAND_WINDOW_INCOMPLETE'
+  };
+  if (Object.hasOwn(blocked, state?.status)) return hold(blocked[state.status]);
+  if (state?.status !== 'SNAPSHOT' || !/^[0-9a-f]{64}$/.test(state.revision) ||
+      canonical(state.scope) !== canonical(scope) || !Array.isArray(state.movements)) fail('W02_REGISTRY_SCOPE_MISMATCH');
+  if (!state.priorClose) return hold('W02_APPROVED_PRIOR_CLOSE_REQUIRED');
+  const roles = ['openingReviewer', 'challanRegistrar', 'counter', 'witness'];
+  if (roles.some(role => !state.keys?.[role])) return hold('W02_CANONICAL_SIGNER_REQUIRED');
+  const signers = Object.fromEntries(roles.map(role => {
+    const {actorId, spkiHex} = state.keys[role];
+    if (!/^302a300506032b6570032100[0-9a-f]{64}$/.test(spkiHex)) fail('W02_CANONICAL_SIGNER_INVALID');
+    const pem = Buffer.from(spkiHex, 'hex').toString('base64');
+    return [role, {actorId, publicKey: '-----BEGIN PUBLIC KEY-----\n' + pem + '\n-----END PUBLIC KEY-----'}];
+  }));
+  if (state.movements.some(row => !row.command?.auditDigest || row.postings?.length !== 2 || !row.challan)) {
+    return hold('W02_CANONICAL_MOVEMENT_EVIDENCE_REQUIRED');
+  }
+  const observation = digest(['CORE10.W02.REGISTRY.V1', actor, scope, state.revision]);
+  if (priorObservation !== undefined && priorObservation !== observation) {
+    return hold('W02_STALE_OR_SCOPE_MISMATCHED_OBSERVATION');
+  }
+  let linked;
+  if (evidence !== undefined) {
+    const {actorId, ...record} = state.priorClose;
+    if (actorId !== signers.openingReviewer.actorId || !evidence?.opening?.payload ||
+        canonical(evidence.opening.payload) !== canonical({kind: 'APPROVED_PRIOR_CLOSE', ...record})) {
+      fail('W02_CANONICAL_PRIOR_CLOSE_MISMATCH');
+    }
+    const prepare = configureCustody({scope, items: state.items, signers, stockRevision: state.revision});
+    const commands = state.movements.map(row => ({...row, ...row.command, kind: 'transfer'}));
+    linked = prepare(evidence, scope)(commands);
+  }
+  if ((await read())?.revision !== state.revision || await currentScope() !== scope.tenantId) {
+    return hold('W02_STOCK_OBSERVATION_CHANGED');
+  }
+  const revision = {observation, stockRevision: state.revision};
+  return Object.freeze(linked ? {...hold('W02_VERIFIED_POSTING_DISABLED'), ...revision,
+    custodyEvidenceVerified: true, canonicalSnapshotVerified: true, ...linked}
+    : {...hold('W02_SIGNED_COUNT_REQUIRED'), ...revision});
+}
+
 // Local rehearsal over existing GoTrue and canonical PostgREST reads. The bearer
 // stays fixed for the whole request, and no stock quantities are returned.
-function createW02StockReview({authUrl, restUrl, custody} = {}) {
+function createW02StockReview({authUrl, restUrl, custody, canonicalRegistry = false} = {}) {
   const auth = localOrigin(authUrl), rest = localOrigin(restUrl);
   const sourceFieldIDs = assertSource().fields;
+  if (canonicalRegistry && custody !== undefined) fail('W02_AMBIGUOUS_CUSTODY_PROVIDER');
   const prepareEvidence = custody === undefined ? null : configureCustody(custody);
   return async function review({accessToken, businessId, fromSiteId, toSiteId, priorObservation, evidence} = {}) {
     if (![businessId, fromSiteId, toSiteId].every(id => Number.isSafeInteger(id) && id > 0) ||
@@ -161,6 +212,10 @@ function createW02StockReview({authUrl, restUrl, custody} = {}) {
       return hold('W02_STOCK_CONTROL_DISABLED');
     }
 
+    if (canonicalRegistry) return reviewRegistry({
+      rpc, currentScope, actor: user.id, scope: {tenantId: tenant, businessId, fromSiteId, toSiteId},
+      evidence, priorObservation, hold
+    });
     if (evidence !== undefined && !prepareEvidence) fail('W02_CUSTODY_PROVIDER_REQUIRED');
     if (prepareEvidence && !evidence?.opening) return hold('W02_APPROVED_PRIOR_CLOSE_REQUIRED');
     const matchStock = prepareEvidence?.(evidence, {tenantId: tenant, businessId, fromSiteId, toSiteId});

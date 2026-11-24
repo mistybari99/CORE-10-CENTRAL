@@ -50,14 +50,43 @@ unresolved timestamps, over-returns and count discrepancies fail closed.
 A later movement invalidates the count even if on-hand balances return to
 their earlier values. Reads use bounded pages and the same user bearer.
 
-Every response holds posting. Successful rehearsal evidence verifies the
-locally configured signatures and their canonical Stock matches. The
-canonical release port still needs a durable site-pair challan and prior
-close registry, approved Master item mappings and actor/key custody,
-and an atomic ledger revision with signed witness and reversal semantics.
-The current inventory list provides no jointly committed event watermark
-or canonical W02 challan record. The rehearsal uses PostgreSQL posting time
-and fails closed at exact evidence-window boundaries.
+## Numbered database Draft
+
+The Owner authorized the isolated NP03A schema and disposable tests. Draft
+`0211_np03a_w02_custody_registry` follows the pending 0207–0210 lane work.
+Confirm ordering and the lane reservation during integration, before any
+hosted apply.
+
+The registry stores a directed site pair and crate/tray Master references,
+approved-close lineage, covered transfer references, canonical challan lines,
+and Ed25519 public keys and revocations. PostgreSQL rejects changes to
+published rows and their truncation. A prior close and the references it
+covers must be published in one transaction. The down migration refuses
+to remove a populated registry. A scoped signed user has the read RPC.
+Publication and key enrollment are reserved for a trusted authority. The
+disposable harness seeds its evidence using the local database owner.
+
+`w02_custody_snapshot_v1` checks both sites and effective Stock Control inside
+one PostgreSQL MVCC snapshot. The revision covers exact pending transfer IDs,
+paired Stock postings, Stock command and Audit linkage, registry lines,
+keys and the approved close. Coverage uses explicit references. A newer
+Stock transfer changes the revision even when it leaves the net balance
+unchanged. An incomplete window or missing movement, Audit, challan or key
+proof holds the review.
+
+Use `createW02StockReview({authUrl, restUrl, canonicalRegistry: true})`
+for the numbered draft path. Supply the returned Stock revision in the
+co-signed count payload. The opening payload and signed challan lines carry
+their registered `sourceSha256` values. The adapter resolves the scoped
+Master and signer mappings from the snapshot, verifies the count, and
+rechecks the revision and signed scope before returning. Revoking the
+latest role key does not restore a previously enrolled key.
+
+Every response holds posting. The revision represents a consistent read
+of committed state. A future publication or posting transaction must
+revalidate it inside its own write boundary. A signed evidence publisher,
+production actor and key enrollment, accountable rotation/renewal,
+and reversal acceptance are separate release dependencies.
 
 ## Verification
 
@@ -72,11 +101,13 @@ and fails closed at exact evidence-window boundaries.
   site-level Control HOLD, invalid tokens and logout/revocation. Additional
   cases cover signed custody replay, an absent approved close, tampering,
   foreign scope and actor reuse, duplicate or mismatched source references,
-  count reconciliation and stale net-zero movement.
+  count reconciliation and stale net-zero movement. The numbered schema
+  adds cases for uncommitted registry isolation, same-snapshot Stock/Audit
+  linkage, approved opening coverage, ACLs and key revocation.
 - Synthetic receipt fixtures use the canonical command API in the
   disposable database to establish and change observed balances. The W02
   review itself calls only the canonical read RPCs.
 
-W02-01 remains OPEN for the canonical custody publication and signed staging
-acceptance. Hosted staging, release and posting approvals are separate.
+W02-01 remains OPEN for signed evidence publication and staging acceptance.
+Hosted staging, release and posting approvals are separate.
 Coordination Board and Master Decision Book: NOT WRITTEN.

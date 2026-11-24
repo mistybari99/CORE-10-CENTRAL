@@ -2,6 +2,8 @@
 
 const assert = require('node:assert/strict');
 const {createHmac, generateKeyPairSync, sign} = require('node:crypto');
+const {spawn, spawnSync} = require('node:child_process');
+const {once} = require('node:events');
 const {test} = require('node:test');
 const {setTimeout: delay} = require('node:timers/promises');
 const {createW02StockReview} = require('../../field-review/chatgpt-246/w02-canonical-stock-review.cjs');
@@ -20,6 +22,12 @@ const users = {
 };
 const selection = {businessId: 9711, fromSiteId: 97111, toSiteId: 97112};
 const email = label => 'w02-fixture-' + label + '@example.test';
+const custodyActors = {
+  openingReviewer: 'b0711111-1111-4111-8111-111111111111',
+  challanRegistrar: 'b0722222-2222-4222-8222-222222222222',
+  counter: 'b0733333-3333-4333-8333-333333333333',
+  witness: 'b0744444-4444-4444-8444-444444444444'
+};
 
 async function http(url, {token, body, method = 'POST'} = {}) {
   const headers = {'Content-Type': 'application/json'};
@@ -79,12 +87,7 @@ async function seedStockCommand(token, suffix, {kind = 'receive', source = null,
 async function proveCustody(owner) {
   const scope = {tenantId: 971, ...selection};
   const items = {crates: 97101, trays: 97102};
-  const actors = {
-    openingReviewer: 'b0711111-1111-4111-8111-111111111111',
-    challanRegistrar: 'b0722222-2222-4222-8222-222222222222',
-    counter: 'b0733333-3333-4333-8333-333333333333',
-    witness: 'b0744444-4444-4444-8444-444444444444'
-  };
+  const actors = custodyActors;
   const keys = Object.fromEntries(Object.keys(actors).map(role => [role, generateKeyPairSync('ed25519')]));
   const signers = Object.fromEntries(Object.entries(actors).map(([role, actorId]) => [role, {
     actorId, publicKey: keys[role].publicKey.export({type: 'spki', format: 'pem'})
@@ -184,6 +187,167 @@ async function proveCustody(owner) {
   });
 }
 
+function assertDisposableSqlTarget() {
+  assert.equal(process.env.PGHOST, '127.0.0.1');
+  assert.match(process.env.PGDATABASE, /^core10_w02_signed_\d+$/);
+}
+
+function trustedFixtureSql(sql, expectedFailure) {
+  assertDisposableSqlTarget();
+  const result = spawnSync('psql', ['-XAtq', '-v', 'ON_ERROR_STOP=1', '-c', sql],
+    {encoding: 'utf8', timeout: 10000});
+  if (result.error) throw result.error;
+  if (expectedFailure) {
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, expectedFailure);
+  } else {
+    assert.equal(result.status, 0, result.stderr);
+  }
+  return result.stdout.trim();
+}
+
+async function publishFixtureInTransaction(sql, beforeCommit) {
+  assertDisposableSqlTarget();
+  const child = spawn('psql', ['-XAtq', '-v', 'ON_ERROR_STOP=1'], {stdio: ['pipe', 'pipe', 'inherit']});
+  const exited = once(child, 'exit');
+  const ready = once(child.stdout, 'data', {signal: AbortSignal.timeout(5000)});
+  try {
+    child.stdin.write(`BEGIN;\n${sql};\nSELECT 'W02_FIXTURE_READY';\n`);
+    const [marker] = await Promise.race([ready, exited.then(() => { throw Error('Fixture publisher exited early'); })]);
+    assert.equal(String(marker).trim(), 'W02_FIXTURE_READY');
+    await beforeCommit();
+    child.stdin.end('COMMIT;\n');
+    assert.equal((await exited)[0], 0);
+  } finally {
+    child.kill();
+    await exited.catch(() => {});
+  }
+}
+
+async function proveCanonicalRegistry(owner, foreign, oneSite) {
+  const scope = {tenantId: 971, ...selection};
+  const adapter = createW02StockReview({authUrl, restUrl, canonicalRegistry: true});
+  const inspect = extras => adapter({...selection, accessToken: owner, ...extras});
+  const args = {p_business: 9711, p_from_site: 97111, p_to_site: 97112};
+  const read = () => rpc(owner, 'w02_custody_snapshot_v1', args);
+  const members = Object.entries(custodyActors).map(([role, actor]) => ({
+    role, actor, ...generateKeyPairSync('ed25519')
+  }));
+  const historicWitness = generateKeyPairSync('ed25519').publicKey.export({type: 'spki', format: 'der'}).toString('hex');
+  const priorHash = digest('prior close source fixture');
+  let pair, openingAt;
+  const move = (label, reverse = false) => seedStockCommand(owner, 'registry-' + label, {
+    kind: 'transfer', quantity: 1, source: reverse ? 971121 : 971111, destination: reverse ? 971111 : 971121
+  });
+  function insertLine(stockRef, label) {
+    return `INSERT INTO core10.w02_challan_lines_v1
+      (pair_id,business_id,stock_ref,challan_ref,line_ref,source_sha256)
+      VALUES (${pair},9711,${stockRef},'REG-${label}','1','${digest(label)}')`;
+  }
+  function signRole(role, payload) {
+    const member = members.find(entry => entry.role === role);
+    return sign(null, evidenceMessage(role, member.actor, scope, payload), member.privateKey).toString('base64url');
+  }
+  async function signedRegistryEvidence(state) {
+    const {actorId, ...close} = state.priorClose;
+    const prior = {kind: 'APPROVED_PRIOR_CLOSE', ...close};
+    const window = {openingDigest: digest(prior), movements: state.movements.map(row => ({
+      commandId: row.command.command_id, stockRef: row.stock_ref, asset: 'crates',
+      direction: row.source_site_id === scope.fromSiteId ? 'ISSUE' : 'RETURN',
+      quantity: row.quantity, challan: row.challan.record, line: row.challan.line, sourceSha256: row.challan.sourceSha256
+    }))};
+    await delay(15);
+    const count = {record: 'REG-COUNT-01', at: new Date().toISOString(), windowDigest: digest(window),
+      stockRevision: state.revision, crates: 3, trays: 1};
+    return {
+      opening: {payload: prior, signature: signRole('openingReviewer', prior)},
+      window: {payload: window, signature: signRole('challanRegistrar', window)},
+      count: {payload: count, counterSignature: signRole('counter', count), witnessSignature: signRole('witness', count)}
+    };
+  }
+
+  await test('canonical registry requires a scoped pair and approved close and denies API writes', async () => {
+    assert.equal((await inspect()).reason, 'W02_CANONICAL_PAIR_REQUIRED');
+    assert.equal((await http(restUrl + '/rpc/w02_custody_snapshot_v1', {body: args})).ok, false);
+    assert.equal((await http(restUrl + '/rpc/w02_custody_snapshot_v1', {token: foreign, body: args})).ok, false);
+    assert.equal((await http(restUrl + '/rpc/w02_custody_snapshot_v1', {token: oneSite, body: args})).ok, false);
+    pair = Number(trustedFixtureSql(`INSERT INTO core10.w02_pairs_v1
+      (tenant_id,business_id,from_site_id,to_site_id,crate_item_id,tray_item_id)
+      VALUES (971,9711,97111,97112,97101,97102) RETURNING id`));
+    assert.ok(Number.isSafeInteger(pair) && pair > 0);
+    assert.equal((await inspect()).reason, 'W02_APPROVED_PRIOR_CLOSE_REQUIRED');
+    assert.equal((await http(restUrl + '/w02_keys_v1', {token: owner, body: {pair_id: pair}})).ok, false);
+    assert.equal((await http(restUrl + '/w02_closes_v1', {token: owner, method: 'GET'})).ok, false);
+    trustedFixtureSql(`TRUNCATE core10.w02_key_revocations_v1`, /W02_EVIDENCE_IMMUTABLE/);
+    trustedFixtureSql(`UPDATE core10.w02_pairs_v1 SET crate_item_id=97102 WHERE id=${pair}`,
+      /W02_EVIDENCE_IMMUTABLE/);
+  });
+
+  await test('one canonical revision joins approved close, enrolled keys, challan and paired Stock with Audit', async () => {
+    openingAt = new Date().toISOString();
+    const values = [
+      ['witness', custodyActors.witness, historicWitness],
+      ...members.map(member => [member.role, member.actor, member.publicKey.export({type: 'spki', format: 'der'}).toString('hex')])
+    ].map(([role, actor, hex]) => `(${pair},'${role}','${actor}','${hex}')`).join(',');
+    trustedFixtureSql(`
+      BEGIN;
+      INSERT INTO core10.w02_keys_v1(pair_id,role,actor_id,spki_hex) VALUES ${values};
+      WITH opened AS (
+        INSERT INTO core10.w02_closes_v1(pair_id,record_ref,approved_by,closed_at,crates,trays,source_sha256)
+        VALUES (${pair},'REG-CLOSE-01','${custodyActors.openingReviewer}','${openingAt}',2,1,'${priorHash}') RETURNING id
+      )
+      INSERT INTO core10.w02_close_transfers_v1(pair_id,close_id,stock_ref)
+      SELECT ${pair},opened.id,t.id FROM opened CROSS JOIN core10.stock_transfers_v1 t WHERE t.business_id=9711;
+      COMMIT;`);
+    const before = await read();
+    assert.equal(before.movements.length, 0);
+    assert.equal(before.priorClose.sourceSha256, priorHash);
+    const transfer = await move('linked');
+    assert.equal((await inspect()).reason, 'W02_CANONICAL_MOVEMENT_EVIDENCE_REQUIRED');
+    const unlinked = await read();
+    await publishFixtureInTransaction(insertLine(transfer.stock_ref, 'ISSUE'), async () => {
+      const during = await read();
+      assert.equal(during.revision, unlinked.revision);
+      assert.equal(during.movements[0].challan, null);
+    });
+    const state = await read();
+    assert.notEqual(state.revision, before.revision);
+    assert.notEqual(state.revision, unlinked.revision);
+    assert.equal(state.movements.length, 1);
+    assert.equal(state.movements[0].postings.length, 2);
+    assert.equal(state.movements[0].stock_ref, transfer.stock_ref);
+    trustedFixtureSql(`INSERT INTO core10.w02_close_transfers_v1(pair_id,close_id,stock_ref)
+      SELECT ${pair},id,${transfer.stock_ref} FROM core10.w02_closes_v1 WHERE pair_id=${pair}`,
+      /W02_CLOSE_COVERAGE_OUTSIDE_PUBLICATION/);
+    assert.match(state.movements[0].command.auditDigest, /^[0-9a-f]{64}$/);
+    const evidence = await signedRegistryEvidence(state);
+    const checked = await inspect({evidence});
+    assert.equal(checked.canonicalSnapshotVerified, true);
+    assert.equal(checked.stockRevision, state.revision);
+    assert.equal(checked.canPost, false);
+    assert.deepEqual(await inspect({evidence, priorObservation: checked.observation}), checked);
+    const forged = structuredClone(evidence);
+    forged.opening.payload.record = 'REG-OTHER-CLOSE';
+    await assert.rejects(inspect({evidence: forged}), {code: 'W02_CANONICAL_PRIOR_CLOSE_MISMATCH'});
+  });
+
+  await test('net-zero later Stock changes revision and revoking the current witness key never falls back', async () => {
+    const old = await read(), evidence = await signedRegistryEvidence(old);
+    trustedFixtureSql(insertLine((await move('late-out')).stock_ref, 'LATE-OUT'));
+    trustedFixtureSql(insertLine((await move('late-return', true)).stock_ref, 'LATE-RETURN'));
+    const newest = await read();
+    assert.notEqual(newest.revision, old.revision);
+    assert.equal(newest.movements.length, old.movements.length + 2);
+    await assert.rejects(inspect({evidence}), {code: 'W02_STALE_CANONICAL_REVISION'});
+    trustedFixtureSql(`INSERT INTO core10.w02_key_revocations_v1(key_id)
+      SELECT max(id) FROM core10.w02_keys_v1 WHERE pair_id=${pair} AND role='witness'`);
+    const revoked = await read();
+    assert.notEqual(revoked.revision, newest.revision);
+    assert.equal(revoked.keys.witness, undefined);
+    assert.equal((await inspect()).reason, 'W02_CANONICAL_SIGNER_REQUIRED');
+  });
+}
+
 async function run() {
   const [owner, foreign, oneSite, readOnly] = await Promise.all(Object.keys(users).map(login));
   await seedStockCommand(owner, 'initial', {quantity: 5});
@@ -228,6 +392,7 @@ async function run() {
   });
 
   await proveCustody(owner);
+  await proveCanonicalRegistry(owner, foreign, oneSite);
 
   await test('site-level Control disables transfer review without authorizing posting', async () => {
     await rpc(owner, 'control_set_v1', {
