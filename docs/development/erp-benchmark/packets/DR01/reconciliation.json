@@ -1,0 +1,92 @@
+{
+ "snapshot": "2026-11-24",
+ "trunk": "9510e19826654e50ae87158aa4dcdfd968a058aa",
+ "kinds": {
+  "DETAIL": 520,
+  "REQUIREMENT": 131,
+  "DECISION": 63,
+  "CAPABILITY": 34,
+  "CHANGE": 61,
+  "ACTION": 61,
+  "PAPEROPS_FIELD": 1246
+ },
+ "duplicate_kind_id_pairs": [],
+ "paperops_bad_crosslinks": [],
+ "detail": {
+  "total": 520,
+  "unique": 520,
+  "by_evidence_class": {
+   "TRUNK_MIGRATION_IN_STAGING_LEDGER": 83,
+   "TRUNK_ENGINE_FILE_NOT_MIGRATED": 155,
+   "NO_CODE_FOUND": 181,
+   "OPEN_DRAFT_PR_ONLY": 75,
+   "FROZEN_LEGACY_REFERENCE_ONLY": 11,
+   "TRUNK_MIGRATION_NOT_HOSTED": 15
+  },
+  "by_maturity": {
+   "LIVE_STAGING": 44,
+   "STAGING": 39,
+   "TRUNK": 170,
+   "PLAN": 192,
+   "DRAFT": 75
+  },
+  "partial": 87,
+  "needs_verification": 3,
+  "by_disposition": {
+   "PRESERVE": 49,
+   "ADOPT_CANDIDATE": 156,
+   "RECOVER": 198,
+   "INVESTIGATE": 13,
+   "ADVANTAGE_CANDIDATE": 12,
+   "DEFERRED": 92
+  },
+  "by_delta": {
+   "UNCHANGED": 437,
+   "UPGRADED_SINCE_AUDIT": 76,
+   "AUDIT_CODE_NOT_FOUND_ON_TRUNK_NEEDS_VERIFICATION": 7
+  },
+  "by_mapping_confidence": {
+   "CAPABILITY_LEVEL": 334,
+   "SYMBOL_LEVEL": 186
+  },
+  "audit_20261116": {
+   "DRAFT_CODED_INTEGRATED_LINE": 136,
+   "PARTIAL_INTEGRATED_LINE": 81,
+   "SIDE_DRAFT_NOT_INTEGRATED": 103,
+   "MISSING_NO_CODE": 187,
+   "LEGACY_IMG_ONLY": 13
+  },
+  "certified": 0,
+  "with_verified_upstream_counterpart": 425,
+  "upstream_paths_unverified": []
+ },
+ "requirements": {
+  "total": 131,
+  "mapped_via_detail": 129,
+  "trace_only": 1,
+  "unmapped": 1,
+  "unmapped_ids": [
+   "R130"
+  ],
+  "trace_gaps": [
+   "R130"
+  ]
+ },
+ "decisions": {
+  "present": 57,
+  "mapped_via_detail": 21,
+  "policy_no_detail_link": 36,
+  "archived": 6
+ },
+ "paperops": {
+  "total": 1246,
+  "by_lane_build_rule": {
+   "A|NOT_BUILT|NOT_BUILT": 587,
+   "A|NOT_BUILT|SOURCE_RULE_VERIFIED": 413,
+   "B|LOCAL_SYNTHETIC_CONTROL_BUILT|NOT_BUILT": 39,
+   "B|LOCAL_SYNTHETIC_CONTROL_BUILT|SOURCE_RULE_VERIFIED": 40,
+   "B|NOT_BUILT|SOURCE_RULE_VERIFIED": 70,
+   "B|NOT_BUILT|NOT_BUILT": 97
+  }
+ }
+}
