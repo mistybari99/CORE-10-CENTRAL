@@ -1,6 +1,6 @@
 # CORE-10 PaperOps — owner-origin forms, field controls and paper minimization
 
-**Status:** DRAFT implementation on isolated PaperOps branch; not an ERP module release.
+**Status:** DRAFT implementation. [Canonical W02 read rehearsal](field-review/chatgpt-246/TRUNK_PORT.md).
 **Baseline:** 22 Nov 2026, canonical trunk `ccr-15ed11dd-n3hw5h`.
 **Goal:** Owner's ten-plus businesses must each work both with signed ERP and, in a documented fallback, with complete paper records. The first business the Owner designed on paper was sweets.
 
