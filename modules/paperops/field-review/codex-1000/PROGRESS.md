@@ -19,6 +19,7 @@
 | A015 | 50 | 5 high, 2 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45322047949 |
 | A016 | 50 | 7 high, 3 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45322286531 |
 | A017 | 50 | 7 high, 1 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45322500024 |
+| A018 | 50 | 7 high, 2 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45322743818 |
 
 A002 covers R-01:waste_qty through C-04:on_c. Both original C-04:who declarations are preserved under one manifest ID. Evidence commits for the two exact runs are 6349dc78039f52ec7a867d1f8c3fe9e38b78174d and 1778382a1a9bd48bbf83921570bec8f9cfc7353a.
 
@@ -52,6 +53,8 @@ A016 exact evidence commit: a67aad62b9f1b5adfa3c6807bec795dfbc5a2e06. It covers 
 
 A017 exact evidence commit: 405066c9ddfd9c637b81722049f11e95c7f34a53. It covers A-02:chg through F-05:bd_result.
 
-A018 covers F-05:batches through F-02:rj_sour. Its exact-head CI is pending.
+A018 exact evidence commit: 5722a2e68b59e746b2a7b7b293603c4959e342ff. It covers F-05:batches through F-02:rj_sour.
 
-Full gates passed: 17/20. Coordination Board / Decision Book: NOT WRITTEN.
+A019 has 47 verified source declarations with partial rule evidence. Positions 920–922 are blocked: F-02:name, F-02:qty and F-02:unit are constructors from the shared ingredient helper used only by F-03 collections a, b and c. See A019-partial.json and issues-A019.json. A019 is excluded from completed batch counts, and A020 is held by the sequential gate.
+
+Full gates passed: 18/20. Remaining: 100 fields across A019–A020. Coordination Board / Decision Book: NOT WRITTEN.

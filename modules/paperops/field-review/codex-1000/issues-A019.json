@@ -1,0 +1,228 @@
+[
+  {
+    "issue_id": "A019-F001",
+    "source_ids": [
+      "F-02:rj_raw",
+      "F-02:rj_foreign",
+      "F-02:rj_expired",
+      "F-02:rj_more1",
+      "F-02:rj_more2"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 13199,
+        "text": "l(\"rj_expired\",t(\"মেয়াদ শেষ\",\"Expired\")),n(\"rj_more1\",t(\"এই পণ্যে আরও — ১\",\"More for this product: 1\")),n(\"rj_more2\",t(\"এই পণ্যে আরও — ২\",\"More for this product: 2\"))]},{title:t(\"বিক্রয়যোগ"
+      }
+    ],
+    "observed_gap": "Rejection criteria are declarations; calc does not block sale or verify quarantine.",
+    "dependency": "Approved spec and Stock lot QC disposition",
+    "correction": "Use approved lot inspection and enforce disposition before sale.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A019-F002",
+    "source_ids": [
+      "F-02:shelf_normal_u",
+      "F-02:shelf_cold",
+      "F-02:shelf_cold_u",
+      "F-02:shelf_ref",
+      "F-02:storage",
+      "F-02:storage_other",
+      "F-02:store_temp",
+      "F-02:covered",
+      "F-02:separate",
+      "F-02:daytag",
+      "F-02:daytag_list"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 15519,
+        "text": "const s=E[o.cat];if(s){const r=C(e,s);n.shelf_ref=null===r?q:t(S(r)+\" দিন\",S(r)+\" days\")}return n.daytag_list=x.map((t,r)=>{const a=e.s[\"daytag_\"+r];return(e.lab?e.lab(t):\"\")+\": \"+(a||\"—\")})"
+      }
+    ],
+    "observed_gap": "Normal duration unit required; cold unit optional. Category shelf setting missing yields data-needed. Daytag display uses day settings. Other storage reveals optional text.",
+    "dependency": "Versioned shelf policy, storage settings and lot tags",
+    "correction": "Link approved settings to lot storage and expiry evidence.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A019-F003",
+    "source_ids": [
+      "F-02:craft_incharge",
+      "F-02:factory_incharge",
+      "F-02:approver"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 15743,
+        "text": "o.craft_incharge===o.factory_incharge&&i.push(v(\"same_incharge\",\"yellow\",\"কারিগর ইনচার্জ ও কারখানা ইনচার্জ একই জন\",\"Craftsman in charge and factory in charge are the same person\")),{v:n,flag"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 15789,
+        "text": "v(\"same_incharge\",\"yellow\",\"কারিগর ইনচার্জ ও কারখানা ইনচার্জ একই জন\",\"Craftsman in charge and factory in charge are the same person\")),{v:n,flags:i,needs:[]}}};const F=[[\"chana\",t(\"ছানার মিষ"
+      }
+    ],
+    "observed_gap": "Actors required, management checker declared. Same two in-charges warns yellow; no signed approval shown.",
+    "dependency": "Scoped authenticated approval of a product spec",
+    "correction": "Require distinct scoped actors and approved spec version.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A019-F004",
+    "source_ids": [
+      "F-03:item",
+      "F-03:card_date",
+      "F-03:family",
+      "F-03:family_other",
+      "F-03:batch_qty",
+      "F-03:batch_unit",
+      "F-03:batch_unit_other",
+      "F-03:base_qty",
+      "F-03:base_unit"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 19765,
+        "text": "calc:e=>({v:{},flags:[],needs:[]})};const B=[1,2,3].map(e=>t(\"ব্যাচ \"+e,\"Batch \"+e)),R=(e,t)=>r(t)>0&&a(e)?Math.round(r(e)/r(t)*1e4)/100:void 0,j=[[\"input\",t(\"গড় — মূল উপকরণ\",\"Average: main"
+      }
+    ],
+    "observed_gap": "Other choices reveal text. Recipe calc returns empty values and flags. It does not verify quantities, units, release or pricing.",
+    "dependency": "Versioned recipe and effective item/UOM master",
+    "correction": "Use validated scoped recipe item/UOM and require approval before costing.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A019-F005",
+    "source_ids": [
+      "F-03:text",
+      "F-03:cook_min",
+      "F-03:cook_heat",
+      "F-03:rest_min",
+      "F-03:total_min",
+      "F-03:headcount",
+      "F-03:machines",
+      "F-03:informant",
+      "F-03:approver"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 18615,
+        "text": "b(\"steps\",null,[i(\"text\",t(\"বানানোর ধাপ (Step) — কারিগরের বর্ণনা, সময় ও মাপসহ\",\"Method step: in the craftsman's words, with time and measure\"),{wide:!0})],{min:6})]},{title:t(\"সময়, জনবল ও "
+      }
+    ],
+    "observed_gap": "Process values entered. Informant and checker approval required; no calculation of total time or proof of independent approval.",
+    "dependency": "Recipe steps, equipment and approved staffing",
+    "correction": "Capture authenticated approval and verified evidence for each step.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A019-F006",
+    "source_ids": [
+      "F-04:item",
+      "F-04:family",
+      "F-04:family_other",
+      "F-04:recipe_no",
+      "F-04:recipe_ver",
+      "F-04:in_unit",
+      "F-04:out_unit",
+      "F-04:date",
+      "F-04:base"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 25095,
+        "text": "new Set(d).size<d.length&&n.push(v(\"same_day_batches\",\"yellow\",\"দুটি ব্যাচ একই দিনের — তিনটি আলাদা দিন লাগবে\",\"Two batches fall on the same day: three different days are needed\")),t.some(e=>"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 25128,
+        "text": "v(\"same_day_batches\",\"yellow\",\"দুটি ব্যাচ একই দিনের — তিনটি আলাদা দিন লাগবে\",\"Two batches fall on the same day: three different days are needed\")),t.some(e=>a(e.measurer)&&e.measurer===e.cra"
+      }
+    ],
+    "observed_gap": "Three indexed rows, date required and base required unless dash. Recipe/version and units required. Duplicate populated dates warn yellow, but calc does not insist all three dates are populated.",
+    "dependency": "Approved recipe version and dated batch measurements",
+    "correction": "Require three distinct dated source records and valid compatible units.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A019-F007",
+    "source_ids": [
+      "F-04:base_pct"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 24670,
+        "text": "base_pct:R(e.base,e.input),total:t,per_unit:(o=e.good,n=e.input,r(n)>0&&a(o)?Math.round(r(o)/r(n)*1e4)/1e4:void 0),second_pct:R(e.second,t),waste_pct:R(e.waste,t)};var o,n});j.forEach(([e])="
+      }
+    ],
+    "observed_gap": "Base conversion is rounded percentage of base divided by positive input when base is present. Missing or nonpositive input suppresses result. Average uses only finite values, including a partial sample.",
+    "dependency": "Traceable batch measurements and approved weighting/precision policy",
+    "correction": "Define full-sample requirement and unit conversions before promoting a target.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A019-F008",
+    "source_ids": [
+      "F-02:name",
+      "F-02:qty",
+      "F-02:unit"
+    ],
+    "positions": [
+      920,
+      921,
+      922
+    ],
+    "severity": "HIGH",
+    "status": "BLOCKED_SOURCE_FORM_MISMATCH",
+    "source_file": "forms_factory.js",
+    "source_sha256": "d585ad78b4dc082b15aa16546007bcd0fb10c07753062390c82954bf3fc3181c",
+    "helper": {
+      "offset_utf16": 16342,
+      "text": "O=()=>[u(\"item\",t(\"কাঁচামালের নাম ও আইটেম কোড\",\"Raw material name & item code\"),{wide:!0,req:e=>!a(e.row.name)}),n(\"name\",t(\"নাম (তালিকায় না থাকলে)\",\"Name (if not in the list)\"),{req:e=>!a(e.row.item)}),s(\"qty\",t(\"পরিমাণ\",\"Quantity\"),{req:!0}),_(\"unit\",t(\"একক\",\"Unit\"),N,{req:!0})]"
+    },
+    "consumers": [
+      {
+        "offset_utf16": 18046,
+        "text": "b(\"a\",null,O()"
+      },
+      {
+        "offset_utf16": 18345,
+        "text": "b(\"b\",null,O()"
+      },
+      {
+        "offset_utf16": 18511,
+        "text": "b(\"c\",null,O()"
+      }
+    ],
+    "actual_candidates": [
+      "F-03:name",
+      "F-03:qty",
+      "F-03:unit"
+    ],
+    "observed_gap": "The ingredient helper is outside F-02. F-03 calls it for base, product and packaging tables. F-02 never calls it. All three F-03 candidate keys are absent from both current lane lists.",
+    "correction": "Parent lane and Owner to reconcile the three source attributions and regenerate the manifest and routing. Retain other exact positions, counts and frozen bytes. Preserve three distinct recipe row contexts.",
+    "owner_lane": "ChatGPT B / Owner manifest decision"
+  }
+]
