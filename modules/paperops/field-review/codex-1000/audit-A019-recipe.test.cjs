@@ -4,6 +4,7 @@ const { test } = require('node:test');
 const { inspect, readBatch, verify } = require('./audit.cjs');
 const partial = require('./A019-partial.json');
 const draft = require('./A019-recipe-candidates.json');
+const complete = require('./batch-A019.json');
 const { manifest, source, supplements } = readBatch(18);
 const factory = supplements['forms_factory.js'];
 
@@ -44,4 +45,19 @@ test('rehearsal verifies replacement only under a synthetic corrected manifest',
   const reordered = { ...assembled, fields: [...assembled.fields] };
   [reordered.fields[19], reordered.fields[20]] = [reordered.fields[20], reordered.fields[19]];
   assert.throws(() => verify(reordered, fixture, source, 19, supplements));
+});
+
+test('A019 complete gate uses the corrected Parent slots and preserves all recipe row contexts', () => {
+  assert.equal(verify(complete, manifest, source, 19, supplements), 50);
+  const recipe = complete.fields.filter(field => field.recipe_row_source);
+  assert.deepEqual(recipe.map(field => field.source_id), ['F-03:name', 'F-03:qty', 'F-03:unit', 'F-03:item']);
+  for (const field of recipe) {
+    const row = field.recipe_row_source;
+    assert.equal(factory.slice(row.offset_utf16, row.offset_utf16 + row.literal.length), row.literal);
+    assert.deepEqual(row.row_contexts.map(context => [context.collection, context.min_rows_declared, context.offset_utf16]),
+      [['a', 4, 18046], ['b', 5, 18345], ['c', 2, 18511]]);
+  }
+  const item = recipe.find(field => field.source_id === 'F-03:item');
+  assert.notEqual(item.recipe_row_source.label_en, item.evidence.label_en);
+  assert.equal(manifest.lane_A_codex.ownership_keys[303], 'R-01:cashier');
 });

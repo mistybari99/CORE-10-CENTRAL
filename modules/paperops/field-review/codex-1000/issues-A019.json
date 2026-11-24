@@ -195,7 +195,7 @@
       922
     ],
     "severity": "HIGH",
-    "status": "BLOCKED_SOURCE_FORM_MISMATCH",
+    "status": "RESOLVED_SOURCE_ATTRIBUTION",
     "source_file": "forms_factory.js",
     "source_sha256": "d585ad78b4dc082b15aa16546007bcd0fb10c07753062390c82954bf3fc3181c",
     "helper": {
@@ -223,6 +223,26 @@
     ],
     "observed_gap": "The ingredient helper is outside F-02. F-03 calls it for base, product and packaging tables. F-02 never calls it. All three F-03 candidate keys are absent from both current lane lists.",
     "correction": "Parent lane and Owner to reconcile the three source attributions and regenerate the manifest and routing. Retain other exact positions, counts and frozen bytes. Preserve three distinct recipe row contexts.",
-    "owner_lane": "ChatGPT B / Owner manifest decision"
+    "owner_lane": "ChatGPT B / Owner manifest decision",
+    "corrected_source_id": "F-03:name",
+    "corrected_source_ids": [
+      "F-03:name",
+      "F-03:qty",
+      "F-03:unit"
+    ],
+    "authorized_parent_commit": "df247deee3548a7f75640e8274c0934d86916d91"
+  },
+  {
+    "issue_id": "A019-F009",
+    "source_ids": [
+      "F-03:name",
+      "F-03:qty",
+      "F-03:unit"
+    ],
+    "severity": "HIGH",
+    "status": "OPEN",
+    "observed_gap": "F-03 base, product and packaging rows have separate contexts. The source declares quantity and unit required and has a fallback name. It does not prove authenticated ingredient master identity, positive quantity, version approvals or UOM compatibility.",
+    "correction": "Resolve recipe version, effective item/UOM and compatible production input by business. Keep packaging distinct from ingredients and preserve approved recipe hashes on batch events.",
+    "owner_lane": "Manufacturing / Master Data / Approval"
   }
 ]

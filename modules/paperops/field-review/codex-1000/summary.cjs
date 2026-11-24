@@ -37,7 +37,8 @@ function summarize({ requireComplete = false } = {}) {
       ownIssues.set(issue.issue_id, issue);
       assert.ok(Object.hasOwn(ownSeverity, issue.severity), 'Unknown finding severity');
       if (issue.status === 'RESOLVED_SOURCE_ATTRIBUTION') {
-        assert.ok(ownKeys.has(issue.corrected_source_id), 'Missing corrected ID in batch');
+        const corrected = issue.corrected_source_ids ?? [issue.corrected_source_id];
+        assert.ok(corrected.length > 0 && corrected.every(key => ownKeys.has(key)), 'Missing corrected ID in batch');
         resolvedFindings++;
         continue;
       }
