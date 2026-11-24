@@ -1,0 +1,256 @@
+[
+  {
+    "issue_id": "A014-F001",
+    "source_ids": [
+      "S-03:in_worklist",
+      "S-03:call_time",
+      "S-03:feedback",
+      "S-03:unhappy_why",
+      "S-03:resolved",
+      "S-03:resolved_date",
+      "S-03:resolved_by",
+      "S-03:received_by",
+      "S-03:manager"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 19508,
+        "text": "Object.values(e.c).some(r)&&i.push(q(\"complaint_open\",\"yellow\",\"অভিযোগ এখনো সমাধান হয়নি\",\"Complaint is not resolved yet\",void 0,{src:\"check\"})),{v:n,rows:{},flags:i,needs:a}}};const E=e=>\"i"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 19543,
+        "text": "q(\"complaint_open\",\"yellow\",\"অভিযোগ এখনো সমাধান হয়নি\",\"Complaint is not resolved yet\",void 0,{src:\"check\"})),{v:n,rows:{},flags:i,needs:a}}};const E=e=>\"invoice\"===e.d.doc;"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 18863,
+        "text": "q(\"approver_is_maker\",\"red\",\"অনুমোদনকারী ও গ্রহণকারী/প্রদানকারী একই জন\",\"Approver is the receiver / giver\")),o.c_sick&&i.push(q(\"illness_complaint\",\"yellow\",\"খেয়ে অসুস্থ হওয়ার অভিযোগ — সেদ"
+      }
+    ],
+    "observed_gap": "Checker fields show follow-up and closure evidence; resolved date/actor are visible only when resolved, optional in syntax. A present checker value without a true resolved flag yields yellow. Receiver equal to approver triggers red.",
+    "dependency": "Protected complaint timeline and independent reviewer",
+    "correction": "Require actor, timestamp, outcome and immutable links before marking a complaint closed.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A014-F002",
+    "source_ids": [
+      "S-05:doc",
+      "S-05:party",
+      "S-05:phone",
+      "S-05:order_no",
+      "S-05:valid_until",
+      "S-05:agreed_invoice",
+      "S-05:not_agreed"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 19805,
+        "text": "v(\"doc\",t(\"কোটেশন না ইনভয়েস\",\"Quotation or invoice\"),[[\"quote\",t(\"কোটেশন (Quotation)\",\"Quotation\")],[\"invoice\",t(\"ইনভয়েস (Invoice) — মালামাল যাচ্ছে\",\"Invoice — goods are going\")]],{req:!0}"
+      }
+    ],
+    "observed_gap": "Required doc and party. Invoice-only calculator protections depend on E(e). Quotation identity, customer agreement and conversion are paper fields without proven state-transition enforcement.",
+    "dependency": "Scoped Sales quote, party record and accepted conversion event",
+    "correction": "Bind accepted quote/version and authorized party to the canonical invoice request.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A014-F003",
+    "source_ids": [
+      "S-05:pay",
+      "S-05:credit_days",
+      "S-05:due_date",
+      "S-05:prev_dues"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 24382,
+        "text": "\"credit\"===t.pay&&d.inv_due>0&&!r(t.credit_days)&&a.push(q(\"credit_days_missing\",\"yellow\",\"বাকির সময় লেখা নেই\",\"Credit period is not written\",d.inv_due)),\"outside\"===t.credit_ok&&a.push(q(\""
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 24439,
+        "text": "q(\"credit_days_missing\",\"yellow\",\"বাকির সময় লেখা নেই\",\"Credit period is not written\",d.inv_due)),\"outside\"===t.credit_ok&&a.push(q(\"credit_outside\",r(t.approved_by)?\"yellow\":\"red\",r(t.appro"
+      }
+    ],
+    "observed_gap": "Credit/part reveals period and due date. For invoice only, credit balance with missing days warns yellow. Previous dues feeds all_due as entered input without ledger reconciliation.",
+    "dependency": "Effective credit terms and scoped AR projection",
+    "correction": "Derive carry-forward and due schedule from scoped AR rather than entering arbitrary historic dues.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A014-F004",
+    "source_ids": [
+      "S-05:item",
+      "S-05:desc",
+      "S-05:unit",
+      "S-05:qty",
+      "S-05:rate",
+      "S-05:line_total",
+      "S-05:grand"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 23777,
+        "text": "line_total:A(s(e.qty)*s(e.rate))}));if(O(o)&&a.push(q(\"no_items\",\"red\",\"কোনো পণ্যের লাইন নেই\",\"No item lines\")),d.grand=A(i(o.map(e=>s(e.qty)*s(e.rate)))),d.inv_total=A(d.grand-s(t.discount)"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 23829,
+        "text": "q(\"no_items\",\"red\",\"কোনো পণ্যের লাইন নেই\",\"No item lines\")),d.grand=A(i(o.map(e=>s(e.qty)*s(e.rate)))),d.inv_total=A(d.grand-s(t.discount)),d.inv_due=A(d.inv_total-s(t.cash_today)),d.all_due"
+      }
+    ],
+    "observed_gap": "Line total rounds quantity×rate; grand rounds summed raw products. Empty item selection across rows warns red. Unit is a calc display; shown calculator returns line_total without assigning a unit.",
+    "dependency": "Item master, UOM and approved price tier",
+    "correction": "Resolve approved UOM, price and quantity and define rounding across lines and invoice.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A014-F005",
+    "source_ids": [
+      "S-05:discount",
+      "S-05:disc_slip",
+      "S-05:inv_total",
+      "S-05:cash_today",
+      "S-05:cash_mode",
+      "S-05:cash_other",
+      "S-05:inv_due",
+      "S-05:all_due"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 23932,
+        "text": "d.inv_total=A(d.grand-s(t.discount)),d.inv_due=A(d.inv_total-s(t.cash_today)),d.all_due=A(s(t.prev_dues)+d.inv_due),E(e)){s(t.cash_today)>d.inv_total&&a.push(q(\"cash_over_total\",\"red\",\"আজকের"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 24090,
+        "text": "q(\"cash_over_total\",\"red\",\"আজকের নগদ ইনভয়েসের মোটের চেয়ে বেশি\",\"Today's cash is more than the invoice total\",A(s(t.cash_today)-d.inv_total))),\"cash\"===t.pay&&d.inv_due>0&&a.push(q(\"cash_bu"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 24270,
+        "text": "q(\"cash_but_due\",\"yellow\",'পেমেন্ট \"নগদ\" কিন্তু বাকি আছে','Payment is \"cash\" but a balance remains',d.inv_due)),\"credit\"===t.pay&&d.inv_due>0&&!r(t.credit_days)&&a.push(q(\"credit_days_missin"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 25422,
+        "text": "\"discount_over\",r(t.disc_slip)?\"yellow\":\"red\",r(t.disc_slip)?\"ডিসকাউন্ট সীমার উপরে — স্লিপ আছে\":\"ডিসকাউন্ট সীমার উপরে — অনুমোদন স্লিপ (S-০২) লাগবে\",r(t.disc_slip)?\"Discount above the limit —"
+      }
+    ],
+    "observed_gap": "Totals round sequentially: grand−discount, total−cash, previous dues+invoice due. Invoice warns red for cash above total, yellow for positive balance in cash mode. Positive over-limit discount warns yellow with slip, red without. Tender shown on positive cash.",
+    "dependency": "Money receipts and approved discounts linked to current invoice",
+    "correction": "Bind receipt and discount amounts to scoped approved records and reject invalid cash or tender before posting.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A014-F006",
+    "source_ids": [
+      "S-05:party_limit",
+      "S-05:credit_ok",
+      "S-05:approved_by"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 24812,
+        "text": "\"inside\"!==t.credit_ok||r(t.party_limit)||a.push(q(\"credit_limit_missing\",\"red\",'ক্রেডিট সীমা লেখা নেই — \"সীমার ভেতরে\" যাচাই করা যায়নি','Credit limit not entered — cannot confirm \"inside th"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 24861,
+        "text": "q(\"credit_limit_missing\",\"red\",'ক্রেডিট সীমা লেখা নেই — \"সীমার ভেতরে\" যাচাই করা যায়নি','Credit limit not entered — cannot confirm \"inside the limit\"')),\"inside\"===t.credit_ok&&r(t.party_lim"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 25091,
+        "text": "q(\"credit_over_limit\",\"red\",'মোট বকেয়া পার্টির ক্রেডিট সীমার উপরে, অথচ \"সীমার ভেতরে\" টিক','Total outstanding is over the party credit limit but \"inside the limit\" is ticked',A(d.all_due-s(t"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 24571,
+        "text": "\"credit_outside\",r(t.approved_by)?\"yellow\":\"red\",r(t.approved_by)?\"ক্রেডিট সীমার বাইরে (অনুমোদিত)\":\"ক্রেডিট সীমার বাইরে — অনুমোদনকারী নেই\",r(t.approved_by)?\"Over the credit limit (approved)\""
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 25755,
+        "text": "q(\"approver_is_maker\",\"red\",\"অনুমোদনকারী ও প্রস্তুতকারী একই জন\",\"Approver and preparer are the same person\"))}return{v:d,rows:{lines:l},flags:a,needs:n}}};const F=[[\"p_stop\",t(\"চলছে না\",\"Not"
+      }
+    ],
+    "observed_gap": "Invoice only: outside warns yellow with named approver and red without. Inside with missing limit or total due above supplied limit warns red. Same preparer and approver red. The supplied limit is not looked up by calc.",
+    "dependency": "Versioned credit policy and independent authorization",
+    "correction": "Load effective limit from credit profile and enforce scope and separation of duties at the sale transition.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A014-F007",
+    "source_ids": [
+      "S-05:posted_ledger",
+      "S-05:ledger_line",
+      "S-05:posted_sheet",
+      "S-05:sheet_no",
+      "S-05:prepared_by",
+      "S-05:delivered_by",
+      "S-05:party_signed",
+      "S-05:received_by"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 23010,
+        "text": "p(\"posted_ledger\",t(\"পার্টি ও পাইকারি লেজারে এন্ট্রি (Posting)\",\"Posted in the party & wholesale ledger\"),{req:E}),a(\"ledger_line\",t(\"পাতা / লাইন নং\",\"Page / line no.\")),p(\"posted_sheet\",t(\""
+      }
+    ],
+    "observed_gap": "Ledger posting, party signature, and representative requirement apply to invoice mode. Status checkboxes and paper references do not prove an AP/AR or stock transaction.",
+    "dependency": "Linked AR invoice, daily close, stock delivery and authenticated acceptance",
+    "correction": "Derive posting status from canonical Sales and Money journals and protect delivery proof.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A014-F008",
+    "source_ids": [
+      "M-01:machine",
+      "M-01:machine_id",
+      "M-01:found_date",
+      "M-01:found_time"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 29556,
+        "text": "a.downtime=Number.isFinite(s)?Math.round(10*s)/10:void 0,Number.isFinite(s)&&s<0&&o.push(q(\"done_before_found\",\"red\",\"মেরামত শেষের সময় শনাক্তের সময়ের আগে\",\"Repair finish time is before the"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 29645,
+        "text": "q(\"done_before_found\",\"red\",\"মেরামত শেষের সময় শনাক্তের সময়ের আগে\",\"Repair finish time is before the time found\"))}r(t.actual_cost)&&r(t.est_cost)&&s(t.actual_cost)>s(t.est_cost)&&o.push(q("
+      }
+    ],
+    "observed_gap": "Four required fields. Found date/time plus completion date/time build local Date values; finite signed interval rounds to a tenth of an hour, and negative interval warns red. No asset lookup in calc.",
+    "dependency": "Asset master and timezone-aware incident timestamps",
+    "correction": "Scope asset identity and use stored timestamps with explicit timezone and chronological validation.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

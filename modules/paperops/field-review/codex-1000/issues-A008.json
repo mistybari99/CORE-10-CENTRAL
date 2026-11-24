@@ -1,0 +1,302 @@
+[
+  {
+    "issue_id": "A008-F001",
+    "source_ids": [
+      "W-01:t_ret",
+      "W-01:t_net",
+      "W-01:ret_same_day",
+      "W-01:ret_time",
+      "W-01:ret_weigher",
+      "W-01:not_overnight"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 11264,
+        "text": "s.t_ret=n(t.map(e=>e.ret)),s.t_net=i?s.t_issued:s.t_issued-s.t_ret,s.has_return=s.t_ret>0,s.has_return&&i&&r.push(S(\"kept_overnight\",\"yellow\",\"ফেরত লেখা আছে কিন্তু “রাতে রাখা হয়নি” টিক নেই — পুরোটাই ব্যবহৃত ধর"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 11378,
+        "text": "S(\"kept_overnight\",\"yellow\",\"ফেরত লেখা আছে কিন্তু “রাতে রাখা হয়নি” টিক নেই — পুরোটাই ব্যবহৃত ধরা হলো\",\"A return is written but “not kept overnight” is not ticked: the whole quantity counts as used\",s.t_ret,{un"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 11640,
+        "text": "S(\"return_exceeds\",\"red\",\"ফেরত ইস্যুর চেয়ে বেশি\",\"Returned more than was issued\",void 0)),\"staff\"===e.d.purpose?(r.push(S(\"issue_staff\",\"yellow\",\"স্টাফ / ব্যক্তিগত ব্যবহারে ইস্যু — বেতন থেকে কর্তন\",\"Issued for"
+      }
+    ],
+    "observed_gap": "Positive total returns triggers conditional attestation and weigher. Net deducts returns only when not_overnight. Yellow for ignored return, red for return above issue. Date comparison unproven.",
+    "dependency": "Dated Stock return, custody and independent weighing",
+    "correction": "Resolve scoped canonical policy, voucher and identity evidence: Dated Stock return, custody and independent weighing",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A008-F002",
+    "source_ids": [
+      "W-01:staff_value",
+      "W-01:deducted"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 11938,
+        "text": "a(e.d.staff_value)||r.push(S(\"staff_value_missing\",\"yellow\",\"স্টাফ / ব্যক্তিগত ইস্যুর মূল্য লেখা নেই\",\"Value of the staff / personal issue is not written\",void 0))):\"sample\"!==e.d.purpose&&\"trial\"!==e.d.purpose"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 11761,
+        "text": "S(\"issue_staff\",\"yellow\",\"স্টাফ / ব্যক্তিগত ব্যবহারে ইস্যু — বেতন থেকে কর্তন\",\"Issued for staff / personal use: salary deduction\",a(e.d.staff_value)?o(e.d.staff_value):void 0)),a(e.d.staff_value)||r.push(S(\"sta"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 11965,
+        "text": "S(\"staff_value_missing\",\"yellow\",\"স্টাফ / ব্যক্তিগত ইস্যুর মূল্য লেখা নেই\",\"Value of the staff / personal issue is not written\",void 0))):\"sample\"!==e.d.purpose&&\"trial\"!==e.d.purpose||r.push(S(\"issue_non_produ"
+      }
+    ],
+    "observed_gap": "Staff purpose shows value and requires deduction attestation. Staff issue and missing value separately warn yellow. No payroll action shown.",
+    "dependency": "Valued Stock issue and approved payroll evidence",
+    "correction": "Resolve scoped canonical policy, voucher and identity evidence: Valued Stock issue and approved payroll evidence",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A008-F003",
+    "source_ids": [
+      "W-01:net_to_report",
+      "W-01:report_batch",
+      "W-01:ledger_ref",
+      "W-01:received_by",
+      "W-01:ret_received_by",
+      "W-01:received_ok"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 10850,
+        "text": "h(\"ret_received_by\",t(\"ফেরত গ্রহণকারী (Return received by)\",\"Return received by\"),{who:\"checker\",show:e=>e.v.has_return}),u(\"received_ok\",t(\"ওজন করা মালামাল বুঝে পেয়েছি\",\"Received the weighed goods\"),{who:\"che"
+      }
+    ],
+    "observed_gap": "Required net-to-report attestation and checker role. Return receiver visible on has_return. Calculator does not validate batch or ledger links.",
+    "dependency": "Manufacturing batch and Stock voucher with independent receivers",
+    "correction": "Resolve scoped canonical policy, voucher and identity evidence: Manufacturing batch and Stock voucher with independent receivers",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A008-F004",
+    "source_ids": [
+      "W-04:item",
+      "W-04:unit",
+      "W-04:bin",
+      "W-04:storekeeper"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 12494,
+        "text": "head:[m(\"item\",t(\"আইটেম কোড / নাম\",\"Item code / name\"),{req:!0,wide:!0}),y(\"unit\",t(\"একক (Unit)\",\"Unit\"),\"text\"),s(\"bin\",t(\"বিন লোকেশন (Bin Location — তাক / জায়গা)\",\"Bin location (shelf / place)\")),h(\"storekee"
+      }
+    ],
+    "observed_gap": "Item and storekeeper required. Unit is a calc display, but calculator does not assign unit. Bin compatibility and scoped identity unproven.",
+    "dependency": "Scoped item master, storage bin and authenticated storekeeper",
+    "correction": "Resolve scoped canonical policy, voucher and identity evidence: Scoped item master, storage bin and authenticated storekeeper",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A008-F005",
+    "source_ids": [
+      "W-04:date",
+      "W-04:other_type",
+      "W-04:other_no",
+      "W-04:in",
+      "W-04:out",
+      "W-04:rate",
+      "W-04:closing",
+      "W-04:carried"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 15025,
+        "text": "i+=o(e.in)-o(e.out),a(e.rate)&&(l=o(e.rate)),{bal:i}):{});s.closing=i,s.book=i;const c=t.filter(e=>o(e.in)>0&&!a(e.grn_no)&&!a(e.other_no)||o(e.out)>0&&!a(e.issue_no)&&!a(e.other_no));if(c.length&&r.push(S(\"no_"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 15229,
+        "text": "S(\"no_paper\",\"red\",\"কাগজের নম্বর ছাড়া প্রাপ্তি বা ইস্যু লেখা হয়েছে\",\"A receipt or issue is written without a paper number\",c.length,{unit:\"qty\"})),t.some(e=>a(e.other_type)&&!a(e.other_no))&&r.push(S(\"other_p"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 15429,
+        "text": "S(\"other_paper_no\",\"red\",\"অন্য কাগজের ধরন আছে কিন্তু নম্বর নেই\",\"Other paper type chosen but its number is missing\",void 0)),d.some(e=>void 0!==e.bal&&e.bal<0)&&r.push(S(\"negative_balance\",\"red\",\"বাকি ঋণাত্মক হ"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 15597,
+        "text": "S(\"negative_balance\",\"red\",\"বাকি ঋণাত্মক হয়েছে\",\"The balance went below zero\",Math.min(...d.filter(e=>void 0!==e.bal).map(e=>e.bal)),{unit:\"qty\"})),s.value=null===l?x:\"৳ \"+$(i*l),a(e.d.counted)){const t=o(e.d."
+      }
+    ],
+    "observed_gap": "Running balance starts from opening, adds in and deducts out. Last rate on a movement sets valuation. Red for unsupported positive movement, alternate type without reference or negative intermediate balance.",
+    "dependency": "Ledger movements linked to approved GRN, issue or adjustment voucher and carry-forward",
+    "correction": "Resolve scoped canonical policy, voucher and identity evidence: Ledger movements linked to approved GRN, issue or adjustment voucher and carry-forward",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A008-F006",
+    "source_ids": [
+      "W-04:book",
+      "W-04:counted",
+      "W-04:diff",
+      "W-04:value",
+      "W-04:monthly_checker",
+      "W-04:mgmt_approved"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 15925,
+        "text": "c=i>0?Math.abs(t)/i*100:100,p=null!==o&&c<=o,u=null!==s&&null!==l&&Math.abs(t)*d<=s;null===o&&null===s&&n.push(\"count_tol_pct\",\"count_tol_max\"),r.push(S(\"ledger_count_diff\",p||u?\"yellow\":\"red\",\"গণনা ও লেজারের ব"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 16245,
+        "text": "S(\"adj_no_sheet\",\"red\",\"পার্থক্যের জন্য স্টক কাউন্ট শিটের নম্বর নেই\",\"No stock count sheet number for the difference\",void 0))}}const p=e.c.monthly_checker;return a(p)&&p===e.d.storekeeper&&r.push(S(\"checker_is"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 16442,
+        "text": "S(\"checker_is_keeper\",\"red\",\"মাসিক যাচাইকারী ও স্টোরকিপার একই জন\",\"The monthly checker is the storekeeper\",void 0,{src:\"check\"})),{v:s,rows:{lines:d},flags:r,needs:n}}};{const I=e.forms[\"W-04\"].calc;e.forms[\"W-"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 16078,
+        "text": "\"ledger_count_diff\",p||u?\"yellow\":\"red\",\"গণনা ও লেজারের বাকিতে পার্থক্য\",\"Count differs from the ledger balance\",Math.abs(t),{unit:\"qty\"})),a(e.d.count_sheet)||r.push(S(\"adj_no_sheet\",\"red\",\"পার্থক্যের জন্য স্ট"
+      }
+    ],
+    "observed_gap": "Count minus ledger. Inclusive relative percent OR monetary tolerance yields yellow, otherwise red. Percent defaults to 100 at nonpositive balance. Absolute tolerance needs last rate. Missing count sheet and same checker/storekeeper warn red.",
+    "dependency": "Physical count, approved valuation, versioned tolerance and independent review",
+    "correction": "Resolve scoped canonical policy, voucher and identity evidence: Physical count, approved valuation, versioned tolerance and independent review",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A008-F007",
+    "source_ids": [
+      "P-01:requester",
+      "P-01:required_date",
+      "P-01:urgency"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 21663,
+        "text": "\"urgent\"===e.d.urgency&&(s.push(S(\"urgent_purchase\",\"yellow\",\"জরুরি ক্রয়\",\"Urgent purchase\",void 0)),a(e.d.normal_rate)&&a(e.d.now_rate))){const t=o(e.d.now_rate)-o(e.d.normal_rate);l.rate_diff=t,t>0&&s.push(S"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 21695,
+        "text": "S(\"urgent_purchase\",\"yellow\",\"জরুরি ক্রয়\",\"Urgent purchase\",void 0)),a(e.d.normal_rate)&&a(e.d.now_rate))){const t=o(e.d.now_rate)-o(e.d.normal_rate);l.rate_diff=t,t>0&&s.push(S(\"urgent_rate_premium\",\"yellow\","
+      }
+    ],
+    "observed_gap": "All required. Urgency opens emergency section and warns yellow. Calculator does not compare requester and approver identities.",
+    "dependency": "Procurement request and scoped independent approval",
+    "correction": "Resolve scoped canonical policy, voucher and identity evidence: Procurement request and scoped independent approval",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A008-F008",
+    "source_ids": [
+      "P-01:item",
+      "P-01:unit",
+      "P-01:stock",
+      "P-01:need",
+      "P-01:last_rate",
+      "P-01:est",
+      "P-01:est_total",
+      "P-01:why"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 20681,
+        "text": "est:a(t.need)&&a(t.last_rate)?o(t.need)*o(t.last_rate):void 0})),c=n(d.map(e=>e.est));l.est_total=c;const p=r.some(e=>N(e.need)&&!a(e.last_rate));l.est_incomplete=p;const u=O(e,\"quote_over\");if(p&&s.push(S(\"est"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 20885,
+        "text": "S(\"est_incomplete\",\"yellow\",\"কিছু লাইনে শেষ ক্রয়ের দর নেই — আনুমানিক মূল্য অসম্পূর্ণ, সীমা যাচাই করা যায়নি\",\"Some lines have no last rate: the estimate is incomplete and the limit cannot be checked\",void 0)),"
+      }
+    ],
+    "observed_gap": "Estimate is need times last rate when both present. Nonzero need without rate marks estimate incomplete, hides total and warns yellow. Stock count and justification are entered.",
+    "dependency": "Current Stock quantity, item master/UOM and approved recent purchase prices",
+    "correction": "Resolve scoped canonical policy, voucher and identity evidence: Current Stock quantity, item master/UOM and approved recent purchase prices",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A008-F009",
+    "source_ids": [
+      "P-01:cmp_text",
+      "P-01:cmp",
+      "P-01:cs_no"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 21252,
+        "text": "const r=c>u;l.cmp_text=t(\"সীমা ৳ \"+$(u)+\" — \"+(r?\"আনুমানিক মূল্য সীমার বাইরে: কোটেশন তুলনা লাগবে\":\"সীমার ভেতরে\"),\"Limit ৳ \"+$(u)+\" — \"+(r?\"estimate is above it: a quotation comparison is needed\":\"within it\")),!"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 21507,
+        "text": "S(\"cs_missing\",\"red\",\"মূল্য কোটেশন তুলনার সীমার উপরে কিন্তু কোটেশন তুলনা (CS) নং নেই\",\"Value is above the quotation limit but there is no CS number\",c))}if(\"urgent\"===e.d.urgency&&(s.push(S(\"urgent_purchase\",\"y"
+      }
+    ],
+    "observed_gap": "Above threshold is strict. Requires outside choice and comparison number, otherwise red. Equality within; missing setting requests configuration.",
+    "dependency": "Versioned procurement threshold and approved quotation voucher",
+    "correction": "Resolve scoped canonical policy, voucher and identity evidence: Versioned procurement threshold and approved quotation voucher",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A008-F010",
+    "source_ids": [
+      "P-01:urgent_reason",
+      "P-01:normal_rate",
+      "P-01:now_rate",
+      "P-01:rate_diff"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 21803,
+        "text": "const t=o(e.d.now_rate)-o(e.d.normal_rate);l.rate_diff=t,t>0&&s.push(S(\"urgent_rate_premium\",\"yellow\",\"জরুরি ক্রয়ে স্বাভাবিকের চেয়ে বেশি দর\",\"Urgent purchase at a higher rate than normal\",t))}if(l.adv_started"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 21872,
+        "text": "S(\"urgent_rate_premium\",\"yellow\",\"জরুরি ক্রয়ে স্বাভাবিকের চেয়ে বেশি দর\",\"Urgent purchase at a higher rate than normal\",t))}if(l.adv_started=\"urgent\"===e.d.urgency&&N(e.d.adv_given)&&(a(e.d.adv_change)||a(e.d."
+      }
+    ],
+    "observed_gap": "Urgent section requires reason. Current rate minus normal rate when both present; positive premium warns yellow. Rate provenance unproven.",
+    "dependency": "Urgent approval with evidence for current and normal rate",
+    "correction": "Resolve scoped canonical policy, voucher and identity evidence: Urgent approval with evidence for current and normal rate",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

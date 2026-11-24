@@ -1,0 +1,320 @@
+[
+  {
+    "issue_id": "A003-F001",
+    "source_ids": [
+      "C-04:on_d1",
+      "C-04:on_d2"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 7269,
+        "text": "B(e.rows(\"online\"),\"on_\",o);return s.abs1>0&&t.push(A(\"dig_showroom_paper_diff\",\"red\",\"শোরুমের কাগজ ও স্টেটমেন্ট মেলেনি\",\"Showroom paper differs from the statement\",s.abs1)),s.abs2>0&&t.push(A(\"dig_bank_diff\",\""
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 7962,
+        "text": "A(\"dig_line_no_statement\",\"yellow\",\"কিছু লাইনে কাগজের অঙ্ক আছে কিন্তু স্টেটমেন্টের অঙ্ক নেই\",\"Some lines have a paper amount but no statement amount\")),e.d.no_statement&&t.push(A(\"no_statement\",\"red\",\"স্টেটমেন্"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 7604,
+        "text": "A(\"app_ledger_diff\",\"red\",\"কুরিয়ার/ফুড অ্যাপ: লেজারের প্রাপ্য ও স্টেটমেন্ট মেলেনি\",\"Courier / food app: ledger due differs from the statement\",i.abs1)),i.abs2>0&&t.push(A(\"app_bank_diff\",\"red\",\"কুরিয়ার/ফুড অ্"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 7774,
+        "text": "A(\"app_bank_diff\",\"red\",\"কুরিয়ার/ফুড অ্যাপ: স্টেটমেন্ট − চার্জ প্রাপ্তির সমান নয়\",\"Courier / food app: statement − charge differs from the money received\",i.abs2)),s.noB+i.noB>0&&t.push(A(\"dig_line_no_stateme"
+      }
+    ],
+    "observed_gap": "Calculation B computes rounded aggregate A−B and B−fees−C. Red flags use absolute paired-row differences, so net-zero can still warn.",
+    "dependency": "Money settlement and scoped order receivables; preserve statement line and fee evidence.",
+    "correction": "Money settlement and scoped order receivables; preserve statement line and fee evidence.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A003-F002",
+    "source_ids": [
+      "C-04:only_st_amt",
+      "C-04:only_st_n",
+      "C-04:only_st_note",
+      "C-04:only_us_amt",
+      "C-04:only_us_n",
+      "C-04:only_us_note"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 8473,
+        "text": "a(e.d.only_st_amt)>0&&t.push(A(\"only_on_statement\",\"yellow\",\"স্টেটমেন্টে আছে কিন্তু আমাদের কাগজে নেই\",\"On the statement but not on our paper\",a(e.d.only_st_amt))),a(e.d.only_us_amt)>0&&t.push(A(\"only_on_paper\","
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 8502,
+        "text": "A(\"only_on_statement\",\"yellow\",\"স্টেটমেন্টে আছে কিন্তু আমাদের কাগজে নেই\",\"On the statement but not on our paper\",a(e.d.only_st_amt))),a(e.d.only_us_amt)>0&&t.push(A(\"only_on_paper\",\"yellow\",\"আমাদের কাগজে আছে কি"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 8665,
+        "text": "A(\"only_on_paper\",\"yellow\",\"আমাদের কাগজে আছে কিন্তু স্টেটমেন্টে নেই\",\"On our paper but not on the statement\",a(e.d.only_us_amt))),{v:o,rows:{showroom:s.out,online:i.out},flags:t,needs:[]}}},e.forms[\"C-06\"]={tit"
+      }
+    ],
+    "observed_gap": "Amounts are required syntactically. Each emits yellow only when its parsed amount exceeds zero. Counts and notes do not enter the calculator.",
+    "dependency": "Scoped unmatched statement and internal ledger item references with independent review.",
+    "correction": "Scoped unmatched statement and internal ledger item references with independent review.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A003-F003",
+    "source_ids": [
+      "C-04:personal",
+      "C-04:personal_amt"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 8260,
+        "text": "\"yes\"===e.d.personal&&t.push(A(\"personal_number\",\"red\",\"ব্যক্তিগত নম্বরে টাকা এসেছে — ব্যবস্থাপনাকে জানান\",\"Money arrived on a personal number — inform management\",r(e.d.personal_amt)?a(e.d.personal_amt):void 0"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 8289,
+        "text": "A(\"personal_number\",\"red\",\"ব্যক্তিগত নম্বরে টাকা এসেছে — ব্যবস্থাপনাকে জানান\",\"Money arrived on a personal number — inform management\",r(e.d.personal_amt)?a(e.d.personal_amt):void 0)),a(e.d.only_st_amt)>0&&t.pu"
+      }
+    ],
+    "observed_gap": "Yes shows and requires amount and raises red even with amount missing. No automatic management notification is shown.",
+    "dependency": "Merchant-account registry plus scoped incident record and audited escalation.",
+    "correction": "Merchant-account registry plus scoped incident record and audited escalation.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A003-F004",
+    "source_ids": [
+      "C-04:worklist",
+      "C-04:performed_by",
+      "C-04:checked_by"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 7044,
+        "text": "who:\"checker\",title:t(\"যাচাই\",\"Check\"),fields:[u(\"checked_by\",t(\"যাচাইকারী (Checked by) — ভিন্ন ব্যক্তি\",\"Checked by — a different person\"),{who:\"checker\",req:!0})]}],calc(e){const t=[],o={},s=B(e.rows(\"showroo"
+      }
+    ],
+    "observed_gap": "Checker-only selection and independent checker instruction; calc does not compare identities or enforce worklist routing.",
+    "dependency": "Authenticated maker/checker assignments and persisted exception queue.",
+    "correction": "Authenticated maker/checker assignments and persisted exception queue.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A003-F005",
+    "source_ids": [
+      "C-06:hub_cash",
+      "C-06:hub_state",
+      "C-06:hub_informed",
+      "C-06:sr_float",
+      "C-06:bank",
+      "C-06:mobile"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 12379,
+        "text": "l.A=s([o.hub_cash,o.sr_float,o.bank,o.mobile]),l.Bt=s(e.rows(\"recv\").map(e=>e.amt)),l.Ct=s(e.rows(\"pay\").map(e=>e.amt)),null===d?(n.push(\"hub_cash_max\"),l.hub_state=x,l.hub_over=!1,r(o.hub_cash)&&i.push(A(\"hub_"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 12582,
+        "text": "A(\"hub_max_missing\",\"red\",\"হাবের সর্বোচ্চ নগদের সীমা সেটিংসে নেই\",\"Hub maximum-cash limit is missing in settings\"))):r(o.hub_cash)?(l.hub_over=a(o.hub_cash)>d,l.hub_state=l.hub_over?t(\"বাইরে (সীমা ৳ \"+C(d)+\")\","
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 12902,
+        "text": "A(\"hub_cash_over\",\"yellow\",\"হাবের নগদ সর্বোচ্চ সীমার বাইরে\",\"Hub cash above the maximum\",T(a(o.hub_cash)-d)))):(l.hub_over=!1,l.hub_state=\"—\"),null===c)n.push(\"hub_min_cash\"),l.protect=x,l.budget=x;else{l.prote"
+      }
+    ],
+    "observed_gap": "Cash position sums cash and three balances. Missing maximum plus present cash raises red. Cash strictly greater than configured maximum raises yellow and displays notification checkbox.",
+    "dependency": "Scoped drawer, bank and mobile ledger balances; versioned cash ceiling and management acknowledgment.",
+    "correction": "Scoped drawer, bank and mobile ledger balances; versioned cash ceiling and management acknowledgment.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A003-F006",
+    "source_ids": [
+      "C-06:amt",
+      "C-06:date",
+      "C-06:protect",
+      "C-06:budget"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 12426,
+        "text": "l.Bt=s(e.rows(\"recv\").map(e=>e.amt)),l.Ct=s(e.rows(\"pay\").map(e=>e.amt)),null===d?(n.push(\"hub_cash_max\"),l.hub_state=x,l.hub_over=!1,r(o.hub_cash)&&i.push(A(\"hub_max_missing\",\"red\",\"হাবের সর্বোচ্চ নগদের সীমা স"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 13222,
+        "text": "A(\"budget_negative\",\"yellow\",\"পারচেজ বাজেট নেই — কোনো পারচেজ অর্ডার দেওয়া যাবে না\",\"No purchase budget — no purchase order may be placed\",e))}return\"yes\"===o.shortage&&i.push(A(\"shortage_risk\",\"yellow\",\"ঘাটতির"
+      }
+    ],
+    "observed_gap": "Amounts and dates recur in receivable, payable and priority collections. Forecast sums recv/pay amounts without date filtering in calc. Missing protected minimum yields data-needed. Budget rounds cash+receivables−payables−minimum, and negative figure yields yellow; PO enforcement unproven.",
+    "dependency": "Dated AR/AP commitments and cash balance feeds, versioned protected minimum and procurement authorization.",
+    "correction": "Dated AR/AP commitments and cash balance feeds, versioned protected minimum and procurement authorization.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A003-F007",
+    "source_ids": [
+      "C-06:shortage",
+      "C-06:shortage_date",
+      "C-06:shortage_amt",
+      "C-06:shortage_action",
+      "C-06:mgmt_informed",
+      "C-06:who"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 13371,
+        "text": "\"yes\"===o.shortage&&i.push(A(\"shortage_risk\",\"yellow\",\"ঘাটতির আশঙ্কা\",\"Shortage likely\",r(o.shortage_amt)?a(o.shortage_amt):void 0)),{v:l,flags:i,needs:n}}};const P=[[\"pending\",t(\"বাকি\",\"Pending\")],[\"given\",t(\""
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 13398,
+        "text": "A(\"shortage_risk\",\"yellow\",\"ঘাটতির আশঙ্কা\",\"Shortage likely\",r(o.shortage_amt)?a(o.shortage_amt):void 0)),{v:l,flags:i,needs:n}}};const P=[[\"pending\",t(\"বাকি\",\"Pending\")],[\"given\",t(\"দেওয়া হয়েছে\",\"Delivered\")"
+      }
+    ],
+    "observed_gap": "Exact yes shows conditional fields and requires shortage date and management acknowledgement. Yellow warning may omit amount. Priority rows are unconditional and have no calc association.",
+    "dependency": "Treasury exception record and accountable payment priority tied to payable references.",
+    "correction": "Treasury exception record and accountable payment priority tied to payable references.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A003-F008",
+    "source_ids": [
+      "C-06:approver",
+      "C-06:approve_time",
+      "C-06:phone_approval"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 12068,
+        "text": "u(\"approver\",t(\"অনুমোদনকারী\",\"Approved by\"),{who:\"checker\",req:!0}),c(\"approve_time\",t(\"সময়\",\"Time\"),{who:\"checker\"}),m(\"phone_approval\",t(\"ফোনে অনুমোদন (পরে স্বাক্ষর)\",\"Approved by phone (signature later)\"),{"
+      }
+    ],
+    "observed_gap": "Checker restriction and preparer separation are declared in text; calculator does not compare identity or require later signature after phone approval.",
+    "dependency": "Independent authenticated approver with auditable timestamp and later signature task.",
+    "correction": "Independent authenticated approver with auditable timestamp and later signature task.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A003-F009",
+    "source_ids": [
+      "C-05:week_from",
+      "C-05:week_to",
+      "C-05:party",
+      "C-05:page",
+      "C-05:total",
+      "C-05:action",
+      "C-05:t_total",
+      "C-05:t_a30",
+      "C-05:t_a60",
+      "C-05:t_a60p"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 16344,
+        "text": "n.t_total=s(t.map(e=>e.total)),n.t_a30=s(t.map(e=>e.a30)),n.t_a60=s(t.map(e=>e.a60)),n.t_a60p=s(t.map(e=>e.a60p)),n.a60p_show=n.t_a60p,n.adv_open=s(o.filter(e=>\"given\"!==e.status&&\"refunded\"!==e.status).map(e=>"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 16698,
+        "text": "A(\"recv_aging_mismatch\",\"yellow\",\"প্রাপ্যের মোট ও বয়সের ভাগের যোগ মেলেনি\",\"Total due differs from the sum of its age buckets\",T(s(l.map(e=>Math.abs(a(e.total)-a(e.a30)-a(e.a60)-a(e.a60p))))))),n.t_a60p>0&&i.pu"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 16911,
+        "text": "A(\"recv_60plus\",\"yellow\",\"60+ দিনের প্রাপ্য আছে\",\"60+ days receivable exists\",n.t_a60p)),\"yes\"===e.d.over_credit&&i.push(A(\"over_credit\",\"yellow\",\"ক্রেডিট সীমার বাইরে পার্টি আছে\",\"A party is beyond the credit l"
+      }
+    ],
+    "observed_gap": "Dates are syntactically required with no period-order check shown here. Amounts are summed by manually entered aging buckets; rounded row mismatches and positive aggregate 60+ balance warn yellow. No invoice-date aging calculation.",
+    "dependency": "Scoped AR invoice balances, computed age as of report date, ledger references and collection actions.",
+    "correction": "Scoped AR invoice balances, computed age as of report date, ledger references and collection actions.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A003-F010",
+    "source_ids": [
+      "C-05:order_no",
+      "C-05:adv_date",
+      "C-05:amt",
+      "C-05:due_date",
+      "C-05:status",
+      "C-05:note",
+      "C-05:adv_open"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 16479,
+        "text": "n.adv_open=s(o.filter(e=>\"given\"!==e.status&&\"refunded\"!==e.status).map(e=>e.amt));const l=t.filter(e=>r(e.total)&&(r(e.a30)||r(e.a60)||r(e.a60p))&&0!==T(a(e.total)-a(e.a30)-a(e.a60)-a(e.a60p)));return l.length"
+      }
+    ],
+    "observed_gap": "Open total excludes exactly given and refunded. Blank or unrecognized status contributes if amount is numeric under legacy helpers; no receipt, order or duplicate validation shown.",
+    "dependency": "Customer advance liability and allocated Money receipt linked to one scoped Sales order.",
+    "correction": "Customer advance liability and allocated Money receipt linked to one scoped Sales order.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A003-F011",
+    "source_ids": [
+      "C-05:over_credit"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 17000,
+        "text": "\"yes\"===e.d.over_credit&&i.push(A(\"over_credit\",\"yellow\",\"ক্রেডিট সীমার বাইরে পার্টি আছে\",\"A party is beyond the credit limit\")),\"yes\"!==e.d.over_credit||e.d.credit_stopped||i.push(A(\"credit_not_stopped\",\"red\","
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 17032,
+        "text": "A(\"over_credit\",\"yellow\",\"ক্রেডিট সীমার বাইরে পার্টি আছে\",\"A party is beyond the credit limit\")),\"yes\"!==e.d.over_credit||e.d.credit_stopped||i.push(A(\"credit_not_stopped\",\"red\",\"ক্রেডিট সীমার বাইরের পার্টির নত"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 17181,
+        "text": "A(\"credit_not_stopped\",\"red\",\"ক্রেডিট সীমার বাইরের পার্টির নতুন বাকি বন্ধ হয়নি\",\"New credit not stopped for a party beyond the limit\")),\"no\"===e.d.adv_match&&0!==a(e.d.adv_diff)&&i.push(A(\"adv_ledger_mismatch\""
+      }
+    ],
+    "observed_gap": "Yes emits yellow and red when stop-credit attestation is falsy. Calculator uses answer, no comparison to an account limit shown.",
+    "dependency": "Scoped party exposure against effective credit policy; centrally enforced sales hold.",
+    "correction": "Scoped party exposure against effective credit policy; centrally enforced sales hold.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

@@ -1,0 +1,1345 @@
+{
+  "schema_version": 1,
+  "batch": "A004",
+  "source": {
+    "path": "forms.js",
+    "legacy_trunk_path": "legacy/islamia-erp/forms.js",
+    "git_blob": "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d",
+    "parent_commit": "c68c97bad339f794dc02c395a14809668ff3599e",
+    "sha256": "53ca5ac41a8f663fbcc76c4be5a7ec1d5a937d97dcf4020f709ff69eecae9e73",
+    "ci_compatibility": "Legacy tests use relocated path. CI stages a byte-identical copy of the pinned Git blob in the ephemeral checkout.",
+    "supplements": {
+      "forms_cash.js": "ce58ef83daa19273b766f3eac63db5f97cc741ffb26ed21076ab948032c14022"
+    }
+  },
+  "rules": {
+    "credit": {
+      "behavior": "Party required and visible when over_credit is exactly yes; additional red credit_not_stopped depends on the stop attestation, not a persisted limit lock.",
+      "fragments": [
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 17129,
+          "text": "\"yes\"!==e.d.over_credit||e.d.credit_stopped||i.push(A(\"credit_not_stopped\",\"red\",\"ক্রেডিট সীমার বাইরের পার্টির নতুন বাকি বন্ধ হয়নি\",\"New credit not stopped for a party beyond the limit\")),\"no\"===e.d.adv_match&"
+        },
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 17181,
+          "text": "A(\"credit_not_stopped\",\"red\",\"ক্রেডিট সীমার বাইরের পার্টির নতুন বাকি বন্ধ হয়নি\",\"New credit not stopped for a party beyond the limit\")),\"no\"===e.d.adv_match&&0!==a(e.d.adv_diff)&&i.push(A(\"adv_ledger_mismatch\""
+        }
+      ],
+      "helper_status": "Legacy coercion, persistence and authorization UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "advance": {
+      "behavior": "No answer reveals and requires difference; red only if parsed difference is nonzero. Manual answer can contradict amount or ledger.",
+      "fragments": [
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 15847,
+          "text": "\"no\"===e.d.adv_match,req:e=>\"no\"===e.d.adv_match}),f(\"a60p_show\",t(\"60+ দিনের প্রাপ্য\",\"60+ days receivable\"),\"money\"),m(\"worklist\",t(\"কাজের তালিকায় যোগ (60+ দিনের প্রাপ্য)\",\"Added to the work list (60+ days r"
+        },
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 17368,
+          "text": "A(\"adv_ledger_mismatch\",\"red\",\"অ্যাডভান্সের মোট লেজারের সাথে মেলেনি\",\"Advance total does not match the ledger\",a(e.d.adv_diff))),{v:n,flags:i,needs:[]}}};const I=e=>t(C(e)+\" কেজি\",C(e)+\" kg\");e.forms[\"R-02\"]={t"
+        }
+      ],
+      "helper_status": "Legacy coercion, persistence and authorization UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "aging": {
+      "behavior": "Display copies t_a60p; positive balance warns yellow. Worklist attestation and checker role do not prove persisted task or distinct identity.",
+      "fragments": [
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 16458,
+          "text": "n.a60p_show=n.t_a60p,n.adv_open=s(o.filter(e=>\"given\"!==e.status&&\"refunded\"!==e.status).map(e=>e.amt));const l=t.filter(e=>r(e.total)&&(r(e.a30)||r(e.a60)||r(e.a60p))&&0!==T(a(e.total)-a(e.a30)-a(e.a60)-a(e.a6"
+        },
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 16911,
+          "text": "A(\"recv_60plus\",\"yellow\",\"60+ দিনের প্রাপ্য আছে\",\"60+ days receivable exists\",n.t_a60p)),\"yes\"===e.d.over_credit&&i.push(A(\"over_credit\",\"yellow\",\"ক্রেডিট সীমার বাইরে পার্টি আছে\",\"A party is beyond the credit l"
+        }
+      ],
+      "helper_status": "Legacy coercion, persistence and authorization UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "measurement": {
+      "behavior": "Opening and closing measurement declarations feed measured batch consumption. KG/L choice labels oil and syrup display, without unit conversion. Bad scale raises red; no roster raises yellow.",
+      "fragments": [
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 25191,
+          "text": "l=e.rows(\"meas\"),d=l[0]||{},c=l[1]||{},h=l[2]||{},m=S(e,\"jalebi_base_pct\"),u=S(e,\"jalebi_per_kg_flour\"),p=S(e,\"jalebi_tol_pct\"),_=S(e,\"jalebi_tol_kg\");n.oil_rule=S(e,\"oil_change_rule\")||x,\"yes\"!==o.oil_changed|"
+        },
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 27384,
+          "text": "A(\"scale_off\",\"red\",\"পাল্লায় গরমিল — ব্যবহার বন্ধ\",\"Scale is off — stop using it\"));return r(o.produced_by)&&o.produced_by===o.measured_by?s.push(A(\"producer_is_measurer\",\"red\",\"উৎপাদনকারী ও পরিমাপকারী একই জন\""
+        },
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 28060,
+          "text": "A(\"exc_roster\",\"yellow\",\"গরমিল: রোস্টার মানা হয়নি\",\"Exception: roster not followed\")),o.e_syrup&&s.push(A(\"exc_syrup\",\"yellow\",\"গরমিল: রস কম পড়ায় আলাদা চিনির রস\",\"Exception: separate sugar syrup because syru"
+        }
+      ],
+      "helper_status": "Legacy coercion, persistence and authorization UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "oil": {
+      "behavior": "Changed yes reveals disposal controls and records missing oil setting; sold disposition reveals optional sales amount and ledger line. No verified disposal posting.",
+      "fragments": [
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 25342,
+          "text": "n.oil_rule=S(e,\"oil_change_rule\")||x,\"yes\"!==o.oil_changed||S(e,\"oil_change_rule\")||i.push(\"oil_change_rule\");const y=a(o.tot_flour);n.c1=r(o.tot_flour)?I(y):\"—\";const g=r(d.open)&&r(d.close)?a(d.open)-a(d.clos"
+        }
+      ],
+      "helper_status": "Legacy coercion, persistence and authorization UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "inputs": {
+      "behavior": "Issued quantities and slip are evidence fields; prod consumption formula uses total syrup and total oil, without verifying that issued goods reconcile to transfers.",
+      "fragments": [
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 27241,
+          "text": "a(o.tot_syrup)+a(h.open)-a(h.close):null;n.c12=null===j?\"—\":B(j,h),n.c12k=null!==j&&null!==M&&M>0?t(C(j/M),C(j/M)):\"—\",\"bad\"===o.scale&&s.push(A(\"scale_off\",\"red\",\"পাল্লায় গরমিল — ব্যবহার বন্ধ\",\"Scale is off —"
+        },
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 27808,
+          "text": "A(\"exc_noslip\",\"yellow\",\"গরমিল: স্লিপ ছাড়া মালামাল প্রাপ্ত\",\"Exception: goods received without a slip\")),o.e_nomeasure&&s.push(A(\"exc_nomeasure\",\"yellow\",\"গরমিল: মাপ নেওয়া হয়নি\",\"Exception: measure not taken"
+        }
+      ],
+      "helper_status": "Legacy coercion, persistence and authorization UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "yield": {
+      "behavior": "Opening−closing dough, flour equivalent=100×dough/base%, flour total and expected yield multiply configured factor. Sales value/positive item price derives weight; actual adds unsold and samples.",
+      "fragments": [
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 25655,
+          "text": "b=100*g/m,n.c3=I(b)):n.c3=\"—\";const f=null!==b&&r(o.tot_flour)?y+b:null;n.c4=null===f?\"—\":I(f);let w=null;null!==f?null===u?(i.push(\"jalebi_per_kg_flour\"),n.c5=x):(w=f*u,n.c5=I(w)):n.c5=\"—\";const v=o.jalebi_ite"
+        }
+      ],
+      "helper_status": "Legacy coercion, persistence and authorization UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "variance": {
+      "behavior": "Rounded actual−expected. Nonzero gap is yellow if either inclusive tolerance matches, red otherwise. Percentage needs positive expected; both missing requests settings and raises red.",
+      "fragments": [
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 26226,
+          "text": "const e=T(M-w);if(n.c10=t((e>0?\"+\":\"\")+C(e)+\" কেজি\",(e>0?\"+\":\"\")+C(e)+\" kg\"),0===e)n.c10_state=t(\"মিল আছে ✓\",\"Matches ✓\");else{const o=null!==p&&w>0&&Math.abs(e)/w*100<=p,a=null!==_&&Math.abs(e)<=_;null===p&&nu"
+        },
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 26546,
+          "text": "A(\"jalebi_diff_small\",\"yellow\",\"জিলাপির প্রত্যাশিত ও প্রকৃতে ছোট পার্থক্য (সীমার ভেতরে)\",\"Small expected-vs-actual jalebi gap (inside the limit)\",Math.abs(e),{unit:\"qty\"}))):(n.c10_state=null===p&&null===_?x:t("
+        },
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 26812,
+          "text": "A(\"jalebi_diff\",\"red\",\"জিলাপির প্রত্যাশিত ও প্রকৃতের পার্থক্য সীমার বাইরে\",\"Expected-vs-actual jalebi gap outside the limit\",Math.abs(e),{unit:\"qty\"})))}}const D=e=>\"l\"===e.unit?t(\"লিটার\",\"Litre\"):t(\"কেজি\",\"KG\""
+        }
+      ],
+      "helper_status": "Legacy coercion, persistence and authorization UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "usage": {
+      "behavior": "Oil and syrup = received+opening−closing, per-unit displays divide by actual weight only when positive. No conversion or nonnegative check in calc.",
+      "fragments": [
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 27094,
+          "text": "a(o.tot_oil)+a(c.open)-a(c.close):null;n.c11=null===P?\"—\":B(P,c),n.c11k=null!==P&&null!==M&&M>0?t(C(P/M),C(P/M)):\"—\";const j=r(h.open)&&r(h.close)?a(o.tot_syrup)+a(h.open)-a(h.close):null;n.c12=null===j?\"—\":B(j"
+        }
+      ],
+      "helper_status": "Legacy coercion, persistence and authorization UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "disposition": {
+      "behavior": "Unsold positive requires decision; keep requires tag and drop requires wastage attestation. No Stock posting shown by these declarations.",
+      "fragments": [
+        {
+          "source_file": "forms_cash.js",
+          "offset_utf16": 26121,
+          "text": "n.unsold_show=r(o.unsold)?I(a(o.unsold)):\"—\",n.c10=\"—\",n.c10_state=\"—\",n.diff_out=!1,null!==M&&null!==w){const e=T(M-w);if(n.c10=t((e>0?\"+\":\"\")+C(e)+\" কেজি\",(e>0?\"+\":\"\")+C(e)+\" kg\"),0===e)n.c10_state=t(\"মিল আছে"
+        }
+      ],
+      "helper_status": "Legacy coercion, persistence and authorization UNKNOWN.",
+      "target_authority": "PROPOSED"
+    }
+  },
+  "warning_map": {
+    "credit_not_stopped": "red",
+    "adv_ledger_mismatch": "red",
+    "recv_60plus": "yellow",
+    "scale_off": "red",
+    "exc_roster": "yellow",
+    "exc_noslip": "yellow",
+    "jalebi_diff_small": "yellow",
+    "jalebi_diff": "red"
+  },
+  "fields": [
+    {
+      "source_id": "C-05:over_party",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 15485,
+        "literal": "i(\"over_party\",t(\"পার্টি\",\"Party\"),{show:e=>\"yes\"===e.d.over_credit,req:e=>\"yes\"===e.d.over_credit})",
+        "constructor_alias": "i",
+        "label_bn": "পার্টি",
+        "label_en": "Party"
+      },
+      "type": "T",
+      "requirements": "e=>\"yes\"===e.d.over_credit",
+      "visibility": "e=>\"yes\"===e.d.over_credit",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "credit",
+      "issue_id": "A004-F001",
+      "data_origin": "Party master, credit policy and server sales hold",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "C-05:adv_match",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 15681,
+        "literal": "g(\"adv_match\",t(\"অ্যাডভান্সের মোট লেজারের সাথে মিল আছে?\",\"Does the advance total match the ledger?\"),o,{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "অ্যাডভান্সের মোট লেজারের সাথে মিল আছে?",
+        "label_en": "Does the advance total match the ledger?"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choice declaration; see literal",
+      "rule_group": "advance",
+      "issue_id": "A004-F002",
+      "data_origin": "Money advance ledger, allocation and reconciliation",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "C-05:adv_diff",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 15794,
+        "literal": "d(\"adv_diff\",t(\"পার্থক্য ৳\",\"Difference ৳\"),{show:e=>\"no\"===e.d.adv_match,req:e=>\"no\"===e.d.adv_match})",
+        "constructor_alias": "d",
+        "label_bn": "পার্থক্য ৳",
+        "label_en": "Difference ৳"
+      },
+      "type": "M",
+      "requirements": "e=>\"no\"===e.d.adv_match",
+      "visibility": "e=>\"no\"===e.d.adv_match",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "advance",
+      "issue_id": "A004-F002",
+      "data_origin": "Money advance ledger, allocation and reconciliation",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "C-05:a60p_show",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 15898,
+        "literal": "f(\"a60p_show\",t(\"60+ দিনের প্রাপ্য\",\"60+ days receivable\"),\"money\")",
+        "constructor_alias": "f",
+        "label_bn": "60+ দিনের প্রাপ্য",
+        "label_en": "60+ days receivable"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "aging",
+      "issue_id": "A004-F003",
+      "data_origin": "Scoped AR aging and exception queue, independent reviewer",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "C-05:worklist",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 15966,
+        "literal": "m(\"worklist\",t(\"কাজের তালিকায় যোগ (60+ দিনের প্রাপ্য)\",\"Added to the work list (60+ days receivable)\"))",
+        "constructor_alias": "m",
+        "label_bn": "কাজের তালিকায় যোগ (60+ দিনের প্রাপ্য)",
+        "label_en": "Added to the work list (60+ days receivable)"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "aging",
+      "issue_id": "A004-F003",
+      "data_origin": "Scoped AR aging and exception queue, independent reviewer",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "C-05:prepared_by",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 16071,
+        "literal": "u(\"prepared_by\",t(\"প্রস্তুতকারী (Prepared by)\",\"Prepared by\"))",
+        "constructor_alias": "u",
+        "label_bn": "প্রস্তুতকারী (Prepared by)",
+        "label_en": "Prepared by"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "aging",
+      "issue_id": "A004-F003",
+      "data_origin": "Scoped AR aging and exception queue, independent reviewer",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "C-05:checked_by",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 16184,
+        "literal": "u(\"checked_by\",t(\"যাচাইকারী (Checked by) — ব্যবস্থাপনা\",\"Checked by — management\"),{who:\"checker\"})",
+        "constructor_alias": "u",
+        "label_bn": "যাচাইকারী (Checked by) — ব্যবস্থাপনা",
+        "label_en": "Checked by — management"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "\"checker\"",
+      "collection": "checker section",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "aging",
+      "issue_id": "A004-F003",
+      "data_origin": "Scoped AR aging and exception queue, independent reviewer",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:prepared_slot",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 17739,
+        "literal": "i(\"prepared_slot\",t(\"প্রস্তুতকারী (Prepared by) — খামির (পদ / ডিউটি স্লট)\",\"Prepared by (dough) — role / duty slot\"))",
+        "constructor_alias": "i",
+        "label_bn": "প্রস্তুতকারী (Prepared by) — খামির (পদ / ডিউটি স্লট)",
+        "label_en": "Prepared by (dough) — role / duty slot"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "measurement",
+      "issue_id": "A004-F004",
+      "data_origin": "Manufacturing batch measurement, calibrated equipment and roster",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:roster",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 17857,
+        "literal": "g(\"roster\",t(\"রোস্টার অনুযায়ী\",\"As per the roster\"),o)",
+        "constructor_alias": "g",
+        "label_bn": "রোস্টার অনুযায়ী",
+        "label_en": "As per the roster"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choice declaration; see literal",
+      "rule_group": "measurement",
+      "issue_id": "A004-F004",
+      "data_origin": "Manufacturing batch measurement, calibrated equipment and roster",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:t_open",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 18725,
+        "literal": "c(\"t_open\",t(\"খোলায় — সময়\",\"Opening — time\"))",
+        "constructor_alias": "c",
+        "label_bn": "খোলায় — সময়",
+        "label_en": "Opening — time"
+      },
+      "type": "TM",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "meas",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "measurement",
+      "issue_id": "A004-F004",
+      "data_origin": "Manufacturing batch measurement, calibrated equipment and roster",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:open",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 18773,
+        "literal": "l(\"open\",t(\"খোলায় — পরিমাপ\",\"Opening — amount\"),{req:!0})",
+        "constructor_alias": "l",
+        "label_bn": "খোলায় — পরিমাপ",
+        "label_en": "Opening — amount"
+      },
+      "type": "N",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "meas",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "measurement",
+      "issue_id": "A004-F004",
+      "data_origin": "Manufacturing batch measurement, calibrated equipment and roster",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:t_close",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 18832,
+        "literal": "c(\"t_close\",t(\"বন্ধে — সময়\",\"Closing — time\"))",
+        "constructor_alias": "c",
+        "label_bn": "বন্ধে — সময়",
+        "label_en": "Closing — time"
+      },
+      "type": "TM",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "meas",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "measurement",
+      "issue_id": "A004-F004",
+      "data_origin": "Manufacturing batch measurement, calibrated equipment and roster",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:close",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 18880,
+        "literal": "l(\"close\",t(\"বন্ধে — পরিমাপ\",\"Closing — amount\"),{req:!0})",
+        "constructor_alias": "l",
+        "label_bn": "বন্ধে — পরিমাপ",
+        "label_en": "Closing — amount"
+      },
+      "type": "N",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "meas",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "measurement",
+      "issue_id": "A004-F004",
+      "data_origin": "Manufacturing batch measurement, calibrated equipment and roster",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:unit",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 18939,
+        "literal": "g(\"unit\",t(\"একক\",\"Unit\"),[[\"kg\",t(\"কেজি\",\"KG\")],[\"l\",t(\"লিটার\",\"Litre\")]])",
+        "constructor_alias": "g",
+        "label_bn": "একক",
+        "label_en": "Unit"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "meas",
+      "default": "NOT_DECLARED",
+      "option_source": "kg / l",
+      "rule_group": "measurement",
+      "issue_id": "A004-F004",
+      "data_origin": "Manufacturing batch measurement, calibrated equipment and roster",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:scale_worklist",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 19505,
+        "literal": "m(\"scale_worklist\",t(\"কাজের তালিকায় যোগ\",\"Added to the work list\"),{show:e=>\"bad\"===e.d.scale})",
+        "constructor_alias": "m",
+        "label_bn": "কাজের তালিকায় যোগ",
+        "label_en": "Added to the work list"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"bad\"===e.d.scale",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "measurement",
+      "issue_id": "A004-F004",
+      "data_origin": "Manufacturing batch measurement, calibrated equipment and roster",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:oil_changed",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 19602,
+        "literal": "g(\"oil_changed\",t(\"তেল বদল\",\"Oil change\"),o)",
+        "constructor_alias": "g",
+        "label_bn": "তেল বদল",
+        "label_en": "Oil change"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choice declaration; see literal",
+      "rule_group": "oil",
+      "issue_id": "A004-F005",
+      "data_origin": "Stock lot disposal and linked Money sale voucher",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:oil_rule",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 19647,
+        "literal": "f(\"oil_rule\",t(\"তেল কখন বদল (লোকেশন সেটিংস)\",\"When oil is changed (location settings)\"),\"text\",{show:e=>\"yes\"===e.d.oil_changed})",
+        "constructor_alias": "f",
+        "label_bn": "তেল কখন বদল (লোকেশন সেটিংস)",
+        "label_en": "When oil is changed (location settings)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"yes\"===e.d.oil_changed",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "oil",
+      "issue_id": "A004-F005",
+      "data_origin": "Stock lot disposal and linked Money sale voucher",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:old_oil",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 19777,
+        "literal": "l(\"old_oil\",t(\"পুরোনো তেল (লিটার)\",\"Old oil (litres)\"),{show:e=>\"yes\"===e.d.oil_changed})",
+        "constructor_alias": "l",
+        "label_bn": "পুরোনো তেল (লিটার)",
+        "label_en": "Old oil (litres)"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"yes\"===e.d.oil_changed",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "oil",
+      "issue_id": "A004-F005",
+      "data_origin": "Stock lot disposal and linked Money sale voucher",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:old_oil_fate",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 19867,
+        "literal": "g(\"old_oil_fate\",t(\"পুরোনো তেল\",\"Old oil\"),[[\"destroyed\",t(\"নষ্ট করা\",\"Discarded\")],[\"sold\",t(\"বিক্রি\",\"Sold\")]],{show:e=>\"yes\"===e.d.oil_changed})",
+        "constructor_alias": "g",
+        "label_bn": "পুরোনো তেল",
+        "label_en": "Old oil"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"yes\"===e.d.oil_changed",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "destroyed / sold",
+      "rule_group": "oil",
+      "issue_id": "A004-F005",
+      "data_origin": "Stock lot disposal and linked Money sale voucher",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:old_oil_amt",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 20015,
+        "literal": "d(\"old_oil_amt\",t(\"বিক্রি ৳\",\"Sold for ৳\"),{show:e=>\"yes\"===e.d.oil_changed&&\"sold\"===e.d.old_oil_fate})",
+        "constructor_alias": "d",
+        "label_bn": "বিক্রি ৳",
+        "label_en": "Sold for ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"yes\"===e.d.oil_changed&&\"sold\"===e.d.old_oil_fate",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "oil",
+      "issue_id": "A004-F005",
+      "data_origin": "Stock lot disposal and linked Money sale voucher",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:old_oil_line",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 20120,
+        "literal": "i(\"old_oil_line\",t(\"ক্যাশ ও ব্যাংক লেজারের লাইন নং\",\"Cash & bank ledger line no.\"),{show:e=>\"yes\"===e.d.oil_changed&&\"sold\"===e.d.old_oil_fate})",
+        "constructor_alias": "i",
+        "label_bn": "ক্যাশ ও ব্যাংক লেজারের লাইন নং",
+        "label_en": "Cash & bank ledger line no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"yes\"===e.d.oil_changed&&\"sold\"===e.d.old_oil_fate",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "oil",
+      "issue_id": "A004-F005",
+      "data_origin": "Stock lot disposal and linked Money sale voucher",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:slip_no",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 20414,
+        "literal": "i(\"slip_no\",t(\"মালামাল ইস্যু স্লিপ নং\",\"Goods issue slip no.\"))",
+        "constructor_alias": "i",
+        "label_bn": "মালামাল ইস্যু স্লিপ নং",
+        "label_en": "Goods issue slip no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A004-F006",
+      "data_origin": "Stock transfer slip and manufacturing consumption by lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:i_flour",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 20478,
+        "literal": "m(\"i_flour\",t(\"ময়দা\",\"Flour\"))",
+        "constructor_alias": "m",
+        "label_bn": "ময়দা",
+        "label_en": "Flour"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A004-F006",
+      "data_origin": "Stock transfer slip and manufacturing consumption by lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:i_sugar",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 20510,
+        "literal": "m(\"i_sugar\",t(\"চিনি\",\"Sugar\"))",
+        "constructor_alias": "m",
+        "label_bn": "চিনি",
+        "label_en": "Sugar"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A004-F006",
+      "data_origin": "Stock transfer slip and manufacturing consumption by lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:i_oil",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 20541,
+        "literal": "m(\"i_oil\",t(\"তেল\",\"Oil\"))",
+        "constructor_alias": "m",
+        "label_bn": "তেল",
+        "label_en": "Oil"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A004-F006",
+      "data_origin": "Stock transfer slip and manufacturing consumption by lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:i_syrup",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 20567,
+        "literal": "m(\"i_syrup\",t(\"রস\",\"Syrup\"))",
+        "constructor_alias": "m",
+        "label_bn": "রস",
+        "label_en": "Syrup"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A004-F006",
+      "data_origin": "Stock transfer slip and manufacturing consumption by lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:i_other",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 20596,
+        "literal": "m(\"i_other\",t(\"অন্য\",\"Other\"))",
+        "constructor_alias": "m",
+        "label_bn": "অন্য",
+        "label_en": "Other"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A004-F006",
+      "data_origin": "Stock transfer slip and manufacturing consumption by lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:source",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 20627,
+        "literal": "g(\"source\",t(\"উৎস\",\"Source\"),[[\"godown\",t(\"গোডাউন\",\"Godown\")],[\"factory\",t(\"মিষ্টি কারখানা\",\"Sweet factory\")]])",
+        "constructor_alias": "g",
+        "label_bn": "উৎস",
+        "label_en": "Source"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choice declaration; see literal",
+      "rule_group": "inputs",
+      "issue_id": "A004-F006",
+      "data_origin": "Stock transfer slip and manufacturing consumption by lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:tot_sugar",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 20855,
+        "literal": "l(\"tot_sugar\",t(\"— চিনি (কেজি)\",\"— sugar (kg)\"))",
+        "constructor_alias": "l",
+        "label_bn": "— চিনি (কেজি)",
+        "label_en": "— sugar (kg)"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A004-F006",
+      "data_origin": "Stock transfer slip and manufacturing consumption by lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:tot_syrup",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 20953,
+        "literal": "l(\"tot_syrup\",t(\"— রস (লিটার)\",\"— syrup (litres)\"))",
+        "constructor_alias": "l",
+        "label_bn": "— রস (লিটার)",
+        "label_en": "— syrup (litres)"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A004-F006",
+      "data_origin": "Stock transfer slip and manufacturing consumption by lot and UOM",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:jalebi_item",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 21388,
+        "literal": "p(\"jalebi_item\",t(\"জিলাপি (মূল্য তালিকা থেকে দাম নিতে)\",\"Jalebi item (price taken from the price list)\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "জিলাপি (মূল্য তালিকা থেকে দাম নিতে)",
+        "label_en": "Jalebi item (price taken from the price list)"
+      },
+      "type": "ITEM",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original item picker; scope unknown",
+      "rule_group": "yield",
+      "issue_id": "A004-F007",
+      "data_origin": "Effective item price, manufacturing recipe version, batch yield and Sales receipts",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c1",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 21635,
+        "literal": "f(\"c1\",t(\"1 · ইস্যু হওয়া ময়দা (Section B-র মোট)\",\"1 · Flour issued (Section B total)\"),\"text\")",
+        "constructor_alias": "f",
+        "label_bn": "1 · ইস্যু হওয়া ময়দা (Section B-র মোট)",
+        "label_en": "1 · Flour issued (Section B total)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "yield",
+      "issue_id": "A004-F007",
+      "data_origin": "Effective item price, manufacturing recipe version, batch yield and Sales receipts",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c2",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 21732,
+        "literal": "f(\"c2\",t(\"2 · খোলার খামির − বন্ধের খামির\",\"2 · Opening dough − closing dough\"),\"text\")",
+        "constructor_alias": "f",
+        "label_bn": "2 · খোলার খামির − বন্ধের খামির",
+        "label_en": "2 · Opening dough − closing dough"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "yield",
+      "issue_id": "A004-F007",
+      "data_origin": "Effective item price, manufacturing recipe version, batch yield and Sales receipts",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c3",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 21819,
+        "literal": "f(\"c3\",t(\"3 · খামির থেকে ময়দার হিসাব = (2) × 100 ÷ বেস রূপান্তর %\",\"3 · Flour worked out from dough = (2) × 100 ÷ base conversion %\"),\"text\")",
+        "constructor_alias": "f",
+        "label_bn": "3 · খামির থেকে ময়দার হিসাব = (2) × 100 ÷ বেস রূপান্তর %",
+        "label_en": "3 · Flour worked out from dough = (2) × 100 ÷ base conversion %"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "yield",
+      "issue_id": "A004-F007",
+      "data_origin": "Effective item price, manufacturing recipe version, batch yield and Sales receipts",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c4",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 21962,
+        "literal": "f(\"c4\",t(\"4 · আজ খরচ হওয়া ময়দা = (1) + (3)\",\"4 · Flour used today = (1) + (3)\"),\"text\")",
+        "constructor_alias": "f",
+        "label_bn": "4 · আজ খরচ হওয়া ময়দা = (1) + (3)",
+        "label_en": "4 · Flour used today = (1) + (3)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "yield",
+      "issue_id": "A004-F007",
+      "data_origin": "Effective item price, manufacturing recipe version, batch yield and Sales receipts",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c5",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 22052,
+        "literal": "f(\"c5\",t(\"5 · প্রত্যাশিত জিলাপি = (4) × প্রতি কেজি ময়দায় জিলাপি\",\"5 · Expected jalebi = (4) × jalebi per kg of flour\"),\"text\",{big:!0})",
+        "constructor_alias": "f",
+        "label_bn": "5 · প্রত্যাশিত জিলাপি = (4) × প্রতি কেজি ময়দায় জিলাপি",
+        "label_en": "5 · Expected jalebi = (4) × jalebi per kg of flour"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "yield",
+      "issue_id": "A004-F007",
+      "data_origin": "Effective item price, manufacturing recipe version, batch yield and Sales receipts",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c6",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 22190,
+        "literal": "f(\"c6\",t(\"6 · বিক্রি = জিলাপি বিক্রি ৳ ÷ প্রতি কেজির দাম\",\"6 · Sold = jalebi sales ৳ ÷ price per kg\"),\"text\")",
+        "constructor_alias": "f",
+        "label_bn": "6 · বিক্রি = জিলাপি বিক্রি ৳ ÷ প্রতি কেজির দাম",
+        "label_en": "6 · Sold = jalebi sales ৳ ÷ price per kg"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "yield",
+      "issue_id": "A004-F007",
+      "data_origin": "Effective item price, manufacturing recipe version, batch yield and Sales receipts",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:samples",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 22422,
+        "literal": "l(\"samples\",t(\"8 · নমুনা ও ভাঙা (কেজি)\",\"8 · Samples & broken (kg)\"))",
+        "constructor_alias": "l",
+        "label_bn": "8 · নমুনা ও ভাঙা (কেজি)",
+        "label_en": "8 · Samples & broken (kg)"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "yield",
+      "issue_id": "A004-F007",
+      "data_origin": "Effective item price, manufacturing recipe version, batch yield and Sales receipts",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c9",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 22492,
+        "literal": "f(\"c9\",t(\"9 · প্রকৃত মোট = (6) + (7) + (8)\",\"9 · Actual total = (6) + (7) + (8)\"),\"text\")",
+        "constructor_alias": "f",
+        "label_bn": "9 · প্রকৃত মোট = (6) + (7) + (8)",
+        "label_en": "9 · Actual total = (6) + (7) + (8)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "yield",
+      "issue_id": "A004-F007",
+      "data_origin": "Effective item price, manufacturing recipe version, batch yield and Sales receipts",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c10",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 22582,
+        "literal": "f(\"c10\",t(\"10 · পার্থক্য = (9) − (5)\",\"10 · Difference = (9) − (5)\"),\"text\",{big:!0})",
+        "constructor_alias": "f",
+        "label_bn": "10 · পার্থক্য = (9) − (5)",
+        "label_en": "10 · Difference = (9) − (5)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "variance",
+      "issue_id": "A004-F008",
+      "data_origin": "Versioned yield tolerances and discrepancy review",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c10_state",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 22668,
+        "literal": "f(\"c10_state\",t(\"সীমার ভেতরে / বাইরে (লোকেশন সেটিংস)\",\"Inside / outside the limit (location settings)\"),\"text\")",
+        "constructor_alias": "f",
+        "label_bn": "সীমার ভেতরে / বাইরে (লোকেশন সেটিংস)",
+        "label_en": "Inside / outside the limit (location settings)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "variance",
+      "issue_id": "A004-F008",
+      "data_origin": "Versioned yield tolerances and discrepancy review",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c11",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 22780,
+        "literal": "f(\"c11\",t(\"11 · তেল খরচ = তেল ইস্যু + খোলার তেল − বন্ধের তেল\",\"11 · Oil used = oil issued + opening oil − closing oil\"),\"text\")",
+        "constructor_alias": "f",
+        "label_bn": "11 · তেল খরচ = তেল ইস্যু + খোলার তেল − বন্ধের তেল",
+        "label_en": "11 · Oil used = oil issued + opening oil − closing oil"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "usage",
+      "issue_id": "A004-F009",
+      "data_origin": "Batch material balances, controlled unit conversion and reconciliation",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c11k",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 22908,
+        "literal": "f(\"c11k\",t(\"— প্রতি কেজি জিলাপিতে তেল = (11) ÷ (9)\",\"— oil per kg of jalebi = (11) ÷ (9)\"),\"text\")",
+        "constructor_alias": "f",
+        "label_bn": "— প্রতি কেজি জিলাপিতে তেল = (11) ÷ (9)",
+        "label_en": "— oil per kg of jalebi = (11) ÷ (9)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "usage",
+      "issue_id": "A004-F009",
+      "data_origin": "Batch material balances, controlled unit conversion and reconciliation",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c12",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 23007,
+        "literal": "f(\"c12\",t(\"12 · রস খরচ = প্রাপ্ত রস + খোলার রস − বন্ধের রস\",\"12 · Syrup used = syrup received + opening syrup − closing syrup\"),\"text\")",
+        "constructor_alias": "f",
+        "label_bn": "12 · রস খরচ = প্রাপ্ত রস + খোলার রস − বন্ধের রস",
+        "label_en": "12 · Syrup used = syrup received + opening syrup − closing syrup"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "usage",
+      "issue_id": "A004-F009",
+      "data_origin": "Batch material balances, controlled unit conversion and reconciliation",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:c12k",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 23143,
+        "literal": "f(\"c12k\",t(\"— প্রতি কেজি জিলাপিতে রস = (12) ÷ (9)\",\"— syrup per kg of jalebi = (12) ÷ (9)\"),\"text\")",
+        "constructor_alias": "f",
+        "label_bn": "— প্রতি কেজি জিলাপিতে রস = (12) ÷ (9)",
+        "label_en": "— syrup per kg of jalebi = (12) ÷ (9)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "usage",
+      "issue_id": "A004-F009",
+      "data_origin": "Batch material balances, controlled unit conversion and reconciliation",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:unsold_show",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 23353,
+        "literal": "f(\"unsold_show\",t(\"অবিক্রিত জিলাপির ওজন (উপরের 7)\",\"Unsold weight (line 7 above)\"),\"text\")",
+        "constructor_alias": "f",
+        "label_bn": "অবিক্রিত জিলাপির ওজন (উপরের 7)",
+        "label_en": "Unsold weight (line 7 above)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "disposition",
+      "issue_id": "A004-F010",
+      "data_origin": "Lot quarantine/rotation and authorized stock write-off",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:decision",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 23444,
+        "literal": "g(\"decision\",t(\"সিদ্ধান্ত\",\"Decision\"),[[\"keep\",t(\"রাতে রাখা হলো\",\"Kept overnight\")],[\"drop\",t(\"রাখা হলো না\",\"Not kept\")]],{req:e=>a(e.d.unsold)>0})",
+        "constructor_alias": "g",
+        "label_bn": "সিদ্ধান্ত",
+        "label_en": "Decision"
+      },
+      "type": "CH",
+      "requirements": "e=>a(e.d.unsold)>0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "keep / drop",
+      "rule_group": "disposition",
+      "issue_id": "A004-F010",
+      "data_origin": "Lot quarantine/rotation and authorized stock write-off",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:daytag",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 23593,
+        "literal": "m(\"daytag\",t(\"দিন-ট্যাগ লাগানো\",\"Day tag attached\"),{show:e=>\"keep\"===e.d.decision,req:e=>\"keep\"===e.d.decision})",
+        "constructor_alias": "m",
+        "label_bn": "দিন-ট্যাগ লাগানো",
+        "label_en": "Day tag attached"
+      },
+      "type": "CK",
+      "requirements": "e=>\"keep\"===e.d.decision",
+      "visibility": "e=>\"keep\"===e.d.decision",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "disposition",
+      "issue_id": "A004-F010",
+      "data_origin": "Lot quarantine/rotation and authorized stock write-off",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:wasted",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 23707,
+        "literal": "m(\"wasted\",t(\"স্টক লেজারে অপচয় হিসেবে লেখা\",\"Written as wastage in the stock ledger\"),{show:e=>\"drop\"===e.d.decision,req:e=>\"drop\"===e.d.decision})",
+        "constructor_alias": "m",
+        "label_bn": "স্টক লেজারে অপচয় হিসেবে লেখা",
+        "label_en": "Written as wastage in the stock ledger"
+      },
+      "type": "CK",
+      "requirements": "e=>\"drop\"===e.d.decision",
+      "visibility": "e=>\"drop\"===e.d.decision",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "disposition",
+      "issue_id": "A004-F010",
+      "data_origin": "Lot quarantine/rotation and authorized stock write-off",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    },
+    {
+      "source_id": "R-02:decider_role",
+      "source_file": "forms_cash.js",
+      "evidence": {
+        "offset_utf16": 23856,
+        "literal": "i(\"decider_role\",t(\"সিদ্ধান্তগ্রহণকারী (Decided by) — পদ\",\"Decided by — role\"))",
+        "constructor_alias": "i",
+        "label_bn": "সিদ্ধান্তগ্রহণকারী (Decided by) — পদ",
+        "label_en": "Decided by — role"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "disposition",
+      "issue_id": "A004-F010",
+      "data_origin": "Lot quarantine/rotation and authorized stock write-off",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; server enforcement UNKNOWN"
+    }
+  ],
+  "owner_accepted": false,
+  "parity_certified": false,
+  "field_parity_certified": false,
+  "source_runtime_equivalent": false,
+  "production_ready": false,
+  "erp_posted": false
+}

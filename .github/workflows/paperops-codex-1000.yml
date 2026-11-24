@@ -1,0 +1,77 @@
+name: PaperOps Codex source audit
+on:
+  pull_request:
+    branches: [build/paperops-foundation-20261122]
+    paths:
+      - 'modules/paperops/field-review/codex-1000/**'
+      - '.github/workflows/paperops-codex-1000.yml'
+permissions:
+  contents: read
+jobs:
+  source-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 2
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 3
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 4
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 5
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 6
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 7
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 8
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 9
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 10
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 11
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 12
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 13
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 14
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 15
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 16
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 17
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 18
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 19
+      - run: node modules/paperops/field-review/codex-1000/audit.cjs 20
+      - run: node modules/paperops/field-review/codex-1000/summary.cjs --complete > "$RUNNER_TEMP/paperops-codex-audit-summary.json"
+      - run: node --test modules/paperops/field-review/codex-1000/audit*.test.cjs
+  paperops-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node modules/paperops/legacy-rule-extractor.cjs --check
+      - run: node modules/paperops/field-routing.cjs --check
+      - run: node modules/paperops/field-batch-audit.cjs --check
+      - run: node --test modules/paperops/tests/ownership-split-246-1000.test.cjs
+      - name: Provide frozen form path expected by inherited tests
+        shell: bash
+        run: |
+          expected=f2cb1c5e09210496106ace1bf33ddc40d2d6df1d
+          test "$(git hash-object forms.js)" = "$expected"
+          if [ ! -e legacy/islamia-erp/forms.js ]; then
+            mkdir -p legacy/islamia-erp
+            ln -s ../../forms.js legacy/islamia-erp/forms.js
+          fi
+          test "$(git hash-object legacy/islamia-erp/forms.js)" = "$expected"
+      - run: node --test modules/paperops/tests/*.test.cjs
+      - name: Run canonical cross-module guard against the audit checkout
+        shell: bash
+        run: |
+          expected=c059a34b65a83d25fb94f19ae2f55f93b954b090
+          guard=tests/core10-live-legacy-guard.test.js
+          if [ ! -f "$guard" ]; then
+            git fetch --no-tags --depth=1 origin refs/heads/ccr-15ed11dd-n3hw5h
+            mkdir -p tests
+            git show "FETCH_HEAD:$guard" > "$guard"
+          fi
+          test "$(git hash-object "$guard")" = "$expected"
+          node --test "$guard"
