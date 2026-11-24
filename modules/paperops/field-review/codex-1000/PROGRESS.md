@@ -20,6 +20,8 @@
 | A016 | 50 | 7 high, 3 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45322286531 |
 | A017 | 50 | 7 high, 1 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45322500024 |
 | A018 | 50 | 7 high, 2 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45322743818 |
+| A019 | 50 | 7 high, 1 medium, 1 resolved attribution | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45329659659 |
+| A020 | 50 | 8 high, 3 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45329921549 |
 
 A002 covers R-01:waste_qty through C-04:on_c. Both original C-04:who declarations are preserved under one manifest ID. Evidence commits for the two exact runs are 6349dc78039f52ec7a867d1f8c3fe9e38b78174d and 1778382a1a9bd48bbf83921570bec8f9cfc7353a.
 
@@ -55,8 +57,10 @@ A017 exact evidence commit: 405066c9ddfd9c637b81722049f11e95c7f34a53. It covers 
 
 A018 exact evidence commit: 5722a2e68b59e746b2a7b7b293603c4959e342ff. It covers F-05:batches through F-02:rj_sour.
 
-A019 has 47 verified source declarations with partial rule evidence. Positions 920–922 are blocked: F-02:name, F-02:qty and F-02:unit are constructors from the shared ingredient helper used only by F-03 collections a, b and c. See A019-partial.json and issues-A019.json. A019 is excluded from completed batch counts, and A020 is held by the sequential gate.
+A001 exact evidence commit: `6349dc78039f52ec7a867d1f8c3fe9e38b78174d`.
 
-Full gates passed: 18/20. Remaining: 100 fields across A019–A020. Coordination Board / Decision Book: NOT WRITTEN.
+A019 exact evidence commit: `f4cce3aa5c395d01d739a227401d65a4c29e5d5c`. The Owner-authorized Parent correction at `df247deee3548a7f75640e8274c0934d86916d91` resolved A019-F008 at slots 920–922. The complete report preserves the original 47 rows and the three recipe rows, distinct F-03 header and ingredient item declarations, and collections a/b/c. The partial and rehearsal files are historical evidence. Node 22 audit tests 115/115.
 
-A019 rehearsal: the three proposed F-03 recipe constructor records and all three consumer references are preserved in A019-recipe-candidates.json. The executable fixtures validate all 50 rows with an in-memory corrected manifest and reject the assembled records with the current attribution. This rehearsal does not change or replace the authoritative ownership manifest or close A019.
+A020 exact evidence commit: `ad24066e4c5f83a9f74c10c4fae0929cea7bc180`. F-04:base_use through F-01:owner. Covers yield denominators/rounding, operator independence, trial costing, calendar settings, opinions, margin and product-release source conditions. Node 22 audit tests 121/121.
+
+Full source gates: **20/20, 1,000 ordered fields**. Findings on complete batch reports: **146 high, 35 medium, two resolved source attributions**. Operations still require canonical signed providers and Owner acceptance. Coordination Board / Decision Book: **NOT WRITTEN**.
