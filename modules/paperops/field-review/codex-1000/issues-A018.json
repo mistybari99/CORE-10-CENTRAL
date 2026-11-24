@@ -1,0 +1,229 @@
+[
+  {
+    "issue_id": "A018-F001",
+    "source_ids": [
+      "F-05:batches",
+      "F-05:yield_approver"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 9829,
+        "text": "t.yield_approver===t.in_charge&&r.push(v(\"self_yield_approval\",\"red\",\"ফলনের পার্থক্য উৎপাদনকারী নিজে অনুমোদন করেছেন\",\"Yield difference approved by the producer\")),[[\"pots_by\",\"pots_verify\"],"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 9868,
+        "text": "v(\"self_yield_approval\",\"red\",\"ফলনের পার্থক্য উৎপাদনকারী নিজে অনুমোদন করেছেন\",\"Yield difference approved by the producer\")),[[\"pots_by\",\"pots_verify\"],[\"clean_by\",\"clean_verify\"]].some(([e,r"
+      }
+    ],
+    "observed_gap": "Batch count and independent approval required in syntax. Same named in-charge and yield approver red. This calculator does not compute per-batch yield or match an approved production report.",
+    "dependency": "Manufacturing batch register and independently approved yield exception",
+    "correction": "Bind approver to scope and enforce separation against the recorded producer.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A018-F002",
+    "source_ids": [
+      "F-05:raw_return",
+      "F-05:raw_return_by",
+      "F-05:challan_from",
+      "F-05:challan_to"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 6316,
+        "text": "p(\"raw_return_by\",t(\"ফেরত গ্রহণকারী (Return received by)\",\"Return received by\"),{show:e=>\"done\"===e.d.raw_return,req:e=>\"done\"===e.d.raw_return}),n(\"challan_from\",t(\"সব চালান লেখা ও পাঠানো —"
+      }
+    ],
+    "observed_gap": "Done requires receiving actor. Both challan endpoints required; their ordering and actual stock return are not validated by calc.",
+    "dependency": "Stock return movement and dispatched challan range",
+    "correction": "Check signed return movement and every scoped challan in range.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A018-F003",
+    "source_ids": [
+      "F-05:clean_done",
+      "F-05:clean_by",
+      "F-05:clean_verify",
+      "F-05:end_temp",
+      "F-05:machines_off",
+      "F-05:gas_off",
+      "F-05:power_off",
+      "F-05:fire_safe",
+      "F-05:shutter_time",
+      "F-05:key_to"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 9992,
+        "text": "[[\"pots_by\",\"pots_verify\"],[\"clean_by\",\"clean_verify\"]].some(([e,r])=>a(t[e])&&t[e]===t[r])&&r.push(v(\"same_person_check\",\"yellow\",\"সম্পাদনকারী ও যাচাইকারী একই জন\",\"Doer and checker are the "
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 10092,
+        "text": "v(\"same_person_check\",\"yellow\",\"সম্পাদনকারী ও যাচাইকারী একই জন\",\"Doer and checker are the same person\"));const h=e.rows(\"incidents\").filter(e=>a(e.what)&&!e.solved).length;return h&&r.push(v"
+      }
+    ],
+    "observed_gap": "Closing temperature and premises shutdown declarations are required. Same cleanup doer and verifier warns yellow. end_temp is not evaluated by either fridge calculator.",
+    "dependency": "Verified shutdown event, sensor reading and physical key handover",
+    "correction": "Preserve separate closing sensor and custody proof, validate actor separation and approved bounds.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A018-F004",
+    "source_ids": [
+      "F-05:item",
+      "F-05:qty"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 7876,
+        "text": "b(\"output\",null,[u(\"item\",t(\"আইটেম\",\"Item\"),{wide:!0}),s(\"qty\",t(\"পরিমাণ (আইটেমের এককে)\",\"Quantity (in the item unit)\"))],{min:3})]},{title:t(\"Section D · গরমিল ও ঘটনা (Exceptions)\",\"Section"
+      }
+    ],
+    "observed_gap": "Both optional line fields. Form note says configured stock link can post approved lines and empty rows produce nothing. Calculator does not validate quantities or prove posting.",
+    "dependency": "Manufacturing output receipt and controlled Stock posting",
+    "correction": "Require an approved batch and authorized stock movement with lot/UOM provenance.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A018-F005",
+    "source_ids": [
+      "F-05:what",
+      "F-05:cause",
+      "F-05:owner",
+      "F-05:action",
+      "F-05:solved",
+      "F-05:no_incident",
+      "F-05:factory_incharge",
+      "F-05:mgmt_checker"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 10205,
+        "text": "e.rows(\"incidents\").filter(e=>a(e.what)&&!e.solved).length;return h&&r.push(v(\"incident_open\",\"yellow\",\"অমীমাংসিত ঘটনা আছে\",\"Unresolved incident\",h,{unit:\"qty\"})),{v:n,rows:{fridges:s,fridge"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 10281,
+        "text": "v(\"incident_open\",\"yellow\",\"অমীমাংসিত ঘটনা আছে\",\"Unresolved incident\",h,{unit:\"qty\"})),{v:n,rows:{fridges:s,fridges2:d},flags:r,needs:[...new Set(o)]}}};const x=[t(\"রবি\",\"Sun\"),t(\"সোম\",\"Mon\""
+      }
+    ],
+    "observed_gap": "Nonblank incident and falsy solved count yields yellow. No-incident attestation does not alter count. In-charge and management required checker declarations do not prove independent authorities.",
+    "dependency": "Scoped incident case and verified review signoff",
+    "correction": "Prevent contradictory incident declarations and record independent closure and signoff.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A018-F006",
+    "source_ids": [
+      "F-02:item",
+      "F-02:card_date",
+      "F-02:cat",
+      "F-02:cat_other"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 10744,
+        "text": "head:[u(\"item\",t(\"আইটেম কোড ও পণ্যের নাম\",\"Item code & product name\"),{req:!0}),h(\"card_date\",t(\"কার্ড তৈরির তারিখ\",\"Card date\"),{req:!0}),n(\"version\",t(\"সংস্করণ (Version) নং\",\"Version no.\")"
+      }
+    ],
+    "observed_gap": "Product item and card date required. Other category shows optional text. Fixed category settings apply only to mapped categories. Shared raw-material helper follows the form and its same-named item constructor is outside this form.",
+    "dependency": "Versioned product spec, item master and category policy",
+    "correction": "Bind one versioned spec to a real item and keep helper constructors attributed to their consuming forms.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A018-F007",
+    "source_ids": [
+      "F-02:photo_g1",
+      "F-02:g1_size",
+      "F-02:g1_weight",
+      "F-02:g1_pcs_kg",
+      "F-02:pcs_calc",
+      "F-02:g1_texture",
+      "F-02:g1_syrup",
+      "F-02:g1_broken",
+      "F-02:g1_taste",
+      "F-02:g1_smell"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 15445,
+        "text": "n.pcs_calc=r(o.g1_weight)>0?Math.round(1e3/r(o.g1_weight)*100)/100:void 0;const s=E[o.cat];if(s){const r=C(e,s);n.shelf_ref=null===r?q:t(S(r)+\" দিন\",S(r)+\" days\")}return n.daytag_list=x.map("
+      }
+    ],
+    "observed_gap": "Positive per-piece grams yields round(1000/grams×100)/100. Declared pieces-per-kg is separate and not reconciled. First-grade photo, size, grams, count, taste and smell declare required.",
+    "dependency": "Approved grade criteria, photographs and item/UOM conversion",
+    "correction": "Reconcile count and weight and maintain versioned grade evidence.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A018-F008",
+    "source_ids": [
+      "F-02:photo_g2",
+      "F-02:g2_color",
+      "F-02:g2_cracked",
+      "F-02:g2_uneven",
+      "F-02:g2_dry",
+      "F-02:g2_flat",
+      "F-02:g2_more1",
+      "F-02:g2_more2"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 12215,
+        "text": "k(\"photo_g2\",t(\"২য় গ্রেডের ছবি\",\"2nd grade photo\"),{req:!0}),y(t(\"এর একটিও হলে ২য় গ্রেড (বাতিল নয়)।\",\"If any one of these applies, it is 2nd grade (not rejected).\"),\"ok\"),l(\"g2_color\",t(\""
+      }
+    ],
+    "observed_gap": "Photo required. Text describes any trait as second grade but calc does not classify or prevent conflict with rejection criteria.",
+    "dependency": "Approved second-grade spec and QC classification event",
+    "correction": "Evaluate recorded QC results against approved version and preserve classification evidence.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A018-F009",
+    "source_ids": [
+      "F-02:photo_rej",
+      "F-02:rj_sour"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 12840,
+        "text": "k(\"photo_rej\",t(\"বাতিল মালামালের ছবি\",\"Rejected goods photo\"),{req:!0}),y(t(\"এর একটিও হলে বিক্রি নয়।\",\"If any one of these applies, it must not be sold.\"),\"warn\"),l(\"rj_sour\",t(\"টক গন্ধ\",\"S"
+      }
+    ],
+    "observed_gap": "Photo required and sour classification is a checkbox. Prose says rejection criteria disallow sale; calculator does not establish a sales block.",
+    "dependency": "Versioned rejection rule and Stock quarantine evidence",
+    "correction": "Require authorized lot classification and enforce final disposition in Stock and Sales workflow.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

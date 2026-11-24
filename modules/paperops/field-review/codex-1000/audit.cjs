@@ -25,7 +25,10 @@ function inspect(source, key, occurrence = 0, count = 1) {
   const start = source.indexOf(marker);
   assert.ok(start >= 0, 'Missing original form: ' + form);
   const next = source.indexOf('e.forms["', start + marker.length);
-  const end = next < 0 ? source.length : next;
+  // F-02 is followed by shared recipe helper declarations before the next form.
+  const helper = form === 'F-02' ? source.indexOf(';const F=[', start + marker.length) : -1;
+  if (form === 'F-02') assert.ok(helper > start && (next < 0 || helper < next), 'Missing F-02 definition boundary');
+  const end = helper >= 0 ? helper : next < 0 ? source.length : next;
   const formText = source.slice(start, end);
   const pattern = /([A-Za-z_$][\w$]*)\("([a-z][a-z0-9_]*)",t\("([^"]+)","([^"]+)"\)/g;
   const matches = [...formText.matchAll(pattern)].filter(match => match[2] === field);
