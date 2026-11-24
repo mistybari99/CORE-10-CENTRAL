@@ -23313,12 +23313,12 @@
           "owner_accepted": false
         },
         {
-          "id": "F-02:name",
+          "id": "F-03:name",
           "key": "name",
           "label_bn": "নাম (তালিকায় না থাকলে)",
           "label_en": "Name (if not in the list)",
           "form_cadence": "VERSIONED_MASTER",
-          "form_trigger": "product_spec_change",
+          "form_trigger": "recipe_version_change",
           "legacy_constructor": "n",
           "required_candidate": "CONDITIONAL",
           "visible_candidate": "NOT_DECLARED",
@@ -23329,15 +23329,48 @@
           "review_state": "FIELD_SPECIFIC_MAPPING_OUTSTANDING",
           "preserve_original": true,
           "auto_delete": false,
-          "owner_accepted": false
+          "owner_accepted": false,
+          "recipe_row_source": {
+            "kind": "SHARED_RECIPE_ROW_HELPER",
+            "source_file": "forms_factory.js",
+            "helper_offset_utf16": 16342,
+            "offset_utf16": 16455,
+            "literal": "n(\"name\",t(\"নাম (তালিকায় না থাকলে)\",\"Name (if not in the list)\"),{req:e=>!a(e.row.item)})",
+            "constructor_alias": "n",
+            "label_bn": "নাম (তালিকায় না থাকলে)",
+            "label_en": "Name (if not in the list)",
+            "row_contexts": [
+              {
+                "collection": "a",
+                "section_bn": "Section A · ধাপ (Step) 1 — বেস তৈরি (ছানা / খোয়া / খামির / ব্যাটার / দুধ জ্বাল)",
+                "section_en": "Section A · Step 1: making the base (chhana / khoa / dough / batter / boiled milk)",
+                "min_rows_declared": 4,
+                "offset_utf16": 18046
+              },
+              {
+                "collection": "b",
+                "section_bn": "Section B · ধাপ (Step) 2 — পণ্য তৈরি",
+                "section_en": "Section B · Step 2: making the product",
+                "min_rows_declared": 5,
+                "offset_utf16": 18345
+              },
+              {
+                "collection": "c",
+                "section_bn": "Section C · প্যাকেজিং — পণ্যের উপকরণের সাথে নয়, আলাদা",
+                "section_en": "Section C · Packaging: kept apart from the product ingredients",
+                "min_rows_declared": 2,
+                "offset_utf16": 18511
+              }
+            ]
+          }
         },
         {
-          "id": "F-02:qty",
+          "id": "F-03:qty",
           "key": "qty",
           "label_bn": "পরিমাণ",
           "label_en": "Quantity",
           "form_cadence": "VERSIONED_MASTER",
-          "form_trigger": "product_spec_change",
+          "form_trigger": "recipe_version_change",
           "legacy_constructor": "s",
           "required_candidate": "ALWAYS",
           "visible_candidate": "NOT_DECLARED",
@@ -23348,15 +23381,48 @@
           "review_state": "FIELD_SPECIFIC_MAPPING_OUTSTANDING",
           "preserve_original": true,
           "auto_delete": false,
-          "owner_accepted": false
+          "owner_accepted": false,
+          "recipe_row_source": {
+            "kind": "SHARED_RECIPE_ROW_HELPER",
+            "source_file": "forms_factory.js",
+            "helper_offset_utf16": 16342,
+            "offset_utf16": 16546,
+            "literal": "s(\"qty\",t(\"পরিমাণ\",\"Quantity\"),{req:!0})",
+            "constructor_alias": "s",
+            "label_bn": "পরিমাণ",
+            "label_en": "Quantity",
+            "row_contexts": [
+              {
+                "collection": "a",
+                "section_bn": "Section A · ধাপ (Step) 1 — বেস তৈরি (ছানা / খোয়া / খামির / ব্যাটার / দুধ জ্বাল)",
+                "section_en": "Section A · Step 1: making the base (chhana / khoa / dough / batter / boiled milk)",
+                "min_rows_declared": 4,
+                "offset_utf16": 18046
+              },
+              {
+                "collection": "b",
+                "section_bn": "Section B · ধাপ (Step) 2 — পণ্য তৈরি",
+                "section_en": "Section B · Step 2: making the product",
+                "min_rows_declared": 5,
+                "offset_utf16": 18345
+              },
+              {
+                "collection": "c",
+                "section_bn": "Section C · প্যাকেজিং — পণ্যের উপকরণের সাথে নয়, আলাদা",
+                "section_en": "Section C · Packaging: kept apart from the product ingredients",
+                "min_rows_declared": 2,
+                "offset_utf16": 18511
+              }
+            ]
+          }
         },
         {
-          "id": "F-02:unit",
+          "id": "F-03:unit",
           "key": "unit",
           "label_bn": "একক",
           "label_en": "Unit",
           "form_cadence": "VERSIONED_MASTER",
-          "form_trigger": "product_spec_change",
+          "form_trigger": "recipe_version_change",
           "legacy_constructor": "_",
           "required_candidate": "ALWAYS",
           "visible_candidate": "NOT_DECLARED",
@@ -23367,7 +23433,40 @@
           "review_state": "FIELD_SPECIFIC_MAPPING_OUTSTANDING",
           "preserve_original": true,
           "auto_delete": false,
-          "owner_accepted": false
+          "owner_accepted": false,
+          "recipe_row_source": {
+            "kind": "SHARED_RECIPE_ROW_HELPER",
+            "source_file": "forms_factory.js",
+            "helper_offset_utf16": 16342,
+            "offset_utf16": 16587,
+            "literal": "_(\"unit\",t(\"একক\",\"Unit\"),N,{req:!0})",
+            "constructor_alias": "_",
+            "label_bn": "একক",
+            "label_en": "Unit",
+            "row_contexts": [
+              {
+                "collection": "a",
+                "section_bn": "Section A · ধাপ (Step) 1 — বেস তৈরি (ছানা / খোয়া / খামির / ব্যাটার / দুধ জ্বাল)",
+                "section_en": "Section A · Step 1: making the base (chhana / khoa / dough / batter / boiled milk)",
+                "min_rows_declared": 4,
+                "offset_utf16": 18046
+              },
+              {
+                "collection": "b",
+                "section_bn": "Section B · ধাপ (Step) 2 — পণ্য তৈরি",
+                "section_en": "Section B · Step 2: making the product",
+                "min_rows_declared": 5,
+                "offset_utf16": 18345
+              },
+              {
+                "collection": "c",
+                "section_bn": "Section C · প্যাকেজিং — পণ্যের উপকরণের সাথে নয়, আলাদা",
+                "section_en": "Section C · Packaging: kept apart from the product ingredients",
+                "min_rows_declared": 2,
+                "offset_utf16": 18511
+              }
+            ]
+          }
         }
       ],
       "field_count": 50
@@ -23397,7 +23496,40 @@
           "review_state": "FIELD_SPECIFIC_MAPPING_OUTSTANDING",
           "preserve_original": true,
           "auto_delete": false,
-          "owner_accepted": false
+          "owner_accepted": false,
+          "recipe_row_source": {
+            "kind": "SHARED_RECIPE_ROW_HELPER",
+            "source_file": "forms_factory.js",
+            "helper_offset_utf16": 16342,
+            "offset_utf16": 16349,
+            "literal": "u(\"item\",t(\"কাঁচামালের নাম ও আইটেম কোড\",\"Raw material name & item code\"),{wide:!0,req:e=>!a(e.row.name)})",
+            "constructor_alias": "u",
+            "label_bn": "কাঁচামালের নাম ও আইটেম কোড",
+            "label_en": "Raw material name & item code",
+            "row_contexts": [
+              {
+                "collection": "a",
+                "section_bn": "Section A · ধাপ (Step) 1 — বেস তৈরি (ছানা / খোয়া / খামির / ব্যাটার / দুধ জ্বাল)",
+                "section_en": "Section A · Step 1: making the base (chhana / khoa / dough / batter / boiled milk)",
+                "min_rows_declared": 4,
+                "offset_utf16": 18046
+              },
+              {
+                "collection": "b",
+                "section_bn": "Section B · ধাপ (Step) 2 — পণ্য তৈরি",
+                "section_en": "Section B · Step 2: making the product",
+                "min_rows_declared": 5,
+                "offset_utf16": 18345
+              },
+              {
+                "collection": "c",
+                "section_bn": "Section C · প্যাকেজিং — পণ্যের উপকরণের সাথে নয়, আলাদা",
+                "section_en": "Section C · Packaging: kept apart from the product ingredients",
+                "min_rows_declared": 2,
+                "offset_utf16": 18511
+              }
+            ]
+          }
         },
         {
           "id": "F-03:card_date",

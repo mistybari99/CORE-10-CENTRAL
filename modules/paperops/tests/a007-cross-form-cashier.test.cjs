@@ -63,9 +63,14 @@ test('routing retains original audit-order slot but uses actual R-01 policy',()=
  assert.equal(blob(fs.readFileSync(path.join(root,'modules/paperops/field-routing-report.json'))),ownership.source_of_truth.order_blob_sha);
 });
 
-test('the 304th Codex entry is corrected, all other 999 and the protected 246 are byte-order pinned',()=>{
+test('the 304th Codex entry is corrected and the original order remains pinned with the A019 source correction reversed',()=>{
  const a=ownership.lane_A_codex.ownership_keys,b=ownership.lane_B_chatgpt;
- const other999=a.filter((_,i)=>i!==303);
+ const prior=[...a];
+ for(const [i,key] of ['name','qty','unit'].entries()){
+  assert.equal(a[919+i],'F-03:'+key);
+  prior[919+i]='F-02:'+key;
+ }
+ const other999=prior.filter((_,i)=>i!==303);
  const protected246=[...b.critical_86_keys,...b.mapped_150_keys,...b.reserved_next_10_keys];
  assert.equal(a.length,1000);assert.equal(a[303],'R-01:cashier');
  assert.equal(a.includes('S-04:cashier'),false);

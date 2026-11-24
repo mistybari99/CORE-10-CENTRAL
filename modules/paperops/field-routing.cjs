@@ -25,9 +25,10 @@ function buildRouting(original,policy,trace){
     critical_draft_targets:critical?critical.targets:[],
     review_state:critical?'SOURCE_TO_DRAFT_LINK_NOT_PARITY':'FIELD_SPECIFIC_MAPPING_OUTSTANDING',
     preserve_original:true,auto_delete:false,owner_accepted:false};
-   if(f.source_order_after_form)result.source_mutation={
+   if(f.source_declaration_kind==='GUARDED_CROSS_FORM_HEADER_PUSH')result.source_mutation={
     kind:f.source_declaration_kind,source_file:f.source_mutation_file,
     source_order_after_form:f.source_order_after_form,offset_utf16:f.source_mutation_offset_utf16};
+   if(f.recipe_row_source)result.recipe_row_source=f.recipe_row_source;
    return result;
  };
  const all=original.forms.map(form=>{
@@ -40,9 +41,8 @@ function buildRouting(original,policy,trace){
    incomplete_formula_review:form.calc_candidate.body_found?'CALC_BODY_CANDIDATE_ONLY':'CALC_BODY_NOT_MATCHED',
    source_fields:fields,field_count:fields.length};
  });
- // Source scan order is contractually frozen for the 246/1000 split. Place a
- // later cross-form header extension at the source-tail slot, with its actual
- // owner ID, owner policy, and explicit provenance (not the anchor form's policy).
+ // Preserve frozen scan slots for cross-form declarations, with the actual
+ // owner ID, owner policy and explicit provenance.
  for(const owner of original.forms)for(const field of owner.fields){
   if(!field.source_order_after_form)continue;
   const anchor=all.find(f=>f.legacy_form===field.source_order_after_form);
