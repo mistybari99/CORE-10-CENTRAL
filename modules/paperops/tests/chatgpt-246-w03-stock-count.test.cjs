@@ -80,3 +80,27 @@ test('W03 no acceptance of false declared freeze, unsupported movement, stale ou
  assert.throws(()=>edit(x=>{insert(x);x.movements[0].occurredAt='2026-11-23T04:30:00Z';}),/MOVEMENT_OUTSIDE_COUNT_WINDOW/);
  assert.throws(()=>edit(x=>{insert(x);x.movements[0].ledgerSnapshotRef='OLD';}),/MOVEMENT_STALE_LEDGER_SNAPSHOT/);
 });
+
+test('W03 rejects invalid civil UTC dates and sub-microsecond precision',()=>{
+ assert.throws(()=>edit(x=>{x.session.startedAt='2026-02-30T01:00:00Z';}),/W03_BAD_TIMESTAMP:START/);
+ assert.throws(()=>edit(x=>{x.session.endedAt='2026-02-29T02:00:00Z';}),/W03_BAD_TIMESTAMP:END/);
+ assert.throws(()=>edit(x=>{x.session.endedAt='2026-11-23T02:00:00.0000001Z';}),/W03_BAD_TIMESTAMP:END/);
+});
+test('W03 compares the movement freeze window at microsecond resolution',()=>{
+ const withMovement=at=>edit(x=>{
+  x.session.startedAt='2026-11-23T01:00:00.000001Z';
+  x.session.endedAt='2026-11-23T01:00:00.000003Z';
+  x.session.movementDeclared='yes';
+  x.session.movementDetail='Microsecond-specific canonical candidate evidence';
+  x.movements=[row({itemId:'DEMO-SUGAR',lotId:'LOT-1',kind:'RECEIVE',
+    quantity:'1',sourceRef:'DEMO-MOV-US',evidenceRef:'DEMO-PROOF-US',actor:'DEMO-STOCK-A',
+    ledgerSnapshotRef:'DEMO-LEDGER-V1',occurredAt:at})];
+  x.physicalRows[0].quantity='101';
+ });
+ const within=withMovement('2026-11-23T01:00:00.000002Z');
+ assert.equal(within.status,'BLOCK'); // Freeze breach always requires review.
+ assert.equal(within.evidence.rows[0].bookAtCount,'101.0000');
+ assert.ok(within.blockers.includes('W03_FREEZE_BREACH_REQUIRES_REVIEW'));
+ assert.throws(()=>withMovement('2026-11-23T01:00:00.000000Z'),/W03_MOVEMENT_OUTSIDE_COUNT_WINDOW/);
+ assert.throws(()=>withMovement('2026-11-23T01:00:00.000004Z'),/W03_MOVEMENT_OUTSIDE_COUNT_WINDOW/);
+});

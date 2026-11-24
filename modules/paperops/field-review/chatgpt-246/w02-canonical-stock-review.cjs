@@ -112,7 +112,7 @@ async function readPostedCommands(rpc, business, site) {
   fail('W02_COMMAND_WINDOW_INCOMPLETE');
 }
 
-async function reviewRegistry({rpc, currentScope, scope, actor, evidence, priorObservation, hold}) {
+async function reviewRegistry({rpc, currentScope, control, policies, scope, actor, evidence, priorObservation, hold}) {
   const read = () => rpc('w02_custody_snapshot_v1', {
     p_business: scope.businessId, p_from_site: scope.fromSiteId, p_to_site: scope.toSiteId
   });
@@ -137,7 +137,9 @@ async function reviewRegistry({rpc, currentScope, scope, actor, evidence, priorO
   if (state.movements.some(row => !row.command?.auditDigest || row.postings?.length !== 2 || !row.challan)) {
     return hold('W02_CANONICAL_MOVEMENT_EVIDENCE_REQUIRED');
   }
-  const observation = digest(['CORE10.W02.REGISTRY.V1', actor, scope, state.revision]);
+  // V2 includes both sites' effective Control versions and stages. A Stock-only
+  // fingerprint would silently permit old read replay after Owner policy changes.
+  const observation = digest(['CORE10.W02.REGISTRY.V2', actor, scope, state.revision, policies]);
   if (priorObservation !== undefined && priorObservation !== observation) {
     return hold('W02_STALE_OR_SCOPE_MISMATCHED_OBSERVATION');
   }
@@ -154,6 +156,11 @@ async function reviewRegistry({rpc, currentScope, scope, actor, evidence, priorO
   }
   if ((await read())?.revision !== state.revision || await currentScope() !== scope.tenantId) {
     return hold('W02_STOCK_OBSERVATION_CHANGED');
+  }
+  // The read-only review must also recheck effective policy after the
+  // potentially lengthy custody signature and movement reconciliation.
+  if (canonical(await control()) !== canonical(policies)) {
+    return hold('W02_CONTROL_OBSERVATION_CHANGED');
   }
   const revision = {observation, stockRevision: state.revision};
   return Object.freeze(linked ? {...hold('W02_VERIFIED_POSTING_DISABLED'), ...revision,
@@ -213,7 +220,7 @@ function createW02StockReview({authUrl, restUrl, custody, canonicalRegistry = fa
     }
 
     if (canonicalRegistry) return reviewRegistry({
-      rpc, currentScope, actor: user.id, scope: {tenantId: tenant, businessId, fromSiteId, toSiteId},
+      rpc, currentScope, control, policies, actor: user.id, scope: {tenantId: tenant, businessId, fromSiteId, toSiteId},
       evidence, priorObservation, hold
     });
     if (evidence !== undefined && !prepareEvidence) fail('W02_CUSTODY_PROVIDER_REQUIRED');

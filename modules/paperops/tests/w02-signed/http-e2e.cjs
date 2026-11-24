@@ -331,6 +331,65 @@ async function proveCanonicalRegistry(owner, foreign, oneSite) {
     await assert.rejects(inspect({evidence: forged}), {code: 'W02_CANONICAL_PRIOR_CLOSE_MISMATCH'});
   });
 
+  await test('effective Control revisions invalidate custody replay and mid-read policy changes fail closed', async () => {
+    const state = await read();
+    const evidence = await signedRegistryEvidence(state);
+    const postedBefore = await rpc(owner, 'inventory_list_commands_v1', {p_business: 9711});
+    const first = await inspect({evidence});
+    assert.equal(first.canonicalSnapshotVerified, true);
+    assert.equal(first.canPost, false);
+    const site = {p_business: 9711, p_site: 97111};
+    const selected = () => rpc(owner, 'control_read_v1', site)
+      .then(rows => rows.find(row => row.feature_key === 'inventory.transfer'));
+    const setPolicy = (row, stages, key) => rpc(owner, 'control_set_v1', {
+      ...site, p_feature: 'inventory.transfer', p_enabled: true, p_stages: stages,
+      p_params: {...row.params, allow_cross_site: true}, p_effective_from: null,
+      p_inherit: false, p_expected_version: row.version,
+      p_reason: 'W02 isolated replay policy test', p_request_key: key
+    });
+
+    const initial = await selected();
+    assert.equal(initial.stages, 0);
+    await setPolicy(initial, 1, 'w02-policy-race-open');
+    // The Stock ledger and W02 custody registry are unchanged, only Control.
+    assert.equal((await read()).revision, state.revision);
+    const stale = await inspect({evidence, priorObservation: first.observation});
+    assert.equal(stale.status, 'HOLD');
+    assert.equal(stale.reason, 'W02_STALE_OR_SCOPE_MISMATCHED_OBSERVATION');
+    assert.equal(stale.observation, null);
+    const afterStage = await selected();
+    assert.equal(afterStage.stages, 1);
+
+    // Deterministically change Control AFTER the first W02 snapshot is read.
+    // Existing Stock-revision-only code would wrongly accept this review.
+    const nativeFetch = globalThis.fetch;
+    let changedAfterSnapshot = false;
+    globalThis.fetch = async (...arguments_) => {
+      const response = await nativeFetch(...arguments_);
+      if (!changedAfterSnapshot && arguments_[0] === restUrl + '/rpc/w02_custody_snapshot_v1') {
+        changedAfterSnapshot = true;
+        await setPolicy(afterStage, 0, 'w02-policy-race-close');
+      }
+      return response;
+    };
+    try {
+      const raced = await inspect({evidence});
+      assert.equal(changedAfterSnapshot, true);
+      assert.equal(raced.status, 'HOLD');
+      assert.equal(raced.reason, 'W02_CONTROL_OBSERVATION_CHANGED');
+      assert.equal(raced.canPost, false);
+      assert.equal(raced.observation, null);
+    } finally {
+      globalThis.fetch = nativeFetch;
+    }
+    assert.equal((await selected()).stages, 0);
+    assert.equal((await read()).revision, state.revision);
+    assert.deepEqual(await rpc(owner, 'inventory_list_commands_v1', {p_business: 9711}), postedBefore);
+    const fresh = await inspect({evidence});
+    assert.equal(fresh.canonicalSnapshotVerified, true);
+    assert.equal(fresh.canPost, false);
+  });
+
   await test('net-zero later Stock changes revision and revoking the current witness key never falls back', async () => {
     const old = await read(), evidence = await signedRegistryEvidence(old);
     trustedFixtureSql(insertLine((await move('late-out')).stock_ref, 'LATE-OUT'));

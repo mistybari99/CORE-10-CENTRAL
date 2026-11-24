@@ -55,6 +55,9 @@ function reviewAccountSource({scope:raw,provider,voucher}={}){
    'BUSINESS_MOBILE','BUSINESS_CARD','SALES_DRAWER'].includes(row.role))
    throw Error('C02_UNEXPECTED_PROVIDER_ACCOUNT_ROLE');
  }
+ // A voucher is an independent source document. Never reuse the
+ // provider snapshot or ANY option evidence reference, selected or not.
+ if(sourceRefs.has(voucher.voucherRef))throw Error('C02_SOURCE_REFERENCE_COLLISION');
  // Original UI: hidden without moneySrc or when hasAccounts(scope) is false.
  // An empty snapshot is a safe *absence*, never invented as a default account.
  const actual=accounts.size>0;
@@ -79,8 +82,6 @@ function reviewAccountSource({scope:raw,provider,voucher}={}){
   if(selected.status!=='ACTIVE')flag('C02_INACTIVE_ACCOUNT_NOT_ALLOWED');
   if(selected.canExpense!==true)flag('C02_EXPENSE_ACCOUNT_CAPABILITY_NOT_GRANTED');
   if(kindMap[mode]&&selected.role!==kindMap[mode])flag('C02_PAYMENT_MODE_ACCOUNT_ROLE_MISMATCH');
-  if(selected.sourceRef===voucher.voucherRef||provider.sourceRef===voucher.voucherRef)
-   throw Error('C02_SOURCE_REFERENCE_COLLISION');
  }
  if(voucher.salesDrawerUntouched!==true)flag('C02_SALES_DRAWER_PROTECTION_NOT_ATTESTED');
  const e={scope:{tenantId:s.tenantId,businessId:s.businessId,siteId:s.siteId},

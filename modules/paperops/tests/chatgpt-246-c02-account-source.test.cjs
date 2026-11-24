@@ -69,3 +69,10 @@ test('C02 account provider rejects cross tenant/business/site references, duplic
  assert.throws(()=>edit(x=>{x.provider.capability='sales'}),/C02_UNKNOWN_SOURCE_PROVIDER_ACTION/);
  assert.throws(()=>edit(x=>{x.provider.options[0].sourceRef=x.provider.sourceRef}),/C02_DUPLICATE_OR_REPLAYED_ACCOUNT_OPTION/);
 });
+
+test('C02 rejects voucher re-use of provider or ANY account option source reference',()=>{
+ assert.throws(()=>edit(x=>{x.voucher.voucherRef=x.provider.sourceRef;}),/C02_SOURCE_REFERENCE_COLLISION/);
+ assert.throws(()=>edit(x=>{x.voucher.voucherRef=x.provider.options[0].sourceRef;}),/C02_SOURCE_REFERENCE_COLLISION/);
+ // The unselected account's source reference must also be protected.
+ assert.throws(()=>edit(x=>{x.voucher.voucherRef=x.provider.options[1].sourceRef;}),/C02_SOURCE_REFERENCE_COLLISION/);
+});
