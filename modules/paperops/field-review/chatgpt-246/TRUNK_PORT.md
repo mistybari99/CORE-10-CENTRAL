@@ -26,13 +26,38 @@ invalidates a prior fingerprint. A complete observation returns its
 fingerprint for read replay. Quantities stay inside the adapter, and the
 fingerprint is a non-persistent comparison key.
 
-Canonical balances lack a single ledger revision and the returnable-event
-and challan linkage required to tie a witnessed count to W02. Every response
-holds posting. The balance reader cannot supply an authenticated opening
-carry-forward decision, approved crate/tray master mapping, or a signed
-movement snapshot. The synthetic reconciliation in
-`w02-returnables-reconciliation.cjs` continues to exercise those candidate
-evidence requirements.
+## Custody evidence rehearsal
+
+The selected opening rule requires an independently approved prior close for
+the same tenant, business and directed site pair. A missing prior close holds
+the review. A first-count substitute is outside this rule.
+
+The server-side rehearsal config pins that scope, two crate/tray item IDs and
+the Ed25519 actor/key mapping for the opening reviewer, challan registrar,
+counter and witness. Request evidence consists of a prior close envelope,
+the signed movement window that references its digest, and a count
+co-signed by the counter and witness that references the window digest.
+Each signature binds the protocol version, role, actor, scope and payload.
+The opening reviewer differs from the registrar. The counter and witness
+differ from each other and from the recorded Stock command actors.
+
+`inventory_list_commands_v1` supplies the canonical posted transfer command
+and ledger reference. For mapped crate/tray items and the selected pair,
+the adapter checks each signed line's command, Stock ref, item, direction
+and quantity. Every movement after the opening and before the count must
+be represented. Duplicate command, Stock and challan-line references,
+unresolved timestamps, over-returns and count discrepancies fail closed.
+A later movement invalidates the count even if on-hand balances return to
+their earlier values. Reads use bounded pages and the same user bearer.
+
+Every response holds posting. Successful rehearsal evidence verifies the
+locally configured signatures and their canonical Stock matches. The
+canonical release port still needs a durable site-pair challan and prior
+close registry, approved Master item mappings and actor/key custody,
+and an atomic ledger revision with signed witness and reversal semantics.
+The current inventory list provides no jointly committed event watermark
+or canonical W02 challan record. The rehearsal uses PostgreSQL posting time
+and fails closed at exact evidence-window boundaries.
 
 ## Verification
 
@@ -44,12 +69,14 @@ evidence requirements.
   canonical numbered migrations on disposable PostgreSQL 17. Genuine
   password sessions cover same-scope reads, foreign tenant and business,
   one-site and read-only roles, stale observations, repeat reads, a
-  site-level Control HOLD, invalid tokens and logout/revocation.
+  site-level Control HOLD, invalid tokens and logout/revocation. Additional
+  cases cover signed custody replay, an absent approved close, tampering,
+  foreign scope and actor reuse, duplicate or mismatched source references,
+  count reconciliation and stale net-zero movement.
 - Synthetic receipt fixtures use the canonical command API in the
   disposable database to establish and change observed balances. The W02
   review itself calls only the canonical read RPCs.
 
-W02-01 remains OPEN for an approved immutable returnables snapshot provider,
-signed custody evidence and Owner-approved carry-forward. Hosted staging,
-release and posting approvals are separate. Coordination Board and Master
-Decision Book: NOT WRITTEN.
+W02-01 remains OPEN for the canonical custody publication and signed staging
+acceptance. Hosted staging, release and posting approvals are separate.
+Coordination Board and Master Decision Book: NOT WRITTEN.

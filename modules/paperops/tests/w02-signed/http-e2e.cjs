@@ -1,9 +1,12 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const {createHmac} = require('node:crypto');
+const {createHmac, generateKeyPairSync, sign} = require('node:crypto');
 const {test} = require('node:test');
+const {setTimeout: delay} = require('node:timers/promises');
 const {createW02StockReview} = require('../../field-review/chatgpt-246/w02-canonical-stock-review.cjs');
+const {evidenceMessage} = require('../../field-review/chatgpt-246/w02-custody-evidence.cjs');
+const {digest} = require('../../source-port-handoff.cjs');
 
 const authUrl = process.env.CORE10_W02_AUTH_URL, restUrl = process.env.CORE10_W02_REST_URL;
 const review = createW02StockReview({authUrl, restUrl});
@@ -56,12 +59,13 @@ async function provisionUsers() {
   }
 }
 
-async function seedReceipt(token, suffix, quantity) {
+async function seedStockCommand(token, suffix, {kind = 'receive', source = null,
+  destination = 971111, quantity, item = 97101}) {
   // Plant ledger state through the canonical write path inside the disposable
   // fixture. The module under review receives only the signed read interface.
   const created = await rpc(token, 'create_inventory_command_v1', {
-    p_business: 9711, p_kind: 'receive', p_destination: 971111, p_source: null,
-    p_item: 97101, p_quantity: quantity, p_reason: null, p_request: 'w02-fixture-recv-' + suffix
+    p_business: 9711, p_kind: kind, p_destination: destination, p_source: source,
+    p_item: item, p_quantity: quantity, p_reason: null, p_request: 'w02-fixture-move-' + suffix
   });
   const advance = (action, version) => rpc(token, 'advance_inventory_command_v1', {
     p_command: created.command_id, p_action: action, p_version: version, p_request: 'w02-fixture-' + action + '-' + suffix
@@ -69,11 +73,120 @@ async function seedReceipt(token, suffix, quantity) {
   const confirmed = await advance('confirm', created.version);
   const posted = await advance('post', confirmed.version);
   assert.equal(posted.status, 'posted');
+  return posted;
+}
+
+async function proveCustody(owner) {
+  const scope = {tenantId: 971, ...selection};
+  const items = {crates: 97101, trays: 97102};
+  const actors = {
+    openingReviewer: 'b0711111-1111-4111-8111-111111111111',
+    challanRegistrar: 'b0722222-2222-4222-8222-222222222222',
+    counter: 'b0733333-3333-4333-8333-333333333333',
+    witness: 'b0744444-4444-4444-8444-444444444444'
+  };
+  const keys = Object.fromEntries(Object.keys(actors).map(role => [role, generateKeyPairSync('ed25519')]));
+  const signers = Object.fromEntries(Object.entries(actors).map(([role, actorId]) => [role, {
+    actorId, publicKey: keys[role].publicKey.export({type: 'spki', format: 'pem'})
+  }]));
+  const custody = {scope, items, signers};
+  const linkedReview = createW02StockReview({authUrl, restUrl, custody});
+  const reviewEvidence = (evidence, extra) => linkedReview({...selection, accessToken: owner, evidence, ...extra});
+  const signPayload = (role, payload, signingScope = scope, actor = actors[role]) =>
+    sign(null, evidenceMessage(role, actor, signingScope, payload), keys[role].privateKey).toString('base64url');
+  const at = new Date().toISOString();
+  const move = (suffix, quantity, reverse = false) => seedStockCommand(owner, suffix, {
+    kind: 'transfer', quantity, source: reverse ? 971121 : 971111, destination: reverse ? 971111 : 971121
+  });
+  const issue = await move('issue', 2), returned = await move('return', 1, true);
+  await delay(10);
+  const countedAt = new Date().toISOString();
+  const prior = {kind: 'APPROVED_PRIOR_CLOSE', record: 'CLOSE-9711-01', at, crates: 2, trays: 1};
+  const movements = [[issue, 'ISSUE'], [returned, 'RETURN']].map(([row, direction], i) => ({
+    commandId: row.command_id, stockRef: row.stock_ref, asset: 'crates', direction,
+    quantity: row.quantity, challan: 'W02-CHALLAN-' + i, line: '1'
+  }));
+  function signedEvidence({opening = prior, rows = movements, count = {}, signingScope = scope} = {}) {
+    const window = {openingDigest: digest(opening), movements: rows};
+    const witnessed = {record: 'COUNT-9711-02', at: countedAt, windowDigest: digest(window), crates: 3, trays: 1, ...count};
+    return structuredClone({
+      opening: {payload: opening, signature: signPayload('openingReviewer', opening, signingScope)},
+      window: {payload: window, signature: signPayload('challanRegistrar', window, signingScope)},
+      count: {payload: witnessed, counterSignature: signPayload('counter', witnessed, signingScope),
+        witnessSignature: signPayload('witness', witnessed, signingScope)}
+    });
+  }
+
+  await test('GoTrue review links witnessed count and prior close to two canonical posted movements and signed challan lines', async () => {
+    const before = await rpc(owner, 'inventory_list_commands_v1', {p_business: 9711});
+    const evidence = signedEvidence();
+    const matched = await reviewEvidence(evidence);
+    assert.equal(matched.status, 'HOLD');
+    assert.equal(matched.canPost, false);
+    assert.equal(matched.signedMovementSnapshotVerified, false);
+    assert.equal(matched.custodyEvidenceVerified, true);
+    assert.equal(matched.matchedMovements, 2);
+    assert.equal(matched.evidenceDigest, digest(['CORE10.W02.CUSTODY.V1', scope, evidence.count.payload]));
+    assert.deepEqual(await reviewEvidence(evidence, {priorObservation: matched.observation}), matched);
+    assert.deepEqual(await rpc(owner, 'inventory_list_commands_v1', {p_business: 9711}), before);
+  });
+
+  await test('missing approved prior close holds and a first-count substitute cannot pass', async () => {
+    const hold = await reviewEvidence();
+    assert.equal(hold.reason, 'W02_APPROVED_PRIOR_CLOSE_REQUIRED');
+    assert.equal(hold.observation, null);
+    await assert.rejects(reviewEvidence(signedEvidence({opening: {...prior, kind: 'FIRST_COUNT'}})),
+      {code: 'W02_APPROVED_PRIOR_CLOSE_REQUIRED'});
+    await assert.rejects(review({...selection, accessToken: owner, evidence: signedEvidence()}),
+      {code: 'W02_CUSTODY_PROVIDER_REQUIRED'});
+  });
+
+  await test('tampered, foreign-scope or non-independent evidence fails closed', async () => {
+    const tampered = signedEvidence();
+    tampered.count.payload.crates++;
+    await assert.rejects(reviewEvidence(tampered), {code: 'W02_EVIDENCE_SIGNATURE_INVALID'});
+    await assert.rejects(reviewEvidence(signedEvidence({signingScope: {...scope, tenantId: 972}})),
+      {code: 'W02_EVIDENCE_SIGNATURE_INVALID'});
+    assert.throws(() => createW02StockReview({authUrl, restUrl, custody: {
+      ...custody, signers: {...signers, witness: {...signers.witness, actorId: signers.counter.actorId}}
+    }}), {code: 'W02_INDEPENDENT_REVIEW_REQUIRED'});
+    const sameBookActor = createW02StockReview({authUrl, restUrl, custody: {
+      ...custody, signers: {...signers, witness: {...signers.witness, actorId: users.owner}}
+    }});
+    const reassigned = signedEvidence();
+    await assert.rejects(sameBookActor({...selection, accessToken: owner, evidence: reassigned}),
+      {code: 'W02_EVIDENCE_SIGNATURE_INVALID'});
+    reassigned.count.witnessSignature = signPayload('witness', reassigned.count.payload, scope, users.owner);
+    await assert.rejects(sameBookActor({...selection, accessToken: owner, evidence: reassigned}),
+      {code: 'W02_INDEPENDENT_COUNT_REQUIRED'});
+  });
+
+  await test('a signed bundle cannot omit a movement, substitute a Stock ref or duplicate a challan line', async () => {
+    await assert.rejects(reviewEvidence(signedEvidence({rows: movements.slice(0, 1)})),
+      {code: 'W02_MOVEMENT_WINDOW_MISMATCH'});
+    await assert.rejects(reviewEvidence(signedEvidence({rows: [{...movements[0], stockRef: 9999}, movements[1]]})),
+      {code: 'W02_MOVEMENT_WINDOW_MISMATCH'});
+    await assert.rejects(reviewEvidence(signedEvidence({rows: [movements[0], {...movements[1], challan: movements[0].challan}]})),
+      {code: 'W02_DUPLICATE_MOVEMENT_OR_CHALLAN_LINE'});
+    await assert.rejects(reviewEvidence(signedEvidence({count: {crates: 2}})),
+      {code: 'W02_WITNESSED_COUNT_MISMATCH'});
+    await assert.rejects(reviewEvidence(signedEvidence({count: {at: returned.posted_at}})),
+      {code: 'W02_MOVEMENT_AT_WINDOW_BOUNDARY'});
+  });
+
+  await test('a net-zero later issue and return still make the witnessed count stale', async () => {
+    const evidence = signedEvidence();
+    const before = await reviewEvidence(evidence);
+    await move('late-issue', 1);
+    await move('late-return', 1, true);
+    await assert.rejects(reviewEvidence(evidence, {priorObservation: before.observation}),
+      {code: 'W02_COUNT_STALE_NEW_MOVEMENT'});
+  });
 }
 
 async function run() {
   const [owner, foreign, oneSite, readOnly] = await Promise.all(Object.keys(users).map(login));
-  await seedReceipt(owner, 'initial', 5);
+  await seedStockCommand(owner, 'initial', {quantity: 5});
   const ownerRead = extra => review({...selection, accessToken: owner, ...extra});
 
   await test('real GoTrue read and deterministic read replay leave canonical stock commands unchanged', async () => {
@@ -105,7 +218,7 @@ async function run() {
 
   await test('canonical stock changes invalidate a prior observation', async () => {
     const before = await ownerRead();
-    await seedReceipt(owner, 'changed', 1);
+    await seedStockCommand(owner, 'changed', {quantity: 1});
     const stale = await ownerRead({priorObservation: before.observation});
     assert.equal(stale.reason, 'W02_STALE_OR_SCOPE_MISMATCHED_OBSERVATION');
     assert.equal(stale.observation, null);
@@ -113,6 +226,8 @@ async function run() {
     assert.notEqual(fresh.observation, before.observation);
     assert.equal(fresh.canPost, false);
   });
+
+  await proveCustody(owner);
 
   await test('site-level Control disables transfer review without authorizing posting', async () => {
     await rpc(owner, 'control_set_v1', {

@@ -16,7 +16,8 @@ INSERT INTO core10.sites(id,tenant_id,business_id,kind,label,request_key) VALUES
 INSERT INTO core10.stock_locations(id,tenant_id,business_id,site_id,code) VALUES
  (971111,971,9711,97111,'W02-FIXTURE-A'),(971121,971,9711,97112,'W02-FIXTURE-B');
 INSERT INTO core10.items(id,tenant_id,business_id,sku,name_en,name_bn,status) VALUES
- (97101,971,9711,'W02-FIXTURE-ITEM','Synthetic TEST item','পরীক্ষামূলক পণ্য','active');
+ (97101,971,9711,'W02-FIXTURE-CRATE','Synthetic TEST crate','পরীক্ষামূলক ক্যারেট','active'),
+ (97102,971,9711,'W02-FIXTURE-TRAY','Synthetic TEST tray','পরীক্ষামূলক ট্রে','active');
 INSERT INTO core10.tenant_members(tenant_id,user_id,role) VALUES
  (971,'a0711111-1111-4111-8111-111111111111','tenant_owner'),
  (972,'a0722222-2222-4222-8222-222222222222','tenant_owner');

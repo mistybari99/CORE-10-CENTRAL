@@ -2,6 +2,7 @@
 
 const {createHash} = require('node:crypto');
 const {assertSource} = require('./w02-returnables-reconciliation.cjs');
+const {configureCustody} = require('./w02-custody-evidence.cjs');
 
 const FEATURES = ['inventory.stock_event', 'inventory.transfer'];
 const PAGE_SIZE = 200;
@@ -84,12 +85,39 @@ async function readBalances(rpc, business, site) {
   fail('W02_STOCK_OBSERVATION_INCOMPLETE');
 }
 
+async function readPostedCommands(rpc, business, site) {
+  const commands = [];
+  let before = null;
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const result = await rpc('inventory_list_commands_v1', {
+      p_business: business, p_site: site, p_status: 'posted', p_before_id: before, p_limit: PAGE_SIZE
+    });
+    if (result?.business_id !== business || result.limit !== PAGE_SIZE ||
+        !Array.isArray(result.items) || result.items.length > PAGE_SIZE) fail('W02_COMMAND_SCOPE_MISMATCH');
+    for (const row of result.items) {
+      if (row.business_id !== business || row.status !== 'posted' ||
+          ![row.source_site_id, row.destination_site_id].includes(site) ||
+          !Number.isSafeInteger(row.command_id) || row.command_id <= 0 ||
+          (before !== null && row.command_id >= before)) fail('W02_COMMAND_SCOPE_MISMATCH');
+      before = row.command_id;
+      const {command_id, kind, source_site_id, destination_site_id, item_id, quantity,
+        stock_ref, created_by, confirmed_by, posted_by, posted_at} = row;
+      commands.push({command_id, kind, source_site_id, destination_site_id, item_id, quantity,
+        stock_ref, created_by, confirmed_by, posted_by, posted_at});
+    }
+    if (result.next_before_id === null && result.items.length < PAGE_SIZE) return commands;
+    if (result.items.length !== PAGE_SIZE || result.next_before_id !== before) fail('W02_COMMAND_SCOPE_MISMATCH');
+  }
+  fail('W02_COMMAND_WINDOW_INCOMPLETE');
+}
+
 // Local rehearsal over existing GoTrue and canonical PostgREST reads. The bearer
 // stays fixed for the whole request, and no stock quantities are returned.
-function createW02StockReview({authUrl, restUrl} = {}) {
+function createW02StockReview({authUrl, restUrl, custody} = {}) {
   const auth = localOrigin(authUrl), rest = localOrigin(restUrl);
   const sourceFieldIDs = assertSource().fields;
-  return async function review({accessToken, businessId, fromSiteId, toSiteId, priorObservation} = {}) {
+  const prepareEvidence = custody === undefined ? null : configureCustody(custody);
+  return async function review({accessToken, businessId, fromSiteId, toSiteId, priorObservation, evidence} = {}) {
     if (![businessId, fromSiteId, toSiteId].every(id => Number.isSafeInteger(id) && id > 0) ||
         fromSiteId === toSiteId || priorObservation !== undefined &&
         (typeof priorObservation !== 'string' || !/^[0-9a-f]{64}$/.test(priorObservation))) {
@@ -133,21 +161,33 @@ function createW02StockReview({authUrl, restUrl} = {}) {
       return hold('W02_STOCK_CONTROL_DISABLED');
     }
 
-    const balances = async () => Promise.all(sites.map(site => readBalances(rpc, businessId, site)));
-    const observed = JSON.stringify(await balances());
+    if (evidence !== undefined && !prepareEvidence) fail('W02_CUSTODY_PROVIDER_REQUIRED');
+    if (prepareEvidence && !evidence?.opening) return hold('W02_APPROVED_PRIOR_CLOSE_REQUIRED');
+    const matchStock = prepareEvidence?.(evidence, {tenantId: tenant, businessId, fromSiteId, toSiteId});
+    const readStock = async () => {
+      const balances = await Promise.all(sites.map(site => readBalances(rpc, businessId, site)));
+      const commands = matchStock ? await readPostedCommands(rpc, businessId, fromSiteId) : [];
+      return {balances, commands};
+    };
+    const observed = await readStock();
     // A repeated read detects changes during the observation. Existing reads do
     // not provide a joint ledger revision or challan; the result remains HOLD.
-    const confirmed = JSON.stringify(await balances());
+    const confirmed = await readStock();
     const confirmedPolicies = await control();
     if (await currentScope() !== tenant) fail('W02_SCOPE_DENIED');
-    if (observed !== confirmed || JSON.stringify(policies) !== JSON.stringify(confirmedPolicies)) {
+    if (JSON.stringify(observed) !== JSON.stringify(confirmed) || JSON.stringify(policies) !== JSON.stringify(confirmedPolicies)) {
       return hold('W02_STOCK_OBSERVATION_CHANGED');
     }
-    const observation = createHash('sha256')
-      .update(JSON.stringify([user.id, tenant, businessId, sites, policies, observed])).digest('hex');
+    const linked = matchStock?.(confirmed.commands);
+    const material = [user.id, tenant, businessId, sites, policies, JSON.stringify(confirmed.balances)];
+    if (linked) material.push(confirmed.commands, linked);
+    const observation = createHash('sha256').update(JSON.stringify(material)).digest('hex');
     if (priorObservation !== undefined && priorObservation !== observation) {
       return hold('W02_STALE_OR_SCOPE_MISMATCHED_OBSERVATION');
     }
+    if (linked) return Object.freeze({...hold('W02_CANONICAL_CUSTODY_PROVIDER_REQUIRED'),
+      observation, custodyEvidenceVerified: true, evidenceDigest: linked.evidenceDigest,
+      matchedMovements: linked.matchedMovements});
     return Object.freeze({...hold('W02_SIGNED_MOVEMENT_AND_CARRY_FORWARD_REQUIRED'), observation});
   };
 }
