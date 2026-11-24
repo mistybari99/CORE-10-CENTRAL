@@ -164,7 +164,7 @@ async function reviewRegistry({rpc, currentScope, control, policies, scope, acto
   }
   const revision = {observation, stockRevision: state.revision};
   return Object.freeze(linked ? {...hold('W02_VERIFIED_POSTING_DISABLED'), ...revision,
-    custodyEvidenceVerified: true, canonicalSnapshotVerified: true, ...linked}
+    custodyEvidenceVerified: true, canonicalSnapshotVerified: true, controlEvidence: policies, ...linked}
     : {...hold('W02_SIGNED_COUNT_REQUIRED'), ...revision});
 }
 
