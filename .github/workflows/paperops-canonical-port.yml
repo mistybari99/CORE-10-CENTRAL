@@ -91,7 +91,7 @@ jobs:
           stock=ad4b956e1523cbc8e7d016f9392150bf3267774c
           git fetch --no-tags --depth=1 origin "$stock"
           for version in 0207 0208 0209 0210; do
-            mapfile -t files < <(git ls-tree -r --name-only "$stock" internal/migrations/ | rg "/${version}_")
+            mapfile -t files < <(git ls-tree -r --name-only "$stock" internal/migrations/ | grep -F "/${version}_")
             test "${#files[@]}" -eq 2
             for file in "${files[@]}"; do
               test ! -e "$file"
