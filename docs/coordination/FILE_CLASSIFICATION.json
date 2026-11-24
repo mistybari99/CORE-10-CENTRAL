@@ -440,6 +440,30 @@
       "classification": "TRUNK_UNSHIPPED"
     },
     {
+      "path": "core10-sales-invoice-ui.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-sales-master-catalog.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-sales-order-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-sales-order-entry.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-sales-order-ui.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-sales-order.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
       "path": "core10-shell.js",
       "classification": "TRUNK_UNSHIPPED"
     },
