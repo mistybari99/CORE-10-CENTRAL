@@ -21,7 +21,7 @@
 | A017 | 50 | 7 high, 1 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45322500024 |
 | A018 | 50 | 7 high, 2 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45322743818 |
 | A019 | 50 | 7 high, 1 medium, 1 resolved attribution | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45329659659 |
-| A020 | 50 | 7 high, 4 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45329921549 |
+| A020 | 50 | 8 high, 3 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45329921549 |
 
 A002 covers R-01:waste_qty through C-04:on_c. Both original C-04:who declarations are preserved under one manifest ID. Evidence commits for the two exact runs are 6349dc78039f52ec7a867d1f8c3fe9e38b78174d and 1778382a1a9bd48bbf83921570bec8f9cfc7353a.
 
