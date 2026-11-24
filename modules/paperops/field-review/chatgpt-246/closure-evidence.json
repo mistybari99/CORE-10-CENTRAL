@@ -4505,7 +4505,13 @@
     "signed_money_api_invoked": false,
     "w02_customer_payment": "modules/paperops/field-review/chatgpt-246/w02-customer-payment-source.cjs",
     "r01_food_safety": "modules/paperops/field-review/chatgpt-246/r01-food-safety-review.cjs",
-    "w02_returnables_physical_review": "modules/paperops/field-review/chatgpt-246/w02-returnables-reconciliation.cjs"
+    "w02_returnables_physical_review": "modules/paperops/field-review/chatgpt-246/w02-returnables-reconciliation.cjs",
+    "w02_returnables_evidence_binding": {
+      "opening_proof": ["crates", "trays"],
+      "physical_snapshot": ["throughEventId", "throughSourceRef"],
+      "source_proof_ref_aliasing_allowed": false,
+      "signed_canonical_snapshot_verified": false
+    }
   },
   "additional_critical_declarations_verified": [
     "C-01:seal_no",

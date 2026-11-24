@@ -64,11 +64,11 @@ function reviewReturnables({packaging,sourceDeclarations,openingProofs,physicalC
     !Array.isArray(physicalCounts)||physicalCounts.length>400)
   throw Error('W02_RETURNABLES_EVIDENCE_COLLECTION_REQUIRED');
  const blockers=[...ledger.blockers],block=x=>{if(!blockers.includes(x))blockers.push(x);};
- const refs=new Set(),usedProofs=new Set(),declarations=new Map();
+ const refs=new Set(events.map(event=>event.sourceRef));
+ const usedProofs=new Set(),declarations=new Map();
  const uniqueProof=(x,label)=>{ref(x,label);if(usedProofs.has(x)||refs.has(x))
   throw Error('W02_RETURNABLES_REPLAYED_PROOF_REF:'+label);usedProofs.add(x);};
  for(const e of events){
-  refs.add(e.sourceRef);
   uniqueProof(e.senderProofRef,'SENDER');
   uniqueProof(e.receiverProofRef,'RECEIVER');
  }
@@ -114,6 +114,11 @@ function reviewReturnables({packaging,sourceDeclarations,openingProofs,physicalC
   const opening=openings.find(e=>e.id===p.eventId);
   if(!opening||p.sourceRef!==opening.sourceRef||k!==opening.fromSiteId+'>'+opening.toSiteId)
    block('W02_RETURNABLES_OPENING_NOT_TIED_TO_SOURCE:'+p.eventId);
+  const carriedCrates=qty(p.crates,'CARRY_FORWARD_CRATES');
+  const carriedTrays=qty(p.trays,'CARRY_FORWARD_TRAYS');
+  if(opening&&(carriedCrates!==qty(opening.crates,'OPENING_CRATES')||
+    carriedTrays!==qty(opening.trays,'OPENING_TRAYS')))
+   block('W02_RETURNABLES_OPENING_BALANCE_MISMATCH:'+p.eventId);
   uniqueProof(p.carryForwardRef,'CARRY_FORWARD');
   uniqueProof(p.approvalPolicyRef,'POLICY');
   uniqueProof(p.reviewerEvidenceRef,'OPENING_REVIEW');
@@ -136,11 +141,15 @@ function reviewReturnables({packaging,sourceDeclarations,openingProofs,physicalC
   uniqueProof(p.countEvidenceRef,'COUNT_EVIDENCE');
   uniqueProof(p.witnessEvidenceRef,'WITNESS_EVIDENCE');
   ref(p.countedBy,'COUNTER');ref(p.witnessedBy,'WITNESS');
-  ref(p.stockSnapshotRef,'STOCK_SNAPSHOT');
+  uniqueProof(p.stockSnapshotRef,'STOCK_SNAPSHOT');
+  ref(p.throughEventId,'STOCK_SNAPSHOT_THROUGH_EVENT');
+  ref(p.throughSourceRef,'STOCK_SNAPSHOT_THROUGH_SOURCE');
   if(p.countedBy===p.witnessedBy||actorsByPair.get(k).has(p.countedBy)||
      actorsByPair.get(k).has(p.witnessedBy))
    block('W02_RETURNABLES_INDEPENDENT_PHYSICAL_COUNT_NOT_PROVED:'+k);
   const last=pairLast.get(k);
+  if(p.throughEventId!==last.id||p.throughSourceRef!==last.sourceRef)
+   block('W02_RETURNABLES_STOCK_SNAPSHOT_NOT_AT_PAIR_TIP:'+k);
   if(qty(p.crates,'COUNT_CRATES')!==last.cratesOutstanding||
      qty(p.trays,'COUNT_TRAYS')!==last.traysOutstanding)
    block('W02_RETURNABLES_PHYSICAL_VS_LEDGER_DISCREPANCY:'+k);

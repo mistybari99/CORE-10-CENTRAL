@@ -1,0 +1,32 @@
+name: PaperOps W02 returnables
+on:
+  pull_request:
+    branches: [build/chatgpt-paperops-246-20261123]
+    paths:
+      - 'modules/paperops/**'
+      - '.github/workflows/paperops-w02-returnables.yml'
+permissions:
+  contents: read
+jobs:
+  nonposting-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify frozen source and expose the historical test path
+        run: |
+          expected=f2cb1c5e09210496106ace1bf33ddc40d2d6df1d
+          test "$(git hash-object forms.js)" = "$expected"
+          mkdir -p legacy/islamia-erp
+          if [ ! -e legacy/islamia-erp/forms.js ]; then
+            ln -s ../../forms.js legacy/islamia-erp/forms.js
+          fi
+          test "$(git hash-object legacy/islamia-erp/forms.js)" = "$expected"
+      - run: node modules/paperops/legacy-rule-extractor.cjs --check
+      - run: node modules/paperops/field-routing.cjs --check
+      - run: node modules/paperops/field-batch-audit.cjs --check
+      - run: node --experimental-test-isolation=none --test modules/paperops/tests/*.test.cjs

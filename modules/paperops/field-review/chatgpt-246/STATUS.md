@@ -58,3 +58,9 @@ Immutable source split: 86 critical linked + 150 exact declarations + 10 R-01 re
 - New `w02-returnables-reconciliation.cjs` composes the existing 5-event synthetic packaging book with exact challan declarations, scoped opening carry-forward record, distinct custody/reviewer evidence, independently counted physical crate/tray balances, duplicate/replay protection, strict integer quantities and cross-business/site denial. Any mismatch BLOCKS; no automatic adjustment or posting.
 - **11/11 original functional gaps now have some local synthetic/source control**, but **all 11/11 remain OPEN** for canonical signed integration, Owner business policy, authenticated approvals and real stock books. All 20 high-risk obligations remain OPEN; zero original parity approvals and zero signed ERP postings.
 - Owner split remains the exact original 246/1000 manifest; Codex lane and parent PR #132 are not modified. Frozen source unchanged/read-only, no Supabase/migrations/merge/deploy or external Board write.
+
+### W02-01 returnable evidence binding
+
+- The opening carry-forward proof supplies its own crate/tray counts. The physical Stock snapshot supplies the latest movement ID and its challan reference for the counted site pair. These are synthetic provider metadata for the six original manual fields.
+- The check blocks stale snapshots even when the final quantities match. Proofs cannot reuse a challan reference, including a challan later in the movement sequence. Cross-scope, independent witness and reconciliation checks remain in force.
+- Canonical Stock and approval providers, carry-forward policy and signed runtime acceptance remain open.

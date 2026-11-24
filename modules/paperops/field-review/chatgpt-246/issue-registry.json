@@ -239,7 +239,8 @@
       "signed_tested": false,
       "owner_policy_accepted": false,
       "local_evidence": "modules/paperops/field-review/chatgpt-246/w02-returnables-reconciliation.cjs; modules/paperops/tests/chatgpt-246-w02-returnables-reconciliation.test.cjs; modules/paperops/source-books.cjs",
-      "remaining_dependency": "Authentic custody signatures, approved opening carry-forward source, canonical tenant/site Stock movements and independent physical approval, immutable returnable ledger/reversal and Owner policy"
+      "remaining_dependency": "Authentic custody signatures, approved opening carry-forward source, canonical tenant/site Stock movements and independent physical approval, immutable returnable ledger/reversal and Owner policy",
+      "local_evidence_binding": "Opening proof quantities reconcile to the opening event. Physical-count snapshot must name the latest event and challan of its site pair. Source and proof references cannot alias even across movement order. All identifiers remain synthetic."
     },
     {
       "id": "W02-02",
