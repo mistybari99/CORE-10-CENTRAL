@@ -1,0 +1,608 @@
+{
+  "batch": "A005",
+  "status": "DECLARATIONS_CHECKED_RULE_REVIEW_IN_PROGRESS",
+  "source_file": "forms_cash.js",
+  "sha256": "ce58ef83daa19273b766f3eac63db5f97cc741ffb26ed21076ab948032c14022",
+  "fields": [
+    {
+      "source_id": "R-02:decided_by",
+      "constructors": [
+        {
+          "offset_utf16": 23936,
+          "literal": "u(\"decided_by\",t(\"সিদ্ধান্তগ্রহণকারী — স্বাক্ষর\",\"Decided by — signature\"))",
+          "constructor_alias": "u",
+          "label_bn": "সিদ্ধান্তগ্রহণকারী — স্বাক্ষর",
+          "label_en": "Decided by — signature"
+        }
+      ]
+    },
+    {
+      "source_id": "R-02:e_noslip",
+      "constructors": [
+        {
+          "offset_utf16": 24282,
+          "literal": "m(\"e_noslip\",t(\"স্লিপ ছাড়া মালামাল প্রাপ্ত হয়েছে\",\"Goods received without a slip\"))",
+          "constructor_alias": "m",
+          "label_bn": "স্লিপ ছাড়া মালামাল প্রাপ্ত হয়েছে",
+          "label_en": "Goods received without a slip"
+        }
+      ]
+    },
+    {
+      "source_id": "R-02:e_nomeasure",
+      "constructors": [
+        {
+          "offset_utf16": 24368,
+          "literal": "m(\"e_nomeasure\",t(\"মাপ নেওয়া হয়নি\",\"Measure not taken\"))",
+          "constructor_alias": "m",
+          "label_bn": "মাপ নেওয়া হয়নি",
+          "label_en": "Measure not taken"
+        }
+      ]
+    },
+    {
+      "source_id": "R-02:e_same",
+      "constructors": [
+        {
+          "offset_utf16": 24427,
+          "literal": "m(\"e_same\",t(\"উৎপাদনকারী (Produced by) ও পরিমাপকারী (Measured by) একই ব্যক্তি\",\"Producer and measurer are the same person\"))",
+          "constructor_alias": "m",
+          "label_bn": "উৎপাদনকারী (Produced by) ও পরিমাপকারী (Measured by) একই ব্যক্তি",
+          "label_en": "Producer and measurer are the same person"
+        }
+      ]
+    },
+    {
+      "source_id": "R-02:e_roster",
+      "constructors": [
+        {
+          "offset_utf16": 24552,
+          "literal": "m(\"e_roster\",t(\"রোস্টার মানা হয়নি\",\"Roster not followed\"))",
+          "constructor_alias": "m",
+          "label_bn": "রোস্টার মানা হয়নি",
+          "label_en": "Roster not followed"
+        }
+      ]
+    },
+    {
+      "source_id": "R-02:e_syrup",
+      "constructors": [
+        {
+          "offset_utf16": 24612,
+          "literal": "m(\"e_syrup\",t(\"রস কম পড়ায় আলাদা চিনির রস বানানো হয়েছে\",\"Separate sugar syrup made because syrup ran short\"))",
+          "constructor_alias": "m",
+          "label_bn": "রস কম পড়ায় আলাদা চিনির রস বানানো হয়েছে",
+          "label_en": "Separate sugar syrup made because syrup ran short"
+        }
+      ]
+    },
+    {
+      "source_id": "R-02:e_diff",
+      "constructors": [
+        {
+          "offset_utf16": 24724,
+          "literal": "m(\"e_diff\",t(\"পার্থক্য সীমার বাইরে\",\"Difference outside the limit\"))",
+          "constructor_alias": "m",
+          "label_bn": "পার্থক্য সীমার বাইরে",
+          "label_en": "Difference outside the limit"
+        }
+      ]
+    },
+    {
+      "source_id": "R-02:e_days",
+      "constructors": [
+        {
+          "offset_utf16": 24793,
+          "literal": "l(\"e_days\",t(\"পরপর কত দিন\",\"Consecutive days\"),{show:e=>!!e.d.e_diff||e.v.diff_out,req:e=>e.v.diff_out})",
+          "constructor_alias": "l",
+          "label_bn": "পরপর কত দিন",
+          "label_en": "Consecutive days"
+        }
+      ]
+    },
+    {
+      "source_id": "R-02:produced_by",
+      "constructors": [
+        {
+          "offset_utf16": 24942,
+          "literal": "u(\"produced_by\",t(\"উৎপাদনকারী (Produced by)\",\"Produced by\"))",
+          "constructor_alias": "u",
+          "label_bn": "উৎপাদনকারী (Produced by)",
+          "label_en": "Produced by"
+        }
+      ]
+    },
+    {
+      "source_id": "R-02:checked_by",
+      "constructors": [
+        {
+          "offset_utf16": 25053,
+          "literal": "u(\"checked_by\",t(\"যাচাইকারী (Checked by) — ব্যবস্থাপনা\",\"Checked by — management\"),{who:\"checker\"})",
+          "constructor_alias": "u",
+          "label_bn": "যাচাইকারী (Checked by) — ব্যবস্থাপনা",
+          "label_en": "Checked by — management"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:month",
+      "constructors": [
+        {
+          "offset_utf16": 29653,
+          "literal": "b(\"month\",t(\"মাস\",\"Month\"),E)",
+          "constructor_alias": "b",
+          "label_bn": "মাস",
+          "label_en": "Month"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:brand",
+      "constructors": [
+        {
+          "offset_utf16": 29683,
+          "literal": "g(\"brand\",t(\"ব্র্যান্ড\",\"Brand\"),()=>e.biz?e.biz.brandOpts(N,[\"other\",\"all\"]):N)",
+          "constructor_alias": "g",
+          "label_bn": "ব্র্যান্ড",
+          "label_en": "Brand"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:brand_other",
+      "constructors": [
+        {
+          "offset_utf16": 29764,
+          "literal": "i(\"brand_other\",t(\"অন্য ব্র্যান্ড\",\"Other brand\"),{show:e=>\"other\"===e.d.brand})",
+          "constructor_alias": "i",
+          "label_bn": "অন্য ব্র্যান্ড",
+          "label_en": "Other brand"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:date",
+      "constructors": [
+        {
+          "offset_utf16": 30483,
+          "literal": "h(\"date\",t(\"তারিখ\",\"Date\"))",
+          "constructor_alias": "h",
+          "label_bn": "তারিখ",
+          "label_en": "Date"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:head",
+      "constructors": [
+        {
+          "offset_utf16": 30511,
+          "literal": "b(\"head\",t(\"খাত\",\"Head\"),e.optsX(\"marketing_heads\",j),{req:!0,wide:!0,list:\"marketing_heads\"})",
+          "constructor_alias": "b",
+          "label_bn": "খাত",
+          "label_en": "Head"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:campaign",
+      "constructors": [
+        {
+          "offset_utf16": 30606,
+          "literal": "i(\"campaign\",t(\"পণ্য বা ক্যাম্পেইন\",\"Product or campaign\"),{wide:!0})",
+          "constructor_alias": "i",
+          "label_bn": "পণ্য বা ক্যাম্পেইন",
+          "label_en": "Product or campaign"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:campaign_id",
+      "constructors": [
+        {
+          "offset_utf16": 30676,
+          "literal": "b(\"campaign_id\",t(\"ক্যাম্পেইন (তালিকা থেকে)\",\"Campaign (from the list)\"),e.optsX(\"marketing_campaigns\",[]),{wide:!0,list:\"marketing_campaigns\"})",
+          "constructor_alias": "b",
+          "label_bn": "ক্যাম্পেইন (তালিকা থেকে)",
+          "label_en": "Campaign (from the list)"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:period",
+      "constructors": [
+        {
+          "offset_utf16": 30821,
+          "literal": "i(\"period\",t(\"মেয়াদ · স্থান\",\"Period · place\"))",
+          "constructor_alias": "i",
+          "label_bn": "মেয়াদ · স্থান",
+          "label_en": "Period · place"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:source",
+      "constructors": [
+        {
+          "offset_utf16": 30870,
+          "literal": "b(\"source\",t(\"টাকার উৎস\",\"Source of money\"),R)",
+          "constructor_alias": "b",
+          "label_bn": "টাকার উৎস",
+          "label_en": "Source of money"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:amt",
+      "constructors": [
+        {
+          "offset_utf16": 30917,
+          "literal": "d(\"amt\",t(\"টাকা ৳\",\"Amount ৳\"),{req:e=>!r(e.row.nonpay)})",
+          "constructor_alias": "d",
+          "label_bn": "টাকা ৳",
+          "label_en": "Amount ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:nonpay",
+      "constructors": [
+        {
+          "offset_utf16": 30975,
+          "literal": "d(\"nonpay\",t(\"টাকা প্রদান ছাড়া — মূল্য ৳\",\"Without payment — value ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "টাকা প্রদান ছাড়া — মূল্য ৳",
+          "label_en": "Without payment — value ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:receipt",
+      "constructors": [
+        {
+          "offset_utf16": 31048,
+          "literal": "i(\"receipt\",t(\"রসিদ / ইনভয়েস নং\",\"Receipt / invoice no.\"))",
+          "constructor_alias": "i",
+          "label_bn": "রসিদ / ইনভয়েস নং",
+          "label_en": "Receipt / invoice no."
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:ledger",
+      "constructors": [
+        {
+          "offset_utf16": 31108,
+          "literal": "i(\"ledger\",t(\"লেজারের লাইন নং\",\"Ledger line no.\"))",
+          "constructor_alias": "i",
+          "label_bn": "লেজারের লাইন নং",
+          "label_en": "Ledger line no."
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:result",
+      "constructors": [
+        {
+          "offset_utf16": 31159,
+          "literal": "i(\"result\",t(\"ফল: মেসেজ · অর্ডার\",\"Result: messages · orders\"),{wide:!0})",
+          "constructor_alias": "i",
+          "label_bn": "ফল: মেসেজ · অর্ডার",
+          "label_en": "Result: messages · orders"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:approved_by",
+      "constructors": [
+        {
+          "offset_utf16": 31233,
+          "literal": "u(\"approved_by\",t(\"অনুমোদনকারী\",\"Approved by\"))",
+          "constructor_alias": "u",
+          "label_bn": "অনুমোদনকারী",
+          "label_en": "Approved by"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:approve_time",
+      "constructors": [
+        {
+          "offset_utf16": 31281,
+          "literal": "c(\"approve_time\",t(\"মেসেজে অনুমোদন হলে সময়\",\"Time, if approved by message\"),{show:e=>r(e.row.approved_by)})",
+          "constructor_alias": "c",
+          "label_bn": "মেসেজে অনুমোদন হলে সময়",
+          "label_en": "Time, if approved by message"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:state",
+      "constructors": [
+        {
+          "offset_utf16": 31390,
+          "literal": "f(\"state\",t(\"খাতের সীমা (মাসের মোট)\",\"Head limit (month total)\"),\"text\")",
+          "constructor_alias": "f",
+          "label_bn": "খাতের সীমা (মাসের মোট)",
+          "label_en": "Head limit (month total)"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:tot_amt",
+      "constructors": [
+        {
+          "offset_utf16": 31473,
+          "literal": "f(\"tot_amt\",t(\"মোট টাকা\",\"Total money\"),\"money\",{big:!0})",
+          "constructor_alias": "f",
+          "label_bn": "মোট টাকা",
+          "label_en": "Total money"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:tot_nonpay",
+      "constructors": [
+        {
+          "offset_utf16": 31531,
+          "literal": "f(\"tot_nonpay\",t(\"মোট — টাকা প্রদান ছাড়া মূল্য\",\"Total — value without payment\"),\"money\")",
+          "constructor_alias": "f",
+          "label_bn": "মোট — টাকা প্রদান ছাড়া মূল্য",
+          "label_en": "Total — value without payment"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:reg_total",
+      "constructors": [
+        {
+          "offset_utf16": 31686,
+          "literal": "f(\"reg_total\",t(\"রেজিস্টারের টাকার মোট\",\"Register money total\"),\"money\")",
+          "constructor_alias": "f",
+          "label_bn": "রেজিস্টারের টাকার মোট",
+          "label_en": "Register money total"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:ledger_total",
+      "constructors": [
+        {
+          "offset_utf16": 31759,
+          "literal": "d(\"ledger_total\",t(\"= ক্যাশ ও ব্যাংক লেজারের মার্কেটিং খরচ\",\"= marketing expense in the cash & bank ledger\"),{req:!0})",
+          "constructor_alias": "d",
+          "label_bn": "= ক্যাশ ও ব্যাংক লেজারের মার্কেটিং খরচ",
+          "label_en": "= marketing expense in the cash & bank ledger"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:stmt_total",
+      "constructors": [
+        {
+          "offset_utf16": 31878,
+          "literal": "d(\"stmt_total\",t(\"= কার্ড / মোবাইল স্টেটমেন্ট ও বিজ্ঞাপনের ইনভয়েস\",\"= card / mobile statements and ad invoices\"),{req:!0})",
+          "constructor_alias": "d",
+          "label_bn": "= কার্ড / মোবাইল স্টেটমেন্ট ও বিজ্ঞাপনের ইনভয়েস",
+          "label_en": "= card / mobile statements and ad invoices"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:rec_text",
+      "constructors": [
+        {
+          "offset_utf16": 32002,
+          "literal": "f(\"rec_text\",t(\"মিল\",\"Match\"),\"text\")",
+          "constructor_alias": "f",
+          "label_bn": "মিল",
+          "label_en": "Match"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:limit_text",
+      "constructors": [
+        {
+          "offset_utf16": 32040,
+          "literal": "f(\"limit_text\",t(\"লোকেশন সেটিংস শিটের খাত-সীমার ভেতরে\",\"Within the head limits in location settings\"),\"text\")",
+          "constructor_alias": "f",
+          "label_bn": "লোকেশন সেটিংস শিটের খাত-সীমার ভেতরে",
+          "label_en": "Within the head limits in location settings"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:over_approver",
+      "constructors": [
+        {
+          "offset_utf16": 32150,
+          "literal": "u(\"over_approver\",t(\"সীমার বাইরে হলে অনুমোদনকারী (Approved by)\",\"Approver if outside the limit\"),{show:e=>e.v.any_over,req:e=>e.v.any_over})",
+          "constructor_alias": "u",
+          "label_bn": "সীমার বাইরে হলে অনুমোদনকারী (Approved by)",
+          "label_en": "Approver if outside the limit"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:entered_by",
+      "constructors": [
+        {
+          "offset_utf16": 32291,
+          "literal": "u(\"entered_by\",t(\"এন্ট্রিকারী (Entered by) — অনলাইন দায়িত্ব\",\"Entered by — online duty\"))",
+          "constructor_alias": "u",
+          "label_bn": "এন্ট্রিকারী (Entered by) — অনলাইন দায়িত্ব",
+          "label_en": "Entered by — online duty"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:checked_by",
+      "constructors": [
+        {
+          "offset_utf16": 32453,
+          "literal": "u(\"checked_by\",t(\"যাচাইকারী (Checked by) — দৈনিক হিসাব রিকনসিলিয়েশনের কর্মী\",\"Checked by — daily reconciliation staff\"),{who:\"checker\",req:!0})",
+          "constructor_alias": "u",
+          "label_bn": "যাচাইকারী (Checked by) — দৈনিক হিসাব রিকনসিলিয়েশনের কর্মী",
+          "label_en": "Checked by — daily reconciliation staff"
+        }
+      ]
+    },
+    {
+      "source_id": "C-03:owner_by",
+      "constructors": [
+        {
+          "offset_utf16": 32598,
+          "literal": "u(\"owner_by\",t(\"অনুমোদনকারী (Approved by) — মালিক\",\"Approved by — owner\"),{who:\"checker\",req:!0})",
+          "constructor_alias": "u",
+          "label_bn": "অনুমোদনকারী (Approved by) — মালিক",
+          "label_en": "Approved by — owner"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:page_no",
+      "constructors": [
+        {
+          "offset_utf16": 34708,
+          "literal": "i(\"page_no\",t(\"পাতা নং\",\"Page no.\"))",
+          "constructor_alias": "i",
+          "label_bn": "পাতা নং",
+          "label_en": "Page no."
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:party",
+      "constructors": [
+        {
+          "offset_utf16": 34745,
+          "literal": "i(\"party\",t(\"পার্টির নাম\",\"Party name\"),{req:!0})",
+          "constructor_alias": "i",
+          "label_bn": "পার্টির নাম",
+          "label_en": "Party name"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:firm",
+      "constructors": [
+        {
+          "offset_utf16": 34795,
+          "literal": "i(\"firm\",t(\"প্রতিষ্ঠান / দোকান\",\"Firm / shop\"))",
+          "constructor_alias": "i",
+          "label_bn": "প্রতিষ্ঠান / দোকান",
+          "label_en": "Firm / shop"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:phone",
+      "constructors": [
+        {
+          "offset_utf16": 34843,
+          "literal": "i(\"phone\",t(\"ফোন\",\"Phone\"))",
+          "constructor_alias": "i",
+          "label_bn": "ফোন",
+          "label_en": "Phone"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:address",
+      "constructors": [
+        {
+          "offset_utf16": 34871,
+          "literal": "i(\"address\",t(\"ঠিকানা\",\"Address\"))",
+          "constructor_alias": "i",
+          "label_bn": "ঠিকানা",
+          "label_en": "Address"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:rate_basis",
+      "constructors": [
+        {
+          "offset_utf16": 34906,
+          "literal": "g(\"rate_basis\",t(\"দরের ভিত্তি\",\"Rate basis\"),[[\"list\",t(\"পাইকারি তালিকা\",\"Wholesale list\")],[\"special\",t(\"বিশেষ\",\"Special\")]])",
+          "constructor_alias": "g",
+          "label_bn": "দরের ভিত্তি",
+          "label_en": "Rate basis"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:credit_limit",
+      "constructors": [
+        {
+          "offset_utf16": 35033,
+          "literal": "d(\"credit_limit\",t(\"ক্রেডিট সীমা (Credit Limit) ৳\",\"Credit limit ৳\"),{req:!0})",
+          "constructor_alias": "d",
+          "label_bn": "ক্রেডিট সীমা (Credit Limit) ৳",
+          "label_en": "Credit limit ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:credit_days",
+      "constructors": [
+        {
+          "offset_utf16": 35112,
+          "literal": "l(\"credit_days\",t(\"বাকির সময় (দিন)\",\"Credit period (days)\"))",
+          "constructor_alias": "l",
+          "label_bn": "বাকির সময় (দিন)",
+          "label_en": "Credit period (days)"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:approved_by",
+      "constructors": [
+        {
+          "offset_utf16": 35174,
+          "literal": "u(\"approved_by\",t(\"অনুমোদনকারী (Approved by)\",\"Approved by\"))",
+          "constructor_alias": "u",
+          "label_bn": "অনুমোদনকারী (Approved by)",
+          "label_en": "Approved by"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:opening",
+      "constructors": [
+        {
+          "offset_utf16": 35832,
+          "literal": "d(\"opening\",t(\"আগের পাতা থেকে জের ৳ (নতুন পাতায় থাকলে)\",\"Brought forward from the previous page ৳ (if any)\"))",
+          "constructor_alias": "d",
+          "label_bn": "আগের পাতা থেকে জের ৳ (নতুন পাতায় থাকলে)",
+          "label_en": "Brought forward from the previous page ৳ (if any)"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:date",
+      "constructors": [
+        {
+          "offset_utf16": 35959,
+          "literal": "h(\"date\",t(\"তারিখ\",\"Date\"),{req:!0})",
+          "constructor_alias": "h",
+          "label_bn": "তারিখ",
+          "label_en": "Date"
+        }
+      ]
+    },
+    {
+      "source_id": "S-06:inv_no",
+      "constructors": [
+        {
+          "offset_utf16": 35996,
+          "literal": "i(\"inv_no\",t(\"পার্টি ও পাইকারি ইনভয়েস নং\",\"Party & wholesale invoice no.\"))",
+          "constructor_alias": "i",
+          "label_bn": "পার্টি ও পাইকারি ইনভয়েস নং",
+          "label_en": "Party & wholesale invoice no."
+        }
+      ]
+    }
+  ]
+}

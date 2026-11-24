@@ -1,0 +1,272 @@
+[
+  {
+    "issue_id": "A016-F001",
+    "source_ids": [
+      "A-01:owner_liab",
+      "A-01:outside_debt"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 33376,
+        "text": "l(\"owner_liab\",t(\"হাব: মালিকের কাছে ব্যবসার দায় (Liability) ৳\",\"Hub: business liability to the owner ৳\")),l(\"outside_debt\",t(\"হাব: বাইরের ঋণ ৳\",\"Hub: outside debt ৳\")),p(\"split_seen\",t(\"দেখ"
+      }
+    ],
+    "observed_gap": "Amounts are declared as entered hub-level liabilities. No summation, validation or loan balance reconciliation in weekly calculator.",
+    "dependency": "Scoped Money balances and loan source books",
+    "correction": "Derive closing balances from authorized liability journals rather than duplicating balances.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A016-F002",
+    "source_ids": [
+      "A-01:split_seen",
+      "A-01:split",
+      "A-01:split_in_decisions"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 36115,
+        "text": "\"yes\"===t.split&&o.push(q(\"split_expenses\",\"yellow\",\"সীমার নিচে ভাগ করা খরচ ধরা পড়েছে\",\"Split expenses below the limit found\")),r(t.prev_total)&&r(t.prev_done)&&r(t.prev_open)&&A(s(t.prev_d"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 36139,
+        "text": "q(\"split_expenses\",\"yellow\",\"সীমার নিচে ভাগ করা খরচ ধরা পড়েছে\",\"Split expenses below the limit found\")),r(t.prev_total)&&r(t.prev_done)&&r(t.prev_open)&&A(s(t.prev_done)+s(t.prev_open))!==A"
+      }
+    ],
+    "observed_gap": "Review and split answer required. Exact yes requires and shows decision attestation and emits yellow. Calculator does not group vouchers automatically.",
+    "dependency": "Weekly voucher audit grouped by payee, head and threshold policy",
+    "correction": "Cross-check source vouchers for repeated below-limit payments and preserve the reviewer decision.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A016-F003",
+    "source_ids": [
+      "A-01:on_msgs",
+      "A-01:on_orders",
+      "A-01:on_sales",
+      "A-01:on_ads",
+      "A-01:on_cpo",
+      "A-01:on_complaints",
+      "A-01:rev_good",
+      "A-01:rev_bad",
+      "A-01:level",
+      "A-01:level_cond"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 34373,
+        "text": "d(\"on_msgs\",t(\"মেসেজ / খোঁজ\",\"Messages / enquiries\")),d(\"on_orders\",t(\"অর্ডার\",\"Orders\")),l(\"on_sales\",t(\"অনলাইন বিক্রি ৳\",\"Online sales ৳\")),l(\"on_ads\",t(\"বিজ্ঞাপন-খরচ ৳\",\"Advertising cost "
+      }
+    ],
+    "observed_gap": "Inputs are entered from marketing and online ledger per note; no ratio calculation, validation or level policy applied in calc.",
+    "dependency": "Sales and Marketing aggregates and owner-approved progression policy",
+    "correction": "Derive cost per order with defined zero-order behavior and preserve each source and policy version.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A016-F004",
+    "source_ids": [
+      "A-01:prev_total",
+      "A-01:prev_done",
+      "A-01:prev_open",
+      "A-01:prev_reason"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 36293,
+        "text": "A(s(t.prev_done)+s(t.prev_open))!==A(s(t.prev_total))&&o.push(q(\"prev_mismatch\",\"yellow\",\"গত সপ্তাহের সিদ্ধান্ত: সম্পন্ন + বাকি ≠ মোট\",\"Last week's decisions: done + open ≠ total\",A(s(t.prev"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 36355,
+        "text": "q(\"prev_mismatch\",\"yellow\",\"গত সপ্তাহের সিদ্ধান্ত: সম্পন্ন + বাকি ≠ মোট\",\"Last week's decisions: done + open ≠ total\",A(s(t.prev_done)+s(t.prev_open)-s(t.prev_total)),{unit:\"qty\"})),{v:{},fl"
+      }
+    ],
+    "observed_gap": "Open count >0 reveals and requires reason. If all three counts present, rounded done+open unequal to rounded total warns yellow. Incomplete values do not trigger mismatch.",
+    "dependency": "Worklist snapshot and historical decision status",
+    "correction": "Compute counts from the same scoped decision cohort and link open reasons.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A016-F005",
+    "source_ids": [
+      "A-01:what",
+      "A-01:who",
+      "A-01:deadline",
+      "A-01:worklist",
+      "A-01:present1",
+      "A-01:present2",
+      "A-01:chair"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 35509,
+        "text": "_(\"who\",t(\"দায়িত্বধারী (Assigned to)\",\"Assigned to\"),{req:e=>r(e.row.what)}),h(\"deadline\",t(\"সময়সীমা\",\"Deadline\"),{req:e=>r(e.row.what)}),p(\"worklist\",t(\"কাজের তালিকায় যোগ\",\"Added to the "
+      }
+    ],
+    "observed_gap": "Present action text makes assignee and deadline required. Worklist and attendance are entries, with no created task, real identity or quorum proven.",
+    "dependency": "Decision Book and scoped worklist events",
+    "correction": "Require source meeting, authenticated assignment and an actual linked worklist item.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A016-F006",
+    "source_ids": [
+      "A-02:month",
+      "A-02:scope",
+      "A-02:scope_name"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 43766,
+        "text": "Number(t[2]),0).getDate():null})(o.month);n.days_text=null===_?t(\"মাস লিখুন (যেমন 2026-10)\",\"Enter the month (e.g. 2026-10)\"):String(_);const m=A(s(o.cash_short)+s(o.gm_unexplained)+s(o.coun"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 45125,
+        "text": "q(\"month_format\",\"red\",\"মাসের ফরম্যাট ভুল — বছর-মাস লিখুন (যেমন 2026-10)\",\"Month format is wrong — write year-month (e.g. 2026-10)\")),p<0&&s(o.reinvest_pct)>0&&a.push(q(\"reinvest_on_loss\",\"y"
+      }
+    ],
+    "observed_gap": "Month regex restricts format to four digits and one or two digits, but Date normalizes out-of-range month numbers. Scope and name do not constrain calculator rows.",
+    "dependency": "Versioned calendar period and authorized scoped reporting group",
+    "correction": "Validate numeric month 1–12 and derive all source data under the authorized scope.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A016-F007",
+    "source_ids": [
+      "A-02:sales",
+      "A-02:open_stock",
+      "A-02:purchases",
+      "A-02:close_stock",
+      "A-02:expenses",
+      "A-02:salary",
+      "A-02:bank_charges",
+      "A-02:reinvest_pct",
+      "A-02:reinvest"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 43627,
+        "text": "n.reinvest=A(p*s(o.reinvest_pct)/100);const _=(e=>{const t=/^(\\d{4})-(\\d{1,2})$/.exec(String(e||\"\").trim());return t?new Date(Number(t[1]),Number(t[2]),0).getDate():null})(o.month);n.days_te"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 45562,
+        "text": "q(\"cogs_negative\",\"red\",\"বিক্রি হওয়া মালামালের খরচ ঋণাত্মক — মজুদ/ক্রয় যাচাই করুন\",\"Cost of goods sold is negative — check stock/purchases\",l)),f>0&&r(o.sales)&&f!==d&&a.push(q(\"sales_by_g"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 45465,
+        "text": "q(\"net_loss\",\"yellow\",\"এ মাসে নিট ক্ষতি\",\"Net loss this month\",p)),l<0&&r(o.close_stock)&&a.push(q(\"cogs_negative\",\"red\",\"বিক্রি হওয়া মালামালের খরচ ঋণাত্মক — মজুদ/ক্রয় যাচাই করুন\",\"Cost of"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 45292,
+        "text": "q(\"reinvest_on_loss\",\"yellow\",\"নিট ক্ষতি — পুনর্বিনিয়োগের অঙ্ক ঋণাত্মক দেখাচ্ছে\",\"Net is a loss — the reinvestment figure is negative\",n.reinvest)),r(o.sales)&&p<0&&a.push(q(\"net_loss\",\"yel"
+      }
+    ],
+    "observed_gap": "COGS=opening+purchases−closing; gross=sales−COGS; net=gross−voucher categories−salary−charges. Each major subtotal rounds cents. Reinvestment=net×percentage/100, negative when loss and positive percentage, with warning. Negative COGS also warns red; no limit on percentage in calc.",
+    "dependency": "Money close, valuation, procurement and approved payroll/expense journals",
+    "correction": "Reconcile scoped sources and enforce explicit percentage and loss-allocation policy.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A016-F008",
+    "source_ids": [
+      "A-02:sales_by",
+      "A-02:name",
+      "A-02:amt"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 44166,
+        "text": "f=A(i(e.rows(\"sales_by\").map(e=>e.amt))),w=[r(o.sales)||f?R(f||d):\"—\",u(c,d),u(p,d),u(s(o.salary),d),s(o.headcount)>0?R(d/s(o.headcount)):\"—\",u(s(o.wastage),d),u(s(o.discount),d),R(m),y,v,R("
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 45739,
+        "text": "q(\"sales_by_gap\",\"yellow\",\"লোকেশন-ব্র্যান্ড বিক্রির যোগ লাইন ১-এর সমান নয়\",\"Sales by location/brand do not add up to line 1\",A(f-d))),{v:n,rows:{kpi:w.map(e=>({cur:e})),raw:b},flags:a,needs"
+      }
+    ],
+    "observed_gap": "One name field is location/brand, another is raw material. Preserve both at this manifest key. Sum entered sales_by rows; a positive subtotal unequal to line 1 warns yellow. Zero subtotal does not warn and display falls back to sales.",
+    "dependency": "Scoped location/brand Sales aggregation and separate item master",
+    "correction": "Keep distinct row semantics and reconcile all source totals, including zero and negative amounts.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A016-F009",
+    "source_ids": [
+      "A-02:headcount",
+      "A-02:wastage",
+      "A-02:discount",
+      "A-02:cash_short",
+      "A-02:gm_unexplained",
+      "A-02:count_short"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 43902,
+        "text": "const m=A(s(o.cash_short)+s(o.gm_unexplained)+s(o.count_short));n.leak=m,n.leak_nonzero=0!==m;const u=(e,t)=>t>0?(e/t*100).toFixed(1)+\" %\":\"—\",y=_&&l>0?(s(o.close_stock)/(l/_)).toFixed(1):\"—"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 45027,
+        "text": "q(\"leak_nonzero\",\"yellow\",\"লিক ৳ শূন্য নয়\",\"Leak ৳ is not zero\",m)),r(o.month)&&null===_&&a.push(q(\"month_format\",\"red\",\"মাসের ফরম্যাট ভুল — বছর-মাস লিখুন (যেমন 2026-10)\",\"Month format is w"
+      }
+    ],
+    "observed_gap": "Sales per employee only for positive headcount; wastage and discount ratios only for positive sales. Leak is rounded signed sum of three adjustments; nonzero yellow. Signed components can offset.",
+    "dependency": "Attendance, Stock wastage/counted shortage, Sales discount and cash reconciliation",
+    "correction": "Keep component lineage and ensure signs/denominators follow approved KPI definitions.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A016-F010",
+    "source_ids": [
+      "A-02:raw",
+      "A-02:p_start",
+      "A-02:p_end"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 44671,
+        "text": "const b=e.rows(\"raw\").map(e=>({chg:r(e.p_start)&&r(e.p_end)?(s(e.p_end)-s(e.p_start)>=0?\"+\":\"\")+C(s(e.p_end)-s(e.p_start)):\"\"}));return r(e.c.checked_by)&&r(o.prepared_by)&&e.c.checked_by==="
+      }
+    ],
+    "observed_gap": "Exactly five raw rows declared. Row change needs both prices, while summary can calculate a named row with only one price when any price is present in the table. No effective UOM normalization proven.",
+    "dependency": "Costing snapshots for the same item/UOM at period boundaries",
+    "correction": "Require paired priced snapshots and compatible units before reporting change.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

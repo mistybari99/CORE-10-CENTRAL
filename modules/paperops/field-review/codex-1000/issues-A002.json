@@ -1,0 +1,304 @@
+[
+  {
+    "issue_id": "A002-F001",
+    "source_ids": [
+      "R-01:waste_qty",
+      "R-01:waste_reason",
+      "R-01:waste_by",
+      "R-01:ret_challan",
+      "R-01:exp_apart"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "offset_utf16": 27848,
+        "text": "req:e=>r(e.row.waste_qty)>0,show:e=>r(e.row.waste_qty)>0}),a(\"ret_challan\",t(\"কারখানায় ফেরত (চালান নং)\",\"Returned to factory (challan no.)\""
+      },
+      {
+        "offset_utf16": 34309,
+        "text": "(\"self_waste_approval\",\"red\",\"অপচয় নিজে অনুমোদন করা হয়েছে\",\"Wastage approved by the writer\",void 0));const S=s(C.map(e=>e.exp_amt));return"
+      }
+    ],
+    "observed_gap": "Waste approval field shows and is required only for numeric row waste > 0. Red self-approval flag requires a named approver equal to the maker. No reason condition or linked challan validation here.",
+    "dependency": "Stock lot disposition linked to transfer challan or write-off voucher; independent reviewer and custody evidence.",
+    "correction": "Stock lot disposition linked to transfer challan or write-off voucher; independent reviewer and custody evidence.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A002-F002",
+    "source_ids": [
+      "R-01:own_use",
+      "R-01:own_use_by",
+      "R-01:staff_credit",
+      "R-01:staff_adv_page",
+      "R-01:sample",
+      "R-01:sample_by"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "offset_utf16": 28181,
+        "text": "a(\"own_use\",t(\"বিক্রি ছাড়া ইস্যু — নিজস্ব ব্যবহার ও উপহার: পণ্য · পরিমাণ · মূল্য\",\"Non-sale issue — own use & gifts: item · qty · value\")),"
+      }
+    ],
+    "observed_gap": "Text or staff selections carry attribution. No R-01 calculator verifies recipient, staff ledger page, amount, or sample approval.",
+    "dependency": "Stock non-sale issue and Money staff receivable/advance entries with scoped actor, voucher and reason.",
+    "correction": "Stock non-sale issue and Money staff receivable/advance entries with scoped actor, voucher and reason.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A002-F003",
+    "source_ids": [
+      "R-01:item",
+      "R-01:qty",
+      "R-01:note",
+      "R-01:box_bag",
+      "R-01:direct_buy",
+      "R-01:pr_no"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "offset_utf16": 28702,
+        "text": "k(\"demand\",null,[p(\"item\",t(\"আইটেম\",\"Item\"),{wide:!0}),d(\"qty\",t(\"চাহিদা (আজ রাতে)\",\"Demand (tonight)\")),a(\"note\",t(\"মন্তব্য\",\"Remark\"))],{m"
+      }
+    ],
+    "observed_gap": "Demand table minimum five display rows is not a quantity requirement. Packaging and direct-buy references are separate. No calculation links demand to the PR.",
+    "dependency": "Stock item master and draft procurement requisition, event-triggered; demand does not authorize stock or money movement.",
+    "correction": "Stock item master and draft procurement requisition, event-triggered; demand does not authorize stock or money movement.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A002-F004",
+    "source_ids": [
+      "R-01:end_temp",
+      "R-01:key_to",
+      "R-01:shutter_time"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "offset_utf16": 29261,
+        "text": "d(\"end_temp\",t(\"শেষ তাপমাত্রা °C\",\"Closing temperature °C\")),m(\"key_to\",t(\"চাবি দেওয়া হলো\",\"Keys handed to\")),l(\"shutter_time\",t(\"শাটার বন্"
+      }
+    ],
+    "observed_gap": "Closing temperature is recorded. Existing fridge threshold loop uses opening fridge rows and does not consume end_temp. Key handoff and shutter time have no declared requirements here.",
+    "dependency": "Scoped safety observation, custody event and recorded local time at close.",
+    "correction": "Scoped safety observation, custody event and recorded local time at close.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A002-F005",
+    "source_ids": [
+      "R-01:what",
+      "R-01:urgency",
+      "R-01:why",
+      "R-01:owner",
+      "R-01:action",
+      "R-01:solved",
+      "R-01:no_incident"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "offset_utf16": 29521,
+        "text": "k(\"incidents\",null,[a(\"what\",t(\"ঘটনা বা মেরামতের অনুরোধ\",\"Incident or repair request\"),{wide:!0}),w(\"urgency\",t(\"ধরন\",\"Type\"),[[\"urgent\",t(\""
+      }
+    ],
+    "observed_gap": "Urgency offers urgent/routine. The source shows no mutual exclusion between incidents and no_incident and no independent resolution check.",
+    "dependency": "Incident record with status, responsible actor, site and auditable resolution; no-incident attestation conditional on empty register.",
+    "correction": "Incident record with status, responsible actor, site and auditable resolution; no-incident attestation conditional on empty register.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A002-F006",
+    "source_ids": [
+      "R-01:second_sig"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "offset_utf16": 30003,
+        "text": "m(\"second_sig\",t(\"দ্বিতীয় স্বাক্ষর — ব্যাকআপ ম্যানেজার / সাক্ষী\",\"Second signature — backup manager / witness\"),{req:e=>!e.pin,show:e=>!e.p"
+      },
+      {
+        "offset_utf16": 34585,
+        "text": "(\"second_sig_is_maker\",\"red\",\"দ্বিতীয় স্বাক্ষর ও লেখক একই জন\",\"Second signature and writer are the same person\")),{v:d,rows:{fridges:m,rece"
+      }
+    ],
+    "observed_gap": "Show and require when PIN is falsy. Red second_sig_is_maker when selected actor equals maker. PIN validity and signer identity are outside the calc.",
+    "dependency": "Independent signed verifier or expressly approved substitute evidence.",
+    "correction": "Independent signed verifier or expressly approved substitute evidence.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A002-F007",
+    "source_ids": [
+      "R-01:hub_ledger",
+      "R-01:hub_time",
+      "R-01:hub_received"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "offset_utf16": 30150,
+        "text": "{who:\"checker\",title:t(\"হাবে গ্রহণ (হাব পূরণ করবে)\",\"Received at the hub (hub fills)\"),fields:[a(\"hub_ledger\",t(\"ক্যাশ ও ব্যাংক লেজারের তারি"
+      }
+    ],
+    "observed_gap": "Section and all fields declare checker. Ledger and received checkbox declare req:!0. Runtime authorization and linkage to sender are not demonstrated by declarations.",
+    "dependency": "Money custody receipt and ledger reference with separate receiving actor, matching transfer serial and site.",
+    "correction": "Money custody receipt and ledger reference with separate receiving actor, matching transfer serial and site.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A002-F008",
+    "source_ids": [
+      "C-04:week_from",
+      "C-04:week_to"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 2993,
+        "text": "head:[h(\"week_from\",t(\"সপ্তাহ — থেকে\",\"Week from\"),{req:!0}),h(\"week_to\",t(\"সপ্তাহ — পর্যন্ত\",\"Week to\"),{req:!0})],init(e,t){t.showroom||(t"
+      }
+    ],
+    "observed_gap": "Both dates declare req:!0. C-04 calc does not compare range order or statement dates.",
+    "dependency": "Scoped reconciliation period and close calendar.",
+    "correction": "Scoped reconciliation period and close calendar.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A002-F009",
+    "source_ids": [
+      "C-04:st_bank",
+      "C-04:st_courier",
+      "C-04:st_foodapp",
+      "C-04:st_other",
+      "C-04:st_other_name",
+      "C-04:st_date",
+      "C-04:st_by",
+      "C-04:no_statement"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 3823,
+        "text": "e=>!!e.d.st_other}),h(\"st_date\",t(\"সংগ্রহের তারিখ\",\"Collection date\")),u(\"st_by\",t(\"সংগ্রহকারী (Collected by)\",\"Collected by\")),m(\"no_statem"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 8140,
+        "text": "(\"no_statement\",\"red\",\"স্টেটমেন্ট পাওয়া যায়নি — রিকনসিলিয়েশন আটক\",\"No statement obtained — reconciliation on hold\")),\"yes\"===e.d.personal"
+      }
+    ],
+    "observed_gap": "Other name shows only for truthy st_other and is optional in syntax. no_statement is explicitly optional and yields red when truthy; calc returns a flag and does not prove a submission hold.",
+    "dependency": "Attach account- and period-scoped statement evidence and collector identity. Reconciliation depends on receipt, with independent check.",
+    "correction": "Attach account- and period-scoped statement evidence and collector identity. Reconciliation depends on receipt, with independent check.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A002-F010",
+    "source_ids": [
+      "C-04:who"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 3109,
+        "text": "init(e,t){t.showroom||(t.showroom=(M().length?M().slice(0,4).map(e=>e.code):[\"s1\",\"s2\",\"s3\",\"s4\"]).map(e=>({who:e})))},sections:[{title:t(\"ন"
+      }
+    ],
+    "observed_gap": "The single manifest key collides: showroom SEL uses M() choices and Other, online T free text. Showroom init seeds up to four site codes or s1–s4. Carry both declarations; no new field ID.",
+    "dependency": "Master site and scoped courier/food-app accounts or contracts.",
+    "correction": "Master site and scoped courier/food-app accounts or contracts.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A002-F011",
+    "source_ids": [
+      "C-04:sh_b",
+      "C-04:sh_chg",
+      "C-04:sh_c",
+      "C-04:sh_d1",
+      "C-04:sh_d2"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 2455,
+        "text": "function B(e,t,o){const i=e.map(e=>({d1:r(e.a)&&r(e.b)?T(a(e.a)-a(e.b)):void 0,d2:r(e.b)&&r(e.c)?T(a(e.b)-a(e.chg)-a(e.c)):void 0}));return "
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 7322,
+        "text": "(\"dig_showroom_paper_diff\",\"red\",\"শোরুমের কাগজ ও স্টেটমেন্ট মেলেনি\",\"Showroom paper differs from the statement\",s.abs1)),s.abs2>0&&t.push(A("
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 7461,
+        "text": "(\"dig_bank_diff\",\"red\",\"স্টেটমেন্ট − চার্জ ব্যাংকে জমার সমান নয়\",\"Statement − charge differs from the bank deposit\",s.abs2)),i.abs1>0&&t.pu"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 7963,
+        "text": "(\"dig_line_no_statement\",\"yellow\",\"কিছু লাইনে কাগজের অঙ্ক আছে কিন্তু স্টেটমেন্টের অঙ্ক নেই\",\"Some lines have a paper amount but no statement"
+      }
+    ],
+    "observed_gap": "B sums raw normalized amounts independently; aggregate differences round to two decimals. Paired row comparisons use presence predicates and warnings sum absolute row differences, so opposite errors do not cancel. Missing B warning keys on A present and B absent.",
+    "dependency": "Reconciliation projection from POS paper evidence, signed statement, fees, bank settlement and statement-line IDs.",
+    "correction": "Reconciliation projection from POS paper evidence, signed statement, fees, bank settlement and statement-line IDs.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A002-F012",
+    "source_ids": [
+      "C-04:on_b",
+      "C-04:on_chg",
+      "C-04:on_c"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 7269,
+        "text": "B(e.rows(\"online\"),\"on_\",o);return s.abs1>0&&t.push(A(\"dig_showroom_paper_diff\",\"red\",\"শোরুমের কাগজ ও স্টেটমেন্ট মেলেনি\",\"Showroom paper dif"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 7605,
+        "text": "(\"app_ledger_diff\",\"red\",\"কুরিয়ার/ফুড অ্যাপ: লেজারের প্রাপ্য ও স্টেটমেন্ট মেলেনি\",\"Courier / food app: ledger due differs from the statemen"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 7775,
+        "text": "(\"app_bank_diff\",\"red\",\"কুরিয়ার/ফুড অ্যাপ: স্টেটমেন্ট − চার্জ প্রাপ্তির সমান নয়\",\"Courier / food app: statement − charge differs from the "
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 7963,
+        "text": "(\"dig_line_no_statement\",\"yellow\",\"কিছু লাইনে কাগজের অঙ্ক আছে কিন্তু স্টেটমেন্টের অঙ্ক নেই\",\"Some lines have a paper amount but no statement"
+      }
+    ],
+    "observed_gap": "B applies the same normalized aggregation and per-row absolute-difference checks to online. Blank-statement branch depends on presence predicate. Exact source coercion is unverified.",
+    "dependency": "Courier and food-app receivable ledger matched to scoped statement charges and cash or bank receipt records.",
+    "correction": "Courier and food-app receivable ledger matched to scoped statement charges and cash or bank receipt records.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

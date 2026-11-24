@@ -1,0 +1,259 @@
+[
+  {
+    "issue_id": "A006-F001",
+    "source_ids": [
+      "S-06:desc",
+      "S-06:inv",
+      "S-06:ret",
+      "S-06:coll",
+      "S-06:bal",
+      "S-06:sign",
+      "S-06:total_due"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 37689,
+        "text": "n=T(n+a(e.inv)-a(e.ret)-a(e.coll)),{bal:n}));i.total_due=n;const d=T(a(e.d.ag30)+a(e.d.ag60)+a(e.d.ag60p)),c=r(e.d.ag30)||r(e.d.ag60)||r(e.d.ag60p);i.ag_text=c?d===n?t(\"মিল আছে ✓\",\"Matches ✓\"):t(\"অমিল ৳ \"+C(T(d"
+      }
+    ],
+    "observed_gap": "Balance starts at brought-forward and rounds after each invoice less return/discount and collections. Row visibility checks any value. Signature and description are unused by calc.",
+    "dependency": "Posted AR transactions and immutable voucher provenance",
+    "correction": "Posted AR transactions and immutable voucher provenance",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A006-F002",
+    "source_ids": [
+      "S-06:ag30",
+      "S-06:ag60",
+      "S-06:ag60p",
+      "S-06:ag_text"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 37748,
+        "text": "const d=T(a(e.d.ag30)+a(e.d.ag60)+a(e.d.ag60p)),c=r(e.d.ag30)||r(e.d.ag60)||r(e.d.ag60p);i.ag_text=c?d===n?t(\"মিল আছে ✓\",\"Matches ✓\"):t(\"অমিল ৳ \"+C(T(d-n)),\"Mismatch ৳ \"+C(T(d-n))):\"—\",c&&d!==n&&s.push(A(\"aging"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 37950,
+        "text": "A(\"aging_mismatch\",\"yellow\",\"বকেয়ার বয়সের যোগ মোট বকেয়ার সমান নয়\",\"Age total differs from the total due\",T(d-n)));const h=r(e.d.credit_limit)?a(e.d.credit_limit):null,m=null!==h&&T(n-h)>0;return i.limit_sta"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 38661,
+        "text": "A(\"party_60plus\",\"yellow\",\"60+ দিনের বকেয়া আছে\",\"60+ days dues exist\",a(e.d.ag60p))),{v:i,rows:{lines:l},flags:s,needs:[]}}},e.forms[\"S-04\"]={title:t(\"অনলাইন ও ডেলিভারি লেজার\",\"Online and Delivery Ledger\"),hea"
+      }
+    ],
+    "observed_gap": "Manual age buckets are summed and rounded. If any is present, mismatch warns yellow. Positive 60+ separately warns yellow. No automatic date aging.",
+    "dependency": "AR aging projection under effective as-of date and policy",
+    "correction": "AR aging projection under effective as-of date and policy",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A006-F003",
+    "source_ids": [
+      "S-06:limit_state",
+      "S-06:credit_stop",
+      "S-06:stop_date",
+      "S-06:decided_by"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 38121,
+        "text": "m=null!==h&&T(n-h)>0;return i.limit_state=null===h?\"—\":m?t(\"বাইরে\",\"Outside\"):t(\"ভেতরে ✓\",\"Inside ✓\"),m&&(s.push(A(\"over_credit_limit\",\"yellow\",\"বকেয়া ক্রেডিট সীমার বাইরে\",\"Dues are beyond the credit limit\",T("
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 38234,
+        "text": "A(\"over_credit_limit\",\"yellow\",\"বকেয়া ক্রেডিট সীমার বাইরে\",\"Dues are beyond the credit limit\",T(n-h))),e.d.credit_stop||s.push(A(\"credit_not_stopped\",\"red\",\"সীমা পেরিয়েছে কিন্তু নতুন বাকি বন্ধ হয়নি\",\"Limit c"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 38362,
+        "text": "A(\"credit_not_stopped\",\"red\",\"সীমা পেরিয়েছে কিন্তু নতুন বাকি বন্ধ হয়নি\",\"Limit crossed but new credit not stopped\",T(n-h)))),null===h||r(e.d.approved_by)||s.push(A(\"credit_no_approver\",\"yellow\",\"ক্রেডিট সীমার"
+      }
+    ],
+    "observed_gap": "Rounded excess above present limit yields yellow, and red while credit stop is falsy. Stop date and decision maker only become visible when stop is truthy; UI attestation does not establish sales hold.",
+    "dependency": "Versioned scope-specific credit policy, decision record and enforced Sales hold",
+    "correction": "Versioned scope-specific credit policy, decision record and enforced Sales hold",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A006-F004",
+    "source_ids": [
+      "S-06:m_inv_n",
+      "S-06:m_inv_amt",
+      "S-06:on_time",
+      "S-06:late",
+      "S-06:remark",
+      "S-06:keeper",
+      "S-06:checked_by"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 37505,
+        "text": "u(\"checked_by\",t(\"যাচাইকারী (Checked by) — ব্যবস্থাপনা\",\"Checked by — management\"),{who:\"checker\"})]}],calc(e){const o=e.rows(\"lines\"),s=[],i={};let n=a(e.d.opening);const l=o.map(e=>(n=T(n+a(e.inv)-a(e.ret)-a("
+      }
+    ],
+    "observed_gap": "Monthly metrics are literal entered data, absent from calc. Checker declaration and named ledger keeper do not establish distinct authenticated identities.",
+    "dependency": "Sales and Money payment-date aggregates and reconciliation actor records",
+    "correction": "Sales and Money payment-date aggregates and reconciliation actor records",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A006-F005",
+    "source_ids": [
+      "S-04:week_from",
+      "S-04:week_to"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 38868,
+        "text": "head:[h(\"week_from\",t(\"সপ্তাহ — থেকে\",\"Week from\"),{req:!0}),h(\"week_to\",t(\"সপ্তাহ — পর্যন্ত\",\"Week to\"),{req:!0})],sections:[{title:t(\"নিয়ম\",\"Rule\"),fields:[w(t(\"প্রতিটি অনলাইন অর্ডার আগে কাস্টমার অর্ডার ফরমে"
+      }
+    ],
+    "observed_gap": "Both dates declare required. Calc does not validate interval order or filter supplied rows to it.",
+    "dependency": "Period-scoped Sales projections",
+    "correction": "Period-scoped Sales projections",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A006-F006",
+    "source_ids": [
+      "S-04:date",
+      "S-04:platform",
+      "S-04:order_no",
+      "S-04:amt",
+      "S-04:path",
+      "S-04:showroom",
+      "S-04:delivery",
+      "S-04:dcharge",
+      "S-04:outcome",
+      "S-04:return_ref",
+      "S-04:money_in",
+      "S-04:match_src"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 40157,
+        "text": "i(\"return_ref\",t(\"রিটার্ন ও অভিযোগ রেজিস্টার নং\",\"Return & complaint register no.\"),{show:e=>\"returned\"===e.row.outcome}),m(\"money_in\",t(\"টাকা এসেছে\",\"Money received\")),i(\"match_src\",t(\"মিলের উৎস\",\"Source of th"
+      }
+    ],
+    "observed_gap": "Date, order reference and amount required syntactically. Returned outcome reveals an optional reference. Order, amount and charge lack canonical settlement validation; receipt indication is an attestation.",
+    "dependency": "Unique scoped Sales order, returns register, business merchant accounts and Money receipts",
+    "correction": "Unique scoped Sales order, returns register, business merchant accounts and Money receipts",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A006-F007",
+    "source_ids": [
+      "S-04:tot_amt",
+      "S-04:tot_dch",
+      "S-04:led_total",
+      "S-04:forms_total",
+      "S-04:rec_text",
+      "S-04:to_10_3"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 42125,
+        "text": "l.tot_amt=s(o.map(e=>e.amt)),l.tot_dch=s(o.map(e=>e.dcharge)),l.led_total=l.tot_amt;const d=r(e.d.forms_total)?T(l.led_total-a(e.d.forms_total)):null,c=r(e.d.sheet_total)?T(l.led_total-a(e.d.sheet_total)):null;"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 42572,
+        "text": "A(\"online_forms_diff\",\"red\",\"লেজারের মোট কাস্টমার অর্ডার ফরমের সাথে মেলেনি\",\"Ledger total differs from the customer order forms\",d)),c&&i.push(A(\"online_sheet_diff\",\"red\",\"লেজারের মোট দৈনিক শোরুম শিটের অনলাইন য"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 42715,
+        "text": "A(\"online_sheet_diff\",\"red\",\"লেজারের মোট দৈনিক শোরুম শিটের অনলাইন যোগের সাথে মেলেনি\",\"Ledger total differs from the online total on the daily sheets\",c));const h=S(e,\"online_order_limit\"),m={};o.filter(e=>r(e.a"
+      }
+    ],
+    "observed_gap": "Sum amounts and delivery charges separately; ledger total copies amount total. Signed rounded differences to order forms and daily sheets warn red. Missing one comparison can show matches. Carry-forward checkbox does not post settlement.",
+    "dependency": "Sales order and R-01 online totals plus C-04 open settlement receivables",
+    "correction": "Sales order and R-01 online totals plus C-04 open settlement receivables",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A006-F008",
+    "source_ids": [
+      "S-04:limit_text",
+      "S-04:over_days",
+      "S-04:over_approver"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 42908,
+        "text": "o.filter(e=>r(e.amt)).forEach(e=>{const t=r(e.date)?e.date:\"undated\";m[t]=(m[t]||0)+1});const u=Object.keys(m).filter(e=>null!==h&&m[e]>h).sort();return l.over_n=u.length,l.over_days=u.join(\", \"),null===h?(n.pu"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 43186,
+        "text": "A(\"online_limit_missing\",\"red\",\"অনলাইন অর্ডারের দৈনিক সীমা সেটিংসে নেই\",\"Daily online order limit missing in settings\"))):l.limit_text=u.length?t(\"হ্যাঁ — পার হয়েছে\",\"Yes — exceeded\"):t(\"না ✓\",\"No ✓\"),u.length"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 43406,
+        "text": "A(\"online_order_limit\",\"yellow\",\"দিনে অনলাইন অর্ডারের সীমা পার হয়েছে\",\"Daily online order limit exceeded\",Math.max(...u.map(e=>m[e])),{unit:\"qty\"})),r(e.d.over_approver)||i.push(A(\"online_limit_no_approver\",\"r"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 43585,
+        "text": "A(\"online_limit_no_approver\",\"red\",\"অর্ডার-সীমা পারের অনুমোদনকারী নেই\",\"No approver for the exceeded order limit\",void 0))),{v:l,flags:i,needs:n}}},e.SETTING_DEFS.forEach(e=>{/^mkt_limit_/.test(e.key)&&(e.hidde"
+      }
+    ],
+    "observed_gap": "Count rows with entered amount by date or one undated bucket, not unique orders. Strict count above limit warns yellow; missing policy or over-limit approver red. Approver required only when over_n>0.",
+    "dependency": "Versioned daily order cap, deduplicated order IDs and authenticated exception approval",
+    "correction": "Versioned daily order cap, deduplicated order IDs and authenticated exception approval",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A006-F009",
+    "source_ids": [
+      "S-04:c_msgs",
+      "S-04:c_orders",
+      "S-04:c_returns",
+      "S-04:c_good",
+      "S-04:c_bad"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 41458,
+        "text": "l(\"c_msgs\",t(\"মেসেজ / খোঁজ\",\"Messages / enquiries\")),l(\"c_orders\",t(\"অর্ডার\",\"Orders\")),l(\"c_returns\",t(\"ফেরত বা অভিযোগ\",\"Returns or complaints\")),l(\"c_good\",t(\"রিভিউ: ভালো\",\"Reviews: good\")),l(\"c_bad\",t(\"রিভিউ"
+      }
+    ],
+    "observed_gap": "Weekly counts are entered separately. Calc does not derive them from the order rows, platform or returns records.",
+    "dependency": "Platform, Sales and complaint events scoped to the reporting period",
+    "correction": "Platform, Sales and complaint events scoped to the reporting period",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

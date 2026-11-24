@@ -1,0 +1,63 @@
+name: PaperOps 1246 combined
+on:
+  pull_request:
+    branches: [build/paperops-foundation-20261122]
+    paths:
+      - 'modules/paperops/**'
+      - '.github/workflows/paperops-1246-combined.yml'
+permissions:
+  contents: read
+jobs:
+  source-and-nonposting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify frozen blobs and expose the historical test path
+        shell: bash
+        run: |
+          while read -r expected file; do
+            test "$(git hash-object "$file")" = "$expected"
+          done <<'PINNED'
+          f2cb1c5e09210496106ace1bf33ddc40d2d6df1d forms.js
+          9ea4fff512c709b6e28f9ab6613c3797b306b4f2 forms_cash.js
+          59849dc51819243c5cd83b8f2246301daceebdb1 forms_stock.js
+          8bdf649f159593882f7e415a366688f6e3f45145 forms_sales.js
+          1c52dc8b8bc87adbb91f5811d45e6dc1b10e23d6 forms_factory.js
+          402eba6436f0e619ebcbd15bb99c7c3cd0853585 entry.js
+          PINNED
+          mkdir -p legacy/islamia-erp
+          if [ ! -e legacy/islamia-erp/forms.js ]; then
+            ln -s ../../forms.js legacy/islamia-erp/forms.js
+          fi
+          test "$(git hash-object legacy/islamia-erp/forms.js)" = f2cb1c5e09210496106ace1bf33ddc40d2d6df1d
+      - name: Recompute source-only reports
+        run: |
+          for check in legacy-rule-extractor field-routing field-batch-audit field-deep-source-recheck field-semantic-triage; do
+            node "modules/paperops/$check.cjs" --check
+          done
+          for check in source-conditional-recheck field-functional-gap-audit r01-hidden-source-audit; do
+            node "modules/paperops/$check.cjs"
+          done
+      - name: Check all 20 batches and the 1246-field matrix against both lanes
+        run: |
+          audit=modules/paperops/field-review/codex-1000
+          node "$audit/summary.cjs" --complete > "$RUNNER_TEMP/paperops-audit-summary.json"
+          node "$audit/completion-matrix.cjs" modules/paperops/field-review/chatgpt-246 --check
+      - name: Run audit, local Money and Stock, attribution and root boundary tests
+        run: |
+          node --experimental-test-isolation=none --test \
+            modules/paperops/tests/*.test.cjs \
+            modules/paperops/field-review/codex-1000/audit*.test.cjs \
+            tests/core10-root-config-boundary.test.cjs
+      - name: Run the pinned canonical live and legacy boundary guard
+        run: |
+          git fetch --no-tags --depth=1 origin 6bb4c06639dec67695b7b924e8c39c3add3770a5
+          guard=tests/core10-live-legacy-guard.test.js
+          git show "FETCH_HEAD:$guard" > "$guard"
+          test "$(git hash-object "$guard")" = c059a34b65a83d25fb94f19ae2f55f93b954b090
+          node --test "$guard"

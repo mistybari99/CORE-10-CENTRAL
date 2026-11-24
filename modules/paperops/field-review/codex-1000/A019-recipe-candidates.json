@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "status": "DRAFT_PENDING_AUTHORIZED_MANIFEST_CORRECTION",
+  "expected_changes": [
+    {
+      "position": 920,
+      "prior_id": "F-02:name",
+      "candidate_id": "F-03:name"
+    },
+    {
+      "position": 921,
+      "prior_id": "F-02:qty",
+      "candidate_id": "F-03:qty"
+    },
+    {
+      "position": 922,
+      "prior_id": "F-02:unit",
+      "candidate_id": "F-03:unit"
+    }
+  ],
+  "rule": {
+    "behavior": "The same ingredient constructor helper is invoked for base, product and packaging rows. A name is required if no item is present; the complementary item declaration is required when the name is missing. Quantity and unit declare req:!0. UOM options are kg, l, pc, lb and g. F-03 calc does not enforce quantity positivity, conversions, item identity or approval.",
+    "fragments": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 16342,
+        "text": "O=()=>[u(\"item\",t(\"কাঁচামালের নাম ও আইটেম কোড\",\"Raw material name & item code\"),{wide:!0,req:e=>!a(e.row.name)}),n(\"name\",t(\"নাম (তালিকায় না থাকলে)\",\"Name (if not in the list)\"),{req:e=>!a(e.row.item)}),s(\"qty\",t(\"পরিমাণ\",\"Quantity\"),{req:!0}),_(\"unit\",t(\"একক\",\"Unit\"),N,{req:!0})]"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 18046,
+        "text": "b(\"a\",null,O()"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 18345,
+        "text": "b(\"b\",null,O()"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 18511,
+        "text": "b(\"c\",null,O()"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 16216,
+        "text": "N=[[\"kg\",t(\"কেজি\",\"KG\")],[\"l\",t(\"লিটার\",\"Litre\")],[\"pc\",t(\"পিস\",\"Piece\")],[\"lb\",t(\"পাউন্ড\",\"Pound\")],[\"g\",t(\"গ্রাম\",\"gram\")]]"
+      }
+    ],
+    "helper_status": "Original declarations and consumers. BOS presence and canonical enforcement UNKNOWN.",
+    "target_authority": "PROPOSED"
+  },
+  "fields": [
+    {
+      "source_id": "F-03:name",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 16455,
+        "literal": "n(\"name\",t(\"নাম (তালিকায় না থাকলে)\",\"Name (if not in the list)\"),{req:e=>!a(e.row.item)})",
+        "constructor_alias": "n",
+        "label_bn": "নাম (তালিকায় না থাকলে)",
+        "label_en": "Name (if not in the list)"
+      },
+      "type": "T",
+      "requirements": "e=>!a(e.row.item)",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "a / b / c",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "recipe_ingredients",
+      "issue_id": "A019-F008",
+      "data_origin": "Scoped item/UOM master and versioned recipe quantities; controlled unmatched ingredient text only when necessary.",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED constructor and three consumers; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:qty",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 16546,
+        "literal": "s(\"qty\",t(\"পরিমাণ\",\"Quantity\"),{req:!0})",
+        "constructor_alias": "s",
+        "label_bn": "পরিমাণ",
+        "label_en": "Quantity"
+      },
+      "type": "N",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "a / b / c",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "recipe_ingredients",
+      "issue_id": "A019-F008",
+      "data_origin": "Scoped item/UOM master and versioned recipe quantities; controlled unmatched ingredient text only when necessary.",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED constructor and three consumers; runtime enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:unit",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 16587,
+        "literal": "_(\"unit\",t(\"একক\",\"Unit\"),N,{req:!0})",
+        "constructor_alias": "_",
+        "label_bn": "একক",
+        "label_en": "Unit"
+      },
+      "type": "SEL",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "a / b / c",
+      "default": "NOT_DECLARED",
+      "option_source": "N: kg / l / pc / lb / g",
+      "rule_group": "recipe_ingredients",
+      "issue_id": "A019-F008",
+      "data_origin": "Scoped item/UOM master and versioned recipe quantities; controlled unmatched ingredient text only when necessary.",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED constructor and three consumers; runtime enforcement UNKNOWN"
+    }
+  ]
+}
