@@ -1,0 +1,213 @@
+[
+  {
+    "issue_id": "A012-F001",
+    "source_ids": [
+      "S-01:address",
+      "S-01:deliv_by",
+      "S-01:deliv_other",
+      "S-01:deliv_date",
+      "S-01:deliv_time"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 7874,
+        "text": "r(o.deliv_date)&&o.deliv_date<e.date&&i.push(q(\"delivery_past\",\"red\",\"ডেলিভারির তারিখ অর্ডারের তারিখের আগে\",\"Delivery date is before the order date\"));const l=P(e,\"discount_limit\");s(o.disco"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 7919,
+        "text": "q(\"delivery_past\",\"red\",\"ডেলিভারির তারিখ অর্ডারের তারিখের আগে\",\"Delivery date is before the order date\"));const l=P(e,\"discount_limit\");s(o.discount)>0&&(null===l&&a.push(\"discount_limit\"),("
+      }
+    ],
+    "observed_gap": "Home mode requires address; Other delivery mode reveals optional description. Date/time required; source compares date to order date with strict earlier-than red. No route capacity or address validation is shown.",
+    "dependency": "Scoped delivery address and committed fulfillment time",
+    "correction": "Validate address and scheduled slot under a scoped order and preserve access boundaries.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A012-F002",
+    "source_ids": [
+      "S-01:item",
+      "S-01:desc",
+      "S-01:qty",
+      "S-01:msg",
+      "S-01:design",
+      "S-01:special"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 9120,
+        "text": "O(e.rows(\"items\"))&&i.push(q(\"no_items\",\"red\",\"অর্ডারে কোনো পণ্য লেখা নেই\",\"No item lines on the order\")),{v:n,flags:i,needs:a}}},"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 9147,
+        "text": "q(\"no_items\",\"red\",\"অর্ডারে কোনো পণ্য লেখা নেই\",\"No item lines on the order\")),{v:n,flags:i,needs:a}}},"
+      }
+    ],
+    "observed_gap": "Item and quantity declared required. No item code in any row triggers red; descriptions, design and personalization do not establish product compatibility or reserved stock.",
+    "dependency": "Approved item/UOM and manufacturing order specifications",
+    "correction": "Verify sellable item, supported quantity and versioned custom specification against the accepted order.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A012-F003",
+    "source_ids": [
+      "S-01:total",
+      "S-01:discount",
+      "S-01:disc_slip",
+      "S-01:adv_mode",
+      "S-01:adv_other"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 7684,
+        "text": "d=A(s(o.total)-s(o.discount)-s(o.advance));n.balance=d,r(o.total)&&d<0&&i.push(q(\"adv_over_total\",\"red\",\"অ্যাডভান্স ও ডিসকাউন্ট মোটের চেয়ে বেশি\",\"Advance and discount exceed the total\",d)),"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 7763,
+        "text": "q(\"adv_over_total\",\"red\",\"অ্যাডভান্স ও ডিসকাউন্ট মোটের চেয়ে বেশি\",\"Advance and discount exceed the total\",d)),r(o.deliv_date)&&o.deliv_date<e.date&&i.push(q(\"delivery_past\",\"red\",\"ডেলিভারির"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 8149,
+        "text": "\"discount_over\",r(o.disc_slip)?\"yellow\":\"red\",r(o.disc_slip)?\"ডিসকাউন্ট সীমার উপরে — স্লিপ আছে\":\"ডিসকাউন্ট সীমার উপরে — অনুমোদন স্লিপ (S-০২) লাগবে\",r(o.disc_slip)?\"Discount above the limit —"
+      }
+    ],
+    "observed_gap": "Balance rounds total minus discount and advance; negative with total present is red. Positive rounded discount exceeds configured threshold or treats missing threshold as unresolved; slip changes red to yellow. Positive advance shows mode; Other mode shows optional text.",
+    "dependency": "Approved pricing, discount slip and independently reconciled Money advance",
+    "correction": "Derive amounts from priced lines and linked receipts; check exact approved discount voucher and tender identity.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A012-F004",
+    "source_ids": [
+      "S-01:on_board",
+      "S-01:board_time",
+      "S-01:board_checker",
+      "S-01:sent_factory",
+      "S-01:sent_time",
+      "S-01:factory_done",
+      "S-01:factory_sign",
+      "S-01:xfer_no"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 8932,
+        "text": "r(o.board_checker)&&o.board_checker===o.taker&&i.push(q(\"board_checker_is_maker\",\"yellow\",\"বোর্ড যাচাইকারী ও অর্ডার গ্রহণকারী একই জন\",\"Board checker and order taker are the same person\")),O("
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 8986,
+        "text": "q(\"board_checker_is_maker\",\"yellow\",\"বোর্ড যাচাইকারী ও অর্ডার গ্রহণকারী একই জন\",\"Board checker and order taker are the same person\")),O(e.rows(\"items\"))&&i.push(q(\"no_items\",\"red\",\"অর্ডারে ক"
+      }
+    ],
+    "observed_gap": "On-board checkbox required. Same named board checker and taker warns yellow. Factory progress and transfer reference do not enter calc and are not authenticated by it.",
+    "dependency": "Sales queue, Manufacturing job and Stock transfer challan",
+    "correction": "Represent queue and factory transitions with actor IDs and referenced job and inventory movement.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A012-F005",
+    "source_ids": [
+      "S-01:due_paid",
+      "S-01:due_mode",
+      "S-01:due_time",
+      "S-01:chk_item",
+      "S-01:chk_qty",
+      "S-01:chk_msg",
+      "S-01:chk_design",
+      "S-01:cust_signed",
+      "S-01:sign_time",
+      "S-01:received_by",
+      "S-01:rep_name",
+      "S-01:off_board",
+      "S-01:book_crossed",
+      "S-01:complaint_no"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 5520,
+        "text": "p(\"cust_signed\",t(\"৩ · কাস্টমারের স্বাক্ষর নেওয়া হয়েছে\",\"3 · Customer signed\"),{req:M}),c(\"sign_time\",t(\"সময়\",\"Time\")),v(\"received_by\",t(\"গ্রহণকারী (Received by)\",\"Received by\"),[[\"self\","
+      }
+    ],
+    "observed_gap": "M requires key checks only while not_collected falsy; representative name shows whenever rep and is required only while collected. Printed payment–verification–signature–board order is not enforced by calc.",
+    "dependency": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+    "correction": "Use ordered transitions with verified payment and recipient evidence to prevent premature handover.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A012-F006",
+    "source_ids": [
+      "S-01:not_collected",
+      "S-01:call1",
+      "S-01:call2",
+      "S-01:hold_text",
+      "S-01:adv_fate",
+      "S-01:goods_fate",
+      "S-01:fate_reason",
+      "S-01:decided_by",
+      "S-01:manager"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 8632,
+        "text": "const c=P(e,\"order_hold_days\");return n.hold_text=null===c?D:t(C(c)+\" দিন\",C(c)+\" days\"),o.not_collected&&null===c&&a.push(\"order_hold_days\"),o.not_collected&&i.push(q(\"order_not_collected\","
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 8798,
+        "text": "q(\"order_not_collected\",\"yellow\",\"অর্ডার নেওয়া হয়নি / বাতিল\",\"Order not collected / cancelled\",s(o.advance)>0?s(o.advance):void 0)),r(o.board_checker)&&o.board_checker===o.taker&&i.push(q("
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 8481,
+        "text": "q(\"custom_refund\",\"yellow\",\"কাস্টম-মেইড অর্ডারের অ্যাডভান্স সাধারণত ফেরত নয়\",\"Advance on a custom-made order is normally not refunded\",s(o.advance)));const c=P(e,\"order_hold_days\");return n"
+      }
+    ],
+    "observed_gap": "L exposes disposition on not_collected. Positive advance requires advance fate; goods fate, reason and decider always required in that branch. Missing hold rule requests setting only when not collected. Yellow for not collected and for custom refund.",
+    "dependency": "Versioned hold rule, approved refund and Stock disposition",
+    "correction": "Preserve contact attempts and enforce owner-approved disposal/refund only against linked order and stock.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A012-F007",
+    "source_ids": [
+      "S-02:time",
+      "S-02:sheet_no",
+      "S-02:memo_no"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 9316,
+        "text": "head:[c(\"time\",t(\"সময়\",\"Time\")),a(\"sheet_no\",t(\"দৈনিক শোরুম শিট নং\",\"Daily showroom sheet no.\")),a(\"memo_no\",t(\"অর্ডার / মেমো নং (থাকলে)\",\"Order / memo no. (if any)\"))],sections:[{title:t(\""
+      }
+    ],
+    "observed_gap": "Clock time and daily sheet and memo references are declared with no required syntax. Calc uses discount rows, not source reference identity.",
+    "dependency": "S-01 order or sales memo and R-01 close record",
+    "correction": "Require the correct scoped sale and close references when recording approved discount effects.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

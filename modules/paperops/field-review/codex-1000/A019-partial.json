@@ -1,0 +1,1214 @@
+{
+  "schema_version": 1,
+  "batch": "A019",
+  "source": {
+    "path": "forms.js",
+    "legacy_trunk_path": "legacy/islamia-erp/forms.js",
+    "git_blob": "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d",
+    "parent_commit": "456de1905707f125eaf9c0a82b5009698bf41156",
+    "sha256": "53ca5ac41a8f663fbcc76c4be5a7ec1d5a937d97dcf4020f709ff69eecae9e73",
+    "ci_compatibility": "Legacy tests use relocated path. CI stages a byte-identical copy of the pinned Git blob in the ephemeral checkout.",
+    "supplements": {
+      "forms_cash.js": "ce58ef83daa19273b766f3eac63db5f97cc741ffb26ed21076ab948032c14022",
+      "forms_stock.js": "f6d8cfb25718ab6ec90d23cbbfbc9a1b18b1489c693b8b1413c339e32e058e81",
+      "forms_sales.js": "cf0d825cf019ce77859265c2e5d4698cc38f31f121ad5661fc8a3c92e7590163",
+      "forms_factory.js": "d585ad78b4dc082b15aa16546007bcd0fb10c07753062390c82954bf3fc3181c"
+    }
+  },
+  "rules": {
+    "rejection": {
+      "behavior": "Rejection criteria are declarations; calc does not block sale or verify quarantine.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 13199,
+          "text": "l(\"rj_expired\",t(\"মেয়াদ শেষ\",\"Expired\")),n(\"rj_more1\",t(\"এই পণ্যে আরও — ১\",\"More for this product: 1\")),n(\"rj_more2\",t(\"এই পণ্যে আরও — ২\",\"More for this product: 2\"))]},{title:t(\"বিক্রয়যোগ"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "storage": {
+      "behavior": "Normal duration unit required; cold unit optional. Category shelf setting missing yields data-needed. Daytag display uses day settings. Other storage reveals optional text.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 15519,
+          "text": "const s=E[o.cat];if(s){const r=C(e,s);n.shelf_ref=null===r?q:t(S(r)+\" দিন\",S(r)+\" days\")}return n.daytag_list=x.map((t,r)=>{const a=e.s[\"daytag_\"+r];return(e.lab?e.lab(t):\"\")+\": \"+(a||\"—\")})"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "approval": {
+      "behavior": "Actors required, management checker declared. Same two in-charges warns yellow; no signed approval shown.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 15743,
+          "text": "o.craft_incharge===o.factory_incharge&&i.push(v(\"same_incharge\",\"yellow\",\"কারিগর ইনচার্জ ও কারখানা ইনচার্জ একই জন\",\"Craftsman in charge and factory in charge are the same person\")),{v:n,flag"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 15789,
+          "text": "v(\"same_incharge\",\"yellow\",\"কারিগর ইনচার্জ ও কারখানা ইনচার্জ একই জন\",\"Craftsman in charge and factory in charge are the same person\")),{v:n,flags:i,needs:[]}}};const F=[[\"chana\",t(\"ছানার মিষ"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "recipe": {
+      "behavior": "Other choices reveal text. Recipe calc returns empty values and flags. It does not verify quantities, units, release or pricing.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 19765,
+          "text": "calc:e=>({v:{},flags:[],needs:[]})};const B=[1,2,3].map(e=>t(\"ব্যাচ \"+e,\"Batch \"+e)),R=(e,t)=>r(t)>0&&a(e)?Math.round(r(e)/r(t)*1e4)/100:void 0,j=[[\"input\",t(\"গড় — মূল উপকরণ\",\"Average: main"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "execution": {
+      "behavior": "Process values entered. Informant and checker approval required; no calculation of total time or proof of independent approval.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 18615,
+          "text": "b(\"steps\",null,[i(\"text\",t(\"বানানোর ধাপ (Step) — কারিগরের বর্ণনা, সময় ও মাপসহ\",\"Method step: in the craftsman's words, with time and measure\"),{wide:!0})],{min:6})]},{title:t(\"সময়, জনবল ও "
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "inputs": {
+      "behavior": "Three indexed rows, date required and base required unless dash. Recipe/version and units required. Duplicate populated dates warn yellow, but calc does not insist all three dates are populated.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 25095,
+          "text": "new Set(d).size<d.length&&n.push(v(\"same_day_batches\",\"yellow\",\"দুটি ব্যাচ একই দিনের — তিনটি আলাদা দিন লাগবে\",\"Two batches fall on the same day: three different days are needed\")),t.some(e=>"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 25128,
+          "text": "v(\"same_day_batches\",\"yellow\",\"দুটি ব্যাচ একই দিনের — তিনটি আলাদা দিন লাগবে\",\"Two batches fall on the same day: three different days are needed\")),t.some(e=>a(e.measurer)&&e.measurer===e.cra"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "conversion": {
+      "behavior": "Base conversion is rounded percentage of base divided by positive input when base is present. Missing or nonpositive input suppresses result. Average uses only finite values, including a partial sample.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 24670,
+          "text": "base_pct:R(e.base,e.input),total:t,per_unit:(o=e.good,n=e.input,r(n)>0&&a(o)?Math.round(r(o)/r(n)*1e4)/1e4:void 0),second_pct:R(e.second,t),waste_pct:R(e.waste,t)};var o,n});j.forEach(([e])="
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    }
+  },
+  "warning_map": {
+    "same_incharge": "yellow",
+    "same_day_batches": "yellow"
+  },
+  "fields": [
+    {
+      "source_id": "F-02:rj_raw",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 13091,
+        "literal": "l(\"rj_raw\",t(\"ভেতরে কাঁচা\",\"Raw inside\"))",
+        "constructor_alias": "l",
+        "label_bn": "ভেতরে কাঁচা",
+        "label_en": "Raw inside"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "rejection",
+      "issue_id": "A019-F001",
+      "data_origin": "Approved spec and Stock lot QC disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:rj_foreign",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 13133,
+        "literal": "l(\"rj_foreign\",t(\"বাইরের কিছু মিশেছে\",\"Foreign matter mixed in\"))",
+        "constructor_alias": "l",
+        "label_bn": "বাইরের কিছু মিশেছে",
+        "label_en": "Foreign matter mixed in"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "rejection",
+      "issue_id": "A019-F001",
+      "data_origin": "Approved spec and Stock lot QC disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:rj_expired",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 13199,
+        "literal": "l(\"rj_expired\",t(\"মেয়াদ শেষ\",\"Expired\"))",
+        "constructor_alias": "l",
+        "label_bn": "মেয়াদ শেষ",
+        "label_en": "Expired"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "rejection",
+      "issue_id": "A019-F001",
+      "data_origin": "Approved spec and Stock lot QC disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:rj_more1",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 13241,
+        "literal": "n(\"rj_more1\",t(\"এই পণ্যে আরও — ১\",\"More for this product: 1\"))",
+        "constructor_alias": "n",
+        "label_bn": "এই পণ্যে আরও — ১",
+        "label_en": "More for this product: 1"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "rejection",
+      "issue_id": "A019-F001",
+      "data_origin": "Approved spec and Stock lot QC disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:rj_more2",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 13304,
+        "literal": "n(\"rj_more2\",t(\"এই পণ্যে আরও — ২\",\"More for this product: 2\"))",
+        "constructor_alias": "n",
+        "label_bn": "এই পণ্যে আরও — ২",
+        "label_en": "More for this product: 2"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "rejection",
+      "issue_id": "A019-F001",
+      "data_origin": "Approved spec and Stock lot QC disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:shelf_normal_u",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 13547,
+        "literal": "g(\"shelf_normal_u\",t(\"একক\",\"Unit\"),P,{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "একক",
+        "label_en": "Unit"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "storage",
+      "issue_id": "A019-F002",
+      "data_origin": "Versioned shelf policy, storage settings and lot tags",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:shelf_cold",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 13594,
+        "literal": "s(\"shelf_cold\",t(\"বিক্রয়যোগ্য সময়সীমা — ফ্রিজে বা চিলারে\",\"Shelf life in fridge or chiller\"))",
+        "constructor_alias": "s",
+        "label_bn": "বিক্রয়যোগ্য সময়সীমা — ফ্রিজে বা চিলারে",
+        "label_en": "Shelf life in fridge or chiller"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "storage",
+      "issue_id": "A019-F002",
+      "data_origin": "Versioned shelf policy, storage settings and lot tags",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:shelf_cold_u",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 13690,
+        "literal": "g(\"shelf_cold_u\",t(\"একক\",\"Unit\"),P)",
+        "constructor_alias": "g",
+        "label_bn": "একক",
+        "label_en": "Unit"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "storage",
+      "issue_id": "A019-F002",
+      "data_origin": "Versioned shelf policy, storage settings and lot tags",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:shelf_ref",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 13726,
+        "literal": "w(\"shelf_ref\",t(\"লোকেশন সেটিংসে এই ধরনের বিক্রয়যোগ্য দিন (দেখার জন্য)\",\"Shelf days in location settings for this category (for reference)\"),\"text\",{show:e=>!!E[e.d.cat]})",
+        "constructor_alias": "w",
+        "label_bn": "লোকেশন সেটিংসে এই ধরনের বিক্রয়যোগ্য দিন (দেখার জন্য)",
+        "label_en": "Shelf days in location settings for this category (for reference)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>!!E[e.d.cat]",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "storage",
+      "issue_id": "A019-F002",
+      "data_origin": "Versioned shelf policy, storage settings and lot tags",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:storage",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 13898,
+        "literal": "_(\"storage\",t(\"সংরক্ষণের নিয়ম\",\"Storage rule\"),[[\"fridge\",t(\"ফ্রিজে\",\"Fridge\")],[\"chiller\",t(\"চিলারে\",\"Chiller\")],[\"normal\",t(\"সাধারণ\",\"Normal\")],[\"other\",t(\"অন্য\",\"Other\")]])",
+        "constructor_alias": "_",
+        "label_bn": "সংরক্ষণের নিয়ম",
+        "label_en": "Storage rule"
+      },
+      "type": "SEL",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "storage",
+      "issue_id": "A019-F002",
+      "data_origin": "Versioned shelf policy, storage settings and lot tags",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:storage_other",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 14075,
+        "literal": "n(\"storage_other\",t(\"অন্য (লিখুন)\",\"Other (write it)\"),{show:e=>\"other\"===e.d.storage})",
+        "constructor_alias": "n",
+        "label_bn": "অন্য (লিখুন)",
+        "label_en": "Other (write it)"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"other\"===e.d.storage",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "storage",
+      "issue_id": "A019-F002",
+      "data_origin": "Versioned shelf policy, storage settings and lot tags",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:store_temp",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 14163,
+        "literal": "s(\"store_temp\",t(\"রাখার তাপমাত্রা °C\",\"Storage temperature °C\"))",
+        "constructor_alias": "s",
+        "label_bn": "রাখার তাপমাত্রা °C",
+        "label_en": "Storage temperature °C"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "storage",
+      "issue_id": "A019-F002",
+      "data_origin": "Versioned shelf policy, storage settings and lot tags",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:covered",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 14228,
+        "literal": "l(\"covered\",t(\"ঢেকে রাখা\",\"Keep covered\"))",
+        "constructor_alias": "l",
+        "label_bn": "ঢেকে রাখা",
+        "label_en": "Keep covered"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "storage",
+      "issue_id": "A019-F002",
+      "data_origin": "Versioned shelf policy, storage settings and lot tags",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:separate",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 14271,
+        "literal": "l(\"separate\",t(\"আলাদা রাখা\",\"Keep separate\"))",
+        "constructor_alias": "l",
+        "label_bn": "আলাদা রাখা",
+        "label_en": "Keep separate"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "storage",
+      "issue_id": "A019-F002",
+      "data_origin": "Versioned shelf policy, storage settings and lot tags",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:daytag",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 14317,
+        "literal": "l(\"daytag\",t(\"তৈরির দিনের রং লাগবে\",\"Make-day colour tag needed\"))",
+        "constructor_alias": "l",
+        "label_bn": "তৈরির দিনের রং লাগবে",
+        "label_en": "Make-day colour tag needed"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "storage",
+      "issue_id": "A019-F002",
+      "data_origin": "Versioned shelf policy, storage settings and lot tags",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:daytag_list",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 14384,
+        "literal": "w(\"daytag_list\",t(\"দিন-ট্যাগের রং (লোকেশন সেটিংস থেকে)\",\"Day-tag colours (from settings)\"),\"text\",{show:e=>!!e.d.daytag})",
+        "constructor_alias": "w",
+        "label_bn": "দিন-ট্যাগের রং (লোকেশন সেটিংস থেকে)",
+        "label_en": "Day-tag colours (from settings)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>!!e.d.daytag",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "storage",
+      "issue_id": "A019-F002",
+      "data_origin": "Versioned shelf policy, storage settings and lot tags",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:craft_incharge",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 15079,
+        "literal": "p(\"craft_incharge\",t(\"কারিগর ইনচার্জ\",\"Craftsman in charge\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "কারিগর ইনচার্জ",
+        "label_en": "Craftsman in charge"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "approval",
+      "issue_id": "A019-F003",
+      "data_origin": "Scoped authenticated approval of a product spec",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:factory_incharge",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 15150,
+        "literal": "p(\"factory_incharge\",t(\"কারখানা ইনচার্জ\",\"Factory in charge\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "কারখানা ইনচার্জ",
+        "label_en": "Factory in charge"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "approval",
+      "issue_id": "A019-F003",
+      "data_origin": "Scoped authenticated approval of a product spec",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-02:approver",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 15304,
+        "literal": "p(\"approver\",t(\"অনুমোদনকারী (Approved by) — ব্যবস্থাপনা\",\"Approved by: management\"),{who:\"checker\",req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "অনুমোদনকারী (Approved by) — ব্যবস্থাপনা",
+        "label_en": "Approved by: management"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "\"checker\"",
+      "collection": "checker section",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "approval",
+      "issue_id": "A019-F003",
+      "data_origin": "Scoped authenticated approval of a product spec",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:item",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 16686,
+        "literal": "u(\"item\",t(\"আইটেম কোড ও পণ্যের নাম\",\"Item code & product name\"),{req:!0})",
+        "constructor_alias": "u",
+        "label_bn": "আইটেম কোড ও পণ্যের নাম",
+        "label_en": "Item code & product name"
+      },
+      "type": "ITEM",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "recipe",
+      "issue_id": "A019-F004",
+      "data_origin": "Versioned recipe and effective item/UOM master",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:card_date",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 16760,
+        "literal": "h(\"card_date\",t(\"তারিখ\",\"Date\"),{req:!0})",
+        "constructor_alias": "h",
+        "label_bn": "তারিখ",
+        "label_en": "Date"
+      },
+      "type": "D",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "recipe",
+      "issue_id": "A019-F004",
+      "data_origin": "Versioned recipe and effective item/UOM master",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:family",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 17490,
+        "literal": "_(\"family\",t(\"পরিবার\",\"Family\"),F)",
+        "constructor_alias": "_",
+        "label_bn": "পরিবার",
+        "label_en": "Family"
+      },
+      "type": "SEL",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "recipe",
+      "issue_id": "A019-F004",
+      "data_origin": "Versioned recipe and effective item/UOM master",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:family_other",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 17525,
+        "literal": "n(\"family_other\",t(\"অন্য (লিখুন)\",\"Other (write it)\"),{show:e=>\"other\"===e.d.family})",
+        "constructor_alias": "n",
+        "label_bn": "অন্য (লিখুন)",
+        "label_en": "Other (write it)"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"other\"===e.d.family",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "recipe",
+      "issue_id": "A019-F004",
+      "data_origin": "Versioned recipe and effective item/UOM master",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:batch_qty",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 17611,
+        "literal": "s(\"batch_qty\",t(\"এক ব্যাচে তৈরি হয়\",\"Made in one batch\"),{req:!0})",
+        "constructor_alias": "s",
+        "label_bn": "এক ব্যাচে তৈরি হয়",
+        "label_en": "Made in one batch"
+      },
+      "type": "N",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "recipe",
+      "issue_id": "A019-F004",
+      "data_origin": "Versioned recipe and effective item/UOM master",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:batch_unit",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 17679,
+        "literal": "_(\"batch_unit\",t(\"একক\",\"Unit\"),[...N,[\"other\",t(\"অন্য\",\"Other\")]],{req:!0})",
+        "constructor_alias": "_",
+        "label_bn": "একক",
+        "label_en": "Unit"
+      },
+      "type": "SEL",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "recipe",
+      "issue_id": "A019-F004",
+      "data_origin": "Versioned recipe and effective item/UOM master",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:batch_unit_other",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 17755,
+        "literal": "n(\"batch_unit_other\",t(\"অন্য একক (লিখুন)\",\"Other unit (write it)\"),{show:e=>\"other\"===e.d.batch_unit})",
+        "constructor_alias": "n",
+        "label_bn": "অন্য একক (লিখুন)",
+        "label_en": "Other unit (write it)"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"other\"===e.d.batch_unit",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "recipe",
+      "issue_id": "A019-F004",
+      "data_origin": "Versioned recipe and effective item/UOM master",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:base_qty",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 18070,
+        "literal": "s(\"base_qty\",t(\"ধাপ (Step) 1 থেকে প্রাপ্ত বেস\",\"Base obtained from Step 1\"),{req:!0})",
+        "constructor_alias": "s",
+        "label_bn": "ধাপ (Step) 1 থেকে প্রাপ্ত বেস",
+        "label_en": "Base obtained from Step 1"
+      },
+      "type": "N",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "recipe",
+      "issue_id": "A019-F004",
+      "data_origin": "Versioned recipe and effective item/UOM master",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:base_unit",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 18156,
+        "literal": "g(\"base_unit\",t(\"একক\",\"Unit\"),[[\"kg\",t(\"কেজি\",\"KG\")],[\"l\",t(\"লিটার\",\"Litre\")]],{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "একক",
+        "label_en": "Unit"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "recipe",
+      "issue_id": "A019-F004",
+      "data_origin": "Versioned recipe and effective item/UOM master",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:text",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 18631,
+        "literal": "i(\"text\",t(\"বানানোর ধাপ (Step) — কারিগরের বর্ণনা, সময় ও মাপসহ\",\"Method step: in the craftsman's words, with time and measure\"),{wide:!0})",
+        "constructor_alias": "i",
+        "label_bn": "বানানোর ধাপ (Step) — কারিগরের বর্ণনা, সময় ও মাপসহ",
+        "label_en": "Method step: in the craftsman's words, with time and measure"
+      },
+      "type": "TA",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "steps",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "execution",
+      "issue_id": "A019-F005",
+      "data_origin": "Recipe steps, equipment and approved staffing",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:cook_min",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 18849,
+        "literal": "s(\"cook_min\",t(\"জ্বাল / বেক — সময় (মিনিট)\",\"Cooking / baking time (minutes)\"))",
+        "constructor_alias": "s",
+        "label_bn": "জ্বাল / বেক — সময় (মিনিট)",
+        "label_en": "Cooking / baking time (minutes)"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "execution",
+      "issue_id": "A019-F005",
+      "data_origin": "Recipe steps, equipment and approved staffing",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:cook_heat",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 18929,
+        "literal": "n(\"cook_heat\",t(\"জ্বাল / বেক — তাপ\",\"Cooking / baking heat\"))",
+        "constructor_alias": "n",
+        "label_bn": "জ্বাল / বেক — তাপ",
+        "label_en": "Cooking / baking heat"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "execution",
+      "issue_id": "A019-F005",
+      "data_origin": "Recipe steps, equipment and approved staffing",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:rest_min",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 18991,
+        "literal": "s(\"rest_min\",t(\"বিশ্রাম (মিনিট)\",\"Resting time (minutes)\"))",
+        "constructor_alias": "s",
+        "label_bn": "বিশ্রাম (মিনিট)",
+        "label_en": "Resting time (minutes)"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "execution",
+      "issue_id": "A019-F005",
+      "data_origin": "Recipe steps, equipment and approved staffing",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:total_min",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 19051,
+        "literal": "s(\"total_min\",t(\"মোট সময় (মিনিট)\",\"Total time (minutes)\"))",
+        "constructor_alias": "s",
+        "label_bn": "মোট সময় (মিনিট)",
+        "label_en": "Total time (minutes)"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "execution",
+      "issue_id": "A019-F005",
+      "data_origin": "Recipe steps, equipment and approved staffing",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:headcount",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 19111,
+        "literal": "s(\"headcount\",t(\"প্রয়োজনীয় কর্মী সংখ্যা (Headcount)\",\"Staff needed (headcount)\"))",
+        "constructor_alias": "s",
+        "label_bn": "প্রয়োজনীয় কর্মী সংখ্যা (Headcount)",
+        "label_en": "Staff needed (headcount)"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "execution",
+      "issue_id": "A019-F005",
+      "data_origin": "Recipe steps, equipment and approved staffing",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:machines",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 19195,
+        "literal": "n(\"machines\",t(\"যন্ত্র\",\"Equipment\"))",
+        "constructor_alias": "n",
+        "label_bn": "যন্ত্র",
+        "label_en": "Equipment"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "execution",
+      "issue_id": "A019-F005",
+      "data_origin": "Recipe steps, equipment and approved staffing",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:informant",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 19445,
+        "literal": "n(\"informant\",t(\"তথ্যদাতা (Information given by) — কারিগরের নাম / পদ\",\"Information given by: craftsman name / post\"),{req:!0})",
+        "constructor_alias": "n",
+        "label_bn": "তথ্যদাতা (Information given by) — কারিগরের নাম / পদ",
+        "label_en": "Information given by: craftsman name / post"
+      },
+      "type": "T",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "execution",
+      "issue_id": "A019-F005",
+      "data_origin": "Recipe steps, equipment and approved staffing",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-03:approver",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 19654,
+        "literal": "p(\"approver\",t(\"অনুমোদনকারী (Approved by) — ব্যবস্থাপনা\",\"Approved by: management\"),{who:\"checker\",req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "অনুমোদনকারী (Approved by) — ব্যবস্থাপনা",
+        "label_en": "Approved by: management"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "\"checker\"",
+      "collection": "checker section",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "execution",
+      "issue_id": "A019-F005",
+      "data_origin": "Recipe steps, equipment and approved staffing",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-04:item",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 20984,
+        "literal": "u(\"item\",t(\"আইটেম কোড ও পণ্যের নাম\",\"Item code & product name\"),{req:!0})",
+        "constructor_alias": "u",
+        "label_bn": "আইটেম কোড ও পণ্যের নাম",
+        "label_en": "Item code & product name"
+      },
+      "type": "ITEM",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "inputs",
+      "issue_id": "A019-F006",
+      "data_origin": "Approved recipe version and dated batch measurements",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-04:family",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 21058,
+        "literal": "_(\"family\",t(\"পরিবার\",\"Family\"),F)",
+        "constructor_alias": "_",
+        "label_bn": "পরিবার",
+        "label_en": "Family"
+      },
+      "type": "SEL",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "inputs",
+      "issue_id": "A019-F006",
+      "data_origin": "Approved recipe version and dated batch measurements",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-04:family_other",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 21093,
+        "literal": "n(\"family_other\",t(\"অন্য (লিখুন)\",\"Other (write it)\"),{show:e=>\"other\"===e.d.family})",
+        "constructor_alias": "n",
+        "label_bn": "অন্য (লিখুন)",
+        "label_en": "Other (write it)"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"other\"===e.d.family",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A019-F006",
+      "data_origin": "Approved recipe version and dated batch measurements",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-04:recipe_no",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 21179,
+        "literal": "n(\"recipe_no\",t(\"রেসিপি কার্ড নং\",\"Recipe card no.\"),{req:!0})",
+        "constructor_alias": "n",
+        "label_bn": "রেসিপি কার্ড নং",
+        "label_en": "Recipe card no."
+      },
+      "type": "T",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A019-F006",
+      "data_origin": "Approved recipe version and dated batch measurements",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-04:recipe_ver",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 21242,
+        "literal": "n(\"recipe_ver\",t(\"রেসিপির সংস্করণ (Version)\",\"Recipe version\"),{req:!0})",
+        "constructor_alias": "n",
+        "label_bn": "রেসিপির সংস্করণ (Version)",
+        "label_en": "Recipe version"
+      },
+      "type": "T",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A019-F006",
+      "data_origin": "Approved recipe version and dated batch measurements",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-04:in_unit",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 21802,
+        "literal": "g(\"in_unit\",t(\"মূল উপকরণের একক\",\"Main input unit\"),[[\"kg\",t(\"কেজি\",\"KG\")],[\"l\",t(\"লিটার\",\"Litre\")]],{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "মূল উপকরণের একক",
+        "label_en": "Main input unit"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "inputs",
+      "issue_id": "A019-F006",
+      "data_origin": "Approved recipe version and dated batch measurements",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-04:out_unit",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 21912,
+        "literal": "g(\"out_unit\",t(\"পণ্যের একক\",\"Product unit\"),[[\"kg\",t(\"কেজি\",\"KG\")],[\"pc\",t(\"পিস\",\"Piece\")]],{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "পণ্যের একক",
+        "label_en": "Product unit"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "inputs",
+      "issue_id": "A019-F006",
+      "data_origin": "Approved recipe version and dated batch measurements",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-04:date",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 22026,
+        "literal": "h(\"date\",t(\"1 · তারিখ\",\"1 · Date\"),{req:!0})",
+        "constructor_alias": "h",
+        "label_bn": "1 · তারিখ",
+        "label_en": "1 · Date"
+      },
+      "type": "D",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A019-F006",
+      "data_origin": "Approved recipe version and dated batch measurements",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-04:base",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 22191,
+        "literal": "s(\"base\",t(\"3 · প্রাপ্ত বেস (ছানা / খোয়া / খামির / ব্যাটার)\",\"3 · Base obtained (chhana / khoa / dough / batter)\"),{req:e=>!e.row.dash})",
+        "constructor_alias": "s",
+        "label_bn": "3 · প্রাপ্ত বেস (ছানা / খোয়া / খামির / ব্যাটার)",
+        "label_en": "3 · Base obtained (chhana / khoa / dough / batter)"
+      },
+      "type": "N",
+      "requirements": "e=>!e.row.dash",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "inputs",
+      "issue_id": "A019-F006",
+      "data_origin": "Approved recipe version and dated batch measurements",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-04:base_pct",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 22329,
+        "literal": "w(\"base_pct\",t(\"4 · বেস রূপান্তর % = (3) ÷ (2) × 100\",\"4 · Base conversion % = (3) ÷ (2) × 100\"),\"num\")",
+        "constructor_alias": "w",
+        "label_bn": "4 · বেস রূপান্তর % = (3) ÷ (2) × 100",
+        "label_en": "4 · Base conversion % = (3) ÷ (2) × 100"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "conversion",
+      "issue_id": "A019-F007",
+      "data_origin": "Traceable batch measurements and approved weighting/precision policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    }
+  ],
+  "owner_accepted": false,
+  "parity_certified": false,
+  "field_parity_certified": false,
+  "source_runtime_equivalent": false,
+  "production_ready": false,
+  "erp_posted": false,
+  "status": "PARTIAL_BLOCKED_SOURCE_FORM_MISMATCH",
+  "expected_field_count": 50,
+  "unverified_fields": [
+    "F-02:name",
+    "F-02:qty",
+    "F-02:unit"
+  ]
+}

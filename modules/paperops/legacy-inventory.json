@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "audit_date": "2026-11-22",
+  "status": "INDEXED_NOT_FULLY_FIELD_AUDITED",
+  "note": "Original Islamia sweets business form definitions, not CORE10 live templates. Original Git blob SHAs provide byte-identity checks even if frozen files move into legacy/islamia-erp/. No old source is executed by PaperOps.",
+  "sources": [
+    {
+      "original_path": "forms.js",
+      "quarantine_path": "legacy/islamia-erp/forms.js",
+      "git_blob_sha": "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d",
+      "form_count": 5
+    },
+    {
+      "original_path": "forms_cash.js",
+      "quarantine_path": "legacy/islamia-erp/forms_cash.js",
+      "git_blob_sha": "9ea4fff512c709b6e28f9ab6613c3797b306b4f2",
+      "form_count": 7
+    },
+    {
+      "original_path": "forms_stock.js",
+      "quarantine_path": "legacy/islamia-erp/forms_stock.js",
+      "git_blob_sha": "59849dc51819243c5cd83b8f2246301daceebdb1",
+      "form_count": 8
+    },
+    {
+      "original_path": "forms_sales.js",
+      "quarantine_path": "legacy/islamia-erp/forms_sales.js",
+      "git_blob_sha": "8bdf649f159593882f7e415a366688f6e3f45145",
+      "form_count": 7
+    },
+    {
+      "original_path": "forms_factory.js",
+      "quarantine_path": "legacy/islamia-erp/forms_factory.js",
+      "git_blob_sha": "1c52dc8b8bc87adbb91f5811d45e6dc1b10e23d6",
+      "form_count": 5
+    }
+  ],
+  "forms": [
+    {
+      "legacy_code": "C-02",
+      "name_bn": "ব্যয় ভাউচার",
+      "name_en": "Expense Voucher",
+      "original_source": "forms.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "C-01",
+      "name_bn": "ক্যাশ হ্যান্ডওভার",
+      "name_en": "Cash Handover",
+      "original_source": "forms.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "W-02",
+      "name_bn": "ট্রান্সফার চালান",
+      "name_en": "Transfer Challan",
+      "original_source": "forms.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "W-03",
+      "name_bn": "স্টক কাউন্ট",
+      "name_en": "Stock Count",
+      "original_source": "forms.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "R-01",
+      "name_bn": "দৈনিক শোরুম শিট",
+      "name_en": "Daily Showroom Sheet",
+      "original_source": "forms.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "C-04",
+      "name_bn": "ডিজিটাল পেমেন্ট রিকনসিলিয়েশন",
+      "name_en": "Digital Payment Reconciliation",
+      "original_source": "forms_cash.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "C-06",
+      "name_bn": "ক্যাশ পজিশন ও বাজেট",
+      "name_en": "Cash Position and Budget",
+      "original_source": "forms_cash.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "C-05",
+      "name_bn": "প্রাপ্য ও অ্যাডভান্স",
+      "name_en": "Receivable and Advance",
+      "original_source": "forms_cash.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "R-02",
+      "name_bn": "জিলাপি কাউন্টার দৈনিক",
+      "name_en": "Jalebi Counter Daily",
+      "original_source": "forms_cash.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "C-03",
+      "name_bn": "মার্কেটিং ব্যয়",
+      "name_en": "Marketing Expense",
+      "original_source": "forms_cash.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "S-06",
+      "name_bn": "পার্টি ও পাইকারি লেজার",
+      "name_en": "Party and Wholesale Ledger",
+      "original_source": "forms_cash.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "S-04",
+      "name_bn": "অনলাইন ও ডেলিভারি লেজার",
+      "name_en": "Online and Delivery Ledger",
+      "original_source": "forms_cash.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "P-04",
+      "name_bn": "মালামাল গ্রহণ (GRN)",
+      "name_en": "Goods Received (GRN)",
+      "original_source": "forms_stock.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "W-01",
+      "name_bn": "মালামাল ইস্যু",
+      "name_en": "Material Issue",
+      "original_source": "forms_stock.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "W-04",
+      "name_bn": "স্টোর লেজার",
+      "name_en": "Store Ledger",
+      "original_source": "forms_stock.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "P-01",
+      "name_bn": "পারচেজ রিকুইজিশন",
+      "name_en": "Purchase Requisition",
+      "original_source": "forms_stock.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "P-02",
+      "name_bn": "কোটেশন তুলনা",
+      "name_en": "Quotation Comparison",
+      "original_source": "forms_stock.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "P-03",
+      "name_bn": "পারচেজ অর্ডার",
+      "name_en": "Purchase Order",
+      "original_source": "forms_stock.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "P-05",
+      "name_bn": "বিল যাচাই ও পেমেন্ট",
+      "name_en": "Bill Check and Payment",
+      "original_source": "forms_stock.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "P-06",
+      "name_bn": "সাপ্লায়ার লেজার",
+      "name_en": "Supplier Ledger",
+      "original_source": "forms_stock.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "S-01",
+      "name_bn": "কাস্টমার অর্ডার",
+      "name_en": "Customer Order",
+      "original_source": "forms_sales.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "S-02",
+      "name_bn": "ডিসকাউন্ট অনুমোদন",
+      "name_en": "Discount Approval",
+      "original_source": "forms_sales.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "S-03",
+      "name_bn": "রিটার্ন ও অভিযোগ",
+      "name_en": "Return and Complaint",
+      "original_source": "forms_sales.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "S-05",
+      "name_bn": "পার্টি ও পাইকারি ইনভয়েস",
+      "name_en": "Party and Wholesale Invoice",
+      "original_source": "forms_sales.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "M-01",
+      "name_bn": "মেইনটেন্যান্স অনুরোধ",
+      "name_en": "Maintenance Request",
+      "original_source": "forms_sales.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "A-01",
+      "name_bn": "সাপ্তাহিক রিভিউ",
+      "name_en": "Weekly Review",
+      "original_source": "forms_sales.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "A-02",
+      "name_bn": "মাসিক P&L ও KPI",
+      "name_en": "Monthly P&L and KPI",
+      "original_source": "forms_sales.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "F-05",
+      "name_bn": "কারখানা দৈনিক",
+      "name_en": "Factory Daily",
+      "original_source": "forms_factory.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "F-02",
+      "name_bn": "প্রোডাক্ট স্পেক কার্ড",
+      "name_en": "Product Spec Card",
+      "original_source": "forms_factory.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "F-03",
+      "name_bn": "রেসিপি কার্ড",
+      "name_en": "Recipe Card",
+      "original_source": "forms_factory.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "F-04",
+      "name_bn": "ফলন টেস্ট",
+      "name_en": "Yield Test",
+      "original_source": "forms_factory.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    },
+    {
+      "legacy_code": "F-01",
+      "name_bn": "নতুন প্রোডাক্ট সিদ্ধান্ত",
+      "name_en": "New Product Decision",
+      "original_source": "forms_factory.js",
+      "audit_status": "INDEXED_NOT_FIELD_VALIDATED"
+    }
+  ]
+}

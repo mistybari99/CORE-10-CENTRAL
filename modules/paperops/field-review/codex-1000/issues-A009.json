@@ -1,0 +1,233 @@
+[
+  {
+    "issue_id": "A009-F001",
+    "source_ids": [
+      "P-01:adv_given",
+      "P-01:adv_to",
+      "P-01:adv_ledger",
+      "P-01:adv_change",
+      "P-01:adv_receipts",
+      "P-01:adv_return_date",
+      "P-01:adv_text",
+      "P-01:adv_equal",
+      "P-01:adv_checker",
+      "P-01:grn_no",
+      "P-01:counted_by_other"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 22000,
+        "text": "l.adv_started=\"urgent\"===e.d.urgency&&N(e.d.adv_given)&&(a(e.d.adv_change)||a(e.d.adv_receipts)),\"urgent\"===e.d.urgency&&N(e.d.adv_given)&&(l.adv_text=x,l.adv_started)){const r=o(e.d.adv_given)-o(e.d."
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 22337,
+        "text": "S(\"advance_mismatch\",\"red\",\"অ্যাডভান্স ≠ ফেরত + রসিদ\",\"Advance differs from change + receipts\",r)),a(e.d.grn_no)||s.push(S(\"advance_no_grn\",\"red\",\"মালামাল গ্রহণ রসিদের নম্বর ছাড়া অ্যাডভান্স রিকনসিলিয"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 22458,
+        "text": "S(\"advance_no_grn\",\"red\",\"মালামাল গ্রহণ রসিদের নম্বর ছাড়া অ্যাডভান্স রিকনসিলিয়েশন\",\"Advance reconciliation without a goods received note number\",void 0)),a(e.d.adv_checker)&&e.d.adv_checker===e.d.ad"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 22671,
+        "text": "S(\"adv_checker_is_buyer\",\"red\",\"যাচাইকারী ও যিনি ক্রয় করেছেন একই জন\",\"The checker is the person who bought\",void 0))}var h;return\"no\"===e.c.decision&&s.push(S(\"pr_not_approved\",\"red\",\"সিদ্ধান্ত “অনুম"
+      }
+    ],
+    "observed_gap": "Urgent plus nonzero advance and at least change or receipts starts reconciliation. Difference is advance−change−receipts; nonzero, absent GRN or checker equals buyer are red. Calculator does not bind receipts or date to cash custody.",
+    "dependency": "Money advance, GRN and independent reconciliation",
+    "correction": "Enforce scoped, immutable provenance and role checks for Money advance, GRN and independent reconciliation",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A009-F002",
+    "source_ids": [
+      "P-01:urgent_count",
+      "P-01:decision",
+      "P-01:phone_approval",
+      "P-01:phone_time",
+      "P-01:approver_note"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 22801,
+        "text": "\"no\"===e.c.decision&&s.push(S(\"pr_not_approved\",\"red\",\"সিদ্ধান্ত “অনুমোদিত নয়” — অনুমোদন করা যাবে না\",\"Decision is “Not approved”: it cannot be approved\",void 0,{src:\"check\"})),{v:l,rows:{lines:d},fl"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 22829,
+        "text": "S(\"pr_not_approved\",\"red\",\"সিদ্ধান্ত “অনুমোদিত নয়” — অনুমোদন করা যাবে না\",\"Decision is “Not approved”: it cannot be approved\",void 0,{src:\"check\"})),{v:l,rows:{lines:d},flags:s,needs:i}}},e.forms[\"P-"
+      }
+    ],
+    "observed_gap": "Urgent count is entered. Checker decision no raises red. Phone time visibility depends on checkbox. Subsequent signature and approval identity are unproven.",
+    "dependency": "Procurement approval audit and signed later acknowledgment",
+    "correction": "Enforce scoped, immutable provenance and role checks for Procurement approval audit and signed later acknowledgment",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A009-F003",
+    "source_ids": [
+      "P-02:pr_no",
+      "P-02:what",
+      "P-02:qty",
+      "P-02:collector",
+      "P-02:limit_text",
+      "P-02:supplier",
+      "P-02:rate",
+      "P-02:total",
+      "P-02:delivery",
+      "P-02:credit",
+      "P-02:quality"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 25538,
+        "text": "c=r.filter(e=>a(e.supplier)||a(e.rate)),p=r.filter(e=>N(e.rate)).map(e=>o(e.rate)),u=p.length?Math.min(...p):null;i.lowest=null===u?x:\"৳ \"+$(u);const h=O(e,\"quote_over\");i.limit_text=null===h?x:t(\"৳ \""
+      }
+    ],
+    "observed_gap": "Quote total is rate times positive quantity when present. A row counts as a quote if supplier or rate is present, so incomplete rows can affect the single-quote warning. Lowest uses rates satisfying N().",
+    "dependency": "Scoped PR and authenticated vendor quotes, with timestamps and unit provenance",
+    "correction": "Enforce scoped, immutable provenance and role checks for Scoped PR and authenticated vendor quotes, with timestamps and unit provenance",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A009-F004",
+    "source_ids": [
+      "P-02:sel_supplier",
+      "P-02:sel_rate",
+      "P-02:reason",
+      "P-02:single",
+      "P-02:single_reason",
+      "P-02:po_no",
+      "P-02:po_date"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 26459,
+        "text": "\"single_quote\",m>h?\"red\":\"yellow\",m>h?\"সীমার উপরের ক্রয় একটিমাত্র দরে\":\"একটিমাত্র দরে ক্রয়\",m>h?\"Above-limit purchase on a single quote\":\"Buying on a single quote\",m||void 0)):null===h&&s.push(\"quot"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 25885,
+        "text": "S(\"not_lowest\",\"yellow\",\"সবচেয়ে কম দরের সাপ্লায়ার নির্বাচিত হয়নি\",\"Not the lowest-rate supplier\",l>0?(o(e.d.sel_rate)-u)*l:o(e.d.sel_rate)-u)));const m=a(e.d.sel_rate)?o(e.d.sel_rate)*l:0;return 1="
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 26124,
+        "text": "S(\"single_unmarked\",\"red\",\"একটিমাত্র দর আছে কিন্তু “একটিমাত্র দর” চিহ্নিত নয়\",\"Only one quote but not marked as a single quote\",void 0)),\"yes\"===e.d.single||1===c.length?null===h?(s.push(\"quote_over\""
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 26736,
+        "text": "S(\"single_approver_is_collector\",\"red\",\"একটিমাত্র দরের অনুমোদনকারী ও দর সংগ্রহকারী একই জন\",\"The approver of the single quote collected the rates\",void 0,{src:\"check\"})),{v:i,rows:{quotes:d},flags:n,ne"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 26335,
+        "text": "\"single_quote\",\"red\",\"একটিমাত্র দরে ক্রয় (সীমা লেখা নেই)\",\"Buying on a single quote (limit not set)\",m||void 0))):n.push(S(\"single_quote\",m>h?\"red\":\"yellow\",m>h?\"সীমার উপরের ক্রয় একটিমাত্র দরে\":\"একট"
+      }
+    ],
+    "observed_gap": "Selected above lowest warns yellow and requires reason. Single reason visible/required only when yes; one row unmarked red. Missing limit red for single quote; equality is yellow, above red. Collector equals single approver red. Chosen supplier/rate pair and PO receipt unproven.",
+    "dependency": "Procurement vendor-selection record, policy and PO link",
+    "correction": "Enforce scoped, immutable provenance and role checks for Procurement vendor-selection record, policy and PO link",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A009-F005",
+    "source_ids": [
+      "P-03:cs_no",
+      "P-03:pr_no",
+      "P-03:supplier",
+      "P-03:phone",
+      "P-03:delivery_date",
+      "P-03:place",
+      "P-03:pay",
+      "P-03:pay_other",
+      "P-03:credit_days"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 30155,
+        "text": "const o=i.grand>d;i.cs_text=t(\"৳ \"+$(d)+\" এর উপরে তুলনা বাধ্যতামূলক — \"+(o?\"এই অর্ডার সীমার উপরে\":\"সীমার ভেতরে\"),\"Comparison compulsory above ৳ \"+$(d)+(o?\" — this order is above it\":\" — within it\")),o"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 30379,
+        "text": "S(\"po_no_cs\",\"red\",\"অর্ডার কোটেশন তুলনার সীমার উপরে কিন্তু কোটেশন তুলনা (CS) নং নেই\",\"Order is above the quotation limit but there is no CS number\",i.grand))}return e.d.cancel&&r.push(S(\"po_cancelled\""
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 30682,
+        "text": "S(\"pay_owner\",\"yellow\",\"মালিকের ব্যক্তিগত টাকায় পেমেন্ট\",\"Payment from the owner's personal money\",void 0)),{v:i,rows:{lines:l},flags:r,needs:s}}};const L=[[\"cash\",t(\"নগদ\",\"Cash\")],[\"bank\",t(\"ব্যাংক\""
+      }
+    ],
+    "observed_gap": "Supplier/date/payment required unless cancelled. Other and credit reveal conditional fields; required only if active. Grand above configured threshold without CS yields red, owner mode yellow. References are not validated here.",
+    "dependency": "Scoped supplier, approved PR/CS, payment terms and Money policy",
+    "correction": "Enforce scoped, immutable provenance and role checks for Scoped supplier, approved PR/CS, payment terms and Money policy",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A009-F006",
+    "source_ids": [
+      "P-03:cancel",
+      "P-03:cancel_reason",
+      "P-03:cancel_approver",
+      "P-03:cancel_date",
+      "P-03:cancel_told"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 30544,
+        "text": "e.d.cancel&&r.push(S(\"po_cancelled\",\"yellow\",\"পারচেজ অর্ডার বাতিল\",\"Purchase order cancelled\",i.grand||void 0)),\"owner\"===e.d.pay&&r.push(S(\"pay_owner\",\"yellow\",\"মালিকের ব্যক্তিগত টাকায় পেমেন্ট\",\"Pay"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 30563,
+        "text": "S(\"po_cancelled\",\"yellow\",\"পারচেজ অর্ডার বাতিল\",\"Purchase order cancelled\",i.grand||void 0)),\"owner\"===e.d.pay&&r.push(S(\"pay_owner\",\"yellow\",\"মালিকের ব্যক্তিগত টাকায় পেমেন্ট\",\"Payment from the owner"
+      }
+    ],
+    "observed_gap": "Cancellation requires reason and approver while date and supplier acknowledgement are only visible. Yellow cancel flag; grand and comparison still calculated. Does not reverse a movement or prevent receipt in this calculator.",
+    "dependency": "Authorized cancellable order transition, receipt state and supplier communication evidence",
+    "correction": "Enforce scoped, immutable provenance and role checks for Authorized cancellable order transition, receipt state and supplier communication evidence",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A009-F007",
+    "source_ids": [
+      "P-03:item",
+      "P-03:desc"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 29995,
+        "text": "total:a(t.qty)&&a(t.rate)?o(t.qty)*o(t.rate):void 0}));i.grand=n(l.map(e=>e.total));const d=O(e,\"quote_over\");if(null===d)s.push(\"quote_over\"),i.cs_text=x;else{const o=i.grand>d;i.cs_text=t(\"৳ \"+$(d)+"
+      }
+    ],
+    "observed_gap": "Item required while active. Quantity and rate populate total if present. Description has no calculator role. Scope, UOM and supplier relationship aren't validated here.",
+    "dependency": "Item/UOM master and linked PO line",
+    "correction": "Enforce scoped, immutable provenance and role checks for Item/UOM master and linked PO line",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]
