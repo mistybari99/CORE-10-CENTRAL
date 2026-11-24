@@ -21,14 +21,15 @@ function data(){
  }));
  const openingProofs=[{tenantId:s.tenantId,businessId:s.businessId,
   fromSiteId:s.sites[0],toSiteId:s.sites[1],eventId:packaging.events[0].id,
-  sourceRef:packaging.events[0].sourceRef,carryForwardRef:'DEMO-CARRY-BOOK-1',
+  sourceRef:packaging.events[0].sourceRef,carryForwardRef:'DEMO-CARRY-BOOK-1',crates:'2',trays:'4',
   approvalPolicyRef:'DEMO-RETURNABLE-POLICY-1',reviewerEvidenceRef:'DEMO-REVIEW-1',
   recordedBy:'DEMO-CUSTODY-RECORDER',reviewedBy:'DEMO-OWNER-REVIEWER'}];
  const physicalCounts=[{tenantId:s.tenantId,businessId:s.businessId,
   fromSiteId:s.sites[0],toSiteId:s.sites[1],crates:'3',trays:'6',
   countEvidenceRef:'DEMO-COUNT-1',witnessEvidenceRef:'DEMO-WITNESS-1',
   countedBy:'DEMO-INDEPENDENT-COUNTER',witnessedBy:'DEMO-INDEPENDENT-WITNESS',
-  stockSnapshotRef:'DEMO-STOCK-SNAPSHOT-1'}];
+  stockSnapshotRef:'DEMO-STOCK-SNAPSHOT-1',
+  throughEventId:packaging.events.at(-1).id,throughSourceRef:packaging.events.at(-1).sourceRef}];
  return {packaging,sourceDeclarations,openingProofs,physicalCounts};
 }
 const check=edit=>{const d=data();edit(d);return source.reviewReturnables(d);};
@@ -79,6 +80,30 @@ test('two distinct source and physical checkers cannot be their own custody acto
  assert.ok(r.blockers.some(x=>x.startsWith('W02_RETURNABLES_OPENING_INDEPENDENCE_NOT_PROVED')));
  r=check(d=>{d.physicalCounts[0].witnessedBy=d.physicalCounts[0].countedBy});
  assert.ok(r.blockers.some(x=>x.startsWith('W02_RETURNABLES_INDEPENDENT_PHYSICAL_COUNT_NOT_PROVED')));
+});
+test('a later challan cannot serve as an earlier movement proof',()=>{
+ assert.throws(()=>check(d=>{d.packaging.events[0].senderProofRef=d.packaging.events.at(-1).sourceRef}),
+  /REPLAYED_PROOF_REF:SENDER/);
+ assert.throws(()=>check(d=>{d.physicalCounts[0].stockSnapshotRef=d.openingProofs[0].carryForwardRef}),
+  /REPLAYED_PROOF_REF:STOCK_SNAPSHOT/);
+});
+test('opening carry-forward quantities are checked independently of the current physical count',()=>{
+ const r=check(d=>{d.openingProofs[0].trays='3'});
+ assert.equal(r.status,'BLOCK');
+ assert.ok(r.blockers.includes('W02_RETURNABLES_OPENING_BALANCE_MISMATCH:DEMO-PK-OPEN'));
+ assert.throws(()=>check(d=>{delete d.openingProofs[0].crates}),/INVALID_QTY:CARRY_FORWARD_CRATES/);
+ assert.throws(()=>check(d=>{d.openingProofs[0].crates='9007199254740992'}),/INVALID_QTY:CARRY_FORWARD_CRATES/);
+});
+test('matching counts cannot make a stale or mismatched stock snapshot review-ready',()=>{
+ const stale=check(d=>{
+  d.physicalCounts[0].throughEventId=d.packaging.events[1].id;
+  d.physicalCounts[0].throughSourceRef=d.packaging.events[1].sourceRef;
+ });
+ assert.equal(stale.status,'BLOCK');
+ assert.ok(stale.blockers.some(x=>x.startsWith('W02_RETURNABLES_STOCK_SNAPSHOT_NOT_AT_PAIR_TIP:')));
+ const mismatched=check(d=>{d.physicalCounts[0].throughSourceRef=d.packaging.events[1].sourceRef});
+ assert.equal(mismatched.status,'BLOCK');
+ assert.throws(()=>check(d=>{delete d.physicalCounts[0].throughEventId}),/INVALID_REF:STOCK_SNAPSHOT_THROUGH_EVENT/);
 });
 test('wrong tenant/site, duplicate/replayed evidence and invalid negative/fractional crates fail closed',()=>{
  assert.throws(()=>check(d=>{d.sourceDeclarations[1].businessId='DEMO-OTHER'}),/CROSS_SCOPE/);
