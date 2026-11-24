@@ -16,6 +16,7 @@
 | A012 | 50 | 6 high, 1 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45321501676 |
 | A013 | 50 | 7 high, 1 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45321679639 |
 | A014 | 50 | 7 high, 1 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45321868236 |
+| A015 | 50 | 5 high, 2 medium | https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45322047949 |
 
 A002 covers R-01:waste_qty through C-04:on_c. Both original C-04:who declarations are preserved under one manifest ID. Evidence commits for the two exact runs are 6349dc78039f52ec7a867d1f8c3fe9e38b78174d and 1778382a1a9bd48bbf83921570bec8f9cfc7353a.
 
@@ -43,6 +44,8 @@ A013 exact evidence commit: fae37883d02ab395ed1a6b1d9b22b2b282f6798c. It covers 
 
 A014 exact evidence commit: cce9ce9619a8c404d8d9d30c2cbea0c28359cec3. It covers S-03:in_worklist through M-01:found_time.
 
-A015 covers M-01:reported_by through A-01:open_adv. Its exact-head CI is pending.
+A015 exact evidence commit: 6f599554dad3191491cd9e5b00bac8531fb6f63a. It covers M-01:reported_by through A-01:open_adv.
 
-Full gates passed: 14/20. Coordination Board / Decision Book: NOT WRITTEN.
+A016 covers A-01:owner_liab through A-02:p_end. Both A-02:name declarations are preserved under their single manifest key. Its exact-head CI is pending.
+
+Full gates passed: 15/20. Coordination Board / Decision Book: NOT WRITTEN.

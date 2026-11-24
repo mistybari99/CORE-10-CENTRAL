@@ -77,7 +77,7 @@ function verify(report, manifest, source, expectedBatch, supplements = {}) {
   for (const field of report.fields) {
     const text = field.source_file ? supplements[field.source_file] : source;
     const repeatedTriplet = ['C-06:amt', 'C-06:date'].includes(field.source_id);
-    const count = repeatedTriplet ? 3 : field.source_id === 'C-04:who' ? 2 : 1;
+    const count = repeatedTriplet ? 3 : ['C-04:who', 'A-02:name'].includes(field.source_id) ? 2 : 1;
     assert.deepEqual(field.evidence, inspect(text, field.source_id, 0, count));
     if (count === 2) assert.deepEqual(field.alternate_evidence, inspect(text, field.source_id, 1, count));
     if (repeatedTriplet) assert.deepEqual(field.additional_evidence, [1, 2].map(index => inspect(text, field.source_id, index, count)));
