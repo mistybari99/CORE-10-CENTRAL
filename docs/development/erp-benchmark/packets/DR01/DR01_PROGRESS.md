@@ -22,6 +22,7 @@
 | 7 | REGISTRY_PROPOSED_DELTA.jsonl (28 updates + 12 candidates) | done; shared REGISTRY.json **not** edited |
 | 8 | DR01_PROGRESS.md | this file |
 | 9 | BUILD_RECOMMENDATIONS.md (WO-01…WO-13) | done; only WO-01 is BUILD_READY |
+| — | LEGACY_ROUTES.jsonl (218 legacy IA routes) | batch 2 part 1 |
 | — | reconciliation.json; tools/*.py | generated / reproducible |
 
 ## Reconciliation (from reconciliation.json)
@@ -45,10 +46,22 @@
 
 ## Completed batches
 - **B1 (2026-11-24):** all sources acquired; full-ID crosswalk; PR containment scan of 142 PR heads against trunk (blob identity plus `c10_demo→core10` rename normalization); upstream pins and licences; key upstream functions inspected with line numbers; staging ledger and CI at head.
+- **B2 part 1 (2026-11-24):** `LEGACY_ROUTES.jsonl`: the frozen legacy IA registry `legacy/islamia-erp/ia.js` (trunk `9510e198`) parsed read-only. Results:
+  - **218 unique routes** in 13 menu groups (216 live, 2 hidden: `#/products`, `#/report`).
+  - Each route has its bn/en labels, IA visibility gate, capability and current shell destination.
+  - Visibility gates: 102 default-visible, 44 location-scoped, 35 owner-only, 12 POS, 21 explicit `P(MODULE,verb)`. This is menu visibility only, not backend authorization.
+  - **Route-level preservation risk:**
+    - 39 legacy routes (Accounting 24, Purchasing 15) have **no CORE10 shell destination**.
+    - 47 (Sales 12, Customers/Orders/Invoices 21, Factory 14) reach only **replay** screens.
+    - Approvals (17) and Staff (13) map to shell routes whose maturity DR01 has not verified.
+    - Only Items (10), Stock (31), Locations (4), Dashboard (6) and Settings (32) reach signed staging screens, and those only at group level, not route by route.
 
 ## Not done / partial (honest list)
 1. 334 Details are mapped at capability level only. They need symbol-level confirmation (exact RPC/table/test per Detail).
-2. Original **menus/routes/user actions** inventory of the frozen legacy app (`legacy/islamia-erp/nav.js`, `ia.js`, `index.html`, `v2/`), and the 11 live shell routes old→new map. **NOT DONE** (handed to DR03 B01 as well).
+2. Legacy route inventory is done at registry level (218). Still missing:
+   - per-route old→new mapping to specific CORE10 actions;
+   - the `nav.js`/`v2/` screens outside `ia.js`;
+   - the user actions inside each screen (buttons/verbs).
 3. Decision Book sheets captured but not analysed: RESEARCH ARCHIVE (16 docs/52 chunks), SOURCE TRACE (116 A/B candidate rows), DISCUSSION LOG (37), AUDIT EVIDENCE (93), CHANGE LOG (128), AUDIT CYCLES/QUEUE, BUILD LEDGER, PLAN INDEX. D049 guide doc not read.
 4. Feature-level verification that GOV-002 side PRs #78–#99 and A008 #40/#43/#69/#71 are fully ported (paths differ; only containment by migration names was checked).
 5. 15 GitHub issues listed, not analysed (e.g. #53, #56, #57, #110).
@@ -59,8 +72,8 @@
 None for continuing read-only research. Build items are blocked as listed in BUILD_RECOMMENDATIONS (Owner policy decisions; migration order 0301–0305 → 0207–0210 → 04xx/05xx).
 
 ## Next task (exact)
-**DR01 batch 2.**
-1. Legacy route/menu/action inventory from `legacy/islamia-erp` at trunk `9510e198` (read-only), mapped to the Detail IDs and live shell routes.
+**DR01 batch 2 (continue).**
+1. Map the 218 `LEGACY_ROUTES.jsonl` rows route by route to Detail IDs and CORE10 RPCs. Start with the 39 routes that have no destination (`group` in `acc`, `purch`). Then list in-screen actions for the R-01/C-01/W-02/W-03 legacy screens.
 2. Symbol-level confirmation for the 334 capability-level Details, starting with P0 caps GOV-001, SETUP-001, MDM-001, PROC-001, INV-001, SALES-001, FIN-001.
 3. Analyse SOURCE TRACE and RESEARCH ARCHIVE for IDs missing from the crosswalk.
 4. Read the D049 guide.
