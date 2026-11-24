@@ -1,0 +1,1476 @@
+{
+  "schema_version": 1,
+  "batch": "A020",
+  "source": {
+    "path": "forms.js",
+    "legacy_trunk_path": "legacy/islamia-erp/forms.js",
+    "git_blob": "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d",
+    "parent_commit": "df247deee3548a7f75640e8274c0934d86916d91",
+    "sha256": "53ca5ac41a8f663fbcc76c4be5a7ec1d5a937d97dcf4020f709ff69eecae9e73",
+    "ci_compatibility": "Legacy tests use relocated path. CI stages a byte-identical copy of the pinned Git blob in the ephemeral checkout.",
+    "supplements": {
+      "forms_cash.js": "ce58ef83daa19273b766f3eac63db5f97cc741ffb26ed21076ab948032c14022",
+      "forms_stock.js": "f6d8cfb25718ab6ec90d23cbbfbc9a1b18b1489c693b8b1413c339e32e058e81",
+      "forms_sales.js": "cf0d825cf019ce77859265c2e5d4698cc38f31f121ad5661fc8a3c92e7590163",
+      "forms_factory.js": "d585ad78b4dc082b15aa16546007bcd0fb10c07753062390c82954bf3fc3181c"
+    }
+  },
+  "fields": [
+    {
+      "source_id": "F-04:base_use",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 22433,
+        "literal": "s(\"base_use\",t(\"5 · বেস ব্যবহার\",\"5 · Base used\"),{req:e=>!e.row.dash})",
+        "constructor_alias": "s",
+        "label_bn": "5 · বেস ব্যবহার",
+        "label_en": "5 · Base used"
+      },
+      "type": "N",
+      "requirements": "e=>!e.row.dash",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "observations",
+      "issue_id": "A020-F001",
+      "data_origin": "Manufacturing / Quality yield trial observations with signed measurement and applicability evidence",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:sugar",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 22505,
+        "literal": "s(\"sugar\",t(\"6 · চিনি / সিরা / অন্য উপকরণ\",\"6 · Sugar / syrup / other\"),{req:e=>!e.row.dash})",
+        "constructor_alias": "s",
+        "label_bn": "6 · চিনি / সিরা / অন্য উপকরণ",
+        "label_en": "6 · Sugar / syrup / other"
+      },
+      "type": "N",
+      "requirements": "e=>!e.row.dash",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "observations",
+      "issue_id": "A020-F001",
+      "data_origin": "Manufacturing / Quality yield trial observations with signed measurement and applicability evidence",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:mid",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 22599,
+        "literal": "s(\"mid\",t(\"7 · মাঝের ওজন — ভাজা বা বেকের পর\",\"7 · Mid weight after frying or baking\"),{req:e=>!e.row.dash})",
+        "constructor_alias": "s",
+        "label_bn": "7 · মাঝের ওজন — ভাজা বা বেকের পর",
+        "label_en": "7 · Mid weight after frying or baking"
+      },
+      "type": "N",
+      "requirements": "e=>!e.row.dash",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "observations",
+      "issue_id": "A020-F001",
+      "data_origin": "Manufacturing / Quality yield trial observations with signed measurement and applicability evidence",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:total",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 22948,
+        "literal": "w(\"total\",t(\"11 · মোট উৎপাদন = (8) + (9) + (10)\",\"11 · Total output = (8) + (9) + (10)\"),\"num\")",
+        "constructor_alias": "w",
+        "label_bn": "11 · মোট উৎপাদন = (8) + (9) + (10)",
+        "label_en": "11 · Total output = (8) + (9) + (10)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "yield",
+      "issue_id": "A020-F002",
+      "data_origin": "Manufacturing yield calculation and Quality-approved target with effective recipe, units and immutable batch inputs",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:per_unit",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 23044,
+        "literal": "w(\"per_unit\",t(\"12 · মূল উপকরণের প্রতি ১ একক থেকে ভালো পণ্য = (8) ÷ (2)\",\"12 · Good product per 1 unit of input = (8) ÷ (2)\"),\"num\")",
+        "constructor_alias": "w",
+        "label_bn": "12 · মূল উপকরণের প্রতি ১ একক থেকে ভালো পণ্য = (8) ÷ (2)",
+        "label_en": "12 · Good product per 1 unit of input = (8) ÷ (2)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "yield",
+      "issue_id": "A020-F002",
+      "data_origin": "Manufacturing yield calculation and Quality-approved target with effective recipe, units and immutable batch inputs",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:second_pct",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 23177,
+        "literal": "w(\"second_pct\",t(\"13 · ২য় গ্রেড % = (9) ÷ (11) × 100\",\"13 · 2nd grade % = (9) ÷ (11) × 100\"),\"num\")",
+        "constructor_alias": "w",
+        "label_bn": "13 · ২য় গ্রেড % = (9) ÷ (11) × 100",
+        "label_en": "13 · 2nd grade % = (9) ÷ (11) × 100"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "yield",
+      "issue_id": "A020-F002",
+      "data_origin": "Manufacturing yield calculation and Quality-approved target with effective recipe, units and immutable batch inputs",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:waste_pct",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 23278,
+        "literal": "w(\"waste_pct\",t(\"14 · নষ্ট % = (10) ÷ (11) × 100\",\"14 · Wastage % = (10) ÷ (11) × 100\"),\"num\")",
+        "constructor_alias": "w",
+        "label_bn": "14 · নষ্ট % = (10) ÷ (11) × 100",
+        "label_en": "14 · Wastage % = (10) ÷ (11) × 100"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "yield",
+      "issue_id": "A020-F002",
+      "data_origin": "Manufacturing yield calculation and Quality-approved target with effective recipe, units and immutable batch inputs",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:headcount",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 23373,
+        "literal": "s(\"headcount\",t(\"15 · কর্মী সংখ্যা (Headcount)\",\"15 · Headcount\"),{req:e=>!e.row.dash})",
+        "constructor_alias": "s",
+        "label_bn": "15 · কর্মী সংখ্যা (Headcount)",
+        "label_en": "15 · Headcount"
+      },
+      "type": "N",
+      "requirements": "e=>!e.row.dash",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "observations",
+      "issue_id": "A020-F001",
+      "data_origin": "Manufacturing / Quality yield trial observations with signed measurement and applicability evidence",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:minutes",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 23461,
+        "literal": "s(\"minutes\",t(\"16 · মোট সময় (মিনিট)\",\"16 · Total time (minutes)\"),{req:e=>!e.row.dash})",
+        "constructor_alias": "s",
+        "label_bn": "16 · মোট সময় (মিনিট)",
+        "label_en": "16 · Total time (minutes)"
+      },
+      "type": "N",
+      "requirements": "e=>!e.row.dash",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "observations",
+      "issue_id": "A020-F001",
+      "data_origin": "Manufacturing / Quality yield trial observations with signed measurement and applicability evidence",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:dash",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 23550,
+        "literal": "l(\"dash\",t(\"খালি ঘরগুলো এই পণ্যে খাটে না (দাগ দেওয়া)\",\"Empty boxes do not apply to this product (dashed)\"))",
+        "constructor_alias": "l",
+        "label_bn": "খালি ঘরগুলো এই পণ্যে খাটে না (দাগ দেওয়া)",
+        "label_en": "Empty boxes do not apply to this product (dashed)"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "observations",
+      "issue_id": "A020-F001",
+      "data_origin": "Manufacturing / Quality yield trial observations with signed measurement and applicability evidence",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:craftsman",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 23659,
+        "literal": "p(\"craftsman\",t(\"ওই ব্যাচের কারিগর\",\"Craftsman of this batch\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "ওই ব্যাচের কারিগর",
+        "label_en": "Craftsman of this batch"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or staff picker in pinned constructor",
+      "rule_group": "trial_actors",
+      "issue_id": "A020-F003",
+      "data_origin": "Manufacturing batch register and independently authorized Quality/Approval actors",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:measurer",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 23732,
+        "literal": "p(\"measurer\",t(\"17 · পরিমাপকারী (Measured by)\",\"17 · Measured by\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "17 · পরিমাপকারী (Measured by)",
+        "label_en": "17 · Measured by"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "b",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or staff picker in pinned constructor",
+      "rule_group": "trial_actors",
+      "issue_id": "A020-F003",
+      "data_origin": "Manufacturing batch register and independently authorized Quality/Approval actors",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:factory_incharge",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 24198,
+        "literal": "p(\"factory_incharge\",t(\"কারখানা ইনচার্জ\",\"Factory in charge\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "কারখানা ইনচার্জ",
+        "label_en": "Factory in charge"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or staff picker in pinned constructor",
+      "rule_group": "trial_actors",
+      "issue_id": "A020-F003",
+      "data_origin": "Manufacturing batch register and independently authorized Quality/Approval actors",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-04:verifier",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 24341,
+        "literal": "p(\"verifier\",t(\"যাচাইকারী (Checked by)\",\"Checked by\"),{who:\"checker\",req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "যাচাইকারী (Checked by)",
+        "label_en": "Checked by"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "\"checker\"",
+      "collection": "checker section",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or staff picker in pinned constructor",
+      "rule_group": "trial_actors",
+      "issue_id": "A020-F003",
+      "data_origin": "Manufacturing batch register and independently authorized Quality/Approval actors",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:brand",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 26038,
+        "literal": "_(\"brand\",t(\"ব্র্যান্ড\",\"Brand\"),()=>e.biz?e.biz.brandOpts(K,[\"other\"]):K,{req:!0})",
+        "constructor_alias": "_",
+        "label_bn": "ব্র্যান্ড",
+        "label_en": "Brand"
+      },
+      "type": "SEL",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or staff picker in pinned constructor",
+      "rule_group": "product",
+      "issue_id": "A020-F004",
+      "data_origin": "Master Data approved brand/product/code and trial rationale under business scope",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:brand_other",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 26122,
+        "literal": "n(\"brand_other\",t(\"অন্য ব্র্যান্ড (লিখুন)\",\"Other brand (write it)\"),{show:e=>\"other\"===e.d.brand})",
+        "constructor_alias": "n",
+        "label_bn": "অন্য ব্র্যান্ড (লিখুন)",
+        "label_en": "Other brand (write it)"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"other\"===e.d.brand",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "product",
+      "issue_id": "A020-F004",
+      "data_origin": "Master Data approved brand/product/code and trial rationale under business scope",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:product",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 26222,
+        "literal": "n(\"product\",t(\"পণ্যের নাম\",\"Product name\"),{req:!0})",
+        "constructor_alias": "n",
+        "label_bn": "পণ্যের নাম",
+        "label_en": "Product name"
+      },
+      "type": "T",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "product",
+      "issue_id": "A020-F004",
+      "data_origin": "Master Data approved brand/product/code and trial rationale under business scope",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:new_code",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 26275,
+        "literal": "n(\"new_code\",t(\"নতুন আইটেম কোড\",\"New item code\"),{req:!0})",
+        "constructor_alias": "n",
+        "label_bn": "নতুন আইটেম কোড",
+        "label_en": "New item code"
+      },
+      "type": "T",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "product",
+      "issue_id": "A020-F004",
+      "data_origin": "Master Data approved brand/product/code and trial rationale under business scope",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:start_date",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 26334,
+        "literal": "h(\"start_date\",t(\"শুরুর তারিখ\",\"Start date\"),{req:!0})",
+        "constructor_alias": "h",
+        "label_bn": "শুরুর তারিখ",
+        "label_en": "Start date"
+      },
+      "type": "D",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "calendar",
+      "issue_id": "A020-F005",
+      "data_origin": "Control versioned review-day/day-tag policy and business calendar",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:review_date",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 26389,
+        "literal": "h(\"review_date\",t(\"পর্যালোচনার তারিখ\",\"Review date\"),{req:!0})",
+        "constructor_alias": "h",
+        "label_bn": "পর্যালোচনার তারিখ",
+        "label_en": "Review date"
+      },
+      "type": "D",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "calendar",
+      "issue_id": "A020-F005",
+      "data_origin": "Control versioned review-day/day-tag policy and business calendar",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:review_hint",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 26452,
+        "literal": "w(\"review_hint\",t(\"সেটিংস অনুযায়ী পর্যালোচনার তারিখ\",\"Review date according to settings\"),\"text\")",
+        "constructor_alias": "w",
+        "label_bn": "সেটিংস অনুযায়ী পর্যালোচনার তারিখ",
+        "label_en": "Review date according to settings"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "calendar",
+      "issue_id": "A020-F005",
+      "data_origin": "Control versioned review-day/day-tag policy and business calendar",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:target",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 26619,
+        "literal": "n(\"target\",t(\"লক্ষ্য কাস্টমার\",\"Target customer\"))",
+        "constructor_alias": "n",
+        "label_bn": "লক্ষ্য কাস্টমার",
+        "label_en": "Target customer"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "product",
+      "issue_id": "A020-F004",
+      "data_origin": "Master Data approved brand/product/code and trial rationale under business scope",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:est_price",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 26670,
+        "literal": "d(\"est_price\",t(\"আনুমানিক বিক্রয়মূল্য\",\"Estimated selling price\"))",
+        "constructor_alias": "d",
+        "label_bn": "আনুমানিক বিক্রয়মূল্য",
+        "label_en": "Estimated selling price"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "product",
+      "issue_id": "A020-F004",
+      "data_origin": "Master Data approved brand/product/code and trial rationale under business scope",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:reason",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 26738,
+        "literal": "n(\"reason\",t(\"পণ্যের কারণ\",\"Why this product\"))",
+        "constructor_alias": "n",
+        "label_bn": "পণ্যের কারণ",
+        "label_en": "Why this product"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "product",
+      "issue_id": "A020-F004",
+      "data_origin": "Master Data approved brand/product/code and trial rationale under business scope",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:recipe_no",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 26887,
+        "literal": "n(\"recipe_no\",t(\"রেসিপি কার্ড নং\",\"Recipe card no.\"))",
+        "constructor_alias": "n",
+        "label_bn": "রেসিপি কার্ড নং",
+        "label_en": "Recipe card no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "spec_lineage",
+      "issue_id": "A020-F006",
+      "data_origin": "Master Data / Manufacturing / Quality immutable approved recipe, yield and product-spec revisions",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:yield_no",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 26941,
+        "literal": "n(\"yield_no\",t(\"ফলন টেস্ট শিট নং\",\"Yield test sheet no.\"))",
+        "constructor_alias": "n",
+        "label_bn": "ফলন টেস্ট শিট নং",
+        "label_en": "Yield test sheet no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "spec_lineage",
+      "issue_id": "A020-F006",
+      "data_origin": "Master Data / Manufacturing / Quality immutable approved recipe, yield and product-spec revisions",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:spec_no",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 27000,
+        "literal": "n(\"spec_no\",t(\"প্রোডাক্ট স্পেক কার্ড নং\",\"Product spec card no.\"))",
+        "constructor_alias": "n",
+        "label_bn": "প্রোডাক্ট স্পেক কার্ড নং",
+        "label_en": "Product spec card no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "spec_lineage",
+      "issue_id": "A020-F006",
+      "data_origin": "Master Data / Manufacturing / Quality immutable approved recipe, yield and product-spec revisions",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:unit_cost",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 27067,
+        "literal": "d(\"unit_cost\",t(\"একক খরচ ৳\",\"Unit cost ৳\"))",
+        "constructor_alias": "d",
+        "label_bn": "একক খরচ ৳",
+        "label_en": "Unit cost ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "margin",
+      "issue_id": "A020-F010",
+      "data_origin": "Effective Master price, Finance unit-cost basis, business/site currency and approved review",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:ref",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 27221,
+        "literal": "n(\"ref\",t(\"কাগজ ও লাইন নং\",\"Paper & line no.\"))",
+        "constructor_alias": "n",
+        "label_bn": "কাগজ ও লাইন নং",
+        "label_en": "Paper & line no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "trial",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "cost",
+      "issue_id": "A020-F007",
+      "data_origin": "Stock issue and Money expense vouchers with transaction-level audit lineage",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:amount",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 27269,
+        "literal": "d(\"amount\",t(\"টাকা ৳\",\"Amount ৳\"))",
+        "constructor_alias": "d",
+        "label_bn": "টাকা ৳",
+        "label_en": "Amount ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "trial",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "cost",
+      "issue_id": "A020-F007",
+      "data_origin": "Stock issue and Money expense vouchers with transaction-level audit lineage",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:trial_total",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 27315,
+        "literal": "w(\"trial_total\",t(\"মোট ট্রায়াল খরচ\",\"Total trial cost\"),\"money\",{big:!0})",
+        "constructor_alias": "w",
+        "label_bn": "মোট ট্রায়াল খরচ",
+        "label_en": "Total trial cost"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "cost",
+      "issue_id": "A020-F007",
+      "data_origin": "Stock issue and Money expense vouchers with transaction-level audit lineage",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:tasters",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 27453,
+        "literal": "s(\"tasters\",t(\"স্যাম্পল — স্বাদ পরীক্ষকের সংখ্যা (Taster Count)\",\"Sample: number of tasters\"),{})",
+        "constructor_alias": "s",
+        "label_bn": "স্যাম্পল — স্বাদ পরীক্ষকের সংখ্যা (Taster Count)",
+        "label_en": "Sample: number of tasters"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "opinions",
+      "issue_id": "A020-F008",
+      "data_origin": "Manufacturing / Quality trial feedback with scoped evidence and independent reviewer",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:op_good",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 27551,
+        "literal": "s(\"op_good\",t(\"ভালো\",\"Good\"))",
+        "constructor_alias": "s",
+        "label_bn": "ভালো",
+        "label_en": "Good"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "opinions",
+      "issue_id": "A020-F008",
+      "data_origin": "Manufacturing / Quality trial feedback with scoped evidence and independent reviewer",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:op_mid",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 27581,
+        "literal": "s(\"op_mid\",t(\"মাঝারি\",\"Average\"))",
+        "constructor_alias": "s",
+        "label_bn": "মাঝারি",
+        "label_en": "Average"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "opinions",
+      "issue_id": "A020-F008",
+      "data_origin": "Manufacturing / Quality trial feedback with scoped evidence and independent reviewer",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:op_bad",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 27615,
+        "literal": "s(\"op_bad\",t(\"খারাপ\",\"Poor\"))",
+        "constructor_alias": "s",
+        "label_bn": "খারাপ",
+        "label_en": "Poor"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "opinions",
+      "issue_id": "A020-F008",
+      "data_origin": "Manufacturing / Quality trial feedback with scoped evidence and independent reviewer",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:op_text",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 27645,
+        "literal": "w(\"op_text\",t(\"ভালো + মাঝারি + খারাপ = পরীক্ষক?\",\"Good + average + poor = tasters?\"),\"text\",{show:e=>a(e.d.tasters)})",
+        "constructor_alias": "w",
+        "label_bn": "ভালো + মাঝারি + খারাপ = পরীক্ষক?",
+        "label_en": "Good + average + poor = tasters?"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>a(e.d.tasters)",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "opinions",
+      "issue_id": "A020-F008",
+      "data_origin": "Manufacturing / Quality trial feedback with scoped evidence and independent reviewer",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:key_point",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 27763,
+        "literal": "i(\"key_point\",t(\"মূল কথা\",\"Key point\"))",
+        "constructor_alias": "i",
+        "label_bn": "মূল কথা",
+        "label_en": "Key point"
+      },
+      "type": "TA",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "opinions",
+      "issue_id": "A020-F008",
+      "data_origin": "Manufacturing / Quality trial feedback with scoped evidence and independent reviewer",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:day_tag",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 27901,
+        "literal": "w(\"day_tag\",t(\"পর্যালোচনার দিনের ট্যাগ (লোকেশন সেটিংস থেকে)\",\"Review-day tag (from location settings)\"),\"text\",{show:e=>a(e.d.review_date)})",
+        "constructor_alias": "w",
+        "label_bn": "পর্যালোচনার দিনের ট্যাগ (লোকেশন সেটিংস থেকে)",
+        "label_en": "Review-day tag (from location settings)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>a(e.d.review_date)",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "calendar",
+      "issue_id": "A020-F005",
+      "data_origin": "Control versioned review-day/day-tag policy and business calendar",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:sold_qty",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 28142,
+        "literal": "s(\"sold_qty\",t(\"মোট বিক্রি — পরিমাণ\",\"Total sold: quantity\"))",
+        "constructor_alias": "s",
+        "label_bn": "মোট বিক্রি — পরিমাণ",
+        "label_en": "Total sold: quantity"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "sales",
+      "issue_id": "A020-F009",
+      "data_origin": "Sales daily close, returns/complaints and approved repeat-customer definition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:sold_amt",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 28204,
+        "literal": "d(\"sold_amt\",t(\"মোট বিক্রি — টাকা\",\"Total sold: amount\"))",
+        "constructor_alias": "d",
+        "label_bn": "মোট বিক্রি — টাকা",
+        "label_en": "Total sold: amount"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "sales",
+      "issue_id": "A020-F009",
+      "data_origin": "Sales daily close, returns/complaints and approved repeat-customer definition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:returns",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 28262,
+        "literal": "s(\"returns\",t(\"ফেরত বা অভিযোগ (টি)\",\"Returns or complaints (no.)\"))",
+        "constructor_alias": "s",
+        "label_bn": "ফেরত বা অভিযোগ (টি)",
+        "label_en": "Returns or complaints (no.)"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "sales",
+      "issue_id": "A020-F009",
+      "data_origin": "Sales daily close, returns/complaints and approved repeat-customer definition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:price_used",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 28330,
+        "literal": "w(\"price_used\",t(\"দাম (মূল্য তালিকা, না পেলে আনুমানিক)\",\"Price (price list, else estimated)\"),\"money\")",
+        "constructor_alias": "w",
+        "label_bn": "দাম (মূল্য তালিকা, না পেলে আনুমানিক)",
+        "label_en": "Price (price list, else estimated)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "margin",
+      "issue_id": "A020-F010",
+      "data_origin": "Effective Master price, Finance unit-cost basis, business/site currency and approved review",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:margin",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 28433,
+        "literal": "w(\"margin\",t(\"দাম − একক খরচ = প্রতি এককে মার্জিন ৳\",\"Price − unit cost = margin per unit ৳\"),\"money\",{big:!0})",
+        "constructor_alias": "w",
+        "label_bn": "দাম − একক খরচ = প্রতি এককে মার্জিন ৳",
+        "label_en": "Price − unit cost = margin per unit ৳"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "margin",
+      "issue_id": "A020-F010",
+      "data_origin": "Effective Master price, Finance unit-cost basis, business/site currency and approved review",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:repeat",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 28544,
+        "literal": "s(\"repeat\",t(\"পুনরায় ক্রয়কারী কাস্টমার\",\"Repeat customers\"))",
+        "constructor_alias": "s",
+        "label_bn": "পুনরায় ক্রয়কারী কাস্টমার",
+        "label_en": "Repeat customers"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "sales",
+      "issue_id": "A020-F009",
+      "data_origin": "Sales daily close, returns/complaints and approved repeat-customer definition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:preparer",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 28830,
+        "literal": "p(\"preparer\",t(\"প্রস্তুতকারী (Prepared by)\",\"Prepared by\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "প্রস্তুতকারী (Prepared by)",
+        "label_en": "Prepared by"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or staff picker in pinned constructor",
+      "rule_group": "decision",
+      "issue_id": "A020-F011",
+      "data_origin": "Approval/Audit signed product-release decision, independent actors and immutable version transition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:verifier",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 28899,
+        "literal": "p(\"verifier\",t(\"যাচাইকারী (Checked by) (প্রস্তুতকারী নন)\",\"Checked by (not the preparer)\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "যাচাইকারী (Checked by) (প্রস্তুতকারী নন)",
+        "label_en": "Checked by (not the preparer)"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or staff picker in pinned constructor",
+      "rule_group": "decision",
+      "issue_id": "A020-F011",
+      "data_origin": "Approval/Audit signed product-release decision, independent actors and immutable version transition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:chief_mgmt",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 29139,
+        "literal": "p(\"chief_mgmt\",t(\"প্রধান ব্যবস্থাপনা\",\"Chief management\"),{who:\"checker\",req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "প্রধান ব্যবস্থাপনা",
+        "label_en": "Chief management"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "\"checker\"",
+      "collection": "checker section",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or staff picker in pinned constructor",
+      "rule_group": "decision",
+      "issue_id": "A020-F011",
+      "data_origin": "Approval/Audit signed product-release decision, independent actors and immutable version transition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:decision",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 29221,
+        "literal": "g(\"decision\",t(\"সিদ্ধান্ত\",\"Decision\"),[[\"keep\",t(\"রাখা\",\"Keep\")],[\"change\",t(\"বদলানো\",\"Change\")],[\"drop\",t(\"বাদ\",\"Drop\")]],{who:\"checker\",req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "সিদ্ধান্ত",
+        "label_en": "Decision"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "\"checker\"",
+      "collection": "checker section",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or staff picker in pinned constructor",
+      "rule_group": "decision",
+      "issue_id": "A020-F011",
+      "data_origin": "Approval/Audit signed product-release decision, independent actors and immutable version transition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:change_what",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 29369,
+        "literal": "n(\"change_what\",t(\"বদলানো — কী\",\"Change: what\"),{who:\"checker\",show:e=>\"change\"===e.c.decision,req:e=>\"change\"===e.c.decision})",
+        "constructor_alias": "n",
+        "label_bn": "বদলানো — কী",
+        "label_en": "Change: what"
+      },
+      "type": "T",
+      "requirements": "e=>\"change\"===e.c.decision",
+      "visibility": "e=>\"change\"===e.c.decision",
+      "role": "\"checker\"",
+      "collection": "checker section",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "decision",
+      "issue_id": "A020-F011",
+      "data_origin": "Approval/Audit signed product-release decision, independent actors and immutable version transition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    },
+    {
+      "source_id": "F-01:owner",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 29497,
+        "literal": "p(\"owner\",t(\"মালিকের স্বাক্ষর\",\"Owner's signature\"),{who:\"checker\",req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "মালিকের স্বাক্ষর",
+        "label_en": "Owner's signature"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "\"checker\"",
+      "collection": "checker section",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or staff picker in pinned constructor",
+      "rule_group": "decision",
+      "issue_id": "A020-F011",
+      "data_origin": "Approval/Audit signed product-release decision, independent actors and immutable version transition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED declaration and linked expressions; approved policy, signed runtime and canonical enforcement unverified"
+    }
+  ],
+  "rules": {
+    "observations": {
+      "behavior": "The field requirement for base use, sugar/syrup, mid weight, headcount and minutes is !row.dash. The source tells staff to weigh or count and to leave inapplicable entries blank. The dash is a human attestation.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 22433,
+          "text": "s(\"base_use\",t(\"5 · বেস ব্যবহার\",\"5 · Base used\"),{req:e=>!e.row.dash}),s(\"sugar\",t(\"6 · চিনি / সিরা"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 22505,
+          "text": "s(\"sugar\",t(\"6 · চিনি / সিরা / অন্য উপকরণ\",\"6 · Sugar / syrup / other\"),{req:e=>!e.row.dash}),s(\"mid"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 22599,
+          "text": "s(\"mid\",t(\"7 · মাঝের ওজন — ভাজা বা বেকের পর\",\"7 · Mid weight after frying or baking\"),{req:e=>!e.row"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 23373,
+          "text": "s(\"headcount\",t(\"15 · কর্মী সংখ্যা (Headcount)\",\"15 · Headcount\"),{req:e=>!e.row.dash}),s(\"minutes\","
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 23461,
+          "text": "s(\"minutes\",t(\"16 · মোট সময় (মিনিট)\",\"16 · Total time (minutes)\"),{req:e=>!e.row.dash}),l(\"dash\",t("
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 23550,
+          "text": "l(\"dash\",t(\"খালি ঘরগুলো এই পণ্যে খাটে না (দাগ দেওয়া)\",\"Empty boxes do not apply to this product (da"
+        }
+      ],
+      "helper_status": "Frozen literal expressions and conditions verified. Synthetic numeric tests use typed values; canonical provider and historical coercion parity remain open.",
+      "target_authority": "PROPOSED"
+    },
+    "yield": {
+      "behavior": "Total is good + second + waste when any is present. Per-unit yield requires positive input and present good; it rounds to four decimal places. Second and waste percentages require positive total and present numerator; they round to two decimal places. Only finite present results enter the average, rounded to four decimals.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 19850,
+          "text": "R=(e,t)=>r(t)>0&&a(e)?Math.round(r(e)/r(t)*1e4)/100:void 0,j=[[\"input\",t(\"গড় — মূল উপকরণ\",\"Average:"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 24580,
+          "text": "const t=a(e.good)||a(e.second)||a(e.waste)?r(e.good)+r(e.second)+r(e.waste):void 0;return{base_pct:R"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 24705,
+          "text": "per_unit:(o=e.good,n=e.input,r(n)>0&&a(o)?Math.round(r(o)/r(n)*1e4)/1e4:void 0),second_pct:R(e.secon"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 24947,
+          "text": "filter(e=>void 0!==e&&Number.isFinite(e));return n.length?Math.round(o(n)/n.length*1e4)/1e4:void 0})"
+        }
+      ],
+      "helper_status": "Frozen literal expressions and conditions verified. Synthetic numeric tests use typed values; canonical provider and historical coercion parity remain open.",
+      "target_authority": "PROPOSED"
+    },
+    "trial_actors": {
+      "behavior": "Three fixed batch labels. Repeated non-empty date produces yellow same_day_batches; same non-empty measurer and craftsman yields red measurer_is_craftsman. The factory manager and checker are separately declared; no proof of independently authenticated people or calendar completeness.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 19801,
+          "text": "const B=[1,2,3].map(e=>t(\"ব্যাচ \"+e,\"Batch \"+e)),R=(e,t)=>r(t)>0&&a(e)?Math.round(r(e)/r(t)*1e4)/100"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 25053,
+          "text": "const d=t.map(e=>e.date).filter(a);return new Set(d).size<d.length&&n.push(v(\"same_day_batches\",\"yel"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 25334,
+          "text": "v(\"measurer_is_craftsman\",\"red\",\"পরিমাপকারী ও ওই ব্যাচের কারিগর একই জন\",\"The person who measured als"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 24341,
+          "text": "p(\"verifier\",t(\"যাচাইকারী (Checked by)\",\"Checked by\"),{who:\"checker\",req:!0}),p(\"approver\",t(\"অনুমোদ"
+        }
+      ],
+      "helper_status": "Frozen literal expressions and conditions verified. Synthetic numeric tests use typed values; canonical provider and historical coercion parity remain open.",
+      "target_authority": "PROPOSED"
+    },
+    "product": {
+      "behavior": "Brand options use the business provider when present or the listed source fallback, with other revealing its text field. Product and new code are declared required. Target, estimate and reason are inputs, with no registry uniqueness guarantee here.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 26071,
+          "text": "()=>e.biz?e.biz.brandOpts(K,[\"other\"]):K,{req:!0}),n(\"brand_other\",t(\"অন্য ব্র্যান্ড (লিখুন)\",\"Other"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 26192,
+          "text": "show:e=>\"other\"===e.d.brand}),n(\"product\",t(\"পণ্যের নাম\",\"Product name\"),{req:!0}),n(\"new_code\",t(\"ন"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 26275,
+          "text": "n(\"new_code\",t(\"নতুন আইটেম কোড\",\"New item code\"),{req:!0}),h(\"start_date\",t(\"শুরুর তারিখ\",\"Start dat"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 26619,
+          "text": "n(\"target\",t(\"লক্ষ্য কাস্টমার\",\"Target customer\")),d(\"est_price\",t(\"আনুমানিক বিক্রয়মূল্য\",\"Estimate"
+        }
+      ],
+      "helper_status": "Frozen literal expressions and conditions verified. Synthetic numeric tests use typed values; canonical provider and historical coercion parity remain open.",
+      "target_authority": "PROPOSED"
+    },
+    "calendar": {
+      "behavior": "Review hint uses newprod_review_days and start date; missing setting yields Data needed and a needs key, given setting without start date yields em dash. Review-day tag uses the weekday of the declared review date and location setting; no effective-date or time-zone policy is proved.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 651,
+          "text": "key:\"newprod_review_days\",group:\"C\",label:t(\"নতুন প্রোডাক্ট চালুর কত দিন পর পর্যালোচনা\",\"Days after "
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 29640,
+          "text": "null===c?(i.review_hint=q,d.push(\"newprod_review_days\")):a(n.start_date)?i.review_hint=((e,t)=>{cons"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 29775,
+          "text": "r.setDate(r.getDate()+t),r.toLocaleDateString(\"en-CA\")})(n.start_date,r(c)):i.review_hint=\"—\";const "
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 30295,
+          "text": "e.s[\"daytag_\"+new Date(n.review_date+\"T12:00:00\").getDay()];i.day_tag=t||q}const p=e.env.byCode&&e.e"
+        }
+      ],
+      "helper_status": "Frozen literal expressions and conditions verified. Synthetic numeric tests use typed values; canonical provider and historical coercion parity remain open.",
+      "target_authority": "PROPOSED"
+    },
+    "spec_lineage": {
+      "behavior": "Recipe, yield sheet and product spec are textual references with no validated version or approval lookup in this calculator.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 26835,
+          "text": "Section B · Recipe, yield, quality & cost\"),fields:[n(\"recipe_no\",t(\"রেসিপি কার্ড নং\",\"Recipe card n"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 19293,
+          "text": "n(\"yield_no\",t(\"ফলন টেস্ট শিট নং\",\"Yield test sheet no.\")),n(\"spec_version\",t(\"প্রোডাক্ট স্পেক কার্ড"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 27000,
+          "text": "n(\"spec_no\",t(\"প্রোডাক্ট স্পেক কার্ড নং\",\"Product spec card no.\")),d(\"unit_cost\",t(\"একক খরচ ৳\",\"Unit"
+        }
+      ],
+      "helper_status": "Frozen literal expressions and conditions verified. Synthetic numeric tests use typed values; canonical provider and historical coercion parity remain open.",
+      "target_authority": "PROPOSED"
+    },
+    "cost": {
+      "behavior": "Four fixed trial rows include two material issue references and two marketing expense references. Trial total uses the sum of row amounts. Blank or duplicate reference behavior and Stock/Money authorizations are not proved by the sum.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 25664,
+          "text": "L=[t(\"মালামাল ইস্যু স্লিপ — ট্রায়াল\",\"Material issue slip: trial\"),t(\"মালামাল ইস্যু স্লিপ — ট্রায়া"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 27205,
+          "text": "b(\"trial\",null,[n(\"ref\",t(\"কাগজ ও লাইন নং\",\"Paper & line no.\")),d(\"amount\",t(\"টাকা ৳\",\"Amount ৳\"))],"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 29869,
+          "text": "const h=e.rows(\"trial\");i.trial_total=o(h.map(e=>e.amount));const l=h.map(()=>({}));if(a(n.tasters))"
+        }
+      ],
+      "helper_status": "Frozen literal expressions and conditions verified. Synthetic numeric tests use typed values; canonical provider and historical coercion parity remain open.",
+      "target_authority": "PROPOSED"
+    },
+    "opinions": {
+      "behavior": "Taster-presence gates the displayed result. Count delta equals good + average + poor minus tasters; nonzero gives yellow opinion_mismatch. A comment is manually entered.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 27738,
+          "text": "show:e=>a(e.d.tasters)}),i(\"key_point\",t(\"মূল কথা\",\"Key point\"))]},{title:t(\"Section E · বিক্রি — পর"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 29978,
+          "text": "r(n.op_good)+r(n.op_mid)+r(n.op_bad)-r(n.tasters);i.op_text=0===e?t(\"মিল আছে ✓\",\"Matches ✓\"):t(\"অমিল"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 30120,
+          "text": "v(\"opinion_mismatch\",\"yellow\",\"মতামতের যোগফল পরীক্ষকের সংখ্যার সমান নয়\",\"Opinion counts do not add "
+        }
+      ],
+      "helper_status": "Frozen literal expressions and conditions verified. Synthetic numeric tests use typed values; canonical provider and historical coercion parity remain open.",
+      "target_authority": "PROPOSED"
+    },
+    "sales": {
+      "behavior": "The form instructs staff to take sales totals from the showroom day sheet, but the fields are manual and the calculator does not query a sales ledger or compute repeat customers.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 28086,
+          "text": "Take total sales from the daily showroom sheet.\"),\"ok\"),s(\"sold_qty\",t(\"মোট বিক্রি — পরিমাণ\",\"Total "
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 28142,
+          "text": "s(\"sold_qty\",t(\"মোট বিক্রি — পরিমাণ\",\"Total sold: quantity\")),d(\"sold_amt\",t(\"মোট বিক্রি — টাকা\",\"To"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 28544,
+          "text": "s(\"repeat\",t(\"পুনরায় ক্রয়কারী কাস্টমার\",\"Repeat customers\"))]},{title:t(\"প্রস্তুতকারী ও যাচাইকারী\""
+        }
+      ],
+      "helper_status": "Frozen literal expressions and conditions verified. Synthetic numeric tests use typed values; canonical provider and historical coercion parity remain open.",
+      "target_authority": "PROPOSED"
+    },
+    "margin": {
+      "behavior": "By-code item price is used only when positive; else an entered estimate if present. Margin uses that selected price minus present unit cost; only negative margin produces a yellow warning. Historic arithmetic proves neither approved costing nor sales pricing authority.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 30378,
+          "text": "e.env.byCode&&e.env.byCode.get(n.new_code)||null,u=p&&r(p.sell_price)>0?r(p.sell_price):a(n.est_pric"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 30429,
+          "text": "p&&r(p.sell_price)>0?r(p.sell_price):a(n.est_price)?r(n.est_price):void 0;return i.price_used=u,i.ma"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 30561,
+          "text": "u-r(n.unit_cost):void 0,void 0!==i.margin&&i.margin<0&&s.push(v(\"negative_margin\",\"yellow\",\"প্রতি এক"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 30623,
+          "text": "v(\"negative_margin\",\"yellow\",\"প্রতি এককে মার্জিন ঋণাত্মক\",\"Margin per unit is negative\",i.margin)),a"
+        }
+      ],
+      "helper_status": "Frozen literal expressions and conditions verified. Synthetic numeric tests use typed values; canonical provider and historical coercion parity remain open.",
+      "target_authority": "PROPOSED"
+    },
+    "decision": {
+      "behavior": "Same non-empty verifier and preparer triggers red; the source instructions also exclude the maker, which the calculator does not check. Checker options keep/change/drop. Change text is required and visible only for checker decision change. Owner and chief management fields are required checker declarations, without authenticated approval.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 28743,
+          "text": "The checker is someone who did not make the product and is not the preparer.\"),\"warn\"),p(\"preparer\","
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 29418,
+          "text": "who:\"checker\",show:e=>\"change\"===e.c.decision,req:e=>\"change\"===e.c.decision}),p(\"owner\",t(\"মালিকের "
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 30769,
+          "text": "v(\"verifier_is_preparer\",\"red\",\"যাচাইকারী ও প্রস্তুতকারী একই জন\",\"Checker and preparer are the same "
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 29497,
+          "text": "p(\"owner\",t(\"মালিকের স্বাক্ষর\",\"Owner's signature\"),{who:\"checker\",req:!0})]}],calc(e){const n=e.d,i"
+        }
+      ],
+      "helper_status": "Frozen literal expressions and conditions verified. Synthetic numeric tests use typed values; canonical provider and historical coercion parity remain open.",
+      "target_authority": "PROPOSED"
+    }
+  },
+  "warning_map": {
+    "F04": {
+      "same_day_batches": "yellow",
+      "measurer_is_craftsman": "red"
+    },
+    "F01": {
+      "opinion_mismatch": "yellow",
+      "negative_margin": "yellow",
+      "verifier_is_preparer": "red"
+    }
+  },
+  "owner_accepted": false,
+  "parity_certified": false,
+  "field_parity_certified": false,
+  "source_runtime_equivalent": false,
+  "production_ready": false,
+  "erp_posted": false
+}
