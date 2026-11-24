@@ -58,3 +58,5 @@ A018 exact evidence commit: 5722a2e68b59e746b2a7b7b293603c4959e342ff. It covers 
 A019 has 47 verified source declarations with partial rule evidence. Positions 920–922 are blocked: F-02:name, F-02:qty and F-02:unit are constructors from the shared ingredient helper used only by F-03 collections a, b and c. See A019-partial.json and issues-A019.json. A019 is excluded from completed batch counts, and A020 is held by the sequential gate.
 
 Full gates passed: 18/20. Remaining: 100 fields across A019–A020. Coordination Board / Decision Book: NOT WRITTEN.
+
+A019 rehearsal: the three proposed F-03 recipe constructor records and all three consumer references are preserved in A019-recipe-candidates.json. The executable fixtures validate all 50 rows with an in-memory corrected manifest and reject the assembled records with the current attribution. This rehearsal does not change or replace the authoritative ownership manifest or close A019.

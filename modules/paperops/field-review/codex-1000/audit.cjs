@@ -28,8 +28,25 @@ function inspect(source, key, occurrence = 0, count = 1) {
   // F-02 is followed by shared recipe helper declarations before the next form.
   const helper = form === 'F-02' ? source.indexOf(';const F=[', start + marker.length) : -1;
   if (form === 'F-02') assert.ok(helper > start && (next < 0 || helper < next), 'Missing F-02 definition boundary');
-  const end = helper >= 0 ? helper : next < 0 ? source.length : next;
-  const formText = source.slice(start, end);
+  let end = helper >= 0 ? helper : next < 0 ? source.length : next;
+  let constructorStart = start;
+  if (form === 'F-03' && ['name', 'qty', 'unit'].includes(field)) {
+    const spec = source.indexOf('e.forms["F-02"]={');
+    const specEnd = source.indexOf(';const F=[', spec);
+    const marker = 'O=()=>[u("item"';
+    const ingredients = source.indexOf(marker, specEnd);
+    assert.ok(spec >= 0 && specEnd > spec && ingredients > specEnd && ingredients < start,
+      'Missing separate F-03 ingredient helper');
+    const recipe = source.slice(start, end);
+    for (const collection of ['a', 'b', 'c']) {
+      const consumer = 'b("' + collection + '",null,O(),';
+      assert.ok(recipe.includes(consumer) && recipe.indexOf(consumer) === recipe.lastIndexOf(consumer),
+        'Missing or ambiguous F-03 ingredient consumer: ' + collection);
+    }
+    constructorStart = ingredients;
+    end = start;
+  }
+  const formText = source.slice(constructorStart, end);
   const pattern = /([A-Za-z_$][\w$]*)\("([a-z][a-z0-9_]*)",t\("([^"]+)","([^"]+)"\)/g;
   const matches = [...formText.matchAll(pattern)].filter(match => match[2] === field);
   assert.equal(matches.length, count, 'Missing or ambiguous original constructor: ' + key);
@@ -38,7 +55,7 @@ function inspect(source, key, occurrence = 0, count = 1) {
   let depth = 0;
   let quote = null;
   let escaped = false;
-  const offset = start + match.index;
+  const offset = constructorStart + match.index;
   let cursor = offset + match[1].length;
   for (; cursor < end; cursor++) {
     const character = source[cursor];
