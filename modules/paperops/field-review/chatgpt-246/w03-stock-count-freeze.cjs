@@ -54,10 +54,15 @@ function scope(record,s,label){
  if(!record||record.tenantId!==s.tenantId||record.businessId!==s.businessId||
     record.siteId!==s.siteId)throw Error('W03_CROSS_TENANT_BUSINESS_SITE:'+label);
 }
+// Count and movement boundaries are exact UTC instants, not Date.parse's
+// normalized calendar dates or truncated milliseconds. Match PG microseconds.
 function stamp(v,label){
- if(typeof v!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(v)||
-    !Number.isFinite(Date.parse(v)))throw Error('W03_BAD_TIMESTAMP:'+label);
- return Date.parse(v);
+ const match=typeof v==='string'&&
+  /^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(?:\.(\d{1,6}))?Z$/.exec(v);
+ const ms=match?Date.parse(match[1]+'Z'):NaN;
+ if(!match||!Number.isFinite(ms)||new Date(ms).toISOString().slice(0,19)!==match[1])
+  throw Error('W03_BAD_TIMESTAMP:'+label);
+ return BigInt(ms)*1000n+BigInt((match[2]||'').padEnd(6,'0')||'0');
 }
 function reconcileStockCount({synthetic_only,scope:s,session,policy,bookRows,physicalRows,movements}={}){
  const pinned=assertSource();

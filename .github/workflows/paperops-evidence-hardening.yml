@@ -1,0 +1,30 @@
+name: PaperOps isolated evidence hardening
+on:
+  pull_request:
+    branches: [build/paperops-trunk-w02-review-20261124]
+    paths:
+      - 'modules/paperops/**'
+      - '.github/workflows/paperops-evidence-hardening.yml'
+permissions:
+  contents: read
+jobs:
+  exact-source-controls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Recheck 1000 + 246 ownership and source assertions
+        run: |
+          audit=modules/paperops/field-review/codex-1000
+          node "$audit/summary.cjs" --complete
+          node "$audit/completion-matrix.cjs" modules/paperops/field-review/chatgpt-246 --check
+          node --experimental-test-isolation=none --test modules/paperops/tests/*.test.cjs "$audit"/audit*.test.cjs
+      - name: Load exact legacy and shared safety guard pins
+        run: git fetch --no-tags origin refs/pull/109/head:refs/remotes/origin/pr109-head refs/pull/112/head:refs/remotes/origin/pr112-head
+      - name: Check frozen legacy and live isolation
+        run: node --test tests/core10-file-classification.test.js tests/core10-legacy-move-integrity.test.js tests/core10-live-legacy-guard.test.js
