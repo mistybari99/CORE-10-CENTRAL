@@ -57,6 +57,34 @@
       bn: "CORE10 স্টেজিং · সাইন-ইন করলে পরিবর্তন সংরক্ষণ করা যায়",
       en: "CORE10 staging · signed-in changes can be saved"
     },
+    setupStatus: {
+      bn: "CORE10 স্টেজিং · সেটআপে আলাদা সাইন-ইন · অনুমোদিত পরিবর্তন সংরক্ষণ করা যায়",
+      en: "CORE10 staging · separate setup sign-in · authorized changes can be saved"
+    },
+    approvalStatus: {
+      bn: "প্রিভিউ · নমুনা অনুমোদন · সিদ্ধান্ত সংরক্ষিত হয় না",
+      en: "Preview · sample approvals · decisions are not saved"
+    },
+    workspaceShortcuts: { bn: "কাজের শর্টকাট", en: "Workspace shortcuts" },
+    entrySignIn: {
+      bn: "আপনার নির্বাচিত ব্যবসার কাজের শর্টকাট দেখতে সাইন ইন করুন।",
+      en: "Sign in to see shortcuts for your selected business."
+    },
+    entryUnavailable: {
+      bn: "ব্যবসার প্রসঙ্গ যাচাই করা যায়নি। প্রসঙ্গ বারে আবার চেষ্টা করুন।",
+      en: "Business context could not be verified. Try again in the context bar."
+    },
+    entryLoading: { bn: "ব্যবসার প্রসঙ্গ যাচাই হচ্ছে…", en: "Checking business context…" },
+    entryEmpty: { bn: "দেখার মতো কোনো ব্যবসা নেই।", en: "There are no businesses to show." },
+    entryNoShortcuts: {
+      bn: "এই ব্যবসার জন্য কোনো কাজের শর্টকাট নেই।",
+      en: "There are no shortcuts for this business."
+    },
+    tenant_owner: { bn: "গ্রুপ মালিক", en: "Group owner" },
+    business_owner: { bn: "ব্যবসার মালিক", en: "Business owner" },
+    manager: { bn: "ব্যবস্থাপক", en: "Manager" },
+    investor: { bn: "বিনিয়োগকারী", en: "Investor" },
+    site_staff: { bn: "স্থানের কর্মী", en: "Site staff" },
   };
 
   function setCopy(element, copy) {
@@ -84,6 +112,19 @@
   var DRAFT = { sales: true, manufacturing: true };
   var moreToggle = document.getElementById("c10-more-toggle"), morePanel = document.getElementById("c10-mobile-more");
   var primaryRoutes = { home: true, business: true, stock: true, approvals: true };
+  const dataNotice = {
+    business: "signedReadStatus",
+    control: "signedWriteStatus",
+    setup: "setupStatus",
+    master: "signedWriteStatus",
+    stock: "signedWriteStatus",
+    approvals: "approvalStatus"
+  };
+  const entry = document.getElementById("c10-entry");
+  const entryStatus = document.getElementById("c10-entry-status");
+  const entrySetup = document.getElementById("c10-entry-setup");
+  const entryStock = document.getElementById("c10-entry-stock");
+  let context = { state: "signed-out" };
   function closeMore(restoreFocus) {
     if (morePanel.hidden) return;
     morePanel.hidden = true; moreToggle.setAttribute("aria-expanded", "false");
@@ -93,12 +134,30 @@
   // Replace each nested route so browser Back returns to the previous shell hash.
   var currentFrameUrl = "";
   var lang = "bn"; try { lang = localStorage.getItem("core10.preview.lang") === "en" ? "en" : "bn"; } catch (_) {}
+  function updateEntry() {
+    const business = context.business;
+    const manageBusiness = context.state === "ready" && business?.canManage === true;
+    const manageSetup = manageBusiness || (context.state === "ready" && context.canBootstrap === true);
+    entrySetup.hidden = !manageSetup;
+    entryStock.hidden = !manageBusiness;
+    if (context.state === "ready" && business) {
+      const role = business.role && COPY[business.role];
+      const selection = role ? business.name + " · " + role[lang] : business.name;
+      entryStatus.textContent = manageSetup ? selection : selection + " · " + COPY.entryNoShortcuts[lang];
+      return;
+    }
+    const key = {
+      "signed-out": "entrySignIn", loading: "entryLoading", error: "entryUnavailable", ready: "entryEmpty"
+    }[context.state];
+    entryStatus.textContent = COPY[key][lang];
+  }
+
   function route() {
     var r = (location.hash.replace(/^#\/?/, "") || "home").split("?")[0];
     if (!Object.prototype.hasOwnProperty.call(ROUTES, r)) r = "home";
-    var signed = r === "control" || r === "setup" || r === "master" || r === "stock";
-    const status = COPY[r === "business" ? "signedReadStatus" : signed ? "signedWriteStatus" : "sampleStatus"];
-    setCopy(dataStatus, status);
+    setCopy(dataStatus, COPY[dataNotice[r] || "sampleStatus"]);
+    entry.hidden = r !== "home";
+    updateEntry();
     Array.prototype.forEach.call(document.querySelectorAll("[data-route]"), function (a) {
       if (a.dataset.route === r) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
@@ -155,5 +214,9 @@
     Promise.resolve().then(route);
   });
   window.addEventListener("hashchange", route);
+  window.addEventListener("core10:context-change", function (event) {
+    context = event.detail;
+    updateEntry();
+  });
   setLang(lang);
 })();

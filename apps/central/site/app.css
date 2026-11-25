@@ -18,6 +18,11 @@ html[data-lang="bn"] .en,html[data-lang="en"] .bn{display:none}
 .c10-nav a[aria-current="page"]{background:var(--active);color:var(--active-ink);font-weight:600}
 .c10-main{flex:1;min-width:0;display:flex;flex-direction:column}
 #c10-frame{flex:1;width:100%;border:0;background:var(--bg)}
+.c10-entry{flex:none;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.c10-entry h1{margin:0;font-size:15px}
+.c10-entry p{margin:3px 0;color:var(--muted);overflow-wrap:anywhere}
+.c10-entry-links{display:flex;flex-wrap:wrap;gap:6px}
+.c10-entry-links a:not([hidden]){display:inline-flex;align-items:center;min-height:44px;padding:4px 10px;border-radius:var(--radius-control);background:var(--active);color:var(--active-ink);font-weight:600}
 .c10-draft{margin:0;padding:8px 16px;font-size:13px;background:#fff4d6;color:#5c4300;border-bottom:1px solid #ecd9a3}
 @media (prefers-color-scheme:dark){.c10-draft{background:#33270f;color:#f2d27b;border-color:#4d3b14}}
 @media (max-width:760px){

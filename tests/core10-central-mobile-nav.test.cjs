@@ -113,3 +113,130 @@ test("§7b.4 browser: mobile More, keyboard Escape, back, bn/en and desktop grou
     await new Promise((resolve, reject) => server.close((err) => err ? reject(err) : resolve()));
   }
 });
+
+test("B01 home offers module shortcuts from verified setup and stock scope", { timeout: 60000 }, async () => {
+  await withContextPage(async (page, base) => {
+    await page.goto(base + "/#/home");
+    await page.getByRole("button", { name: "EN", exact: true }).click();
+    const status = page.locator("#c10-entry-status");
+    const setup = page.locator("#c10-entry-setup");
+    const stock = page.locator("#c10-entry-stock");
+    await waitForText(status, "Sign in to see shortcuts");
+    assert.equal(await setup.isVisible(), false);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await page.locator("#c10-shell-email").fill("operator@example.test");
+    await page.locator("#c10-shell-password").fill("test-only");
+    await page.locator("#c10-shell-submit").click();
+    await waitForText(status, "Checking business context");
+    assert.equal(await stock.isVisible(), false);
+    await page.evaluate(() => window.fixture.releaseContext());
+
+    await waitForText(status, "Demo Sweets · Manager");
+    assert.equal(await setup.isVisible(), true);
+    assert.equal(await stock.isVisible(), true);
+    await stock.click();
+    await page.waitForURL("**/#/stock");
+    await page.locator("#c10-entry").waitFor({ state: "hidden" });
+    await page.locator('.c10-nav [data-route="home"]').click();
+
+    await page.locator("#c10-business").selectOption("20");
+    await waitForText(status, "Demo Paint · Investor");
+    assert.match(await status.innerText(), /no shortcuts/i);
+    assert.equal(await stock.isVisible(), false);
+    assert.equal(await setup.isVisible(), false);
+    assert.equal(await page.locator('.c10-nav [data-route="stock"]').isVisible(), true);
+
+    await page.locator("#c10-group").selectOption("2");
+    await waitForText(status, "There are no businesses to show");
+    assert.equal(await setup.isVisible(), true);
+    assert.equal(await stock.isVisible(), false);
+    await setup.click();
+    await page.waitForURL("**/#/setup");
+    await waitForText(page.locator("#c10-data-status .en"), "separate setup sign-in");
+
+    await page.locator('.c10-nav [data-route="approvals"]').click();
+    await waitForText(page.locator("#c10-data-status .en"), "sample approvals");
+    await page.locator('.c10-nav [data-route="home"]').click();
+    await page.evaluate(() => { window.fixture.contextError = true; });
+    await page.locator("#c10-context-refresh").click();
+    await waitForText(status, "Business context could not be verified");
+    assert.equal(await setup.isVisible(), false);
+    await page.locator('[data-set-lang="bn"]').click();
+    await waitForText(status, "ব্যবসার প্রসঙ্গ যাচাই করা যায়নি");
+  });
+});
+
+function waitForText(locator, text) {
+  return locator.filter({ hasText: text }).waitFor({ state: "visible" });
+}
+
+async function withContextPage(run) {
+  const { chromium } = require("playwright");
+  const { serve } = await import(path.join(ROOT, "apps/central/local-serve.mjs"));
+  const server = await serve(0);
+  try {
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const base = "http://127.0.0.1:" + server.address().port;
+      const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+      await page.context().route("**/*", route => {
+        const url = new URL(route.request().url());
+        if (url.origin !== base) return route.abort("blockedbyclient");
+        if (url.pathname === "/live/vendor/supabase.js") {
+          return route.fulfill({ contentType: "application/javascript", body: CONTEXT_FIXTURE });
+        }
+        return route.continue();
+      });
+      await run(page, base);
+    } finally {
+      await browser.close();
+    }
+  } finally {
+    await new Promise((resolve, reject) => server.close(err => err ? reject(err) : resolve()));
+  }
+}
+
+const CONTEXT_FIXTURE = `
+  if (window === top) {
+    window.fixture = {
+      actor: null,
+      pendingContext: new Promise(resolve => { window.releaseFixtureContext = resolve; }),
+      releaseContext() { window.releaseFixtureContext(); },
+      contextError: false,
+      scope: {
+        tenants: [
+          { id: 1, slug: "Demo Group", can_manage_bootstrap: false },
+          { id: 2, slug: "Setup Group", can_manage_bootstrap: true }
+        ],
+        businesses: [
+          { id: 10, tenant_id: 1, label: "Demo Sweets", can_manage: true, role: "manager" },
+          { id: 20, tenant_id: 1, label: "Demo Paint", can_manage: false, role: "investor" }
+        ],
+        sites: [
+          { id: 101, tenant_id: 1, business_id: 10, label: "Demo Store" },
+          { id: 201, tenant_id: 1, business_id: 20, label: "Demo Branch" }
+        ]
+      }
+    };
+  }
+  window.supabase = { createClient: () => ({
+    auth: {
+      getUser: async () => ({ data: { user: top.fixture.actor && { id: top.fixture.actor } } }),
+      signInWithPassword: async () => {
+        top.fixture.actor = "test-signed-user";
+        return { data: { user: { id: top.fixture.actor } } };
+      },
+      signOut: async () => { top.fixture.actor = null; },
+      onAuthStateChange() {}
+    },
+    schema: () => ({
+      rpc: async name => {
+        if (name !== "build01_context_v1") throw new Error("Unexpected fixture RPC " + name);
+        await top.fixture.pendingContext;
+        return top.fixture.contextError
+          ? { error: { message: "Fixture temporarily unavailable" } }
+          : { data: { actor_uid: top.fixture.actor, ...top.fixture.scope } };
+      }
+    })
+  }) };
+`;
