@@ -39,6 +39,28 @@ test("§7b.4 browser: mobile More, keyboard Escape, back, bn/en and desktop grou
     assert.equal(await mobile.locator(".c10-mobilebar a").count(), 4);
     assert.equal(await mobile.locator("#c10-mobile-more").isVisible(), false);
     assert.equal(await mobile.locator('[data-mobile-route="home"]').first().getAttribute("aria-current"), "page");
+    assert.equal(await mobile.getByRole("navigation", { name: "মোবাইলের প্রধান নেভিগেশন" }).isVisible(), true);
+    assert.equal(await mobile.locator('.c10-mobilebar [data-mobile-route="approvals"]').innerText(), "অনুমোদন");
+    assert.equal(await mobile.locator(".c10-nav [data-route='approvals'] .bn").textContent(), "অনুমোদন");
+
+    const workspaceBody = mobile.frameLocator("#c10-frame").locator("body");
+    await workspaceBody.waitFor();
+    const palette = [
+      ["light", "rgb(244, 245, 247)", "rgb(23, 32, 43)"],
+      ["dark", "rgb(16, 20, 24)", "rgb(231, 235, 240)"],
+    ];
+    for (const [colorScheme, background, foreground] of palette) {
+      await mobile.emulateMedia({ colorScheme });
+      for (const body of [mobile.locator("body"), workspaceBody]) {
+        const style = await body.evaluate(node => {
+          const { backgroundColor, color, fontFamily } = getComputedStyle(node);
+          return { backgroundColor, color, fontFamily };
+        });
+        assert.equal(style.backgroundColor, background);
+        assert.equal(style.color, foreground);
+        assert.match(style.fontFamily, /Noto Sans Bengali/);
+      }
+    }
 
     await mobile.locator("#c10-more-toggle").click();
     assert.equal(await mobile.locator("#c10-more-toggle").getAttribute("aria-expanded"), "true");
@@ -64,6 +86,10 @@ test("§7b.4 browser: mobile More, keyboard Escape, back, bn/en and desktop grou
     assert.equal(await mobile.locator("#c10-more-toggle").getAttribute("aria-current"), "page");
     await mobile.locator('[data-set-lang="en"]').click();
     assert.equal(await mobile.locator("html").getAttribute("lang"), "en");
+    assert.equal(await mobile.getByRole("navigation", { name: "Mobile primary navigation" }).isVisible(), true);
+    assert.equal(await mobile.locator('.c10-mobilebar [data-mobile-route="approvals"]').innerText(), "Approvals");
+    assert.equal(await mobile.locator(".c10-nav [data-route='approvals'] .en").textContent(), "Approvals");
+    assert.equal(await mobile.locator("#c10-business").getAttribute("aria-label"), "Business");
     assert.equal(await mobile.locator("#c10-more-toggle").getAttribute("aria-current"), "page");
     assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
     assert.deepEqual(errors, []);
@@ -74,6 +100,11 @@ test("§7b.4 browser: mobile More, keyboard Escape, back, bn/en and desktop grou
     assert.equal(await desktop.locator(".c10-mobilebar").isVisible(), false);
     assert.equal(await desktop.locator(".c10-nav-section").count(), 3);
     assert.equal(await desktop.locator(".c10-nav [data-route]").count(), 11);
+    assert.equal(await desktop.getByRole("navigation", { name: "প্রধান নেভিগেশন" }).isVisible(), true);
+    assert.equal(await desktop.locator("#c10-business").getAttribute("aria-label"), "ব্যবসা");
+    await desktop.getByRole("button", { name: "EN", exact: true }).click();
+    assert.equal(await desktop.getByRole("navigation", { name: "Main" }).isVisible(), true);
+    assert.equal(await desktop.getByRole("link", { name: "Setup & access" }).isVisible(), true);
     assert.equal(await desktop.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
   } finally {
     if (mobile) await mobile.close();

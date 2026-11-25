@@ -1,6 +1,72 @@
 /* CORE 10 owner preview shell: hash routes -> real module views. No network, no session, no storage beyond language. */
 (function () {
   "use strict";
+  const COPY = {
+    sampleStatus: {
+      bn: "প্রিভিউ · নমুনা তথ্য · এখানে পরিবর্তন সংরক্ষিত হয় না",
+      en: "Preview · sample data · changes are not saved"
+    },
+    contextTitle: { bn: "গ্রুপ ▸ ব্যবসা ▸ স্থান", en: "Group ▸ Business ▸ Site" },
+    signIn: { bn: "সাইন ইন", en: "Sign in" },
+    group: { bn: "গ্রুপ", en: "Group" },
+    business: { bn: "ব্যবসা", en: "Business" },
+    site: { bn: "স্থান", en: "Site" },
+    refresh: { bn: "যাচাই", en: "Refresh" },
+    signOut: { bn: "সাইন আউট", en: "Sign out" },
+    email: { bn: "ইমেইল", en: "Email" },
+    password: { bn: "পাসওয়ার্ড", en: "Password" },
+    continue: { bn: "প্রবেশ করুন", en: "Continue" },
+    contextHelp: {
+      bn: "শুধু CORE10 স্টেজিং; প্রতিটি মডিউল কাজের সময় আলাদাভাবে অনুমতি যাচাই করে।",
+      en: "CORE10 staging only; each module rechecks authorization for operations."
+    },
+    workspaces: { bn: "কাজের জায়গা", en: "Workspaces" },
+    ownerHome: { bn: "মালিকের হোম", en: "Owner home" },
+    staff: { bn: "কর্মীর কাজ", en: "Staff workspace" },
+    operations: { bn: "কার্যক্রম", en: "Operations" },
+    master: { bn: "মাস্টার ডেটা", en: "Master data" },
+    stockOperations: { bn: "স্টক লেনদেন", en: "Stock operations" },
+    sales: { bn: "বিক্রয় অর্ডার", en: "Sales orders" },
+    manufacturing: { bn: "উৎপাদন", en: "Manufacturing" },
+    administration: { bn: "অনুমোদন ও পরিচালনা", en: "Approvals and administration" },
+    approvals: { bn: "অনুমোদন", en: "Approvals" },
+    control: { bn: "মালিক নিয়ন্ত্রণ", en: "Owner control" },
+    features: { bn: "ফিচার অনুমতি", en: "Feature permissions" },
+    setup: { bn: "সেটআপ ও প্রবেশাধিকার", en: "Setup & access" },
+    replayNotice: {
+      bn: "এই অংশ এখনো মূল সিস্টেমে যুক্ত হয়নি — শুধু দেখার নমুনা, কিছু পোস্ট হয় না।",
+      en: "Not yet part of the main system — view-only sample, nothing is posted."
+    },
+    home: { bn: "হোম", en: "Home" },
+    stock: { bn: "স্টক", en: "Stock" },
+    more: { bn: "আরও", en: "More" },
+    otherModules: { bn: "অন্যান্য মডিউল", en: "Other modules" },
+    language: { bn: "ভাষা", en: "Language" },
+    signedContext: {
+      bn: "স্বাক্ষরিত গ্রুপ, ব্যবসা ও স্থানের প্রসঙ্গ",
+      en: "Signed Group Business Site context"
+    },
+    mainNavigation: { bn: "প্রধান নেভিগেশন", en: "Main" },
+    mobileNavigation: { bn: "মোবাইলের প্রধান নেভিগেশন", en: "Mobile primary navigation" },
+    moreModules: { bn: "আরও মডিউল", en: "More modules" },
+    signedReadStatus: {
+      bn: "CORE10 স্টেজিং · সাইন-ইন করে লাইভ ব্যবসার তথ্য দেখুন (শুধু পড়া)",
+      en: "CORE10 staging · signed read-only business data"
+    },
+    signedWriteStatus: {
+      bn: "CORE10 স্টেজিং · সাইন-ইন করলে পরিবর্তন সংরক্ষণ করা যায়",
+      en: "CORE10 staging · signed-in changes can be saved"
+    },
+  };
+
+  function setCopy(element, copy) {
+    element.querySelector(".bn").textContent = copy.bn;
+    element.querySelector(".en").textContent = copy.en;
+  }
+  document.querySelectorAll("[data-copy]").forEach(function (element) {
+    setCopy(element, COPY[element.dataset.copy]);
+  });
+
   var ROUTES = {
     home: "/view/workspace.html?v=universal-owner",
     business: "/view/owner-dashboard-signed.html",
@@ -31,14 +97,8 @@
     var r = (location.hash.replace(/^#\/?/, "") || "home").split("?")[0];
     if (!Object.prototype.hasOwnProperty.call(ROUTES, r)) r = "home";
     var signed = r === "control" || r === "setup" || r === "master" || r === "stock";
-    dataStatus.querySelector(".bn").textContent = r === "business"
-      ? "CORE10 স্টেজিং · সাইন-ইন করে লাইভ ব্যবসার তথ্য দেখুন (শুধু পড়া)"
-      : signed ? "CORE10 স্টেজিং · সাইন-ইন করলে পরিবর্তন সংরক্ষণ করা যায়"
-      : "প্রিভিউ · নমুনা তথ্য · এখানে পরিবর্তন সংরক্ষিত হয় না";
-    dataStatus.querySelector(".en").textContent = r === "business"
-      ? "CORE10 staging · signed read-only business data"
-      : signed ? "CORE10 staging · signed-in changes can be saved"
-      : "Preview · sample data · changes are not saved";
+    const status = COPY[r === "business" ? "signedReadStatus" : signed ? "signedWriteStatus" : "sampleStatus"];
+    setCopy(dataStatus, status);
     Array.prototype.forEach.call(document.querySelectorAll("[data-route]"), function (a) {
       if (a.dataset.route === r) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
@@ -65,6 +125,9 @@
   }
   function setLang(l) {
     lang = l; html.dataset.lang = l; html.lang = l;
+    document.querySelectorAll("[data-label]").forEach(function (element) {
+      element.setAttribute("aria-label", COPY[element.dataset.label][l]);
+    });
     try { localStorage.setItem("core10.preview.lang", l); } catch (_) {}
     Array.prototype.forEach.call(document.querySelectorAll("[data-set-lang]"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.setLang === l)); });
     route();
