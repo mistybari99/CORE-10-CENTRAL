@@ -14,7 +14,9 @@ const ctx=x=>{
   return {tenant:key(x.tenant,'TENANT'),business:key(x.business,'BUSINESS'),actor:key(x.actor,'ACTOR')};
 };
 const date=s=>{
-  if(typeof s!=='string'||!/^\d{4}-\d\d-\d\d$/.test(s)||new Date(s+'T00:00:00Z').toISOString().slice(0,10)!==s) deny('INVALID_ISO_DATE');
+  if(typeof s!=='string'||!/^\d{4}-\d\d-\d\d$/.test(s)) deny('INVALID_ISO_DATE');
+  const parsed=new Date(s+'T00:00:00Z');
+  if(!Number.isFinite(parsed.getTime())||parsed.toISOString().slice(0,10)!==s) deny('INVALID_ISO_DATE');
   return s;
 };
 const money=x=>integer(x,'MONEY_MINOR');
@@ -106,8 +108,9 @@ export class PaintDealerDraft {
   previewScheme(context,input){
     const c=ctx(context),s=this.#get(this.#schemes,c,input?.schemeId);
     const invoice=ev(input.invoiceSnapshot,c,'principal-purchase-invoice');
-    const at=date(input.asOf);
-    if(at<s.validFrom||at>s.validTo||invoice.date<s.validFrom||invoice.date>s.validTo)deny('SCHEME_EXPIRED_OR_NOT_STARTED');
+    const at=date(input.asOf),invoiceDate=date(invoice.date);
+    if(at<s.validFrom||at>s.validTo||invoiceDate<s.validFrom||invoiceDate>s.validTo)deny('SCHEME_EXPIRED_OR_NOT_STARTED');
+    if(invoiceDate>at)deny('INVOICE_AFTER_AS_OF');
     if(invoice.sku!==s.sku||invoice.principalId!==s.principalId||invoice.currency!==s.currency||
       invoice.status!=='APPROVED'||invoice.returnStatus==='FULL_RETURN')deny('INELIGIBLE_PURCHASE_INVOICE');
     const gross=money(invoice.approvedMinor),returned=money(invoice.returnedMinor);
@@ -248,9 +251,11 @@ export class PaintDealerDraft {
       if(serial.saleEvidenceRef!==null)deny('SERIAL_ALREADY_SOLD');
       if(sale.sku!==serial.sku||sale.variant!==serial.variant||sale.serial!==serial.serial||
         sale.status!=='POSTED')deny('SALE_SERIAL_MISMATCH');
-      serial.saleEvidenceRef=key(sale.saleRef,'SALE_REF');
-      serial.saleDate=date(sale.saleDate);
-      serial.customerReference=key(sale.customerRef,'CUSTOMER_REF');
+      // Validate the entire proposed sale evidence before changing the serial.
+      const saleEvidenceRef=key(sale.saleRef,'SALE_REF');
+      const saleDate=date(sale.saleDate);
+      const customerReference=key(sale.customerRef,'CUSTOMER_REF');
+      Object.assign(serial,{saleEvidenceRef,saleDate,customerReference});
       this.#record(c,'SERIAL_SALE_EVIDENCE',serial.id,requestId,{saleRef:serial.saleEvidenceRef});
       return {serial:serial.id,saleDate:serial.saleDate,warrantyMonths:serial.warrantyMonths,
         sourceVersion:sale.version,authenticity:'SYNTHETIC_SNAPSHOT_NOT_PROVEN'};
