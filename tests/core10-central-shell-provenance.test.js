@@ -26,7 +26,7 @@ test("§7b.3 imported shell and data are the same source Git trees and blobs",()
   const changed=run("diff","--name-only","4345b6e4aa7ee593a455ee29dceccf55d61ade7f","HEAD","--","apps/central/site").split("\n").filter(Boolean).sort();
   assert.deepEqual(changed,[
     "apps/central/site/index.html","apps/central/site/app.css","apps/central/site/app.js","apps/central/site/shell-context.js",
-    "apps/central/site/tokens.css","apps/central/site/view/view.css",
+    "apps/central/site/tokens.css","apps/central/site/view/view.css","apps/central/site/view/master-signed.js",
   ].sort(),
     "Undeclared shipped-site change since import");
   assert.equal(info.release_authorization,false);
@@ -67,7 +67,7 @@ test("§7b.3 historical release SHA is pinned; evolved candidate embeds exact cu
     const line=compiled.toString("utf8").split("\n").find(x=>x.startsWith("const FILES="));
     assert.ok(line,"MISSING_WORKER_FILE_TABLE");
     const files=JSON.parse(line.slice("const FILES=".length,-1));
-    for(const name of ["index.html","app.css","app.js","tokens.css","view/view.css"]) {
+    for(const name of ["index.html","app.css","app.js","shell-context.js","tokens.css","view/view.css","view/master-signed.js"]) {
       assert.ok(files["/"+name],"MISSING_SHIPPED_SHELL_ASSET "+name);
       assert.deepEqual(Buffer.from(files["/"+name][1],"base64"),fs.readFileSync(path.join(cdir,"site",name)),
         "Worker asset differs from current shell: "+name);

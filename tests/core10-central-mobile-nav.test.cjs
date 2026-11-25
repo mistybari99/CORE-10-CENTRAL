@@ -166,6 +166,47 @@ test("B01 home offers module shortcuts from verified setup and stock scope", { t
   });
 });
 
+test("B01 Master Data opens on the shell's verified business through its own signed context", { timeout: 60000 }, async () => {
+  await withContextPage(async (page, base) => {
+    await page.goto(base + "/#/home");
+    await page.getByRole("button", { name: "EN", exact: true }).click();
+    await page.evaluate(() => window.fixture.releaseContext());
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await page.locator("#c10-shell-email").fill("operator@example.test");
+    await page.locator("#c10-shell-password").fill("test-only");
+    await page.locator("#c10-shell-submit").click();
+    await page.locator("#c10-context-signed").waitFor();
+    await page.locator("#c10-business").selectOption("20");
+    await page.waitForFunction(() => document.querySelector("#c10-site").selectedOptions[0]?.textContent === "Demo Branch");
+
+    const frame = page.frameLocator("#c10-frame");
+    const master = frame.locator(".occ-controls select");
+    const goTo = route => page.locator(`.c10-nav [data-route="${route}"]`).click();
+    await goTo("master");
+    await master.locator("option:checked").filter({ hasText: "Demo Paint" }).waitFor({ state: "attached" });
+    assert.equal(await master.inputValue(), "20");
+    assert.deepEqual(await page.evaluate(() => window.fixture.masterBusinesses), [20]);
+
+    await page.locator("#c10-business").selectOption("10");
+    await page.waitForFunction(() => document.querySelector("#c10-site").selectedOptions[0]?.textContent === "Demo Store");
+    assert.equal(await master.inputValue(), "20", "changing shell context must keep the open Master workspace intact");
+    await goTo("home");
+    await waitForText(page.locator("#c10-entry-status"), "Demo Sweets");
+    await goTo("master");
+    await master.locator("option:checked").filter({ hasText: "Demo Sweets" }).waitFor({ state: "attached" });
+    assert.equal(await master.inputValue(), "10");
+    assert.deepEqual(await page.evaluate(() => window.fixture.masterBusinesses), [20, 10]);
+
+    await page.goto(base + "/view/master-signed.html");
+    await page.evaluate(() => window.fixture.releaseContext());
+    await page.locator("#md-email").fill("operator@example.test");
+    await page.locator("#md-password").fill("test-only");
+    await page.locator("#md-login button[type=submit]").click();
+    assert.equal(await page.locator(".occ-controls select").inputValue(), "10");
+    assert.deepEqual(await page.evaluate(() => window.fixture.masterBusinesses), [10]);
+  });
+});
+
 function waitForText(locator, text) {
   return locator.filter({ hasText: text }).waitFor({ state: "visible" });
 }
@@ -203,6 +244,7 @@ const CONTEXT_FIXTURE = `
       pendingContext: new Promise(resolve => { window.releaseFixtureContext = resolve; }),
       releaseContext() { window.releaseFixtureContext(); },
       contextError: false,
+      masterBusinesses: [],
       scope: {
         tenants: [
           { id: 1, slug: "Demo Group", can_manage_bootstrap: false },
@@ -230,12 +272,20 @@ const CONTEXT_FIXTURE = `
       onAuthStateChange() {}
     },
     schema: () => ({
-      rpc: async name => {
-        if (name !== "build01_context_v1") throw new Error("Unexpected fixture RPC " + name);
-        await top.fixture.pendingContext;
-        return top.fixture.contextError
-          ? { error: { message: "Fixture temporarily unavailable" } }
-          : { data: { actor_uid: top.fixture.actor, ...top.fixture.scope } };
+      rpc: async (name, args) => {
+        if (name === "build01_context_v1") {
+          await top.fixture.pendingContext;
+          return top.fixture.contextError
+            ? { error: { message: "Fixture temporarily unavailable" } }
+            : { data: { actor_uid: top.fixture.actor, ...top.fixture.scope } };
+        }
+        if (name === "master_list_categories_v1") return { data: [] };
+        if (name === "master_list_uoms_v1") return { data: { uoms: [] } };
+        if (name === "master_list_items_v1") {
+          top.fixture.masterBusinesses.push(args.p_business);
+          return { data: { rows: [], next_after_id: null } };
+        }
+        throw new Error("Unexpected fixture RPC " + name);
       }
     })
   }) };

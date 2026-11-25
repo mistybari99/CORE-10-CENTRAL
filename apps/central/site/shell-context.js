@@ -24,6 +24,13 @@ function message(bn,en){lastMessage=[bn,en];note.textContent=t(bn,en);}
 function publishContext(state,detail={}){
   win.dispatchEvent(new CustomEvent("core10:context-change",{detail:{state,...detail}}));
 }
+// Embedded modules supply their own verified user. The only shared value is
+// an in-memory display preference, which the module can accept or ignore.
+win.CORE10_CENTRAL_CONTEXT=Object.freeze({
+  preferredBusiness(userId){
+    return !blocked&&scope&&actor&&actor===userId?chosen.business:null;
+  }
+});
 function scrubEmbedded(){
   win.dispatchEvent(new Event("core10:signed-out"));
 }
