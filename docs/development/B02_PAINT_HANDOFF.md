@@ -30,3 +30,16 @@ Next cursor: inspect the pack-local QC evidence model against approved row 272 (
 
 Main-owned archive: https://drive.google.com/drive/folders/1QqvZTkrjBqIJd18KRcxQF2AxmFztLVD6
 Shared index: https://docs.google.com/document/d/1nn6i13AdiG71RE0qhXv7i2Ye-nZLWo626YD3ScJqmn4/edit
+
+## CP003 — Detail 272 QC evidence increment
+
+Parent tested head `54e61aaaf007a9efe9799e9023735d60477d0e9c`; restored CP002 verified 24/24 manifest entries and 14/14 Git blobs. Decision Book MODULE BUILD DETAIL row 272 requires method, tolerance and reviewer, and flags uncalibrated instrument/hidden rework; recovered disposable SQL already uses `method`, `instrumentRef`, `calibrated` (mock only). Node previously accepted QC without those fields and retained neither method nor threshold in QC history. The new implementation requires the existing SQL-shaped method/instrument refs and a boolean true fixture calibration assertion, validates before mutation, and preserves each check with actual delta E, pinned recipe/version threshold, mix round, reviewer, evidence ref and result in the ticket and local event history. Proposal includes the same last check and remains nonposting. The existing demo displays method, measured value/threshold, reviewer and failed/rework/pass history. Calibration remains explicitly `SYNTHETIC_ASSERTION_ONLY`; no real certification, new thresholds, SQL changes or auth policy changes. Existing fixture inputs updated only where needed; original assertions preserved.
+
+Reproduce (Node v22.16.0):
+
+```sh
+P=internal/industry-packs/paint-hardware-v1
+node --test --test-name-pattern='recipe version|QC failure|incomplete mix|quoted paisa|defensive reads|4-litre sealed pack|dealer credit exposure|principal scheme estimated|claim submitted|postdated cheque|SDS expiry|returned tint|hardware serial|profit report|B02' "$P/core.test.mjs" "$P/dealership.test.mjs" "$P/b02-functional.test.mjs" "$P/b02-qc-evidence.test.mjs"
+```
+
+Before fix: 3/3 new regressions failed (exit 1). After fix: 21/21 selected ordinary tests pass (exit 0); includes loopback HTTP and evidence history. `node --check` core and lab JS pass. No restricted security tests, PG17, signed staging or viewport browser acceptance run; no exact-head CI result inferred. Next: inspect source-backed Detail 279 return/disposition and Detail 281 profitability evidence, prove concrete functional gaps before repair; do not invent owner policy. RELEASE HOLD.

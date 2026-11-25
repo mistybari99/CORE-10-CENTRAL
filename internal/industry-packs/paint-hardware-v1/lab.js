@@ -16,7 +16,12 @@ function render(s){
   set('qc-rounds',t?.qcChecks?.length||0);
   set('ticket-id',t?.id||'Not created');set('output-sku',t?.outputSku||s.recipe.outputSku);
   set('tint-doses',t?.doses?.map(p=>p.sku+' '+p.expectedUL+'µL').join(' · ')||'—');
-  set('qc-evidence',t?.qcChecks?.at(-1)?.evidenceRef||'No evidence');
+  const qc=t?.qcChecks?.at(-1);
+  set('qc-evidence',qc?.evidenceRef||'No evidence');
+  set('qc-method',qc?qc.method+' · '+qc.instrumentRef:'—');
+  set('qc-threshold',qc?'ΔE '+(qc.deltaE100/100).toFixed(2)+' / '+(qc.qcMaxDE100/100).toFixed(2)+' · v'+qc.recipeVersion:'—');
+  set('qc-reviewer',qc?.checker||'—');
+  set('qc-history',t?.qcChecks?.map(x=>'Mix '+x.mixRound+' · '+(x.pass?'PASS':'FAIL')+' · ΔE '+(x.deltaE100/100).toFixed(2)+' / '+(x.qcMaxDE100/100).toFixed(2)+' · '+x.evidenceRef).join(' | ')||'—');
   set('notice',s.lastNote||'Synthetic only');
   set('quote-value',s.quote?fmt(s.quote.netBeforeUnknownTaxMinor):'QC pass required');
   set('quote-source',s.quote?'Price version '+s.quote.priceVersion+' · Tax unknown · NOT payable':'No sale invoice or stock posting');

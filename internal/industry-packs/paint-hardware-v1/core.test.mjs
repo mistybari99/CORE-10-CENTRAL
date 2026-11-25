@@ -11,7 +11,7 @@ const setup=()=>{
   return {e,r,t};
 };
 const mix={ticketId:'ticket01',readings:[{sku:'BLACK',actualUL:5000},{sku:'RED',actualUL:40000}]};
-const inspect=(n=100,ref='QC1')=>({ticketId:'ticket01',deltaE100:n,evidenceRef:ref});
+const inspect=(n=100,ref='QC1')=>({ticketId:'ticket01',deltaE100:n,evidenceRef:ref,method:'SPECTRO',instrumentRef:'DEVICE1',calibrated:true});
 test('synthetic-only execution; no impersonation of real signed sessions',()=>{
   const {e}=setup();assert.equal(BUILD05_MODE,'SYNTHETIC_NON_POSTING_ONLY');
   assert.throws(()=>e.summary({...actor(),mode:'production'}),/REAL_SIGNED_AUTH_NOT_CONNECTED/);

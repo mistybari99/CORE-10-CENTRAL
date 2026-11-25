@@ -117,7 +117,7 @@ export function createDemoServer({port=4377}={}){
               g.lastNote='Measured mixing শেষ। আলাদা QC reviewer প্রয়োজন।';break;
             case 'qc-fail':
               g.ticket=g.tint.inspect(actor('checker'),'demo-qcf-'+round,{
-                ticketId:'T-0001',deltaE100:230,evidenceRef:'QC-FAIL'});
+                ticketId:'T-0001',deltaE100:230,evidenceRef:'QC-FAIL',method:'SPECTRO',instrumentRef:'DEMO-DEVICE',calibrated:true});
               g.lastNote='QC failed; output quarantine/rework প্রয়োজন।';break;
             case 'rework':
               g.ticket=g.tint.mix(actor('mixer'),'demo-rework-'+round,{
@@ -125,7 +125,7 @@ export function createDemoServer({port=4377}={}){
               g.lastNote='Rework logged; QC আবার করুন।';break;
             case 'qc-pass':
               g.ticket=g.tint.inspect(actor('checker'),'demo-qcp-'+round,{
-                ticketId:'T-0001',deltaE100:120,evidenceRef:'QC-PASS'});
+                ticketId:'T-0001',deltaE100:120,evidenceRef:'QC-PASS',method:'SPECTRO',instrumentRef:'DEMO-DEVICE',calibrated:true});
               g.lastNote='QC passed; Quote preview দেখা যাবে। কোনো stock বা sale post হয়নি।';break;
           }
           g.step++;return json(res,200,sample(g));

@@ -91,10 +91,18 @@ export class PaintPackDraft {
       const r=this.#get(this.#recipes,c,t.recipeId);
       const deltaE100=count(input.deltaE100,'DELTA_E_100',0,10000);
       const evidenceRef=token(input.evidenceRef,'EVIDENCE');
+      // Same method/instrument evidence shape as the recovered disposable SQL.
+      // A fixture assertion is NOT proof of actual instrument calibration.
+      const method=typeof input.method==='string' && /^[A-Za-z0-9_-]{2,48}$/.test(input.method) ? input.method : bad('INVALID_QC_METHOD');
+      const instrumentRef=typeof input.instrumentRef==='string' && /^[A-Za-z0-9_-]{2,48}$/.test(input.instrumentRef) ? input.instrumentRef : bad('INVALID_QC_INSTRUMENT');
+      if(input.calibrated!==true)bad('QC_CALIBRATION_EVIDENCE_REQUIRED');
       const pass=deltaE100<=r.qcMaxDE100;
-      t.qcChecks.push({round:t.qcChecks.length+1,checker:c.actor,deltaE100,evidenceRef,pass});
+      const check={round:t.qcChecks.length+1,mixRound:t.mixes.at(-1).round,checker:c.actor,
+        recipeId:r.id,recipeVersion:r.version,method,instrumentRef,calibrated:true,
+        calibrationStatus:'SYNTHETIC_ASSERTION_ONLY',deltaE100,qcMaxDE100:r.qcMaxDE100,evidenceRef,pass};
+      t.qcChecks.push(check);
       t.status=pass?'QC_PASSED':'QC_FAILED';
-      this.#log(c,'QC_RECORDED',t.id,requestId,{pass,evidenceRef});return t;
+      this.#log(c,'QC_RECORDED',t.id,requestId,check);return t;
     });
   }
   quote(ctx,input) {
@@ -118,7 +126,7 @@ export class PaintPackDraft {
     if(t.status!=='QC_PASSED')bad('QC_PASS_REQUIRED');
     return {kind:'paint_tint_sale_proposal_v1',tenant:c.tenant,business:c.business,ticketId:t.id,
       outputSku:t.outputSku,volumeML:t.baseML,recipeId:t.recipeId,recipeVersion:t.recipeVersion,
-      evidenceRef:t.qcChecks.at(-1).evidenceRef,
+      evidenceRef:t.qcChecks.at(-1).evidenceRef,qcEvidence:clone(t.qcChecks.at(-1)),
       requires:['signed_actor','canonical_stock','approved_sale','tax_policy','balanced_journal','idempotent_post'],
       canSubmit:false,canPost:false,stockChanged:false,ledgerChanged:false};
   }

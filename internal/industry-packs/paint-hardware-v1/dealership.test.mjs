@@ -77,7 +77,7 @@ test('returned tint preserves origin genealogy and stays quarantined, no refund'
     qcMaxDE100:150,doseToleranceBps:300,pigments:[{sku:'RED',ulPerL:1000}]});
   tint.openTicket(ctx,'t-o',{ticketId:'T100',recipeId:r.id,baseML:1000});
   tint.mix(a('mixer'),'t-m',{ticketId:'T100',readings:[{sku:'RED',actualUL:1000}]});
-  tint.inspect(a('checker'),'t-q',{ticketId:'T100',deltaE100:100,evidenceRef:'QC100'});
+  tint.inspect(a('checker'),'t-q',{ticketId:'T100',deltaE100:100,evidenceRef:'QC100',method:'SPECTRO',instrumentRef:'DEVICE1',calibrated:true});
   const ret=e.quarantineReturn(ctx,'ret1',{returnId:'RT1',sourceTicketId:'T100',reasonCode:'COLOR_DIFF',evidenceRef:'EV01'},tint);
   assert.equal(ret.state,'QUARANTINED');assert.equal(ret.refundedMinor,null);assert.equal(ret.availableForSale,false);
   assert.equal(e.proposeReturnDisposition(ctx,'disp',{returnId:'RT1',action:'RETINT_REVIEW',inspectionRef:'INSP01'}).state,'RETINT_REVIEW_PENDING');
