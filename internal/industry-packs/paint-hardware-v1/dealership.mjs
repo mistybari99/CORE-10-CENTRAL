@@ -216,11 +216,17 @@ export class PaintDealerDraft {
       const tint=tintEngine.readTicket(context,key(input.sourceTicketId,'SOURCE_TICKET'));
       if(tint.status!=='QC_PASSED')deny('RETURN_SOURCE_NOT_QC_PASSED');
       const id=key(input.returnId,'RETURN');
+      const sourceQcEvidenceRef=key(tint.qcChecks?.at(-1)?.evidenceRef,'SOURCE_QC_EVIDENCE');
       const row=this.#insert(this.#returns,c,id,{
         sourceTicketId:tint.id,sourceRecipeId:tint.recipeId,sourceOutputSku:tint.outputSku,
+        sourceGenealogy:clone({recipeVersion:tint.recipeVersion,baseSku:tint.baseSku,baseML:tint.baseML,
+          mixes:tint.mixes,qcChecks:tint.qcChecks}),
         reasonCode:key(input.reasonCode,'REASON'),evidenceRef:key(input.evidenceRef,'EVIDENCE'),
         state:'QUARANTINED',availableForSale:false,refundedMinor:null
-      });this.#record(c,'RETURN_QUARANTINED',id,requestId);return row;
+      });this.#record(c,'RETURN_QUARANTINED',id,requestId,{sourceTicketId:row.sourceTicketId,
+        sourceRecipeId:row.sourceRecipeId,sourceRecipeVersion:row.sourceGenealogy.recipeVersion,
+        sourceQcEvidenceRef,
+        reasonCode:row.reasonCode,evidenceRef:row.evidenceRef});return row;
     });
   }
   proposeReturnDisposition(context,requestId,input){
@@ -272,18 +278,21 @@ export class PaintDealerDraft {
     const grossSales=money(sales.grossMinor),returns=money(sales.returnsMinor);
     const outstanding=money(credit.outstandingMinor);
     const pending=money(rebates.pendingMinor),receivedEvidence=money(rebates.receivedEvidenceMinor);
-    const costCertified=cost.certification==='CERTIFIED'&&cost.allFreightIncluded===true;
+    const costEvidenceBlockers=[...(cost.certification==='CERTIFIED'?[]:['COST_NOT_CERTIFIED']),
+      ...(cost.allFreightIncluded===true?[]:['FREIGHT_NOT_CONFIRMED'])];
+    const costCertified=costEvidenceBlockers.length===0;
     const cogs=costCertified?money(cost.cogsMinor):null;
     if(returns>grossSales)deny('RETURNS_EXCEED_SALES');
     const netSales=grossSales-returns;
     const grossMargin=cogs===null?null:netSales-cogs;
     return {business:c.business,currency:sales.currency,
-      netSalesMinor:netSales,costCertified,cogsMinor:cogs,grossMarginMinor:grossMargin,
+      grossSalesMinor:grossSales,salesReturnsMinor:returns,netSalesMinor:netSales,
+      costCertified,costEvidenceBlockers,cogsMinor:cogs,grossMarginMinor:grossMargin,
       pendingRebatesExcludedFromProfitMinor:pending,receivedRebateEvidenceMinor:receivedEvidence,
       creditExposureMinor:outstanding,
       netProfitMinor:null,actualCashFlowMinor:null,reportStatus:costCertified?'GROSS_MARGIN_ONLY':'INCOMPLETE_COST_EVIDENCE',
       sources:{sales:sales.version,cost:cost.version,rebates:rebates.version,credit:credit.version},
-      canPost:false};
+      authenticity:'SYNTHETIC_SNAPSHOT_NOT_PROVEN',canPost:false};
   }
   report(context){
     const c=ctx(context),inScope=x=>x.tenant===c.tenant&&x.business===c.business;
