@@ -1,7 +1,7 @@
 {
   "rule": "Numeric order is apply order. A persistent database never receives a version lower than its highest applied version (internal/migrations/run.sh refuses with OUT_OF_ORDER). A range therefore only takes new files while no persistent database has applied a higher number; once that happens the board allocates the lane a new range above the persistent maximum, or the trunk owner renumbers an unapplied file at integration (file rename only, content and checksum unchanged).",
   "persistent_databases": {
-    "staging rhrqhbyzrhaafynfhdaf": "OWNER-AUTHORIZED FRESH RESET 2026-11-26: core10 schema dropped/recreated atomically from 71 exact canonical GitHub migrations at 5cb7600120ff66fe0e6f146b74e6934d46839fc6; 71/71 checksum match, max0504. Existing single Owner Auth identity retained; fresh owner group/legal entity only; zero businesses/sites/items/operational data/test accounts. All security guards passed; private prior snapshot and temporary reset scripts removed after verification. Supabase project unchanged. All NEW hosted migrations must be >0504; historical applied files immutable. No other database touched."
+    "staging rhrqhbyzrhaafynfhdaf": "OWNER-AUTHORIZED BASELINE20 REBUILD 2026-11-26 20:05 Asia/Dhaka: same project, 20 exact merged PR169 SQL bundles applied atomically after rollback rehearsal; original 71 version/name/checksum ledger matched exactly, max0504. One retained Owner Auth account and fresh owner group/legal entity, zero businesses and operational rows, security guards PASS, no extra CORE10 schemas. All NEW hosted migration versions must be >0504; original 71 up/down source files immutable. Cloudflare unchanged."
   },
   "ranges": [
     {
