@@ -67,3 +67,5 @@ jobs:
       - run: psql -X -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN;"
       - run: bash internal/migrations/run.sh up
       - run: psql -X -v ON_ERROR_STOP=1 -f tests/server-integrations/canonical-binding.test.sql
+      - run: psql -X -v ON_ERROR_STOP=1 -f tests/server-integrations/admission.test.sql
+      - run: bash tests/server-integrations/admission-race.sh
