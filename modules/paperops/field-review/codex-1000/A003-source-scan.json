@@ -1,0 +1,636 @@
+{
+  "batch": "A003",
+  "status": "DECLARATIONS_CHECKED_RULE_REVIEW_IN_PROGRESS",
+  "source_file": "forms_cash.js",
+  "sha256": "ce58ef83daa19273b766f3eac63db5f97cc741ffb26ed21076ab948032c14022",
+  "fields": [
+    {
+      "source_id": "C-04:on_d1",
+      "constructors": [
+        {
+          "offset_utf16": 5678,
+          "literal": "f(\"on_d1\",t(\"মোট পার্থক্য A − B\",\"Total difference A − B\"),\"money\")",
+          "constructor_alias": "f",
+          "label_bn": "মোট পার্থক্য A − B",
+          "label_en": "Total difference A − B"
+        }
+      ]
+    },
+    {
+      "source_id": "C-04:on_d2",
+      "constructors": [
+        {
+          "offset_utf16": 5746,
+          "literal": "f(\"on_d2\",t(\"মোট পার্থক্য (B − চার্জ) − C\",\"Total difference (B − charge) − C\"),\"money\")",
+          "constructor_alias": "f",
+          "label_bn": "মোট পার্থক্য (B − চার্জ) − C",
+          "label_en": "Total difference (B − charge) − C"
+        }
+      ]
+    },
+    {
+      "source_id": "C-04:only_st_amt",
+      "constructors": [
+        {
+          "offset_utf16": 6104,
+          "literal": "d(\"only_st_amt\",t(\"স্টেটমেন্টে আছে, আমাদের কাগজে নেই — অঙ্ক\",\"On the statement but not on our paper — amount\"),{req:!0})",
+          "constructor_alias": "d",
+          "label_bn": "স্টেটমেন্টে আছে, আমাদের কাগজে নেই — অঙ্ক",
+          "label_en": "On the statement but not on our paper — amount"
+        }
+      ]
+    },
+    {
+      "source_id": "C-04:only_st_n",
+      "constructors": [
+        {
+          "offset_utf16": 6225,
+          "literal": "l(\"only_st_n\",t(\"— কতটি\",\"— how many\"))",
+          "constructor_alias": "l",
+          "label_bn": "— কতটি",
+          "label_en": "— how many"
+        }
+      ]
+    },
+    {
+      "source_id": "C-04:only_st_note",
+      "constructors": [
+        {
+          "offset_utf16": 6265,
+          "literal": "i(\"only_st_note\",t(\"— বিবরণ\",\"— details\"))",
+          "constructor_alias": "i",
+          "label_bn": "— বিবরণ",
+          "label_en": "— details"
+        }
+      ]
+    },
+    {
+      "source_id": "C-04:only_us_amt",
+      "constructors": [
+        {
+          "offset_utf16": 6308,
+          "literal": "d(\"only_us_amt\",t(\"আমাদের কাগজে আছে, স্টেটমেন্টে নেই — অঙ্ক\",\"On our paper but not on the statement — amount\"),{req:!0})",
+          "constructor_alias": "d",
+          "label_bn": "আমাদের কাগজে আছে, স্টেটমেন্টে নেই — অঙ্ক",
+          "label_en": "On our paper but not on the statement — amount"
+        }
+      ]
+    },
+    {
+      "source_id": "C-04:only_us_n",
+      "constructors": [
+        {
+          "offset_utf16": 6429,
+          "literal": "l(\"only_us_n\",t(\"— কতটি\",\"— how many\"))",
+          "constructor_alias": "l",
+          "label_bn": "— কতটি",
+          "label_en": "— how many"
+        }
+      ]
+    },
+    {
+      "source_id": "C-04:only_us_note",
+      "constructors": [
+        {
+          "offset_utf16": 6469,
+          "literal": "i(\"only_us_note\",t(\"— বিবরণ\",\"— details\"))",
+          "constructor_alias": "i",
+          "label_bn": "— বিবরণ",
+          "label_en": "— details"
+        }
+      ]
+    },
+    {
+      "source_id": "C-04:personal",
+      "constructors": [
+        {
+          "offset_utf16": 6512,
+          "literal": "g(\"personal\",t(\"ব্যক্তিগত নম্বরে কোনো টাকা এসেছে?\",\"Did any money arrive on a personal number?\"),o,{req:!0})",
+          "constructor_alias": "g",
+          "label_bn": "ব্যক্তিগত নম্বরে কোনো টাকা এসেছে?",
+          "label_en": "Did any money arrive on a personal number?"
+        }
+      ]
+    },
+    {
+      "source_id": "C-04:personal_amt",
+      "constructors": [
+        {
+          "offset_utf16": 6621,
+          "literal": "d(\"personal_amt\",t(\"— অঙ্ক\",\"— amount\"),{show:e=>\"yes\"===e.d.personal,req:e=>\"yes\"===e.d.personal})",
+          "constructor_alias": "d",
+          "label_bn": "— অঙ্ক",
+          "label_en": "— amount"
+        }
+      ]
+    },
+    {
+      "source_id": "C-04:worklist",
+      "constructors": [
+        {
+          "offset_utf16": 6852,
+          "literal": "m(\"worklist\",t(\"কাজের তালিকায় যোগ (পার্থক্যের সমাধান না হলে)\",\"Added to the work list (if the difference is unresolved)\"))",
+          "constructor_alias": "m",
+          "label_bn": "কাজের তালিকায় যোগ (পার্থক্যের সমাধান না হলে)",
+          "label_en": "Added to the work list (if the difference is unresolved)"
+        }
+      ]
+    },
+    {
+      "source_id": "C-04:performed_by",
+      "constructors": [
+        {
+          "offset_utf16": 6976,
+          "literal": "u(\"performed_by\",t(\"সম্পাদনকারী (Performed by)\",\"Performed by\"))",
+          "constructor_alias": "u",
+          "label_bn": "সম্পাদনকারী (Performed by)",
+          "label_en": "Performed by"
+        }
+      ]
+    },
+    {
+      "source_id": "C-04:checked_by",
+      "constructors": [
+        {
+          "offset_utf16": 7091,
+          "literal": "u(\"checked_by\",t(\"যাচাইকারী (Checked by) — ভিন্ন ব্যক্তি\",\"Checked by — a different person\"),{who:\"checker\",req:!0})",
+          "constructor_alias": "u",
+          "label_bn": "যাচাইকারী (Checked by) — ভিন্ন ব্যক্তি",
+          "label_en": "Checked by — a different person"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:hub_cash",
+      "constructors": [
+        {
+          "offset_utf16": 9218,
+          "literal": "d(\"hub_cash\",t(\"হাবের ক্যাশ বাক্সে\",\"In the hub cash box\"),{req:!0})",
+          "constructor_alias": "d",
+          "label_bn": "হাবের ক্যাশ বাক্সে",
+          "label_en": "In the hub cash box"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:hub_state",
+      "constructors": [
+        {
+          "offset_utf16": 9287,
+          "literal": "f(\"hub_state\",t(\"সর্বোচ্চ নগদের সীমা (লোকেশন সেটিংস)\",\"Maximum-cash limit (location settings)\"),\"text\")",
+          "constructor_alias": "f",
+          "label_bn": "সর্বোচ্চ নগদের সীমা (লোকেশন সেটিংস)",
+          "label_en": "Maximum-cash limit (location settings)"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:hub_informed",
+      "constructors": [
+        {
+          "offset_utf16": 9391,
+          "literal": "m(\"hub_informed\",t(\"সীমার বাইরে — ব্যবস্থাপনাকে জানানো হয়েছে\",\"Outside the limit — management informed\"),{show:e=>e.v.hub_over})",
+          "constructor_alias": "m",
+          "label_bn": "সীমার বাইরে — ব্যবস্থাপনাকে জানানো হয়েছে",
+          "label_en": "Outside the limit — management informed"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:sr_float",
+      "constructors": [
+        {
+          "offset_utf16": 9521,
+          "literal": "d(\"sr_float\",t(\"শোরুমগুলোর ড্রয়ারে রাখা খুচরা\",\"Float kept in the showroom drawers\"))",
+          "constructor_alias": "d",
+          "label_bn": "শোরুমগুলোর ড্রয়ারে রাখা খুচরা",
+          "label_en": "Float kept in the showroom drawers"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:bank",
+      "constructors": [
+        {
+          "offset_utf16": 9608,
+          "literal": "d(\"bank\",t(\"ব্যাংকে\",\"In the bank\"))",
+          "constructor_alias": "d",
+          "label_bn": "ব্যাংকে",
+          "label_en": "In the bank"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:mobile",
+      "constructors": [
+        {
+          "offset_utf16": 9645,
+          "literal": "d(\"mobile\",t(\"মোবাইল অ্যাকাউন্টে\",\"In mobile accounts\"))",
+          "constructor_alias": "d",
+          "label_bn": "মোবাইল অ্যাকাউন্টে",
+          "label_en": "In mobile accounts"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:amt",
+      "constructors": [
+        {
+          "offset_utf16": 9871,
+          "literal": "d(\"amt\",t(\"অঙ্ক ৳\",\"Amount ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "অঙ্ক ৳",
+          "label_en": "Amount ৳"
+        },
+        {
+          "offset_utf16": 10218,
+          "literal": "d(\"amt\",t(\"অঙ্ক ৳\",\"Amount ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "অঙ্ক ৳",
+          "label_en": "Amount ৳"
+        },
+        {
+          "offset_utf16": 11690,
+          "literal": "d(\"amt\",t(\"অঙ্ক ৳\",\"Amount ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "অঙ্ক ৳",
+          "label_en": "Amount ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:date",
+      "constructors": [
+        {
+          "offset_utf16": 9903,
+          "literal": "h(\"date\",t(\"তারিখ\",\"Date\"))",
+          "constructor_alias": "h",
+          "label_bn": "তারিখ",
+          "label_en": "Date"
+        },
+        {
+          "offset_utf16": 10250,
+          "literal": "h(\"date\",t(\"তারিখ\",\"Date\"))",
+          "constructor_alias": "h",
+          "label_bn": "তারিখ",
+          "label_en": "Date"
+        },
+        {
+          "offset_utf16": 11722,
+          "literal": "h(\"date\",t(\"তারিখ\",\"Date\"))",
+          "constructor_alias": "h",
+          "label_bn": "তারিখ",
+          "label_en": "Date"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:protect",
+      "constructors": [
+        {
+          "offset_utf16": 10834,
+          "literal": "f(\"protect\",t(\"সুরক্ষিত ন্যূনতম নগদ (লোকেশন সেটিংস)\",\"Protected minimum cash (location settings)\"),\"text\")",
+          "constructor_alias": "f",
+          "label_bn": "সুরক্ষিত ন্যূনতম নগদ (লোকেশন সেটিংস)",
+          "label_en": "Protected minimum cash (location settings)"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:budget",
+      "constructors": [
+        {
+          "offset_utf16": 10941,
+          "literal": "f(\"budget\",t(\"পারচেজ বাজেট\",\"Purchase budget\"),\"text\")",
+          "constructor_alias": "f",
+          "label_bn": "পারচেজ বাজেট",
+          "label_en": "Purchase budget"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:shortage",
+      "constructors": [
+        {
+          "offset_utf16": 11048,
+          "literal": "g(\"shortage\",t(\"ঘাটতির আশঙ্কা আছে?\",\"Is a shortage likely?\"),o,{req:!0})",
+          "constructor_alias": "g",
+          "label_bn": "ঘাটতির আশঙ্কা আছে?",
+          "label_en": "Is a shortage likely?"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:shortage_date",
+      "constructors": [
+        {
+          "offset_utf16": 11121,
+          "literal": "h(\"shortage_date\",t(\"কবে\",\"When\"),{show:e=>\"yes\"===e.d.shortage,req:e=>\"yes\"===e.d.shortage})",
+          "constructor_alias": "h",
+          "label_bn": "কবে",
+          "label_en": "When"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:shortage_amt",
+      "constructors": [
+        {
+          "offset_utf16": 11215,
+          "literal": "d(\"shortage_amt\",t(\"ঘাটতির অঙ্ক ৳\",\"Shortage amount ৳\"),{show:e=>\"yes\"===e.d.shortage})",
+          "constructor_alias": "d",
+          "label_bn": "ঘাটতির অঙ্ক ৳",
+          "label_en": "Shortage amount ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:shortage_action",
+      "constructors": [
+        {
+          "offset_utf16": 11303,
+          "literal": "i(\"shortage_action\",t(\"ব্যবস্থা (Action)\",\"Action\"),{show:e=>\"yes\"===e.d.shortage,wide:!0})",
+          "constructor_alias": "i",
+          "label_bn": "ব্যবস্থা (Action)",
+          "label_en": "Action"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:mgmt_informed",
+      "constructors": [
+        {
+          "offset_utf16": 11395,
+          "literal": "m(\"mgmt_informed\",t(\"ব্যবস্থাপনাকে জানানো\",\"Management informed\"),{show:e=>\"yes\"===e.d.shortage,req:e=>\"yes\"===e.d.shortage})",
+          "constructor_alias": "m",
+          "label_bn": "ব্যবস্থাপনাকে জানানো",
+          "label_en": "Management informed"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:who",
+      "constructors": [
+        {
+          "offset_utf16": 11630,
+          "literal": "i(\"who\",t(\"কাকে · কী বাবদ\",\"To whom · for what\"),{wide:!0})",
+          "constructor_alias": "i",
+          "label_bn": "কাকে · কী বাবদ",
+          "label_en": "To whom · for what"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:approver",
+      "constructors": [
+        {
+          "offset_utf16": 12068,
+          "literal": "u(\"approver\",t(\"অনুমোদনকারী\",\"Approved by\"),{who:\"checker\",req:!0})",
+          "constructor_alias": "u",
+          "label_bn": "অনুমোদনকারী",
+          "label_en": "Approved by"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:approve_time",
+      "constructors": [
+        {
+          "offset_utf16": 12136,
+          "literal": "c(\"approve_time\",t(\"সময়\",\"Time\"),{who:\"checker\"})",
+          "constructor_alias": "c",
+          "label_bn": "সময়",
+          "label_en": "Time"
+        }
+      ]
+    },
+    {
+      "source_id": "C-06:phone_approval",
+      "constructors": [
+        {
+          "offset_utf16": 12187,
+          "literal": "m(\"phone_approval\",t(\"ফোনে অনুমোদন (পরে স্বাক্ষর)\",\"Approved by phone (signature later)\"),{who:\"checker\"})",
+          "constructor_alias": "m",
+          "label_bn": "ফোনে অনুমোদন (পরে স্বাক্ষর)",
+          "label_en": "Approved by phone (signature later)"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:week_from",
+      "constructors": [
+        {
+          "offset_utf16": 13732,
+          "literal": "h(\"week_from\",t(\"সপ্তাহ — থেকে\",\"Week from\"),{req:!0})",
+          "constructor_alias": "h",
+          "label_bn": "সপ্তাহ — থেকে",
+          "label_en": "Week from"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:week_to",
+      "constructors": [
+        {
+          "offset_utf16": 13787,
+          "literal": "h(\"week_to\",t(\"সপ্তাহ — পর্যন্ত\",\"Week to\"),{req:!0})",
+          "constructor_alias": "h",
+          "label_bn": "সপ্তাহ — পর্যন্ত",
+          "label_en": "Week to"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:party",
+      "constructors": [
+        {
+          "offset_utf16": 14183,
+          "literal": "i(\"party\",t(\"পার্টি / কাস্টমারের নাম\",\"Party / customer name\"),{wide:!0})",
+          "constructor_alias": "i",
+          "label_bn": "পার্টি / কাস্টমারের নাম",
+          "label_en": "Party / customer name"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:page",
+      "constructors": [
+        {
+          "offset_utf16": 14257,
+          "literal": "i(\"page\",t(\"লেজারের পাতা নং\",\"Ledger page no.\"))",
+          "constructor_alias": "i",
+          "label_bn": "লেজারের পাতা নং",
+          "label_en": "Ledger page no."
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:total",
+      "constructors": [
+        {
+          "offset_utf16": 14306,
+          "literal": "d(\"total\",t(\"মোট প্রাপ্য ৳\",\"Total due ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "মোট প্রাপ্য ৳",
+          "label_en": "Total due ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:action",
+      "constructors": [
+        {
+          "offset_utf16": 14463,
+          "literal": "i(\"action\",t(\"গৃহীত ব্যবস্থা (Action Taken)\",\"Action taken\"),{wide:!0})",
+          "constructor_alias": "i",
+          "label_bn": "গৃহীত ব্যবস্থা (Action Taken)",
+          "label_en": "Action taken"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:t_total",
+      "constructors": [
+        {
+          "offset_utf16": 14545,
+          "literal": "f(\"t_total\",t(\"মোট প্রাপ্য\",\"Total due\"),\"money\",{big:!0})",
+          "constructor_alias": "f",
+          "label_bn": "মোট প্রাপ্য",
+          "label_en": "Total due"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:t_a30",
+      "constructors": [
+        {
+          "offset_utf16": 14604,
+          "literal": "f(\"t_a30\",t(\"মোট — 30 দিনের কম\",\"Total — under 30 days\"),\"money\")",
+          "constructor_alias": "f",
+          "label_bn": "মোট — 30 দিনের কম",
+          "label_en": "Total — under 30 days"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:t_a60",
+      "constructors": [
+        {
+          "offset_utf16": 14670,
+          "literal": "f(\"t_a60\",t(\"মোট — 31–60 দিন\",\"Total — 31–60 days\"),\"money\")",
+          "constructor_alias": "f",
+          "label_bn": "মোট — 31–60 দিন",
+          "label_en": "Total — 31–60 days"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:t_a60p",
+      "constructors": [
+        {
+          "offset_utf16": 14731,
+          "literal": "f(\"t_a60p\",t(\"মোট — 60+ দিন\",\"Total — 60+ days\"),\"money\")",
+          "constructor_alias": "f",
+          "label_bn": "মোট — 60+ দিন",
+          "label_en": "Total — 60+ days"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:order_no",
+      "constructors": [
+        {
+          "offset_utf16": 14971,
+          "literal": "i(\"order_no\",t(\"অর্ডার নং\",\"Order no.\"))",
+          "constructor_alias": "i",
+          "label_bn": "অর্ডার নং",
+          "label_en": "Order no."
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:adv_date",
+      "constructors": [
+        {
+          "offset_utf16": 15012,
+          "literal": "h(\"adv_date\",t(\"অ্যাডভান্স নেওয়ার তারিখ\",\"Advance taken on\"))",
+          "constructor_alias": "h",
+          "label_bn": "অ্যাডভান্স নেওয়ার তারিখ",
+          "label_en": "Advance taken on"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:amt",
+      "constructors": [
+        {
+          "offset_utf16": 15075,
+          "literal": "d(\"amt\",t(\"অ্যাডভান্স ৳\",\"Advance ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "অ্যাডভান্স ৳",
+          "label_en": "Advance ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:due_date",
+      "constructors": [
+        {
+          "offset_utf16": 15114,
+          "literal": "h(\"due_date\",t(\"ডেলিভারির নির্ধারিত তারিখ\",\"Scheduled delivery date\"))",
+          "constructor_alias": "h",
+          "label_bn": "ডেলিভারির নির্ধারিত তারিখ",
+          "label_en": "Scheduled delivery date"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:status",
+      "constructors": [
+        {
+          "offset_utf16": 15185,
+          "literal": "g(\"status\",t(\"অবস্থা\",\"Status\"),P)",
+          "constructor_alias": "g",
+          "label_bn": "অবস্থা",
+          "label_en": "Status"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:note",
+      "constructors": [
+        {
+          "offset_utf16": 15220,
+          "literal": "i(\"note\",t(\"মন্তব্য\",\"Remark\"),{wide:!0})",
+          "constructor_alias": "i",
+          "label_bn": "মন্তব্য",
+          "label_en": "Remark"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:adv_open",
+      "constructors": [
+        {
+          "offset_utf16": 15272,
+          "literal": "f(\"adv_open\",t(\"মোট খোলা অ্যাডভান্স\",\"Total open advance\"),\"money\",{big:!0})",
+          "constructor_alias": "f",
+          "label_bn": "মোট খোলা অ্যাডভান্স",
+          "label_en": "Total open advance"
+        }
+      ]
+    },
+    {
+      "source_id": "C-05:over_credit",
+      "constructors": [
+        {
+          "offset_utf16": 15386,
+          "literal": "g(\"over_credit\",t(\"ক্রেডিট সীমার বাইরে কেউ আছে?\",\"Is anyone beyond the credit limit?\"),o,{req:!0})",
+          "constructor_alias": "g",
+          "label_bn": "ক্রেডিট সীমার বাইরে কেউ আছে?",
+          "label_en": "Is anyone beyond the credit limit?"
+        }
+      ]
+    }
+  ]
+}

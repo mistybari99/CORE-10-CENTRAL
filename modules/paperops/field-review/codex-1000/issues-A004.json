@@ -1,0 +1,272 @@
+[
+  {
+    "issue_id": "A004-F001",
+    "source_ids": [
+      "C-05:over_party"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 17129,
+        "text": "\"yes\"!==e.d.over_credit||e.d.credit_stopped||i.push(A(\"credit_not_stopped\",\"red\",\"ক্রেডিট সীমার বাইরের পার্টির নতুন বাকি বন্ধ হয়নি\",\"New credit not stopped for a party beyond the limit\")),\"no\"===e.d.adv_match&"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 17181,
+        "text": "A(\"credit_not_stopped\",\"red\",\"ক্রেডিট সীমার বাইরের পার্টির নতুন বাকি বন্ধ হয়নি\",\"New credit not stopped for a party beyond the limit\")),\"no\"===e.d.adv_match&&0!==a(e.d.adv_diff)&&i.push(A(\"adv_ledger_mismatch\""
+      }
+    ],
+    "observed_gap": "Party required and visible when over_credit is exactly yes; additional red credit_not_stopped depends on the stop attestation, not a persisted limit lock.",
+    "dependency": "Party master, credit policy and server sales hold",
+    "correction": "Party master, credit policy and server sales hold",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A004-F002",
+    "source_ids": [
+      "C-05:adv_match",
+      "C-05:adv_diff"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 15847,
+        "text": "\"no\"===e.d.adv_match,req:e=>\"no\"===e.d.adv_match}),f(\"a60p_show\",t(\"60+ দিনের প্রাপ্য\",\"60+ days receivable\"),\"money\"),m(\"worklist\",t(\"কাজের তালিকায় যোগ (60+ দিনের প্রাপ্য)\",\"Added to the work list (60+ days r"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 17368,
+        "text": "A(\"adv_ledger_mismatch\",\"red\",\"অ্যাডভান্সের মোট লেজারের সাথে মেলেনি\",\"Advance total does not match the ledger\",a(e.d.adv_diff))),{v:n,flags:i,needs:[]}}};const I=e=>t(C(e)+\" কেজি\",C(e)+\" kg\");e.forms[\"R-02\"]={t"
+      }
+    ],
+    "observed_gap": "No answer reveals and requires difference; red only if parsed difference is nonzero. Manual answer can contradict amount or ledger.",
+    "dependency": "Money advance ledger, allocation and reconciliation",
+    "correction": "Money advance ledger, allocation and reconciliation",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A004-F003",
+    "source_ids": [
+      "C-05:a60p_show",
+      "C-05:worklist",
+      "C-05:prepared_by",
+      "C-05:checked_by"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 16458,
+        "text": "n.a60p_show=n.t_a60p,n.adv_open=s(o.filter(e=>\"given\"!==e.status&&\"refunded\"!==e.status).map(e=>e.amt));const l=t.filter(e=>r(e.total)&&(r(e.a30)||r(e.a60)||r(e.a60p))&&0!==T(a(e.total)-a(e.a30)-a(e.a60)-a(e.a6"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 16911,
+        "text": "A(\"recv_60plus\",\"yellow\",\"60+ দিনের প্রাপ্য আছে\",\"60+ days receivable exists\",n.t_a60p)),\"yes\"===e.d.over_credit&&i.push(A(\"over_credit\",\"yellow\",\"ক্রেডিট সীমার বাইরে পার্টি আছে\",\"A party is beyond the credit l"
+      }
+    ],
+    "observed_gap": "Display copies t_a60p; positive balance warns yellow. Worklist attestation and checker role do not prove persisted task or distinct identity.",
+    "dependency": "Scoped AR aging and exception queue, independent reviewer",
+    "correction": "Scoped AR aging and exception queue, independent reviewer",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A004-F004",
+    "source_ids": [
+      "R-02:prepared_slot",
+      "R-02:roster",
+      "R-02:t_open",
+      "R-02:open",
+      "R-02:t_close",
+      "R-02:close",
+      "R-02:unit",
+      "R-02:scale_worklist"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 25191,
+        "text": "l=e.rows(\"meas\"),d=l[0]||{},c=l[1]||{},h=l[2]||{},m=S(e,\"jalebi_base_pct\"),u=S(e,\"jalebi_per_kg_flour\"),p=S(e,\"jalebi_tol_pct\"),_=S(e,\"jalebi_tol_kg\");n.oil_rule=S(e,\"oil_change_rule\")||x,\"yes\"!==o.oil_changed|"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 27384,
+        "text": "A(\"scale_off\",\"red\",\"পাল্লায় গরমিল — ব্যবহার বন্ধ\",\"Scale is off — stop using it\"));return r(o.produced_by)&&o.produced_by===o.measured_by?s.push(A(\"producer_is_measurer\",\"red\",\"উৎপাদনকারী ও পরিমাপকারী একই জন\""
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 28060,
+        "text": "A(\"exc_roster\",\"yellow\",\"গরমিল: রোস্টার মানা হয়নি\",\"Exception: roster not followed\")),o.e_syrup&&s.push(A(\"exc_syrup\",\"yellow\",\"গরমিল: রস কম পড়ায় আলাদা চিনির রস\",\"Exception: separate sugar syrup because syru"
+      }
+    ],
+    "observed_gap": "Opening and closing measurement declarations feed measured batch consumption. KG/L choice labels oil and syrup display, without unit conversion. Bad scale raises red; no roster raises yellow.",
+    "dependency": "Manufacturing batch measurement, calibrated equipment and roster",
+    "correction": "Manufacturing batch measurement, calibrated equipment and roster",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A004-F005",
+    "source_ids": [
+      "R-02:oil_changed",
+      "R-02:oil_rule",
+      "R-02:old_oil",
+      "R-02:old_oil_fate",
+      "R-02:old_oil_amt",
+      "R-02:old_oil_line"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 25342,
+        "text": "n.oil_rule=S(e,\"oil_change_rule\")||x,\"yes\"!==o.oil_changed||S(e,\"oil_change_rule\")||i.push(\"oil_change_rule\");const y=a(o.tot_flour);n.c1=r(o.tot_flour)?I(y):\"—\";const g=r(d.open)&&r(d.close)?a(d.open)-a(d.clos"
+      }
+    ],
+    "observed_gap": "Changed yes reveals disposal controls and records missing oil setting; sold disposition reveals optional sales amount and ledger line. No verified disposal posting.",
+    "dependency": "Stock lot disposal and linked Money sale voucher",
+    "correction": "Stock lot disposal and linked Money sale voucher",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A004-F006",
+    "source_ids": [
+      "R-02:slip_no",
+      "R-02:i_flour",
+      "R-02:i_sugar",
+      "R-02:i_oil",
+      "R-02:i_syrup",
+      "R-02:i_other",
+      "R-02:source",
+      "R-02:tot_sugar",
+      "R-02:tot_syrup"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 27241,
+        "text": "a(o.tot_syrup)+a(h.open)-a(h.close):null;n.c12=null===j?\"—\":B(j,h),n.c12k=null!==j&&null!==M&&M>0?t(C(j/M),C(j/M)):\"—\",\"bad\"===o.scale&&s.push(A(\"scale_off\",\"red\",\"পাল্লায় গরমিল — ব্যবহার বন্ধ\",\"Scale is off —"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 27808,
+        "text": "A(\"exc_noslip\",\"yellow\",\"গরমিল: স্লিপ ছাড়া মালামাল প্রাপ্ত\",\"Exception: goods received without a slip\")),o.e_nomeasure&&s.push(A(\"exc_nomeasure\",\"yellow\",\"গরমিল: মাপ নেওয়া হয়নি\",\"Exception: measure not taken"
+      }
+    ],
+    "observed_gap": "Issued quantities and slip are evidence fields; prod consumption formula uses total syrup and total oil, without verifying that issued goods reconcile to transfers.",
+    "dependency": "Stock transfer slip and manufacturing consumption by lot and UOM",
+    "correction": "Stock transfer slip and manufacturing consumption by lot and UOM",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A004-F007",
+    "source_ids": [
+      "R-02:jalebi_item",
+      "R-02:c1",
+      "R-02:c2",
+      "R-02:c3",
+      "R-02:c4",
+      "R-02:c5",
+      "R-02:c6",
+      "R-02:samples",
+      "R-02:c9"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 25655,
+        "text": "b=100*g/m,n.c3=I(b)):n.c3=\"—\";const f=null!==b&&r(o.tot_flour)?y+b:null;n.c4=null===f?\"—\":I(f);let w=null;null!==f?null===u?(i.push(\"jalebi_per_kg_flour\"),n.c5=x):(w=f*u,n.c5=I(w)):n.c5=\"—\";const v=o.jalebi_ite"
+      }
+    ],
+    "observed_gap": "Opening−closing dough, flour equivalent=100×dough/base%, flour total and expected yield multiply configured factor. Sales value/positive item price derives weight; actual adds unsold and samples.",
+    "dependency": "Effective item price, manufacturing recipe version, batch yield and Sales receipts",
+    "correction": "Effective item price, manufacturing recipe version, batch yield and Sales receipts",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A004-F008",
+    "source_ids": [
+      "R-02:c10",
+      "R-02:c10_state"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 26226,
+        "text": "const e=T(M-w);if(n.c10=t((e>0?\"+\":\"\")+C(e)+\" কেজি\",(e>0?\"+\":\"\")+C(e)+\" kg\"),0===e)n.c10_state=t(\"মিল আছে ✓\",\"Matches ✓\");else{const o=null!==p&&w>0&&Math.abs(e)/w*100<=p,a=null!==_&&Math.abs(e)<=_;null===p&&nu"
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 26546,
+        "text": "A(\"jalebi_diff_small\",\"yellow\",\"জিলাপির প্রত্যাশিত ও প্রকৃতে ছোট পার্থক্য (সীমার ভেতরে)\",\"Small expected-vs-actual jalebi gap (inside the limit)\",Math.abs(e),{unit:\"qty\"}))):(n.c10_state=null===p&&null===_?x:t("
+      },
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 26812,
+        "text": "A(\"jalebi_diff\",\"red\",\"জিলাপির প্রত্যাশিত ও প্রকৃতের পার্থক্য সীমার বাইরে\",\"Expected-vs-actual jalebi gap outside the limit\",Math.abs(e),{unit:\"qty\"})))}}const D=e=>\"l\"===e.unit?t(\"লিটার\",\"Litre\"):t(\"কেজি\",\"KG\""
+      }
+    ],
+    "observed_gap": "Rounded actual−expected. Nonzero gap is yellow if either inclusive tolerance matches, red otherwise. Percentage needs positive expected; both missing requests settings and raises red.",
+    "dependency": "Versioned yield tolerances and discrepancy review",
+    "correction": "Versioned yield tolerances and discrepancy review",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A004-F009",
+    "source_ids": [
+      "R-02:c11",
+      "R-02:c11k",
+      "R-02:c12",
+      "R-02:c12k"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 27094,
+        "text": "a(o.tot_oil)+a(c.open)-a(c.close):null;n.c11=null===P?\"—\":B(P,c),n.c11k=null!==P&&null!==M&&M>0?t(C(P/M),C(P/M)):\"—\";const j=r(h.open)&&r(h.close)?a(o.tot_syrup)+a(h.open)-a(h.close):null;n.c12=null===j?\"—\":B(j"
+      }
+    ],
+    "observed_gap": "Oil and syrup = received+opening−closing, per-unit displays divide by actual weight only when positive. No conversion or nonnegative check in calc.",
+    "dependency": "Batch material balances, controlled unit conversion and reconciliation",
+    "correction": "Batch material balances, controlled unit conversion and reconciliation",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A004-F010",
+    "source_ids": [
+      "R-02:unsold_show",
+      "R-02:decision",
+      "R-02:daytag",
+      "R-02:wasted",
+      "R-02:decider_role"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_cash.js",
+        "offset_utf16": 26121,
+        "text": "n.unsold_show=r(o.unsold)?I(a(o.unsold)):\"—\",n.c10=\"—\",n.c10_state=\"—\",n.diff_out=!1,null!==M&&null!==w){const e=T(M-w);if(n.c10=t((e>0?\"+\":\"\")+C(e)+\" কেজি\",(e>0?\"+\":\"\")+C(e)+\" kg\"),0===e)n.c10_state=t(\"মিল আছে"
+      }
+    ],
+    "observed_gap": "Unsold positive requires decision; keep requires tag and drop requires wastage attestation. No Stock posting shown by these declarations.",
+    "dependency": "Lot quarantine/rotation and authorized stock write-off",
+    "correction": "Lot quarantine/rotation and authorized stock write-off",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]
