@@ -6,6 +6,7 @@ on:
       - "apps/central/**"
       - "docs/coordination/CENTRAL_SHELL_IMPORT_20261122.json"
       - "tests/core10-central-shell-provenance.test.js"
+      - "tests/core10-central-sales-signed.test.cjs"
       - "tests/core10-central-mobile-nav.test.cjs"
       - "tests/core10-central-signed-context.test.cjs"
       - "tests/core10-live-legacy-guard.test.js"
@@ -47,6 +48,8 @@ jobs:
           sha256sum apps/central/dist/worker.mjs
       - name: Verify CURRENT site has only declared changes and bundle contains exact UI assets
         run: node --test tests/core10-central-shell-provenance.test.js
+      - name: Signed Sales host lifecycle and exact canonical source pins
+        run: node --test tests/core10-central-sales-signed.test.cjs
       - name: Install pinned Chromium outside the repository
         run: |
           mkdir -p "$RUNNER_TEMP/core10-playwright"
