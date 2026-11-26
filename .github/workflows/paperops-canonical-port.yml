@@ -97,9 +97,10 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
       - name: Stock supplier return, locations, lot lifecycle and BDT approval E2E
         run: |
-          for test in supplier-return locations lots po-approval-bdt; do
-            psql -X -q -v ON_ERROR_STOP=1 -f "tests/migrations/np03a-$test-e2e.sql"
-          done
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-supplier-return-e2e.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-locations-e2e.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-lots-e2e.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-po-approval-bdt-e2e.sql
           bash tests/migrations/np03a-supplier-return-race.sh
           bash tests/migrations/np03a-lots-race.sh
       - name: Rehearse signed publication with the pending versions present
