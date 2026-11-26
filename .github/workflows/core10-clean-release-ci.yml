@@ -4,6 +4,7 @@ on:
     paths:
       - 'apps/central/**'
       - 'tests/core10-clean-release.test.cjs'
+      - 'apps/central/verify-clean-public.cjs'
       - '.github/workflows/core10-clean-release-ci.yml'
   workflow_dispatch:
 permissions:
@@ -27,3 +28,6 @@ jobs:
           sha256sum apps/central/dist-clean/worker.mjs > /tmp/clean.sha
           node apps/central/build-clean.mjs
           sha256sum -c /tmp/clean.sha
+
+      - name: Check actual clean public URL (read-only HTTP)
+        run: node apps/central/verify-clean-public.cjs
