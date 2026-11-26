@@ -17,7 +17,7 @@ const qty=v=>{if(!/^\d{1,7}(?:\.\d{1,3})?$/.test(String(v))||Number(v)<=0||Numbe
 const request=()=>{if(!win.crypto||!win.crypto.randomUUID)bad("SECURE_REQUEST_KEY_UNAVAILABLE");return "stock-"+win.crypto.randomUUID().replaceAll("-","");};
 const text=(v)=>String(v==null?"":v).trim();
 const permitted=["receive","issue","transfer","adjust_in","adjust_out"];
-const state={client:null,business:0,locations:[],items:[],commands:[],busy:false,closed:false,epoch:0,actor:null,nextBefore:null,nextBalance:null,balances:[]};
+const state={client:null,business:0,locations:[],items:[],commands:[],busy:false,closed:false,epoch:0,actor:null,itemSearch:null,itemTruncated:false,nextBefore:null,nextBalance:null,balances:[]};
 function scope(){return {epoch:state.epoch,business:state.business,actor:state.actor};}
 function current(x){return !state.closed&&x.epoch===state.epoch&&x.business===state.business&&x.actor===state.actor;}
 function assertCurrent(x){if(!current(x))bad("STALE_SCOPE");}
@@ -28,7 +28,7 @@ function errorText(e){
  if(code.startsWith("CONTROL_LIMIT"))return t("Owner Control সীমা অতিক্রম করেছে।","Owner Control limit exceeded.")+" ("+code+")";
  return messages[code]?t(...messages[code])+" ("+code+")":code;
 }
-function purge(){state.epoch++;state.business=0;state.actor=null;state.locations=[];state.items=[];state.commands=[];state.balances=[];state.nextBefore=null;state.nextBalance=null;root.replaceChildren();}
+function purge(){state.epoch++;state.business=0;state.actor=null;state.itemSearch=null;state.itemTruncated=false;state.locations=[];state.items=[];state.commands=[];state.balances=[];state.nextBefore=null;state.nextBalance=null;root.replaceChildren();}
 function status(msg,error){let p=d.getElementById("st-status");if(p){p.textContent=msg;p.dataset.error=error?"true":"false";}}
 function field(label,kind,id,required){
  const l=E("label"),n=E(kind==="select"?"select":"input");l.textContent=label;n.id=id;n.name=id;if(kind!=="select")n.type=kind;
@@ -56,16 +56,15 @@ async function catalog(){
  if((l.data||[]).some(x=>x.business_id!==snap.business))bad("INVALID_CATALOG_SCOPE");
  const items=[];let cursor=null;
  do{
-  const page=await rpc("master_list_items_v1",{p_business:snap.business,p_search:null,p_status:null,p_category:null,p_limit:100,p_after_id:cursor});
+  const page=await rpc("master_list_items_v1",{p_business:snap.business,p_search:state.itemSearch,p_status:null,p_category:null,p_limit:100,p_after_id:cursor});
   assertCurrent(snap);
   if(!page||!Array.isArray(page.rows)||page.rows.some(x=>!Number.isSafeInteger(x.id)||x.id<1||(cursor!==null&&x.id<=cursor)))bad("INVALID_ITEM_PAGE");
   items.push(...page.rows);
   const next=page.next_after_id??null;
   if(next!==null&&(!Number.isSafeInteger(next)||next<1||(cursor!==null&&next<=cursor)||next!==page.rows.at(-1)?.id))bad("INVALID_ITEM_CURSOR");
   cursor=next;
-  if(items.length>=500&&cursor!==null)bad("ITEM_CATALOG_LIMIT_REQUIRES_SEARCH");
- }while(cursor!==null);
- assertCurrent(snap);state.locations=l.data||[];state.items=items;
+ }while(cursor!==null&&items.length<500);
+ assertCurrent(snap);state.locations=l.data||[];state.items=items;state.itemTruncated=cursor!==null;
 }
 function fill(select,rows,fmt){
  select.replaceChildren(E("option",t("প্রযোজ্য নয়","Not applicable")));
@@ -81,6 +80,7 @@ async function refresh(){
  fill(d.getElementById("st-source"),state.locations,x=>x.code+" · Site "+x.site_id);
  fill(d.getElementById("st-dest"),state.locations,x=>x.code+" · Site "+x.site_id);
  fill(d.getElementById("st-item"),state.items,x=>x.sku+" #"+x.id);
+ d.getElementById("st-item-hint").textContent=state.itemTruncated?t("প্রথম ৫০০টি পণ্য। আরও নির্দিষ্টভাবে খুঁজুন।","First 500 matching items. Narrow your search."):"";
  renderCommands();
  status(t("সার্ভার থেকে Stock তথ্য পড়া হয়েছে।","Stock data loaded from server."),false);
 }
@@ -218,8 +218,9 @@ async function workbench(){
  const action=field(t("কাজ","Action"),"select","st-kind",true);
  permitted.forEach(k=>{const o=E("option",k.replace("_"," "));o.value=k;action.querySelector("select").append(o);});
  form.append(action,field(t("Source location","Source location"),"select","st-source"),field(t("Destination location","Destination location"),"select","st-dest"),
- field(t("পণ্য","Item"),"select","st-item",true),field(t("পরিমাণ","Quantity"),"number","st-qty",true),
+ field(t("পণ্য খুঁজুন","Search items"),"search","st-item-search"),button(t("পণ্য খুঁজুন","Find items"),async()=>{if(state.busy)return;const snap=scope();state.itemSearch=text(d.getElementById("st-item-search").value)||null;state.busy=true;try{await refresh();}catch(e){if(current(snap))status(errorText(e),true);}finally{state.busy=false;}}),field(t("পণ্য","Item"),"select","st-item",true),field(t("পরিমাণ","Quantity"),"number","st-qty",true),
  field(t("কারণ (প্রয়োজনে)","Reason (if required)"),"text","st-reason"));
+ const itemHint=E("p");itemHint.id="st-item-hint";itemHint.className="muted";form.append(itemHint);
  const qtyInput=form.querySelector("#st-qty");qtyInput.min="0.001";qtyInput.step="0.001";qtyInput.max="1000000";
  const submit=E("button",t("ড্রাফট তৈরি","Create draft"));submit.type="submit";submit.className="primary";form.append(submit);right.append(form);
  grid.append(left,right);
@@ -228,7 +229,7 @@ async function workbench(){
  form.addEventListener("submit",createDraft);
  businessSelect.addEventListener("change",async()=>{
   if(state.busy){businessSelect.value=String(state.business);return;}
-  state.epoch++;state.business=positive(businessSelect.value);state.locations=[];state.items=[];state.commands=[];state.balances=[];state.nextBefore=null;state.nextBalance=null;
+  state.epoch++;state.business=positive(businessSelect.value);state.itemSearch=null;state.itemTruncated=false;d.getElementById("st-item-search").value="";d.getElementById("st-item-hint").textContent="";state.locations=[];state.items=[];state.commands=[];state.balances=[];state.nextBefore=null;state.nextBalance=null;
   list.replaceChildren();balances.replaceChildren();more.hidden=true;balanceMore.hidden=true;
   for(const id of ["st-source","st-dest","st-item"])d.getElementById(id).replaceChildren();
   const snap=scope();state.busy=true;try{await refresh();}catch(e){if(current(snap))status(errorText(e),true);}finally{state.busy=false;}
