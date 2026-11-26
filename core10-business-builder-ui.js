@@ -19,7 +19,18 @@ function draw(){
  steps.forEach(i=>{$("step"+i).classList.toggle("hidden",i!==step)});
  document.querySelectorAll("[data-step]").forEach(btn=>{if(Number(btn.dataset.step)===step)btn.setAttribute("aria-current","step");else btn.removeAttribute("aria-current")});
  $("back").disabled=step===0;$("next").classList.toggle("hidden",step===3);$("export").classList.toggle("hidden",step!==3);
- if(step===3){const preview=builder.preview();$("review").textContent=preview.validation.ok?"Setup valid for preview. Backend remains locked.":"Validation: "+preview.validation.errors.join(", ");$("jsonPreview").textContent=JSON.stringify(preview,null,2)}
+ if(step===3){
+  const preview=builder.preview(),sites=preview.pilot_site_plan;
+  const summary=$("pilotSites");
+  summary.classList.toggle("hidden",!sites);
+  if(sites){
+   const labels={factory:"কারখানা / Factory",storage:"গুদাম / Storage",showroom:"শোরুম / Showroom"};
+   const missing=Object.keys(labels).filter(kind=>!sites[kind]).map(kind=>labels[kind]);
+   summary.textContent=missing.length
+    ?"পাইলটের জন্য আরও সাইট পরিকল্পনা করুন / Sites to plan for the bakery pilot: "+missing.join(", ")
+    :"পাইলটের কারখানা, গুদাম ও শোরুম পরিকল্পনায় আছে। / Factory, storage and showroom are in the site plan.";
+  }else summary.textContent="";
+  $("review").textContent=preview.validation.ok?"Setup valid for preview. Backend remains locked.":"Validation: "+preview.validation.errors.join(", ");$("jsonPreview").textContent=JSON.stringify(preview,null,2)}
 }
 function setStep(i){if(!steps.includes(i))return;step=i;error("");draw()}
 function updateForm(){

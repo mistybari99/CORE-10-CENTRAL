@@ -52,6 +52,60 @@ locationDetails.addEventListener("toggle",async()=>{
     if(current())locationText("এই সাইটের লোকেশন যাচাই করা যায়নি।","Could not verify locations for this site.");
   }
 });
+// Read-only T01.01 evidence for the selected business; never a certification or permission grant.
+const pilotDetails=$("c10-pilot-details"),pilotStatus=$("c10-pilot-status"),pilotList=$("c10-pilot-list");
+let pilotRevision=0,pilotRows=[],pilotMessage=[];
+function clearPilot(){
+  ++pilotRevision;pilotDetails.open=false;pilotDetails.hidden=true;
+  pilotRows=[];pilotMessage=[];pilotList.replaceChildren();pilotStatus.textContent="";
+}
+function renderPilot(){
+  pilotStatus.textContent=pilotMessage.length?t(...pilotMessage):"";
+  pilotList.replaceChildren();
+  for(const row of pilotRows){const el=doc.createElement("li");el.textContent=t(...row);pilotList.append(el);}
+}
+pilotDetails.addEventListener("toggle",async()=>{
+  const rev=++pilotRevision,e=epoch,b=chosen.business,s=chosen.site,tenant=chosen.tenant,who=actor;
+  pilotRows=[];pilotMessage=[];renderPilot();
+  if(!pilotDetails.open||blocked||!who||!b||!scope)return;
+  const current=()=>epoch===e&&pilotRevision===rev&&pilotDetails.open&&!blocked&&actor===who&&chosen.business===b&&chosen.site===s;
+  const sites=scope.sites.filter(x=>x.business===b&&x.tenant===tenant);
+  const count=k=>sites.filter(x=>k.includes(x.kind)).length;
+  const rows=[
+    ["অনুমোদিত কারখানা: "+count(["factory"]),"Authorized factories: "+count(["factory"])],
+    ["অনুমোদিত গুদাম: "+count(["godown","warehouse"]),"Authorized storage sites: "+count(["godown","warehouse"])],
+    ["অনুমোদিত শোরুম: "+count(["showroom"]),"Authorized showrooms: "+count(["showroom"])]
+  ];
+  pilotMessage=["সার্ভার প্রমাণ যাচাই হচ্ছে…","Checking server evidence…"];renderPilot();
+  async function read(name,args){
+    if(!current()||await currentUser()!==who||!current())throw Error("PILOT_SESSION_CHANGED");
+    const r=await client.schema("core10").rpc(name,args);
+    if(!current()||await currentUser()!==who||!current())throw Error("PILOT_SESSION_CHANGED");
+    if(r.error||!r.data||typeof r.data!=="object")return null;
+    return r.data;
+  }
+  try{
+    const u=await read("master_list_uoms_v1",{p_business:b});
+    if(!current())return;
+    const units=Array.isArray(u?.uoms)?u.uoms:[],conv=Array.isArray(u?.conversions)?u.conversions:[];
+    const kg=units.find(x=>x.active===true&&x.code?.toLowerCase()==="kg"&&positive(x.id));
+    const g=units.find(x=>x.active===true&&x.code?.toLowerCase()==="g"&&positive(x.id));
+    const metric=!!(kg&&g&&kg.dimension===g.dimension&&conv.some(c=>c.active===true&&Number(c.from_uom_id)===Number(kg.id)&&Number(c.to_uom_id)===Number(g.id)&&Number(c.factor)===1000));
+    rows.push(metric?["kg → g: সক্রিয় ১০০০ conversion পাওয়া গেছে","kg → g: active factor 1000 found"]:["kg → g: সক্রিয় সরাসরি conversion যাচাই হয়নি","kg → g: active direct conversion not verified"]);
+    if(sites.some(x=>x.id===s&&x.kind==="factory")){
+      const m=await read("mfg_inspect_v1",{p_business:b,p_site:s});
+      if(!current())return;
+      const valid=Array.isArray(m?.recipes)&&m.recipes.every(x=>x.business_id===b&&x.site_id===s&&x.tenant_id===tenant&&positive(x.id)&&positive(x.version));
+      if(valid){
+        const approved=m.recipes.filter(x=>x.status==="approved"&&typeof x.effective_from==="string"&&Number.isFinite(Date.parse(x.effective_from))&&Date.parse(x.effective_from)<=Date.now());
+        rows.push(["কারখানার recipe revision: "+m.recipes.length+" · কার্যকর approved: "+approved.length,"Factory recipe revisions: "+m.recipes.length+" · effective approved: "+approved.length]);
+      }else rows.push(["Recipe revision যাচাই হয়নি","Recipe revisions not verified"]);
+    }else rows.push(["Recipe যাচাই করতে অনুমোদিত কারখানা নির্বাচন করুন","Select an authorized factory to inspect recipe revisions"]);
+    rows.push(["Lot, pack, shelf life, label profile: এখনো যাচাই হয়নি","Lot, pack, shelf life and label profile: not yet verified"]);
+    if(!current())return;
+    pilotRows=rows;pilotMessage=["শুধু নির্বাচিত scope-এর read-only প্রমাণ; operational approval নয়।","Read-only evidence for selected scope; not operational approval."];renderPilot();
+  }catch(_){if(current()){pilotRows=[];pilotMessage=["যাচাই অসম্পূর্ণ; আবার রিফ্রেশ করুন।","Verification incomplete; refresh and retry."];renderPilot();}}
+});
 const t=(bn,en)=>doc.documentElement.dataset.lang==="en"?en:bn;
 const businessRoles=new Set(["tenant_owner","business_owner","manager","investor","site_staff"]);
 const positive=(value)=>Number.isSafeInteger(Number(value))&&Number(value)>0&&/^[1-9]\d*$/.test(String(value));
@@ -71,7 +125,7 @@ function scrubEmbedded(){
   win.dispatchEvent(new Event("core10:signed-out"));
 }
 function clearPrivate(purge,state="signed-out"){
-  clearLocations();
+  clearLocations();clearPilot();
   const had=!!actor||!!scope;
   ++epoch;actor="";scope=null;chosen={tenant:null,business:null,site:null};blocked=false;
   signed.hidden=true;anon.hidden=false;panel.hidden=true;open.setAttribute("aria-expanded","false");
@@ -130,6 +184,7 @@ function present(ctx,wanted){
   if(bId!==null)business.value=String(bId);
   if(sId!==null)site.value=String(sId);
   locationDetails.hidden=sId===null;
+  pilotDetails.hidden=bId===null;
   anon.hidden=true;signed.hidden=false;panel.hidden=true;open.setAttribute("aria-expanded","false");
   if(bId===null){
     message("অনুমোদিত ব্যবসা নেই।","No authorized business.");
@@ -155,7 +210,7 @@ async function currentUser(){
 }
 async function load(wanted){
   if(!client)return;
-  clearLocations();
+  clearLocations();clearPilot();
   const n=++epoch;
   blocked=true;signed.hidden=true;for(const el of [group,business,site,refresh,logout])el.disabled=true;
   message("অনুমোদিত সাইট যাচাই হচ্ছে…","Checking authorized sites…");
@@ -207,6 +262,7 @@ logout.addEventListener("click",async()=>{
 win.addEventListener("core10:language-change",()=>{
   note.textContent=t(...lastMessage);
   if(locationMessage.length)locationStatus.textContent=t(...locationMessage);
+  renderPilot();
 });
 if(!configReady()){
   open.disabled=true;message("CORE10 স্টেজিং সাইন-ইন উপলব্ধ নয়।","CORE10 staging sign-in unavailable.");
