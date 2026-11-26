@@ -15,18 +15,31 @@ const refresh=$("c10-context-refresh"),logout=$("c10-shell-signout");
 const cfg=win.CORE10_CONTROL_CENTRE_CONFIG;
 const TARGET="https://rhrqhbyzrhaafynfhdaf.supabase.co";
 let client=null,epoch=0,actor="",scope=null,chosen={tenant:null,business:null,site:null},blocked=false;
+let lastMessage=[];
 const t=(bn,en)=>doc.documentElement.dataset.lang==="en"?en:bn;
+const businessRoles=new Set(["tenant_owner","business_owner","manager","investor","site_staff"]);
 const positive=(value)=>Number.isSafeInteger(Number(value))&&Number(value)>0&&/^[1-9]\d*$/.test(String(value));
 const fail=(s)=>{throw new Error(s);};
-function message(bn,en){note.textContent=t(bn,en);}
+function message(bn,en){lastMessage=[bn,en];note.textContent=t(bn,en);}
+function publishContext(state,detail={}){
+  win.dispatchEvent(new CustomEvent("core10:context-change",{detail:{state,...detail}}));
+}
+// Embedded modules supply their own verified user. The only shared value is
+// an in-memory display preference, which the module can accept or ignore.
+win.CORE10_CENTRAL_CONTEXT=Object.freeze({
+  preferredBusiness(userId){
+    return !blocked&&scope&&actor&&actor===userId?chosen.business:null;
+  }
+});
 function scrubEmbedded(){
   win.dispatchEvent(new Event("core10:signed-out"));
 }
-function clearPrivate(purge){
+function clearPrivate(purge,state="signed-out"){
   const had=!!actor||!!scope;
   ++epoch;actor="";scope=null;chosen={tenant:null,business:null,site:null};blocked=false;
   signed.hidden=true;anon.hidden=false;panel.hidden=true;open.setAttribute("aria-expanded","false");
   group.replaceChildren();business.replaceChildren();site.replaceChildren();password.value="";
+  publishContext(state);
   if(purge==="force"||(purge&&had))scrubEmbedded();
 }
 function configReady(){
@@ -39,11 +52,12 @@ function verified(raw,userId){
   const ts=new Map(),bs=new Map(),ss=new Set();
   for(const x of raw.tenants){
     if(!x||!positive(x.id)||typeof x.slug!=="string"||ts.has(Number(x.id)))fail("CONTEXT_TENANT_INVALID");
-    ts.set(Number(x.id),{id:Number(x.id),slug:x.slug.slice(0,120)});
+    ts.set(Number(x.id),{id:Number(x.id),slug:x.slug.slice(0,120),canBootstrap:x.can_manage_bootstrap===true});
   }
   for(const x of raw.businesses){
     if(!x||!positive(x.id)||!positive(x.tenant_id)||!ts.has(Number(x.tenant_id))||bs.has(Number(x.id)))fail("CONTEXT_BUSINESS_INVALID");
-    bs.set(Number(x.id),{id:Number(x.id),tenant:Number(x.tenant_id),name:String(x.label||x.slug||x.id).slice(0,120)});
+    bs.set(Number(x.id),{id:Number(x.id),tenant:Number(x.tenant_id),name:String(x.label||x.slug||x.id).slice(0,120),
+      canManage:x.can_manage===true,role:businessRoles.has(x.role)?x.role:null});
   }
   const sites=[];
   for(const x of raw.sites){
@@ -80,6 +94,11 @@ function present(ctx,wanted){
   if(sId!==null)site.value=String(sId);
   anon.hidden=true;signed.hidden=false;panel.hidden=true;open.setAttribute("aria-expanded","false");
   message("স্বাক্ষরিত স্টেজিং · সার্ভার-অনুমোদিত প্রসঙ্গ","Signed staging · server-authorized context");
+  const selected=bs.find(b=>b.id===bId);
+  publishContext("ready",{
+    business:selected?{name:selected.name,canManage:selected.canManage,role:selected.role}:null,
+    canBootstrap:ctx.tenants.some(g=>g.id===tId&&g.canBootstrap)
+  });
 }
 async function currentUser(){
   const r=await client.auth.getUser();
@@ -89,6 +108,7 @@ async function load(wanted){
   if(!client)return;
   const n=++epoch;
   blocked=true;signed.hidden=true;for(const el of [group,business,site,refresh,logout])el.disabled=true;
+  publishContext("loading");
   try{
     const before=await currentUser();
     if(n!==epoch)return;
@@ -96,12 +116,12 @@ async function load(wanted){
     const r=await client.schema("core10").rpc("build01_context_v1",{});
     const after=await currentUser();
     if(n!==epoch)return;
-    if(before!==after||!after||r.error){clearPrivate("force");message("সেশন বা অনুমতি বদলেছে। আবার সাইন ইন বা রিফ্রেশ করুন।","Session or permissions changed. Sign in or refresh again.");return;}
+    if(before!==after||!after||r.error){clearPrivate("force","error");message("সেশন বা অনুমতি বদলেছে। আবার সাইন ইন বা রিফ্রেশ করুন।","Session or permissions changed. Sign in or refresh again.");return;}
     const clean=verified(r.data,after);
-    if(actor&&actor!==after){clearPrivate(true);message("অ্যাকাউন্ট বদলেছে; আবার প্রসঙ্গ যাচাই করুন।","Account changed; revalidate the context.");return;}
+    if(actor&&actor!==after){clearPrivate(true,"error");message("অ্যাকাউন্ট বদলেছে; আবার প্রসঙ্গ যাচাই করুন।","Account changed; revalidate the context.");return;}
     actor=after;scope=clean;present(clean,wanted);
   }catch(_){
-    if(n===epoch){clearPrivate("force");message("সার্ভার থেকে অনুমোদিত প্রসঙ্গ যাচাই করা যায়নি।","Could not verify authorized context with the server.");}
+    if(n===epoch){clearPrivate("force","error");message("সার্ভার থেকে অনুমোদিত প্রসঙ্গ যাচাই করা যায়নি।","Could not verify authorized context with the server.");}
   }finally{
     if(n===epoch){blocked=false;refresh.disabled=false;logout.disabled=false;}
   }
@@ -134,11 +154,11 @@ logout.addEventListener("click",async()=>{
   message("সাইন আউট হয়েছে।","Signed out.");
 });
 win.addEventListener("core10:language-change",()=>{
-  if(scope&&actor) message("স্বাক্ষরিত স্টেজিং · সার্ভার-অনুমোদিত প্রসঙ্গ","Signed staging · server-authorized context");
-  else message("সাইন-ইন করে আপনার অনুমোদিত গ্রুপ ও ব্যবসা দেখুন।","Sign in to view your authorized group and businesses.");
+  note.textContent=t(...lastMessage);
 });
 if(!configReady()){
   open.disabled=true;message("CORE10 স্টেজিং সাইন-ইন উপলব্ধ নয়।","CORE10 staging sign-in unavailable.");
+  publishContext("error");
   return;
 }
 client=win.supabase.createClient(cfg.url,cfg.key,{auth:{detectSessionInUrl:false}});

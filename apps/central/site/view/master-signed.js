@@ -33,6 +33,14 @@
   }
   const client = win.supabase.createClient(cfg.url, cfg.key);
   let epoch = 0;
+  function preferredBusiness(userId) {
+    if (win.parent === win) return null;
+    try {
+      return win.parent.CORE10_CENTRAL_CONTEXT?.preferredBusiness(userId) ?? null;
+    } catch (_) {
+      return null;
+    }
+  }
   function showSignIn() {
     const current = ++epoch;
     const form = el("form", null, "occ-dialog"); form.id = "md-login"; form.noValidate = true;
@@ -81,7 +89,10 @@
     root.replaceChildren(toolbar, host);
     try {
       const api = win.CORE10_MASTER_DATA_API.create({ client });
-      const view = win.CORE10_MASTER_DATA_UI.mount(host, { api, lang });
+      // The existing Master UI checks preferBusiness against its own signed context.
+      const view = win.CORE10_MASTER_DATA_UI.mount(host, {
+        api, lang, preferBusiness: preferredBusiness(check.data.user.id)
+      });
       await view.start();
       if (current !== epoch) host.replaceChildren();
     } catch (_) {
