@@ -26,6 +26,12 @@
    </details>
    <details id="c10-pilot-details" hidden><summary><span class="bn" lang="bn">বেকারি পাইলট যাচাই</span><span class="en" lang="en">Bakery pilot preflight</span></summary>
     <p id="c10-pilot-status" role="status"></p><ul id="c10-pilot-list"></ul>
+    <div id="c10-recipe-planner" hidden>
+     <label><span class="bn" lang="bn">অনুমোদিত রেসিপি</span><span class="en" lang="en">Approved recipe</span><select id="c10-recipe" aria-label="Approved recipe"></select></label>
+     <label><span class="bn" lang="bn">ব্যাচ গুণক</span><span class="en" lang="en">Batch multiplier</span><input id="c10-recipe-multiplier" aria-label="Batch multiplier" type="number" value="1" min="0.000001" max="100000" step="0.000001" size="8"></label>
+     <button type="button" id="c10-recipe-validate"><span class="bn" lang="bn">উপকরণ যাচাই</span><span class="en" lang="en">Validate materials</span></button>
+     <p id="c10-recipe-status" role="status"></p><ul id="c10-recipe-results"></ul>
+    </div>
    </details>
    <button type="button" id="c10-context-refresh" data-copy="refresh"><span class="bn"></span><span class="en"></span></button>
    <button type="button" id="c10-shell-signout" data-copy="signOut"><span class="bn"></span><span class="en"></span></button>

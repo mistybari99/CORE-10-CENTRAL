@@ -106,8 +106,7 @@ jobs:
       - name: Existing 56-test local exact-bundle verification
         working-directory: preview/core10-central-owner-app
         run: node verify.cjs
-      - name: Existing 56-test public Worker verification (no deployment)
-        working-directory: preview/core10-central-owner-app
+      - name: Active clean public Worker verification (historical 56 stays local; no deployment)
         env:
           REVIEW_BASE: https://core10-central.mistybari99.workers.dev
-        run: node verify.cjs
+        run: node apps/central/verify-clean-public.cjs --browser
