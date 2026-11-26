@@ -188,6 +188,16 @@ SELECT pg_temp.ok((SELECT count(*)=1 AND sum(m.quantity)=80
  FROM core10.stock_movement_lots_v1 m JOIN core10.inventory_lots_v1 l ON l.id=m.lot_id
  WHERE m.business_id=9111 AND m.location_id=911111 AND m.item_id=91101 AND l.lot_code='BAKERY-CP07'),
  'bakery GRN retry leaves one stock movement for the 80 accepted into a lot');
-\echo 'PASS Bakery T01.03 PO100/QC80/one stock movement after retry'
+SET LOCAL ROLE authenticated;
+SELECT pg_temp.as_user('f2222222-2222-4222-8222-222222222222');
+SELECT core10.procurement_get_po_v1((:'bakery_po'::jsonb->>'po_id')::bigint) AS bakery_rollup \gset
+SELECT pg_temp.ok(
+ (:'bakery_rollup'::jsonb->>'site_id')::bigint=91111
+ AND (:'bakery_rollup'::jsonb->'lines'->0->>'quantity')::numeric=100
+ AND (:'bakery_rollup'::jsonb->'lines'->0->>'accepted_qty')::numeric=80
+ AND (:'bakery_rollup'::jsonb->'lines'->0->>'returned_qty')::numeric=0,
+ 'signed PO detail supplies the invoice check with current ordered, accepted and returned quantities');
+RESET ROLE;
+\echo 'PASS Bakery T01.03 PO100/QC80/signed PO rollup/one stock movement after retry'
 ROLLBACK;
 \echo 'PASS np03a-procurement-e2e'
