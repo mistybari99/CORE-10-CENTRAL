@@ -6,6 +6,7 @@ on:
     paths:
       - 'internal/migrations/**'
       - 'modules/manufacturing/**'
+      - 'internal/candidates/c10_mfg_finished_lot_candidate.up.sql'
       - 'tests/np05a/**'
       - '.github/workflows/core10-np05a-manufacturing-ci.yml'
   workflow_dispatch:
@@ -57,6 +58,14 @@ jobs:
         run: |
           psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/canonical-master-e2e.sql
           psql -X -At -c "SELECT pg_get_functiondef(oid)||';' FROM pg_proc WHERE oid IN ('core10._mfg_master_check_v1(bigint)'::regprocedure,'core10._mfg_substitution_check_v1(bigint)'::regprocedure)" > /tmp/np05a-canonical-hooks.sql
+      - name: T01.04 finished lot candidate on separate disposable PostgreSQL
+        run: |
+          createdb core10_finished_lot_candidate
+          export PGDATABASE=core10_finished_lot_candidate
+          internal/migrations/run.sh up
+          psql -X -1 -v ON_ERROR_STOP=1 -f internal/candidates/c10_mfg_finished_lot_candidate.up.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/finished-lot-candidate-e2e.sql
       - name: Real two-session replay and safe rollback with history
         run: bash tests/np05a/concurrency.sh
       - name: Lock-wait Control change and immediate revocation
