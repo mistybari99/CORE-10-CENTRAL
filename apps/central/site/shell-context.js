@@ -244,6 +244,29 @@ pilotDetails.addEventListener("toggle",async()=>{
         offerRecipes(approved);
         rows.push(["কারখানার recipe revision: "+m.recipes.length+" · কার্যকর approved: "+approved.length,"Factory recipe revisions: "+m.recipes.length+" · effective approved: "+approved.length]);
       }else rows.push(["Recipe revision যাচাই হয়নি","Recipe revisions not verified"]);
+      // Scoped batch inspection; recorded output is not stock posting.
+      const states=["planned","released","recorded","cancelled"],seen=new Set(),batches=m?.batches;
+      const validBatches=Array.isArray(batches)&&batches.length<=10000&&batches.every(x=>{
+        if(!x||x.tenant_id!==tenant||x.business_id!==b||x.site_id!==s||
+          !positive(x.id)||!positive(x.bom_id)||!states.includes(x.status)||
+          typeof x.expected_output!=="number"||!Number.isFinite(x.expected_output)||
+          x.expected_output<=0||x.actual_cogs_certified!==false||seen.has(Number(x.id)))return false;
+        seen.add(Number(x.id));return true;
+      });
+      if(validBatches){
+        const counts=new Map(states.map(k=>[k,0]));
+        for(const x of batches)counts.set(x.status,counts.get(x.status)+1);
+        rows.push(["ব্যাচ "+batches.length+" · পরিকল্পিত "+counts.get("planned")+" · রিলিজ "+counts.get("released")+" · রেকর্ড "+counts.get("recorded")+" · বাতিল "+counts.get("cancelled"),
+          "Batches "+batches.length+" · Planned "+counts.get("planned")+" · Released "+counts.get("released")+" · Recorded "+counts.get("recorded")+" · Cancelled "+counts.get("cancelled")]);
+        for(const x of [...batches].sort((a,b)=>Number(b.id)-Number(a.id)).slice(0,10)){
+          const bnState={planned:"পরিকল্পিত",released:"রিলিজ",recorded:"রেকর্ড",cancelled:"বাতিল"}[x.status];
+          const unit=typeof x.yield_uom_ref==="string"?x.yield_uom_ref.slice(0,40):"";
+          rows.push(["ব্যাচ #"+x.id+" · "+bnState+" · প্রত্যাশিত "+x.expected_output+" "+unit,
+            "Batch #"+x.id+" · "+x.status+" · Expected "+x.expected_output+" "+unit]);
+        }
+        if(batches.length>10)rows.push(["সর্বশেষ ১০টি ব্যাচ দেখানো হয়েছে।","Showing latest 10 batches."]);
+        rows.push(["রেকর্ডকৃত ব্যাচ stock posting বা COGS certification নয়।","Recorded batch is not stock posting or COGS certification."]);
+      }else rows.push(["ব্যাচের scope বা status যাচাই হয়নি।","Batch scope or status not verified."]);
     }else rows.push(["Recipe যাচাই করতে অনুমোদিত কারখানা নির্বাচন করুন","Select an authorized factory to inspect recipe revisions"]);
     rows.push(["Lot, pack, shelf life, label profile: এখনো যাচাই হয়নি","Lot, pack, shelf life and label profile: not yet verified"]);
     if(!current())return;
