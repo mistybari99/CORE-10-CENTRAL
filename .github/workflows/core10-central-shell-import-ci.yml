@@ -64,7 +64,7 @@ jobs:
         run: node --test tests/core10-central-signed-context.test.cjs
       - name: Canonical 56/56 local browser checks, full suite unchanged
         run: node apps/central/verify.cjs
-      - name: Canonical 56/56 public Worker checks, NO deploy
+      - name: Active clean public Worker checks (historical 56/56 stays local), NO deploy
         env:
           REVIEW_BASE: https://core10-central.mistybari99.workers.dev
-        run: node apps/central/verify.cjs
+        run: node apps/central/verify-clean-public.cjs --browser
