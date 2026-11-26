@@ -27,6 +27,7 @@ jobs:
       - run: |
           node --test tests/migrations/migration-contract.test.js
           bash tests/migrations/run-updownup.sh
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-locations-e2e.sql
       - run: |
           node apps/central/build.mjs
           node apps/central/build-clean.mjs
