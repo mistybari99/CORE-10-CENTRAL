@@ -67,7 +67,7 @@ function rpc(name,a){
 }
 window.CORE10_E2E=st;
 window.supabase={createClient:function(){return{auth:{getUser:async()=>({data:{user:{id:"signed-test-fixture-uuid"}},error:null})},
- schema:function(s){if(s!=="c10_demo")throw Error("SCHEMA_SCOPE");
+ schema:function(s){if(s!=="core10")throw Error("SCHEMA_SCOPE");
   return{rpc:async(n,a)=>rpc(n,a),from:function(t){if(t!=="businesses")throw Error("TABLE_SHADOW_ACCESS");
    return{select(){return this},order(){return this},limit:async()=>({data:[{id:101,tenant_id:1,slug:"business-a"},{id:102,tenant_id:1,slug:"business-b"}],error:null})}}}}}}};
 })();

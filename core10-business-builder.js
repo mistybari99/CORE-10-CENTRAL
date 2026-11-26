@@ -68,7 +68,21 @@ function create(config){
  }
  function reset(){model={name:"",slug:"",templateId:"sweets_bakery",brandHex:"#315B76",mode:"quick",sites:[],modules:[]};emit()}
  function onChange(fn){subscribers.add(fn);return()=>subscribers.delete(fn)}
- function preview(){return{schema_version:1,kind:"core10_business_setup_preview",production_ready:false,model:snapshot(),validation:validate(catalog,model)}}
+ function preview(){
+  const result={schema_version:1,kind:"core10_business_setup_preview",production_ready:false,
+   model:snapshot(),validation:validate(catalog,model)};
+  if(model.templateId==="sweets_bakery" && result.validation.ok){
+   const kinds=new Set(model.sites.map(site=>site.kind));
+   if(model.mode==="quick")kinds.add("showroom");
+   result.pilot_site_plan={
+    work_id:"T01.01",
+    factory:kinds.has("factory"),
+    storage:kinds.has("godown")||kinds.has("warehouse"),
+    showroom:kinds.has("showroom")
+   };
+  }
+  return result;
+ }
  async function provision(context){
   if(config.releaseEnabled!==true)throw Error("BUSINESS_SETUP_RELEASE_LOCKED");
   if(!config.enterpriseClient||typeof config.enterpriseClient.setupBusiness!=="function")throw Error("SIGNED_BACKEND_REQUIRED");

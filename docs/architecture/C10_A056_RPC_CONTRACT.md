@@ -1,8 +1,8 @@
 # C10-A056 RPC Contract (Universal CRM, Customer Lifecycle & Sales Integration)
 
 Status: DRAFT contract, source-built on disposable PostgreSQL only. Not production, not GoTrue-verified.
-Schema: `c10_demo`. All RPC names end `_v1` and start `a056_`. Called through the signed client
-`client.schema("c10_demo").rpc(name, args)` (same pattern as A050), wrapped by `core10-crm-lifecycle-client.js`.
+Schema: `core10`. All RPC names end `_v1` and start `a056_`. Called through the signed client
+`client.schema("core10").rpc(name, args)` (same pattern as A050), wrapped by `core10-crm-lifecycle-client.js`.
 
 ## Conventions
 - Args are named `p_*`. Every write takes `p_request text` matching `^[A-Za-z0-9_-]{8,100}$` (idempotency key, per business).

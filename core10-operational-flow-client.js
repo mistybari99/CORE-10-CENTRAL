@@ -11,7 +11,7 @@
   async function db(){
    if(!client?.auth?.getUser||typeof client.schema!=="function")bad("SIGNED_CLIENT_REQUIRED");
    const r=await client.auth.getUser();if(!r||r.error||!r.data?.user?.id)bad("AUTH_REQUIRED");
-   const s=client.schema("c10_demo");if(!s?.rpc||!s?.from)bad("SCHEMA_UNAVAILABLE");return s;
+   const s=client.schema("core10");if(!s?.rpc||!s?.from)bad("SCHEMA_UNAVAILABLE");return s;
   }
   function unpack(r){if(!r||r.error){const e=new Error(r?.error?.message||"SERVER_ERROR");e.code=r?.error?.code||"SERVER_ERROR";throw e}return r.data}
   async function businesses(){return unpack(await (await db()).from("businesses").select("id,tenant_id,slug").order("id",{ascending:true}).limit(150))}

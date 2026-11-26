@@ -17,7 +17,7 @@ const V=[
  ["order_total_approval",{threshold:600000,outcome:"approval_required",currency:"BDT"},{order_total:599999.99}]];
 const q=(o)=>"'"+JSON.stringify(o).replace(/'/g,"''")+"'::jsonb";
 for(const [c,p,i] of V){
- const out=execFileSync("psql",["-X","-At","-v","ON_ERROR_STOP=1","-c",`SELECT c10_demo.intent_eval_v1('${c}',${q(p)},${q(i)})`],{encoding:"utf8"});
+ const out=execFileSync("psql",["-X","-At","-v","ON_ERROR_STOP=1","-c",`SELECT core10.intent_eval_v1('${c}',${q(p)},${q(i)})`],{encoding:"utf8"});
  const s=JSON.parse(out),j=E.evaluate(c,p,i);
  assert.equal(j.matched,s.matched,c+" matched");assert.equal(j.outcome,s.outcome,c+" outcome");
  for(const [k,v] of Object.entries(j.computed))assert.ok(Math.abs(v-s.computed[k])<1e-9,c+" "+k+" js="+v+" sql="+s.computed[k]);

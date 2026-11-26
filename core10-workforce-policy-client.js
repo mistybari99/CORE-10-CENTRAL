@@ -1,6 +1,6 @@
 /* C10-A053/A054 Workforce Integration & Policy signed-session RPC client. One strict allow-list.
  * - Needs a Supabase client whose auth.getUser() verifies the session with the Auth server (no cached/forged identity).
- * - Calls ONLY schema('c10_demo').rpc(<allow-listed a053_*_v1 / a054_*_v1 / 4 reviewed A051 wf_*_v1>) with exact argument names/types.
+ * - Calls ONLY schema('core10').rpc(<allow-listed a053_*_v1 / a054_*_v1 / 4 reviewed A051 wf_*_v1>) with exact argument names/types.
  * - No local role authority, no table access, no simulated success. The database stays the only authority.
  * - There is NO payment function here: external payments are RECORDS of money moved outside this system.
  */
@@ -71,7 +71,7 @@
    if(!client||!client.auth||typeof client.auth.getUser!=="function"||typeof client.schema!=="function")fail("SIGNED_SUPABASE_CLIENT_REQUIRED");
    const r=await client.auth.getUser();
    if(!r||r.error||!r.data||!r.data.user||typeof r.data.user.id!=="string"||!r.data.user.id)fail("AUTHENTICATED_USER_REQUIRED");
-   const s=client.schema("c10_demo");
+   const s=client.schema("core10");
    if(!s||typeof s.rpc!=="function")fail("WORKFORCE_SCHEMA_NOT_AVAILABLE");
    return s;
   }

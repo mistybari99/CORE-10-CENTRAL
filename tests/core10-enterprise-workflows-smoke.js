@@ -31,7 +31,7 @@ const b={businessId:101,finishedItemId:8004,code:"Cake Recipe",
  const disabled=create({client});
  assert.deepEqual(disabled.status(),{
   enabled:false,draftsEnabled:false,postingEnabled:false,
-  financeWritesEnabled:false,schema:"c10_demo",productionCertified:false});
+  financeWritesEnabled:false,schema:"core10",productionCertified:false});
  await rejectCode(()=>disabled.ownerBoard(),"ENTERPRISE_WORKFLOWS_NOT_RELEASED");
  await rejectCode(()=>disabled.operationalDraft(op),"ENTERPRISE_WORKFLOWS_NOT_RELEASED");
  await rejectCode(()=>disabled.postOperation(1),"ENTERPRISE_WORKFLOWS_NOT_RELEASED");
@@ -41,7 +41,7 @@ const b={businessId:101,finishedItemId:8004,code:"Cake Recipe",
  assert.deepEqual(await ro.ownerBoard(),[{business_id:101}]);
  assert.deepEqual(await ro.businessOperations(101),[{business_id:101}]);
  assert.deepEqual(await ro.tenantDashboard(),[{business_id:101}]);
- assert.ok(trace.some(e=>e[0]==="schema"&&e[1]==="c10_demo"));
+ assert.ok(trace.some(e=>e[0]==="schema"&&e[1]==="core10"));
  assert.ok(trace.some(e=>e[0]==="eq"&&e[1]==="operational_business_report_v1"&&e[3]===101));
  await rejectCode(()=>ro.operationalDraft(op),"ENTERPRISE_WORKFLOWS_NOT_RELEASED");
  await rejectCode(()=>ro.financeMonth({}),"INVALID_FINANCE_MONTH_DRAFT");

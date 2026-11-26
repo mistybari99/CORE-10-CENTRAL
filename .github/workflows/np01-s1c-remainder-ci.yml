@@ -1,0 +1,80 @@
+name: NP01 S1-c remainder — PostgreSQL negatives and setup
+on:
+  pull_request:
+    branches: [ccr-15ed11dd-n3hw5h]
+    paths:
+      - "internal/migrations/0013*"
+      - "internal/migrations/0014*"
+      - "internal/migrations/0015*"
+      - "internal/migrations/0016*"
+      - "internal/migrations/0019*"
+      - "internal/migrations/0110*"
+      - "internal/migrations/0111*"
+      - "internal/migrations/0112*"
+      - "internal/migrations/0113*"
+      - "internal/migrations/0114*"
+      - "tests/migrations/np01*"
+      - "tests/setup001/**"
+      - "tests/gov003/np01*"
+      - "internal/setup001/**"
+      - "internal/gov003/canonical-csv.mjs"
+      - ".github/workflows/np01-s1c-remainder-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  np01-negative-proof:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Static NP01 and advisory setup contracts
+        run: |
+          node --test tests/migrations/np01-*.test.js
+          node --test tests/setup001/setup-profile-engine.test.cjs tests/gov003/np01-canonical-csv.test.mjs
+      - name: Canonical migrations up-down-up
+        run: bash tests/migrations/run-updownup.sh
+      - name: B-020 0114 six GOV002 RPC registry/evidence grants and forbidden internal exposure
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-unbound-rpc-fence.sql
+      - name: B-005 owner-equivalent TRUNCATE negative proof
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-truncate-guard.sql
+      - name: B-006 and B-007 synthetic Owner/Manager/Cross-tenant PostgreSQL proof
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-governance-e2e.sql
+      - name: B-020 enforce Owner Control on approval-policy publishing (disposable PG17)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-publish-e2e.sql
+      - name: B-020 Owner Control decision, withdrawal and tenant negatives (disposable PG17)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-decision-e2e.sql
+      - name: B-020 0110 submission, delegation and revocation canonical Control negatives (PG17)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-submit-delegation-e2e.sql
+      - name: B-020 0111 route stages 0-5, version pinning, disabled replay, isolation (PG17)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-route-stages-e2e.sql
+      - name: B-020 0111 two-session route configuration and 0/3-stage submission replays
+        run: bash tests/migrations/np01-control-route-concurrency.sh
+      - name: B-020 0112 site Control and max_sites negative proof
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-site-provision-e2e.sql
+      - name: B-020 0112 two independent site writers race
+        run: bash tests/migrations/np01-control-site-provision-concurrency.sh
+      - name: B-020 0113 GOV003 Owner Control Auth, default OFF, export limit and registry (PG17)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-gov003-e2e.sql
+      - name: B-020 0113 concurrent GOV003 override consumes exactly one event (PG17)
+        run: bash tests/migrations/np01-control-gov003-concurrency.sh
+      - name: B-020 0114 six GOV002 threshold/exception Auth-Control precision, maker-checker and RLS proofs (PG17)
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/np01-control-threshold-exception-e2e.sql
+      - name: B-020 0114 independent sessions replay, terminal race, unauthorized lock denial and revocation
+        run: bash tests/migrations/np01-control-threshold-exception-concurrency.sh
+      - name: B-006 real two-session PostgreSQL policy/request/exception races
+        run: bash tests/migrations/np01-governance-concurrency.sh

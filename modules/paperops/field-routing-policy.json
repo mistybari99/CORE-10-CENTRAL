@@ -1,0 +1,279 @@
+{
+  "schema_version": 1,
+  "status": "CANDIDATE_WORKLOAD_POLICY_NOT_OWNER_APPROVED",
+  "caveat": "All original keys preserved. A candidate disposition is not proof of field equivalence or permission to discard old paper source. Missing draft template means original source record remains mandatory.",
+  "form_policies": [
+    {
+      "legacy_code": "R-01",
+      "cadence": "DAILY_CLOSE",
+      "trigger": "showroom_open",
+      "draft_form": "OPS-DAILY",
+      "notes": "per active showroom/shift",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "R-02",
+      "cadence": "TRIGGERED_EVENT",
+      "trigger": "jalebi_active",
+      "draft_form": "SWT-JALEBI",
+      "notes": "only when Jalebi counter operates",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "C-01",
+      "cadence": "CUSTODY_EVENT",
+      "trigger": "cash_handover",
+      "draft_form": "CASH-HANDOVER",
+      "notes": "two-party custody transfer",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "C-02",
+      "cadence": "SOURCE_VOUCHER",
+      "trigger": "approved_expense",
+      "draft_form": "EXP-VOUCHER",
+      "notes": "A separate source-backed expense voucher DRAFT is printable on expense; original approved paper/receipt controls remain mandatory until Owner field parity.",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "C-03",
+      "cadence": "CONTINUOUS_LEDGER",
+      "trigger": "marketing_spend",
+      "draft_form": null,
+      "notes": "spend register; review periodically",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "C-04",
+      "cadence": "PERIODIC_RECON",
+      "trigger": "settlement_received",
+      "draft_form": "FIN-SETTLEMENT",
+      "notes": "per PSP/channel settlement period",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "C-05",
+      "cadence": "CONTINUOUS_LEDGER",
+      "trigger": "receivable_change",
+      "draft_form": "FIN-AR-LEDGER",
+      "notes": "rolling party balances; periodic ageing review",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "C-06",
+      "cadence": "PERIODIC_REVIEW",
+      "trigger": "cash_budget_review",
+      "draft_form": null,
+      "notes": "management budget/position review",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "W-01",
+      "cadence": "CUSTODY_EVENT",
+      "trigger": "materials_issued",
+      "draft_form": "STK-TRANSFER",
+      "notes": "source and receiving signatures; issue distinct from transfer",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "W-02",
+      "cadence": "CUSTODY_EVENT",
+      "trigger": "inter_site_dispatch",
+      "draft_form": "STK-TRANSFER",
+      "notes": "independent despatch/receipt quantities",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "W-03",
+      "cadence": "TRIGGERED_EVENT",
+      "trigger": "count_due_or_exception",
+      "draft_form": "STK-COUNT",
+      "notes": "count variance does not authorize adjustment",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "W-04",
+      "cadence": "CONTINUOUS_LEDGER",
+      "trigger": "stock_move",
+      "draft_form": "STK-LEDGER",
+      "notes": "per item/lot/location, continuing book",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "P-01",
+      "cadence": "TRIGGERED_EVENT",
+      "trigger": "procurement_need",
+      "draft_form": null,
+      "notes": "purchase requisition remains a source document",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "P-02",
+      "cadence": "POLICY_TRIGGERED",
+      "trigger": "quote_policy",
+      "draft_form": "PUR-COMPARE",
+      "notes": "needs approved quote policy and exceptions",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "P-03",
+      "cadence": "SOURCE_VOUCHER",
+      "trigger": "supplier_commitment",
+      "draft_form": null,
+      "notes": "approved purchase order must remain independent",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "P-04",
+      "cadence": "TRIGGERED_EVENT",
+      "trigger": "supplier_receipt",
+      "draft_form": "PUR-GRN",
+      "notes": "QC, held stock and source-references",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "P-05",
+      "cadence": "TRIGGERED_EVENT",
+      "trigger": "supplier_invoice",
+      "draft_form": "PUR-BILL-MATCH",
+      "notes": "three-way match, no payment authority implied",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "P-06",
+      "cadence": "CONTINUOUS_LEDGER",
+      "trigger": "supplier_balance_change",
+      "draft_form": "FIN-AP-LEDGER",
+      "notes": "rolling supplier account",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "S-01",
+      "cadence": "TRIGGERED_EVENT",
+      "trigger": "customer_order",
+      "draft_form": "SLS-ORDER",
+      "notes": "order, deposits and fulfilment evidence",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "S-02",
+      "cadence": "POLICY_TRIGGERED",
+      "trigger": "discount_limit_exception",
+      "draft_form": "EXCEPTION",
+      "notes": "only above approved policy limits",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "S-03",
+      "cadence": "TRIGGERED_EVENT",
+      "trigger": "return_or_complaint",
+      "draft_form": "SLS-RETURN",
+      "notes": "quarantine, refund and root-cause",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "S-04",
+      "cadence": "CONTINUOUS_LEDGER",
+      "trigger": "online_delivery_or_settlement",
+      "draft_form": null,
+      "notes": "online order and delivery source ledger, not just settlement",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "S-05",
+      "cadence": "SOURCE_VOUCHER",
+      "trigger": "wholesale_sale",
+      "draft_form": null,
+      "notes": "independent commercial/tax invoice",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "S-06",
+      "cadence": "CONTINUOUS_LEDGER",
+      "trigger": "wholesale_party_balance",
+      "draft_form": "FIN-AR-LEDGER",
+      "notes": "party receivable and settlement ledger",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "F-01",
+      "cadence": "POLICY_TRIGGERED",
+      "trigger": "new_product_decision",
+      "draft_form": null,
+      "notes": "new-product approval before factory production",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "F-02",
+      "cadence": "VERSIONED_MASTER",
+      "trigger": "product_spec_change",
+      "draft_form": "MFG-SPEC",
+      "notes": "approved spec, grade and shelf-life version",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "F-03",
+      "cadence": "VERSIONED_MASTER",
+      "trigger": "recipe_version_change",
+      "draft_form": "MFG-SPEC",
+      "notes": "recipe master: batch references version",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "F-04",
+      "cadence": "POLICY_TRIGGERED",
+      "trigger": "yield_trial_due",
+      "draft_form": null,
+      "notes": "separate controlled trial and independent measurer",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "F-05",
+      "cadence": "BATCH_OR_SHIFT",
+      "trigger": "factory_batch_active",
+      "draft_form": "MFG-DAILY",
+      "notes": "only active factory batch/shift",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "M-01",
+      "cadence": "TRIGGERED_EVENT",
+      "trigger": "machine_issue",
+      "draft_form": null,
+      "notes": "maintenance/asset safety source evidence",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "A-01",
+      "cadence": "PERIODIC_REVIEW",
+      "trigger": "weekly_review_due",
+      "draft_form": null,
+      "notes": "weekly management/exception decisions",
+      "parity": "NOT_PROVEN"
+    },
+    {
+      "legacy_code": "A-02",
+      "cadence": "PERIODIC_REVIEW",
+      "trigger": "month_close",
+      "draft_form": "FIN-MONTHLY",
+      "notes": "monthly P&L, source ledgers required",
+      "parity": "NOT_PROVEN"
+    }
+  ],
+  "field_routing_defaults": {
+    "primary": "INHERIT_FORM_CADENCE",
+    "conditional_if_required": "CONDITIONAL_CAPTURE_KEEP_SOURCE_REFERENCE",
+    "conditional_if_visible": "CONDITIONAL_VISIBILITY_REVIEW_REQUIRED",
+    "original_field_always": "SOURCE_REQUIRED_CANDIDATE_NOT_RELEASE_APPROVED",
+    "field_identity": "<form>:<field> preserved even when labels repeat across forms",
+    "if_critical_traced": "CRITICAL_TRACE_DRAFT_TARGET_ONLY",
+    "untraced": "REQUIRES_FIELD_BY_FIELD_TRIAGE_NOT_SAFE_TO_REMOVE"
+  },
+  "protected_evidence_types": [
+    "SOURCE_VOUCHER",
+    "CUSTODY_EVENT",
+    "VERSIONED_MASTER",
+    "CONTINUOUS_LEDGER"
+  ],
+  "all_policies_require_manual_signoff": true
+}

@@ -50,7 +50,7 @@ async function denies(p,code){await assert.rejects(p,e=>e&&e.code===code);}
  assert.ok(events.some(x=>x[0]==="eq"&&x[1]==="stocktakes_v1"&&x[2]==="business_id"&&x[3]===101));
  assert.ok(events.some(x=>x[0]==="eq"&&x[1]==="stocktake_lines_v1"&&x[2]==="business_id"&&x[3]===101));
  assert.ok(events.some(x=>x[0]==="eq"&&x[1]==="stocktake_discrepancy_v1"&&x[2]==="business_id"&&x[3]===101));
- assert.ok(events.some(x=>x[0]==="schema"&&x[1]==="c10_demo"),"must use enterprise schema only");
+ assert.ok(events.some(x=>x[0]==="schema"&&x[1]==="core10"),"must use enterprise schema only");
  assert.ok(events.some(x=>x[0]==="getUser"),"session must be verified for each read");
  for(const bad of [0,-1,1.5,"00","101;DROP TABLE",null,{},Infinity]){
   await denies(api.listStocktakes(bad),"INVALID_BUSINESS_ID");

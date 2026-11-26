@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="bn" data-lang="bn"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>CORE 10 CENTRAL</title>
+<link rel="stylesheet" href="/app.css">
+</head><body>
+<header class="c10-top">
+ <a class="c10-brand" href="#/home" aria-label="CORE 10 CENTRAL"><span class="c10-logo" aria-hidden="true">10</span><span>CORE 10 CENTRAL</span></a>
+ <span class="c10-pill" id="c10-data-status" role="status" aria-live="polite" data-copy="sampleStatus"><span class="bn"></span><span class="en"></span></span>
+ <div class="c10-lang" role="group" aria-label="Language" data-label="language"><button type="button" data-set-lang="bn">বাংলা</button><button type="button" data-set-lang="en">EN</button></div>
+</header>
+<section class="c10-context" id="c10-context" aria-label="Signed Group Business Site context" data-label="signedContext">
+ <div class="c10-context-row">
+  <span class="c10-context-title" data-copy="contextTitle"><span class="bn"></span><span class="en"></span></span>
+  <span id="c10-context-note" class="c10-context-note" role="status" aria-live="polite"></span>
+  <div class="c10-context-anon" id="c10-context-anon">
+   <button type="button" id="c10-shell-open-login" aria-expanded="false" aria-controls="c10-shell-login-panel" data-copy="signIn"><span class="bn"></span><span class="en"></span></button>
+  </div>
+  <div class="c10-context-signed" id="c10-context-signed" hidden>
+   <label data-copy="group"><span class="bn"></span><span class="en"></span><select id="c10-group" aria-label="Group" data-label="group"></select></label>
+   <label data-copy="business"><span class="bn"></span><span class="en"></span><select id="c10-business" aria-label="Business" data-label="business"></select></label>
+   <label data-copy="site"><span class="bn"></span><span class="en"></span><select id="c10-site" aria-label="Site" data-label="site"></select></label>
+   <details id="c10-location-details" hidden><summary><span class="bn" lang="bn">স্টক লোকেশন</span><span class="en" lang="en">Stock locations</span></summary>
+    <p id="c10-location-status" role="status"></p><ul id="c10-location-list"></ul>
+   </details>
+   <details id="c10-pilot-details" hidden><summary><span class="bn" lang="bn">বেকারি পাইলট যাচাই</span><span class="en" lang="en">Bakery pilot preflight</span></summary>
+    <p id="c10-pilot-status" role="status"></p><ul id="c10-pilot-list"></ul>
+    <div id="c10-recipe-planner" hidden>
+     <label><span class="bn" lang="bn">অনুমোদিত রেসিপি</span><span class="en" lang="en">Approved recipe</span><select id="c10-recipe" aria-label="Approved recipe"></select></label>
+     <label><span class="bn" lang="bn">ব্যাচ গুণক</span><span class="en" lang="en">Batch multiplier</span><input id="c10-recipe-multiplier" aria-label="Batch multiplier" type="number" value="1" min="0.000001" max="100000" step="0.000001" size="8"></label>
+     <button type="button" id="c10-recipe-validate"><span class="bn" lang="bn">উপকরণ যাচাই</span><span class="en" lang="en">Validate materials</span></button>
+     <p id="c10-recipe-status" role="status"></p><ul id="c10-recipe-results"></ul>
+     <form id="c10-batch-plan" hidden autocomplete="off">
+      <p><span class="bn" lang="bn">শুধু পরিকল্পনা; স্টক বা হিসাব পোস্ট হবে না।</span><span class="en" lang="en">Planning only; no stock or finance posting.</span></p>
+      <label><span class="bn" lang="bn">কারখানার লোকেশন আইডি</span><span class="en" lang="en">Factory stock location ID</span><input id="c10-batch-location" required inputmode="numeric" maxlength="16" size="10"></label>
+      <label><span class="bn" lang="bn">অনন্য পরিকল্পনা রেফারেন্স (পুনরায় চেষ্টা করলে একইটি দিন)</span><span class="en" lang="en">Unique plan reference (reuse on retry)</span><input id="c10-batch-key" required pattern="[A-Za-z0-9_-]{8,100}" maxlength="100" size="16"></label>
+      <label><input id="c10-batch-confirm" type="checkbox" required><span class="bn" lang="bn">নির্বাচিত রেসিপির পরিকল্পনা সংরক্ষণ নিশ্চিত করছি</span><span class="en" lang="en">Confirm saving this recipe plan</span></label>
+      <button id="c10-batch-submit" type="submit"><span class="bn" lang="bn">ব্যাচ পরিকল্পনা সংরক্ষণ</span><span class="en" lang="en">Save batch plan</span></button>
+      <p id="c10-batch-status" role="status"></p>
+     </form>
+    </div>
+   </details>
+   <details id="c10-invoice-check" hidden>
+    <summary><span class="bn" lang="bn">সরবরাহকারীর ইনভয়েস যাচাই</span><span class="en" lang="en">Supplier invoice check</span></summary>
+    <form id="c10-invoice-form" autocomplete="off">
+     <label><span class="bn" lang="bn">ক্রয়াদেশ আইডি</span><span class="en" lang="en">Purchase order ID</span><input id="c10-invoice-po" required size="10" inputmode="numeric" maxlength="16"></label>
+     <label><span class="bn" lang="bn">ক্রয়াদেশের লাইন</span><span class="en" lang="en">Purchase order line</span><input id="c10-invoice-line" required size="5" inputmode="numeric" maxlength="4"></label>
+     <label><span class="bn" lang="bn">ইনভয়েসের পরিমাণ</span><span class="en" lang="en">Invoiced quantity</span><input id="c10-invoice-quantity" required size="10" inputmode="decimal" maxlength="16"></label>
+     <button type="submit"><span class="bn" lang="bn">পরিমাণ মিলিয়ে দেখুন</span><span class="en" lang="en">Compare quantity</span></button>
+    </form>
+    <p id="c10-invoice-status" class="c10-context-note" role="status"></p>
+   </details>
+   <button type="button" id="c10-context-refresh" data-copy="refresh"><span class="bn"></span><span class="en"></span></button>
+   <button type="button" id="c10-shell-signout" data-copy="signOut"><span class="bn"></span><span class="en"></span></button>
+  </div>
+ </div>
+ <form id="c10-shell-login-panel" class="c10-shell-login" hidden autocomplete="on">
+  <label data-copy="email"><span class="bn"></span><span class="en"></span><input id="c10-shell-email" type="email" autocomplete="username" required></label>
+  <label data-copy="password"><span class="bn"></span><span class="en"></span><input id="c10-shell-password" type="password" autocomplete="current-password" required></label>
+  <button type="submit" id="c10-shell-submit" data-copy="continue"><span class="bn"></span><span class="en"></span></button>
+  <p class="c10-context-help" data-copy="contextHelp"><span class="bn"></span><span class="en"></span></p>
+ </form>
+</section>
+<div class="c10-body">
+ <nav class="c10-nav" aria-label="Main" data-label="mainNavigation">
+  <div class="c10-nav-section" role="group" aria-label="Workspaces" data-label="workspaces">
+   <p class="c10-nav-heading" data-copy="workspaces"><span class="bn"></span><span class="en"></span></p>
+   <a href="#/home" data-route="home" data-copy="ownerHome"><span class="bn"></span><span class="en"></span></a>
+   <a href="#/business" data-route="business" data-copy="business"><span class="bn"></span><span class="en"></span></a>
+   <a href="#/staff" data-route="staff" data-copy="staff"><span class="bn"></span><span class="en"></span></a>
+  </div>
+  <div class="c10-nav-section" role="group" aria-label="Operations" data-label="operations">
+   <p class="c10-nav-heading" data-copy="operations"><span class="bn"></span><span class="en"></span></p>
+   <a href="#/master" data-route="master" data-copy="master"><span class="bn"></span><span class="en"></span></a>
+   <a href="#/stock" data-route="stock" data-copy="stockOperations"><span class="bn"></span><span class="en"></span></a>
+   <a href="#/sales" data-route="sales" data-copy="sales"><span class="bn"></span><span class="en"></span></a>
+   <a href="#/manufacturing" data-route="manufacturing" data-copy="manufacturing"><span class="bn"></span><span class="en"></span></a>
+  </div>
+  <div class="c10-nav-section" role="group" aria-label="Approvals and administration" data-label="administration">
+   <p class="c10-nav-heading" data-copy="administration"><span class="bn"></span><span class="en"></span></p>
+   <a href="#/approvals" data-route="approvals" data-copy="approvals"><span class="bn"></span><span class="en"></span></a>
+   <a href="#/control" data-route="control" data-copy="control"><span class="bn"></span><span class="en"></span></a>
+   <a href="#/features" data-route="features" data-copy="features"><span class="bn"></span><span class="en"></span></a>
+   <a href="#/setup" data-route="setup" data-copy="setup"><span class="bn"></span><span class="en"></span></a>
+  </div>
+ </nav>
+ <main class="c10-main" id="c10-main">
+  <p id="c10-draft" class="c10-draft" role="note" hidden data-copy="replayNotice"><span class="bn"></span><span class="en"></span></p>
+  <section id="c10-entry" class="c10-entry" aria-labelledby="c10-entry-title" hidden>
+   <h1 id="c10-entry-title" data-copy="workspaceShortcuts"><span class="bn"></span><span class="en"></span></h1>
+   <p id="c10-entry-status" role="status"></p>
+   <div class="c10-entry-links">
+    <a href="#/setup" id="c10-entry-setup" hidden data-copy="setup"><span class="bn"></span><span class="en"></span></a>
+    <a href="#/stock" id="c10-entry-stock" hidden data-copy="stockOperations"><span class="bn"></span><span class="en"></span></a>
+   </div>
+  </section>
+  <iframe id="c10-frame" title="CORE 10" src="about:blank"></iframe>
+ </main>
+</div>
+<nav class="c10-mobilebar" aria-label="Mobile primary navigation" data-label="mobileNavigation">
+ <a href="#/home" data-mobile-route="home" data-copy="home"><span class="bn"></span><span class="en"></span></a>
+ <a href="#/business" data-mobile-route="business" data-copy="business"><span class="bn"></span><span class="en"></span></a>
+ <a href="#/stock" data-mobile-route="stock" data-copy="stock"><span class="bn"></span><span class="en"></span></a>
+ <a href="#/approvals" data-mobile-route="approvals" data-copy="approvals"><span class="bn"></span><span class="en"></span></a>
+ <button type="button" id="c10-more-toggle" aria-controls="c10-mobile-more" aria-expanded="false" data-copy="more"><span class="bn"></span><span class="en"></span></button>
+</nav>
+<nav id="c10-mobile-more" class="c10-mobile-more" aria-label="More modules" data-label="moreModules" hidden>
+ <p class="c10-nav-heading" data-copy="otherModules"><span class="bn"></span><span class="en"></span></p>
+ <a href="#/master" data-mobile-route="master" data-copy="master"><span class="bn"></span><span class="en"></span></a>
+ <a href="#/sales" data-mobile-route="sales" data-copy="sales"><span class="bn"></span><span class="en"></span></a>
+ <a href="#/manufacturing" data-mobile-route="manufacturing" data-copy="manufacturing"><span class="bn"></span><span class="en"></span></a>
+ <a href="#/staff" data-mobile-route="staff" data-copy="staff"><span class="bn"></span><span class="en"></span></a>
+ <a href="#/control" data-mobile-route="control" data-copy="control"><span class="bn"></span><span class="en"></span></a>
+ <a href="#/features" data-mobile-route="features" data-copy="features"><span class="bn"></span><span class="en"></span></a>
+ <a href="#/setup" data-mobile-route="setup" data-copy="setup"><span class="bn"></span><span class="en"></span></a>
+</nav>
+<script src="/live/vendor/supabase.js"></script>
+<script src="/live/core10-control-centre-config.js"></script>
+<script src="/app.js"></script>
+<script src="/shell-context.js"></script>
+</body></html>

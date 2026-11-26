@@ -1,0 +1,59 @@
+name: CORE10 S1-c canonical approval and audit PG17
+on:
+  pull_request:
+    paths:
+      - "internal/migrations/**"
+      - "tests/migrations/s1c-canonical-approval-e2e.sql"
+      - "tests/migrations/s1c-routed-approval-e2e.sql"
+      - "tests/migrations/s1c-reviewer-reports-e2e.sql"
+      - "internal/enterprise-client/c10_np01_canonical_review_client_v1.mjs"
+      - "tests/c10_np01_canonical_review_client_v1.test.mjs"
+      - "internal/enterprise-client/c10_np01_reviewer_workspace_v1.mjs"
+      - "internal/enterprise-client/c10_np01_reviewer_workspace_v1.css"
+      - "docs/preview/c10-np01-canonical-reviewer-preview.html"
+      - "tests/c10_np01_reviewer_ui_browser.py"
+      - ".github/workflows/core10-s1c-canonical-approval-ci.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  s1c-approval-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s
+          --health-timeout 5s --health-retries 20
+    env: { PGHOST: localhost, PGPORT: "5432", PGUSER: postgres, PGPASSWORD: postgres, PGDATABASE: postgres }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Static + full rollback proof
+        run: |
+          node --test tests/migrations/migration-contract.test.js
+          bash tests/migrations/run-updownup.sh
+      - name: Canonical approval and audit security E2E
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/s1c-canonical-approval-e2e.sql
+      - name: Check isolated reviewer JavaScript syntax
+        run: |
+          node --check internal/enterprise-client/c10_np01_canonical_review_client_v1.mjs
+          node --check internal/enterprise-client/c10_np01_reviewer_workspace_v1.mjs
+      - name: Signed canonical reviewer client contract tests
+        run: node --test tests/c10_np01_canonical_review_client_v1.test.mjs
+      - name: Install synthetic 390/1440 browser dependencies
+        run: |
+          python3 -m pip install --user playwright
+          python3 -m playwright install chromium
+      - name: Isolated reviewer preview browser smoke
+        run: python3 tests/c10_np01_reviewer_ui_browser.py
+      - name: Canonical scoped reviewer report and audit E2E
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/s1c-reviewer-reports-e2e.sql
+      - name: Canonical 2–5 stage approval, delegation and reviewer security E2E
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/migrations/s1c-routed-approval-e2e.sql

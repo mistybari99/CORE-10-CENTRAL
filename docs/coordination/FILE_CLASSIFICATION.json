@@ -1,0 +1,788 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-11-22",
+  "source_trunk_commit": "4dd4a82c000e78dee485ba89e3b79100ba9c18b2",
+  "review_source": "review/app-organization-20261122:docs/development/APP_ORGANIZATION_REVIEW.md",
+  "scope": "Every tracked root file; preserved 463-file legacy subtree via immutable SHA256 manifest; exact 37-source preview LIVE snapshot. Do not infer staging readiness from UI presence.",
+  "categories": {
+    "LIVE": "Tracked trunk file currently bundled by exact preview source pin",
+    "TRUNK_UNSHIPPED": "CORE10 root prototype/module not shipped from this trunk path",
+    "LEGACY_FROZEN": "Old IMG-ERP original blob relocated to legacy/islamia-erp and never shipped to CORE10 Worker",
+    "TOOLING": "Repository/source coordination only, excluded from runtime"
+  },
+  "root_files": [
+    {
+      "path": "AGENTS.md",
+      "classification": "TOOLING"
+    },
+    {
+      "path": "core10-asset-maintenance-app.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-asset-maintenance-assets.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-asset-maintenance-breakdown.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-asset-maintenance-catalog.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-asset-maintenance-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-asset-maintenance-reports.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-asset-maintenance-schedule.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-asset-maintenance-settings.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-asset-maintenance-workorders.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-asset-maintenance.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-build01-client.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-build01-config.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-build01-pack02.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-build01.css",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-build01.html",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-build01.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-business-builder-staging.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-business-builder-ui.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-business-builder.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-business-builder.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-business-controls.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-business-owner.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-business-template-planner.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-capability-registry.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-control-centre-config.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-control-settings-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-control-studio-entry.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-control-studio.css",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-control-studio.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-control-studio.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle-app.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle-campaigns.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle-customers.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle-demo-backend.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle-engine.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle-intake.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle-pipeline.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle-reports.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle-settings.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle-support.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-crm-lifecycle.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-engine-workshop-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-engine-workshop-demo-backend.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-engine-workshop-demo.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-engine-workshop.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-engine-workshop.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-engine-workshop.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-enterprise-client.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-enterprise-preview.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-enterprise-workflows.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-entity-compatibility.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-home.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-industry-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-inventory-commands-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-inventory-operations.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-inventory-operations.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-inventory-operations.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-legacy-parity.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-master-data-client.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-master-data-ui.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-master-data.css",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-master-data.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-master-data.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-offline-drafts.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-operational-flow-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-operational-flow.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-operational-flow.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-operational-flow.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-operational-item-policy.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-operational-report-policy.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-operational-router.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-business-entry.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-control-centre-ui.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-owner-control-centre.css",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-owner-control-centre.html",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-owner-control-centre.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-owner-control-client.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-owner-dashboard-client.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-owner-dashboard-ui.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-owner-dashboard.css",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-owner-dashboard.html",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-owner-dashboard.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-owner-icon.svg",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-inbox.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-intent-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-intent-engine.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-intent-guidance.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-intent.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-intent.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-intent.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-portfolio-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-portfolio.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-portfolio.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-portfolio.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner-theme.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-owner.webmanifest",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-pack02-app.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-pack02-controls.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-pack02-signed.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-pack02-workspace.css",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-pack02-workspace.js",
+      "classification": "LIVE"
+    },
+    {
+      "path": "core10-place-setup.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-place-setup.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-sales-invoice-ui.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-sales-master-catalog.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-sales-order-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-sales-order-entry.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-sales-order-ui.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-sales-order.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-shell.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-site-topology-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-site-topology.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-site-topology.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-site-topology.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-stocktake-offline.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-stocktake-preview.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-stocktake-preview.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-stocktake-preview.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-app.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-attendance.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-delegation.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-directory.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-integration.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-leave.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-liability.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-payroll.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-policy-app.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-policy-client.js",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-policy.css",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-policy.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-reports.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce-self.html",
+      "classification": "TRUNK_UNSHIPPED"
+    },
+    {
+      "path": "core10-workforce.css",
+      "classification": "TRUNK_UNSHIPPED"
+    }
+  ],
+  "legacy": {
+    "classification": "LEGACY_FROZEN",
+    "manifest": "docs/coordination/LEGACY_MOVE_MANIFEST_20261122.json",
+    "expected_files": 463,
+    "root_paths_forbidden": true
+  },
+  "preview": {
+    "source_file": "preview/core10-central-owner-app/build.mjs",
+    "source_branch": "preview/core10-central-level2",
+    "pins": {
+      "T": "a82ae993b93c1460898b9022bb56b7a995d96437",
+      "S": "ac86ee809157af13458b5607132f00a3d72caec9",
+      "setup": "6f058dcaf834a5744544045c36f2d152fdb66bc7",
+      "pr109": "c7165af0162123c39154445b07d1b730c048519c",
+      "pr112": "86851dc4a09bb71c051e3fb82b8fddc9d0b4ec1b"
+    },
+    "live_sources": [
+      {
+        "pin": "T",
+        "path": "core10-owner-control-centre.css",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-owner-control-centre-ui.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-owner-control-client.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-master-data.css",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-master-data-client.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-master-data-ui.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "S",
+        "path": "core10-owner-dashboard.html",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "S",
+        "path": "core10-owner-dashboard.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "S",
+        "path": "core10-owner-dashboard-client.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "S",
+        "path": "core10-owner-dashboard-ui.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "S",
+        "path": "core10-owner-dashboard.css",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "setup",
+        "path": "core10-build01.html",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "setup",
+        "path": "core10-build01.css",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "setup",
+        "path": "core10-build01.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "setup",
+        "path": "core10-build01-client.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-build01-pack02.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-enterprise-client.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-control-studio.css",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "vendor/supabase.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-owner-control-centre.html",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-owner-control-centre.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-pack02-workspace.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-pack02-workspace.css",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "core10-pack02-controls.js",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "docs/preview/c10-np01-canonical-reviewer-preview.html",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "internal/enterprise-client/c10_np01_reviewer_workspace_v1.mjs",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "internal/enterprise-client/c10_np01_reviewer_workspace_v1.css",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "T",
+        "path": "internal/enterprise-client/c10_np01_canonical_review_client_v1.mjs",
+        "runtime_class": "LIVE"
+      },
+      {
+        "pin": "pr109",
+        "path": "core10-sales-order.css",
+        "runtime_class": "LIVE_DRAFT_SOURCE"
+      },
+      {
+        "pin": "pr109",
+        "path": "core10-sales-master-catalog.js",
+        "runtime_class": "LIVE_DRAFT_SOURCE"
+      },
+      {
+        "pin": "pr109",
+        "path": "core10-sales-order-client.js",
+        "runtime_class": "LIVE_DRAFT_SOURCE"
+      },
+      {
+        "pin": "pr109",
+        "path": "core10-sales-order-ui.js",
+        "runtime_class": "LIVE_DRAFT_SOURCE"
+      },
+      {
+        "pin": "pr109",
+        "path": "core10-sales-order-entry.js",
+        "runtime_class": "LIVE_DRAFT_SOURCE"
+      },
+      {
+        "pin": "pr112",
+        "path": "core10-operational-flow.css",
+        "runtime_class": "LIVE_DRAFT_SOURCE"
+      },
+      {
+        "pin": "pr112",
+        "path": "modules/manufacturing/manufacturing.css",
+        "runtime_class": "LIVE_DRAFT_SOURCE"
+      },
+      {
+        "pin": "pr112",
+        "path": "modules/manufacturing/workbench.mjs",
+        "runtime_class": "LIVE_DRAFT_SOURCE"
+      },
+      {
+        "pin": "pr112",
+        "path": "modules/manufacturing/client.mjs",
+        "runtime_class": "LIVE_DRAFT_SOURCE"
+      }
+    ],
+    "generated_config_inputs": [
+      "core10-control-centre-config.js",
+      "core10-build01-config.js"
+    ],
+    "note": "Nine LIVE sources are pinned to PR #109/#112 revisions but remain draft/unintegrated on trunk; Sales/Manufacturing are replay previews, not staging operational."
+  },
+  "nested_directory_policy": {
+    "apps/central/": "FUTURE_LIVE_SHELL",
+    "modules/": "TRUNK_UNSHIPPED_UNTIL_PINNED",
+    "experimental/": "TRUNK_UNSHIPPED",
+    "legacy/islamia-erp/": "LEGACY_FROZEN",
+    "tests/": "TOOLING",
+    "docs/": "TOOLING",
+    "internal/": "TOOLING_EXCEPT_PINNED_PREVIEW_VIEW",
+    "vendor/": "TOOLING_EXCEPT_PINNED_LIVE_CLIENT",
+    "scripts/": "TOOLING",
+    ".github/": "TOOLING"
+  }
+}

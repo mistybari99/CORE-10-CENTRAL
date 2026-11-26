@@ -1,0 +1,68 @@
+{
+    "nav": [
+        "owner.portfolio",
+        "owner.businesses",
+        "owner.setup",
+        "owner.reports",
+        "owner.controls"
+    ],
+    "mode": "universal_owner",
+    "tenants": [
+        {
+            "id": 1,
+            "slug": "demo-owned-portfolio"
+        }
+    ],
+    "contract": "C10_PACK02_WORKSPACE_V1",
+    "umbrella": {
+        "name": "CORE 10",
+        "visible": true
+    },
+    "actor_uid": "11111111-1111-4111-8111-111111111111",
+    "data_mode": "disposable-demo",
+    "businesses": [
+        {
+            "id": 1,
+            "slug": "pack02-advanced",
+            "brand": {
+                "brand_hex": "#0055AA",
+                "setup_mode": "advanced",
+                "brand_source": "business_configuration_v1",
+                "display_name": "রঙ ঘর ডেমো",
+                "setup_status": "draft"
+            },
+            "status": "draft",
+            "tenant_id": 1,
+            "site_count": 2
+        },
+        {
+            "id": 101,
+            "slug": "demo-sweets",
+            "brand": {
+                "brand_hex": "#334155",
+                "setup_mode": null,
+                "brand_source": "neutral_default",
+                "display_name": "demo-sweets",
+                "setup_status": "draft"
+            },
+            "status": "draft",
+            "tenant_id": 1,
+            "site_count": 2
+        },
+        {
+            "id": 102,
+            "slug": "demo-second-business",
+            "brand": {
+                "brand_hex": "#334155",
+                "setup_mode": null,
+                "brand_source": "neutral_default",
+                "display_name": "demo-second-business",
+                "setup_status": "draft"
+            },
+            "status": "draft",
+            "tenant_id": 1,
+            "site_count": 1
+        }
+    ],
+    "production_certified": false
+}

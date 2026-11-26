@@ -18,9 +18,13 @@
  function uid(x){if(typeof x!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x))fail("BUILD01_INVALID_SUBJECT");return x.toLowerCase();}
  function actions(x){if(!Array.isArray(x)||x.length>2||new Set(x).size!==x.length||x.some(a=>!["stock.read","stock.post"].includes(a)))fail("BUILD01_INVALID_ACTIONS");return [...x].sort();}
  function config(c){
-  if(!obj(c)||c.enabled!==true||c.mode!=="isolated-development")fail("BUILD01_NOT_CONFIGURED");
+  if(!obj(c)||c.enabled!==true||!["isolated-development","core10-staging"].includes(c.mode))fail("BUILD01_NOT_CONFIGURED");
   let u;try{u=new URL(c.url);}catch{fail("BUILD01_INVALID_TARGET");}
-  if(u.protocol!=="http:"||!["127.0.0.1","localhost","[::1]"].includes(u.hostname)||u.username||u.password||u.pathname!=="/"||u.search||u.hash)fail("BUILD01_NONPRODUCTION_TARGET_REQUIRED");
+  if(u.username||u.password||u.pathname!=="/"||u.search||u.hash)fail("BUILD01_NONPRODUCTION_TARGET_REQUIRED");
+  // Loopback for isolated development; the ONE CORE10 staging project for the Owner preview (GO-3). Nothing else.
+  const loop=c.mode==="isolated-development"&&u.protocol==="http:"&&["127.0.0.1","localhost","[::1]"].includes(u.hostname);
+  const staging=c.mode==="core10-staging"&&u.protocol==="https:"&&u.hostname==="rhrqhbyzrhaafynfhdaf.supabase.co";
+  if(!loop&&!staging)fail("BUILD01_NONPRODUCTION_TARGET_REQUIRED");
   if(typeof c.publishableKey!=="string"||!c.publishableKey.trim())fail("BUILD01_PUBLISHABLE_KEY_REQUIRED");
   // Legacy anon JWTs are allowed for the isolated runtime; service-role JWTs are not.
   const part=c.publishableKey.split(".")[1];
@@ -48,7 +52,7 @@
    return uid(r.data.user.id);
   }
   async function rpc(name,args,business){
-   const who=await actor(),db=client.schema("c10_demo");
+   const who=await actor(),db=client.schema("core10");
    if(!db||typeof db.rpc!=="function")fail("BUILD01_API_UNAVAILABLE");
    const result=unwrap(await db.rpc(name,args||{}));
    if(name==="build01_context_v1"&&result.actor_uid!==who)fail("BUILD01_ACTOR_MISMATCH");
@@ -58,15 +62,31 @@
    }
    return result;
   }
+  const PACK02_READ=Object.freeze({
+   pack02_workspace_v1:["p_mode","p_business"],pack02_controls_v1:["p_surface","p_business"],
+   pack02_business_report_v1:["p_business"],pack02_owner_report_v1:[],pack02_setup_readback_v1:["p_business"]
+  });
+  let pack02Actor=null,pack02Poisoned=false;
+  async function pack02(name,args){
+   if(typeof name!=="string"||!Object.prototype.hasOwnProperty.call(PACK02_READ,name))fail("BUILD01_RPC_NOT_ALLOWED");
+   if(!obj(args||{})||Object.keys(args||{}).some(k=>!PACK02_READ[name].includes(k)))fail("BUILD01_RPC_ARGUMENTS_INVALID");
+   if(pack02Poisoned)fail("BUILD01_SESSION_CHANGED");
+   const who=await actor();
+   if(pack02Actor===null)pack02Actor=who;
+   else if(pack02Actor!==who){pack02Poisoned=true;fail("BUILD01_SESSION_CHANGED");}
+   const d=await rpc(name,args||{});
+   if(typeof d.actor_uid==="string"&&d.actor_uid.toLowerCase()!==who)fail("BUILD01_ACTOR_MISMATCH");
+   return d;
+  }
   async function context(){const d=await rpc("build01_context_v1");if(!Array.isArray(d.businesses)||!Array.isArray(d.legal_entities)||!Array.isArray(d.templates))fail("BUILD01_INVALID_CONTEXT");return d;}
   async function workspace(business){const n=id(business),d=await rpc("build01_workspace_v1",{p_business:n},n);if(!Array.isArray(d.sites)||!obj(d.access)||!Array.isArray(d.audit))fail("BUILD01_INVALID_WORKSPACE");return d;}
   async function signIn(email,password){
    if(typeof email!=="string"||!email.includes("@")||typeof password!=="string"||!password)fail("BUILD01_CREDENTIALS_REQUIRED");
    const r=await client.auth.signInWithPassword({email:email.trim(),password});
    if(!r||r.error||!r.data||!r.data.user)fail("BUILD01_LOGIN_FAILED");
-   return context();
+   pack02Actor=null;pack02Poisoned=false;return context();
   }
-  async function signOut(){const r=await client.auth.signOut({scope:"local"});if(r&&r.error)fail("BUILD01_SIGNOUT_FAILED");return {signed_out:true};}
+  async function signOut(){const r=await client.auth.signOut({scope:"local"});pack02Actor=null;pack02Poisoned=false;if(r&&r.error)fail("BUILD01_SIGNOUT_FAILED");return {signed_out:true};}
   async function setup(input){
    shape(input,["legalId","slug","template","displayName","mode","sites","requestKey","brandHex"]);
    if(!existing||typeof existing.validateSetup!=="function")fail("BUILD01_SETUP_VALIDATOR_UNAVAILABLE");
@@ -103,7 +123,7 @@
    return {business_id:id(input.businessId),site_id:id(input.siteId),action:input.action,allowed:!!site&&Array.isArray(site.allowed_actions)&&site.allowed_actions.includes(input.action),source:"fresh_server_workspace"};
   }
   async function audit(business){return (await workspace(business)).audit;}
-  return Object.freeze({signIn,signOut,context,workspace,setup,createSite,changeAccess,effectivePermission,audit});
+  return Object.freeze({signIn,signOut,context,workspace,pack02,setup,createSite,changeAccess,effectivePermission,audit});
  }
  return Object.freeze({create});
 });

@@ -1,0 +1,30 @@
+/* Isolated CORE10-only reviewer interface; never targets legacy IMG selectors. */
+.c10np{--ink:#193442;--muted:#657987;--line:#dbe6eb;--sea:#087b7f;--navy:#0a293b;background:#f3f7f8;color:var(--ink);font:14px/1.55 system-ui,"Noto Sans Bengali","Hind Siliguri",sans-serif;min-height:100vh}
+.c10np *{box-sizing:border-box}.c10np button{font:inherit;cursor:pointer}
+.c10np-shell{min-height:100vh;display:flex;flex-direction:column}
+.c10np-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;padding:18px clamp(16px,4vw,56px);background:var(--navy);color:white}
+.c10np-brand{font-weight:800;letter-spacing:.07em}.c10np-env{border:1px solid #557987;color:#faeac6;border-radius:40px;padding:6px 12px;font-size:11px;letter-spacing:.04em}
+.c10np-main{flex:1;width:100%;max-width:1460px;margin:auto;padding:34px clamp(16px,4vw,56px)}
+.c10np-intro{display:flex;gap:18px;justify-content:space-between;align-items:center;margin-bottom:26px}.c10np-eyebrow{font-size:11px;letter-spacing:.12em;color:var(--sea);font-weight:800}
+.c10np h1{font-size:clamp(28px,3vw,42px);letter-spacing:-.03em;line-height:1.16;margin:8px 0}.c10np h2{font-size:19px;margin:0}.c10np h3{font-size:16px;margin:0;overflow-wrap:anywhere}
+.c10np p{margin:8px 0}.c10np-sub,.c10np-muted{color:var(--muted);overflow-wrap:anywhere}
+.c10np-tabs{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:11px;margin-bottom:22px}
+.c10np-btn{min-height:43px;padding:9px 14px;border-radius:9px;border:1px solid var(--line);background:white;color:var(--ink);font-weight:650}
+.c10np-btn:hover{border-color:var(--sea)}.c10np-btn:focus-visible{outline:3px solid #efbd60;outline-offset:2px}
+.c10np-active{background:var(--sea);border-color:var(--sea);color:#fff}.c10np-active:hover{background:#00616a;color:white}.c10np-outline{background:transparent}.c10np-danger{color:#9b3648}
+.c10np-section-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:0 0 16px}
+.c10np-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.c10np-card{padding:19px;background:#fff;border:1px solid var(--line);border-radius:14px;min-width:0;box-shadow:0 7px 18px rgba(15,59,75,.04)}
+.c10np-card-head{display:flex;justify-content:space-between;align-items:start;gap:12px}.c10np-bubble{border-radius:20px;background:#e7f5f3;color:#00656c;border:1px solid #b9e1dd;font-size:11px;font-weight:750;padding:5px 10px;white-space:nowrap}
+.c10np-meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;border-top:1px solid #ebf0f1;margin-top:17px;padding-top:15px}
+.c10np-meta span{color:var(--muted);font-size:11px;display:block}.c10np-meta strong{font-size:12px;display:block;overflow-wrap:anywhere;margin-top:3px}
+.c10np-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.c10np-empty{background:#fff;border:1px dashed var(--line);border-radius:12px;padding:26px;grid-column:1/-1;color:var(--muted)}
+.c10np-alert{padding:10px 14px;border-radius:9px;border:1px solid}.c10np-error{color:#893b4a;background:#fff1f2;border-color:#e9c1c8}.c10np-good{background:#ecf9f2;border-color:#c4e3d3;color:#21614b}
+.c10np-footer{border-top:1px solid var(--line);padding-top:20px;color:var(--muted);margin-top:35px;font-size:12px}
+.c10np-overlay{position:fixed;inset:0;background:rgba(9,36,52,.6);z-index:1000;display:grid;place-items:center;padding:15px}
+.c10np-dialog{max-width:440px;width:100%;background:#fff;border-radius:16px;padding:25px;box-shadow:0 20px 60px #0003}
+.c10np-dialog .c10np-actions{justify-content:flex-end}
+@media(max-width:850px){.c10np-grid{grid-template-columns:1fr}.c10np-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.c10np-main{padding:22px 14px}.c10np-top{padding:17px 14px}.c10np-tabs .c10np-btn{flex:1 1 40%}.c10np-card-head{flex-direction:column}.c10np-card{padding:15px}.c10np-meta-grid{gap:9px}.c10np-actions .c10np-btn{flex:1 1 35%}}
+@media(prefers-reduced-motion:reduce){.c10np *{scroll-behavior:auto!important;transition:none!important}}

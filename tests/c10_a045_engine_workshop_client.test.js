@@ -20,7 +20,7 @@ const schemaObj={
   limit:async()=>({data:[{id:101,tenant_id:1},{id:102,tenant_id:1}],error:null})}}
 };
 const api=W.create({client:{auth:{getUser:async()=>({data:{user},error:null})},
- schema(n){assert.equal(n,"c10_demo");return schemaObj}}});
+ schema(n){assert.equal(n,"core10");return schemaObj}}});
 (async()=>{
  await assert.rejects(()=>api.readRegistry(1),/AUTHENTICATED_USER_REQUIRED/);
  assert.equal(calls.length,0,"no RPC without a signed user");
@@ -61,7 +61,7 @@ const api=W.create({client:{auth:{getUser:async()=>({data:{user},error:null})},
  }
  const sql=fs.readFileSync(path.join(root,"internal/enterprise-sql/c10_a045_micro_engine_v1.sql"),"utf8");
  assert.ok(!/EXECUTE\s+(format|p_|v_|'|\$)/i.test(sql.replace(/--.*$/gm,"")),"SQL must not use dynamic EXECUTE");
- assert.ok(!/stock_movements|stock_summary|INSERT INTO c10_demo\.(items|sites|businesses)/i.test(sql.replace(/--.*$/gm,"")),"SQL must not touch operational tables");
+ assert.ok(!/stock_movements|stock_summary|INSERT INTO core10\.(items|sites|businesses)/i.test(sql.replace(/--.*$/gm,"")),"SQL must not touch operational tables");
  assert.ok(!/GRANT\s+(SELECT|INSERT|UPDATE|DELETE|ALL)[^;]*TO\s+(authenticated|anon)/i.test(sql),"no direct table grants");
  console.log("PASS C10-A045 client/contract unit suite");
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -63,6 +63,7 @@ jobs:
       - name: Client and gateway security
         run: |
           node tests/build01/client.test.cjs
+          node tests/build01/pack02-contract.test.cjs
           node tests/build01/gateway.test.cjs
       - name: Install isolated Chromium
         run: |

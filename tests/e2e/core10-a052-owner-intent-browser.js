@@ -12,7 +12,7 @@ const U={owner:"11111111-1111-4111-8111-111111111111",bizowner:"22222222-2222-42
 const lit=(v)=>v===null||v===undefined?"NULL":typeof v==="number"||typeof v==="boolean"?String(v):"'"+(typeof v==="string"?v:JSON.stringify(v)).replace(/'/g,"''")+"'";
 function psql(args){return new Promise((res)=>execFile("psql",["-qAtX","-v","ON_ERROR_STOP=1",...args],{maxBuffer:8e6},(e,out,err)=>res({e,out,err})))}
 async function callPg(uid,name,a){
- const call="SELECT c10_demo."+name+"("+Object.entries(a||{}).map(([k,v])=>k+" => "+lit(v)).join(",")+")::text";
+ const call="SELECT core10."+name+"("+Object.entries(a||{}).map(([k,v])=>k+" => "+lit(v)).join(",")+")::text";
  const r=await psql(["-c","SET ROLE authenticated","-c","SELECT set_config('request.jwt.claim.sub',"+lit(uid)+",false)","-c",call]);
  if(r.e){const m=/ERROR:\s+([^\n]*)/.exec(r.err);return{data:null,error:{code:"P0001",message:m?m[1]:"RPC_FAILED"}}}
  const lines=r.out.trim().split("\n");return{data:JSON.parse(lines[lines.length-1]),error:null};
@@ -20,15 +20,15 @@ async function callPg(uid,name,a){
 async function sql(q){const r=await psql(["-c",q]);if(r.e)throw new Error(r.err);return r.out.trim()}
 const fixture=`window.BOS_CONFIG={url:"https://isolated-test.supabase.co",key:"publishable-fixture-only"};
 window.supabase={createClient:function(){return{auth:{getUser:async()=>({data:{user:{id:window.__uid}},error:null})},
- schema:function(s){if(s!=="c10_demo")throw Error("SCHEMA_SCOPE");return{rpc:async(n,a)=>window.__rpc(n,a)}}}}};`;
+ schema:function(s){if(s!=="core10")throw Error("SCHEMA_SCOPE");return{rpc:async(n,a)=>window.__rpc(n,a)}}}}};`;
 async function noOverflow(page,label){const o=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);assert.ok(o<=2,label+" horizontal overflow "+o)}
 async function open(browser,base,who,width){
  const ctx=await browser.newContext({viewport:{width,height:900}});const page=await ctx.newPage();
  const errors=[],external=[];page.on("pageerror",e=>errors.push(e.message));page.on("request",r=>{if(!r.url().startsWith(base))external.push(r.url())});
  await page.exposeFunction("__rpc",(n,a)=>callPg(U[who],n,a));
  await page.addInitScript("window.__uid="+JSON.stringify(U[who])+";");
- await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
- await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:fixture}));
+ await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:fixture}));
+ await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
  await page.goto(base+"/core10-owner-intent.html?biz=101",{waitUntil:"load"});
  return{page,errors,external,ctx};
 }
@@ -51,19 +51,19 @@ const settle=(page,txt)=>page.waitForFunction(t=>document.querySelector("#oi-sta
    assert.match(await page.locator("#oi-ctx").innerText(),/Certified capabilities[\s\S]*Wastage threshold advisory/);
    await noOverflow(page,width+" initial");
    // --- supported: sweets wastage (English) -> preview writes nothing -> validate -> approve -> publish
-   const before=Number(await sql("select count(*) from c10_demo.intent_settings_v1"));
+   const before=Number(await sql("select count(*) from core10.intent_settings_v1"));
    await page.locator("#oi-text").fill("Warn me if sweets wastage goes above "+w.wp+"% in a batch (kg)");
    await clk(page,"#oi-interpret");
    assert.match(await page.locator("#oi-inter").innerText(),/Supported/);
    assert.equal(await page.locator("#oi-p-threshold_pct").inputValue(),String(w.wp));
    assert.match(await page.locator("#oi-assumptions").innerText(),/Outcome defaults to warn/);
-   assert.equal(Number(await sql("select count(*) from c10_demo.owner_intents_v1 where raw_text like 'Warn me if sweets%"+w.wp+"%'")),0,"nothing saved before Save");
+   assert.equal(Number(await sql("select count(*) from core10.owner_intents_v1 where raw_text like 'Warn me if sweets%"+w.wp+"%'")),0,"nothing saved before Save");
    await clk(page,"#oi-saveprev");
    await page.waitForSelector("#oi-nowrite",{timeout:20000});
    assert.match(await page.locator("#oi-diff").innerText(),/params\.threshold_pct/);
    assert.match(await page.locator("#oi-steps").innerText(),/wastage_pct|÷/);
    assert.match(await page.locator("#oi-impact").innerText(),/production_wastage_report \[NOT_BUILT\]/);
-   assert.equal(Number(await sql("select count(*) from c10_demo.intent_settings_v1")),before,"preview must not write settings");
+   assert.equal(Number(await sql("select count(*) from core10.intent_settings_v1")),before,"preview must not write settings");
    assert.equal(await page.locator("#oi-approve").isDisabled(),true,"cannot approve before validation");
    await noOverflow(page,width+" preview");
    // sample numbers change the after-result
@@ -73,8 +73,8 @@ const settle=(page,txt)=>page.waitForFunction(t=>document.querySelector("#oi-sta
    await page.locator("#oi-reason").fill("Owner approves wastage rule");await clk(page,"#oi-approve");
    await page.waitForFunction(()=>document.querySelector("#oi-preview .oi-pill[data-s=APPROVED]"),{timeout:20000});
    await clk(page,"#oi-publish");await page.waitForFunction(()=>document.querySelector("#oi-preview .oi-pill[data-s=PUBLISHED]"),{timeout:20000});
-   assert.equal(Number(await sql("select count(*) from c10_demo.intent_settings_v1")),before+1);
-   assert.equal(await sql("select count(*) from c10_demo.stock_movements where created_by::text<>'x' and false"),"0");
+   assert.equal(Number(await sql("select count(*) from core10.intent_settings_v1")),before+1);
+   assert.equal(await sql("select count(*) from core10.stock_movements where created_by::text<>'x' and false"),"0");
    assert.match(await page.locator("#oi-history").innerText(),/v1[\s\S]*threshold_pct/);
    // --- supported: Bangla paint pack (4 L) with approval wording
    await clk(page,"#oi-lang");            // Bangla
@@ -96,7 +96,7 @@ const settle=(page,txt)=>page.waitForFunction(t=>document.querySelector("#oi-sta
    await page.locator("#oi-reason").fill("Approve materials limit");await clk(page,"#oi-approve");
    await page.waitForFunction(()=>document.querySelector("#oi-preview .oi-pill[data-s=APPROVED]"),{timeout:20000});
    await clk(page,"#oi-publish");await page.waitForFunction(()=>document.querySelector("#oi-preview .oi-pill[data-s=PUBLISHED]"),{timeout:20000});
-   assert.equal(await sql("select count(*) from c10_demo.micro_engine_assignments_v1 a join c10_demo.micro_engines_v1 e on e.id=a.engine_id where e.engine_key='a052_order_total_approval_b101' and a.state='PUBLISHED'"),"1");
+   assert.equal(await sql("select count(*) from core10.micro_engine_assignments_v1 a join core10.micro_engines_v1 e on e.id=a.engine_id where e.engine_key='a052_order_total_approval_b101' and a.state='PUBLISHED'"),"1");
    // --- second low-stock publish then rollback
    for(const th of[w.lt,w.lt+5]){
     await page.locator("#oi-text").fill("alert me when stock is below "+th+" kg");await clk(page,"#oi-interpret");
@@ -108,8 +108,8 @@ const settle=(page,txt)=>page.waitForFunction(t=>document.querySelector("#oi-sta
    }
    const rb=page.locator('[data-setting="low_stock_alert"] .oi-row',{hasText:'"threshold":'+w.lt+'}'}).filter({has:page.locator('[data-rollback]')}).locator('[data-rollback]');
    await rb.waitFor({timeout:20000});await rb.click();
-   for(let i=0;i<40&&await sql("select params->>'threshold' from c10_demo.intent_settings_v1 where business_id=101 and setting_key='low_stock_alert' and state='ACTIVE'")!==String(w.lt);i++)await new Promise(r=>setTimeout(r,250));
-   assert.equal(await sql("select params->>'threshold' from c10_demo.intent_settings_v1 where business_id=101 and setting_key='low_stock_alert' and state='ACTIVE'"),String(w.lt));
+   for(let i=0;i<40&&await sql("select params->>'threshold' from core10.intent_settings_v1 where business_id=101 and setting_key='low_stock_alert' and state='ACTIVE'")!==String(w.lt);i++)await new Promise(r=>setTimeout(r,250));
+   assert.equal(await sql("select params->>'threshold' from core10.intent_settings_v1 where business_id=101 and setting_key='low_stock_alert' and state='ACTIVE'"),String(w.lt));
    assert.ok(await page.locator("#oi-audit li").count()>=5,"audit rendered");
    // --- unsupported: engineering requirement stored, nothing executable
    await page.locator("#oi-text").fill("Show monthly project materials report "+k);await clk(page,"#oi-interpret");
@@ -121,10 +121,10 @@ const settle=(page,txt)=>page.waitForFunction(t=>document.querySelector("#oi-sta
    await page.locator("#oi-text").fill("Give Rahim admin permission");await clk(page,"#oi-interpret");
    assert.match(await page.locator("#oi-unsupported").innerText(),/Refused by policy/);
    // --- invalid locale never reaches the server
-   const nCalls=Number(await sql("select count(*) from c10_demo.owner_intents_v1"));
+   const nCalls=Number(await sql("select count(*) from core10.owner_intents_v1"));
    await page.locator("#oi-text").fill("你好世界，请设置阈值");await clk(page,"#oi-interpret");
    assert.match(await page.locator("#oi-status").innerText(),/Bangla or English/);
-   assert.equal(Number(await sql("select count(*) from c10_demo.owner_intents_v1")),nCalls);
+   assert.equal(Number(await sql("select count(*) from core10.owner_intents_v1")),nCalls);
    // --- contextual guidance (EN then BN) with effective permission
    await page.locator('[data-guide="intent.preview_diff"]').first().click();
    await page.waitForFunction(()=>document.querySelector("#oi-guide-title"),{timeout:20000});
@@ -147,7 +147,7 @@ const settle=(page,txt)=>page.waitForFunction(t=>document.querySelector("#oi-sta
    assert.equal(await b.page.locator("#oi-approve").isDisabled(),true);assert.equal(await b.page.locator("#oi-publish").isDisabled(),true);
    assert.match(await b.page.locator("#oi-preview").innerText(),/Only the tenant Owner can approve and publish/);
    // force the call anyway: the SERVER denies
-   const denied=await b.page.evaluate(async()=>{const c=window.supabase.createClient();const r=await c.schema("c10_demo").rpc("publish_owner_intent_v1",{p_intent:1,p_expected:1,p_request:"force_publish_bo1"});return r.error&&r.error.message});
+   const denied=await b.page.evaluate(async()=>{const c=window.supabase.createClient();const r=await c.schema("core10").rpc("publish_owner_intent_v1",{p_intent:1,p_expected:1,p_request:"force_publish_bo1"});return r.error&&r.error.message});
    assert.equal(denied,"intent_denied");
    assert.equal(await b.page.locator('[data-rollback]').count(),0,"no rollback control for business owner");
    await noOverflow(b.page,width+" bizowner");assert.deepEqual(b.errors,[]);await b.ctx.close();

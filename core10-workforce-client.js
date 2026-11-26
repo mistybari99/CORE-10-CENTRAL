@@ -1,6 +1,6 @@
 /* C10-A051 Workforce signed-session RPC client. One strict allow-list adapter for every Workforce page.
  * - Requires a Supabase client whose auth.getUser() verifies the session with the Auth server (no cached/forged identity).
- * - Calls ONLY schema('c10_demo').rpc(<allow-listed wf_*_v1>) with exactly the declared argument names/types.
+ * - Calls ONLY schema('core10').rpc(<allow-listed wf_*_v1>) with exactly the declared argument names/types.
  * - No local role/permission authority, no direct table access, no simulated success, no token persistence here.
  * - UI hints come from server `capabilities`; the database remains the only authority.
  */
@@ -94,7 +94,7 @@
    if(!client||!client.auth||typeof client.auth.getUser!=="function"||typeof client.schema!=="function")fail("SIGNED_SUPABASE_CLIENT_REQUIRED");
    const r=await client.auth.getUser();
    if(!r||r.error||!r.data||!r.data.user||typeof r.data.user.id!=="string"||!r.data.user.id)fail("AUTHENTICATED_USER_REQUIRED");
-   const s=client.schema("c10_demo");
+   const s=client.schema("core10");
    if(!s||typeof s.rpc!=="function")fail("WORKFORCE_SCHEMA_NOT_AVAILABLE");
    return s;
   }

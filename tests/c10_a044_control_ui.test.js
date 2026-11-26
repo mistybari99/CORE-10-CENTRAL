@@ -15,7 +15,7 @@ function rpc(name,args){calls.push({name,args});if(name==="read_control_settings
 }
 const api=create({client:{
  auth:{getUser:async()=>({data:{user},error:null})},
- schema(name){assert.equal(name,"c10_demo");return {
+ schema(name){assert.equal(name,"core10");return {
   rpc,
   from(name){assert.equal(name,"businesses");return {
    select(){return this},order(){return this},limit(){return Promise.resolve({data:[{id:101,tenant_id:1,slug:"demo"}],error:null})}

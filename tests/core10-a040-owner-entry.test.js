@@ -2,7 +2,7 @@
 // C10-A040 Owner Workspace navigation; DOM visibility is NOT backend stock permission.
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 const code=fs.readFileSync(path.resolve(__dirname,"../core10-owner-business-entry.js"),"utf8");
-const html=fs.readFileSync(path.resolve(__dirname,"../owner.html"),"utf8");
+const html=fs.readFileSync(path.resolve(__dirname,"../legacy/islamia-erp/owner.html"),"utf8");
 assert.match(html,/src="core10-owner-business-entry\.js/);
 assert.ok(!html.includes('src="core10-stocktake-preview.js"'));
 const ids=new Map(),events=new Map();

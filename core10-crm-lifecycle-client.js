@@ -1,4 +1,4 @@
-/* C10-A056 signed RPC client for the CRM lifecycle backend (schema c10_demo). Same signed-session pattern as A050:
+/* C10-A056 signed RPC client for the CRM lifecycle backend (schema core10). Same signed-session pattern as A050:
    the supplied Supabase-style client must be signed in; authorization is ALWAYS decided by the database.
    Also exports hmacSign()/hmacVerify() for staging gateways that sign request envelopes (not an auth substitute). */
 (function (root, factory) {
@@ -78,7 +78,7 @@
       if (!client || !client.auth || typeof client.auth.getUser !== "function" || typeof client.schema !== "function") fail("SIGNED_CLIENT_REQUIRED");
       const u = await client.auth.getUser();
       if (!u || u.error || !u.data || !u.data.user || !u.data.user.id) fail("SIGN_IN_REQUIRED");
-      const s = client.schema("c10_demo"); if (!s || typeof s.rpc !== "function") fail("SCHEMA_MISSING"); return s;
+      const s = client.schema("core10"); if (!s || typeof s.rpc !== "function") fail("SCHEMA_MISSING"); return s;
     }
     async function call(name, params, expectText) {
       const r = await (await schema()).rpc(name, params);
@@ -96,7 +96,7 @@
       };
     }
     api.test = () => ({ simulated_adapter: true });
-    api.release = () => ({ live: false, production: false, source: "c10_demo", provider: "NOOP" });
+    api.release = () => ({ live: false, production: false, source: "core10", provider: "NOOP" });
     return Object.freeze(api);
   }
   /* anonymous public intake: token-gated, no sign-in. Pass an anon-role client */
@@ -105,7 +105,7 @@
       async submit({ token, idempotency, payload }) {
         if (!client || typeof client.schema !== "function") fail("CLIENT_REQUIRED");
         const p = build(PUBLIC.publicIntake[1], { token, idempotency, payload });
-        const r = await client.schema("c10_demo").rpc("a056_public_intake_v1", p);
+        const r = await client.schema("core10").rpc("a056_public_intake_v1", p);
         if (!r || r.error) { const m = (r && r.error && r.error.message) || "RPC_FAILED"; const e = new Error(m); const c = /A056_[A-Z0-9_]+/.exec(m); e.code = c ? c[0] : "RPC_FAILED"; throw e; }
         if (!r.data || !["RECEIVED", "DRAFT"].includes(r.data.status)) fail("UNVERIFIED_RESPONSE");
         return r.data;
@@ -127,5 +127,5 @@
     let d = 0; for (let i = 0; i < expect.length; i++) d |= expect.charCodeAt(i) ^ String(signature).charCodeAt(i); return d === 0;
   }
   const RPC_NAMES = Object.values(RPC).map((x) => x[0]).concat(PUBLIC.publicIntake[0]);
-  return Object.freeze({ create, createPublic, hmacSign, hmacVerify, RPC_NAMES, schema: "c10_demo" });
+  return Object.freeze({ create, createPublic, hmacSign, hmacVerify, RPC_NAMES, schema: "core10" });
 });

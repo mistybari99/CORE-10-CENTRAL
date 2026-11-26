@@ -1,0 +1,4 @@
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {fileURLToPath} from 'node:url';import {buildClean} from './build-clean.mjs';import {extendClean} from './progress/extend.mjs';
+const dir=path.dirname(fileURLToPath(import.meta.url));
+export function buildProgress(){const packs=['paperops-pack.json','operations-pack.json','ui-pack.json'].map(n=>JSON.parse(fs.readFileSync(path.join(dir,'progress',n),'utf8')));const worker=extendClean(buildClean().worker,packs);return {worker,sha256:crypto.createHash('sha256').update(worker).digest('hex')};}
+if(process.argv[1]===fileURLToPath(import.meta.url)){const b=buildProgress();fs.mkdirSync(path.join(dir,'dist-progress'),{recursive:true});fs.writeFileSync(path.join(dir,'dist-progress/worker.mjs'),b.worker);console.log('PROGRESS_WORKER_SHA256 '+b.sha256);}

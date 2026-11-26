@@ -9,23 +9,23 @@ function put(rel,body="safe") {
 }
 try {
  for(const p of REQUIRED) put(p);
- for(const p of ["app.js","config.js","vendor/supabase.js","data/report_registry.json","experimental/owner-console/index.html","v2/js/safe.js","v2/styles/site.css"]) put(p);
- for(const p of ["scripts/tenant_migration.sql","scripts/c10_a018_demo_backend.sql","tests/secret.js","internal/secret.js","internal/enterprise-sql/private.sql","docs/handover.md",".github/workflows/ci.yml","experimental/owner-console/private.md","v2/scripts/danger.sql","v2/audit-unsafe.html","setup-admin.html","audit-private.html","data/secret.env","vendor/file.map"]) put(p,"DO_NOT_PUBLISH");
+ for(const p of ["legacy/islamia-erp/app.js","legacy/islamia-erp/config.js","vendor/supabase.js","data/report_registry.json","experimental/owner-console/index.html","legacy/islamia-erp/v2/js/safe.js","legacy/islamia-erp/v2/styles/site.css"]) put(p);
+ for(const p of ["scripts/tenant_migration.sql","scripts/c10_a018_demo_backend.sql","tests/secret.js","internal/secret.js","internal/enterprise-sql/private.sql","docs/handover.md",".github/workflows/ci.yml","experimental/owner-console/private.md","legacy/islamia-erp/v2/scripts/danger.sql","legacy/islamia-erp/v2/audit-unsafe.html","setup-admin.html","audit-private.html","data/secret.env","vendor/file.map"]) put(p,"DO_NOT_PUBLISH");
  assert.equal(isAllowed("scripts/c10_a018_demo_backend.sql"),false);
- assert.equal(isAllowed("v2/scripts/danger.sql"),false);
+ assert.equal(isAllowed("legacy/islamia-erp/v2/scripts/danger.sql"),false);
  assert.equal(isAllowed("setup-admin.html"),false);
  assert.equal(isAllowed("vendor/supabase.js"),true);
  const result=build(src,out);
  assert.equal(result.count,REQUIRED.length+7);
  assert.deepEqual(verify(out),result.files);
- for(const p of ["scripts/tenant_migration.sql","scripts/c10_a018_demo_backend.sql","tests/secret.js","internal/secret.js","internal/enterprise-sql/private.sql","docs/handover.md","v2/scripts/danger.sql","v2/audit-unsafe.html","setup-admin.html","data/secret.env","vendor/file.map"]) assert.equal(fs.existsSync(path.join(out,p)),false,p+" leaked");
+ for(const p of ["scripts/tenant_migration.sql","scripts/c10_a018_demo_backend.sql","tests/secret.js","internal/secret.js","internal/enterprise-sql/private.sql","docs/handover.md","legacy/islamia-erp/v2/scripts/danger.sql","legacy/islamia-erp/v2/audit-unsafe.html","setup-admin.html","data/secret.env","vendor/file.map"]) assert.equal(fs.existsSync(path.join(out,p)),false,p+" leaked");
  assert.equal(fs.readFileSync(path.join(out,"vendor/supabase.js"),"utf8"),"safe");
  assert.throws(()=>build(src,out),/DIST_ALREADY_EXISTS/);
  assert.throws(()=>build(src,path.join(src,"dist")) ,/DIST_MUST_BE_OUTSIDE_REPO/);
  put("vendor/follow.js");fs.symlinkSync(path.join(src,"scripts","tenant_migration.sql"),path.join(src,"vendor","leak.js"));
  assert.throws(()=>build(src,path.join(home,"other")) ,/SYMLINK_IN_PUBLISH_SCOPE/);
  fs.unlinkSync(path.join(src,"vendor","leak.js"));
- fs.unlinkSync(path.join(out,"owner.html"));
+ fs.unlinkSync(path.join(out,"legacy/islamia-erp/owner.html"));
  assert.throws(()=>verify(out),/PUBLISHED_ASSET_MISSING/);
  put("vendor/hijack.js");
  fs.writeFileSync(path.join(out,"vendor","exploit.sql"),"unsafe");

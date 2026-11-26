@@ -6,7 +6,7 @@ modules:[],operations_count:2,layout:{mode:"detailed",sections:["sites","operati
 runtime:{inventory:"source_built_isolated"}};
 let signed=true,wrong=false,calls=[];
 const client={auth:{getUser:async()=>signed?{data:{user:{id:"test-user"}},error:null}:{data:{user:null},error:{code:"401"}}},
- schema:k=>{assert.equal(k,"c10_demo");return{rpc:async(name,args)=>{
+ schema:k=>{assert.equal(k,"core10");return{rpc:async(name,args)=>{
   calls.push([name,args]);
   if(name==="read_portfolio_workspace_v1")return{data:wrong?{businesses:[]}:
    {server_authorized:true,production_ready:false,operationally_certified:false,businesses:[biz]},error:null};

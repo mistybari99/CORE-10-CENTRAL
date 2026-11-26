@@ -14,7 +14,7 @@
     fail("SIGNED_CLIENT_REQUIRED");
    const u=await client.auth.getUser();
    if(!u||u.error||!u.data?.user?.id)fail("SIGN_IN_REQUIRED");
-   const s=client.schema("c10_demo");
+   const s=client.schema("core10");
    if(!s||typeof s.rpc!=="function")fail("SCHEMA_MISSING");
    return s;
   }
@@ -51,7 +51,7 @@
     fail("INVALID_LAYOUT_RECEIPT");
    return r;
   }
-  return Object.freeze({read,layout,release:()=>({live:false,production:false,source:"c10_demo"})});
+  return Object.freeze({read,layout,release:()=>({live:false,production:false,source:"core10"})});
  }
  return Object.freeze({create,choices});
 });

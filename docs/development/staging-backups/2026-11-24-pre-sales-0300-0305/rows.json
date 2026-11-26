@@ -1,0 +1,4182 @@
+{
+ "date": "2026-11-24",
+ "project_id": "rhrqhbyzrhaafynfhdaf",
+ "reason": "pre Sales 0300-0305 deployment (TEST ONLY staging)",
+ "schema": "core10",
+ "tables": {
+  "access_change_events_v1": [
+   {
+    "actor_uid": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "after_state": {
+     "active": false,
+     "role": "manager"
+    },
+    "before_state": {
+     "active": true,
+     "role": "manager"
+    },
+    "business_id": 9821,
+    "command": "business_member.revoke",
+    "desired_actions": null,
+    "desired_role": null,
+    "event_kind": "base.access",
+    "executed_at": "2026-11-16T15:59:15.814784+00:00",
+    "id": 1,
+    "input_signature": {
+     "actions": [],
+     "business": 9821,
+     "command": "business_member.revoke",
+     "role": null,
+     "site": null,
+     "subject": "a2170f7a-e59b-4cf8-8b37-06c8b9067762"
+    },
+    "request_key": "stg_1794844697_revoke",
+    "site_id": null,
+    "status": "applied",
+    "subject_uid": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+    "tenant_id": 9801
+   },
+   {
+    "actor_uid": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "after_state": {
+     "active": true,
+     "role": "manager"
+    },
+    "before_state": {
+     "active": false,
+     "role": "manager"
+    },
+    "business_id": 9821,
+    "command": "business_member.grant",
+    "desired_actions": null,
+    "desired_role": "manager",
+    "event_kind": "base.access",
+    "executed_at": "2026-11-16T15:59:17.617354+00:00",
+    "id": 2,
+    "input_signature": {
+     "actions": [],
+     "business": 9821,
+     "command": "business_member.grant",
+     "role": "manager",
+     "site": null,
+     "subject": "a2170f7a-e59b-4cf8-8b37-06c8b9067762"
+    },
+    "request_key": "stg_1794844697_regrant",
+    "site_id": null,
+    "status": "applied",
+    "subject_uid": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+    "tenant_id": 9801
+   },
+   {
+    "actor_uid": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "after_state": {
+     "active": false,
+     "role": "manager"
+    },
+    "before_state": {
+     "active": true,
+     "role": "manager"
+    },
+    "business_id": 9821,
+    "command": "business_member.revoke",
+    "desired_actions": null,
+    "desired_role": null,
+    "event_kind": "base.access",
+    "executed_at": "2026-11-16T16:00:30.269029+00:00",
+    "id": 3,
+    "input_signature": {
+     "actions": [],
+     "business": 9821,
+     "command": "business_member.revoke",
+     "role": null,
+     "site": null,
+     "subject": "a2170f7a-e59b-4cf8-8b37-06c8b9067762"
+    },
+    "request_key": "stg_1794844774_revoke",
+    "site_id": null,
+    "status": "applied",
+    "subject_uid": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+    "tenant_id": 9801
+   },
+   {
+    "actor_uid": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "after_state": {
+     "active": true,
+     "role": "manager"
+    },
+    "before_state": {
+     "active": false,
+     "role": "manager"
+    },
+    "business_id": 9821,
+    "command": "business_member.grant",
+    "desired_actions": null,
+    "desired_role": "manager",
+    "event_kind": "base.access",
+    "executed_at": "2026-11-16T16:00:32.573717+00:00",
+    "id": 4,
+    "input_signature": {
+     "actions": [],
+     "business": 9821,
+     "command": "business_member.grant",
+     "role": "manager",
+     "site": null,
+     "subject": "a2170f7a-e59b-4cf8-8b37-06c8b9067762"
+    },
+    "request_key": "stg_1794844774_regrant",
+    "site_id": null,
+    "status": "applied",
+    "subject_uid": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+    "tenant_id": 9801
+   },
+   {
+    "actor_uid": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "after_state": {
+     "business_id": 3,
+     "status": "draft"
+    },
+    "before_state": {},
+    "business_id": 3,
+    "command": "setup.business",
+    "desired_actions": null,
+    "desired_role": null,
+    "event_kind": "setup.business",
+    "executed_at": "2026-11-22T05:04:09.649373+00:00",
+    "id": 7,
+    "input_signature": {
+     "brand_hex": "#D38A2D",
+     "display_name": "CORE10 DEMO Sweets (TEST ONLY)",
+     "legal": 1,
+     "mode": "advanced",
+     "request": "owner-demo-sweets-chatgpt-20261122-v1",
+     "sites": [
+      {
+       "kind": "showroom",
+       "label": "Demo Showroom"
+      },
+      {
+       "kind": "factory",
+       "label": "Demo Factory"
+      },
+      {
+       "kind": "warehouse",
+       "label": "Demo Warehouse"
+      }
+     ],
+     "slug": "core10-demo-sweets-20261122",
+     "template": "sweets_bakery"
+    },
+    "request_key": "owner-demo-sweets-chatgpt-20261122-v1",
+    "site_id": null,
+    "status": "applied",
+    "subject_uid": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "tenant_id": 1
+   },
+   {
+    "actor_uid": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "after_state": {
+     "business_id": 3,
+     "site_id": 8
+    },
+    "before_state": {},
+    "business_id": 3,
+    "command": "setup.site",
+    "desired_actions": null,
+    "desired_role": null,
+    "event_kind": "setup.site",
+    "executed_at": "2026-11-22T05:25:19.463368+00:00",
+    "id": 8,
+    "input_signature": {
+     "business": 3,
+     "kind": "showroom",
+     "label": "ASIAN Paint",
+     "request": "bc3e51e8-7cfc-4640-aa94-bbbeef90f90b"
+    },
+    "request_key": "bc3e51e8-7cfc-4640-aa94-bbbeef90f90b",
+    "site_id": 8,
+    "status": "applied",
+    "subject_uid": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "tenant_id": 1
+   }
+  ],
+  "approval_delegations_v1": [],
+  "approval_events": [
+   {
+    "action": "approve",
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "business_id": 9821,
+    "created_at": "2026-11-16T15:59:12.279267+00:00",
+    "id": 1,
+    "idempotency_key": "stg_1794844697_owner",
+    "request_id": 1,
+    "tenant_id": 9801
+   },
+   {
+    "action": "approve",
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "business_id": 9821,
+    "created_at": "2026-11-16T16:00:26.747279+00:00",
+    "id": 2,
+    "idempotency_key": "stg_1794844774_owner",
+    "request_id": 2,
+    "tenant_id": 9801
+   }
+  ],
+  "approval_exception_escalations_v1": [],
+  "approval_exception_events_v1": [],
+  "approval_policy_versions_v1": [
+   {
+    "action_code": "adjust",
+    "business_id": 9821,
+    "created_at": "2026-11-16T15:59:05.648998+00:00",
+    "created_by": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "domain": "inventory",
+    "effect_mode": "NON_POSTING_REVIEW",
+    "id": 1,
+    "request_key": "stg_1794844697_policy",
+    "tenant_id": 9801,
+    "ttl_minutes": 60,
+    "version": 1
+   },
+   {
+    "action_code": "adjust",
+    "business_id": 9821,
+    "created_at": "2026-11-16T16:00:20.299566+00:00",
+    "created_by": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "domain": "inventory",
+    "effect_mode": "NON_POSTING_REVIEW",
+    "id": 2,
+    "request_key": "stg_1794844774_policy",
+    "tenant_id": 9801,
+    "ttl_minutes": 60,
+    "version": 2
+   }
+  ],
+  "approval_requests": [
+   {
+    "action_code_v1": "adjust",
+    "business_id": 9821,
+    "created_at": "2026-11-16T15:59:06.356869+00:00",
+    "created_by": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+    "decided_at": "2026-11-16T15:59:12.288225+00:00",
+    "decided_by": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "domain_v1": "inventory",
+    "expires_at_v1": "2026-11-16T16:59:06.364722+00:00",
+    "id": 1,
+    "payload_sha256_v1": "0ee950e7d87d68124f4f809e34c27acbe0b323002e2ad2ab6729cfbcf07ecdb4",
+    "policy_id_v1": 1,
+    "policy_version_v1": 1,
+    "route_control_source_v1": null,
+    "route_control_version_v1": null,
+    "route_stages_pinned_v1": null,
+    "source_key_v1": "stg-1794844697",
+    "source_version_v1": 1,
+    "status": "approved",
+    "submit_key_v1": "stg_1794844697_submit",
+    "tenant_id": 9801
+   },
+   {
+    "action_code_v1": "adjust",
+    "business_id": 9821,
+    "created_at": "2026-11-16T16:00:20.653044+00:00",
+    "created_by": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+    "decided_at": "2026-11-16T16:00:26.754379+00:00",
+    "decided_by": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "domain_v1": "inventory",
+    "expires_at_v1": "2026-11-16T17:00:20.659047+00:00",
+    "id": 2,
+    "payload_sha256_v1": "0ee950e7d87d68124f4f809e34c27acbe0b323002e2ad2ab6729cfbcf07ecdb4",
+    "policy_id_v1": 2,
+    "policy_version_v1": 2,
+    "route_control_source_v1": null,
+    "route_control_version_v1": null,
+    "route_stages_pinned_v1": null,
+    "source_key_v1": "stg-1794844774",
+    "source_version_v1": 1,
+    "status": "approved",
+    "submit_key_v1": "stg_1794844774_submit",
+    "tenant_id": 9801
+   }
+  ],
+  "approval_routes_v1": [],
+  "approval_stage_receipts_v1": [],
+  "approval_thresholds_v1": [],
+  "audit_chain_heads_v1": [
+   {
+    "business_id": 9821,
+    "last_digest": "d98016d343acab69b17d8f860f01af2ef8f32531b14711209d28790b85ef8193",
+    "last_seq": 6,
+    "tenant_id": 9801
+   },
+   {
+    "business_id": 3,
+    "last_digest": "6441f0f0afffceba5434717909861fe9c6a650f553d3f78a61eae356ebd7c306",
+    "last_seq": 34,
+    "tenant_id": 1
+   },
+   {
+    "business_id": null,
+    "last_digest": "742f31ffa382c70ca1fc6fc9ec7a4b4a0630668fbfc77d942c5e675ba5d4be08",
+    "last_seq": 1,
+    "tenant_id": 1
+   }
+  ],
+  "business_configuration_v1": [
+   {
+    "brand_hex": "#D38A2D",
+    "business_id": 3,
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "display_name": "CORE10 DEMO Sweets (TEST ONLY)",
+    "setup_mode": "advanced",
+    "setup_status": "draft",
+    "tenant_id": 1
+   }
+  ],
+  "business_members": [
+   {
+    "active": true,
+    "approval_actions": [],
+    "approval_denied_actions": [],
+    "approval_valid_until": null,
+    "business_id": 9821,
+    "role": "business_owner",
+    "tenant_id": 9801,
+    "user_id": "377717bb-b962-4c5a-9a11-132fa633f9e9",
+    "valid_until": null,
+    "version": 1
+   },
+   {
+    "active": true,
+    "approval_actions": [],
+    "approval_denied_actions": [],
+    "approval_valid_until": null,
+    "business_id": 9821,
+    "role": "investor",
+    "tenant_id": 9801,
+    "user_id": "c84c43af-04ec-4e45-9a39-20c0b51ac033",
+    "valid_until": null,
+    "version": 1
+   },
+   {
+    "active": true,
+    "approval_actions": [],
+    "approval_denied_actions": [],
+    "approval_valid_until": null,
+    "business_id": 9821,
+    "role": "business_owner",
+    "tenant_id": 9801,
+    "user_id": "4e258c69-69d2-4a71-8ed9-65cc0bd859e1",
+    "valid_until": "2026-11-15T15:58:40.032995+00:00",
+    "version": 1
+   },
+   {
+    "active": true,
+    "approval_actions": [],
+    "approval_denied_actions": [],
+    "approval_valid_until": null,
+    "business_id": 9821,
+    "role": "manager",
+    "tenant_id": 9801,
+    "user_id": "a2170f7a-e59b-4cf8-8b37-06c8b9067762",
+    "valid_until": null,
+    "version": 5
+   }
+  ],
+  "business_module_settings_v1": [
+   {
+    "business_id": 3,
+    "module_code": "accounting",
+    "operational_enabled": false,
+    "tenant_id": 1,
+    "visibility": "locked"
+   },
+   {
+    "business_id": 3,
+    "module_code": "costing",
+    "operational_enabled": false,
+    "tenant_id": 1,
+    "visibility": "locked"
+   },
+   {
+    "business_id": 3,
+    "module_code": "pos",
+    "operational_enabled": false,
+    "tenant_id": 1,
+    "visibility": "locked"
+   },
+   {
+    "business_id": 3,
+    "module_code": "production",
+    "operational_enabled": false,
+    "tenant_id": 1,
+    "visibility": "locked"
+   },
+   {
+    "business_id": 3,
+    "module_code": "purchase",
+    "operational_enabled": false,
+    "tenant_id": 1,
+    "visibility": "locked"
+   },
+   {
+    "business_id": 3,
+    "module_code": "reports",
+    "operational_enabled": false,
+    "tenant_id": 1,
+    "visibility": "locked"
+   },
+   {
+    "business_id": 3,
+    "module_code": "stock",
+    "operational_enabled": false,
+    "tenant_id": 1,
+    "visibility": "locked"
+   }
+  ],
+  "business_setup_runs_v1": [
+   {
+    "business_id": 3,
+    "created_at": "2026-11-22T05:04:09.649373+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "id": 3,
+    "payload": {
+     "brand": "#D38A2D",
+     "legal": 1,
+     "mode": "advanced",
+     "modules": [
+      "accounting",
+      "costing",
+      "pos",
+      "production",
+      "purchase",
+      "reports",
+      "stock"
+     ],
+     "name": "CORE10 DEMO Sweets (TEST ONLY)",
+     "sites": [
+      {
+       "kind": "showroom",
+       "label": "Demo Showroom"
+      },
+      {
+       "kind": "factory",
+       "label": "Demo Factory"
+      },
+      {
+       "kind": "warehouse",
+       "label": "Demo Warehouse"
+      }
+     ],
+     "slug": "core10-demo-sweets-20261122",
+     "template": "sweets_bakery"
+    },
+    "request_key": "industry-v2:owner-demo-sweets-chatgpt-20261122-v1",
+    "tenant_id": 1
+   }
+  ],
+  "businesses": [
+   {
+    "id": 9821,
+    "legal_entity_id": 9811,
+    "request_key": "stg-seed-a",
+    "slug": "stg-sweets",
+    "status": "draft",
+    "template_code": "sweets_bakery",
+    "tenant_id": 9801
+   },
+   {
+    "id": 9822,
+    "legal_entity_id": 9812,
+    "request_key": "stg-seed-b",
+    "slug": "stg-other",
+    "status": "draft",
+    "template_code": "restaurant",
+    "tenant_id": 9802
+   },
+   {
+    "id": 3,
+    "legal_entity_id": 1,
+    "request_key": "industry-v2:owner-demo-sweets-chatgpt-20261122-v1",
+    "slug": "core10-demo-sweets-20261122",
+    "status": "draft",
+    "template_code": "sweets_bakery",
+    "tenant_id": 1
+   }
+  ],
+  "canonical_audit_events_v1": [
+   {
+    "action": "approval.approve",
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "business_id": 9821,
+    "event_at": "2026-11-16T15:59:12.291791+00:00",
+    "event_digest": "4330230455cd3bebf4bc8651a1625f376eb38b6ee33d980c734a854886a81e8d",
+    "id": 1,
+    "payload": {
+     "action": "approve",
+     "event_ref": "1",
+     "request_ref": "1"
+    },
+    "payload_sha256": "e56ce10a708336c0b181b9fa508b725cbc7d7ab3c053a1c9b09aa38aed705f80",
+    "prior_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "request_key": "approval:1",
+    "source_domain": "approval",
+    "source_ref": "1",
+    "stream_seq": 1,
+    "tenant_id": 9801
+   },
+   {
+    "action": "access.business_member.revoke",
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "business_id": 9821,
+    "event_at": "2026-11-16T15:59:15.825067+00:00",
+    "event_digest": "65958a3e3898364964c19588184dc358f768b0edb199db7518bcd0baeabfdd88",
+    "id": 2,
+    "payload": {
+     "command": "business_member.revoke",
+     "event_ref": "1",
+     "kind": "base.access"
+    },
+    "payload_sha256": "c5f3da474408fd91bd1e1e4f4c6de1903b2fe2a07608282c390e0de51fcf9b90",
+    "prior_digest": "4330230455cd3bebf4bc8651a1625f376eb38b6ee33d980c734a854886a81e8d",
+    "request_key": "access:1",
+    "source_domain": "access",
+    "source_ref": "1",
+    "stream_seq": 2,
+    "tenant_id": 9801
+   },
+   {
+    "action": "access.business_member.grant",
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "business_id": 9821,
+    "event_at": "2026-11-16T15:59:17.621952+00:00",
+    "event_digest": "ce193a469e34c4217f3b5d7ec2b8af8acaef58c13f67eb33afc645e850543db4",
+    "id": 3,
+    "payload": {
+     "command": "business_member.grant",
+     "event_ref": "2",
+     "kind": "base.access"
+    },
+    "payload_sha256": "1fdf16b1a0ac82492d4584a438d0e4fb2c65f6c1b67c4ac3fa04a433092eac11",
+    "prior_digest": "65958a3e3898364964c19588184dc358f768b0edb199db7518bcd0baeabfdd88",
+    "request_key": "access:2",
+    "source_domain": "access",
+    "source_ref": "2",
+    "stream_seq": 3,
+    "tenant_id": 9801
+   },
+   {
+    "action": "approval.approve",
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "business_id": 9821,
+    "event_at": "2026-11-16T16:00:26.756955+00:00",
+    "event_digest": "3f5d94420f706eb44d22412086dbb88a68460911a6413e79c27625835a0379cc",
+    "id": 4,
+    "payload": {
+     "action": "approve",
+     "event_ref": "2",
+     "request_ref": "2"
+    },
+    "payload_sha256": "ca159703e66a9cafa24cf1f6a38f95ad358c94601d30e1c390d6a6bd63b7efdf",
+    "prior_digest": "ce193a469e34c4217f3b5d7ec2b8af8acaef58c13f67eb33afc645e850543db4",
+    "request_key": "approval:2",
+    "source_domain": "approval",
+    "source_ref": "2",
+    "stream_seq": 4,
+    "tenant_id": 9801
+   },
+   {
+    "action": "access.business_member.revoke",
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "business_id": 9821,
+    "event_at": "2026-11-16T16:00:30.277968+00:00",
+    "event_digest": "ab0755b465c014a5514c9d82c4bd6fcbe713654425df89e62e6076f92bfa02be",
+    "id": 5,
+    "payload": {
+     "command": "business_member.revoke",
+     "event_ref": "3",
+     "kind": "base.access"
+    },
+    "payload_sha256": "d5f0b237f830c283053401f2545e88a87a0f9e884de7d1be7b1ae95f9443a436",
+    "prior_digest": "3f5d94420f706eb44d22412086dbb88a68460911a6413e79c27625835a0379cc",
+    "request_key": "access:3",
+    "source_domain": "access",
+    "source_ref": "3",
+    "stream_seq": 5,
+    "tenant_id": 9801
+   },
+   {
+    "action": "access.business_member.grant",
+    "actor_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0",
+    "business_id": 9821,
+    "event_at": "2026-11-16T16:00:32.578157+00:00",
+    "event_digest": "d98016d343acab69b17d8f860f01af2ef8f32531b14711209d28790b85ef8193",
+    "id": 6,
+    "payload": {
+     "command": "business_member.grant",
+     "event_ref": "4",
+     "kind": "base.access"
+    },
+    "payload_sha256": "b8c05fc88385b1798e007304a2fbeca4bdae84f2ce2582d7cdb6f1955cfe9ecc",
+    "prior_digest": "ab0755b465c014a5514c9d82c4bd6fcbe713654425df89e62e6076f92bfa02be",
+    "request_key": "access:4",
+    "source_domain": "access",
+    "source_ref": "4",
+    "stream_seq": 6,
+    "tenant_id": 9801
+   },
+   {
+    "action": "access.setup.business",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:04:09.70496+00:00",
+    "event_digest": "01442b7dc231b7bd7fecbb6d05cbb59cb82bee25de344dead54ce778ac1596ff",
+    "id": 9,
+    "payload": {
+     "command": "setup.business",
+     "event_ref": "7",
+     "kind": "setup.business"
+    },
+    "payload_sha256": "9a154aeeb8837db1a9820096a9adbd6e2b7d291f8aea44c8426363405ad1fc74",
+    "prior_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "request_key": "access:7",
+    "source_domain": "access",
+    "source_ref": "7",
+    "stream_seq": 1,
+    "tenant_id": 1
+   },
+   {
+    "action": "access.setup.site",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:25:19.519533+00:00",
+    "event_digest": "9e23452b6cd1a7c0390ef4af8967772d9b624d64cc2b72fbbbe843e7d7879beb",
+    "id": 10,
+    "payload": {
+     "command": "setup.site",
+     "event_ref": "8",
+     "kind": "setup.site"
+    },
+    "payload_sha256": "bddd2ed92e575be964845749ff08d550749be0fb14a221f49fb992b7291481d1",
+    "prior_digest": "01442b7dc231b7bd7fecbb6d05cbb59cb82bee25de344dead54ce778ac1596ff",
+    "request_key": "access:8",
+    "source_domain": "access",
+    "source_ref": "8",
+    "stream_seq": 2,
+    "tenant_id": 1
+   },
+   {
+    "action": "control.bootstrap_setting_changed",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": null,
+    "event_at": "2026-11-22T05:47:43.87489+00:00",
+    "event_digest": "742f31ffa382c70ca1fc6fc9ec7a4b4a0630668fbfc77d942c5e675ba5d4be08",
+    "id": 27,
+    "payload": {
+     "authorization": "tenant_owner",
+     "effective_from": "2026-11-22T05:47:43.87418+00:00",
+     "enabled": true,
+     "feature_key": "setup001.provision",
+     "operation_sha256": "cd96c5d03f85f9fa63e854dc4c403a8c1fea94ffbdec3e8c4b7408c2aa17c0de",
+     "reason": "Owner initializes CORE10 staging setup after approved bootstrap migration",
+     "scope": "tenant",
+     "tenant_id": 1,
+     "version": 1
+    },
+    "payload_sha256": "1aafa8e03ba08b1cb176b7f81387ec948c5f56a9cfa0b537e59d08e3a42d2aa3",
+    "prior_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "request_key": "control:owner-d063-cutover-enable-20261122",
+    "source_domain": "control",
+    "source_ref": "bootstrap:v1",
+    "stream_seq": 1,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_created",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.670726+00:00",
+    "event_digest": "cef894126ea4d5c79d2676552bbf2e094f834f7f62173a3adec1abafd7f0a859",
+    "id": 509,
+    "payload": {
+     "command_id": 1,
+     "destination_location": 7,
+     "item_id": 8,
+     "kind": "receive",
+     "quantity": 25,
+     "reason": null,
+     "source_location": null,
+     "stages": 0
+    },
+    "payload_sha256": "83d1dcdd993896a7724d38220a810ae4395e2fa5d0ebd599eb28a7865f1eded8",
+    "prior_digest": "32a4f89932438a9552b0839653917d51272ff65d66b3f553a1d821f3fe55e006",
+    "request_key": "inventory:3:DEMO20261122-SUGAR-WH",
+    "source_domain": "inventory",
+    "source_ref": "command:1:created",
+    "stream_seq": 17,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_confirmed",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.695353+00:00",
+    "event_digest": "2a86d30c8485f505db6859fecaa011814c0cafc4b7edb099fbc5cf390f6df96b",
+    "id": 510,
+    "payload": {
+     "command_id": 1,
+     "from_version": 1,
+     "kind": "receive",
+     "stock_ref": null,
+     "to_version": 2
+    },
+    "payload_sha256": "d2e0ba2350c4e048a6f67b9eedd692202a27e322d26000ffd8db8036672278e5",
+    "prior_digest": "cef894126ea4d5c79d2676552bbf2e094f834f7f62173a3adec1abafd7f0a859",
+    "request_key": "inventory:3:DEMO20261122-SUGAR-WH-confirm",
+    "source_domain": "inventory",
+    "source_ref": "command:1:confirmed",
+    "stream_seq": 18,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_posted",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.717695+00:00",
+    "event_digest": "e4a2a3cad5a9e9433301ba92b8f342999b7dfa8ba52742343e83d2e572428e12",
+    "id": 511,
+    "payload": {
+     "command_id": 1,
+     "from_version": 2,
+     "kind": "receive",
+     "stock_ref": 3,
+     "to_version": 3
+    },
+    "payload_sha256": "74fa6fefc329cfac37cf7de3126839e8b72cb8524b0985c69e42bd176f11ec3b",
+    "prior_digest": "2a86d30c8485f505db6859fecaa011814c0cafc4b7edb099fbc5cf390f6df96b",
+    "request_key": "inventory:3:DEMO20261122-SUGAR-WH-post",
+    "source_domain": "inventory",
+    "source_ref": "command:1:posted",
+    "stream_seq": 19,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_created",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.727886+00:00",
+    "event_digest": "f4692b2d1eafaf9b6f9de8cd9745bbbeb627a5b88db0e9b2ee0c062154a5e1e4",
+    "id": 512,
+    "payload": {
+     "command_id": 2,
+     "destination_location": 7,
+     "item_id": 9,
+     "kind": "receive",
+     "quantity": 10,
+     "reason": null,
+     "source_location": null,
+     "stages": 0
+    },
+    "payload_sha256": "0c42e982e54954f6ec45508e4422fd3baee13a47e0607dfe8b90087c899ad7c6",
+    "prior_digest": "e4a2a3cad5a9e9433301ba92b8f342999b7dfa8ba52742343e83d2e572428e12",
+    "request_key": "inventory:3:DEMO20261122-MILK-WH",
+    "source_domain": "inventory",
+    "source_ref": "command:2:created",
+    "stream_seq": 20,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_confirmed",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.741461+00:00",
+    "event_digest": "b645893a1c261829beaaba225ed91aa2a5ec34103a44b8b42105542428991fcf",
+    "id": 513,
+    "payload": {
+     "command_id": 2,
+     "from_version": 1,
+     "kind": "receive",
+     "stock_ref": null,
+     "to_version": 2
+    },
+    "payload_sha256": "ae8ff11fde9b8aa2357c3d03eb09fddf26cd8a3fa297cf1e44bd08694fc09e60",
+    "prior_digest": "f4692b2d1eafaf9b6f9de8cd9745bbbeb627a5b88db0e9b2ee0c062154a5e1e4",
+    "request_key": "inventory:3:DEMO20261122-MILK-WH-confirm",
+    "source_domain": "inventory",
+    "source_ref": "command:2:confirmed",
+    "stream_seq": 21,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_posted",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.757864+00:00",
+    "event_digest": "b3b3cbf59b53514b6db4519727bee9569116b04029cb197f83f74df409214f6c",
+    "id": 514,
+    "payload": {
+     "command_id": 2,
+     "from_version": 2,
+     "kind": "receive",
+     "stock_ref": 4,
+     "to_version": 3
+    },
+    "payload_sha256": "d0d5a46bf4e5f4d565cc6c3856c0e9b64e6e80b3c656a70fcfef9944282483b5",
+    "prior_digest": "b645893a1c261829beaaba225ed91aa2a5ec34103a44b8b42105542428991fcf",
+    "request_key": "inventory:3:DEMO20261122-MILK-WH-post",
+    "source_domain": "inventory",
+    "source_ref": "command:2:posted",
+    "stream_seq": 22,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_created",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.767284+00:00",
+    "event_digest": "6dc70fad965888ed9b0c74e99fa1e3cc6bd304f5dec0dc34035ea90c51847647",
+    "id": 515,
+    "payload": {
+     "command_id": 3,
+     "destination_location": 6,
+     "item_id": 6,
+     "kind": "receive",
+     "quantity": 30,
+     "reason": null,
+     "source_location": null,
+     "stages": 0
+    },
+    "payload_sha256": "2f7a7c82f40061a23aac54b7c183648131bf0b9ad794a382e094603ddf6e43d2",
+    "prior_digest": "b3b3cbf59b53514b6db4519727bee9569116b04029cb197f83f74df409214f6c",
+    "request_key": "inventory:3:DEMO20261122-RAS-FACT",
+    "source_domain": "inventory",
+    "source_ref": "command:3:created",
+    "stream_seq": 23,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_confirmed",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.78018+00:00",
+    "event_digest": "b41fe34704e0a0f4a1f58378ee6b40d85470e7bcaa4cd0865873d53ffa037614",
+    "id": 516,
+    "payload": {
+     "command_id": 3,
+     "from_version": 1,
+     "kind": "receive",
+     "stock_ref": null,
+     "to_version": 2
+    },
+    "payload_sha256": "88c7a7fa700e8282ed34449b3d89b6252253ba5efebb50f8cd983cba33a2ab01",
+    "prior_digest": "6dc70fad965888ed9b0c74e99fa1e3cc6bd304f5dec0dc34035ea90c51847647",
+    "request_key": "inventory:3:DEMO20261122-RAS-FACT-confirm",
+    "source_domain": "inventory",
+    "source_ref": "command:3:confirmed",
+    "stream_seq": 24,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_posted",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.796124+00:00",
+    "event_digest": "47acbf4d3b3794f1153b3aca8786d01acc0fc32516d1aaaaa1240c17945138c7",
+    "id": 517,
+    "payload": {
+     "command_id": 3,
+     "from_version": 2,
+     "kind": "receive",
+     "stock_ref": 5,
+     "to_version": 3
+    },
+    "payload_sha256": "855c67b40be0ac197dba048dc3bed8cc83dff2b5c012d974dee3d8483733ad7f",
+    "prior_digest": "b41fe34704e0a0f4a1f58378ee6b40d85470e7bcaa4cd0865873d53ffa037614",
+    "request_key": "inventory:3:DEMO20261122-RAS-FACT-post",
+    "source_domain": "inventory",
+    "source_ref": "command:3:posted",
+    "stream_seq": 25,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.uom_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.226262+00:00",
+    "event_digest": "f38e9ec73042b5bafcb6b51a428918b2c0e3905b551fadb11e303333a0258969",
+    "id": 46,
+    "payload": {
+     "code": "PCS",
+     "dimension": "count",
+     "id": 5,
+     "version": 1
+    },
+    "payload_sha256": "b664e5d761081baa2d2f923ac1e4da847dd04e533e4c1238633d07061a3db034",
+    "prior_digest": "9e23452b6cd1a7c0390ef4af8967772d9b624d64cc2b72fbbbe843e7d7879beb",
+    "request_key": "master:3:c10demo-20261122-uom-pcs",
+    "source_domain": "master",
+    "source_ref": "uom:5:v1",
+    "stream_seq": 3,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.uom_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.232924+00:00",
+    "event_digest": "23e5cea7e267ee6deb2afe56025cb19075194479ee7a0c278ce17fbeaa8139a8",
+    "id": 47,
+    "payload": {
+     "code": "KG",
+     "dimension": "mass",
+     "id": 6,
+     "version": 1
+    },
+    "payload_sha256": "6e47666be302c19d599c8f9819da40b95fd2600f42c287274e8095193189615f",
+    "prior_digest": "f38e9ec73042b5bafcb6b51a428918b2c0e3905b551fadb11e303333a0258969",
+    "request_key": "master:3:c10demo-20261122-uom-kg",
+    "source_domain": "master",
+    "source_ref": "uom:6:v1",
+    "stream_seq": 4,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.uom_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.238698+00:00",
+    "event_digest": "a80bef22b9de1291cf14178649c3c7dd801558904245f589414182b1d1c9787f",
+    "id": 48,
+    "payload": {
+     "code": "BOX",
+     "dimension": "count",
+     "id": 7,
+     "version": 1
+    },
+    "payload_sha256": "a1ac58af1f7be0b2681973322854f4eb7751a18e37f72be317fb8e2fc24e7972",
+    "prior_digest": "23e5cea7e267ee6deb2afe56025cb19075194479ee7a0c278ce17fbeaa8139a8",
+    "request_key": "master:3:c10demo-20261122-uom-box",
+    "source_domain": "master",
+    "source_ref": "uom:7:v1",
+    "stream_seq": 5,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.category_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.245178+00:00",
+    "event_digest": "f962f16de640347168ed33595a2143e75e047c1e0f12be01f0e2b2b265ac5221",
+    "id": 49,
+    "payload": {
+     "code": "SWEETS",
+     "id": 3,
+     "version": 1
+    },
+    "payload_sha256": "4f3e8ba1e2f7eca45fefdb72e5f46043feb16a4d5c0c8fc825ea8ac6f5b5d50e",
+    "prior_digest": "a80bef22b9de1291cf14178649c3c7dd801558904245f589414182b1d1c9787f",
+    "request_key": "master:3:c10demo-20261122-cat-sweets",
+    "source_domain": "master",
+    "source_ref": "category:3:v1",
+    "stream_seq": 6,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.category_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.250676+00:00",
+    "event_digest": "0f54e4a6e561822384e5f81172cad8d6f632498f48aa8d2a3f6922a83e87c328",
+    "id": 50,
+    "payload": {
+     "code": "RAW",
+     "id": 4,
+     "version": 1
+    },
+    "payload_sha256": "0d7b9bc4298cf54a93ddef024c03abddc048cedaffd0d338b2ae20e57150acb1",
+    "prior_digest": "f962f16de640347168ed33595a2143e75e047c1e0f12be01f0e2b2b265ac5221",
+    "request_key": "master:3:c10demo-20261122-cat-raw",
+    "source_domain": "master",
+    "source_ref": "category:4:v1",
+    "stream_seq": 7,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.item_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.257388+00:00",
+    "event_digest": "70052bba08267c61f90cfbd302ceb9ccbf57934308e1090fda573ee940ae0e06",
+    "id": 51,
+    "payload": {
+     "id": 6,
+     "sku": "DEMO-RASGULLA",
+     "status": "active",
+     "version": 1
+    },
+    "payload_sha256": "e2eaf6a70e7bd1e42c205b84b4b232b4d25918274b5876eb92e82cd4250a39cf",
+    "prior_digest": "0f54e4a6e561822384e5f81172cad8d6f632498f48aa8d2a3f6922a83e87c328",
+    "request_key": "master:3:c10demo-20261122-item-rasgulla",
+    "source_domain": "master",
+    "source_ref": "item:6:v1",
+    "stream_seq": 8,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.item_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.262643+00:00",
+    "event_digest": "e506f2e5d45ef9b5b23cb405aa73a52918f1a85fb3eb118e4c0b2c883e9a3d51",
+    "id": 52,
+    "payload": {
+     "id": 7,
+     "sku": "DEMO-SANDESH",
+     "status": "active",
+     "version": 1
+    },
+    "payload_sha256": "4363fd85c247dfc46d6b2aa036d89efca7486703bb40db4c2c2caf0e00aee54a",
+    "prior_digest": "70052bba08267c61f90cfbd302ceb9ccbf57934308e1090fda573ee940ae0e06",
+    "request_key": "master:3:c10demo-20261122-item-sandesh",
+    "source_domain": "master",
+    "source_ref": "item:7:v1",
+    "stream_seq": 9,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.item_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.267621+00:00",
+    "event_digest": "72bedfc13adb0d63eac7a463a30341d79387d4b3581c32eb448633edc0487d05",
+    "id": 53,
+    "payload": {
+     "id": 8,
+     "sku": "DEMO-SUGAR",
+     "status": "active",
+     "version": 1
+    },
+    "payload_sha256": "273f8c05a25dada71a78d901077adaa08a9e2d50cf89d133a7962f123a3e79c4",
+    "prior_digest": "e506f2e5d45ef9b5b23cb405aa73a52918f1a85fb3eb118e4c0b2c883e9a3d51",
+    "request_key": "master:3:c10demo-20261122-item-sugar",
+    "source_domain": "master",
+    "source_ref": "item:8:v1",
+    "stream_seq": 10,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.item_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.272654+00:00",
+    "event_digest": "7789c5c4d8a50c8c3c8944dcf37f5a85ee268c6ec4e3b14fda4a957800ce1984",
+    "id": 54,
+    "payload": {
+     "id": 9,
+     "sku": "DEMO-MILK",
+     "status": "active",
+     "version": 1
+    },
+    "payload_sha256": "16e08dac9b2c3d49559dfd9fb3bc4da30dce9052d3dd8649ddbf149cd1d4eceb",
+    "prior_digest": "72bedfc13adb0d63eac7a463a30341d79387d4b3581c32eb448633edc0487d05",
+    "request_key": "master:3:c10demo-20261122-item-milk",
+    "source_domain": "master",
+    "source_ref": "item:9:v1",
+    "stream_seq": 11,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.party_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.278661+00:00",
+    "event_digest": "d534c19b6a3b05ad6f2527731b50ed17654952d957b2e23d1d9e385e3f05021d",
+    "id": 55,
+    "payload": {
+     "code": "DEMO-CUSTOMER",
+     "id": 3,
+     "kind": "customer",
+     "version": 1
+    },
+    "payload_sha256": "eef0e5fbe1848eeed1f432ceb063627d93f2d7b924fc7417b249aa50b8432d20",
+    "prior_digest": "7789c5c4d8a50c8c3c8944dcf37f5a85ee268c6ec4e3b14fda4a957800ce1984",
+    "request_key": "master:3:c10demo-20261122-party-customer",
+    "source_domain": "master",
+    "source_ref": "party:3:v1",
+    "stream_seq": 12,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.party_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.283356+00:00",
+    "event_digest": "f32b3f57fdb3e0b12b3b0d221508fd19d60a8c1afe488333d49265d32462580b",
+    "id": 56,
+    "payload": {
+     "code": "DEMO-SUPPLIER",
+     "id": 4,
+     "kind": "supplier",
+     "version": 1
+    },
+    "payload_sha256": "628e1c3b7fcebfa5ff30ad8aa841f4cdedfd4e950c860b1fa0206fd6f3738626",
+    "prior_digest": "d534c19b6a3b05ad6f2527731b50ed17654952d957b2e23d1d9e385e3f05021d",
+    "request_key": "master:3:c10demo-20261122-party-supplier",
+    "source_domain": "master",
+    "source_ref": "party:4:v1",
+    "stream_seq": 13,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.price_list_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.288864+00:00",
+    "event_digest": "f82d38a8529d3e19025be37ca374ef39f5f99f6b81241b1b247ad444631bcca3",
+    "id": 57,
+    "payload": {
+     "code": "DEMO-RETAIL",
+     "currency": "BDT",
+     "id": 2,
+     "kind": "sales",
+     "version": 1
+    },
+    "payload_sha256": "2f07e41034a1b1b4c848609d26ea34d1ff759df772819c3225813ad74adcade8",
+    "prior_digest": "f32b3f57fdb3e0b12b3b0d221508fd19d60a8c1afe488333d49265d32462580b",
+    "request_key": "master:3:c10demo-20261122-pricelist-retail",
+    "source_domain": "master",
+    "source_ref": "price_list:2:v1",
+    "stream_seq": 14,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.price_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.295137+00:00",
+    "event_digest": "ef25145158d005be974909acbff12fbe1e86de821319aa2c3e49c724fea044d6",
+    "id": 58,
+    "payload": {
+     "id": 3,
+     "item": 6,
+     "price_list": 2,
+     "unit_price": 25,
+     "uom": 5,
+     "version": 1
+    },
+    "payload_sha256": "7d7dc06a11d6e1cd050ef00915201535eec9f692cc94dc0eb6ed1b33627283ac",
+    "prior_digest": "f82d38a8529d3e19025be37ca374ef39f5f99f6b81241b1b247ad444631bcca3",
+    "request_key": "master:3:c10demo-20261122-price-rasgulla",
+    "source_domain": "master",
+    "source_ref": "price:3:v1",
+    "stream_seq": 15,
+    "tenant_id": 1
+   },
+   {
+    "action": "master.price_save",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T05:55:24.299884+00:00",
+    "event_digest": "32a4f89932438a9552b0839653917d51272ff65d66b3f553a1d821f3fe55e006",
+    "id": 59,
+    "payload": {
+     "id": 4,
+     "item": 7,
+     "price_list": 2,
+     "unit_price": 30,
+     "uom": 5,
+     "version": 1
+    },
+    "payload_sha256": "bda91de457950f55f7b38ce93ee9517a5cf5ab6fc5bb44f43664f82c9bbd9540",
+    "prior_digest": "ef25145158d005be974909acbff12fbe1e86de821319aa2c3e49c724fea044d6",
+    "request_key": "master:3:c10demo-20261122-price-sandesh",
+    "source_domain": "master",
+    "source_ref": "price:4:v1",
+    "stream_seq": 16,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_created",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.805319+00:00",
+    "event_digest": "21d7cf9c3fad44b669c715fa4b9aa040c758b6a0c4c83de69b2758c2e1be010c",
+    "id": 518,
+    "payload": {
+     "command_id": 4,
+     "destination_location": 6,
+     "item_id": 7,
+     "kind": "receive",
+     "quantity": 20,
+     "reason": null,
+     "source_location": null,
+     "stages": 0
+    },
+    "payload_sha256": "47ba14b4720be5781e35006a747d7995a35fc50df95ec3543bbcfd43eac8e33c",
+    "prior_digest": "47acbf4d3b3794f1153b3aca8786d01acc0fc32516d1aaaaa1240c17945138c7",
+    "request_key": "inventory:3:DEMO20261122-SAND-FACT",
+    "source_domain": "inventory",
+    "source_ref": "command:4:created",
+    "stream_seq": 26,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_confirmed",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.818079+00:00",
+    "event_digest": "78a87f59fff8c269fe4dad7700f2918afe4a8279123b1c3b233d546724a75209",
+    "id": 519,
+    "payload": {
+     "command_id": 4,
+     "from_version": 1,
+     "kind": "receive",
+     "stock_ref": null,
+     "to_version": 2
+    },
+    "payload_sha256": "2c5b71dfbfa24723856329901cba8421a476008c8df5b84a567e3de9b0e2d4e2",
+    "prior_digest": "21d7cf9c3fad44b669c715fa4b9aa040c758b6a0c4c83de69b2758c2e1be010c",
+    "request_key": "inventory:3:DEMO20261122-SAND-FACT-confirm",
+    "source_domain": "inventory",
+    "source_ref": "command:4:confirmed",
+    "stream_seq": 27,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_posted",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.833675+00:00",
+    "event_digest": "c269ba9dd951107af03ffdf2aa381239f08e726b73de2b8dc5b9cc046627c695",
+    "id": 520,
+    "payload": {
+     "command_id": 4,
+     "from_version": 2,
+     "kind": "receive",
+     "stock_ref": 6,
+     "to_version": 3
+    },
+    "payload_sha256": "c8f086b76764e8a718e2f5b18d0ab2d0a6c496e0d81e46790d89063caa5d4e9c",
+    "prior_digest": "78a87f59fff8c269fe4dad7700f2918afe4a8279123b1c3b233d546724a75209",
+    "request_key": "inventory:3:DEMO20261122-SAND-FACT-post",
+    "source_domain": "inventory",
+    "source_ref": "command:4:posted",
+    "stream_seq": 28,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_created",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.848825+00:00",
+    "event_digest": "f8238254666bc75cb6400e71dc03c14dd0c8fd462e7b753504d4f63767f74849",
+    "id": 521,
+    "payload": {
+     "command_id": 5,
+     "destination_location": 5,
+     "item_id": 6,
+     "kind": "transfer",
+     "quantity": 10,
+     "reason": null,
+     "source_location": 6,
+     "stages": 0
+    },
+    "payload_sha256": "1b7255aee23897b0656563d796e2832c0c2a86546a1aba268ca341dbca9f3f96",
+    "prior_digest": "c269ba9dd951107af03ffdf2aa381239f08e726b73de2b8dc5b9cc046627c695",
+    "request_key": "inventory:3:DEMO20261122-RAS-SHOW",
+    "source_domain": "inventory",
+    "source_ref": "command:5:created",
+    "stream_seq": 29,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_confirmed",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.869712+00:00",
+    "event_digest": "fc1fac749e5340c11369f9c6207db57c7633e9e2db20dc956a61028df46e2277",
+    "id": 522,
+    "payload": {
+     "command_id": 5,
+     "from_version": 1,
+     "kind": "transfer",
+     "stock_ref": null,
+     "to_version": 2
+    },
+    "payload_sha256": "6e99e91536157146d92b4d98ee6ca84c047e1a23b438892a9409207f1506cd03",
+    "prior_digest": "f8238254666bc75cb6400e71dc03c14dd0c8fd462e7b753504d4f63767f74849",
+    "request_key": "inventory:3:DEMO20261122-RAS-SHOW-confirm",
+    "source_domain": "inventory",
+    "source_ref": "command:5:confirmed",
+    "stream_seq": 30,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_posted",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.901702+00:00",
+    "event_digest": "bd70d9a3194f529557cefc05b53bc55af3e65be8a99cb159c04602d9ccb7b2ae",
+    "id": 523,
+    "payload": {
+     "command_id": 5,
+     "from_version": 2,
+     "kind": "transfer",
+     "stock_ref": 1,
+     "to_version": 3
+    },
+    "payload_sha256": "b259c4429f11909bdd408872288b2c340c974898ec4ce35d5db50ef6d5b2211c",
+    "prior_digest": "fc1fac749e5340c11369f9c6207db57c7633e9e2db20dc956a61028df46e2277",
+    "request_key": "inventory:3:DEMO20261122-RAS-SHOW-post",
+    "source_domain": "inventory",
+    "source_ref": "command:5:posted",
+    "stream_seq": 31,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_created",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.9172+00:00",
+    "event_digest": "aee7bf264c7be21fb8f74bd5c6598fef384fcd1c28ab763f71ab6f6aabb3423c",
+    "id": 524,
+    "payload": {
+     "command_id": 6,
+     "destination_location": 5,
+     "item_id": 7,
+     "kind": "transfer",
+     "quantity": 5,
+     "reason": null,
+     "source_location": 6,
+     "stages": 0
+    },
+    "payload_sha256": "e2d26dc81bb3075ee4dccc3f3ed53cedfcacad03839d8bdab776d85aeb56f383",
+    "prior_digest": "bd70d9a3194f529557cefc05b53bc55af3e65be8a99cb159c04602d9ccb7b2ae",
+    "request_key": "inventory:3:DEMO20261122-SAND-SHOW",
+    "source_domain": "inventory",
+    "source_ref": "command:6:created",
+    "stream_seq": 32,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_confirmed",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.939228+00:00",
+    "event_digest": "b5f063cee0f600acfc812143edbcd664b63b992559a565ce7fc3f35b5fd5af05",
+    "id": 525,
+    "payload": {
+     "command_id": 6,
+     "from_version": 1,
+     "kind": "transfer",
+     "stock_ref": null,
+     "to_version": 2
+    },
+    "payload_sha256": "f83731627354816cb5ddc7b881a2da1f188c4503fedba822030819b9284b91ce",
+    "prior_digest": "aee7bf264c7be21fb8f74bd5c6598fef384fcd1c28ab763f71ab6f6aabb3423c",
+    "request_key": "inventory:3:DEMO20261122-SAND-SHOW-confirm",
+    "source_domain": "inventory",
+    "source_ref": "command:6:confirmed",
+    "stream_seq": 33,
+    "tenant_id": 1
+   },
+   {
+    "action": "inventory.command_posted",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "event_at": "2026-11-22T06:53:37.965912+00:00",
+    "event_digest": "6441f0f0afffceba5434717909861fe9c6a650f553d3f78a61eae356ebd7c306",
+    "id": 526,
+    "payload": {
+     "command_id": 6,
+     "from_version": 2,
+     "kind": "transfer",
+     "stock_ref": 2,
+     "to_version": 3
+    },
+    "payload_sha256": "ecedb496c66b0cf8523aa721fa42f54b5bc2e82bee4cc6f7342e9038d43ba4a3",
+    "prior_digest": "b5f063cee0f600acfc812143edbcd664b63b992559a565ce7fc3f35b5fd5af05",
+    "request_key": "inventory:3:DEMO20261122-SAND-SHOW-post",
+    "source_domain": "inventory",
+    "source_ref": "command:6:posted",
+    "stream_seq": 34,
+    "tenant_id": 1
+   }
+  ],
+  "control_catalog_v1": [
+   {
+    "allow_site_scope": false,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T03:35:25.290888+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "audit.immutability",
+    "invariant": true,
+    "max_stages": 0,
+    "pack": "NP01",
+    "params": {},
+    "status": "active",
+    "title_bn": "অডিট ও অনুমোদনের ইতিহাস বদলানো যায় না",
+    "title_en": "Audit and approval history cannot be altered"
+   },
+   {
+    "allow_site_scope": false,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T03:35:25.290888+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "tenant.isolation",
+    "invariant": true,
+    "max_stages": 0,
+    "pack": "NP01",
+    "params": {},
+    "status": "active",
+    "title_bn": "প্রতিটি প্রতিষ্ঠান শুধু নিজের তথ্য দেখে",
+    "title_en": "Each tenant sees only its own data"
+   },
+   {
+    "allow_site_scope": false,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T03:35:25.290888+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "access.expiry_revocation",
+    "invariant": true,
+    "max_stages": 0,
+    "pack": "NP01",
+    "params": {},
+    "status": "active",
+    "title_bn": "মেয়াদ শেষ বা বাতিল অনুমতি সঙ্গে সঙ্গে বন্ধ",
+    "title_en": "Expired or revoked access stops at once"
+   },
+   {
+    "allow_site_scope": false,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T03:35:25.290888+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "setup001.profile_preview",
+    "invariant": false,
+    "max_stages": 0,
+    "pack": "NP01",
+    "params": {},
+    "status": "active",
+    "title_bn": "ব্যবসার সেটআপ প্রোফাইল প্রিভিউ",
+    "title_en": "Preview a business setup profile"
+   },
+   {
+    "allow_site_scope": true,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T03:35:25.290888+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "gov002.approval_policy",
+    "invariant": false,
+    "max_stages": 0,
+    "pack": "NP01",
+    "params": {
+     "ttl_minutes": {
+      "default": 1440,
+      "label_bn": "অনুমোদনের মেয়াদ (মিনিট)",
+      "label_en": "Approval validity (minutes)",
+      "max": 43200,
+      "min": 5,
+      "type": "int"
+     }
+    },
+    "status": "active",
+    "title_bn": "অনুমোদন নীতি প্রকাশ",
+    "title_en": "Publish approval policies"
+   },
+   {
+    "allow_site_scope": true,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T03:35:25.290888+00:00",
+    "default_enabled": true,
+    "default_stages": 1,
+    "feature_key": "gov002.review",
+    "invariant": false,
+    "max_stages": 5,
+    "pack": "NP01",
+    "params": {
+     "exception_escalation": {
+      "default": true,
+      "label_bn": "ব্যতিক্রম ঊর্ধ্বতনের কাছে পাঠানো",
+      "label_en": "Escalate exceptions",
+      "type": "bool"
+     }
+    },
+    "status": "active",
+    "title_bn": "অনুমোদন আবেদনের ধাপে ধাপে পর্যালোচনা",
+    "title_en": "Routed review of approval requests"
+   },
+   {
+    "allow_site_scope": true,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T03:35:25.290888+00:00",
+    "default_enabled": false,
+    "default_stages": 0,
+    "feature_key": "gov003.review_export",
+    "invariant": false,
+    "max_stages": 5,
+    "pack": "NP01",
+    "params": {
+     "max_rows": {
+      "default": 1000,
+      "label_bn": "সর্বোচ্চ সারি",
+      "label_en": "Maximum rows",
+      "max": 10000,
+      "min": 1,
+      "type": "int"
+     },
+     "metadata_only": {
+      "default": true,
+      "label_bn": "শুধু মেটাডেটা",
+      "label_en": "Metadata only",
+      "type": "bool"
+     }
+    },
+    "status": "active",
+    "title_bn": "অডিট প্রস্তুতি, ঝুঁকি পর্যালোচনা ও রপ্তানি",
+    "title_en": "Audit readiness, risk review and export"
+   },
+   {
+    "allow_site_scope": false,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T03:35:25.290888+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "setup001.provision",
+    "invariant": false,
+    "max_stages": 5,
+    "pack": "NP01",
+    "params": {
+     "max_sites": {
+      "default": 50,
+      "label_bn": "সর্বোচ্চ সাইট",
+      "label_en": "Maximum sites",
+      "max": 1000,
+      "min": 1,
+      "type": "int"
+     }
+    },
+    "status": "active",
+    "title_bn": "ব্যবসা বা সাইট তৈরি ও চালু",
+    "title_en": "Create and activate a business or site"
+   },
+   {
+    "allow_site_scope": true,
+    "approval_action": "adjust",
+    "approval_domain": "inventory",
+    "created_at": "2026-11-22T03:35:25.290888+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "inventory.stock_event",
+    "invariant": false,
+    "max_stages": 5,
+    "pack": "NP03A",
+    "params": {
+     "allow_negative_stock": {
+      "default": false,
+      "label_bn": "ঋণাত্মক স্টক অনুমতি",
+      "label_en": "Allow negative stock",
+      "type": "bool"
+     },
+     "max_adjust_qty": {
+      "default": 1000,
+      "label_bn": "সর্বোচ্চ সমন্বয় পরিমাণ",
+      "label_en": "Maximum adjustment quantity",
+      "max": 1000000,
+      "min": 0,
+      "type": "numeric"
+     }
+    },
+    "status": "active",
+    "title_bn": "স্টক ইভেন্ট পোস্ট",
+    "title_en": "Post stock events"
+   },
+   {
+    "allow_site_scope": false,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T05:49:52.36805+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "master.uom",
+    "invariant": false,
+    "max_stages": 0,
+    "pack": "NP02",
+    "params": {},
+    "status": "active",
+    "title_bn": "পরিমাপের একক পরিচালনা",
+    "title_en": "Manage units of measure"
+   },
+   {
+    "allow_site_scope": false,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T05:49:52.36805+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "master.item",
+    "invariant": false,
+    "max_stages": 0,
+    "pack": "NP02",
+    "params": {},
+    "status": "active",
+    "title_bn": "পণ্য, শ্রেণি, ধরন ও বারকোড পরিচালনা",
+    "title_en": "Manage items, categories, variants and barcodes"
+   },
+   {
+    "allow_site_scope": false,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T05:49:52.36805+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "master.party",
+    "invariant": false,
+    "max_stages": 0,
+    "pack": "NP02",
+    "params": {},
+    "status": "active",
+    "title_bn": "গ্রাহক ও সরবরাহকারী পরিচালনা",
+    "title_en": "Manage customers and suppliers"
+   },
+   {
+    "allow_site_scope": false,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T05:49:52.36805+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "master.price",
+    "invariant": false,
+    "max_stages": 0,
+    "pack": "NP02",
+    "params": {},
+    "status": "active",
+    "title_bn": "মূল্য তালিকা ও দাম পরিচালনা",
+    "title_en": "Manage price lists and prices"
+   },
+   {
+    "allow_site_scope": true,
+    "approval_action": "receive",
+    "approval_domain": "inventory",
+    "created_at": "2026-11-22T06:52:14.070111+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "inventory.receive",
+    "invariant": false,
+    "max_stages": 5,
+    "pack": "NP03A",
+    "params": {
+     "max_qty": {
+      "default": 100000,
+      "label_bn": "প্রতি আদেশে সর্বোচ্চ পরিমাণ",
+      "label_en": "Maximum quantity per command",
+      "max": 1000000,
+      "min": 0.001,
+      "type": "numeric"
+     },
+     "separate_confirmer": {
+      "default": false,
+      "label_bn": "নিশ্চিতকারী ও প্রস্তুতকারী আলাদা হবেন",
+      "label_en": "Confirmer must differ from creator",
+      "type": "bool"
+     },
+     "staff_allowed": {
+      "default": true,
+      "label_bn": "কর্মী গ্রহণ করতে পারবেন",
+      "label_en": "Staff may receive",
+      "type": "bool"
+     }
+    },
+    "status": "active",
+    "title_bn": "শাখা, গুদাম বা কারখানায় স্টক গ্রহণ",
+    "title_en": "Receive stock into a branch, warehouse or factory"
+   },
+   {
+    "allow_site_scope": true,
+    "approval_action": "issue",
+    "approval_domain": "inventory",
+    "created_at": "2026-11-22T06:52:14.070111+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "inventory.issue",
+    "invariant": false,
+    "max_stages": 5,
+    "pack": "NP03A",
+    "params": {
+     "max_qty": {
+      "default": 100000,
+      "label_bn": "প্রতি আদেশে সর্বোচ্চ পরিমাণ",
+      "label_en": "Maximum quantity per command",
+      "max": 1000000,
+      "min": 0.001,
+      "type": "numeric"
+     },
+     "separate_confirmer": {
+      "default": false,
+      "label_bn": "নিশ্চিতকারী ও প্রস্তুতকারী আলাদা হবেন",
+      "label_en": "Confirmer must differ from creator",
+      "type": "bool"
+     },
+     "staff_allowed": {
+      "default": false,
+      "label_bn": "কর্মী ইস্যু করতে পারবেন",
+      "label_en": "Staff may issue",
+      "type": "bool"
+     }
+    },
+    "status": "active",
+    "title_bn": "স্থান থেকে স্টক ইস্যু",
+    "title_en": "Issue stock out of a location"
+   },
+   {
+    "allow_site_scope": true,
+    "approval_action": "transfer",
+    "approval_domain": "inventory",
+    "created_at": "2026-11-22T06:52:14.070111+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "inventory.transfer",
+    "invariant": false,
+    "max_stages": 5,
+    "pack": "NP03A",
+    "params": {
+     "allow_cross_site": {
+      "default": true,
+      "label_bn": "বিভিন্ন সাইটের মধ্যে স্থানান্তর অনুমতি",
+      "label_en": "Allow transfers between sites",
+      "type": "bool"
+     },
+     "max_qty": {
+      "default": 100000,
+      "label_bn": "প্রতি আদেশে সর্বোচ্চ পরিমাণ",
+      "label_en": "Maximum quantity per command",
+      "max": 1000000,
+      "min": 0.001,
+      "type": "numeric"
+     },
+     "separate_confirmer": {
+      "default": false,
+      "label_bn": "নিশ্চিতকারী ও প্রস্তুতকারী আলাদা হবেন",
+      "label_en": "Confirmer must differ from creator",
+      "type": "bool"
+     },
+     "staff_allowed": {
+      "default": false,
+      "label_bn": "কর্মী স্থানান্তর করতে পারবেন",
+      "label_en": "Staff may transfer",
+      "type": "bool"
+     }
+    },
+    "status": "active",
+    "title_bn": "শাখা, গুদাম ও কারখানার মধ্যে স্টক স্থানান্তর",
+    "title_en": "Transfer stock between branches, warehouses and factories"
+   },
+   {
+    "allow_site_scope": true,
+    "approval_action": "adjust",
+    "approval_domain": "inventory",
+    "created_at": "2026-11-22T06:52:14.070111+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "inventory.adjust",
+    "invariant": false,
+    "max_stages": 5,
+    "pack": "NP03A",
+    "params": {
+     "reason_required": {
+      "default": true,
+      "label_bn": "কারণ লেখা বাধ্যতামূলক",
+      "label_en": "Reason required",
+      "type": "bool"
+     },
+     "separate_confirmer": {
+      "default": true,
+      "label_bn": "নিশ্চিতকারী ও প্রস্তুতকারী আলাদা হবেন",
+      "label_en": "Confirmer must differ from creator",
+      "type": "bool"
+     },
+     "staff_allowed": {
+      "default": false,
+      "label_bn": "কর্মী সমন্বয় করতে পারবেন",
+      "label_en": "Staff may adjust",
+      "type": "bool"
+     }
+    },
+    "status": "active",
+    "title_bn": "স্টক সমন্বয় (গণনার পার্থক্য, ক্ষতি, পাওয়া মাল)",
+    "title_en": "Adjust stock (count differences, damage, found stock)"
+   },
+   {
+    "allow_site_scope": true,
+    "approval_action": "purchase_order",
+    "approval_domain": "procurement",
+    "created_at": "2026-11-22T06:52:23.893237+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "procurement.purchase_order",
+    "invariant": false,
+    "max_stages": 5,
+    "pack": "NP03A",
+    "params": {
+     "manager_may_create": {
+      "default": true,
+      "label_bn": "ম্যানেজার আদেশ তৈরি করতে পারবেন",
+      "label_en": "Managers may raise orders",
+      "type": "bool"
+     },
+     "max_lines": {
+      "default": 100,
+      "label_bn": "প্রতি আদেশে সর্বোচ্চ লাইন",
+      "label_en": "Maximum lines per order",
+      "max": 200,
+      "min": 1,
+      "type": "int"
+     },
+     "max_po_amount": {
+      "default": 10000000,
+      "label_bn": "সর্বোচ্চ আদেশের মূল্য",
+      "label_en": "Maximum order amount",
+      "max": 1000000000,
+      "min": 1,
+      "type": "numeric"
+     },
+     "separate_approver": {
+      "default": true,
+      "label_bn": "অনুমোদনকারী ও প্রস্তুতকারী আলাদা হবেন",
+      "label_en": "Approver must differ from creator",
+      "type": "bool"
+     }
+    },
+    "status": "active",
+    "title_bn": "ক্রয় আদেশ তৈরি ও অনুমোদন",
+    "title_en": "Raise and approve purchase orders"
+   },
+   {
+    "allow_site_scope": true,
+    "approval_action": null,
+    "approval_domain": null,
+    "created_at": "2026-11-22T06:52:23.893237+00:00",
+    "default_enabled": true,
+    "default_stages": 0,
+    "feature_key": "procurement.goods_receipt",
+    "invariant": false,
+    "max_stages": 0,
+    "pack": "NP03A",
+    "params": {
+     "over_receipt_pct": {
+      "default": 0,
+      "label_bn": "অতিরিক্ত গ্রহণের অনুমতি (%)",
+      "label_en": "Allowed over-receipt (%)",
+      "max": 100,
+      "min": 0,
+      "type": "numeric"
+     },
+     "qc_required": {
+      "default": true,
+      "label_bn": "স্টকের আগে মান যাচাই",
+      "label_en": "Quality check before stock",
+      "type": "bool"
+     },
+     "require_expiry": {
+      "default": false,
+      "label_bn": "মেয়াদ শেষের তারিখ বাধ্যতামূলক",
+      "label_en": "Expiry date required",
+      "type": "bool"
+     },
+     "require_lot": {
+      "default": false,
+      "label_bn": "লট নম্বর বাধ্যতামূলক",
+      "label_en": "Lot number required",
+      "type": "bool"
+     },
+     "separate_inspector": {
+      "default": false,
+      "label_bn": "যাচাইকারী ও গ্রহণকারী আলাদা হবেন",
+      "label_en": "Inspector must differ from receiver",
+      "type": "bool"
+     }
+    },
+    "status": "active",
+    "title_bn": "ক্রয় আদেশের মাল গ্রহণ (GRN) ও মান যাচাই",
+    "title_en": "Receive goods against purchase orders (GRN) with quality check"
+   }
+  ],
+  "control_overrides_v1": [],
+  "control_rpc_map_v1": [
+   {
+    "board_row": "B-004",
+    "feature_key": null,
+    "lane": "ChatGPT",
+    "reason": "Auth-port administration: grants and revokes access; Owner authority checked by can_manage and audited",
+    "rpc_name": "build01_set_access_v1",
+    "status": "exempt",
+    "test_ref": null
+   },
+   {
+    "board_row": "B-004",
+    "feature_key": null,
+    "lane": "ChatGPT",
+    "reason": "Auth-port administration: changes access; Owner authority checked and audited",
+    "rpc_name": "change_access_v1",
+    "status": "exempt",
+    "test_ref": null
+   },
+   {
+    "board_row": "B-004",
+    "feature_key": null,
+    "lane": "ChatGPT",
+    "reason": "Auth-port administration: sets which roles may use approval actions",
+    "rpc_name": "build02a_set_approval_policy_v1",
+    "status": "exempt",
+    "test_ref": null
+   },
+   {
+    "board_row": "B-010",
+    "feature_key": null,
+    "lane": "Claude",
+    "reason": "Control-port self-administration: Owner only, versioned and audited; cannot change invariants",
+    "rpc_name": "control_set_v1",
+    "status": "exempt",
+    "test_ref": null
+   },
+   {
+    "board_row": "B-010",
+    "feature_key": null,
+    "lane": "Claude",
+    "reason": "Control-port self-administration: Owner only, restores an earlier version as a new version",
+    "rpc_name": "control_revert_v1",
+    "status": "exempt",
+    "test_ref": null
+   },
+   {
+    "board_row": "B-010",
+    "feature_key": null,
+    "lane": "Claude",
+    "reason": "Control-port self-administration: Owner grants a one-time audited exception",
+    "rpc_name": "control_grant_override_v1",
+    "status": "exempt",
+    "test_ref": null
+   },
+   {
+    "board_row": "B-010",
+    "feature_key": null,
+    "lane": "Claude",
+    "reason": "Control-port self-administration: Owner withdraws an unused exception",
+    "rpc_name": "control_revoke_override_v1",
+    "status": "exempt",
+    "test_ref": null
+   },
+   {
+    "board_row": "B-012",
+    "feature_key": "inventory.stock_event",
+    "lane": "Claude",
+    "reason": "Stock command creation checks the stock master switch and the kind feature on every touched site",
+    "rpc_name": "create_inventory_command_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np03a-inventory-commands-e2e.sql"
+   },
+   {
+    "board_row": "B-012",
+    "feature_key": "inventory.stock_event",
+    "lane": "Claude",
+    "reason": "Confirm, post and cancel re-check the stock master switch and kind feature; post moves stock only through the 0200 engine",
+    "rpc_name": "advance_inventory_command_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np03a-inventory-commands-e2e.sql"
+   },
+   {
+    "board_row": "B-012",
+    "feature_key": "procurement.purchase_order",
+    "lane": "Claude",
+    "reason": "PO create/edit checks the purchase-order control, limits and Master supplier",
+    "rpc_name": "procurement_save_po_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np03a-procurement-e2e.sql"
+   },
+   {
+    "board_row": "B-006",
+    "feature_key": "gov002.approval_policy",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.approval_policy; switch-off denial proven by tests/migrations/np01-control-publish-e2e.sql",
+    "rpc_name": "publish_approval_policy_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-publish-e2e.sql"
+   },
+   {
+    "board_row": "B-006",
+    "feature_key": "gov002.review",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.review; switch-off denial proven by tests/migrations/np01-control-decision-e2e.sql",
+    "rpc_name": "decide_approval",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-decision-e2e.sql"
+   },
+   {
+    "board_row": "B-006",
+    "feature_key": "gov002.review",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.review; switch-off denial proven by tests/migrations/np01-control-decision-e2e.sql",
+    "rpc_name": "withdraw_typed_approval_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-decision-e2e.sql"
+   },
+   {
+    "board_row": "B-006",
+    "feature_key": "gov002.review",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.review; switch-off denial proven by tests/migrations/np01-control-submit-delegation-e2e.sql",
+    "rpc_name": "submit_typed_approval_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-submit-delegation-e2e.sql"
+   },
+   {
+    "board_row": "B-006",
+    "feature_key": "gov002.review",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.review; switch-off denial proven by tests/migrations/np01-control-submit-delegation-e2e.sql",
+    "rpc_name": "delegate_approval_stage_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-submit-delegation-e2e.sql"
+   },
+   {
+    "board_row": "B-006",
+    "feature_key": "gov002.review",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.review; switch-off denial proven by tests/migrations/np01-control-submit-delegation-e2e.sql",
+    "rpc_name": "revoke_approval_delegation_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-submit-delegation-e2e.sql"
+   },
+   {
+    "board_row": "B-006",
+    "feature_key": "gov002.review",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.review; switch-off denial proven by tests/migrations/np01-control-route-stages-e2e.sql",
+    "rpc_name": "configure_approval_route_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-route-stages-e2e.sql"
+   },
+   {
+    "board_row": "B-008",
+    "feature_key": "setup001.provision",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for setup001.provision; switch-off denial proven by tests/migrations/np01-control-site-provision-e2e.sql",
+    "rpc_name": "build01_site_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-site-provision-e2e.sql"
+   },
+   {
+    "board_row": "B-020",
+    "feature_key": "gov003.review_export",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov003.review_export; switch-off denial proven by tests/migrations/np01-control-gov003-e2e.sql",
+    "rpc_name": "gov003_audit_readiness_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-gov003-e2e.sql"
+   },
+   {
+    "board_row": "B-020",
+    "feature_key": "gov003.review_export",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov003.review_export; switch-off denial proven by tests/migrations/np01-control-gov003-e2e.sql",
+    "rpc_name": "gov003_audit_risk_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-gov003-e2e.sql"
+   },
+   {
+    "board_row": "B-020",
+    "feature_key": "gov003.review_export",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov003.review_export; switch-off denial proven by tests/migrations/np01-control-gov003-e2e.sql",
+    "rpc_name": "gov003_audit_export_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-gov003-e2e.sql"
+   },
+   {
+    "board_row": "B-020",
+    "feature_key": "gov002.approval_policy",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.approval_policy; switch-off denial proven by tests/migrations/np01-control-threshold-exception-e2e.sql",
+    "rpc_name": "assess_approval_threshold_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-threshold-exception-e2e.sql"
+   },
+   {
+    "board_row": "B-020",
+    "feature_key": "gov002.approval_policy",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.approval_policy; switch-off denial proven by tests/migrations/np01-control-threshold-exception-e2e.sql",
+    "rpc_name": "assess_current_approval_threshold_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-threshold-exception-e2e.sql"
+   },
+   {
+    "board_row": "B-020",
+    "feature_key": "gov002.approval_policy",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.approval_policy; switch-off denial proven by tests/migrations/np01-control-threshold-exception-e2e.sql",
+    "rpc_name": "configure_approval_threshold_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-threshold-exception-e2e.sql"
+   },
+   {
+    "board_row": "B-020",
+    "feature_key": "gov002.review",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.review; switch-off denial proven by tests/migrations/np01-control-threshold-exception-e2e.sql",
+    "rpc_name": "request_approval_exception_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-threshold-exception-e2e.sql"
+   },
+   {
+    "board_row": "B-020",
+    "feature_key": "gov002.review",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.review; switch-off denial proven by tests/migrations/np01-control-threshold-exception-e2e.sql",
+    "rpc_name": "decide_approval_exception_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-threshold-exception-e2e.sql"
+   },
+   {
+    "board_row": "B-020",
+    "feature_key": "gov002.review",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for gov002.review; switch-off denial proven by tests/migrations/np01-control-threshold-exception-e2e.sql",
+    "rpc_name": "withdraw_approval_exception_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-control-threshold-exception-e2e.sql"
+   },
+   {
+    "board_row": "B-012",
+    "feature_key": "procurement.purchase_order",
+    "lane": "Claude",
+    "reason": "PO approve/cancel/close checks the purchase-order control and maker-checker",
+    "rpc_name": "procurement_advance_po_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np03a-procurement-e2e.sql"
+   },
+   {
+    "board_row": "B-012",
+    "feature_key": "procurement.goods_receipt",
+    "lane": "Claude",
+    "reason": "GRN receipt checks the goods-receipt control, over-receipt, lot and expiry rules",
+    "rpc_name": "procurement_receive_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np03a-procurement-e2e.sql"
+   },
+   {
+    "board_row": "B-008",
+    "feature_key": null,
+    "lane": "ChatGPT",
+    "reason": "Control administration itself; active Tenant Owner authority and canonical Audit required",
+    "rpc_name": "control_set_bootstrap_policy_v1",
+    "status": "exempt",
+    "test_ref": null
+   },
+   {
+    "board_row": "B-008",
+    "feature_key": "setup001.provision",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for setup001.provision; switch-off denial proven by tests/migrations/np01-bootstrap-cutover-e2e.sql",
+    "rpc_name": "build01_setup_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-bootstrap-cutover-e2e.sql"
+   },
+   {
+    "board_row": "B-008",
+    "feature_key": "setup001.provision",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for setup001.provision; switch-off denial proven by tests/migrations/np01-bootstrap-cutover-e2e.sql",
+    "rpc_name": "setup_business_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-bootstrap-cutover-e2e.sql"
+   },
+   {
+    "board_row": "B-008",
+    "feature_key": "setup001.provision",
+    "lane": "ChatGPT",
+    "reason": "Calls control_check_v1 for setup001.provision; switch-off denial proven by tests/migrations/np01-bootstrap-cutover-e2e.sql",
+    "rpc_name": "setup_industry_draft_v2",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np01-bootstrap-cutover-e2e.sql"
+   },
+   {
+    "board_row": "B-012",
+    "feature_key": "inventory.stock_event",
+    "lane": "Claude",
+    "reason": "Approval request for a stock command checks the stock master switch, the kind feature and gov002.review",
+    "rpc_name": "inventory_request_approval_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np03a-inventory-approval-e2e.sql"
+   },
+   {
+    "board_row": "B-012",
+    "feature_key": "procurement.goods_receipt",
+    "lane": "Claude",
+    "reason": "Quality check checks the goods-receipt control and inspector rule",
+    "rpc_name": "procurement_inspect_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np03a-procurement-e2e.sql"
+   },
+   {
+    "board_row": "B-012",
+    "feature_key": "procurement.goods_receipt",
+    "lane": "Claude",
+    "reason": "GRN posting checks the goods-receipt control and the stock master switch; stock only via post_stock_event",
+    "rpc_name": "procurement_post_grn_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np03a-procurement-e2e.sql"
+   },
+   {
+    "board_row": "B-012",
+    "feature_key": "procurement.purchase_order",
+    "lane": "Claude",
+    "reason": "PO approval request checks the purchase-order control, maker rule, stage/route match and gov002.review",
+    "rpc_name": "procurement_request_po_approval_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np03a-po-approval-e2e.sql"
+   },
+   {
+    "board_row": "B-011",
+    "feature_key": "master.uom",
+    "lane": "Claude",
+    "reason": "Owner/manager UOM save checks canonical control, version and audit",
+    "rpc_name": "master_save_uom_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np02-master-rpc-e2e.sql"
+   },
+   {
+    "board_row": "B-011",
+    "feature_key": "master.uom",
+    "lane": "Claude",
+    "reason": "Same-dimension conversion save checks canonical control and audit",
+    "rpc_name": "master_save_uom_conversion_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np02-master-rpc-e2e.sql"
+   },
+   {
+    "board_row": "B-011",
+    "feature_key": "master.item",
+    "lane": "Claude",
+    "reason": "Item save on core10.items checks canonical control, version and audit",
+    "rpc_name": "master_save_item_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np02-master-rpc-e2e.sql"
+   },
+   {
+    "board_row": "B-011",
+    "feature_key": "master.item",
+    "lane": "Claude",
+    "reason": "Category save checks canonical control and audit",
+    "rpc_name": "master_save_category_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np02-master-rpc-e2e.sql"
+   },
+   {
+    "board_row": "B-011",
+    "feature_key": "master.item",
+    "lane": "Claude",
+    "reason": "Variant save checks canonical control and audit",
+    "rpc_name": "master_save_variant_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np02-master-rpc-e2e.sql"
+   },
+   {
+    "board_row": "B-011",
+    "feature_key": "master.item",
+    "lane": "Claude",
+    "reason": "Barcode save checks canonical control and audit",
+    "rpc_name": "master_save_barcode_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np02-master-rpc-e2e.sql"
+   },
+   {
+    "board_row": "B-011",
+    "feature_key": "master.party",
+    "lane": "Claude",
+    "reason": "Customer/supplier save checks canonical control and audit",
+    "rpc_name": "master_save_party_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np02-master-rpc-e2e.sql"
+   },
+   {
+    "board_row": "B-011",
+    "feature_key": "master.price",
+    "lane": "Claude",
+    "reason": "Price list save checks canonical control and audit",
+    "rpc_name": "master_save_price_list_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np02-master-rpc-e2e.sql"
+   },
+   {
+    "board_row": "B-011",
+    "feature_key": "master.price",
+    "lane": "Claude",
+    "reason": "Price line save checks canonical control and audit",
+    "rpc_name": "master_save_price_v1",
+    "status": "enforced",
+    "test_ref": "tests/migrations/np02-master-rpc-e2e.sql"
+   }
+  ],
+  "control_setting_versions_v1": [
+   {
+    "audit_event_id": 27,
+    "business_id": null,
+    "created_at": "2026-11-22T05:47:43.877627+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "effective_from": "2026-11-22T05:47:43.87418+00:00",
+    "enabled": true,
+    "feature_key": "setup001.provision",
+    "id": 4,
+    "inherit": false,
+    "params": {},
+    "payload_sha256": "cd96c5d03f85f9fa63e854dc4c403a8c1fea94ffbdec3e8c4b7408c2aa17c0de",
+    "reason": "Owner initializes CORE10 staging setup after approved bootstrap migration",
+    "request_key": "owner-d063-cutover-enable-20261122",
+    "reverted_from": null,
+    "site_id": null,
+    "stages": 0,
+    "tenant_id": 1,
+    "version": 1
+   }
+  ],
+  "goods_receipt_lines_v1": [],
+  "goods_receipts_v1": [],
+  "industry_catalog_v2": [
+   {
+    "enterprise_certified": false,
+    "id": "sweets_bakery",
+    "legacy_code": "food_manufacturing",
+    "legacy_status": "available",
+    "name_en": "Sweets, Bakery &amp; Food Manufacturing",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "enterprise_certified": false,
+    "id": "restaurant",
+    "legacy_code": null,
+    "legacy_status": "unregistered",
+    "name_en": "Restaurant, Fast Food &amp; Cloud Kitchen",
+    "readiness": "not_implemented"
+   },
+   {
+    "enterprise_certified": false,
+    "id": "paint_hardware",
+    "legacy_code": "hardware_paint",
+    "legacy_status": "not_implemented",
+    "name_en": "Paint, Hardware &amp; Dealership",
+    "readiness": "not_implemented"
+   },
+   {
+    "enterprise_certified": false,
+    "id": "retail_wholesale",
+    "legacy_code": null,
+    "legacy_status": "unregistered",
+    "name_en": "Retail, Wholesale &amp; Distribution",
+    "readiness": "not_implemented"
+   },
+   {
+    "enterprise_certified": false,
+    "id": "general_manufacturing",
+    "legacy_code": null,
+    "legacy_status": "unregistered",
+    "name_en": "General Manufacturing",
+    "readiness": "not_implemented"
+   },
+   {
+    "enterprise_certified": false,
+    "id": "construction",
+    "legacy_code": "construction",
+    "legacy_status": "not_implemented",
+    "name_en": "Construction &amp; Project Management",
+    "readiness": "not_implemented"
+   },
+   {
+    "enterprise_certified": false,
+    "id": "import_export",
+    "legacy_code": "import_export",
+    "legacy_status": "needs_setup",
+    "name_en": "Import, Export &amp; International Trade",
+    "readiness": "partial"
+   },
+   {
+    "enterprise_certified": false,
+    "id": "ecommerce",
+    "legacy_code": "online_store",
+    "legacy_status": "not_implemented",
+    "name_en": "E-commerce &amp; Online Store",
+    "readiness": "not_implemented"
+   },
+   {
+    "enterprise_certified": false,
+    "id": "technology_digital",
+    "legacy_code": "technology",
+    "legacy_status": "not_implemented",
+    "name_en": "Technology, Software &amp; Digital Products",
+    "readiness": "not_implemented"
+   },
+   {
+    "enterprise_certified": false,
+    "id": "services",
+    "legacy_code": null,
+    "legacy_status": "unregistered",
+    "name_en": "Services, Agency &amp; Professional Services",
+    "readiness": "not_implemented"
+   }
+  ],
+  "industry_module_catalog_v2": [
+   {
+    "industry_id": "sweets_bakery",
+    "module_code": "pos",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "sweets_bakery",
+    "module_code": "stock",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "sweets_bakery",
+    "module_code": "purchase",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "sweets_bakery",
+    "module_code": "production",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "sweets_bakery",
+    "module_code": "costing",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "sweets_bakery",
+    "module_code": "accounting",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "sweets_bakery",
+    "module_code": "reports",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "restaurant",
+    "module_code": "restaurant_pos",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "restaurant",
+    "module_code": "kitchen_order",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "restaurant",
+    "module_code": "menu_recipe",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "restaurant",
+    "module_code": "food_delivery",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "paint_hardware",
+    "module_code": "cheque_pdc",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "paint_hardware",
+    "module_code": "principal_schemes",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "paint_hardware",
+    "module_code": "tinting",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "paint_hardware",
+    "module_code": "bulk_item_import",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "paint_hardware",
+    "module_code": "item_variants",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "paint_hardware",
+    "module_code": "dealer_pos_screens",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "paint_hardware",
+    "module_code": "party_scope_per_business",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "paint_hardware",
+    "module_code": "scheme_books_posting",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "retail_wholesale",
+    "module_code": "wholesale_pricing",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "retail_wholesale",
+    "module_code": "distribution_orders",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "retail_wholesale",
+    "module_code": "customer_credit",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "general_manufacturing",
+    "module_code": "bill_of_materials",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "general_manufacturing",
+    "module_code": "work_orders",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "general_manufacturing",
+    "module_code": "production_routing",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "general_manufacturing",
+    "module_code": "quality_control",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "construction",
+    "module_code": "project_boq",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "construction",
+    "module_code": "project_budget",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "construction",
+    "module_code": "progress_billing",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "import_export",
+    "module_code": "shipments",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "import_export",
+    "module_code": "currencies",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "import_export",
+    "module_code": "fx_rates",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "import_export",
+    "module_code": "landed_cost",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "import_export",
+    "module_code": "report_by_currency",
+    "readiness": "implemented_unverified"
+   },
+   {
+    "industry_id": "import_export",
+    "module_code": "letter_of_credit",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "import_export",
+    "module_code": "customs_automation",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "import_export",
+    "module_code": "accounting_posting",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "import_export",
+    "module_code": "stock_link",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "import_export",
+    "module_code": "bank_payments",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "ecommerce",
+    "module_code": "online_orders",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "ecommerce",
+    "module_code": "channel_inventory",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "ecommerce",
+    "module_code": "returns_portal",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "technology_digital",
+    "module_code": "software_subscription",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "technology_digital",
+    "module_code": "digital_delivery",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "technology_digital",
+    "module_code": "service_tickets",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "services",
+    "module_code": "service_orders",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "services",
+    "module_code": "time_tracking",
+    "readiness": "not_implemented"
+   },
+   {
+    "industry_id": "services",
+    "module_code": "contract_billing",
+    "readiness": "not_implemented"
+   }
+  ],
+  "inventory_command_requests_v1": [
+   {
+    "action": "create",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 1,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": null,
+    "intent_sha256": "30f6ac68af79c7d3c346f183682c6c69b1ae1d0d3bec8fd226ebc5e48b09ec6e",
+    "request_key": "DEMO20261122-SUGAR-WH",
+    "tenant_id": 1
+   },
+   {
+    "action": "confirm",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 1,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": 1,
+    "intent_sha256": "36053bfe9bf5999bc94e740fb9da28de698caf306c4f807a1a5436adc4e22b40",
+    "request_key": "DEMO20261122-SUGAR-WH-confirm",
+    "tenant_id": 1
+   },
+   {
+    "action": "post",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 1,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": 2,
+    "intent_sha256": "55ce2a2394a3465ee08a071c5aaaf1663ff7e31502c7060080ec9779fcc9d392",
+    "request_key": "DEMO20261122-SUGAR-WH-post",
+    "tenant_id": 1
+   },
+   {
+    "action": "create",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 2,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": null,
+    "intent_sha256": "cdc6447a6cdcfb8efda0216eff7d9cff3dc532a4f276bcd9c1f8bb83faa4fdcd",
+    "request_key": "DEMO20261122-MILK-WH",
+    "tenant_id": 1
+   },
+   {
+    "action": "confirm",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 2,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": 1,
+    "intent_sha256": "791f370ecebb264107113ef1be400e2405cc78bdee23e5bfeac500e331a1fd79",
+    "request_key": "DEMO20261122-MILK-WH-confirm",
+    "tenant_id": 1
+   },
+   {
+    "action": "post",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 2,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": 2,
+    "intent_sha256": "da37e0375f3eb6969bc47ca3412a1577a1bbe41b82a890143c8fd5ea06c3548c",
+    "request_key": "DEMO20261122-MILK-WH-post",
+    "tenant_id": 1
+   },
+   {
+    "action": "create",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": null,
+    "intent_sha256": "76a0aa00238776cad95b0f53d27453dd7e293c621fe6cd5744df482a9e3ff69b",
+    "request_key": "DEMO20261122-RAS-FACT",
+    "tenant_id": 1
+   },
+   {
+    "action": "confirm",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": 1,
+    "intent_sha256": "155e673f6b996b0021038dc527d8c424d70828b3fe94514f055b5a8dcae021ed",
+    "request_key": "DEMO20261122-RAS-FACT-confirm",
+    "tenant_id": 1
+   },
+   {
+    "action": "post",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": 2,
+    "intent_sha256": "af47e433095ccc503b63fc5fea4ab98c1ebcdad95266f970ad174526d7705a48",
+    "request_key": "DEMO20261122-RAS-FACT-post",
+    "tenant_id": 1
+   },
+   {
+    "action": "create",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 4,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": null,
+    "intent_sha256": "47ba9d6fe2ec69da0fdf2da142afff922286bee4fbcfa21ab1a65b6ee4724abd",
+    "request_key": "DEMO20261122-SAND-FACT",
+    "tenant_id": 1
+   },
+   {
+    "action": "confirm",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 4,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": 1,
+    "intent_sha256": "9b47f529115a49006159ae0b7f7cfa582248edd67a560d279cbca4624429cb81",
+    "request_key": "DEMO20261122-SAND-FACT-confirm",
+    "tenant_id": 1
+   },
+   {
+    "action": "post",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 4,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": 2,
+    "intent_sha256": "80a62975c4e79084578bd7db848398972e0ed152e98386f1dcbecf61423db2a1",
+    "request_key": "DEMO20261122-SAND-FACT-post",
+    "tenant_id": 1
+   },
+   {
+    "action": "create",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 5,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": null,
+    "intent_sha256": "88450be60ec6f75b8b1a2ad11618bc02c739d9026c41d1d1066571a3764d29b7",
+    "request_key": "DEMO20261122-RAS-SHOW",
+    "tenant_id": 1
+   },
+   {
+    "action": "confirm",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 5,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": 1,
+    "intent_sha256": "6cb135acdbedf124259081bac40333eb21dfb44b163b614da49eb2a1c3d2a200",
+    "request_key": "DEMO20261122-RAS-SHOW-confirm",
+    "tenant_id": 1
+   },
+   {
+    "action": "post",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 5,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": 2,
+    "intent_sha256": "05f08b6b37165abb618a126e85f21c196741847637ba342f037f19e1e8a98c6c",
+    "request_key": "DEMO20261122-RAS-SHOW-post",
+    "tenant_id": 1
+   },
+   {
+    "action": "create",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 6,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": null,
+    "intent_sha256": "6214e29e1f20bd225b072dd33c3079be792e8071d50000f31a0ea8851a49c514",
+    "request_key": "DEMO20261122-SAND-SHOW",
+    "tenant_id": 1
+   },
+   {
+    "action": "confirm",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 6,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": 1,
+    "intent_sha256": "b4f5a77b41629f3230277e365426e8fcbea338e0832547b36efb7f70beee64aa",
+    "request_key": "DEMO20261122-SAND-SHOW-confirm",
+    "tenant_id": 1
+   },
+   {
+    "action": "post",
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "command_id": 6,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "expected_version": 2,
+    "intent_sha256": "71a1b8e0c3f5b9255349c93c1a48cb8eea350ab80af731b3e5a2733e69b508e2",
+    "request_key": "DEMO20261122-SAND-SHOW-post",
+    "tenant_id": 1
+   }
+  ],
+  "inventory_commands_v1": [
+   {
+    "approval_request_id": null,
+    "business_id": 3,
+    "cancelled_at": null,
+    "cancelled_by": null,
+    "confirmed_at": "2026-11-22T06:53:37.627214+00:00",
+    "confirmed_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "destination_location": 7,
+    "destination_site_id": 7,
+    "id": 1,
+    "item_id": 8,
+    "kind": "receive",
+    "posted_at": "2026-11-22T06:53:37.627214+00:00",
+    "posted_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "quantity": 25,
+    "reason": null,
+    "request_key": "DEMO20261122-SUGAR-WH",
+    "source_location": null,
+    "source_site_id": null,
+    "status": "posted",
+    "stock_ref": 3,
+    "tenant_id": 1,
+    "version": 3
+   },
+   {
+    "approval_request_id": null,
+    "business_id": 3,
+    "cancelled_at": null,
+    "cancelled_by": null,
+    "confirmed_at": "2026-11-22T06:53:37.627214+00:00",
+    "confirmed_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "destination_location": 7,
+    "destination_site_id": 7,
+    "id": 2,
+    "item_id": 9,
+    "kind": "receive",
+    "posted_at": "2026-11-22T06:53:37.627214+00:00",
+    "posted_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "quantity": 10,
+    "reason": null,
+    "request_key": "DEMO20261122-MILK-WH",
+    "source_location": null,
+    "source_site_id": null,
+    "status": "posted",
+    "stock_ref": 4,
+    "tenant_id": 1,
+    "version": 3
+   },
+   {
+    "approval_request_id": null,
+    "business_id": 3,
+    "cancelled_at": null,
+    "cancelled_by": null,
+    "confirmed_at": "2026-11-22T06:53:37.627214+00:00",
+    "confirmed_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "destination_location": 6,
+    "destination_site_id": 6,
+    "id": 3,
+    "item_id": 6,
+    "kind": "receive",
+    "posted_at": "2026-11-22T06:53:37.627214+00:00",
+    "posted_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "quantity": 30,
+    "reason": null,
+    "request_key": "DEMO20261122-RAS-FACT",
+    "source_location": null,
+    "source_site_id": null,
+    "status": "posted",
+    "stock_ref": 5,
+    "tenant_id": 1,
+    "version": 3
+   },
+   {
+    "approval_request_id": null,
+    "business_id": 3,
+    "cancelled_at": null,
+    "cancelled_by": null,
+    "confirmed_at": "2026-11-22T06:53:37.627214+00:00",
+    "confirmed_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "destination_location": 6,
+    "destination_site_id": 6,
+    "id": 4,
+    "item_id": 7,
+    "kind": "receive",
+    "posted_at": "2026-11-22T06:53:37.627214+00:00",
+    "posted_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "quantity": 20,
+    "reason": null,
+    "request_key": "DEMO20261122-SAND-FACT",
+    "source_location": null,
+    "source_site_id": null,
+    "status": "posted",
+    "stock_ref": 6,
+    "tenant_id": 1,
+    "version": 3
+   },
+   {
+    "approval_request_id": null,
+    "business_id": 3,
+    "cancelled_at": null,
+    "cancelled_by": null,
+    "confirmed_at": "2026-11-22T06:53:37.627214+00:00",
+    "confirmed_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "destination_location": 5,
+    "destination_site_id": 5,
+    "id": 5,
+    "item_id": 6,
+    "kind": "transfer",
+    "posted_at": "2026-11-22T06:53:37.627214+00:00",
+    "posted_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "quantity": 10,
+    "reason": null,
+    "request_key": "DEMO20261122-RAS-SHOW",
+    "source_location": 6,
+    "source_site_id": 6,
+    "status": "posted",
+    "stock_ref": 1,
+    "tenant_id": 1,
+    "version": 3
+   },
+   {
+    "approval_request_id": null,
+    "business_id": 3,
+    "cancelled_at": null,
+    "cancelled_by": null,
+    "confirmed_at": "2026-11-22T06:53:37.627214+00:00",
+    "confirmed_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "destination_location": 5,
+    "destination_site_id": 5,
+    "id": 6,
+    "item_id": 7,
+    "kind": "transfer",
+    "posted_at": "2026-11-22T06:53:37.627214+00:00",
+    "posted_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "quantity": 5,
+    "reason": null,
+    "request_key": "DEMO20261122-SAND-SHOW",
+    "source_location": 6,
+    "source_site_id": 6,
+    "status": "posted",
+    "stock_ref": 2,
+    "tenant_id": 1,
+    "version": 3
+   }
+  ],
+  "inventory_lots_v1": [],
+  "items": [
+   {
+    "base_uom_id": 5,
+    "business_id": 3,
+    "category_id": 3,
+    "id": 6,
+    "item_kind": "finished_good",
+    "name_bn": "রসগোল্লা",
+    "name_en": "Rasgulla",
+    "sku": "DEMO-RASGULLA",
+    "status": "active",
+    "tenant_id": 1,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "version": 1
+   },
+   {
+    "base_uom_id": 5,
+    "business_id": 3,
+    "category_id": 3,
+    "id": 7,
+    "item_kind": "finished_good",
+    "name_bn": "সন্দেশ",
+    "name_en": "Sandesh",
+    "sku": "DEMO-SANDESH",
+    "status": "active",
+    "tenant_id": 1,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "version": 1
+   },
+   {
+    "base_uom_id": 6,
+    "business_id": 3,
+    "category_id": 4,
+    "id": 8,
+    "item_kind": "raw_material",
+    "name_bn": "চিনি",
+    "name_en": "Sugar",
+    "sku": "DEMO-SUGAR",
+    "status": "active",
+    "tenant_id": 1,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "version": 1
+   },
+   {
+    "base_uom_id": 6,
+    "business_id": 3,
+    "category_id": 4,
+    "id": 9,
+    "item_kind": "raw_material",
+    "name_bn": "দুধ",
+    "name_en": "Milk",
+    "sku": "DEMO-MILK",
+    "status": "active",
+    "tenant_id": 1,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "version": 1
+   }
+  ],
+  "legal_entities": [
+   {
+    "id": 9811,
+    "label": "Staging A",
+    "tenant_id": 9801
+   },
+   {
+    "id": 9812,
+    "label": "Staging B",
+    "tenant_id": 9802
+   },
+   {
+    "id": 1,
+    "label": "CORE10 Owner Group",
+    "tenant_id": 1
+   }
+  ],
+  "master_item_barcodes_v1": [],
+  "master_item_categories_v1": [
+   {
+    "active": true,
+    "business_id": 3,
+    "code": "SWEETS",
+    "id": 3,
+    "name_bn": "মিষ্টি",
+    "name_en": "Sweets",
+    "parent_id": null,
+    "tenant_id": 1,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "version": 1
+   },
+   {
+    "active": true,
+    "business_id": 3,
+    "code": "RAW",
+    "id": 4,
+    "name_bn": "কাঁচামাল",
+    "name_en": "Raw Materials",
+    "parent_id": null,
+    "tenant_id": 1,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "version": 1
+   }
+  ],
+  "master_item_variants_v1": [],
+  "master_parties_v1": [
+   {
+    "business_id": 3,
+    "code": "DEMO-CUSTOMER",
+    "id": 3,
+    "name_bn": "ডেমো সাধারণ ক্রেতা",
+    "name_en": "Demo Walk-in Customer",
+    "party_kind": "customer",
+    "phone": null,
+    "status": "active",
+    "tax_id": null,
+    "tenant_id": 1,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "version": 1
+   },
+   {
+    "business_id": 3,
+    "code": "DEMO-SUPPLIER",
+    "id": 4,
+    "name_bn": "ডেমো কাঁচামাল সরবরাহকারী",
+    "name_en": "Demo Ingredients Supplier",
+    "party_kind": "supplier",
+    "phone": null,
+    "status": "active",
+    "tax_id": null,
+    "tenant_id": 1,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "version": 1
+   }
+  ],
+  "master_price_list_items_v1": [
+   {
+    "active": true,
+    "business_id": 3,
+    "id": 3,
+    "item_id": 6,
+    "min_quantity": 0,
+    "price_list_id": 2,
+    "tenant_id": 1,
+    "unit_price": 25,
+    "uom_id": 5,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "variant_id": null,
+    "version": 1
+   },
+   {
+    "active": true,
+    "business_id": 3,
+    "id": 4,
+    "item_id": 7,
+    "min_quantity": 0,
+    "price_list_id": 2,
+    "tenant_id": 1,
+    "unit_price": 30,
+    "uom_id": 5,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "variant_id": null,
+    "version": 1
+   }
+  ],
+  "master_price_lists_v1": [
+   {
+    "business_id": 3,
+    "code": "DEMO-RETAIL",
+    "currency": "BDT",
+    "effective_from": "2026-11-22",
+    "effective_to": null,
+    "id": 2,
+    "list_kind": "sales",
+    "name_bn": "ডেমো খুচরা",
+    "name_en": "Demo Retail",
+    "site_id": null,
+    "status": "active",
+    "tenant_id": 1,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "version": 1
+   }
+  ],
+  "master_requests_v1": [
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "uom",
+    "entity_id": 5,
+    "request_key": "c10demo-20261122-uom-pcs",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "uom",
+    "entity_id": 6,
+    "request_key": "c10demo-20261122-uom-kg",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "uom",
+    "entity_id": 7,
+    "request_key": "c10demo-20261122-uom-box",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "category",
+    "entity_id": 3,
+    "request_key": "c10demo-20261122-cat-sweets",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "category",
+    "entity_id": 4,
+    "request_key": "c10demo-20261122-cat-raw",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "item",
+    "entity_id": 6,
+    "request_key": "c10demo-20261122-item-rasgulla",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "item",
+    "entity_id": 7,
+    "request_key": "c10demo-20261122-item-sandesh",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "item",
+    "entity_id": 8,
+    "request_key": "c10demo-20261122-item-sugar",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "item",
+    "entity_id": 9,
+    "request_key": "c10demo-20261122-item-milk",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "party",
+    "entity_id": 3,
+    "request_key": "c10demo-20261122-party-customer",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "party",
+    "entity_id": 4,
+    "request_key": "c10demo-20261122-party-supplier",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "price_list",
+    "entity_id": 2,
+    "request_key": "c10demo-20261122-pricelist-retail",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "price",
+    "entity_id": 3,
+    "request_key": "c10demo-20261122-price-rasgulla",
+    "tenant_id": 1,
+    "version": 1
+   },
+   {
+    "actor_id": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "business_id": 3,
+    "created_at": "2026-11-22T05:55:24.1382+00:00",
+    "entity": "price",
+    "entity_id": 4,
+    "request_key": "c10demo-20261122-price-sandesh",
+    "tenant_id": 1,
+    "version": 1
+   }
+  ],
+  "master_uom_conversions_v1": [],
+  "master_uoms_v1": [
+   {
+    "active": true,
+    "business_id": 3,
+    "code": "PCS",
+    "decimals": 0,
+    "dimension": "count",
+    "id": 5,
+    "name_bn": "পিস",
+    "name_en": "Piece",
+    "tenant_id": 1,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "version": 1
+   },
+   {
+    "active": true,
+    "business_id": 3,
+    "code": "KG",
+    "decimals": 3,
+    "dimension": "mass",
+    "id": 6,
+    "name_bn": "কেজি",
+    "name_en": "Kilogram",
+    "tenant_id": 1,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "version": 1
+   },
+   {
+    "active": true,
+    "business_id": 3,
+    "code": "BOX",
+    "decimals": 0,
+    "dimension": "count",
+    "id": 7,
+    "name_bn": "বাক্স",
+    "name_en": "Box",
+    "tenant_id": 1,
+    "updated_at": "2026-11-22T05:55:24.1382+00:00",
+    "updated_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "version": 1
+   }
+  ],
+  "procurement_requests_v1": [],
+  "purchase_order_lines_v1": [],
+  "purchase_orders_v1": [],
+  "schema_migrations": [
+   {
+    "applied_at": "2026-11-16T10:55:11.004711+00:00",
+    "applied_by": "postgres",
+    "checksum": "c51c4dae6c1325b79b60f887145d0be58217beb63146a017391cb6a3d49f13bc",
+    "name": "0001_s0_core10_schema",
+    "version": 1
+   },
+   {
+    "applied_at": "2026-11-16T10:55:12.6013+00:00",
+    "applied_by": "postgres",
+    "checksum": "86199d64bcc178e2e14935db1615ca320806ca2ee74352fc8521b1fa4062648f",
+    "name": "0002_np01_access_foundation",
+    "version": 2
+   },
+   {
+    "applied_at": "2026-11-16T10:55:14.173102+00:00",
+    "applied_by": "postgres",
+    "checksum": "bc3f2b355eec181a175de9594fc8d8b55cb2472387b6eb2fb455aa94ac40cfef",
+    "name": "0003_np01_access_governance",
+    "version": 3
+   },
+   {
+    "applied_at": "2026-11-16T10:55:16.002852+00:00",
+    "applied_by": "postgres",
+    "checksum": "de0dfafd1ed1a1c402ffea3c82c28cf708a5bc7288f5f0bde7fd14434b05aa81",
+    "name": "0004_np01_setup_prerequisite",
+    "version": 4
+   },
+   {
+    "applied_at": "2026-11-16T10:55:17.404645+00:00",
+    "applied_by": "postgres",
+    "checksum": "3f73b92cfa0034663034532cb7a72759cc49079e63138b988b3b886bd59fb64a",
+    "name": "0005_np01_industry_prerequisite",
+    "version": 5
+   },
+   {
+    "applied_at": "2026-11-16T10:55:19.063401+00:00",
+    "applied_by": "postgres",
+    "checksum": "38ed43e52622284b6dcaf738bffbe114fe8bb645fe96d02a8ebe9a455186cce2",
+    "name": "0006_np01_build01_access",
+    "version": 6
+   },
+   {
+    "applied_at": "2026-11-16T10:55:20.43368+00:00",
+    "applied_by": "postgres",
+    "checksum": "5a180c2c23f2da4aa46a1486c54b0023bb0615a5455c9aa35ef507112e51b701",
+    "name": "0007_np01_build02a_approval",
+    "version": 7
+   },
+   {
+    "applied_at": "2026-11-16T10:55:21.803732+00:00",
+    "applied_by": "postgres",
+    "checksum": "5225a2ad5cbc512cb964262c1aba897c7c1e208e9eec20ee6167503bf9e4854d",
+    "name": "0008_np01_canonical_audit",
+    "version": 8
+   },
+   {
+    "applied_at": "2026-11-16T10:55:23.291764+00:00",
+    "applied_by": "postgres",
+    "checksum": "444daba14c15fadfbec72e2a9ef2da5748ebb2a1d2afb3bfc94d1d43e05a6d7b",
+    "name": "0009_np01_gov002_approval",
+    "version": 9
+   },
+   {
+    "applied_at": "2026-11-16T10:55:24.895649+00:00",
+    "applied_by": "postgres",
+    "checksum": "25d8f867650e682cab86cd1cde62556c4c6a25f5c875b617c25bf8d1cd522ed3",
+    "name": "0010_np01_gov002_typed",
+    "version": 10
+   },
+   {
+    "applied_at": "2026-11-16T10:55:26.444777+00:00",
+    "applied_by": "postgres",
+    "checksum": "ae7dcfe0ff07013f567c0d1423abd3723e98c3032e1d63cd924c4f9a64c0e7c2",
+    "name": "0011_np01_gov002_routed_review",
+    "version": 11
+   },
+   {
+    "applied_at": "2026-11-16T10:55:27.902092+00:00",
+    "applied_by": "postgres",
+    "checksum": "8dc06969d64b6c636f645a350616b84dcfc7aed164713e20323bd7b5a5dcdb92",
+    "name": "0012_np01_gov002_scoped_reports",
+    "version": 12
+   },
+   {
+    "applied_at": "2026-11-22T03:34:45.025414+00:00",
+    "applied_by": "postgres",
+    "checksum": "4d3b8d1a5e62f91ac79e1ce6ebf4c32cef40e0b96afd6c2b524f79b1ec46579d",
+    "name": "0013_np01_journal_truncate_guard",
+    "version": 13
+   },
+   {
+    "applied_at": "2026-11-22T03:34:49.424427+00:00",
+    "applied_by": "postgres",
+    "checksum": "a8322102b38ed92e7f549f19577448eb0cab14934058593e6b992414267147fa",
+    "name": "0014_np01_gov002_threshold_units",
+    "version": 14
+   },
+   {
+    "applied_at": "2026-11-22T03:34:53.979518+00:00",
+    "applied_by": "postgres",
+    "checksum": "91bc59cf64f03b52b526d89ce9d1d267b35727c1bc3e418954db7c8807c8d4e7",
+    "name": "0015_np01_gov002_exception_triage",
+    "version": 15
+   },
+   {
+    "applied_at": "2026-11-22T03:34:58.59705+00:00",
+    "applied_by": "postgres",
+    "checksum": "2be1d4d68fd75c005d64f289645387580745a6e70262d3f828d362fb1300cd2f",
+    "name": "0016_np01_gov003_canonical_readiness",
+    "version": 16
+   },
+   {
+    "applied_at": "2026-11-22T03:35:03.192156+00:00",
+    "applied_by": "postgres",
+    "checksum": "a4022411abae525ae2eae1dbacab83fab0ef908f11afbf40afa5c9995d4b2020",
+    "name": "0017_np01_unbound_rpc_fence",
+    "version": 17
+   },
+   {
+    "applied_at": "2026-11-22T03:35:07.71016+00:00",
+    "applied_by": "postgres",
+    "checksum": "54b928c15337bd7ac28c870c0dc354e025a3f896919c1ba6f0618cf52f320421",
+    "name": "0018_np01_approval_policy_control",
+    "version": 18
+   },
+   {
+    "applied_at": "2026-11-22T03:35:11.906185+00:00",
+    "applied_by": "postgres",
+    "checksum": "1a5522ce289a494c9d4234ab5d6b6f0422a6a6305ce293cef382023d86e0a9e5",
+    "name": "0019_np01_review_control",
+    "version": 19
+   },
+   {
+    "applied_at": "2026-11-22T03:35:16.518396+00:00",
+    "applied_by": "postgres",
+    "checksum": "eae67a48e947b6f8f4bffefa22ae896c7fd64aacc55fbe90ab45d31e229b1111",
+    "name": "0100_np02_control_tables",
+    "version": 100
+   },
+   {
+    "applied_at": "2026-11-22T03:35:21.051895+00:00",
+    "applied_by": "postgres",
+    "checksum": "735eaca151a8889660f6399d1abe9b3a9a7fe60ead0b2daefb6b03dfa4dbba47",
+    "name": "0101_np02_control_rpc",
+    "version": 101
+   },
+   {
+    "applied_at": "2026-11-22T03:35:25.290888+00:00",
+    "applied_by": "postgres",
+    "checksum": "882a98ac159d80e45f53896cc4b31f0c0fd443f784466fc335cdc4c092a78ea7",
+    "name": "0102_np02_control_seed",
+    "version": 102
+   },
+   {
+    "applied_at": "2026-11-22T03:35:29.678893+00:00",
+    "applied_by": "postgres",
+    "checksum": "92825e0a4ccb7982bd73b64295d606faca60ef5e5023fdac4323350ad59032f1",
+    "name": "0103_np02_control_registry_evidence",
+    "version": 103
+   },
+   {
+    "applied_at": "2026-11-22T03:35:34.199455+00:00",
+    "applied_by": "postgres",
+    "checksum": "dbe33a2fa2513035980dc2e0e17229244a21db2f4bd5d5ce4d2a01313db7febe",
+    "name": "0104_np02_control_audit_read",
+    "version": 104
+   },
+   {
+    "applied_at": "2026-11-22T03:35:38.589702+00:00",
+    "applied_by": "postgres",
+    "checksum": "3d7c768b50db0e910d237d7fd99281cd69dddfd9b68f722850b0d41d918563fb",
+    "name": "0105_np02_control_param_labels",
+    "version": 105
+   },
+   {
+    "applied_at": "2026-11-22T03:35:42.727397+00:00",
+    "applied_by": "postgres",
+    "checksum": "0c4277da0759179a117b85580873d790d18fd92a01a217e42952fedd363f35e3",
+    "name": "0106_np02_registry_review_promotion",
+    "version": 106
+   },
+   {
+    "applied_at": "2026-11-22T03:35:46.914931+00:00",
+    "applied_by": "postgres",
+    "checksum": "e0bffc49d8bd64f2b9ea7a5d0063132d5daf511b1c2462219ce0195db7441e93",
+    "name": "0110_np01_submit_delegation_control",
+    "version": 110
+   },
+   {
+    "applied_at": "2026-11-22T03:35:51.295105+00:00",
+    "applied_by": "postgres",
+    "checksum": "b04275c829ae099cfb6e136c27e4f6840d848811475a91c4e1a80ed6be5ff2e7",
+    "name": "0111_np01_route_stages_control",
+    "version": 111
+   },
+   {
+    "applied_at": "2026-11-22T03:35:55.418444+00:00",
+    "applied_by": "postgres",
+    "checksum": "624ab1f4093a4b51242e322c053262cd0ce92686d4c5001ab15b0af49abcadff",
+    "name": "0112_np01_site_provision_control",
+    "version": 112
+   },
+   {
+    "applied_at": "2026-11-22T03:35:59.789717+00:00",
+    "applied_by": "postgres",
+    "checksum": "4557027d8c43f855855914fc5ae92d39cf56d1ff25137b95cff04e238216b58c",
+    "name": "0113_np01_gov003_control",
+    "version": 113
+   },
+   {
+    "applied_at": "2026-11-22T03:36:04.479749+00:00",
+    "applied_by": "postgres",
+    "checksum": "257d15f378550b480f8698030fdd7d75b8da18c326fd89706330e95e6d8caa64",
+    "name": "0114_np01_gov002_threshold_exception_control",
+    "version": 114
+   },
+   {
+    "applied_at": "2026-11-22T05:47:40.731238+00:00",
+    "applied_by": "postgres",
+    "checksum": "5885cad794d7eb2d0fb6bea1bf7a8fc6726f15dce8534bfc149a235756f51be0",
+    "name": "0115_np01_bootstrap_policy_provider",
+    "version": 115
+   },
+   {
+    "applied_at": "2026-11-22T05:47:43.853092+00:00",
+    "applied_by": "postgres",
+    "checksum": "84dcb3b2eab734e63f5e5189e63df309f790aee3245351e08c0bb85e0bd0c38d",
+    "name": "0116_np01_bootstrap_provisioning",
+    "version": 116
+   },
+   {
+    "applied_at": "2026-11-22T05:47:47.051671+00:00",
+    "applied_by": "postgres",
+    "checksum": "6048553f8ef672bdb0e17d6f7535c9338ac8b074ef220fd5ccf1ce263dcd323e",
+    "name": "0117_np01_bootstrap_owner_context",
+    "version": 117
+   },
+   {
+    "applied_at": "2026-11-22T05:47:49.712781+00:00",
+    "applied_by": "postgres",
+    "checksum": "42571d32443c79e88d1de17a9842c64da54d2102f4fbfcd3285e104ee814dd86",
+    "name": "0118_np01_site_provisioning_guard",
+    "version": 118
+   },
+   {
+    "applied_at": "2026-11-22T05:49:49.36514+00:00",
+    "applied_by": "postgres",
+    "checksum": "8afb450c3096dd1e0a099244a6b7a60c1e2b8b69d87503161e9938bbb2eefb78",
+    "name": "0150_np02_master_tables",
+    "version": 150
+   },
+   {
+    "applied_at": "2026-11-22T05:49:52.36805+00:00",
+    "applied_by": "postgres",
+    "checksum": "83eff4577e46a7b34c8443569fc51f0dc1e5f89ce2ec24b79caab38f966d1fb1",
+    "name": "0151_np02_master_rpc",
+    "version": 151
+   },
+   {
+    "applied_at": "2026-11-22T05:49:55.060914+00:00",
+    "applied_by": "postgres",
+    "checksum": "ecc7a234f9b5c19685d24afcc8a7a173697787e9b27f62d8b745ea94dcf7d0f2",
+    "name": "0152_np02_master_read",
+    "version": 152
+   },
+   {
+    "applied_at": "2026-11-22T05:49:57.741466+00:00",
+    "applied_by": "postgres",
+    "checksum": "a84807fdc35c7f78a79bd8e56beafc6fedc1eb378f90a48cea3208031b34a455",
+    "name": "0153_np02_master_request_lock",
+    "version": 153
+   },
+   {
+    "applied_at": "2026-11-22T05:50:00.453072+00:00",
+    "applied_by": "postgres",
+    "checksum": "bbde3b47bb702af101dd1183768c00af41785b8cbdf5c2620dc9b493cb472f2d",
+    "name": "0200_np03a_inventory_engine",
+    "version": 200
+   },
+   {
+    "applied_at": "2026-11-22T06:52:14.070111+00:00",
+    "applied_by": "postgres",
+    "checksum": "c044c87be240ddb34f38a4de54f7937d80589a436be2d83018cd4578382c2d90",
+    "name": "0201_np03a_inventory_commands",
+    "version": 201
+   },
+   {
+    "applied_at": "2026-11-22T06:52:18.69451+00:00",
+    "applied_by": "postgres",
+    "checksum": "8346af72fe899e25181c5807a0c898627fd6603b41b95d3db1059cbd28040e19",
+    "name": "0202_np03a_inventory_approval",
+    "version": 202
+   },
+   {
+    "applied_at": "2026-11-22T06:52:23.893237+00:00",
+    "applied_by": "postgres",
+    "checksum": "0e593d16373366d7dc5686561168aa23351300745906ed008286f1b97b4a85d3",
+    "name": "0203_np03a_procurement_grn",
+    "version": 203
+   },
+   {
+    "applied_at": "2026-11-22T06:52:28.907777+00:00",
+    "applied_by": "postgres",
+    "checksum": "fd74c952e6a8ee77a16b3ebb0d8f18f4ffe90050559b939715ea8cefad7be0c8",
+    "name": "0204_np03a_owner_dashboard_read",
+    "version": 204
+   },
+   {
+    "applied_at": "2026-11-22T06:52:33.695981+00:00",
+    "applied_by": "postgres",
+    "checksum": "0e353c3a0877dd3422f0e762d295b9e82c29a4d3eac130efc214529613bf440a",
+    "name": "0205_np03a_inventory_read_scale",
+    "version": 205
+   },
+   {
+    "applied_at": "2026-11-22T06:52:40.143863+00:00",
+    "applied_by": "postgres",
+    "checksum": "1b9078224e02b108e18f9bff695497c9052e7d331361811a9234bf51c6d47d12",
+    "name": "0206_np03a_po_approval",
+    "version": 206
+   }
+  ],
+  "site_grants": [
+   {
+    "actions": [
+     "stock.read"
+    ],
+    "active": true,
+    "business_id": 9821,
+    "denied_actions": [],
+    "site_id": 9831,
+    "tenant_id": 9801,
+    "user_id": "00f35ad1-932b-4989-9a34-8df15285185a",
+    "valid_until": null,
+    "version": 1
+   }
+  ],
+  "sites": [
+   {
+    "business_id": 9821,
+    "id": 9831,
+    "kind": "showroom",
+    "label": "Showroom",
+    "request_key": "stg-seed-s1",
+    "tenant_id": 9801
+   },
+   {
+    "business_id": 9821,
+    "id": 9832,
+    "kind": "factory",
+    "label": "Factory",
+    "request_key": "stg-seed-s2",
+    "tenant_id": 9801
+   },
+   {
+    "business_id": 9822,
+    "id": 9833,
+    "kind": "showroom",
+    "label": "Other showroom",
+    "request_key": "stg-seed-s3",
+    "tenant_id": 9802
+   },
+   {
+    "business_id": 3,
+    "id": 5,
+    "kind": "showroom",
+    "label": "Demo Showroom",
+    "request_key": "industry-v2:owner-demo-sweets-chatgpt-20261122-v1:site:0001",
+    "tenant_id": 1
+   },
+   {
+    "business_id": 3,
+    "id": 6,
+    "kind": "factory",
+    "label": "Demo Factory",
+    "request_key": "industry-v2:owner-demo-sweets-chatgpt-20261122-v1:site:0002",
+    "tenant_id": 1
+   },
+   {
+    "business_id": 3,
+    "id": 7,
+    "kind": "warehouse",
+    "label": "Demo Warehouse",
+    "request_key": "industry-v2:owner-demo-sweets-chatgpt-20261122-v1:site:0003",
+    "tenant_id": 1
+   },
+   {
+    "business_id": 3,
+    "id": 8,
+    "kind": "showroom",
+    "label": "ASIAN Paint",
+    "request_key": "bc3e51e8-7cfc-4640-aa94-bbbeef90f90b",
+    "tenant_id": 1
+   }
+  ],
+  "stock_balances_v1": [
+   {
+    "business_id": 3,
+    "item_id": 8,
+    "location_id": 7,
+    "on_hand": 25,
+    "site_id": 7,
+    "tenant_id": 1
+   },
+   {
+    "business_id": 3,
+    "item_id": 9,
+    "location_id": 7,
+    "on_hand": 10,
+    "site_id": 7,
+    "tenant_id": 1
+   },
+   {
+    "business_id": 3,
+    "item_id": 6,
+    "location_id": 6,
+    "on_hand": 20,
+    "site_id": 6,
+    "tenant_id": 1
+   },
+   {
+    "business_id": 3,
+    "item_id": 6,
+    "location_id": 5,
+    "on_hand": 10,
+    "site_id": 5,
+    "tenant_id": 1
+   },
+   {
+    "business_id": 3,
+    "item_id": 7,
+    "location_id": 6,
+    "on_hand": 15,
+    "site_id": 6,
+    "tenant_id": 1
+   },
+   {
+    "business_id": 3,
+    "item_id": 7,
+    "location_id": 5,
+    "on_hand": 5,
+    "site_id": 5,
+    "tenant_id": 1
+   }
+  ],
+  "stock_locations": [
+   {
+    "business_id": 3,
+    "code": "MAIN",
+    "id": 5,
+    "site_id": 5,
+    "tenant_id": 1
+   },
+   {
+    "business_id": 3,
+    "code": "MAIN",
+    "id": 6,
+    "site_id": 6,
+    "tenant_id": 1
+   },
+   {
+    "business_id": 3,
+    "code": "MAIN",
+    "id": 7,
+    "site_id": 7,
+    "tenant_id": 1
+   },
+   {
+    "business_id": 3,
+    "code": "MAIN",
+    "id": 8,
+    "site_id": 8,
+    "tenant_id": 1
+   }
+  ],
+  "stock_movements": [
+   {
+    "business_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "delta": 25,
+    "id": 3,
+    "item_id": 8,
+    "location_id": 7,
+    "request_key": "c10-inv-cmd-1",
+    "site_id": 7,
+    "tenant_id": 1,
+    "transfer_id": null
+   },
+   {
+    "business_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "delta": 10,
+    "id": 4,
+    "item_id": 9,
+    "location_id": 7,
+    "request_key": "c10-inv-cmd-2",
+    "site_id": 7,
+    "tenant_id": 1,
+    "transfer_id": null
+   },
+   {
+    "business_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "delta": 30,
+    "id": 5,
+    "item_id": 6,
+    "location_id": 6,
+    "request_key": "c10-inv-cmd-3",
+    "site_id": 6,
+    "tenant_id": 1,
+    "transfer_id": null
+   },
+   {
+    "business_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "delta": 20,
+    "id": 6,
+    "item_id": 7,
+    "location_id": 6,
+    "request_key": "c10-inv-cmd-4",
+    "site_id": 6,
+    "tenant_id": 1,
+    "transfer_id": null
+   },
+   {
+    "business_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "delta": -10,
+    "id": 7,
+    "item_id": 6,
+    "location_id": 6,
+    "request_key": "c10-transfer:1:out",
+    "site_id": 6,
+    "tenant_id": 1,
+    "transfer_id": 1
+   },
+   {
+    "business_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "delta": 10,
+    "id": 8,
+    "item_id": 6,
+    "location_id": 5,
+    "request_key": "c10-transfer:1:in",
+    "site_id": 5,
+    "tenant_id": 1,
+    "transfer_id": 1
+   },
+   {
+    "business_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "delta": -5,
+    "id": 9,
+    "item_id": 7,
+    "location_id": 6,
+    "request_key": "c10-transfer:2:out",
+    "site_id": 6,
+    "tenant_id": 1,
+    "transfer_id": 2
+   },
+   {
+    "business_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "delta": 5,
+    "id": 10,
+    "item_id": 7,
+    "location_id": 5,
+    "request_key": "c10-transfer:2:in",
+    "site_id": 5,
+    "tenant_id": 1,
+    "transfer_id": 2
+   }
+  ],
+  "stock_transfers_v1": [
+   {
+    "business_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "destination_location_id": 5,
+    "destination_site_id": 5,
+    "id": 1,
+    "item_id": 6,
+    "quantity": 10,
+    "request_key": "c10-inv-cmd-5",
+    "source_location_id": 6,
+    "source_site_id": 6,
+    "tenant_id": 1
+   },
+   {
+    "business_id": 3,
+    "created_at": "2026-11-22T06:53:37.627214+00:00",
+    "created_by": "419635db-b70e-4cad-99d9-218c6efa41c3",
+    "destination_location_id": 5,
+    "destination_site_id": 5,
+    "id": 2,
+    "item_id": 7,
+    "quantity": 5,
+    "request_key": "c10-inv-cmd-6",
+    "source_location_id": 6,
+    "source_site_id": 6,
+    "tenant_id": 1
+   }
+  ],
+  "template_modules_v1": [
+   {
+    "enterprise_certified": false,
+    "module_code": "pos",
+    "prototype_present": false,
+    "template_code": "sweets_bakery"
+   },
+   {
+    "enterprise_certified": false,
+    "module_code": "stock",
+    "prototype_present": true,
+    "template_code": "sweets_bakery"
+   },
+   {
+    "enterprise_certified": false,
+    "module_code": "purchase",
+    "prototype_present": false,
+    "template_code": "sweets_bakery"
+   },
+   {
+    "enterprise_certified": false,
+    "module_code": "production",
+    "prototype_present": false,
+    "template_code": "sweets_bakery"
+   },
+   {
+    "enterprise_certified": false,
+    "module_code": "costing",
+    "prototype_present": false,
+    "template_code": "sweets_bakery"
+   },
+   {
+    "enterprise_certified": false,
+    "module_code": "accounting",
+    "prototype_present": false,
+    "template_code": "sweets_bakery"
+   },
+   {
+    "enterprise_certified": false,
+    "module_code": "reports",
+    "prototype_present": false,
+    "template_code": "sweets_bakery"
+   }
+  ],
+  "templates": [
+   {
+    "code": "sweets_bakery",
+    "demo_allowed": false,
+    "enterprise_certified": false,
+    "source_status": "available"
+   },
+   {
+    "code": "restaurant",
+    "demo_allowed": false,
+    "enterprise_certified": false,
+    "source_status": "not_implemented"
+   },
+   {
+    "code": "paint_hardware",
+    "demo_allowed": false,
+    "enterprise_certified": false,
+    "source_status": "not_implemented"
+   },
+   {
+    "code": "retail_wholesale",
+    "demo_allowed": false,
+    "enterprise_certified": false,
+    "source_status": "not_implemented"
+   },
+   {
+    "code": "general_manufacturing",
+    "demo_allowed": false,
+    "enterprise_certified": false,
+    "source_status": "not_implemented"
+   },
+   {
+    "code": "construction",
+    "demo_allowed": false,
+    "enterprise_certified": false,
+    "source_status": "not_implemented"
+   },
+   {
+    "code": "import_export",
+    "demo_allowed": false,
+    "enterprise_certified": false,
+    "source_status": "not_implemented"
+   },
+   {
+    "code": "ecommerce",
+    "demo_allowed": false,
+    "enterprise_certified": false,
+    "source_status": "not_implemented"
+   },
+   {
+    "code": "technology_digital",
+    "demo_allowed": false,
+    "enterprise_certified": false,
+    "source_status": "not_implemented"
+   },
+   {
+    "code": "services",
+    "demo_allowed": false,
+    "enterprise_certified": false,
+    "source_status": "not_implemented"
+   }
+  ],
+  "tenant_members": [
+   {
+    "active": true,
+    "role": "tenant_owner",
+    "tenant_id": 9801,
+    "user_id": "90bb1cac-a777-453e-9ff4-1f68d5555fb0"
+   },
+   {
+    "active": true,
+    "role": "tenant_owner",
+    "tenant_id": 9802,
+    "user_id": "da92a4cb-e624-44fd-972a-b6c7def869d4"
+   },
+   {
+    "active": true,
+    "role": "tenant_owner",
+    "tenant_id": 1,
+    "user_id": "419635db-b70e-4cad-99d9-218c6efa41c3"
+   }
+  ],
+  "tenants": [
+   {
+    "active": true,
+    "bootstrap_policy_initialized": false,
+    "id": 9801,
+    "slug": "stg-a"
+   },
+   {
+    "active": true,
+    "bootstrap_policy_initialized": false,
+    "id": 9802,
+    "slug": "stg-b"
+   },
+   {
+    "active": true,
+    "bootstrap_policy_initialized": true,
+    "id": 1,
+    "slug": "core10-owner-group"
+   }
+  ]
+ }
+}

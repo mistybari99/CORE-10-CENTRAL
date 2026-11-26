@@ -6,21 +6,21 @@ BEGIN;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 DO $$BEGIN
- IF (SELECT count(*) FROM c10_demo.businesses)<>2 THEN RAISE EXCEPTION 'owner A business scope'; END IF;
- IF (SELECT count(*) FROM c10_demo.sites)<>3 THEN RAISE EXCEPTION 'owner A site scope'; END IF;
- IF (SELECT count(*) FROM c10_demo.tenants)<>1 THEN RAISE EXCEPTION 'owner A tenant scope'; END IF;
- IF (SELECT count(*) FROM c10_demo.businesses WHERE tenant_id=2)<>0 THEN RAISE EXCEPTION 'cross-tenant read'; END IF;
+ IF (SELECT count(*) FROM core10.businesses)<>2 THEN RAISE EXCEPTION 'owner A business scope'; END IF;
+ IF (SELECT count(*) FROM core10.sites)<>3 THEN RAISE EXCEPTION 'owner A site scope'; END IF;
+ IF (SELECT count(*) FROM core10.tenants)<>1 THEN RAISE EXCEPTION 'owner A tenant scope'; END IF;
+ IF (SELECT count(*) FROM core10.businesses WHERE tenant_id=2)<>0 THEN RAISE EXCEPTION 'cross-tenant read'; END IF;
 END $$;
-SELECT c10_demo.provision_business(11,'new-setup-business','food_manufacturing','a-create-01') AS created \gset
-SELECT c10_demo.provision_business(11,'new-setup-business','food_manufacturing','a-create-01') AS retry \gset
+SELECT core10.provision_business(11,'new-setup-business','food_manufacturing','a-create-01') AS created \gset
+SELECT core10.provision_business(11,'new-setup-business','food_manufacturing','a-create-01') AS retry \gset
 SELECT (:'created'::bigint=:'retry'::bigint) AS business_retry_same \gset
 \if :business_retry_same
  \echo PASS: business retry returned exact same ID
 \else
  \quit 1
 \endif
-SELECT c10_demo.provision_site(101,'warehouse','Demo Warehouse','site-a-01') AS site_created \gset
-SELECT c10_demo.provision_site(101,'warehouse','Demo Warehouse','site-a-01') AS site_retry \gset
+SELECT core10.provision_site(101,'warehouse','Demo Warehouse','site-a-01') AS site_created \gset
+SELECT core10.provision_site(101,'warehouse','Demo Warehouse','site-a-01') AS site_retry \gset
 SELECT (:'site_created'::bigint=:'site_retry'::bigint) AS site_retry_same \gset
 \if :site_retry_same
  \echo PASS: site retry returned exact same ID
@@ -28,38 +28,38 @@ SELECT (:'site_created'::bigint=:'site_retry'::bigint) AS site_retry_same \gset
  \quit 1
 \endif
 DO $$BEGIN
- IF (SELECT count(*) FROM c10_demo.sites WHERE business_id=101 AND label='Demo Warehouse')<>1 THEN RAISE EXCEPTION 'duplicate site'; END IF;
- IF (SELECT count(*) FROM c10_demo.stock_locations WHERE site_id=(SELECT id FROM c10_demo.sites WHERE label='Demo Warehouse'))<>1 THEN RAISE EXCEPTION 'duplicate physical location'; END IF;
- IF (SELECT status FROM c10_demo.businesses WHERE slug='new-setup-business')<>'draft' THEN RAISE EXCEPTION 'fake business readiness'; END IF;
- IF (SELECT enterprise_certified FROM c10_demo.templates WHERE code='food_manufacturing') THEN RAISE EXCEPTION 'false template certification'; END IF;
+ IF (SELECT count(*) FROM core10.sites WHERE business_id=101 AND label='Demo Warehouse')<>1 THEN RAISE EXCEPTION 'duplicate site'; END IF;
+ IF (SELECT count(*) FROM core10.stock_locations WHERE site_id=(SELECT id FROM core10.sites WHERE label='Demo Warehouse'))<>1 THEN RAISE EXCEPTION 'duplicate physical location'; END IF;
+ IF (SELECT status FROM core10.businesses WHERE slug='new-setup-business')<>'draft' THEN RAISE EXCEPTION 'fake business readiness'; END IF;
+ IF (SELECT enterprise_certified FROM core10.templates WHERE code='food_manufacturing') THEN RAISE EXCEPTION 'false template certification'; END IF;
 END $$;
 DO $$BEGIN
  BEGIN
-  PERFORM c10_demo.provision_business(21,'illegal','food_manufacturing','a-cross-tenant');
+  PERFORM core10.provision_business(21,'illegal','food_manufacturing','a-cross-tenant');
   RAISE EXCEPTION 'cross-tenant provisioning succeeded';
  EXCEPTION WHEN insufficient_privilege THEN NULL; WHEN raise_exception THEN
   IF SQLERRM='cross-tenant provisioning succeeded' THEN RAISE; END IF;
  END;
  BEGIN
-  PERFORM c10_demo.provision_business(11,'paint','hardware_paint','unbuilt');
+  PERFORM core10.provision_business(11,'paint','hardware_paint','unbuilt');
   RAISE EXCEPTION 'unimplemented template was provisioned';
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM='unimplemented template was provisioned' THEN RAISE; END IF;
  END;
  BEGIN
-  PERFORM c10_demo.provision_business(11,'different','food_manufacturing','a-create-01');
+  PERFORM core10.provision_business(11,'different','food_manufacturing','a-create-01');
   RAISE EXCEPTION 'idempotency collision allowed different payload';
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM='idempotency collision allowed different payload' THEN RAISE; END IF;
  END;
 END $$;
-SELECT c10_demo.post_stock_event(5001,8001,10,'a-stock-01') AS first_post \gset
-SELECT c10_demo.post_stock_event(5001,8001,10,'a-stock-01') AS same_post \gset
+SELECT core10.post_stock_event(5001,8001,10,'a-stock-01') AS first_post \gset
+SELECT core10.post_stock_event(5001,8001,10,'a-stock-01') AS same_post \gset
 DO $$BEGIN
- IF (SELECT count(*) FROM c10_demo.stock_movements WHERE request_key='a-stock-01')<>1 THEN RAISE EXCEPTION 'duplicate stock movement'; END IF;
- IF (SELECT net_movement FROM c10_demo.stock_summary WHERE location_id=5001 AND item_id=8001)<>10 THEN RAISE EXCEPTION 'wrong stock summary'; END IF;
+ IF (SELECT count(*) FROM core10.stock_movements WHERE request_key='a-stock-01')<>1 THEN RAISE EXCEPTION 'duplicate stock movement'; END IF;
+ IF (SELECT net_movement FROM core10.stock_summary WHERE location_id=5001 AND item_id=8001)<>10 THEN RAISE EXCEPTION 'wrong stock summary'; END IF;
  BEGIN
-  PERFORM c10_demo.post_stock_event(5001,8001,20,'a-stock-01');
+  PERFORM core10.post_stock_event(5001,8001,20,'a-stock-01');
   RAISE EXCEPTION 'idempotency key conflicting stock payload accepted';
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM='idempotency key conflicting stock payload accepted' THEN RAISE; END IF;
@@ -72,11 +72,11 @@ BEGIN;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
 DO $$BEGIN
- IF (SELECT count(*) FROM c10_demo.businesses)<>1 THEN RAISE EXCEPTION 'business owner scope'; END IF;
- IF (SELECT count(*) FROM c10_demo.sites)<>3 THEN RAISE EXCEPTION 'business owner site scope'; END IF;
- IF (SELECT count(*) FROM c10_demo.tenants)<>0 THEN RAISE EXCEPTION 'business owner sees tenant settings'; END IF;
+ IF (SELECT count(*) FROM core10.businesses)<>1 THEN RAISE EXCEPTION 'business owner scope'; END IF;
+ IF (SELECT count(*) FROM core10.sites)<>3 THEN RAISE EXCEPTION 'business owner site scope'; END IF;
+ IF (SELECT count(*) FROM core10.tenants)<>0 THEN RAISE EXCEPTION 'business owner sees tenant settings'; END IF;
  BEGIN
-  PERFORM c10_demo.provision_business(11,'biz-owner-hijack','food_manufacturing','not-tenant-owner');
+  PERFORM core10.provision_business(11,'biz-owner-hijack','food_manufacturing','not-tenant-owner');
   RAISE EXCEPTION 'business owner provisioned tenant business';
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM='business owner provisioned tenant business' THEN RAISE; END IF;
@@ -88,39 +88,39 @@ BEGIN;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
 DO $$BEGIN
- IF (SELECT count(*) FROM c10_demo.businesses)<>1 THEN RAISE EXCEPTION 'staff business scope'; END IF;
- IF (SELECT count(*) FROM c10_demo.sites)<>1 THEN RAISE EXCEPTION 'staff site scope'; END IF;
- IF (SELECT count(*) FROM c10_demo.stock_locations)<>1 THEN RAISE EXCEPTION 'staff location scope'; END IF;
- IF (SELECT count(*) FROM c10_demo.items)<>1 THEN RAISE EXCEPTION 'staff item scope'; END IF;
- IF (SELECT count(*) FROM c10_demo.stock_movements)<>1 THEN RAISE EXCEPTION 'staff stock event read'; END IF;
- IF (SELECT count(*) FROM c10_demo.tenants)<>0 THEN RAISE EXCEPTION 'staff sees tenant panel'; END IF;
+ IF (SELECT count(*) FROM core10.businesses)<>1 THEN RAISE EXCEPTION 'staff business scope'; END IF;
+ IF (SELECT count(*) FROM core10.sites)<>1 THEN RAISE EXCEPTION 'staff site scope'; END IF;
+ IF (SELECT count(*) FROM core10.stock_locations)<>1 THEN RAISE EXCEPTION 'staff location scope'; END IF;
+ IF (SELECT count(*) FROM core10.items)<>1 THEN RAISE EXCEPTION 'staff item scope'; END IF;
+ IF (SELECT count(*) FROM core10.stock_movements)<>1 THEN RAISE EXCEPTION 'staff stock event read'; END IF;
+ IF (SELECT count(*) FROM core10.tenants)<>0 THEN RAISE EXCEPTION 'staff sees tenant panel'; END IF;
 END $$;
-SELECT c10_demo.post_stock_event(5001,8001,5,'staff-post-01');
+SELECT core10.post_stock_event(5001,8001,5,'staff-post-01');
 DO $$BEGIN
  BEGIN
-  PERFORM c10_demo.post_stock_event(5002,8001,2,'staff-foreign-site');
+  PERFORM core10.post_stock_event(5002,8001,2,'staff-foreign-site');
   RAISE EXCEPTION 'staff wrote another site';
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM='staff wrote another site' THEN RAISE; END IF;
  END;
  BEGIN
-  PERFORM c10_demo.post_stock_event(6001,9001,2,'staff-cross-tenant');
+  PERFORM core10.post_stock_event(6001,9001,2,'staff-cross-tenant');
   RAISE EXCEPTION 'staff wrote another tenant';
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM='staff wrote another tenant' THEN RAISE; END IF;
  END;
  BEGIN
-  PERFORM c10_demo.post_stock_event(5001,9001,1,'staff-cross-item');
+  PERFORM core10.post_stock_event(5001,9001,1,'staff-cross-item');
   RAISE EXCEPTION 'staff used foreign-tenant item';
  EXCEPTION WHEN foreign_key_violation THEN NULL;
  END;
  BEGIN
-  UPDATE c10_demo.stock_movements SET delta=100 WHERE location_id=5001;
+  UPDATE core10.stock_movements SET delta=100 WHERE location_id=5001;
   IF FOUND THEN RAISE EXCEPTION 'stock movement edited'; END IF;
  EXCEPTION WHEN insufficient_privilege THEN NULL;
  END;
  BEGIN
-  PERFORM c10_demo.provision_site(101,'factory','Wrong','staff-no-create');
+  PERFORM core10.provision_site(101,'factory','Wrong','staff-no-create');
   RAISE EXCEPTION 'staff created site';
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM='staff created site' THEN RAISE; END IF;
@@ -133,11 +133,11 @@ BEGIN;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','77777777-7777-4777-8777-777777777777',true);
 DO $$BEGIN
- IF (SELECT count(*) FROM c10_demo.businesses)<>1 THEN RAISE EXCEPTION 'independent tenant sees owner businesses'; END IF;
- IF (SELECT count(*) FROM c10_demo.sites)<>1 THEN RAISE EXCEPTION 'independent tenant sees owner sites'; END IF;
- IF (SELECT count(*) FROM c10_demo.stock_movements)<>0 THEN RAISE EXCEPTION 'cross-tenant movement read'; END IF;
+ IF (SELECT count(*) FROM core10.businesses)<>1 THEN RAISE EXCEPTION 'independent tenant sees owner businesses'; END IF;
+ IF (SELECT count(*) FROM core10.sites)<>1 THEN RAISE EXCEPTION 'independent tenant sees owner sites'; END IF;
+ IF (SELECT count(*) FROM core10.stock_movements)<>0 THEN RAISE EXCEPTION 'cross-tenant movement read'; END IF;
 END $$;
-SELECT c10_demo.post_stock_event(6001,9001,7,'customer-stock-01');
+SELECT core10.post_stock_event(6001,9001,7,'customer-stock-01');
 COMMIT;
 
 -- Manager is authorized for own business only, and may post stock at the factory.
@@ -145,17 +145,17 @@ BEGIN;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
 DO $$BEGIN
- IF (SELECT count(*) FROM c10_demo.businesses)<>1 THEN RAISE EXCEPTION 'manager sees foreign business'; END IF;
- IF (SELECT count(*) FROM c10_demo.sites)<>3 THEN RAISE EXCEPTION 'manager site count'; END IF;
- IF (SELECT count(*) FROM c10_demo.items)<>1 THEN RAISE EXCEPTION 'manager item scope'; END IF;
+ IF (SELECT count(*) FROM core10.businesses)<>1 THEN RAISE EXCEPTION 'manager sees foreign business'; END IF;
+ IF (SELECT count(*) FROM core10.sites)<>3 THEN RAISE EXCEPTION 'manager site count'; END IF;
+ IF (SELECT count(*) FROM core10.items)<>1 THEN RAISE EXCEPTION 'manager item scope'; END IF;
  BEGIN
-  PERFORM c10_demo.provision_site(101,'factory','Manager Created','manager-no-grant');
+  PERFORM core10.provision_site(101,'factory','Manager Created','manager-no-grant');
   RAISE EXCEPTION 'manager incorrectly provisioned site';
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM='manager incorrectly provisioned site' THEN RAISE; END IF;
  END;
 END $$;
-SELECT c10_demo.post_stock_event(5002,8001,3,'manager-factory-01');
+SELECT core10.post_stock_event(5002,8001,3,'manager-factory-01');
 COMMIT;
 
 -- Customer-side staff is isolated from owner portfolio and can post only their site.
@@ -163,18 +163,18 @@ BEGIN;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','88888888-8888-4888-8888-888888888888',true);
 DO $$BEGIN
- IF (SELECT count(*) FROM c10_demo.businesses)<>1 THEN RAISE EXCEPTION 'customer staff business'; END IF;
- IF (SELECT count(*) FROM c10_demo.sites)<>1 THEN RAISE EXCEPTION 'customer staff site'; END IF;
- IF (SELECT count(*) FROM c10_demo.stock_movements)<>1 THEN RAISE EXCEPTION 'customer staff own stock read'; END IF;
- IF (SELECT count(*) FROM c10_demo.stock_movements WHERE tenant_id=1)<>0 THEN RAISE EXCEPTION 'customer staff foreign stock'; END IF;
+ IF (SELECT count(*) FROM core10.businesses)<>1 THEN RAISE EXCEPTION 'customer staff business'; END IF;
+ IF (SELECT count(*) FROM core10.sites)<>1 THEN RAISE EXCEPTION 'customer staff site'; END IF;
+ IF (SELECT count(*) FROM core10.stock_movements)<>1 THEN RAISE EXCEPTION 'customer staff own stock read'; END IF;
+ IF (SELECT count(*) FROM core10.stock_movements WHERE tenant_id=1)<>0 THEN RAISE EXCEPTION 'customer staff foreign stock'; END IF;
  BEGIN
-  PERFORM c10_demo.post_stock_event(5001,8001,1,'customer-staff-hijack');
+  PERFORM core10.post_stock_event(5001,8001,1,'customer-staff-hijack');
   RAISE EXCEPTION 'customer staff cross-tenant stock post';
  EXCEPTION WHEN raise_exception THEN
   IF SQLERRM='customer staff cross-tenant stock post' THEN RAISE; END IF;
  END;
 END $$;
-SELECT c10_demo.post_stock_event(6001,9001,2,'customer-staff-01');
+SELECT core10.post_stock_event(6001,9001,2,'customer-staff-01');
 COMMIT;
 
 -- Ignore forged tenant/role metadata: membership is always read from DB for sub.
@@ -184,12 +184,12 @@ SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111'
 SELECT set_config('request.jwt.claim.tenant_id','2',true);
 SELECT set_config('request.jwt.claim.role','platform_admin',true);
 DO $$BEGIN
- IF (SELECT count(*) FROM c10_demo.businesses WHERE tenant_id=2)<>0 THEN
+ IF (SELECT count(*) FROM core10.businesses WHERE tenant_id=2)<>0 THEN
   RAISE EXCEPTION 'forged tenant/role metadata changed authorization';
  END IF;
  BEGIN
-  INSERT INTO c10_demo.tenant_members(tenant_id,user_id,role)
-  VALUES(2,c10_demo.actor_uid(),'tenant_owner');
+  INSERT INTO core10.tenant_members(tenant_id,user_id,role)
+  VALUES(2,core10.actor_uid(),'tenant_owner');
   RAISE EXCEPTION 'privilege escalation via direct membership insert';
  EXCEPTION WHEN insufficient_privilege THEN NULL;
  END;
@@ -206,8 +206,8 @@ BEGIN
   '99999999-9999-4999-8999-999999999999'::uuid]) LOOP
   PERFORM set_config('request.jwt.claim.sub',identity::text,false);
   EXECUTE 'SET ROLE authenticated';
-  IF (SELECT count(*) FROM c10_demo.businesses)<>0 OR
-     (SELECT count(*) FROM c10_demo.stock_movements)<>0 THEN
+  IF (SELECT count(*) FROM core10.businesses)<>0 OR
+     (SELECT count(*) FROM core10.stock_movements)<>0 THEN
     RAISE EXCEPTION 'restricted identity has visibility: %',identity;
   END IF;
   EXECUTE 'RESET ROLE';
@@ -219,7 +219,7 @@ BEGIN;
 SET LOCAL ROLE anon;
 DO $$BEGIN
  BEGIN
-  PERFORM count(*) FROM c10_demo.businesses;
+  PERFORM count(*) FROM core10.businesses;
   RAISE EXCEPTION 'anon read succeeded';
  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
 END $$;

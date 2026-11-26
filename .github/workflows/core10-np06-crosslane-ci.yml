@@ -1,0 +1,134 @@
+name: core10-np06-crosslane-ci
+on:
+  push:
+    branches: [build/chatgpt-np06-shared-ci-fix]
+  pull_request:
+    paths:
+      - ".github/workflows/core10-np06-crosslane-ci.yml"
+      - ".github/workflows/core10-np06-finance-ci.yml"
+      - "tests/migrations/np06-finance-rollback-boundary.sh"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cross-lane-pg17:
+    name: "Finance + ${{ matrix.lane }} pinned PR compatibility"
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # sales (PR #109 @ 3d60a07) and manufacturing (PR #112 @ 7e39b75) are integrated into trunk
+          # (1d63a5a); their own workflows now run on trunk, so only unintegrated F3 stays pinned here.
+          - lane: f3
+            pr: 117
+            head_sha: dc74cdea679f30b428c190daac327d17299e3102
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_PASSWORD: np06_crosslane_disposable, POSTGRES_DB: core10_np03b_ci }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: np06_crosslane_disposable
+      PGDATABASE: ${{ matrix.lane == 'sales' && 'core10_np03b_ci' || 'postgres' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch pinned builder PR head and merge LOCALLY (never push)
+        run: |
+          git fetch --no-tags origin "refs/pull/${{ matrix.pr }}/head:refs/remotes/np06-compat/pr${{ matrix.pr }}"
+          actual_sha="$(git rev-parse refs/remotes/np06-compat/pr${{ matrix.pr }})"
+          echo "FINANCE_${{ matrix.lane }}_LIVE_SHA=$actual_sha"
+          if [[ "$actual_sha" != "${{ matrix.head_sha }}" ]]; then
+            echo "FINANCE_${{ matrix.lane }}_HEAD_MOVED_REVERIFY_BEFORE_COMPAT" >&2
+            exit 1
+          fi
+          git -c user.name="NP06 CI Reviewer" -c user.email="ci-review@example.invalid" \
+              merge --no-commit --no-ff "refs/remotes/np06-compat/pr${{ matrix.pr }}"
+          test "$(git ls-files -u | wc -l)" = "0"
+          echo "FINANCE_${{ matrix.lane }}_LOCAL_MERGE_ONLY"
+      - name: Create only disposable API roles
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+          END \$\$;"
+      - name: Full combined migration Up Down Up + registry evidence
+        run: |
+          node --test tests/migrations/migration-contract.test.js
+          bash tests/migrations/run-updownup.sh
+          internal/migrations/run.sh up
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+          bash tests/migrations/control-registry-evidence.sh
+      - name: Canonical Finance 0400/0401 PG17 permissions and balancing
+        run: |
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-e2e.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-reversal-e2e.sql
+          bash tests/migrations/np06-finance-race.sh
+          bash tests/migrations/np06-finance-reversal-race.sh
+      - name: Targeted immutable 0400 and 0401 rollback despite higher migration
+        run: |
+          bash tests/migrations/np06-finance-rollback-boundary.sh
+          highest="$(psql -X -At -c 'SELECT max(version) FROM core10.schema_migrations')"
+          echo "FINANCE_${{ matrix.lane }}_HIGHEST_MIGRATION=$highest"
+          if [[ "${{ matrix.lane }}" == "sales" ]]; then
+            [[ "$highest" -ge 304 ]] || { echo "SALES_0304_NOT_INSTALLED"; exit 1; }
+          elif [[ "${{ matrix.lane }}" == "manufacturing" ]]; then
+            [[ "$highest" -ge 504 ]] || { echo "MANUFACTURING_0504_NOT_INSTALLED"; exit 1; }
+          else
+            [[ "$highest" -ge 403 ]] || { echo "F3_0403_NOT_INSTALLED"; exit 1; }
+          fi
+      - name: Verify actual Sales Manufacturing or F3 canonical domain logic
+        run: |
+          if [[ "${{ matrix.lane }}" == "sales" ]]; then
+            # Sales draft-invoice negative proof correctly requires ZERO Money
+            # posting in its own fixture. Keep that assertion intact: run the
+            # unchanged Sales suite on a separately migrated PG17 database.
+            # Finance + Sales coexisting with actual Money history is proven
+            # above in the primary combined database, including rollback.
+            node --test tests/np03b/invoice-client.test.cjs
+            createdb core10_np03b_ci_domain
+            PGDATABASE=core10_np03b_ci_domain internal/migrations/run.sh up
+            for file in sales-orders.sql audit-read.sql master-integration.sql invoice-drafts.sql; do
+              PGDATABASE=core10_np03b_ci_domain psql -X -q -v ON_ERROR_STOP=1 -f "tests/np03b/$file"
+            done
+            PGDATABASE=core10_np03b_ci_domain bash tests/np03b/concurrency.sh
+            PGDATABASE=core10_np03b_ci_domain bash tests/np03b/invoice-concurrency.sh
+          elif [[ "${{ matrix.lane }}" == "f3" ]]; then
+            # F3 PR117 is fetched read-only into the CURRENT F2-integrated trunk
+            # + shared CI fix; never alter F3 branch or append its files to PR118.
+            psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np06-finance-arap-e2e.sql
+            bash tests/migrations/np06-finance-arap-race.sh
+            evidence="$(mktemp)"
+            if psql -X -q -v ON_ERROR_STOP=1 -c 'BEGIN READ ONLY' \
+                -f internal/migrations/0403_np06_arap_trace_integrity.down.sql \
+                -c 'ROLLBACK' >"$evidence" 2>&1; then
+              cat "$evidence"
+              echo "F3_0403_ROLLBACK_UNEXPECTEDLY_ALLOWED" >&2
+              exit 1
+            fi
+            grep -Fq FIN_ARAP_INTEGRITY_ROLLBACK_DENIED_HISTORY "$evidence" || {
+              cat "$evidence"; echo "F3_0403_ROLLBACK_GUARD_NOT_REACHED" >&2; exit 1;
+            }
+            test "$(psql -X -At -c "SELECT count(*) FROM core10.finance_arap_links_v1 WHERE business_id=9631")" = "2"
+            echo "FINANCE_F3_TRUNK_PREFLIGHT_0402_0403_PASS"
+          else
+            psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/manufacturing-e2e.sql
+            psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/material-handoff-e2e.sql
+            psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/material-waste-e2e.sql
+            psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/substitution-e2e.sql
+            psql -X -q -v ON_ERROR_STOP=1 -f tests/np05a/canonical-master-e2e.sql
+            bash tests/np05a/concurrency.sh
+          fi
+          echo "FINANCE_${{ matrix.lane }}_PG17_COMBINED_PASS"

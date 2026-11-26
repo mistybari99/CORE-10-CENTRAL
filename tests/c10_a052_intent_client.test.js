@@ -4,7 +4,7 @@ const E=require("../core10-owner-intent-engine.js");
 const {create}=require("../core10-owner-intent-client.js");
 let signed=true,calls=[],reply={};
 const client={auth:{getUser:async()=>signed?{data:{user:{id:"u"}},error:null}:{data:{user:null},error:{code:"401"}}},
- schema:k=>{assert.equal(k,"c10_demo");return{rpc:async(n,a)=>{calls.push([n,a]);const r=reply[n];return typeof r==="function"?r(a):(r||{data:null,error:{code:"X",message:"no reply"}})}}}};
+ schema:k=>{assert.equal(k,"core10");return{rpc:async(n,a)=>{calls.push([n,a]);const r=reply[n];return typeof r==="function"?r(a):(r||{data:null,error:{code:"X",message:"no reply"}})}}}};
 const api=create({client,engine:E});
 (async()=>{
  // interpret is local and deterministic; unknown locale is never submitted
@@ -45,7 +45,7 @@ const api=create({client,engine:E});
  reply.read_owner_intents_v1={data:null,error:{code:"P0001",message:"intent_denied"}};
  await assert.rejects(()=>api.intents(101),/intent_denied/);
  signed=false;await assert.rejects(()=>api.businesses(),/SIGN_IN_REQUIRED/);
- assert.deepEqual(api.release(),{live:false,production:false,source:"c10_demo",advisory_only:true});
+ assert.deepEqual(api.release(),{live:false,production:false,source:"core10",advisory_only:true});
  await assert.rejects(()=>create({}).businesses(),/SIGNED_CLIENT_REQUIRED/);
  console.log("PASS A052 signed client: receipts, validation-before-network, denial, invalid response checks");
 })().catch(e=>{console.error(e);process.exitCode=1});

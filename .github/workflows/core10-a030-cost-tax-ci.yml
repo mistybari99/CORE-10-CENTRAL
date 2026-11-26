@@ -75,7 +75,7 @@ jobs:
         run: |
           docker run --rm -d --name core10-cost-tax-pgrst --network host \
             -e PGRST_DB_URI="postgres://postgres:demo_only@127.0.0.1:5432/core10_cost_tax_ci" \
-            -e PGRST_DB_SCHEMAS=c10_demo \
+            -e PGRST_DB_SCHEMAS=core10 \
             -e PGRST_DB_ANON_ROLE=anon \
             -e PGRST_JWT_SECRET="$CORE10_CI_JWT_SECRET" \
             -e PGRST_JWT_AUD=authenticated \

@@ -1,0 +1,48 @@
+{
+    "nav": [
+        "biz.dashboard",
+        "biz.sites",
+        "biz.site_create",
+        "biz.access",
+        "biz.reports",
+        "biz.controls"
+    ],
+    "mode": "business_owner",
+    "sites": [
+        {
+            "id": 1001,
+            "kind": "showroom",
+            "label": "A1",
+            "allowed_actions": [
+                "stock.read",
+                "stock.post"
+            ]
+        },
+        {
+            "id": 1002,
+            "kind": "factory",
+            "label": "A2",
+            "allowed_actions": [
+                "stock.read",
+                "stock.post"
+            ]
+        }
+    ],
+    "business": {
+        "id": 101,
+        "brand": {
+            "brand_hex": "#334155",
+            "setup_mode": null,
+            "brand_source": "neutral_default",
+            "display_name": "demo-sweets",
+            "setup_status": "draft"
+        }
+    },
+    "contract": "C10_PACK02_WORKSPACE_V1",
+    "umbrella": {
+        "visible": false
+    },
+    "actor_uid": "22222222-2222-4222-8222-222222222222",
+    "data_mode": "disposable-demo",
+    "production_certified": false
+}

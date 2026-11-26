@@ -43,6 +43,8 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+      - name: Materialize exact Git-blob legacy browser fixtures (CI-only)
+        run: node scripts/ci/materialize-legacy-test-fixture.cjs
       - uses: actions/setup-node@v4
         with:
           node-version: 22

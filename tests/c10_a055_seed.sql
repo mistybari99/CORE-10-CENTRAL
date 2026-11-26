@@ -2,12 +2,12 @@
 -- A018 personas reused: 1111 tenant owner(t1), 2222 business owner(101), 3333 manager(101), 4444 stock-only site staff(1001),
 -- 5555 investor, 6666 revoked manager, 7777 tenant-2 owner, 8888 tenant-2 stock staff, 9999 platform operator (no membership).
 -- Extra sites: 1004 project + 1005 godown (business 101) to exercise per-mode policy.
-INSERT INTO c10_demo.sites(id,tenant_id,business_id,kind,label,request_key) VALUES
+INSERT INTO core10.sites(id,tenant_id,business_id,kind,label,request_key) VALUES
  (1004,1,101,'project','Worksite P1','am-seed-1004'),(1005,1,101,'godown','Godown G1','am-seed-1005');
-INSERT INTO c10_demo.business_members(tenant_id,business_id,user_id,role,active) VALUES
+INSERT INTO core10.business_members(tenant_id,business_id,user_id,role,active) VALUES
  (1,102,'e1111111-1111-4111-8111-111111111111','business_owner',true);
 -- Maintenance roles are EXPLICIT grants (never derived from stock/site_grants/manager/payroll).
-INSERT INTO c10_demo.am_grants(tenant_id,business_id,user_id,role,site_id,active,granted_by) VALUES
+INSERT INTO core10.am_grants(tenant_id,business_id,user_id,role,site_id,active,granted_by) VALUES
  (1,101,'d1111111-1111-4111-8111-111111111111','supervisor',NULL,true,'22222222-2222-4222-8222-222222222222'),
  (1,101,'d2222222-2222-4222-8222-222222222222','supervisor',1001,true,'22222222-2222-4222-8222-222222222222'),
  (1,101,'d3333333-3333-4333-8333-333333333333','technician',1001,true,'22222222-2222-4222-8222-222222222222'),

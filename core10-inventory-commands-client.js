@@ -14,7 +14,7 @@
    if(!client?.auth?.getUser||typeof client.schema!=="function")bad("SIGNED_CLIENT_REQUIRED");
    const user=await client.auth.getUser();
    if(!user||user.error||!user.data?.user?.id)bad("SIGNED_USER_REQUIRED");
-   const s=client.schema("c10_demo");if(!s?.rpc||!s?.from)bad("SCHEMA_UNAVAILABLE");
+   const s=client.schema("core10");if(!s?.rpc||!s?.from)bad("SCHEMA_UNAVAILABLE");
    return s;
   }
   function unwrap(r){if(!r||r.error){const e=new Error(r?.error?.message||"REQUEST_FAILED");e.code=r?.error?.code||"REQUEST_FAILED";throw e}return r.data}

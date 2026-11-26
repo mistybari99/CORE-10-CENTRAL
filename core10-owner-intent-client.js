@@ -22,7 +22,7 @@
    if(!client||!client.auth||typeof client.auth.getUser!=="function"||typeof client.schema!=="function")fail("SIGNED_CLIENT_REQUIRED");
    const u=await client.auth.getUser();
    if(!u||u.error||!u.data||!u.data.user||!u.data.user.id)fail("SIGN_IN_REQUIRED");
-   const s=client.schema("c10_demo");
+   const s=client.schema("core10");
    if(!s||typeof s.rpc!=="function")fail("SCHEMA_MISSING");
    return s;
   }
@@ -98,7 +98,7 @@
   }
   async function guidanceIndex(business){const r=await rpc("read_guidance_index_v1",{p_business:id(business,"INVALID_BUSINESS_ID")});must(r,"items","UNVERIFIED_GUIDANCE_INDEX");return r}
   return Object.freeze({businesses,context,interpret,submit,revise,preview,validate,approve,reject,publish,rollback,intents,history,requirements,guidance,guidanceIndex,
-   newKey,release:()=>({live:false,production:false,source:"c10_demo",advisory_only:true})});
+   newKey,release:()=>({live:false,production:false,source:"core10",advisory_only:true})});
  }
  return Object.freeze({create,newKey});
 });

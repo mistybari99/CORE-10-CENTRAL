@@ -37,7 +37,7 @@ The read-only project-materials report, wastage report and margin report are exp
 * Blocking conflicts (`NO_EFFECTIVE_CHANGE`, unmanaged A045 engine key, uncertified handler) stop validation.
 * Site named in the request: stored, but v1 handlers apply at business level (shown as a warning, not hidden).
 
-## Data model (`c10_demo`, RLS enabled, direct writes revoked)
+## Data model (`core10`, RLS enabled, direct writes revoked)
 `intent_capabilities_v1`, `intent_guidance_v1`, `owner_intents_v1`, `intent_settings_v1` (immutable payload versions, one ACTIVE),
 `engineering_requirements_v1`, `owner_intent_events_v1` (append-only, trigger-protected), `intent_receipts_v1`.
 Owners/Business Owners get RLS-scoped SELECT only on intents/settings/requirements/events; everything else goes through

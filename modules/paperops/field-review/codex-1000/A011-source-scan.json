@@ -1,0 +1,660 @@
+{
+  "batch": "A011",
+  "status": "DECLARATIONS_CHECKED_RULE_REVIEW_IN_PROGRESS",
+  "sources": {
+    "forms_stock.js": "f6d8cfb25718ab6ec90d23cbbfbc9a1b18b1489c693b8b1413c339e32e058e81",
+    "forms_sales.js": "cf0d825cf019ce77859265c2e5d4698cc38f31f121ad5661fc8a3c92e7590163"
+  },
+  "fields": [
+    {
+      "source_id": "P-06:credit_days",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 37107,
+          "literal": "l(\"credit_days\",t(\"বাকির সময় (দিন)\",\"Credit period (days)\"))",
+          "constructor_alias": "l",
+          "label_bn": "বাকির সময় (দিন)",
+          "label_en": "Credit period (days)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:account_no",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 37169,
+          "literal": "s(\"account_no\",t(\"হিসাব নং (থাকলে)\",\"Account no. (if any)\"))",
+          "constructor_alias": "s",
+          "label_bn": "হিসাব নং (থাকলে)",
+          "label_en": "Account no. (if any)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:first_date",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 37230,
+          "literal": "p(\"first_date\",t(\"প্রথম কাজের তারিখ\",\"First work date\"))",
+          "constructor_alias": "p",
+          "label_bn": "প্রথম কাজের তারিখ",
+          "label_en": "First work date"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:m_cash",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 37353,
+          "literal": "u(\"m_cash\",t(\"নগদ\",\"Cash\"))",
+          "constructor_alias": "u",
+          "label_bn": "নগদ",
+          "label_en": "Cash"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:m_bank",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 37381,
+          "literal": "u(\"m_bank\",t(\"ব্যাংক\",\"Bank\"))",
+          "constructor_alias": "u",
+          "label_bn": "ব্যাংক",
+          "label_en": "Bank"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:m_mobile",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 37412,
+          "literal": "u(\"m_mobile\",t(\"মোবাইল\",\"Mobile\"))",
+          "constructor_alias": "u",
+          "label_bn": "মোবাইল",
+          "label_en": "Mobile"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:m_owner",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 37447,
+          "literal": "u(\"m_owner\",t(\"মালিকের ব্যক্তিগত\",\"Owner's personal money\"))",
+          "constructor_alias": "u",
+          "label_bn": "মালিকের ব্যক্তিগত",
+          "label_en": "Owner's personal money"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:m_goods",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 37508,
+          "literal": "u(\"m_goods\",t(\"মালামালে সমন্বয়\",\"Settled with goods\"))",
+          "constructor_alias": "u",
+          "label_bn": "মালামালে সমন্বয়",
+          "label_en": "Settled with goods"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:m_other",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 37564,
+          "literal": "u(\"m_other\",t(\"অন্য\",\"Other\"))",
+          "constructor_alias": "u",
+          "label_bn": "অন্য",
+          "label_en": "Other"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:m_other_text",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 37595,
+          "literal": "s(\"m_other_text\",t(\"অন্য — লিখুন\",\"Other — write it\"),{show:e=>!!e.d.m_other})",
+          "constructor_alias": "s",
+          "label_bn": "অন্য — লিখুন",
+          "label_en": "Other — write it"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:verifier",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 37980,
+          "literal": "h(\"verifier\",t(\"যাচাইকারী (Checked by) (হিসাবরক্ষক নন)\",\"Checked by (not the ledger keeper)\"))",
+          "constructor_alias": "h",
+          "label_bn": "যাচাইকারী (Checked by) (হিসাবরক্ষক নন)",
+          "label_en": "Checked by (not the ledger keeper)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:verify_date",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 38075,
+          "literal": "p(\"verify_date\",t(\"যাচাইয়ের তারিখ\",\"Date checked\"))",
+          "constructor_alias": "p",
+          "label_bn": "যাচাইয়ের তারিখ",
+          "label_en": "Date checked"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:verify_how",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 38128,
+          "literal": "g(\"verify_how\",t(\"কীভাবে\",\"How\"),[[\"call\",t(\"এই পাতার ফোন নম্বরে ফোন করে\",\"By calling the phone number on this page\")],[\"paper\",t(\"হিসাবের কাগজ দেখে\",\"By seeing the account paper\")],[\"other\",t(\"অন্য\",\"Other\")]])",
+          "constructor_alias": "g",
+          "label_bn": "কীভাবে",
+          "label_en": "How"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:verify_other",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 38340,
+          "literal": "s(\"verify_other\",t(\"অন্য — লিখুন\",\"Other — write it\"),{show:e=>\"other\"===e.d.verify_how})",
+          "constructor_alias": "s",
+          "label_bn": "অন্য — লিখুন",
+          "label_en": "Other — write it"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:chg_new",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 38514,
+          "literal": "s(\"chg_new\",t(\"নতুন তথ্য\",\"New details\"))",
+          "constructor_alias": "s",
+          "label_bn": "নতুন তথ্য",
+          "label_en": "New details"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:chg_date",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 38556,
+          "literal": "p(\"chg_date\",t(\"তারিখ\",\"Date\"))",
+          "constructor_alias": "p",
+          "label_bn": "তারিখ",
+          "label_en": "Date"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:chg_approver",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 38588,
+          "literal": "h(\"chg_approver\",t(\"বদলের অনুমোদনকারী (Approved by) (হিসাবরক্ষক নন)\",\"Change approved by (not the ledger keeper)\"),{show:e=>a(e.d.chg_new),req:e=>a(e.d.chg_new)})",
+          "constructor_alias": "h",
+          "label_bn": "বদলের অনুমোদনকারী (Approved by) (হিসাবরক্ষক নন)",
+          "label_en": "Change approved by (not the ledger keeper)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:chg_struck",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 38751,
+          "literal": "u(\"chg_struck\",t(\"পুরোনো তথ্য কেটে দেওয়া\",\"Old details struck out\"),{show:e=>a(e.d.chg_new),req:e=>a(e.d.chg_new)})",
+          "constructor_alias": "u",
+          "label_bn": "পুরোনো তথ্য কেটে দেওয়া",
+          "label_en": "Old details struck out"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:opening",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39105,
+          "literal": "d(\"opening\",t(\"আগের পাতার বকেয়া ৳ (নতুন হলে ফাঁকা)\",\"Dues from the previous page ৳ (blank if new)\"))",
+          "constructor_alias": "d",
+          "label_bn": "আগের পাতার বকেয়া ৳ (নতুন হলে ফাঁকা)",
+          "label_en": "Dues from the previous page ৳ (blank if new)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:date",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39223,
+          "literal": "p(\"date\",t(\"তারিখ\",\"Date\"))",
+          "constructor_alias": "p",
+          "label_bn": "তারিখ",
+          "label_en": "Date"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:paper_no",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39251,
+          "literal": "s(\"paper_no\",t(\"কাগজ নং\",\"Paper no.\"))",
+          "constructor_alias": "s",
+          "label_bn": "কাগজ নং",
+          "label_en": "Paper no."
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:desc",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39290,
+          "literal": "s(\"desc\",t(\"বিবরণ\",\"Description\"),{wide:!0})",
+          "constructor_alias": "s",
+          "label_bn": "বিবরণ",
+          "label_en": "Description"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:bill",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39335,
+          "literal": "d(\"bill\",t(\"বিল ৳\",\"Bill ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "বিল ৳",
+          "label_en": "Bill ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:debit",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39365,
+          "literal": "d(\"debit\",t(\"ডেবিট নোট ৳ (−)\",\"Debit note ৳ (−)\"))",
+          "constructor_alias": "d",
+          "label_bn": "ডেবিট নোট ৳ (−)",
+          "label_en": "Debit note ৳ (−)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:pay",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39416,
+          "literal": "d(\"pay\",t(\"পেমেন্ট ৳ (−)\",\"Payment ৳ (−)\"))",
+          "constructor_alias": "d",
+          "label_bn": "পেমেন্ট ৳ (−)",
+          "label_en": "Payment ৳ (−)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:bal",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39460,
+          "literal": "y(\"bal\",t(\"বকেয়া ৳\",\"Balance due ৳\"),\"money\",{show:e=>a(e.row.bill)||a(e.row.debit)||a(e.row.pay)})",
+          "constructor_alias": "y",
+          "label_bn": "বকেয়া ৳",
+          "label_en": "Balance due ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:due",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39571,
+          "literal": "y(\"due\",t(\"এখন মোট বকেয়া ৳\",\"Total due now ৳\"),\"money\",{big:!0})",
+          "constructor_alias": "y",
+          "label_bn": "এখন মোট বকেয়া ৳",
+          "label_en": "Total due now ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:p_total",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39698,
+          "literal": "l(\"p_total\",t(\"মোট সরবরাহ (বার)\",\"Deliveries in total (times)\"))",
+          "constructor_alias": "l",
+          "label_bn": "মোট সরবরাহ (বার)",
+          "label_en": "Deliveries in total (times)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:p_late",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39763,
+          "literal": "l(\"p_late\",t(\"দেরিতে ডেলিভারি (বার)\",\"Late deliveries (times)\"))",
+          "constructor_alias": "l",
+          "label_bn": "দেরিতে ডেলিভারি (বার)",
+          "label_en": "Late deliveries (times)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:p_short",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39828,
+          "literal": "l(\"p_short\",t(\"কম পরিমাণে ডেলিভারি (বার)\",\"Short deliveries (times)\"))",
+          "constructor_alias": "l",
+          "label_bn": "কম পরিমাণে ডেলিভারি (বার)",
+          "label_en": "Short deliveries (times)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:p_poor",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39899,
+          "literal": "l(\"p_poor\",t(\"নিম্নমানের ডেলিভারি (বার)\",\"Poor-quality deliveries (times)\"))",
+          "constructor_alias": "l",
+          "label_bn": "নিম্নমানের ডেলিভারি (বার)",
+          "label_en": "Poor-quality deliveries (times)"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:p_note",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 39976,
+          "literal": "s(\"p_note\",t(\"মন্তব্য\",\"Remark\"))",
+          "constructor_alias": "s",
+          "label_bn": "মন্তব্য",
+          "label_en": "Remark"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:m_month",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 40109,
+          "literal": "s(\"m_month\",t(\"মাস\",\"Month\"))",
+          "constructor_alias": "s",
+          "label_bn": "মাস",
+          "label_en": "Month"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:name",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 40305,
+          "literal": "q(\"name\",t(\"সাপ্লায়ারের নাম\",\"Supplier name\"),{wide:!0})",
+          "constructor_alias": "q",
+          "label_bn": "সাপ্লায়ারের নাম",
+          "label_en": "Supplier name"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:m_items",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 40363,
+          "literal": "s(\"m_items\",t(\"সরবরাহের আইটেম\",\"Items supplied\"))",
+          "constructor_alias": "s",
+          "label_bn": "সরবরাহের আইটেম",
+          "label_en": "Items supplied"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:m_phone",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 40413,
+          "literal": "s(\"m_phone\",t(\"ফোন\",\"Phone\"))",
+          "constructor_alias": "s",
+          "label_bn": "ফোন",
+          "label_en": "Phone"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:m_page",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 40443,
+          "literal": "s(\"m_page\",t(\"পাতা নং\",\"Page no.\"))",
+          "constructor_alias": "s",
+          "label_bn": "পাতা নং",
+          "label_en": "Page no."
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:m_due",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 40479,
+          "literal": "d(\"m_due\",t(\"মাসের শেষে বকেয়া ৳\",\"Dues at month end ৳\"))",
+          "constructor_alias": "d",
+          "label_bn": "মাসের শেষে বকেয়া ৳",
+          "label_en": "Dues at month end ৳"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:master_total",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 40547,
+          "literal": "y(\"master_total\",t(\"সব সাপ্লায়ারের মোট বকেয়া\",\"Total dues of all suppliers\"),\"money\")",
+          "constructor_alias": "y",
+          "label_bn": "সব সাপ্লায়ারের মোট বকেয়া",
+          "label_en": "Total dues of all suppliers"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:master_posted",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 40635,
+          "literal": "u(\"master_posted\",t(\"মাসের শেষে প্রতিটি পাতার বকেয়া এখানে এন্ট্রি (Posting) করা\",\"Each page's month-end dues posted here\"))",
+          "constructor_alias": "u",
+          "label_bn": "মাসের শেষে প্রতিটি পাতার বকেয়া এখানে এন্ট্রি (Posting) করা",
+          "label_en": "Each page's month-end dues posted here"
+        }
+      ]
+    },
+    {
+      "source_id": "P-06:mgmt_checked",
+      "source_file": "forms_stock.js",
+      "constructors": [
+        {
+          "offset_utf16": 40837,
+          "literal": "u(\"mgmt_checked\",t(\"যাচাইকারী (Checked by) — ব্যবস্থাপনা: লেজার যাচাই করেছি\",\"Checked by management: ledger checked\"),{who:\"checker\",req:!0})",
+          "constructor_alias": "u",
+          "label_bn": "যাচাইকারী (Checked by) — ব্যবস্থাপনা: লেজার যাচাই করেছি",
+          "label_en": "Checked by management: ledger checked"
+        }
+      ]
+    },
+    {
+      "source_id": "S-01:taker",
+      "source_file": "forms_sales.js",
+      "constructors": [
+        {
+          "offset_utf16": 1421,
+          "literal": "_(\"taker\",t(\"অর্ডার গ্রহণকারী (Order Taker)\",\"Order taker\"),{req:!0})",
+          "constructor_alias": "_",
+          "label_bn": "অর্ডার গ্রহণকারী (Order Taker)",
+          "label_en": "Order taker"
+        }
+      ]
+    },
+    {
+      "source_id": "S-01:order_type",
+      "source_file": "forms_sales.js",
+      "constructors": [
+        {
+          "offset_utf16": 1491,
+          "literal": "v(\"order_type\",t(\"ধরন\",\"Type\"),[[\"normal\",t(\"সাধারণ পণ্য\",\"Normal goods\")],[\"custom\",t(\"কাস্টম-মেইড\",\"Custom-made\")]],{req:!0})",
+          "constructor_alias": "v",
+          "label_bn": "ধরন",
+          "label_en": "Type"
+        }
+      ]
+    },
+    {
+      "source_id": "S-01:channel",
+      "source_file": "forms_sales.js",
+      "constructors": [
+        {
+          "offset_utf16": 1619,
+          "literal": "v(\"channel\",t(\"মাধ্যম (Channel)\",\"Channel\"),x,{req:!0})",
+          "constructor_alias": "v",
+          "label_bn": "মাধ্যম (Channel)",
+          "label_en": "Channel"
+        }
+      ]
+    },
+    {
+      "source_id": "S-01:channel_other",
+      "source_file": "forms_sales.js",
+      "constructors": [
+        {
+          "offset_utf16": 1675,
+          "literal": "a(\"channel_other\",t(\"অন্য মাধ্যম\",\"Other channel\"),{show:e=>\"other\"===e.d.channel})",
+          "constructor_alias": "a",
+          "label_bn": "অন্য মাধ্যম",
+          "label_en": "Other channel"
+        }
+      ]
+    },
+    {
+      "source_id": "S-01:online",
+      "source_file": "forms_sales.js",
+      "constructors": [
+        {
+          "offset_utf16": 1759,
+          "literal": "v(\"online\",t(\"অনলাইন\",\"Online\"),S)",
+          "constructor_alias": "v",
+          "label_bn": "অনলাইন",
+          "label_en": "Online"
+        }
+      ]
+    },
+    {
+      "source_id": "S-01:online_other",
+      "source_file": "forms_sales.js",
+      "constructors": [
+        {
+          "offset_utf16": 1794,
+          "literal": "a(\"online_other\",t(\"অন্য অনলাইন\",\"Other online\"),{show:e=>\"other\"===e.d.online})",
+          "constructor_alias": "a",
+          "label_bn": "অন্য অনলাইন",
+          "label_en": "Other online"
+        }
+      ]
+    },
+    {
+      "source_id": "S-01:cust_name",
+      "source_file": "forms_sales.js",
+      "constructors": [
+        {
+          "offset_utf16": 1963,
+          "literal": "a(\"cust_name\",t(\"নাম\",\"Name\"),{req:!0})",
+          "constructor_alias": "a",
+          "label_bn": "নাম",
+          "label_en": "Name"
+        }
+      ]
+    },
+    {
+      "source_id": "S-01:cust_phone",
+      "source_file": "forms_sales.js",
+      "constructors": [
+        {
+          "offset_utf16": 2003,
+          "literal": "a(\"cust_phone\",t(\"ফোন\",\"Phone\"),{req:!0})",
+          "constructor_alias": "a",
+          "label_bn": "ফোন",
+          "label_en": "Phone"
+        }
+      ]
+    },
+    {
+      "source_id": "S-01:deliv_mode",
+      "source_file": "forms_sales.js",
+      "constructors": [
+        {
+          "offset_utf16": 2045,
+          "literal": "v(\"deliv_mode\",t(\"ডেলিভারি\",\"Delivery\"),[[\"pickup\",t(\"শোরুম থেকে সংগ্রহ\",\"Pick up from the showroom\")],[\"home\",t(\"হোম ডেলিভারি\",\"Home delivery\")]],{req:!0})",
+          "constructor_alias": "v",
+          "label_bn": "ডেলিভারি",
+          "label_en": "Delivery"
+        }
+      ]
+    }
+  ]
+}

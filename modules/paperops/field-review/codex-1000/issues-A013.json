@@ -1,0 +1,251 @@
+[
+  {
+    "issue_id": "A013-F001",
+    "source_ids": [
+      "S-02:item",
+      "S-02:desc",
+      "S-02:qty",
+      "S-02:list_price",
+      "S-02:disc",
+      "S-02:sale",
+      "S-02:tot_list",
+      "S-02:tot_disc",
+      "S-02:tot_sale"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 11563,
+        "text": "sale:A(s(e.qty)*s(e.list_price)-s(e.disc))}));O(o)&&a.push(q(\"no_items\",\"red\",\"কোনো পণ্যের লাইন নেই\",\"No item lines\")),d.tot_list=A(i(o.map(e=>s(e.qty)*s(e.list_price)))),d.tot_disc=A(i(o.ma"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 11622,
+        "text": "q(\"no_items\",\"red\",\"কোনো পণ্যের লাইন নেই\",\"No item lines\")),d.tot_list=A(i(o.map(e=>s(e.qty)*s(e.list_price)))),d.tot_disc=A(i(o.map(e=>e.disc))),d.tot_sale=A(d.tot_list-d.tot_disc);const c="
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 12643,
+        "text": "q(\"disc_over_price\",\"red\",\"কোনো লাইনে ডিসকাউন্ট তালিকা মূল্যের চেয়ে বেশি\",\"A line has a discount above its list price\")),o.forEach(t=>{const o=T(e,t.item);o&&r(t.list_price)&&s(o.sell_price"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 12920,
+        "text": "q(\"list_price_diff\",\"yellow\",\"তালিকা মূল্য মূল্য-তালিকার সাথে মেলেনি\",\"List price differs from the price list\"))}),{v:d,rows:{lines:l},flags:a,needs:n}}};const W=[[\"taste\",t(\"স্বাদ\",\"Taste\")"
+      }
+    ],
+    "observed_gap": "Line sale rounds qty times list less discount. Aggregate list and discounts round separately, then subtraction, so summed rounded lines can differ. Item absence, discount greater than rounded list are red; mismatched positive item-master price is yellow.",
+    "dependency": "Priced Sales lines and effective price list",
+    "correction": "Use approved prices, authorized discounts and a documented decimal rounding level.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A013-F002",
+    "source_ids": [
+      "S-02:reason",
+      "S-02:reason_other",
+      "S-02:mkt_line"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 10810,
+        "text": "a(\"mkt_line\",t(\"মার্কেটিং ব্যয় রেজিস্টারের লাইন নং\",\"Marketing expense register line no.\"),{show:e=>\"offer\"===e.d.reason,req:e=>\"offer\"===e.d.reason}),w(\"limit_text\",t(\"সীমা যাচাই (সীমা: লো"
+      }
+    ],
+    "observed_gap": "Reason required; exact other requires text and exact offer requires Marketing register reference. No lookup validates the link.",
+    "dependency": "Scoped and approved offer or documented exception reason",
+    "correction": "Resolve the offer link against approved campaign records.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A013-F003",
+    "source_ids": [
+      "S-02:phone_approval",
+      "S-02:seller",
+      "S-02:manager"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 11882,
+        "text": "const p=h>0&&(null===c||h>c);return d.over_limit=p,d.limit_text=h<=0?\"\":null===c?D:p?t(\"সীমার উপরে — অনুমোদন নেওয়া হয়েছে কি?\",\"Over the limit — approval needed\"):t(\"নির্ধারিত সীমার ভেতরে —"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 12150,
+        "text": "\"discount_over_limit\",r(e.d.approved_by)?\"yellow\":\"red\",r(e.d.approved_by)?\"ডিসকাউন্ট সীমার উপরে (অনুমোদিত)\":\"ডিসকাউন্ট সীমার উপরে — অনুমোদনকারী নেই\",r(e.d.approved_by)?\"Discount above the l"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 12459,
+        "text": "q(\"approver_is_maker\",\"red\",\"অনুমোদনকারী ও বিক্রয়কারী একই জন\",\"Approver and seller are the same person\")),o.some(e=>A(s(e.disc))>A(s(e.qty)*s(e.list_price))&&r(e.list_price))&&a.push(q(\"dis"
+      }
+    ],
+    "observed_gap": "Phone flag appears only over limit. Positive above or unset threshold yields red without approver and yellow with name; same seller and approver red. Optional manager and phone flag do not prove later signature.",
+    "dependency": "Independently authenticated Sales discount approval",
+    "correction": "Bind approval to immutable priced lines and actor scope, with a later signature if policy permits.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A013-F004",
+    "source_ids": [
+      "S-03:time",
+      "S-03:cust_name",
+      "S-03:cust_phone",
+      "S-03:sheet_no",
+      "S-03:item",
+      "S-03:qty",
+      "S-03:buy_date",
+      "S-03:memo_no",
+      "S-03:tag_prod"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 19351,
+        "text": "r(o.item)&&!o.taken_back&&i.push(q(\"product_not_taken\",\"red\",\"পণ্যটি জমা নেওয়া হয়নি\",\"The product was not taken in\")),void 0!==e.c.resolved&&e.c.resolved||Object.values(e.c).some(r)&&i.pus"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 19384,
+        "text": "q(\"product_not_taken\",\"red\",\"পণ্যটি জমা নেওয়া হয়নি\",\"The product was not taken in\")),void 0!==e.c.resolved&&e.c.resolved||Object.values(e.c).some(r)&&i.push(q(\"complaint_open\",\"yellow\",\"অভ"
+      }
+    ],
+    "observed_gap": "Item, quantity and customer name required. Named item without take-back declaration triggers red. No lookup verifies customer, purchase, lot or quantity.",
+    "dependency": "Customer order/memo and lot traceability links scoped to case",
+    "correction": "Resolve original sale and lot from protected records and preserve chain of custody.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A013-F005",
+    "source_ids": [
+      "S-03:c_sick",
+      "S-03:sick_informed",
+      "S-03:c_other",
+      "S-03:c_other_text",
+      "S-03:detail"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 18972,
+        "text": "o.c_sick&&i.push(q(\"illness_complaint\",\"yellow\",\"খেয়ে অসুস্থ হওয়ার অভিযোগ — সেদিনই ব্যবস্থাপনাকে জানাতে হবে\",\"Complaint of illness after eating — management must be told the same day\")),!r"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 18989,
+        "text": "q(\"illness_complaint\",\"yellow\",\"খেয়ে অসুস্থ হওয়ার অভিযোগ — সেদিনই ব্যবস্থাপনাকে জানাতে হবে\",\"Complaint of illness after eating — management must be told the same day\")),!r(o.item)||o.d_rep"
+      }
+    ],
+    "observed_gap": "Illness displays and requires reported time and always warns yellow; source does not compare dates or transmit notification. Other text shown on c_other; detail required.",
+    "dependency": "Protected complaint and food-safety incident evidence",
+    "correction": "Use a timestamped escalation event and check same-day policy while protecting medical data.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A013-F006",
+    "source_ids": [
+      "S-03:d_replace",
+      "S-03:d_refund",
+      "S-03:limit_text",
+      "S-03:approved_time",
+      "S-03:phone_approval",
+      "S-03:d_adjust",
+      "S-03:d_sorry"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 18316,
+        "text": "const c=!!o.d_refund&&l>0&&(null===d||l>d);return n.over_limit=c,n.limit_text=o.d_refund?null===d?D:c?t(\"সীমার বাইরে — অনুমোদন লাগবে\",\"Over the limit — approval needed\"):t(\"সীমার ভেতরে\",\"Wit"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 18537,
+        "text": "\"refund_over_limit\",r(o.approved_by)?\"yellow\":\"red\",r(o.approved_by)?\"টাকা ফেরত সীমার বাইরে (অনুমোদিত)\":\"টাকা ফেরত সীমার বাইরে — অনুমোদনকারী নেই\",r(o.approved_by)?\"Refund over the limit (app"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 18863,
+        "text": "q(\"approver_is_maker\",\"red\",\"অনুমোদনকারী ও গ্রহণকারী/প্রদানকারী একই জন\",\"Approver is the receiver / giver\")),o.c_sick&&i.push(q(\"illness_complaint\",\"yellow\",\"খেয়ে অসুস্থ হওয়ার অভিযোগ — সেদ"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 19227,
+        "text": "q(\"no_customer_decision\",\"yellow\",\"কাস্টমারের জন্য কোনো সিদ্ধান্ত টিক দেওয়া হয়নি\",\"No decision ticked for the customer\")),r(o.item)&&!o.taken_back&&i.push(q(\"product_not_taken\",\"red\",\"পণ্য"
+      }
+    ],
+    "observed_gap": "With refund checked and positive amount beyond limit or unset, missing approver gives red; name changes yellow. No decision when item exists warns yellow. Approver equal to receiver or giver red; approved time shows and is required above limit.",
+    "dependency": "Authorized refund or replacement with immutable Sales and Money references",
+    "correction": "Enforce authenticated separation and tie approved amount/disposition to posted refund or replacement.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A013-F007",
+    "source_ids": [
+      "S-03:taken_back",
+      "S-03:store_place",
+      "S-03:handed_time",
+      "S-03:handed_by",
+      "S-03:challan_no",
+      "S-03:posted",
+      "S-03:batch",
+      "S-03:producer"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 16143,
+        "text": "a(\"challan_no\",t(\"চালান নং\",\"Challan no.\"),{show:e=>\"factory\"===e.d.p_fate,req:e=>\"factory\"===e.d.p_fate}),p(\"posted\",t(\"স্টক লেজারে এন্ট্রি (Posting) করা হয়েছে\",\"Entered (posted) in the st"
+      }
+    ],
+    "observed_gap": "Store place is visible when taken back. Factory fate requires challan. Posting is a required declaration. Handover actor participates in approver separation, but source does not validate independent stock movement or quarantine.",
+    "dependency": "Return GRN, Stock return/quarantine and lot producer identity",
+    "correction": "Verify return stock custody and destination by linked transaction before counting the item as posted.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A013-F008",
+    "source_ids": [
+      "S-03:prev_count",
+      "S-03:prev_reg",
+      "S-03:action",
+      "S-03:investigated_by",
+      "S-03:responsible",
+      "S-03:deadline"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 19508,
+        "text": "Object.values(e.c).some(r)&&i.push(q(\"complaint_open\",\"yellow\",\"অভিযোগ এখনো সমাধান হয়নি\",\"Complaint is not resolved yet\",void 0,{src:\"check\"})),{v:n,rows:{},flags:i,needs:a}}};const E=e=>\"i"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 19543,
+        "text": "q(\"complaint_open\",\"yellow\",\"অভিযোগ এখনো সমাধান হয়নি\",\"Complaint is not resolved yet\",void 0,{src:\"check\"})),{v:n,rows:{},flags:i,needs:a}}};const E=e=>\"invoice\"===e.d.doc;"
+      }
+    ],
+    "observed_gap": "Previous complaint count and investigation actions appear as fields. Complaint open flag comes from checker context, not a deadline check. No repeat-complaint aggregate or resolution timeline is established.",
+    "dependency": "Scoped quality case timeline and corrective action register",
+    "correction": "Link prior cases and preserve assignee, deadline and recorded closure evidence.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

@@ -54,6 +54,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Materialize exact Git-blob legacy browser fixtures (CI-only)
+        run: node scripts/ci/materialize-legacy-test-fixture.cjs
       - name: Create disposable role fixtures
         run: |
           psql -v ON_ERROR_STOP=1 -c "CREATE ROLE authenticated NOLOGIN"
@@ -70,7 +72,7 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a044_control_settings_v1.sql
       - name: A044 regression E2E (runs before A045 so its fixtures are unchanged)
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a044_control_settings_e2e.sql
-      - name: A045 Micro-Engine registry/RPC (additive, disposable c10_demo)
+      - name: A045 Micro-Engine registry/RPC (additive, disposable core10)
         run: psql -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a045_micro_engine_v1.sql
       - name: A045 SQL E2E - owner/business-owner/manager/staff/revoked/cross-tenant/anon, lifecycle, rollback, immutability
         run: psql -v ON_ERROR_STOP=1 -f tests/c10_a045_micro_engine_e2e.sql
@@ -126,6 +128,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Materialize exact Git-blob legacy browser fixtures (CI-only)
+        run: node scripts/ci/materialize-legacy-test-fixture.cjs
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -142,12 +146,12 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a021_owner_controls_v1.sql
           psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a044_control_settings_v1.sql
           psql -X -v ON_ERROR_STOP=1 -f internal/enterprise-sql/c10_a045_micro_engine_v1.sql
-          psql -X -v ON_ERROR_STOP=1 -c "GRANT USAGE ON SCHEMA c10_demo TO authenticated, anon"
+          psql -X -v ON_ERROR_STOP=1 -c "GRANT USAGE ON SCHEMA core10 TO authenticated, anon"
       - name: Start disposable PostgREST with HMAC verified JWTs
         run: |
           docker run --rm -d --name core10-a045-pgrst --network host \
             -e PGRST_DB_URI="postgres://postgres:demo_only@127.0.0.1:5432/core10_rest_ci" \
-            -e PGRST_DB_SCHEMAS=c10_demo \
+            -e PGRST_DB_SCHEMAS=core10 \
             -e PGRST_DB_ANON_ROLE=anon \
             -e PGRST_JWT_SECRET="$CORE10_CI_JWT_SECRET" \
             -e PGRST_JWT_AUD=authenticated \

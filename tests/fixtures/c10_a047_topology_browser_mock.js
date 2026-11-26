@@ -53,7 +53,7 @@ function respond(name,args){
 window.supabase={createClient:()=>({
  auth:{getUser:async()=>({data:{user:{id:"synthetic-auth-session"}},error:null})},
  schema:(name)=>{
-  if(name!=="c10_demo")throw Error("INVALID_SCHEMA");
+  if(name!=="core10")throw Error("INVALID_SCHEMA");
   return{rpc:async(n,a)=>respond(n,a),
    from:(table)=>{
     if(table!=="businesses")throw Error("DIRECT_PRIVATE_TABLE_ACCESS");

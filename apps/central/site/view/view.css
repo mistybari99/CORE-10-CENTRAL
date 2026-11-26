@@ -1,0 +1,8 @@
+@import url("/tokens.css");
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+}

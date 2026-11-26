@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "legacy_form": "R-01",
+  "source": "legacy/islamia-erp/forms.js",
+  "status": "ADDITIONAL_SOURCE_WARNING_BRANCHES_FOUND_NOT_EXTRACTOR_PARITY",
+  "original_r01_static_warning_candidates": 11,
+  "original_whole_inventory_static_warning_candidates": 163,
+  "notice": "11/163 counts were a first-pass regex matching literal warning codes AND literal severities. R-01 contains two warning codes with a variable severity and a dynamic generated temp_out_1..3 family. These five distinct R-01 runtime warning codes were not counted by that extractor. This is a targeted discovery, NOT proof that the whole 32-form warning inventory is now complete.",
+  "branches": [
+    {
+      "source_flag_code": "goods_money_gap",
+      "source_pattern": "x(\"goods_money_gap\",l,",
+      "reason_missed": "DYNAMIC_SEVERITY_VARIABLE",
+      "source_expression": "retail = total_entered - party_cash; difference = goods_based - retail; severity yellow if within percent OR absolute policy tolerance, otherwise red.",
+      "source_settings": [
+        "goods_money_tol_pct",
+        "goods_money_tol_max"
+      ],
+      "candidate_check": "goodsMoneyGap",
+      "control_status": "SYNTHETIC_SOURCE_FORMULA_CANDIDATE_NOT_PARITY_PROVEN"
+    },
+    {
+      "source_flag_code": "cash_short_over",
+      "source_pattern": "x(\"cash_short_over\",t,",
+      "reason_missed": "DYNAMIC_SEVERITY_VARIABLE",
+      "source_expression": "expected = (opening counted or policy float) + total_entered - digital_total + dues + new_adv - prior_adv - refund - credit_sales - midday_hub + rounding; difference = denomination_counted - expected; severity within cash_tol policy.",
+      "source_settings": [
+        "cash_tol"
+      ],
+      "candidate_check": "cashShortOver",
+      "control_status": "SYNTHETIC_SOURCE_FORMULA_CANDIDATE_NOT_PARITY_PROVEN"
+    },
+    {
+      "source_flag_code": "temp_out_1",
+      "source_pattern": "x(\"temp_out_\"+o,\"red\",",
+      "reason_missed": "DYNAMIC_WARNING_IDENTIFIER",
+      "source_expression": "For each configured fridge 1,2,3: read fridgeN_min and fridgeN_max from settings, compare observed temperature against both boundaries; use runtime suffix N for warning ID.",
+      "source_settings": [
+        "fridge1_min",
+        "fridge1_max",
+        "fridge2_min",
+        "fridge2_max",
+        "fridge3_min",
+        "fridge3_max"
+      ],
+      "candidate_check": "temperatureFlagFromChecker",
+      "control_status": "SOURCE_ID_MAPPING_AND_SYNTHETIC_BOUNDARY_TEST_ONLY"
+    },
+    {
+      "source_flag_code": "temp_out_2",
+      "source_pattern": "x(\"temp_out_\"+o,\"red\",",
+      "reason_missed": "DYNAMIC_WARNING_IDENTIFIER",
+      "source_expression": "Fridge 2 uses independently configured min/max policy and observed temperature; no universal temperature range assumed.",
+      "source_settings": [
+        "fridge2_min",
+        "fridge2_max"
+      ],
+      "candidate_check": "temperatureFlagFromChecker",
+      "control_status": "SOURCE_ID_MAPPING_AND_SYNTHETIC_BOUNDARY_TEST_ONLY"
+    },
+    {
+      "source_flag_code": "temp_out_3",
+      "source_pattern": "x(\"temp_out_\"+o,\"red\",",
+      "reason_missed": "DYNAMIC_WARNING_IDENTIFIER",
+      "source_expression": "Fridge 3 uses independently configured min/max policy and observed temperature; no universal temperature range assumed.",
+      "source_settings": [
+        "fridge3_min",
+        "fridge3_max"
+      ],
+      "candidate_check": "temperatureFlagFromChecker",
+      "control_status": "SOURCE_ID_MAPPING_AND_SYNTHETIC_BOUNDARY_TEST_ONLY"
+    }
+  ],
+  "additional_unique_r01_runtime_warning_candidates": 5,
+  "complete_all_forms_warning_parity_proven": false,
+  "owner_accepted": false,
+  "erp_posting_allowed": false
+}

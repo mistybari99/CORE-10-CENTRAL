@@ -63,7 +63,7 @@ function rpc(name,a){
 }
 window.CORE10_E2E=st;
 window.supabase={createClient:function(){return{auth:{getUser:async()=>({data:{user:{id:"signed-test-fixture-uuid"}},error:null})},
- schema:function(s){if(s!=="c10_demo")throw Error("SCHEMA_SCOPE");
+ schema:function(s){if(s!=="core10")throw Error("SCHEMA_SCOPE");
   return{rpc:async(n,a)=>rpc(n,a),from:function(t){if(t!=="businesses")throw Error("TABLE_SHADOW_ACCESS");
    return{select(){return this},order(){return this},limit:async()=>({data:[{id:101,tenant_id:1,slug:"business-a"},{id:102,tenant_id:1,slug:"business-b"}],error:null})}}}}}}};
 })();`;
@@ -81,8 +81,8 @@ async function noOverflow(page,label){
    const errors=[],external=[];
    page.on("pageerror",e=>errors.push(e.message));
    page.on("request",r=>{if(!r.url().startsWith(base))external.push(r.url())});
-   await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
-   await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:fixture}));
+   await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:fixture}));
+   await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
    await page.goto(base+"/core10-engine-workshop.html",{waitUntil:"load"});
    await page.waitForFunction(()=>document.querySelector("#ew-status")?.textContent.includes("registry loaded"),{timeout:20000});
    // required-input validation blocks the server call
@@ -152,8 +152,8 @@ async function noOverflow(page,label){
      versions:[{version:1,state:"VALIDATED",descriptor:{field:"on_hand",op:"lt",threshold:12,outcome:"warn"},hash:"h000000000000",created_at:"2026-11-11T00:00:00Z"}],
      assignments:[{business_id:101,state:"PUBLISHED",pinned_version:1,params:{},placement:"both",local_edit_mode:"request_approval",version:1},
                   {business_id:102,state:"PUBLISHED",pinned_version:1,params:{threshold:30},placement:"hidden_from_menus",local_edit_mode:"central_only",version:1}]}]`).replace("nid:1,","nid:2,");
-   await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
-   await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:seeded}));
+   await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:seeded}));
+   await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
    await page.goto(base+"/core10-engine-workshop.html?biz=101",{waitUntil:"load"});
    await page.waitForFunction(()=>document.querySelector("#ew-status")?.textContent.includes("Server-authorized engines loaded"),{timeout:20000});
    assert.equal(await page.locator("[data-engine-row]").count(),1);

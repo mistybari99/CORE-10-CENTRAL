@@ -20,6 +20,8 @@ const must=async(p,n,a)=>{const r=await call(p,n,a);assert.ok(r.status<300,n+" s
 const uniq=()=>crypto.randomBytes(4).toString("hex");
 // ---- test-only stand-in for vendor/supabase.js (SYNTHETIC; no network except same-origin forward) ----
 const SHIM=`/* SYNTHETIC TEST ADAPTER: not the Supabase library. */
+/* §7c: legacy config.js is no longer loaded; the adapter supplies a synthetic, non-network config. */
+window.BOS_CONFIG={url:"http://127.0.0.1",key:"synthetic-a055-test-key"};
 window.supabase={createClient:function(){return{auth:{getUser:async function(){return{data:{user:{id:"00000000-0000-4000-8000-00000000a055"}},error:null}}},
  schema:function(s){return{rpc:async function(name,args){const r=await fetch("/__am_rest/rpc/"+name,{method:"POST",headers:{"content-type":"application/json","x-am-persona":window.__AM_PERSONA||""},body:JSON.stringify(args)});
   const t=await r.text();let d;try{d=JSON.parse(t)}catch(e){d=null}

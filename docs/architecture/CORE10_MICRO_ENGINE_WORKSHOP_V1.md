@@ -1,5 +1,5 @@
 # C10-A045 — Owner Micro-Engine Workshop v1 (architecture & contracts)
-Status: BUILT in Draft PR #42 (disposable `c10_demo` only). NOT applied to IMG-ERP-SG. NOT real-GoTrue tested.
+Status: BUILT in Draft PR #42 (disposable `core10` only). NOT applied to IMG-ERP-SG. NOT real-GoTrue tested.
 
 ## Model
 - **Handler registry** `micro_engine_handlers_v1`: `threshold_rule_v1` (certified, executable, advisory, non-mutating) + 8 inert types (`workflow_v1`, `validator_v1`, `calculator_v1`, `report_v1`, `approval_policy_v1`, `notification_v1`, `automation_v1`, `integration_v1`) with `certified=false, can_execute=false` — they can store DRAFT data but can never be validated or published.

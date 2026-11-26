@@ -62,7 +62,7 @@ function R(name,a){
  }
 }
 window.supabase={createClient:function(){return {auth:{getUser:async()=>({data:{user:{id:"signed-test-fixture-uuid"}},error:null})},
- schema:function(s){if(s!=="c10_demo")throw Error("SCHEMA_SCOPE");return {rpc:async(n,a)=>R(n,a),from:function(){throw Error("TABLE_SHADOW_ACCESS")}}}}}};
+ schema:function(s){if(s!=="core10")throw Error("SCHEMA_SCOPE");return {rpc:async(n,a)=>R(n,a),from:function(){throw Error("TABLE_SHADOW_ACCESS")}}}}}};
 })();`;
 const calls=(page)=>page.evaluate(()=>window.CORE10_E2E.calls);
 (async()=>{
@@ -77,8 +77,8 @@ const calls=(page)=>page.evaluate(()=>window.CORE10_E2E.calls);
     page.on("pageerror",e=>errors.push(e.message));
     page.on("request",r=>{if(!r.url().startsWith(base)&&!r.url().startsWith("blob:")&&!r.url().startsWith("data:"))external.push(r.url())});
     page.on("dialog",d=>d.accept(d.type()==="prompt"?"Reason given for this action":undefined));
-    await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
-    await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:fixture(persona)}));
+    await page.route("**/vendor/supabase.js",r=>r.fulfill({contentType:"application/javascript",body:fixture(persona)}));
+    await page.route("**/config.js",r=>r.fulfill({contentType:"application/javascript",body:""}));
     await page.goto(base+"/core10-workforce-"+pageName+".html"+(qs||""),{waitUntil:"load"});
     await page.waitForFunction(()=>/^Ready/.test(document.querySelector("#wf-status")?.textContent||""),{timeout:20000});
     return page;

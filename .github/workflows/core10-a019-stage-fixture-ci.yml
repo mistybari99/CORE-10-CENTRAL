@@ -70,7 +70,7 @@ jobs:
             -f "$C10_SQL"; then
             echo "CRITICAL: fixture ran without Auth identities"; exit 1
           fi
-          [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.tenants')" = 0 ]
+          [ "$(psql -X -At -c 'SELECT count(*) FROM core10.tenants')" = 0 ]
       - name: Create FAKE auth.users schema for offline relational tests only
         run: psql -X -v ON_ERROR_STOP=1 -f tests/c10_a019_real_auth_fixture_fake_users.sql
       - name: Refuse production project ref, reject nonexistent sixth user (transactional failure)
@@ -91,7 +91,7 @@ jobs:
             -f "$C10_SQL"; then
             echo "CRITICAL: nonexisting user accepted"; exit 1
           fi
-          [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.tenants')" = 0 ]
+          [ "$(psql -X -At -c 'SELECT count(*) FROM core10.tenants')" = 0 ]
       - name: Install disposable six synthetic Auth user role bindings and sites (NO live Auth)
         run: |
           psql -X -v ON_ERROR_STOP=1 \
@@ -117,6 +117,6 @@ jobs:
             -f "$C10_SQL"; then
             echo "CRITICAL: fixture rewrote populated schema"; exit 1
           fi
-          [ "$(psql -X -At -c 'SELECT count(*) FROM c10_demo.tenants')" = 2 ]
+          [ "$(psql -X -At -c 'SELECT count(*) FROM core10.tenants')" = 2 ]
       - name: Print exact certification boundary
         run: echo 'PASS DISPOSABLE PG17 ONLY. Fake auth.users IDs, no GoTrue token signatures or real staging/production accessed.'

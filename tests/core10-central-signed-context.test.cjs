@@ -1,0 +1,207 @@
+"use strict";
+const {test}=require("node:test");
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const path=require("node:path");
+const ROOT=path.resolve(__dirname,"..");
+const site=(p)=>fs.readFileSync(path.join(ROOT,"apps/central/site",p),"utf8");
+
+test("§7b.4 signed context uses canonical RPC, no client-created grants or token persistence",()=>{
+ const source=site("shell-context.js"),html=site("index.html");
+ assert.match(source,/build01_context_v1/);
+ assert.match(source,/auth\.getUser\(\)/);
+ assert.match(source,/auth\.signInWithPassword\(/);
+ assert.match(source,/auth\.signOut\(/);
+ assert.match(source,/CONTEXT_CROSS_TENANT/);
+ assert.match(source,/before!==after/);
+ assert.match(source,/core10:signed-out/);
+ assert.match(html,/id="c10-context"/);
+ assert.match(html,/id="c10-group"/);
+ assert.match(html,/id="c10-business"/);
+ assert.match(html,/id="c10-site"/);
+ assert.doesNotMatch(source,/(?:\.from\(|fetch\(|localStorage|sessionStorage|service_role|sb_secret_|BOS_CONFIG)/);
+ assert.doesNotMatch(source,/kbuhnpqooycqbzrfejcs|luoeyyngayxpqecuuijb/);
+});
+
+test("§7b.4 browser: one sign-in, group/business/site scoped switching, role-safe denial, logout", {timeout:120000},async()=>{
+ const {chromium}=require("playwright");
+ const {serve}=await import(path.join(ROOT,"apps/central/local-serve.mjs"));
+ const server=await serve(0),browser=await chromium.launch({headless:true});
+ let page=null;
+ try {
+   const base="http://127.0.0.1:"+server.address().port;
+   page=await browser.newPage({viewport:{width:1440,height:900}});
+   const errors=[];page.on("pageerror",e=>errors.push(e.message));
+   await page.route("**/live/vendor/supabase.js",async r=>r.fulfill({status:200,contentType:"text/javascript",body:MOCK}));
+   await page.goto(base+"/#/home",{waitUntil:"load"});
+   await page.locator("#c10-context-anon").waitFor({state:"visible"});
+   assert.equal(await page.locator("#c10-context-signed").isVisible(),false);
+   assert.equal(await page.locator("#c10-business option").count(),0);
+   assert.equal(await page.evaluate(()=>window.__scopeTest.calls.length),0,"anonymous shell never reads any context RPC");
+   await page.locator("#c10-shell-open-login").click();
+   await page.fill("#c10-shell-email","owner@example.test");
+   await page.fill("#c10-shell-password","wrong");
+   await page.locator("#c10-shell-submit").click();
+   await page.waitForFunction(()=>document.querySelector("#c10-context-note").textContent.includes("ব্যর্থ"));
+   assert.equal(await page.locator("#c10-context-signed").isVisible(),false);
+   assert.equal(await page.inputValue("#c10-shell-password"),"");
+   await page.locator("#c10-shell-open-login").click();
+   await page.fill("#c10-shell-password","correct-password");
+   await page.locator("#c10-shell-submit").click();
+   await page.locator("#c10-context-signed").waitFor({state:"visible"});
+   assert.equal(await page.locator("#c10-group option").count(),2);
+   assert.equal(await page.locator("#c10-business option").count(),2);
+   assert.equal(await page.locator("#c10-site option").count(),2);
+   assert.equal(await page.inputValue("#c10-group"),"1");
+   assert.equal(await page.inputValue("#c10-business"),"10");
+   assert.equal(await page.inputValue("#c10-site"),"101");
+   assert.match(await page.locator("#c10-site option:checked").innerText(),/#101$/);
+   assert.match(await page.locator("#c10-context-note").innerText(),/সাইট 2/);
+   assert.equal(await page.locator("#c10-business").textContent().then(s=>s.includes("Other Workspace")),false);
+   await page.locator("#c10-pilot-details summary").click();
+   await page.waitForFunction(()=>document.querySelector("#c10-pilot-list").textContent.includes("kg"));
+   assert.match(await page.locator("#c10-pilot-list").innerText(),/১০০০/);
+   assert.match(await page.locator("#c10-pilot-list").innerText(),/Lot, pack/);
+   await page.evaluate(()=>{
+     const approved = {recipe_code:"BREAD",status:"approved",effective_from:"2020-01-01T00:00:00Z"};
+     window.__scopeTest.recipeHistory = [
+       {...approved,id:1,version:2}, {...approved,id:2,version:1},
+       {...approved,id:3,version:3,effective_from:"2999-01-01T00:00:00Z"},
+       {...approved,id:4,version:4,status:"draft"}, {...approved,id:5,recipe_code:"CAKE",version:1}
+     ];
+   });
+   await page.locator("#c10-site").selectOption("102");
+   await page.waitForFunction(()=>document.querySelector("#c10-site").value==="102"&&!document.querySelector("#c10-site").disabled);
+   assert.equal(await page.locator("#c10-pilot-list li").count(),0);
+   await page.locator("#c10-pilot-details summary").click();
+   await page.locator("#c10-recipe").waitFor();
+   assert.deepEqual(await page.locator("#c10-recipe option").evaluateAll(options =>
+     options.map(option => option.value).sort()), ["1","5"]);
+   assert.match(await page.locator("#c10-pilot-list").innerText(), /approved: 2/);
+   assert.match(await page.locator("#c10-pilot-list").innerText(),/ব্যাচ 2 · পরিকল্পিত 1 · রিলিজ 0 · রেকর্ড 1 · বাতিল 0/);
+   assert.match(await page.locator("#c10-pilot-list").innerText(),/ব্যাচ #22 · রেকর্ড/);
+   assert.match(await page.locator("#c10-pilot-list").innerText(),/COGS certification/);
+   await page.selectOption("#c10-recipe","1");
+   await page.fill("#c10-recipe-multiplier","2");
+   await page.locator("#c10-recipe-validate").click();
+   await page.waitForFunction(()=>document.querySelector("#c10-recipe-results").textContent.includes("2000 g"));
+   assert.match(await page.locator("#c10-recipe-status").innerText(),/Master/);
+   await page.fill("#c10-batch-location","999");
+   await page.fill("#c10-batch-key","bakery-plan-01");
+   await page.check("#c10-batch-confirm");
+   await page.locator("#c10-batch-submit").click();
+   await page.waitForFunction(()=>document.querySelector("#c10-batch-status").textContent.includes("নিশ্চিত হয়নি"));
+   assert.equal(await page.evaluate(()=>window.__scopeTest.calls.filter(x=>x==="mfg_plan_batch_v1").length),0);
+   await page.fill("#c10-batch-location","7");
+   await page.check("#c10-batch-confirm");
+   await page.locator("#c10-batch-submit").click();
+   await page.waitForFunction(()=>document.querySelector("#c10-batch-status").textContent.includes("সংরক্ষিত #42"));
+   await page.check("#c10-batch-confirm");
+   await page.locator("#c10-batch-submit").click();
+   await page.waitForFunction(()=>document.querySelector("#c10-batch-status").textContent.includes("আগের পরিকল্পনা #42"));
+   await page.evaluate(()=>{window.__scopeTest.badRecipe=true;});
+   await page.locator("#c10-recipe-validate").click();
+   await page.waitForFunction(()=>document.querySelector("#c10-recipe-status").textContent.includes("যাচাই হয়নি"));
+   assert.equal(await page.locator("#c10-recipe-results li").count(),0);
+   await page.evaluate(()=>{window.__scopeTest.badRecipe=false;window.__scopeTest.badBatch=true;});
+   await page.locator("#c10-pilot-details summary").click();
+   await page.locator("#c10-pilot-details summary").click();
+   await page.waitForFunction(()=>document.querySelector("#c10-pilot-list").textContent.includes("ব্যাচের scope বা status যাচাই হয়নি"));
+   assert.doesNotMatch(await page.locator("#c10-pilot-list").innerText(),/ব্যাচ #22/);
+   await page.evaluate(()=>{window.__scopeTest.badBatch=false;});
+   await page.locator("#c10-location-details summary").click();
+   await page.locator("#c10-location-list li").waitFor();
+   assert.equal(await page.locator("#c10-location-list").innerText(),"STORE · #7");
+   await page.locator("#c10-invoice-check summary").click();
+   await page.fill("#c10-invoice-po","123");
+   await page.fill("#c10-invoice-line","1");
+   await page.fill("#c10-invoice-quantity","100");
+   await page.locator("#c10-invoice-form button").click();
+   await page.waitForFunction(()=>document.querySelector("#c10-invoice-status").textContent.includes("অমিল পরিমাণ 20"));
+   await page.evaluate(()=>{window.__scopeTest.invoiceReturn=2.125;});
+   await page.locator("#c10-invoice-form button").click();
+   await page.waitForFunction(()=>document.querySelector("#c10-invoice-status").textContent.includes("অমিল পরিমাণ 22.125"));
+   await page.evaluate(()=>{window.__scopeTest.invoiceSite=101;});
+   await page.locator("#c10-invoice-form button").click();
+   await page.waitForFunction(()=>document.querySelector("#c10-invoice-status").textContent.includes("যাচাই করা যায়নি"));
+   await page.locator("#c10-business").selectOption("20");
+   await page.waitForFunction(()=>document.querySelector("#c10-business").value==="20"&&!document.querySelector("#c10-business").disabled);
+   assert.equal(await page.locator("#c10-site option").count(),1);
+   assert.equal(await page.inputValue("#c10-site"),"201");
+   assert.match(await page.locator("#c10-context-note").innerText(),/সাইট 1/);
+   assert.equal(await page.locator("#c10-location-list li").count(),0);
+   assert.equal(await page.locator("#c10-pilot-list li").count(),0);
+   assert.equal(await page.locator("#c10-recipe-results li").count(),0);
+   assert.equal(await page.locator("#c10-recipe option").count(),0);
+   assert.equal(await page.inputValue("#c10-batch-key"),"");
+   assert.equal(await page.locator("#c10-batch-plan").isVisible(),false);
+   assert.equal(await page.inputValue("#c10-invoice-po"),"");
+   assert.equal(await page.locator("#c10-invoice-status").textContent(),"");
+   await page.evaluate(()=>{window.__scopeTest.badLocation=true;});
+   await page.locator("#c10-location-details summary").click();
+   await page.waitForFunction(()=>document.querySelector("#c10-location-status").textContent.includes("যাচাই করা যায়নি"));
+   assert.equal(await page.locator("#c10-location-list li").count(),0);
+   await page.locator("#c10-group").selectOption("2");
+   await page.waitForFunction(()=>document.querySelector("#c10-group").value==="2"&&!document.querySelector("#c10-group").disabled);
+   assert.equal(await page.inputValue("#c10-business"),"30");
+   assert.equal(await page.locator("#c10-site option").count(),1);
+   await page.setViewportSize({width:390,height:844});
+   assert.equal(await page.locator("#c10-context-signed").isVisible(),true);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+   await page.locator('[data-set-lang="en"]').click();
+   assert.equal(await page.getAttribute("html","lang"),"en");
+   assert.equal(await page.locator("#c10-context-note").textContent().then(s=>/Your authorized sites in this business: 1/.test(s)),true);
+   // An account switch must revoke previously rendered business/site names.
+   await page.evaluate(()=>window.__scopeTest.changeAccount());
+   await page.locator("#c10-context-refresh").click();
+   await page.locator("#c10-context-anon").waitFor({state:"visible"});
+   assert.equal(await page.locator("#c10-business option").count(),0);
+   await page.locator("#c10-shell-open-login").click();
+   await page.fill("#c10-shell-password","correct-password");
+   await page.locator("#c10-shell-submit").click();
+   await page.locator("#c10-context-signed").waitFor({state:"visible"});
+
+   // A delayed valid RPC response must not repopulate private UI after SIGNED_OUT.
+   const beforeCalls=await page.evaluate(()=>window.__scopeTest.calls.length);
+   await page.evaluate(()=>{
+     let resolve;
+     const promise=new Promise(r=>{resolve=r;});
+     window.__scopeTest.pending={promise,resolve};
+   });
+   await page.locator("#c10-context-refresh").click();
+   await page.waitForFunction(n=>window.__scopeTest.calls.length>n,beforeCalls);
+   await page.evaluate(()=>window.__scopeTest.expire());
+   await page.locator("#c10-context-anon").waitFor({state:"visible"});
+   await page.evaluate(()=>window.__scopeTest.resolve());
+   assert.equal(await page.locator("#c10-business option").count(),0);
+   assert.equal(await page.locator("#c10-site option").count(),0);
+   await page.locator("#c10-shell-open-login").click();
+   await page.fill("#c10-shell-password","correct-password");
+   await page.locator("#c10-shell-submit").click();
+   await page.locator("#c10-context-signed").waitFor({state:"visible"});
+
+   // The server revokes scope: an old selection may not remain visible.
+   await page.evaluate(()=>window.__scopeTest.revoke());
+   await page.locator("#c10-context-refresh").click();
+   await page.locator("#c10-context-anon").waitFor({state:"visible"});
+   assert.equal(await page.locator("#c10-site option").count(),0);
+   assert.equal(await page.locator("#c10-context-signed").isVisible(),false);
+   await page.evaluate(()=>{window.__scopeTest.context.sites=[];window.__scopeTest.changeAccount();});
+   await page.locator("#c10-shell-open-login").click();
+   // Signing in as an already-switched actor must never grant old scope or pretend success.
+   await page.fill("#c10-shell-password","correct-password");
+   await page.locator("#c10-shell-submit").click();
+   await page.locator("#c10-context-signed").waitFor({state:"visible"});
+   await page.locator("#c10-shell-signout").click();
+   await page.locator("#c10-context-anon").waitFor({state:"visible"});
+   assert.equal(await page.locator("#c10-business option").count(),0);
+   assert.equal(await page.locator("#c10-site option").count(),0);
+   assert.equal(await page.locator("#c10-shell-password").inputValue(),"");
+   assert.deepEqual(errors,[]);
+ }finally{
+   if(page)await page.close();await browser.close();
+   await new Promise((ok,fail)=>server.close(err=>err?fail(err):ok()));
+ }
+});
+
+const MOCK="(function(){\n  const uid=\"11111111-1111-4111-8111-111111111111\";\n  const original={\n    actor_uid:uid,\n    tenants:[{id:1,slug:\"owner-group\"},{id:2,slug:\"other-group\"}],\n    businesses:[{id:10,tenant_id:1,label:\"DEMO Sweets\",slug:\"sweets\",can_manage:true},{id:20,tenant_id:1,label:\"DEMO Paint\",slug:\"paint\",can_manage:true},{id:30,tenant_id:2,label:\"Other Workspace\",slug:\"other\",can_manage:false}],\n    sites:[{id:101,business_id:10,tenant_id:1,label:\"Showroom A\",kind:\"showroom\"},{id:102,business_id:10,tenant_id:1,label:\"Factory A\",kind:\"factory\"},\n      {id:201,business_id:20,tenant_id:1,label:\"Paint Shop\",kind:\"showroom\"},{id:301,business_id:30,tenant_id:2,label:\"Other Shop\",kind:\"showroom\"}]\n  };\n  const f=window.__scopeTest={\n    user:null,context:structuredClone(original),calls:[],watchers:[],pending:null,\n    trigger(event){for(const callback of this.watchers)callback(event,{});},\n    async resolve(){if(this.pending){this.pending.resolve();this.pending=null;}},\n    changeAccount(){this.user={id:\"22222222-2222-4222-8222-222222222222\"};},\n    revoke(){this.context={...this.context,sites:[{id:101,business_id:10,tenant_id:2,label:\"FORBIDDEN\",kind:\"showroom\"}]};},\n    expire(){this.user=null;this.trigger(\"SIGNED_OUT\");}\n  };\n  window.supabase={createClient:()=>({\n    auth:{\n      async getUser(){return f.user?{data:{user:f.user},error:null}:{data:{user:null},error:{message:\"No session\"}};},\n      async signInWithPassword({email,password}){\n        if(email!==\"owner@example.test\"||password!==\"correct-password\")return{data:null,error:{message:\"Invalid credentials\"}};\n        f.user={id:uid};f.trigger(\"SIGNED_IN\");return{data:{user:f.user},error:null};\n      },\n      async signOut(){f.user=null;f.trigger(\"SIGNED_OUT\");return {error:null};},\n      onAuthStateChange(callback){f.watchers.push(callback);queueMicrotask(()=>callback(\"INITIAL_SESSION\",null));return{data:{subscription:{unsubscribe(){}}}};}\n    },\n    schema(name){if(name!==\"core10\")throw Error(\"UNEXPECTED_SCHEMA\");return{\n      async rpc(method,args){\n        f.calls.push(method);if(method===\"procurement_get_po_v1\")return {data:{po_id:args.p_po,business_id:10,site_id:f.invoiceSite??102,version:3,status:\"partially_received\",lines:[{line_no:1,quantity:100,accepted_qty:80,returned_qty:f.invoiceReturn??0}]}};if(method===\"master_list_uoms_v1\")return {data:{uoms:[{id:1,code:\"kg\",dimension:\"mass\",active:true},{id:2,code:\"g\",dimension:\"mass\",active:true}],conversions:[{from_uom_id:1,to_uom_id:2,factor:1000,active:true}]}};if(method===\"mfg_master_validation_v1\"){const x={item_id:1,item_version:1,uom_id:1,uom_version:1,base_uom_id:2,base_uom_version:1,uom_code:\"kg\",base_uom_code:\"g\",quantity:args.p_multiplier,base_uom_quantity:args.p_multiplier*1000,master:\"VERIFIED_CANONICAL\"};return {data:{recipe_id:f.badRecipe?999:args.p_recipe,recipe_version:f.recipeHistory.find(row=>row.id===args.p_recipe).version,master:\"VERIFIED_CANONICAL\",planning_only:true,stock_issued:false,financial_posted:false,substitution_selected:false,output:x,lines:[{...x,line_no:1}],alternatives:[]}};}if(method===\"mfg_plan_batch_v1\"){if(args.p_business!==10||args.p_site!==102||args.p_recipe!==1||args.p_location!==7||args.p_multiplier!==2||args.p_key!==\"bakery-plan-01\")throw Error(\"BAD_PLAN_ARGS\");const replayed=!!f.planSaved;f.planSaved=true;return {data:{batch_id:42,status:\"planned\",expected_output:2,audit_event_id:77,actual_cogs_certified:false,replayed}};}if(method===\"mfg_inspect_v1\")return {data:{recipes:[...f.recipeHistory.map(row=>({...row,tenant_id:1,business_id:args.p_business,site_id:args.p_site}))],batches:[{id:21,bom_id:1,tenant_id:1,business_id:args.p_business,site_id:args.p_site,status:\"planned\",expected_output:20,yield_uom_ref:\"kg\",actual_cogs_certified:false},{id:22,bom_id:1,tenant_id:1,business_id:args.p_business,site_id:f.badBatch?999:args.p_site,status:\"recorded\",expected_output:30,yield_uom_ref:\"kg\",actual_cogs_certified:false}]}};if(method===\"inventory_list_locations_v1\")return {data:{business_id:args.p_business,site_id:args.p_site,truncated:false,items:[{site_id:f.badLocation?999:args.p_site,code:\"STORE\",location_id:7}]}};if(method!==\"build01_context_v1\")throw Error(\"UNEXPECTED_RPC\");\n        if(f.pending)await f.pending.promise;\n        return {data:structuredClone(f.context),error:null};\n      }\n    };}\n  })};\n})();";

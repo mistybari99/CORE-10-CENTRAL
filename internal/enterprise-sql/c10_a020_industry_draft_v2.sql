@@ -2,7 +2,7 @@
 -- DISPOSABLE PostgreSQL / staging candidate ONLY. DO NOT APPLY TO LIVE IMG-ERP-SG.
 -- Requires c10_a018_demo_backend.sql, demo seed, c10_a020_business_setup_v1.sql.
 -- All ten families can create DRAFT businesses, never operationally enabled modules.
-CREATE TABLE c10_demo.industry_catalog_v2 (
+CREATE TABLE core10.industry_catalog_v2 (
  id text PRIMARY KEY CHECK(id ~ '^[a-z][a-z0-9_]+$'),
  name_en text NOT NULL,
  legacy_code text,
@@ -10,7 +10,7 @@ CREATE TABLE c10_demo.industry_catalog_v2 (
  readiness text NOT NULL,
  enterprise_certified boolean NOT NULL DEFAULT false CHECK(enterprise_certified=false)
 );
-INSERT INTO c10_demo.industry_catalog_v2(id,name_en,legacy_code,legacy_status,readiness) VALUES
+INSERT INTO core10.industry_catalog_v2(id,name_en,legacy_code,legacy_status,readiness) VALUES
 ('sweets_bakery','Sweets, Bakery & Food Manufacturing','food_manufacturing','available','implemented_unverified'),
 ('restaurant','Restaurant, Fast Food & Cloud Kitchen',NULL,'unregistered','not_implemented'),
 ('paint_hardware','Paint, Hardware & Dealership','hardware_paint','not_implemented','not_implemented'),
@@ -21,13 +21,13 @@ INSERT INTO c10_demo.industry_catalog_v2(id,name_en,legacy_code,legacy_status,re
 ('ecommerce','E-commerce & Online Store','online_store','not_implemented','not_implemented'),
 ('technology_digital','Technology, Software & Digital Products','technology','not_implemented','not_implemented'),
 ('services','Services, Agency & Professional Services',NULL,'unregistered','not_implemented');
-CREATE TABLE c10_demo.industry_module_catalog_v2(
- industry_id text NOT NULL REFERENCES c10_demo.industry_catalog_v2(id),
+CREATE TABLE core10.industry_module_catalog_v2(
+ industry_id text NOT NULL REFERENCES core10.industry_catalog_v2(id),
  module_code text NOT NULL CHECK(module_code ~ '^[a-z][a-z0-9_]+$'),
  readiness text NOT NULL,
  PRIMARY KEY(industry_id,module_code)
 );
-INSERT INTO c10_demo.industry_module_catalog_v2(industry_id,module_code,readiness) VALUES
+INSERT INTO core10.industry_module_catalog_v2(industry_id,module_code,readiness) VALUES
 ('sweets_bakery','pos','implemented_unverified'),
 ('sweets_bakery','stock','implemented_unverified'),
 ('sweets_bakery','purchase','implemented_unverified'),
@@ -78,28 +78,28 @@ INSERT INTO c10_demo.industry_module_catalog_v2(industry_id,module_code,readines
 ('services','contract_billing','not_implemented');
 -- Business identity references only canonical template codes in this isolated schema.
 -- Never mutate legacy production template rows or existing IDs.
-INSERT INTO c10_demo.templates(code,source_status,demo_allowed,enterprise_certified)
- SELECT id,'not_implemented',false,false FROM c10_demo.industry_catalog_v2
+INSERT INTO core10.templates(code,source_status,demo_allowed,enterprise_certified)
+ SELECT id,'not_implemented',false,false FROM core10.industry_catalog_v2
  ON CONFLICT(code) DO NOTHING;
-ALTER TABLE c10_demo.industry_catalog_v2 ENABLE ROW LEVEL SECURITY;
-ALTER TABLE c10_demo.industry_module_catalog_v2 ENABLE ROW LEVEL SECURITY;
-CREATE POLICY industry_catalog_authenticated_v2 ON c10_demo.industry_catalog_v2
+ALTER TABLE core10.industry_catalog_v2 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE core10.industry_module_catalog_v2 ENABLE ROW LEVEL SECURITY;
+CREATE POLICY industry_catalog_authenticated_v2 ON core10.industry_catalog_v2
  FOR SELECT TO authenticated USING(true);
-CREATE POLICY industry_module_catalog_authenticated_v2 ON c10_demo.industry_module_catalog_v2
+CREATE POLICY industry_module_catalog_authenticated_v2 ON core10.industry_module_catalog_v2
  FOR SELECT TO authenticated USING(true);
-REVOKE ALL ON c10_demo.industry_catalog_v2,c10_demo.industry_module_catalog_v2 FROM PUBLIC;
-GRANT SELECT ON c10_demo.industry_catalog_v2,c10_demo.industry_module_catalog_v2 TO authenticated;
+REVOKE ALL ON core10.industry_catalog_v2,core10.industry_module_catalog_v2 FROM PUBLIC;
+GRANT SELECT ON core10.industry_catalog_v2,core10.industry_module_catalog_v2 TO authenticated;
 
-CREATE FUNCTION c10_demo.setup_industry_draft_v2(
+CREATE FUNCTION core10.setup_industry_draft_v2(
  p_legal bigint,p_slug text,p_template_id text,p_display_name text,p_mode text,
  p_sites jsonb,p_modules jsonb,p_request text,p_brand_hex text)
-RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER SET search_path=c10_demo,pg_catalog AS $$
+RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER SET search_path=core10,pg_catalog AS $$
 DECLARE
  v_tenant bigint;v_business bigint;v_prev record;v_manifest jsonb;
  v_sites jsonb;v_site jsonb;v_mod text;v_modules text[]:=ARRAY[]::text[];
  v_signatures text[]:=ARRAY[]::text[];v_sig text;v_ix int:=0;v_request text;
 BEGIN
- IF c10_demo.actor_uid() IS NULL OR
+ IF core10.actor_uid() IS NULL OR
    p_legal IS NULL OR p_template_id IS NULL OR
    p_slug IS NULL OR p_slug !~ '^[a-z][a-z0-9-]{0,79}$' OR
    p_display_name IS NULL OR length(btrim(p_display_name)) NOT BETWEEN 1 AND 120 OR
@@ -108,11 +108,11 @@ BEGIN
    p_brand_hex IS NULL OR p_brand_hex !~ '^#[0-9A-Fa-f]{6}$' THEN
   RAISE EXCEPTION 'invalid_industry_setup';
  END IF;
- IF NOT EXISTS(SELECT 1 FROM c10_demo.industry_catalog_v2 WHERE id=p_template_id) THEN
+ IF NOT EXISTS(SELECT 1 FROM core10.industry_catalog_v2 WHERE id=p_template_id) THEN
   RAISE EXCEPTION 'unknown_industry_template';
  END IF;
- SELECT tenant_id INTO v_tenant FROM c10_demo.legal_entities WHERE id=p_legal;
- IF v_tenant IS NULL OR NOT c10_demo.can_tenant(v_tenant) THEN
+ SELECT tenant_id INTO v_tenant FROM core10.legal_entities WHERE id=p_legal;
+ IF v_tenant IS NULL OR NOT core10.can_tenant(v_tenant) THEN
   RAISE EXCEPTION 'industry_setup_not_authorized';
  END IF;
  IF p_modules IS NULL OR jsonb_typeof(p_modules)<>'array' OR jsonb_array_length(p_modules)>100 THEN
@@ -120,7 +120,7 @@ BEGIN
  END IF;
  FOR v_mod IN SELECT value FROM jsonb_array_elements_text(p_modules) LOOP
   IF v_mod IS NULL OR v_mod=ANY(v_modules) OR NOT EXISTS(
-   SELECT 1 FROM c10_demo.industry_module_catalog_v2
+   SELECT 1 FROM core10.industry_module_catalog_v2
    WHERE industry_id=p_template_id AND module_code=v_mod) THEN
    RAISE EXCEPTION 'invalid_module_manifest';
   END IF;
@@ -152,19 +152,19 @@ BEGIN
     'name',p_display_name,'mode',p_mode,'sites',v_sites,'modules',to_jsonb(v_modules),
     'brand',p_brand_hex);
  SELECT business_id,payload,created_by INTO v_prev
- FROM c10_demo.business_setup_runs_v1
+ FROM core10.business_setup_runs_v1
  WHERE tenant_id=v_tenant AND request_key=v_request;
  IF FOUND THEN
-  IF v_prev.payload<>v_manifest OR v_prev.created_by<>c10_demo.actor_uid() THEN
+  IF v_prev.payload<>v_manifest OR v_prev.created_by<>core10.actor_uid() THEN
    RAISE EXCEPTION 'idempotency_key_payload_conflict';
   END IF;
   RETURN v_prev.business_id;
  END IF;
- INSERT INTO c10_demo.businesses(tenant_id,legal_entity_id,slug,template_code,request_key,status)
+ INSERT INTO core10.businesses(tenant_id,legal_entity_id,slug,template_code,request_key,status)
  VALUES(v_tenant,p_legal,p_slug,p_template_id,v_request,'draft')
  ON CONFLICT(tenant_id,request_key) DO NOTHING RETURNING id INTO v_business;
  IF v_business IS NULL THEN
-  SELECT id,legal_entity_id,slug,template_code INTO v_prev FROM c10_demo.businesses
+  SELECT id,legal_entity_id,slug,template_code INTO v_prev FROM core10.businesses
   WHERE tenant_id=v_tenant AND request_key=v_request;
   IF NOT FOUND OR v_prev.legal_entity_id<>p_legal OR v_prev.slug<>p_slug OR
     v_prev.template_code<>p_template_id THEN
@@ -172,39 +172,39 @@ BEGIN
   END IF;
   v_business:=v_prev.id;
  END IF;
- INSERT INTO c10_demo.business_configuration_v1(
+ INSERT INTO core10.business_configuration_v1(
   business_id,tenant_id,display_name,brand_hex,setup_mode,setup_status,created_by)
- VALUES(v_business,v_tenant,p_display_name,p_brand_hex,p_mode,'draft',c10_demo.actor_uid())
+ VALUES(v_business,v_tenant,p_display_name,p_brand_hex,p_mode,'draft',core10.actor_uid())
  ON CONFLICT(business_id) DO NOTHING;
- SELECT display_name,brand_hex,setup_mode,created_by INTO v_prev FROM c10_demo.business_configuration_v1
+ SELECT display_name,brand_hex,setup_mode,created_by INTO v_prev FROM core10.business_configuration_v1
  WHERE business_id=v_business;
  IF v_prev.display_name<>p_display_name OR v_prev.brand_hex<>p_brand_hex OR
-    v_prev.setup_mode<>p_mode OR v_prev.created_by<>c10_demo.actor_uid() THEN
+    v_prev.setup_mode<>p_mode OR v_prev.created_by<>core10.actor_uid() THEN
    RAISE EXCEPTION 'idempotency_key_payload_conflict';
  END IF;
  FOR v_site IN SELECT value FROM jsonb_array_elements(v_sites) LOOP
   v_ix:=v_ix+1;
-  PERFORM c10_demo.provision_site(v_business,v_site->>'kind',v_site->>'label',
+  PERFORM core10.provision_site(v_business,v_site->>'kind',v_site->>'label',
     v_request||':site:'||lpad(v_ix::text,4,'0'));
  END LOOP;
- INSERT INTO c10_demo.business_module_settings_v1(
+ INSERT INTO core10.business_module_settings_v1(
    tenant_id,business_id,module_code,visibility,operational_enabled)
  SELECT v_tenant,v_business,mod,'locked',false FROM unnest(v_modules) AS mod
  ON CONFLICT(business_id,module_code) DO NOTHING;
- INSERT INTO c10_demo.business_setup_runs_v1(
+ INSERT INTO core10.business_setup_runs_v1(
    tenant_id,business_id,request_key,payload,created_by)
- VALUES(v_tenant,v_business,v_request,v_manifest,c10_demo.actor_uid())
+ VALUES(v_tenant,v_business,v_request,v_manifest,core10.actor_uid())
  ON CONFLICT(tenant_id,request_key) DO NOTHING;
- SELECT business_id,payload,created_by INTO v_prev FROM c10_demo.business_setup_runs_v1
+ SELECT business_id,payload,created_by INTO v_prev FROM core10.business_setup_runs_v1
  WHERE tenant_id=v_tenant AND request_key=v_request;
  IF v_prev.business_id<>v_business OR v_prev.payload<>v_manifest OR
-    v_prev.created_by<>c10_demo.actor_uid() THEN
+    v_prev.created_by<>core10.actor_uid() THEN
    RAISE EXCEPTION 'idempotency_key_payload_conflict';
  END IF;
  RETURN v_business;
 END $$;
-REVOKE EXECUTE ON FUNCTION c10_demo.setup_industry_draft_v2(
+REVOKE EXECUTE ON FUNCTION core10.setup_industry_draft_v2(
  bigint,text,text,text,text,jsonb,jsonb,text,text) FROM PUBLIC,anon;
-GRANT EXECUTE ON FUNCTION c10_demo.setup_industry_draft_v2(
+GRANT EXECUTE ON FUNCTION core10.setup_industry_draft_v2(
  bigint,text,text,text,text,jsonb,jsonb,text,text) TO authenticated;
 -- Release invariant: operational_enabled is always false, setup_status=draft.

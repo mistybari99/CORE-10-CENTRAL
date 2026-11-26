@@ -1,0 +1,33 @@
+name: CORE10 clean signed-only release
+on:
+  pull_request:
+    paths:
+      - 'apps/central/**'
+      - 'tests/core10-clean-release.test.cjs'
+      - 'apps/central/verify-clean-public.cjs'
+      - '.github/workflows/core10-clean-release-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  clean-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Fetch original reviewed source pins
+        run: git fetch origin '+refs/heads/*:refs/remotes/origin/*'
+      - name: Build fresh signed-only Worker from GitHub sources
+        run: node apps/central/build-clean.mjs
+      - name: Check allowlist, dependencies, JavaScript syntax and real Worker HTTP
+        run: node --test tests/core10-clean-release.test.cjs
+      - name: Prove deterministic build
+        run: |
+          sha256sum apps/central/dist-clean/worker.mjs > /tmp/clean.sha
+          node apps/central/build-clean.mjs
+          sha256sum -c /tmp/clean.sha
+
+      - name: Check actual clean public URL (read-only HTTP)
+        run: node apps/central/verify-clean-public.cjs

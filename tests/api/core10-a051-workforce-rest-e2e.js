@@ -1,4 +1,4 @@
-// C10-A051: signed HMAC JWT -> PostgREST -> c10_demo Workforce RPC E2E. Disposable PostgreSQL ONLY.
+// C10-A051: signed HMAC JWT -> PostgREST -> core10 Workforce RPC E2E. Disposable PostgreSQL ONLY.
 // NOT a Supabase-issued GoTrue token and NEVER a production release test. Run after the A051 SQL e2e fixture state.
 "use strict";
 const assert=require("node:assert/strict"),crypto=require("node:crypto");

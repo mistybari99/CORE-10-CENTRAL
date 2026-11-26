@@ -1,7 +1,7 @@
 # C10-A056 Universal CRM, Customer Lifecycle & Sales Integration
 
 Status: DRAFT source build, disposable PostgreSQL only (PR #66). Not production, not GoTrue-verified, no real messaging, no real finance.
-Namespace: everything is `a056_*` in schema `c10_demo` (files `internal/enterprise-sql/c10_a056_{core,pipeline,growth}_v1.sql`).
+Namespace: everything is `a056_*` in schema `core10` (files `internal/enterprise-sql/c10_a056_{core,pipeline,growth}_v1.sql`).
 Legacy Islamiya `crm_*.js`, `customers.js`, `website.js` are untouched and are NOT the source of this module.
 
 ## Canonical dependencies (reuse, never duplicate)

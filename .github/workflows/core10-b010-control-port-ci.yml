@@ -1,0 +1,141 @@
+name: core10-b010-control-port-ci
+on:
+  pull_request:
+    paths:
+      - "internal/migrations/**"
+      - "tests/migrations/**"
+      - "docs/coordination/**"
+      - ".github/workflows/core10-b010-control-port-ci.yml"
+      - "core10-owner-control*"
+      - "core10-control-centre-config.js"
+      - "core10-control-studio-entry.js"
+      - "core10-master-data*"
+      - "core10-owner-dashboard*"
+      - "tests/control-centre/**"
+      - "tests/c10_np02_*"
+      - "internal/enterprise-sql/**"
+      - "tests/c10_a018_demo_seed.sql"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  control-port:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_PASSWORD: control_port_disposable }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: control_port_disposable
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: API roles of the disposable database
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon NOLOGIN; END IF;
+          END \$\$;"
+      - name: Static migration contract (naming, pack blocks, RLS, search_path, grants)
+        run: node --test tests/migrations/migration-contract.test.js
+      - name: All migrations up, full down, up on PostgreSQL 17
+        run: bash tests/migrations/run-updownup.sh
+      - name: Apply migrations for the behaviour tests
+        run: internal/migrations/run.sh up
+      - name: Owner Control end to end (8 personas, negatives, scheduling, exceptions, audit)
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-control-e2e.sql
+      - name: B-011 master tables (scope, isolation, constraints, no direct API-role access)
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-tables-e2e.sql
+      - name: B-011 master RPCs (personas, Owner Control, versions, idempotency, audit, NP03B/NP05A ports)
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np02-master-rpc-e2e.sql
+      - name: "B-012 canonical inventory engine (0200 - internal posting and transfer, balances, reconciliation, API denial)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-e2e.sql
+      - name: "B-012 stock commands (0201 - Owner Control per kind/site, staff/deny/expiry, replay, versions, audit, scoped reads)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-commands-e2e.sql
+      - name: "B-012 stock approvals (0202 - GOV-002 one-checker and two-stage routes, maker-checker, Owner switches, stage/route drift)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-approval-e2e.sql
+      - name: "B-012 purchase order -> GRN -> QC -> stock (0203 - Master supplier, Owner Control, lot/expiry, partial receipt)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-procurement-e2e.sql
+      - name: "B-012 purchase order approvals (0206 - GOV-002 one-checker and two-stage routes, maker-only request, Owner switches, stage/route drift, edited draft)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-po-approval-e2e.sql
+      - name: "B-012 owner multi-business dashboard reads (0204 - figures, drill-down, scope per persona)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-owner-dashboard-e2e.sql
+      - name: "B-012 P4 scale: 10 businesses x 400 sites (reads, budgets, RPC writes)"
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-scale.sql
+      - name: DEC-08 registry gate (every state-changing RPC is mapped)
+        run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+      - name: Registry gate self-test (an unmapped RPC must fail the gate)
+        run: |
+          psql -X -q -c "CREATE FUNCTION core10.gate_selftest_v1() RETURNS void LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog,core10 AS 'SELECT 1'" \
+                  -c "GRANT EXECUTE ON FUNCTION core10.gate_selftest_v1() TO authenticated"
+          if psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql >/dev/null 2>&1; then
+            echo "gate accepted an unmapped state-changing RPC"; exit 1; fi
+          psql -X -q -c "DROP FUNCTION core10.gate_selftest_v1()"
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+      - name: Concurrent sessions (stale writers, replays, one-time exception)
+        run: bash tests/migrations/control-race.sh
+      - name: B-011 master data real concurrent sessions (replay, SKU, barcode, version, cross-tenant, Owner Control switch)
+        run: bash tests/migrations/np02-master-race.sh
+      - name: B-012 stock commands real concurrent sessions (same key, oversell, single post, crossing transfers, Control switch, cross-tenant)
+        run: bash tests/migrations/np03a-inventory-race.sh
+      - name: B-012 purchase receipts real concurrent sessions (over-receipt, double GRN posting)
+        run: bash tests/migrations/np03a-procurement-race.sh
+      - name: Registry evidence (each enforced RPC names an existing CI-run proof test)
+        run: bash tests/migrations/control-registry-evidence.sh
+      - name: B-009 legacy installer vs numbered migrations drift (reviewed list, no silent ignores)
+        run: bash tests/migrations/b009-legacy-drift.sh
+      - name: B-009 self-test (an unrecorded legacy-only object must fail the drift test)
+        run: |
+          cp internal/enterprise-sql/c10_a034_access_governance_v1.sql /tmp/a034.bak
+          echo "CREATE TABLE core10.b009_selftest(x int);" >> internal/enterprise-sql/c10_a034_access_governance_v1.sql
+          if bash tests/migrations/b009-legacy-drift.sh; then echo "drift test did not catch an unrecorded object"; exit 1; fi
+          cp /tmp/a034.bak internal/enterprise-sql/c10_a034_access_governance_v1.sql
+          bash tests/migrations/b009-legacy-drift.sh
+      - name: Owner Control Centre client contract
+        run: node --test tests/c10_np02_owner_control_client_v1.test.js
+      - name: Install pinned Chromium for the browser test
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Owner Control Centre in a real browser against the real SQL functions (390 and 1440 px)
+        env: { OCC_SHOTS: occ-shots }
+        run: |
+          psql -X -q -c "CREATE DATABASE occ"
+          PGDATABASE=occ internal/migrations/run.sh up
+          PGDATABASE=occ psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/seed.sql
+          PGDATABASE=occ node tests/control-centre/owner-control-centre-browser.cjs
+      - name: B-011 Master Data screen in a real browser against the real SQL functions (390 and 1440 px, bn/en)
+        env: { MD_SHOTS: md-shots }
+        run: |
+          psql -X -q -c "CREATE DATABASE mdui"
+          PGDATABASE=mdui internal/migrations/run.sh up
+          PGDATABASE=mdui psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/md-seed.sql
+          PGDATABASE=mdui node tests/control-centre/master-data-browser.cjs
+      - name: B-012 Owner dashboard in a real browser against the real SQL functions (390 and 1440 px, bn/en)
+        env: { OD_SHOTS: od-shots }
+        run: |
+          psql -X -q -c "CREATE DATABASE odui"
+          PGDATABASE=odui internal/migrations/run.sh up
+          PGDATABASE=odui psql -X -q -v ON_ERROR_STOP=1 -f tests/control-centre/od-seed.sql
+          PGDATABASE=odui node tests/control-centre/owner-dashboard-browser.cjs
+      - name: B-011 Central shell navigation contract (Owner Control / Master Data links, 390 and 1440 px)
+        run: node tests/control-centre/shell-nav-browser.cjs
+      - name: Master Data screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: master-data-screenshots, path: md-shots, if-no-files-found: ignore }
+      - name: Owner Control Centre screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: owner-control-centre-screenshots, path: occ-shots, if-no-files-found: ignore }

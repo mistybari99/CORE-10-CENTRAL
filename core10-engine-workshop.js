@@ -29,7 +29,7 @@ function shell(){
  '<div class="ew-safety" role="note"><strong>Advisory only, not operational authorization.</strong> Engines are declarative descriptors. '+
  'Only the registered <code>threshold_rule_v1</code> handler can be previewed; it never posts stock, finance, payments or sales, and a '+
  '“would block” result is advice, not a server permission. Placement is visibility only. Server RPC/RLS is the sole authority. '+
- 'Disposable c10_demo build — not applied to production Supabase.</div>'+
+ 'Disposable core10 build — not applied to production Supabase.</div>'+
  '<div id="ew-status" role="status" aria-live="polite">Connecting with verified session…</div>'+
  '<div id="ew-body"></div>';
 }
