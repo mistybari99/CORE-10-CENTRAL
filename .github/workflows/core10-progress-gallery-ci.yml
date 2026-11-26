@@ -17,3 +17,12 @@ jobs:
       - run: node apps/central/build-clean.mjs && node --test tests/core10-clean-release.test.cjs
       - run: node apps/central/build-progress.mjs && node --test tests/core10-progress-gallery.test.cjs
       - run: sha256sum apps/central/dist-progress/worker.mjs > /tmp/progress.sha && node apps/central/build-progress.mjs && sha256sum -c /tmp/progress.sha
+      - name: Install pinned browser for real UI checks
+        run: |
+          mkdir -p "$RUNNER_TEMP/core10-gallery-playwright"
+          cd "$RUNNER_TEMP/core10-gallery-playwright"
+          npm init -y >/dev/null
+          npm install -D playwright@1.63.0
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/core10-gallery-playwright/node_modules" >> "$GITHUB_ENV"
+      - run: node --test tests/core10-progress-browser.test.cjs
