@@ -88,7 +88,7 @@ function present(ctx,wanted){
   chosen={tenant:tId,business:bId,site:sId};
   fill(group,ctx.tenants,x=>x.slug,t("কোনো গ্রুপ নেই","No groups"));
   fill(business,bs,x=>x.name,t("কোনো ব্যবসা নেই","No businesses"));
-  fill(site,ss,x=>x.name+" · "+x.kind+" · #"+x.id,t("অনুমোদিত স্থান নেই","No authorized sites"));
+  fill(site,ss,x=>[x.name,x.kind,"#"+x.id].filter(Boolean).join(" · "),t("অনুমোদিত স্থান নেই","No authorized sites"));
   if(tId!==null)group.value=String(tId);
   if(bId!==null)business.value=String(bId);
   if(sId!==null)site.value=String(sId);
