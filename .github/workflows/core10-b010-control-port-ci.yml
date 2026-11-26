@@ -14,6 +14,7 @@ on:
       - "tests/control-centre/**"
       - "tests/c10_np02_*"
       - "internal/enterprise-sql/**"
+      - "internal/candidates/c10_supplier_invoice_evidence_candidate.up.sql"
       - "tests/c10_a018_demo_seed.sql"
   workflow_dispatch:
 permissions:
@@ -66,6 +67,14 @@ jobs:
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-inventory-approval-e2e.sql
       - name: "B-012 purchase order -> GRN -> QC -> stock (0203 - Master supplier, Owner Control, lot/expiry, partial receipt)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-procurement-e2e.sql
+      - name: T01.03 supplier invoice evidence candidate on a separate disposable database
+        run: |
+          createdb core10_invoice_candidate
+          export PGDATABASE=core10_invoice_candidate
+          internal/migrations/run.sh up
+          psql -X -1 -v ON_ERROR_STOP=1 -f internal/candidates/c10_supplier_invoice_evidence_candidate.up.sql
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+          psql -X -q -v ON_ERROR_STOP=1 -v supplier_invoice_candidate=1 -f tests/migrations/np03a-procurement-e2e.sql
       - name: "B-012 purchase order approvals (0206 - GOV-002 one-checker and two-stage routes, maker-only request, Owner switches, stage/route drift, edited draft)"
         run: psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-po-approval-e2e.sql
       - name: "B-012 owner multi-business dashboard reads (0204 - figures, drill-down, scope per persona)"
