@@ -57,13 +57,57 @@ const pilotDetails=$("c10-pilot-details"),pilotStatus=$("c10-pilot-status"),pilo
 let pilotRevision=0,pilotRows=[],pilotMessage=[];
 const recipePlanner=$("c10-recipe-planner"),recipeSelect=$("c10-recipe"),recipeMultiplier=$("c10-recipe-multiplier"),recipeButton=$("c10-recipe-validate"),recipeStatus=$("c10-recipe-status"),recipeResults=$("c10-recipe-results");
 let recipeChoices=new Map(),recipeRevision=0,recipeMessage=[],recipeRows=[];
+const batchForm=$("c10-batch-plan"),batchLocation=$("c10-batch-location"),batchKey=$("c10-batch-key"),batchConfirm=$("c10-batch-confirm"),batchSubmit=$("c10-batch-submit"),batchStatus=$("c10-batch-status");
+let validatedPlan=null,batchRevision=0,batchMessage=[],batchBusy=false;
+function showBatch(bn,en){
+  batchMessage=bn?[bn,en]:[];batchStatus.textContent=bn?t(bn,en):"";
+}
+function clearBatch(){
+  ++batchRevision;validatedPlan=null;batchForm.reset();batchForm.hidden=true;
+  batchSubmit.disabled=batchBusy;showBatch();
+}
+batchForm.addEventListener("input",()=>{if(!batchBusy)showBatch();});
+batchForm.addEventListener("submit",async event=>{
+  event.preventDefault();
+  if(batchBusy||blocked||batchForm.hidden||!validatedPlan||!batchConfirm.checked)return;
+  const plan=validatedPlan,rev=++batchRevision,who=actor,e=epoch,p=pilotRevision;
+  const location=batchLocation.value.trim(),key=batchKey.value.trim();
+  if(!positive(location)||! /^[A-Za-z0-9_-]{8,100}$/.test(key)){
+    showBatch("সঠিক লোকেশন ও অনন্য রেফারেন্স দিন।","Enter a valid location and unique reference.");return;
+  }
+  const current=()=>epoch===e&&pilotRevision===p&&batchRevision===rev&&actor===who&&!blocked&&validatedPlan===plan&&chosen.business===plan.business&&chosen.site===plan.site&&pilotDetails.open;
+  batchBusy=true;for(const field of [batchLocation,batchKey,batchConfirm,batchSubmit])field.disabled=true;
+  showBatch("পরিকল্পনা যাচাই ও সংরক্ষণ হচ্ছে…","Checking and saving plan…");
+  try{
+    if(await currentUser()!==who||!current())throw Error("PLAN_SESSION");
+    const locations=await client.schema("core10").rpc("inventory_list_locations_v1",{p_business:plan.business,p_site:plan.site});
+    if(!current()||await currentUser()!==who||!current())throw Error("PLAN_SESSION");
+    if(locations.error||locations.data?.business_id!==plan.business||locations.data.site_id!==plan.site||
+      !Array.isArray(locations.data.items)||!locations.data.items.some(x=>x?.site_id===plan.site&&x.location_id===Number(location)))throw Error("PLAN_LOCATION");
+    const r=await client.schema("core10").rpc("mfg_plan_batch_v1",{p_business:plan.business,p_site:plan.site,p_recipe:plan.recipe,p_location:Number(location),p_multiplier:plan.multiplier,p_key:key});
+    if(!current()||await currentUser()!==who||!current())throw Error("PLAN_SESSION");
+    const d=r.data;
+    if(r.error||!positive(d?.batch_id)||!positive(d?.audit_event_id)||d.status!=="planned"||
+      d.actual_cogs_certified!==false||typeof d.replayed!=="boolean"||
+      typeof d.expected_output!=="number"||!Number.isFinite(d.expected_output)||d.expected_output<=0)throw Error("PLAN_RESPONSE");
+    const suffix=" #"+d.batch_id+" · Audit #"+d.audit_event_id;
+    showBatch((d.replayed?"আগের পরিকল্পনা":"পরিকল্পনা সংরক্ষিত")+suffix+" · stock/finance posting নয়।",
+      (d.replayed?"Existing plan":"Plan saved")+suffix+" · no stock/finance posting.");
+    batchConfirm.checked=false;
+  }catch(_){if(current()){
+    showBatch("পরিকল্পনা নিশ্চিত হয়নি। ফল অনিশ্চিত হলে একই রেফারেন্স দিয়ে আবার চেষ্টা করুন।","Plan not confirmed. If the outcome is uncertain, retry with the same reference.");
+    batchConfirm.checked=false;
+  }}finally{
+    batchBusy=false;for(const field of [batchLocation,batchKey,batchConfirm,batchSubmit])field.disabled=false;
+  }
+});
 function drawRecipe(){
   recipeStatus.textContent=recipeMessage.length?t(...recipeMessage):"";
   recipeResults.replaceChildren();
   for(const row of recipeRows){const li=doc.createElement("li");li.textContent=t(...row);recipeResults.append(li);}
 }
 function clearRecipeResult(){
-  ++recipeRevision;recipeMessage=[];recipeRows=[];recipeButton.disabled=false;drawRecipe();
+  clearBatch();++recipeRevision;recipeMessage=[];recipeRows=[];recipeButton.disabled=false;drawRecipe();
 }
 function clearRecipe(){
   clearRecipeResult();recipeChoices.clear();recipeSelect.replaceChildren();
@@ -104,6 +148,8 @@ recipeButton.addEventListener("click",async()=>{
     recipeRows=[["ফিনিশড আইটেম"+material(d.output),"Finished item"+material(d.output)],...d.lines.map(x=>["উপকরণ "+x.line_no+material(x),"Ingredient "+x.line_no+material(x)]),...d.alternatives.map(x=>["বিকল্প (নির্বাচিত নয়)"+material(x),"Alternative (not selected)"+material(x)])];
     recipeMessage=["রেসিপি v"+d.recipe_version+" · Master যাচাইকৃত; stock/finance posting নয়।","Recipe v"+d.recipe_version+" · Master verified; no stock or finance posting."];
     drawRecipe();
+    validatedPlan=Object.freeze({business:b,site:s,recipe:selected.id,multiplier});
+    batchForm.hidden=false;
   }catch(_){if(current()){recipeRows=[];recipeMessage=["যাচাই হয়নি: অনুমতি, Control, Master বা recipe revision পরীক্ষা করুন।","Not verified: check permission, Control, Master or recipe revision."];drawRecipe();}}
   finally{if(current())recipeButton.disabled=false;}
 });
@@ -430,7 +476,7 @@ logout.addEventListener("click",async()=>{
 win.addEventListener("core10:language-change",()=>{
   note.textContent=t(...lastMessage);
   if(locationMessage.length)locationStatus.textContent=t(...locationMessage);
-  renderPilot();drawRecipe();showInvoiceMessage(...invoiceMessage);
+  renderPilot();drawRecipe();showInvoiceMessage(...invoiceMessage);showBatch(...batchMessage);
 });
 if(!configReady()){
   open.disabled=true;message("CORE10 স্টেজিং সাইন-ইন উপলব্ধ নয়।","CORE10 staging sign-in unavailable.");

@@ -31,6 +31,14 @@
      <label><span class="bn" lang="bn">ব্যাচ গুণক</span><span class="en" lang="en">Batch multiplier</span><input id="c10-recipe-multiplier" aria-label="Batch multiplier" type="number" value="1" min="0.000001" max="100000" step="0.000001" size="8"></label>
      <button type="button" id="c10-recipe-validate"><span class="bn" lang="bn">উপকরণ যাচাই</span><span class="en" lang="en">Validate materials</span></button>
      <p id="c10-recipe-status" role="status"></p><ul id="c10-recipe-results"></ul>
+     <form id="c10-batch-plan" hidden autocomplete="off">
+      <p><span class="bn" lang="bn">শুধু পরিকল্পনা; স্টক বা হিসাব পোস্ট হবে না।</span><span class="en" lang="en">Planning only; no stock or finance posting.</span></p>
+      <label><span class="bn" lang="bn">কারখানার লোকেশন আইডি</span><span class="en" lang="en">Factory stock location ID</span><input id="c10-batch-location" required inputmode="numeric" maxlength="16" size="10"></label>
+      <label><span class="bn" lang="bn">অনন্য পরিকল্পনা রেফারেন্স (পুনরায় চেষ্টা করলে একইটি দিন)</span><span class="en" lang="en">Unique plan reference (reuse on retry)</span><input id="c10-batch-key" required pattern="[A-Za-z0-9_-]{8,100}" maxlength="100" size="16"></label>
+      <label><input id="c10-batch-confirm" type="checkbox" required><span class="bn" lang="bn">নির্বাচিত রেসিপির পরিকল্পনা সংরক্ষণ নিশ্চিত করছি</span><span class="en" lang="en">Confirm saving this recipe plan</span></label>
+      <button id="c10-batch-submit" type="submit"><span class="bn" lang="bn">ব্যাচ পরিকল্পনা সংরক্ষণ</span><span class="en" lang="en">Save batch plan</span></button>
+      <p id="c10-batch-status" role="status"></p>
+     </form>
     </div>
    </details>
    <details id="c10-invoice-check" hidden>
