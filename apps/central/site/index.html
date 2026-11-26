@@ -24,6 +24,25 @@
    <details id="c10-location-details" hidden><summary><span class="bn" lang="bn">স্টক লোকেশন</span><span class="en" lang="en">Stock locations</span></summary>
     <p id="c10-location-status" role="status"></p><ul id="c10-location-list"></ul>
    </details>
+   <details id="c10-pilot-details" hidden><summary><span class="bn" lang="bn">বেকারি পাইলট যাচাই</span><span class="en" lang="en">Bakery pilot preflight</span></summary>
+    <p id="c10-pilot-status" role="status"></p><ul id="c10-pilot-list"></ul>
+    <div id="c10-recipe-planner" hidden>
+     <label><span class="bn" lang="bn">অনুমোদিত রেসিপি</span><span class="en" lang="en">Approved recipe</span><select id="c10-recipe" aria-label="Approved recipe"></select></label>
+     <label><span class="bn" lang="bn">ব্যাচ গুণক</span><span class="en" lang="en">Batch multiplier</span><input id="c10-recipe-multiplier" aria-label="Batch multiplier" type="number" value="1" min="0.000001" max="100000" step="0.000001" size="8"></label>
+     <button type="button" id="c10-recipe-validate"><span class="bn" lang="bn">উপকরণ যাচাই</span><span class="en" lang="en">Validate materials</span></button>
+     <p id="c10-recipe-status" role="status"></p><ul id="c10-recipe-results"></ul>
+    </div>
+   </details>
+   <details id="c10-invoice-check" hidden>
+    <summary><span class="bn" lang="bn">সরবরাহকারীর ইনভয়েস যাচাই</span><span class="en" lang="en">Supplier invoice check</span></summary>
+    <form id="c10-invoice-form" autocomplete="off">
+     <label><span class="bn" lang="bn">ক্রয়াদেশ আইডি</span><span class="en" lang="en">Purchase order ID</span><input id="c10-invoice-po" required size="10" inputmode="numeric" maxlength="16"></label>
+     <label><span class="bn" lang="bn">ক্রয়াদেশের লাইন</span><span class="en" lang="en">Purchase order line</span><input id="c10-invoice-line" required size="5" inputmode="numeric" maxlength="4"></label>
+     <label><span class="bn" lang="bn">ইনভয়েসের পরিমাণ</span><span class="en" lang="en">Invoiced quantity</span><input id="c10-invoice-quantity" required size="10" inputmode="decimal" maxlength="16"></label>
+     <button type="submit"><span class="bn" lang="bn">পরিমাণ মিলিয়ে দেখুন</span><span class="en" lang="en">Compare quantity</span></button>
+    </form>
+    <p id="c10-invoice-status" class="c10-context-note" role="status"></p>
+   </details>
    <button type="button" id="c10-context-refresh" data-copy="refresh"><span class="bn"></span><span class="en"></span></button>
    <button type="button" id="c10-shell-signout" data-copy="signOut"><span class="bn"></span><span class="en"></span></button>
   </div>

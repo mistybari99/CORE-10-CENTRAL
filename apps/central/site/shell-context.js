@@ -52,6 +52,227 @@ locationDetails.addEventListener("toggle",async()=>{
     if(current())locationText("এই সাইটের লোকেশন যাচাই করা যায়নি।","Could not verify locations for this site.");
   }
 });
+// Read-only T01.01 evidence for the selected business; never a certification or permission grant.
+const pilotDetails=$("c10-pilot-details"),pilotStatus=$("c10-pilot-status"),pilotList=$("c10-pilot-list");
+let pilotRevision=0,pilotRows=[],pilotMessage=[];
+const recipePlanner=$("c10-recipe-planner"),recipeSelect=$("c10-recipe"),recipeMultiplier=$("c10-recipe-multiplier"),recipeButton=$("c10-recipe-validate"),recipeStatus=$("c10-recipe-status"),recipeResults=$("c10-recipe-results");
+let recipeChoices=new Map(),recipeRevision=0,recipeMessage=[],recipeRows=[];
+function drawRecipe(){
+  recipeStatus.textContent=recipeMessage.length?t(...recipeMessage):"";
+  recipeResults.replaceChildren();
+  for(const row of recipeRows){const li=doc.createElement("li");li.textContent=t(...row);recipeResults.append(li);}
+}
+function clearRecipeResult(){
+  ++recipeRevision;recipeMessage=[];recipeRows=[];recipeButton.disabled=false;drawRecipe();
+}
+function clearRecipe(){
+  clearRecipeResult();recipeChoices.clear();recipeSelect.replaceChildren();
+  recipeMultiplier.value="1";recipePlanner.hidden=true;
+}
+function offerRecipes(approved){
+  clearRecipe();
+  for(const x of approved){
+    if(recipeChoices.has(Number(x.id)))continue;
+    recipeChoices.set(Number(x.id),{id:Number(x.id),version:Number(x.version)});
+    const option=doc.createElement("option");option.value=String(x.id);
+    option.textContent=String(x.recipe_code||"Recipe").slice(0,80)+" · #"+x.id+" · v"+x.version;recipeSelect.append(option);
+  }
+  recipePlanner.hidden=recipeChoices.size===0;
+}
+recipeSelect.addEventListener("change",clearRecipeResult);
+recipeMultiplier.addEventListener("input",clearRecipeResult);
+recipeButton.addEventListener("click",async()=>{
+  clearRecipeResult();
+  const rev=recipeRevision,e=epoch,p=pilotRevision,b=chosen.business,s=chosen.site,who=actor;
+  const selected=recipeChoices.get(Number(recipeSelect.value)),multiplier=Number(recipeMultiplier.value);
+  if(blocked||!who||!b||!s||!pilotDetails.open||recipePlanner.hidden||!selected)return;
+  if(!/^[0-9]+(?:\.[0-9]{1,6})?$/.test(recipeMultiplier.value)||!Number.isFinite(multiplier)||multiplier<=0||multiplier>100000){
+    recipeMessage=["সঠিক গুণক দিন (সর্বোচ্চ ৬ দশমিক)।","Enter a valid multiplier (up to six decimals)."];drawRecipe();return;
+  }
+  const current=()=>epoch===e&&pilotRevision===p&&recipeRevision===rev&&actor===who&&!blocked&&chosen.business===b&&chosen.site===s&&pilotDetails.open&&!recipePlanner.hidden;
+  recipeButton.disabled=true;recipeMessage=["Master উপকরণ যাচাই হচ্ছে…","Validating canonical Master materials…"];drawRecipe();
+  try{
+    if(await currentUser()!==who||!current())throw Error("RECIPE_SESSION");
+    const result=await client.schema("core10").rpc("mfg_master_validation_v1",{p_business:b,p_site:s,p_recipe:selected.id,p_multiplier:multiplier});
+    if(!current()||await currentUser()!==who||!current())throw Error("RECIPE_SESSION");
+    if(result.error)throw Error("RECIPE_DENIED");
+    const d=result.data;
+    const quantity=x=>typeof x==="number"&&Number.isFinite(x)&&x>=0;
+    const valid=x=>x&&x.master==="VERIFIED_CANONICAL"&&positive(x.item_id)&&positive(x.item_version)&&positive(x.uom_id)&&positive(x.uom_version)&&positive(x.base_uom_id)&&positive(x.base_uom_version)&&typeof x.uom_code==="string"&&typeof x.base_uom_code==="string"&&quantity(x.quantity)&&quantity(x.base_uom_quantity);
+    if(!d||d.recipe_id!==selected.id||d.recipe_version!==selected.version||d.master!=="VERIFIED_CANONICAL"||d.planning_only!==true||d.stock_issued!==false||d.financial_posted!==false||d.substitution_selected!==false||!valid(d.output)||!Array.isArray(d.lines)||!Array.isArray(d.alternatives)||d.lines.length>2000||d.alternatives.length>2000||!d.lines.every(x=>valid(x)&&positive(x.line_no))||!d.alternatives.every(x=>valid(x)&&positive(x.rule_id)&&positive(x.line_no)))throw Error("RECIPE_RESPONSE");
+    const material=x=>" #"+x.item_id+" v"+x.item_version+" · "+x.quantity+" "+x.uom_code+" → "+x.base_uom_quantity+" "+x.base_uom_code;
+    recipeRows=[["ফিনিশড আইটেম"+material(d.output),"Finished item"+material(d.output)],...d.lines.map(x=>["উপকরণ "+x.line_no+material(x),"Ingredient "+x.line_no+material(x)]),...d.alternatives.map(x=>["বিকল্প (নির্বাচিত নয়)"+material(x),"Alternative (not selected)"+material(x)])];
+    recipeMessage=["রেসিপি v"+d.recipe_version+" · Master যাচাইকৃত; stock/finance posting নয়।","Recipe v"+d.recipe_version+" · Master verified; no stock or finance posting."];
+    drawRecipe();
+  }catch(_){if(current()){recipeRows=[];recipeMessage=["যাচাই হয়নি: অনুমতি, Control, Master বা recipe revision পরীক্ষা করুন।","Not verified: check permission, Control, Master or recipe revision."];drawRecipe();}}
+  finally{if(current())recipeButton.disabled=false;}
+});
+// T01.03 quantity comparison uses the scoped, current Procurement rollup.
+const invoiceDetails = $("c10-invoice-check");
+const invoiceForm = $("c10-invoice-form");
+const invoiceStatus = $("c10-invoice-status");
+let invoiceRevision = 0;
+let invoiceMessage = [];
+function showInvoiceMessage(...message) {
+  invoiceMessage = message;
+  invoiceStatus.textContent = message.length ? t(...message) : "";
+}
+function clearInvoice() {
+  ++invoiceRevision;
+  invoiceDetails.open = false;
+  invoiceDetails.hidden = true;
+  invoiceForm.reset();
+  showInvoiceMessage();
+}
+function quantityMilli(value) {
+  // Procurement stores quantities to three fractional digits.
+  const raw = String(value);
+  if (!/^\d{1,12}(?:\.\d{1,3})?$/.test(raw)) return null;
+  const [whole, fraction = ""] = raw.split(".");
+  return Number(whole + fraction.padEnd(3, "0"));
+}
+invoiceForm.addEventListener("input", () => {
+  ++invoiceRevision;
+  showInvoiceMessage();
+});
+invoiceDetails.addEventListener("toggle", () => {
+  if (!invoiceDetails.open) {
+    ++invoiceRevision;
+    invoiceForm.reset();
+    showInvoiceMessage();
+  }
+});
+invoiceForm.addEventListener("submit", async event => {
+  event.preventDefault();
+  const revision = ++invoiceRevision;
+  const {business: businessId, site: siteId} = chosen;
+  const sessionEpoch = epoch;
+  const expectedActor = actor;
+  if (blocked || !expectedActor || !businessId || !siteId || !invoiceDetails.open) return;
+  const po = $("c10-invoice-po").value.trim();
+  const line = $("c10-invoice-line").value.trim();
+  const billed = quantityMilli($("c10-invoice-quantity").value.trim());
+  if (!positive(po) || !positive(line) || !billed) {
+    showInvoiceMessage("সঠিক ক্রয়াদেশ আইডি, লাইন ও পরিমাণ দিন।","Enter a valid purchase order ID, line and quantity.");
+    return;
+  }
+  const current = () => invoiceRevision === revision && epoch === sessionEpoch &&
+    invoiceDetails.open && !blocked && actor === expectedActor && chosen.business === businessId && chosen.site === siteId;
+  showInvoiceMessage("ক্রয়াদেশ যাচাই হচ্ছে…","Checking purchase order…");
+  try {
+    if (await currentUser() !== expectedActor || !current()) return;
+    const result = await client.schema("core10").rpc("procurement_get_po_v1", {p_po: Number(po)});
+    if (!current() || await currentUser() !== expectedActor || !current()) return;
+    const order = result.data;
+    if (result.error || order?.po_id !== Number(po) || order.business_id !== businessId ||
+        order.site_id !== siteId || !positive(order.version) ||
+        !["approved","partially_received","received","closed"].includes(order.status) ||
+        !Array.isArray(order.lines)) throw Error("INVOICE_ORDER");
+    const matching = order.lines.filter(row => row?.line_no === Number(line));
+    if (matching.length !== 1) throw Error("INVOICE_LINE");
+    const row = matching[0];
+    const ordered = quantityMilli(row.quantity);
+    const accepted = quantityMilli(row.accepted_qty);
+    const returned = quantityMilli(row.returned_qty);
+    if (!ordered || accepted === null || returned === null || returned > accepted) throw Error("INVOICE_QUANTITY");
+    const net = accepted - returned;
+    const excess = Math.max(0, billed - Math.min(ordered, net));
+    const id = " #" + po + " · v" + order.version + " · ";
+    showInvoiceMessage(
+      "ক্রয়াদেশ" + id + "অর্ডার " + ordered / 1000 + " · ফেরত বাদে গৃহীত " + net / 1000 +
+      " · ইনভয়েস " + billed / 1000 + " · অমিল পরিমাণ " + excess / 1000 + "। আগের ইনভয়েস বাদ দেওয়ার আগের হিসাব।",
+      "PO" + id + "Ordered " + ordered / 1000 + " · Net accepted " + net / 1000 +
+      " · Invoiced " + billed / 1000 + " · Disputed quantity " + excess / 1000 + ". Before deducting prior invoices.");
+  } catch (_) {
+    if (current()) showInvoiceMessage("এই সাইটে ক্রয়াদেশের লাইন যাচাই করা যায়নি।",
+      "Could not verify the purchase order line for this site.");
+  }
+});
+function clearPilot(){
+  clearInvoice();clearRecipe();++pilotRevision;pilotDetails.open=false;pilotDetails.hidden=true;
+  pilotRows=[];pilotMessage=[];pilotList.replaceChildren();pilotStatus.textContent="";
+}
+function renderPilot(){
+  pilotStatus.textContent=pilotMessage.length?t(...pilotMessage):"";
+  pilotList.replaceChildren();
+  for(const row of pilotRows){const el=doc.createElement("li");el.textContent=t(...row);pilotList.append(el);}
+}
+pilotDetails.addEventListener("toggle",async()=>{
+  const rev=++pilotRevision,e=epoch,b=chosen.business,s=chosen.site,tenant=chosen.tenant,who=actor;
+  clearRecipe();pilotRows=[];pilotMessage=[];renderPilot();
+  if(!pilotDetails.open||blocked||!who||!b||!scope)return;
+  const current=()=>epoch===e&&pilotRevision===rev&&pilotDetails.open&&!blocked&&actor===who&&chosen.business===b&&chosen.site===s;
+  const sites=scope.sites.filter(x=>x.business===b&&x.tenant===tenant);
+  const count=k=>sites.filter(x=>k.includes(x.kind)).length;
+  const rows=[
+    ["অনুমোদিত কারখানা: "+count(["factory"]),"Authorized factories: "+count(["factory"])],
+    ["অনুমোদিত গুদাম: "+count(["godown","warehouse"]),"Authorized storage sites: "+count(["godown","warehouse"])],
+    ["অনুমোদিত শোরুম: "+count(["showroom"]),"Authorized showrooms: "+count(["showroom"])]
+  ];
+  pilotMessage=["সার্ভার প্রমাণ যাচাই হচ্ছে…","Checking server evidence…"];renderPilot();
+  async function read(name,args){
+    if(!current()||await currentUser()!==who||!current())throw Error("PILOT_SESSION_CHANGED");
+    const r=await client.schema("core10").rpc(name,args);
+    if(!current()||await currentUser()!==who||!current())throw Error("PILOT_SESSION_CHANGED");
+    if(r.error||!r.data||typeof r.data!=="object")return null;
+    return r.data;
+  }
+  try{
+    const u=await read("master_list_uoms_v1",{p_business:b});
+    if(!current())return;
+    const units=Array.isArray(u?.uoms)?u.uoms:[],conv=Array.isArray(u?.conversions)?u.conversions:[];
+    const kg=units.find(x=>x.active===true&&x.code?.toLowerCase()==="kg"&&positive(x.id));
+    const g=units.find(x=>x.active===true&&x.code?.toLowerCase()==="g"&&positive(x.id));
+    const metric=!!(kg&&g&&kg.dimension===g.dimension&&conv.some(c=>c.active===true&&Number(c.from_uom_id)===Number(kg.id)&&Number(c.to_uom_id)===Number(g.id)&&Number(c.factor)===1000));
+    rows.push(metric?["kg → g: সক্রিয় ১০০০ conversion পাওয়া গেছে","kg → g: active factor 1000 found"]:["kg → g: সক্রিয় সরাসরি conversion যাচাই হয়নি","kg → g: active direct conversion not verified"]);
+    if(sites.some(x=>x.id===s&&x.kind==="factory")){
+      const m=await read("mfg_inspect_v1",{p_business:b,p_site:s});
+      if(!current())return;
+      const valid=Array.isArray(m?.recipes)&&m.recipes.every(x=>x&&typeof x.recipe_code==="string"&&x.recipe_code.trim().length>0&&x.business_id===b&&x.site_id===s&&x.tenant_id===tenant&&positive(x.id)&&positive(x.version));
+      if(valid){
+        const latestByCode = new Map();
+        const asOf = Date.now();
+        for (const recipe of m.recipes) {
+          const effectiveFrom = Date.parse(recipe.effective_from);
+          if (recipe.status !== "approved" || !Number.isFinite(effectiveFrom) || effectiveFrom > asOf) continue;
+          const previous = latestByCode.get(recipe.recipe_code);
+          if (!previous || Number(recipe.version) > Number(previous.version)) {
+            latestByCode.set(recipe.recipe_code, recipe);
+          }
+        }
+        const approved = [...latestByCode.values()];
+        offerRecipes(approved);
+        rows.push(["কারখানার recipe revision: "+m.recipes.length+" · কার্যকর approved: "+approved.length,"Factory recipe revisions: "+m.recipes.length+" · effective approved: "+approved.length]);
+      }else rows.push(["Recipe revision যাচাই হয়নি","Recipe revisions not verified"]);
+      // Scoped batch inspection; recorded output is not stock posting.
+      const states=["planned","released","recorded","cancelled"],seen=new Set(),batches=m?.batches;
+      const validBatches=Array.isArray(batches)&&batches.length<=10000&&batches.every(x=>{
+        if(!x||x.tenant_id!==tenant||x.business_id!==b||x.site_id!==s||
+          !positive(x.id)||!positive(x.bom_id)||!states.includes(x.status)||
+          typeof x.expected_output!=="number"||!Number.isFinite(x.expected_output)||
+          x.expected_output<=0||x.actual_cogs_certified!==false||seen.has(Number(x.id)))return false;
+        seen.add(Number(x.id));return true;
+      });
+      if(validBatches){
+        const counts=new Map(states.map(k=>[k,0]));
+        for(const x of batches)counts.set(x.status,counts.get(x.status)+1);
+        rows.push(["ব্যাচ "+batches.length+" · পরিকল্পিত "+counts.get("planned")+" · রিলিজ "+counts.get("released")+" · রেকর্ড "+counts.get("recorded")+" · বাতিল "+counts.get("cancelled"),
+          "Batches "+batches.length+" · Planned "+counts.get("planned")+" · Released "+counts.get("released")+" · Recorded "+counts.get("recorded")+" · Cancelled "+counts.get("cancelled")]);
+        for(const x of [...batches].sort((a,b)=>Number(b.id)-Number(a.id)).slice(0,10)){
+          const bnState={planned:"পরিকল্পিত",released:"রিলিজ",recorded:"রেকর্ড",cancelled:"বাতিল"}[x.status];
+          const unit=typeof x.yield_uom_ref==="string"?x.yield_uom_ref.slice(0,40):"";
+          rows.push(["ব্যাচ #"+x.id+" · "+bnState+" · প্রত্যাশিত "+x.expected_output+" "+unit,
+            "Batch #"+x.id+" · "+x.status+" · Expected "+x.expected_output+" "+unit]);
+        }
+        if(batches.length>10)rows.push(["সর্বশেষ ১০টি ব্যাচ দেখানো হয়েছে।","Showing latest 10 batches."]);
+        rows.push(["রেকর্ডকৃত ব্যাচ stock posting বা COGS certification নয়।","Recorded batch is not stock posting or COGS certification."]);
+      }else rows.push(["ব্যাচের scope বা status যাচাই হয়নি।","Batch scope or status not verified."]);
+    }else rows.push(["Recipe যাচাই করতে অনুমোদিত কারখানা নির্বাচন করুন","Select an authorized factory to inspect recipe revisions"]);
+    rows.push(["Lot, pack, shelf life, label profile: এখনো যাচাই হয়নি","Lot, pack, shelf life and label profile: not yet verified"]);
+    if(!current())return;
+    pilotRows=rows;pilotMessage=["শুধু নির্বাচিত scope-এর read-only প্রমাণ; operational approval নয়।","Read-only evidence for selected scope; not operational approval."];renderPilot();
+  }catch(_){if(current()){pilotRows=[];pilotMessage=["যাচাই অসম্পূর্ণ; আবার রিফ্রেশ করুন।","Verification incomplete; refresh and retry."];renderPilot();}}
+});
 const t=(bn,en)=>doc.documentElement.dataset.lang==="en"?en:bn;
 const businessRoles=new Set(["tenant_owner","business_owner","manager","investor","site_staff"]);
 const positive=(value)=>Number.isSafeInteger(Number(value))&&Number(value)>0&&/^[1-9]\d*$/.test(String(value));
@@ -71,7 +292,7 @@ function scrubEmbedded(){
   win.dispatchEvent(new Event("core10:signed-out"));
 }
 function clearPrivate(purge,state="signed-out"){
-  clearLocations();
+  clearLocations();clearPilot();
   const had=!!actor||!!scope;
   ++epoch;actor="";scope=null;chosen={tenant:null,business:null,site:null};blocked=false;
   signed.hidden=true;anon.hidden=false;panel.hidden=true;open.setAttribute("aria-expanded","false");
@@ -130,6 +351,8 @@ function present(ctx,wanted){
   if(bId!==null)business.value=String(bId);
   if(sId!==null)site.value=String(sId);
   locationDetails.hidden=sId===null;
+  pilotDetails.hidden=bId===null;
+  invoiceDetails.hidden=sId===null;
   anon.hidden=true;signed.hidden=false;panel.hidden=true;open.setAttribute("aria-expanded","false");
   if(bId===null){
     message("অনুমোদিত ব্যবসা নেই।","No authorized business.");
@@ -155,7 +378,7 @@ async function currentUser(){
 }
 async function load(wanted){
   if(!client)return;
-  clearLocations();
+  clearLocations();clearPilot();
   const n=++epoch;
   blocked=true;signed.hidden=true;for(const el of [group,business,site,refresh,logout])el.disabled=true;
   message("অনুমোদিত সাইট যাচাই হচ্ছে…","Checking authorized sites…");
@@ -207,6 +430,7 @@ logout.addEventListener("click",async()=>{
 win.addEventListener("core10:language-change",()=>{
   note.textContent=t(...lastMessage);
   if(locationMessage.length)locationStatus.textContent=t(...locationMessage);
+  renderPilot();drawRecipe();showInvoiceMessage(...invoiceMessage);
 });
 if(!configReady()){
   open.disabled=true;message("CORE10 স্টেজিং সাইন-ইন উপলব্ধ নয়।","CORE10 staging sign-in unavailable.");

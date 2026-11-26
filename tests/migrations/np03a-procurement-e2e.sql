@@ -162,5 +162,42 @@ SELECT pg_temp.ok((SELECT count(*) FROM core10.goods_receipt_lines_v1 l JOIN cor
  WHERE g.status='posted' AND l.accepted_qty>0 AND l.stock_movement_id IS NULL)=0,'every accepted posted line has its movement');
 SELECT pg_temp.ok((SELECT count(*) FROM core10.purchase_orders_v1 WHERE business_id=9121)=0,'tenant B untouched');
 SELECT pg_temp.ok((SELECT count(*) FROM core10.control_rpc_map_v1 WHERE rpc_name LIKE 'procurement_%' AND status='enforced' AND test_ref='tests/migrations/np03a-procurement-e2e.sql')=5,'five procurement writers enforced');
+
+-- Bakery T01.03, fixed acceptance case on a fresh PO and lot.
+SET LOCAL ROLE authenticated;
+SELECT pg_temp.as_user('f1111111-1111-4111-8111-111111111111');
+SELECT pg_temp.cset('procurement.purchase_order',true,0,'{"separate_approver":true}',3,'bakery-cp07-po-control');
+SELECT pg_temp.cset('procurement.goods_receipt',true,0,'{"qc_required":true,"require_lot":true}',2,'bakery-cp07-grn-control');
+SELECT pg_temp.as_user('f3333333-3333-4333-8333-333333333333');
+SELECT pg_temp.po(NULL,91111,91151,'[{"item_id":91101,"quantity":100,"unit_price":50}]',0,'bakery-cp07-po-create') AS bakery_po \gset
+SELECT pg_temp.as_user('f2222222-2222-4222-8222-222222222222');
+SELECT core10.procurement_advance_po_v1((:'bakery_po'::jsonb->>'po_id')::bigint,'approve',1,'bakery-cp07-po-approve');
+SELECT pg_temp.as_user('f4444444-4444-4444-8444-444444444444');
+SELECT core10.procurement_receive_v1((:'bakery_po'::jsonb->>'po_id')::bigint,911111,
+ '[{"line_no":1,"quantity":100,"lot_code":"BAKERY-CP07","expires_on":"2099-01-01"}]',NULL,'bakery-cp07-grn') AS bakery_grn \gset
+SELECT core10.procurement_inspect_v1((:'bakery_grn'::jsonb->>'grn_id')::bigint,
+ '[{"line_no":1,"accepted_qty":80,"notes":"20 rejected at QC"}]',1,'bakery-cp07-qc') AS bakery_grn \gset
+SELECT pg_temp.ok((:'bakery_grn'::jsonb->'lines'->0->>'rejected_qty')::numeric=20,'bakery QC rejected 20');
+SELECT core10.procurement_post_grn_v1((:'bakery_grn'::jsonb->>'grn_id')::bigint,2,'bakery-cp07-post') AS bakery_grn \gset
+SELECT pg_temp.ok((core10.procurement_post_grn_v1((:'bakery_grn'::jsonb->>'grn_id')::bigint,2,'bakery-cp07-post')->>'replayed')::boolean,
+ 'bakery stock retry returned replay');
+RESET ROLE;
+SELECT pg_temp.ok((SELECT status FROM core10.purchase_orders_v1 WHERE id=(:'bakery_po'::jsonb->>'po_id')::bigint)='partially_received',
+ 'bakery PO remains partially received');
+SELECT pg_temp.ok((SELECT count(*)=1 AND sum(m.quantity)=80
+ FROM core10.stock_movement_lots_v1 m JOIN core10.inventory_lots_v1 l ON l.id=m.lot_id
+ WHERE m.business_id=9111 AND m.location_id=911111 AND m.item_id=91101 AND l.lot_code='BAKERY-CP07'),
+ 'bakery GRN retry leaves one stock movement for the 80 accepted into a lot');
+SET LOCAL ROLE authenticated;
+SELECT pg_temp.as_user('f2222222-2222-4222-8222-222222222222');
+SELECT core10.procurement_get_po_v1((:'bakery_po'::jsonb->>'po_id')::bigint) AS bakery_rollup \gset
+SELECT pg_temp.ok(
+ (:'bakery_rollup'::jsonb->>'site_id')::bigint=91111
+ AND (:'bakery_rollup'::jsonb->'lines'->0->>'quantity')::numeric=100
+ AND (:'bakery_rollup'::jsonb->'lines'->0->>'accepted_qty')::numeric=80
+ AND (:'bakery_rollup'::jsonb->'lines'->0->>'returned_qty')::numeric=0,
+ 'signed PO detail supplies the invoice check with current ordered, accepted and returned quantities');
+RESET ROLE;
+\echo 'PASS Bakery T01.03 PO100/QC80/signed PO rollup/one stock movement after retry'
 ROLLBACK;
 \echo 'PASS np03a-procurement-e2e'
