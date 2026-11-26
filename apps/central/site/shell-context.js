@@ -107,8 +107,89 @@ recipeButton.addEventListener("click",async()=>{
   }catch(_){if(current()){recipeRows=[];recipeMessage=["যাচাই হয়নি: অনুমতি, Control, Master বা recipe revision পরীক্ষা করুন।","Not verified: check permission, Control, Master or recipe revision."];drawRecipe();}}
   finally{if(current())recipeButton.disabled=false;}
 });
+// T01.03 quantity comparison uses the scoped, current Procurement rollup.
+const invoiceDetails = $("c10-invoice-check");
+const invoiceForm = $("c10-invoice-form");
+const invoiceStatus = $("c10-invoice-status");
+let invoiceRevision = 0;
+let invoiceMessage = [];
+function showInvoiceMessage(...message) {
+  invoiceMessage = message;
+  invoiceStatus.textContent = message.length ? t(...message) : "";
+}
+function clearInvoice() {
+  ++invoiceRevision;
+  invoiceDetails.open = false;
+  invoiceDetails.hidden = true;
+  invoiceForm.reset();
+  showInvoiceMessage();
+}
+function quantityMilli(value) {
+  // Procurement stores quantities to three fractional digits.
+  const raw = String(value);
+  if (!/^\d{1,12}(?:\.\d{1,3})?$/.test(raw)) return null;
+  const [whole, fraction = ""] = raw.split(".");
+  return Number(whole + fraction.padEnd(3, "0"));
+}
+invoiceForm.addEventListener("input", () => {
+  ++invoiceRevision;
+  showInvoiceMessage();
+});
+invoiceDetails.addEventListener("toggle", () => {
+  if (!invoiceDetails.open) {
+    ++invoiceRevision;
+    invoiceForm.reset();
+    showInvoiceMessage();
+  }
+});
+invoiceForm.addEventListener("submit", async event => {
+  event.preventDefault();
+  const revision = ++invoiceRevision;
+  const {business: businessId, site: siteId} = chosen;
+  const sessionEpoch = epoch;
+  const expectedActor = actor;
+  if (blocked || !expectedActor || !businessId || !siteId || !invoiceDetails.open) return;
+  const po = $("c10-invoice-po").value.trim();
+  const line = $("c10-invoice-line").value.trim();
+  const billed = quantityMilli($("c10-invoice-quantity").value.trim());
+  if (!positive(po) || !positive(line) || !billed) {
+    showInvoiceMessage("সঠিক ক্রয়াদেশ আইডি, লাইন ও পরিমাণ দিন।","Enter a valid purchase order ID, line and quantity.");
+    return;
+  }
+  const current = () => invoiceRevision === revision && epoch === sessionEpoch &&
+    invoiceDetails.open && !blocked && actor === expectedActor && chosen.business === businessId && chosen.site === siteId;
+  showInvoiceMessage("ক্রয়াদেশ যাচাই হচ্ছে…","Checking purchase order…");
+  try {
+    if (await currentUser() !== expectedActor || !current()) return;
+    const result = await client.schema("core10").rpc("procurement_get_po_v1", {p_po: Number(po)});
+    if (!current() || await currentUser() !== expectedActor || !current()) return;
+    const order = result.data;
+    if (result.error || order?.po_id !== Number(po) || order.business_id !== businessId ||
+        order.site_id !== siteId || !positive(order.version) ||
+        !["approved","partially_received","received","closed"].includes(order.status) ||
+        !Array.isArray(order.lines)) throw Error("INVOICE_ORDER");
+    const matching = order.lines.filter(row => row?.line_no === Number(line));
+    if (matching.length !== 1) throw Error("INVOICE_LINE");
+    const row = matching[0];
+    const ordered = quantityMilli(row.quantity);
+    const accepted = quantityMilli(row.accepted_qty);
+    const returned = quantityMilli(row.returned_qty);
+    if (!ordered || accepted === null || returned === null || returned > accepted) throw Error("INVOICE_QUANTITY");
+    const net = accepted - returned;
+    const excess = Math.max(0, billed - Math.min(ordered, net));
+    const id = " #" + po + " · v" + order.version + " · ";
+    showInvoiceMessage(
+      "ক্রয়াদেশ" + id + "অর্ডার " + ordered / 1000 + " · ফেরত বাদে গৃহীত " + net / 1000 +
+      " · ইনভয়েস " + billed / 1000 + " · অমিল পরিমাণ " + excess / 1000 + "। আগের ইনভয়েস বাদ দেওয়ার আগের হিসাব।",
+      "PO" + id + "Ordered " + ordered / 1000 + " · Net accepted " + net / 1000 +
+      " · Invoiced " + billed / 1000 + " · Disputed quantity " + excess / 1000 + ". Before deducting prior invoices.");
+  } catch (_) {
+    if (current()) showInvoiceMessage("এই সাইটে ক্রয়াদেশের লাইন যাচাই করা যায়নি।",
+      "Could not verify the purchase order line for this site.");
+  }
+});
 function clearPilot(){
-  clearRecipe();++pilotRevision;pilotDetails.open=false;pilotDetails.hidden=true;
+  clearInvoice();clearRecipe();++pilotRevision;pilotDetails.open=false;pilotDetails.hidden=true;
   pilotRows=[];pilotMessage=[];pilotList.replaceChildren();pilotStatus.textContent="";
 }
 function renderPilot(){
@@ -248,6 +329,7 @@ function present(ctx,wanted){
   if(sId!==null)site.value=String(sId);
   locationDetails.hidden=sId===null;
   pilotDetails.hidden=bId===null;
+  invoiceDetails.hidden=sId===null;
   anon.hidden=true;signed.hidden=false;panel.hidden=true;open.setAttribute("aria-expanded","false");
   if(bId===null){
     message("অনুমোদিত ব্যবসা নেই।","No authorized business.");
@@ -325,7 +407,7 @@ logout.addEventListener("click",async()=>{
 win.addEventListener("core10:language-change",()=>{
   note.textContent=t(...lastMessage);
   if(locationMessage.length)locationStatus.textContent=t(...locationMessage);
-  renderPilot();drawRecipe();
+  renderPilot();drawRecipe();showInvoiceMessage(...invoiceMessage);
 });
 if(!configReady()){
   open.disabled=true;message("CORE10 স্টেজিং সাইন-ইন উপলব্ধ নয়।","CORE10 staging sign-in unavailable.");
