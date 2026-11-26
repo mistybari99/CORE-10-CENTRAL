@@ -37,7 +37,7 @@ function httpAdapter(family, { build, parse }) {
 
 // registry: provider code -> adapter. Unknown / unimplemented providers ALWAYS resolve to the dry-run adapter.
 function createRegistry(real) {
-  const table = Object.assign({}, real || {});
+  const table = Object.assign(Object.create(null), real || {});
   return {
     get(providerCode, family) {
       return table[providerCode] || dryRunAdapter(family || 'unknown');
