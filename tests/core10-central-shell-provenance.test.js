@@ -17,7 +17,7 @@ test("§7b.3 imported shell and data are the same source Git trees and blobs",()
     // Immutable ORIGINAL release is still checked at its exact import commit.
     assert.equal(run("rev-parse","4345b6e4aa7ee593a455ee29dceccf55d61ade7f:apps/central/"+name),obj,"Original imported Git object changed: "+name);
     // Non-UI build/runtime/data provenance must stay byte-identical on current HEAD.
-    if(name!=="site") assert.equal(run("rev-parse","HEAD:apps/central/"+name),obj,"Non-UI imported Git object changed: "+name);
+    if(name!=="site" && name!=="build.mjs") assert.equal(run("rev-parse","HEAD:apps/central/"+name),obj,"Non-UI imported Git object changed: "+name);
     assert.equal(run("rev-parse",info.source_commit+":preview/core10-central-owner-app/"+name),obj,
       "Source preview object mismatch: "+name);
     assert.ok(fs.existsSync(path.join(cdir,name)),"Imported input missing: "+name);
@@ -28,6 +28,9 @@ test("§7b.3 imported shell and data are the same source Git trees and blobs",()
     "apps/central/site/view/stock-signed.js",
     "apps/central/site/index.html","apps/central/site/app.css","apps/central/site/app.js","apps/central/site/shell-context.js",
     "apps/central/site/tokens.css","apps/central/site/view/view.css","apps/central/site/view/master-signed.js",
+    "apps/central/site/view/sales.html",
+    "apps/central/site/view/sales-signed.html",
+    "apps/central/site/view/sales-signed.js",
   ].sort(),
     "Undeclared shipped-site change since import");
   assert.equal(info.release_authorization,false);
@@ -45,6 +48,9 @@ test("§7b.3 only one reviewed verifier sentinel path changed; all 56 assertions
 });
 test("§7b.3 build input is pinned to original preview sources; no app-level deployment or secrets",()=>{
   const src=fs.readFileSync(path.join(cdir,"build.mjs"),"utf8");
+  const original=execFileSync("git",["cat-file","blob",run("rev-parse","4345b6e4aa7ee593a455ee29dceccf55d61ade7f:apps/central/build.mjs")],{cwd:root,encoding:"utf8"});
+  const pin="  salesSigned: { sha: \"3e008e8ec7db896f46a94ab8ca3d91271905d71d\", ref: \"ccr-15ed11dd-n3hw5h\", status: \"TRUNK_INTEGRATED\" },\n", assets="  for (const p of [\"core10-sales-order.css\",\"core10-sales-master-catalog.js\",\"core10-sales-order-client.js\",\"core10-sales-order-ui.js\",\"core10-sales-invoice-ui.js\",\"core10-sales-order-entry.js\"]) add(\"/signed-sales/\" + p, pinned(\"salesSigned\", p), { kind: \"ACTUAL_SOURCE\", status: PINS.salesSigned.status, commit: full(\"salesSigned\"), source: p, git_blob: blob(\"salesSigned\", p) });\n";
+  assert.equal(src,original.replace('  pr112: { sha:',pin+'  pr112: { sha:').replace('  const ws = {};',assets+'  const ws = {};'),"Only reviewed canonical Sales pin and asset mapping allowed");
   assert.match(src,/export const PINS\s*=/);
   assert.match(src,/export const LIVE\s*=/);
   assert.match(src,/export const STAGING\s*=/);
@@ -70,7 +76,7 @@ test("§7b.3 historical release SHA is pinned; evolved candidate embeds exact cu
     const files=JSON.parse(line.slice("const FILES=".length,-1));
     assert.ok(files["/view/stock-signed.js"],"MISSING_SIGNED_STOCK_ASSET");
     assert.deepEqual(Buffer.from(files["/view/stock-signed.js"][1],"base64"),fs.readFileSync(path.join(cdir,"site","view/stock-signed.js")),"Worker Stock asset differs");
-    for(const name of ["index.html","app.css","app.js","shell-context.js","tokens.css","view/view.css","view/master-signed.js"]) {
+    for(const name of ["index.html","app.css","app.js","shell-context.js","tokens.css","view/view.css","view/master-signed.js","view/sales.html","view/sales-signed.html","view/sales-signed.js"]) {
       assert.ok(files["/"+name],"MISSING_SHIPPED_SHELL_ASSET "+name);
       assert.deepEqual(Buffer.from(files["/"+name][1],"base64"),fs.readFileSync(path.join(cdir,"site",name)),
         "Worker asset differs from current shell: "+name);
