@@ -72,7 +72,7 @@ test("§7b.4 browser: one sign-in, group/business/site scoped switching, role-sa
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
    await page.locator('[data-set-lang="en"]').click();
    assert.equal(await page.getAttribute("html","lang"),"en");
-   assert.equal(await page.locator("#c10-context-note").textContent().then(s=>/server-authorized/.test(s)),true);
+   assert.equal(await page.locator("#c10-context-note").textContent().then(s=>/Your authorized sites in this business: 1/.test(s)),true);
    // An account switch must revoke previously rendered business/site names.
    await page.evaluate(()=>window.__scopeTest.changeAccount());
    await page.locator("#c10-context-refresh").click();
