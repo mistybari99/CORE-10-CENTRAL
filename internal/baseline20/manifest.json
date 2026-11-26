@@ -1,0 +1,110 @@
+{
+  "format": 1,
+  "source_commit": "3b4babbec701982c42a5806df5b8f93d4ca31548",
+  "source_count": 71,
+  "baseline_count": 20,
+  "through_version": 504,
+  "mode": "lossless_ordered_consolidation",
+  "groups": [
+    {
+      "file": "01_foundation_access.sql",
+      "from": 1,
+      "to": 4
+    },
+    {
+      "file": "02_industry_setup.sql",
+      "from": 5,
+      "to": 6
+    },
+    {
+      "file": "03_approval_audit.sql",
+      "from": 7,
+      "to": 12
+    },
+    {
+      "file": "04_governance_security.sql",
+      "from": 13,
+      "to": 19
+    },
+    {
+      "file": "05_owner_control.sql",
+      "from": 100,
+      "to": 106
+    },
+    {
+      "file": "06_control_approval_bindings.sql",
+      "from": 110,
+      "to": 114
+    },
+    {
+      "file": "07_bootstrap_provisioning.sql",
+      "from": 115,
+      "to": 118
+    },
+    {
+      "file": "08_master_data.sql",
+      "from": 150,
+      "to": 153
+    },
+    {
+      "file": "09_inventory_engine.sql",
+      "from": 200,
+      "to": 202
+    },
+    {
+      "file": "10_procurement_stock_read.sql",
+      "from": 203,
+      "to": 206
+    },
+    {
+      "file": "11_sales_orders.sql",
+      "from": 300,
+      "to": 303
+    },
+    {
+      "file": "12_sales_invoice_security.sql",
+      "from": 304,
+      "to": 305
+    },
+    {
+      "file": "13_stock_returns_locations.sql",
+      "from": 310,
+      "to": 311
+    },
+    {
+      "file": "14_lot_qc_purchase_approval.sql",
+      "from": 312,
+      "to": 313
+    },
+    {
+      "file": "15_paperops_w02.sql",
+      "from": 314,
+      "to": 315
+    },
+    {
+      "file": "16_finance_arap_foundation.sql",
+      "from": 400,
+      "to": 403
+    },
+    {
+      "file": "17_finance_trade_posting.sql",
+      "from": 404,
+      "to": 405
+    },
+    {
+      "file": "18_sales_finance_bridge.sql",
+      "from": 406,
+      "to": 407
+    },
+    {
+      "file": "19_manufacturing_materials.sql",
+      "from": 500,
+      "to": 501
+    },
+    {
+      "file": "20_manufacturing_waste_recipe_master.sql",
+      "from": 502,
+      "to": 504
+    }
+  ]
+}

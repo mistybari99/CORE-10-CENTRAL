@@ -1,0 +1,38 @@
+name: CORE10 20-file baseline equivalence PG17
+on:
+  pull_request:
+    paths:
+      - 'internal/baseline20/**'
+      - 'internal/migrations/**'
+      - '.github/workflows/core10-baseline20-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env: {POSTGRES_PASSWORD: baseline_disposable}
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: baseline_disposable
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - name: Exact 71-to-20 coverage and byte verification
+        run: node internal/baseline20/verify.mjs
+      - name: Independent fresh PG17 builds and full catalog and seed parity
+        env:
+          BASELINE_PG_CONTAINER: ${{ job.services.postgres.id }}
+        run: bash internal/baseline20/compare-ci.sh
