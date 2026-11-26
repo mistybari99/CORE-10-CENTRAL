@@ -159,6 +159,9 @@ SELECT pg_temp.ok(pg_temp.brk(:'d1'::jsonb)='{"S-EARLY":-5}'::jsonb AND pg_temp.
 SET LOCAL ROLE authenticated;
 SELECT pg_temp.cmd(2,2,'transfer',1901111,1901121,19101,20,:s_late,NULL,'lotk-xe1') AS e1 \gset
 SELECT pg_temp.cmd(2,2,'transfer',1901111,1901121,19101,25,NULL,NULL,'lotk-xe2') AS e2 \gset
+SELECT pg_temp.ok((core10.advance_inventory_command_v1(
+  (:'e2'::jsonb->>'command_id')::bigint,'post',2,'lotk-xe2-p')->>'stock_ref')=(:'e2'::jsonb->>'stock_ref'),
+ 'showroom transfer retry resolves to the original transfer');
 SELECT pg_temp.cmd(2,2,'transfer',1901111,1901121,19102,2,:g_2,NULL,'lotk-xe3') AS e3 \gset
 RESET ROLE;
 SELECT pg_temp.ok(pg_temp.lb(1901111,'S-LATE')=25 AND pg_temp.lb(1901111,'S-EARLY')=0 AND pg_temp.bal(1901111,19101)=25
@@ -167,6 +170,9 @@ SELECT pg_temp.ok(pg_temp.lb(1901111,'S-LATE')=25 AND pg_temp.lb(1901111,'S-EARL
 SELECT pg_temp.ok((SELECT jsonb_object_agg(l.lot_code,ml.quantity) FROM core10.stock_movement_lots_v1 ml JOIN core10.inventory_lots_v1 l ON l.id=ml.lot_id
  WHERE ml.movement_id=(SELECT id FROM core10.stock_movements WHERE transfer_id=(:'e2'::jsonb->>'stock_ref')::bigint AND delta>0))
  ='{"S-EARLY":20,"S-LATE":5}'::jsonb,'in-leg mirrors the out-leg lots');
+SELECT pg_temp.ok((SELECT count(*)=2 AND sum(delta)=0
+ FROM core10.stock_movements WHERE transfer_id=(:'e2'::jsonb->>'stock_ref')::bigint),
+ 'showroom transfer retry leaves exactly two balanced movement legs');
 SELECT pg_temp.ok(pg_temp.lb(1901111,'G-2')=3 AND pg_temp.lb(1901121,'G-2')=2,'ghee G-2 3 godown / 2 showroom');
 
 -- ---------- F) hold / release ----------
