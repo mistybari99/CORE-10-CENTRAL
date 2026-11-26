@@ -88,12 +88,23 @@ function present(ctx,wanted){
   chosen={tenant:tId,business:bId,site:sId};
   fill(group,ctx.tenants,x=>x.slug,t("কোনো গ্রুপ নেই","No groups"));
   fill(business,bs,x=>x.name,t("কোনো ব্যবসা নেই","No businesses"));
-  fill(site,ss,x=>x.kind?x.name+" · "+x.kind:x.name,t("অনুমোদিত স্থান নেই","No authorized sites"));
+  fill(site,ss,x=>x.name+" · "+x.kind+" · #"+x.id,t("অনুমোদিত স্থান নেই","No authorized sites"));
   if(tId!==null)group.value=String(tId);
   if(bId!==null)business.value=String(bId);
   if(sId!==null)site.value=String(sId);
   anon.hidden=true;signed.hidden=false;panel.hidden=true;open.setAttribute("aria-expanded","false");
-  message("স্বাক্ষরিত স্টেজিং · সার্ভার-অনুমোদিত প্রসঙ্গ","Signed staging · server-authorized context");
+  if(bId===null){
+    message("অনুমোদিত ব্যবসা নেই।","No authorized business.");
+  }else{
+    const kinds=[["factory","কারখানা","factories"],["godown","গোদাম","godowns"],
+      ["warehouse","ওয়্যারহাউস","warehouses"],["showroom","শোরুম","showrooms"],["project","প্রকল্প","projects"]];
+    const counts=new Map();
+    for(const site of ss)counts.set(site.kind,(counts.get(site.kind)||0)+1);
+    const detail=(column)=>kinds.filter(([kind])=>counts.has(kind))
+      .map(row=>row[column]+" "+counts.get(row[0])).join(", ");
+    message("এই ব্যবসায় আপনার অনুমোদিত সাইট "+ss.length+(ss.length?" · "+detail(1):""),
+      "Your authorized sites in this business: "+ss.length+(ss.length?" · "+detail(2):""));
+  }
   const selected=bs.find(b=>b.id===bId);
   publishContext("ready",{
     business:selected?{name:selected.name,canManage:selected.canManage,role:selected.role}:null,
@@ -108,6 +119,7 @@ async function load(wanted){
   if(!client)return;
   const n=++epoch;
   blocked=true;signed.hidden=true;for(const el of [group,business,site,refresh,logout])el.disabled=true;
+  message("অনুমোদিত সাইট যাচাই হচ্ছে…","Checking authorized sites…");
   publishContext("loading");
   try{
     const before=await currentUser();
