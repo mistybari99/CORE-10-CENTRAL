@@ -42,3 +42,18 @@ async function run(){
  console.log("PASS: 10-template builder; generic food backend isolated from customized legacy; release remains locked");
 }
 run().catch(e=>{console.error(e);process.exitCode=1});
+
+const pilot=b.create({catalog:c});
+pilot.update({...model,mode:"quick",sites:[]});
+assert.deepEqual(pilot.preview().pilot_site_plan,{work_id:"T01.01",factory:false,storage:false,showroom:true});
+for(const kind of ["godown","warehouse"]){
+ pilot.update({mode:"advanced",sites:[{kind,label:"Store"},{kind:"factory",label:"Plant"},{kind:"showroom",label:"Shop"}]});
+ assert.deepEqual(pilot.preview().pilot_site_plan,{work_id:"T01.01",factory:true,storage:true,showroom:true});
+}
+pilot.update({sites:[{kind:"project",label:"Factory"}]});
+assert.deepEqual(pilot.preview().pilot_site_plan,{work_id:"T01.01",factory:false,storage:false,showroom:false});
+pilot.update({sites:[]});
+assert.equal(pilot.preview().pilot_site_plan,undefined);
+pilot.update({templateId:c.templates.find(t=>t.id!=="sweets_bakery").id,mode:"quick",modules:[]});
+assert.equal(pilot.preview().validation.ok,true);
+assert.equal(pilot.preview().pilot_site_plan,undefined);
