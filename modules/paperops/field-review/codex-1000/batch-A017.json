@@ -1,0 +1,1351 @@
+{
+  "schema_version": 1,
+  "batch": "A017",
+  "source": {
+    "path": "forms.js",
+    "legacy_trunk_path": "legacy/islamia-erp/forms.js",
+    "git_blob": "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d",
+    "parent_commit": "456de1905707f125eaf9c0a82b5009698bf41156",
+    "sha256": "53ca5ac41a8f663fbcc76c4be5a7ec1d5a937d97dcf4020f709ff69eecae9e73",
+    "ci_compatibility": "Legacy tests use relocated path. CI stages a byte-identical copy of the pinned Git blob in the ephemeral checkout.",
+    "supplements": {
+      "forms_cash.js": "ce58ef83daa19273b766f3eac63db5f97cc741ffb26ed21076ab948032c14022",
+      "forms_stock.js": "f6d8cfb25718ab6ec90d23cbbfbc9a1b18b1489c693b8b1413c339e32e058e81",
+      "forms_sales.js": "cf0d825cf019ce77859265c2e5d4698cc38f31f121ad5661fc8a3c92e7590163",
+      "forms_factory.js": "d585ad78b4dc082b15aa16546007bcd0fb10c07753062390c82954bf3fc3181c"
+    }
+  },
+  "rules": {
+    "raw_change": {
+      "behavior": "Row change shown only with both prices; result signed with plus sign for zero and positives. Separate raw summary can assume missing prices through conversion. No unit matching.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 44702,
+          "text": "chg:r(e.p_start)&&r(e.p_end)?(s(e.p_end)-s(e.p_start)>=0?\"+\":\"\")+C(s(e.p_end)-s(e.p_start)):\"\"}));return r(e.c.checked_by)&&r(o.prepared_by)&&e.c.checked_by===o.prepared_by&&a.push(q(\"checke"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "kpis": {
+      "behavior": "Current 15 KPI cells derive from literal report values; comparisons and direction are entered. Month formatting can normalize invalid numeric months. Ratios blank for nonpositive denominator; cost per order is a source input, not recomputed.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 44207,
+          "text": "w=[r(o.sales)||f?R(f||d):\"—\",u(c,d),u(p,d),u(s(o.salary),d),s(o.headcount)>0?R(d/s(o.headcount)):\"—\",u(s(o.wastage),d),u(s(o.discount),d),R(m),y,v,R(s(o.receivables)),\"\",R(s(o.new_prod)),s(o"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 45125,
+          "text": "q(\"month_format\",\"red\",\"মাসের ফরম্যাট ভুল — বছর-মাস লিখুন (যেমন 2026-10)\",\"Month format is wrong — write year-month (e.g. 2026-10)\")),p<0&&s(o.reinvest_pct)>0&&a.push(q(\"reinvest_on_loss\",\"y"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "leak": {
+      "behavior": "Leak is rounded signed sum and nonzero triggers yellow and required attestation. Sales and payroll checkboxes required syntactically; calculator does not confirm records or existence of worklist entry.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 43966,
+          "text": "n.leak=m,n.leak_nonzero=0!==m;const u=(e,t)=>t>0?(e/t*100).toFixed(1)+\" %\":\"—\",y=_&&l>0?(s(o.close_stock)/(l/_)).toFixed(1):\"—\",v=_&&s(o.purchases)>0?(s(o.payables)/(s(o.purchases)/_)).toFix"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 45027,
+          "text": "q(\"leak_nonzero\",\"yellow\",\"লিক ৳ শূন্য নয়\",\"Leak ৳ is not zero\",m)),r(o.month)&&null===_&&a.push(q(\"month_format\",\"red\",\"মাসের ফরম্যাট ভুল — বছর-মাস লিখুন (যেমন 2026-10)\",\"Month format is w"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "decisions": {
+      "behavior": "Decision text requires assignee and deadline. Checker role and required declarations do not establish actual permission. Calculator warns red when checker equals preparer.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 44844,
+          "text": "e.c.checked_by===o.prepared_by&&a.push(q(\"checker_is_preparer\",\"red\",\"যাচাইকারী ও প্রস্তুতকারী একই জন\",\"Checker and preparer are the same person\",void 0,{src:\"check\"})),0!==m&&a.push(q(\"leak"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 44883,
+          "text": "q(\"checker_is_preparer\",\"red\",\"যাচাইকারী ও প্রস্তুতকারী একই জন\",\"Checker and preparer are the same person\",void 0,{src:\"check\"})),0!==m&&a.push(q(\"leak_nonzero\",\"yellow\",\"লিক ৳ শূন্য নয়\",\"L"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "opening": {
+      "behavior": "Shift and actor required. Safety defect requires description and warns yellow; equipment check absence or defect warn yellow. Scale displays setting, missing setting requested; off requires worklist attestation and warns yellow. Named in-charge equal to yield approver red.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 8899,
+          "text": "n.scale_info=null===i?q:i,null===i&&o.push(\"scale_test\");const s=D(e,\"fridges\",\"temp_out_\",r,o),d=D(e,\"fridges2\",\"temp2_out_\",r,o);\"defect\"===t.safety&&r.push(v(\"safety_defect\",\"yellow\",\"গ্য"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 9058,
+          "text": "v(\"safety_defect\",\"yellow\",\"গ্যাস/বিদ্যুৎ/আগুনের নিরাপত্তায় ত্রুটি\",\"Gas / power / fire safety defect\")),e.rows(\"machines\").some(e=>a(e.name))||r.push(v(\"machines_not_recorded\",\"yellow\",\"যন"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 9210,
+          "text": "v(\"machines_not_recorded\",\"yellow\",\"যন্ত্রপাতি চেকে কোনো যন্ত্র লেখা হয়নি\",\"No equipment recorded in the equipment check\"));const c=e.rows(\"machines\").filter(e=>\"defect\"===e.state).length;c"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 9409,
+          "text": "v(\"machine_defect\",\"yellow\",\"যন্ত্রপাতিতে ত্রুটি\",\"Equipment defect\",c,{unit:\"qty\"})),\"off\"===t.scale&&r.push(v(\"scale_off\",\"yellow\",\"পাল্লায় গরমিল — ব্যবহার বন্ধ\",\"Scale is off: stop using"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 9519,
+          "text": "v(\"scale_off\",\"yellow\",\"পাল্লায় গরমিল — ব্যবহার বন্ধ\",\"Scale is off: stop using it\")),\"yes\"===t.unplanned&&r.push(v(\"unplanned_production\",\"yellow\",\"পরিকল্পনার বাইরে উৎপাদন\",\"Unplanned prod"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 9868,
+          "text": "v(\"self_yield_approval\",\"red\",\"ফলনের পার্থক্য উৎপাদনকারী নিজে অনুমোদন করেছেন\",\"Yield difference approved by the producer\")),[[\"pots_by\",\"pots_verify\"],[\"clean_by\",\"clean_verify\"]].some(([e,r"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "cold_chain": {
+      "behavior": "Both tables use two indexed units. Temperature outside inclusive configured min/max emits red temp_out_1/2 or temp2_out_1/2. Missing either bound requests both settings for a present reading. Missing reading does not produce out-of-range warning. t2_time required without ordering check in calc.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 8964,
+          "text": "D(e,\"fridges\",\"temp_out_\",r,o),d=D(e,\"fridges2\",\"temp2_out_\",r,o);\"defect\"===t.safety&&r.push(v(\"safety_defect\",\"yellow\",\"গ্যাস/বিদ্যুৎ/আগুনের নিরাপত্তায় ত্রুটি\",\"Gas / power / fire safety "
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 1139,
+          "text": "a=e>=l&&e<=p;m=a?t(\"সীমার মধ্যে ✓\",\"In range ✓\"):t(\"সীমার বাইরে\",\"Outside the limit\"),a||i.push(v(n+o,\"red\",\"ফ্রিজ / চিলার \"+o+\" এর তাপমাত্রা সীমার বাইরে\",\"Fridge / chiller \"+o+\" temperature out of ra"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "hygiene": {
+      "behavior": "Pots completion and actors required. Same pots doer/checker or clean doer/checker warns yellow. Hygiene and batch cleaning declarations do not feed validation of each batch.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 9992,
+          "text": "[[\"pots_by\",\"pots_verify\"],[\"clean_by\",\"clean_verify\"]].some(([e,r])=>a(t[e])&&t[e]===t[r])&&r.push(v(\"same_person_check\",\"yellow\",\"সম্পাদনকারী ও যাচাইকারী একই জন\",\"Doer and checker are the "
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 10092,
+          "text": "v(\"same_person_check\",\"yellow\",\"সম্পাদনকারী ও যাচাইকারী একই জন\",\"Doer and checker are the same person\"));const h=e.rows(\"incidents\").filter(e=>a(e.what)&&!e.solved).length;return h&&r.push(v"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "interruption": {
+      "behavior": "Yes unplanned or breakdown warns yellow; details required and visible in each relevant branch. Product checked requires result independently. Breakdown time optional; no repair case or stock quarantine join shown.",
+      "fragments": [
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 9606,
+          "text": "\"yes\"===t.unplanned&&r.push(v(\"unplanned_production\",\"yellow\",\"পরিকল্পনার বাইরে উৎপাদন\",\"Unplanned production\")),\"yes\"===t.breakdown&&r.push(v(\"breakdown\",\"yellow\",\"যন্ত্র বিকল\",\"Equipment b"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 9634,
+          "text": "v(\"unplanned_production\",\"yellow\",\"পরিকল্পনার বাইরে উৎপাদন\",\"Unplanned production\")),\"yes\"===t.breakdown&&r.push(v(\"breakdown\",\"yellow\",\"যন্ত্র বিকল\",\"Equipment breakdown\")),a(t.yield_approv"
+        },
+        {
+          "source_file": "forms_factory.js",
+          "offset_utf16": 9747,
+          "text": "v(\"breakdown\",\"yellow\",\"যন্ত্র বিকল\",\"Equipment breakdown\")),a(t.yield_approver)&&t.yield_approver===t.in_charge&&r.push(v(\"self_yield_approval\",\"red\",\"ফলনের পার্থক্য উৎপাদনকারী নিজে অনুমোদন"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    }
+  },
+  "warning_map": {
+    "month_format": "red",
+    "leak_nonzero": "yellow",
+    "checker_is_preparer": "red",
+    "safety_defect": "yellow",
+    "machines_not_recorded": "yellow",
+    "machine_defect": "yellow",
+    "scale_off": "yellow",
+    "self_yield_approval": "red",
+    "same_person_check": "yellow",
+    "unplanned_production": "yellow",
+    "breakdown": "yellow",
+    "temp_out_1": "red",
+    "temp_out_2": "red",
+    "temp2_out_1": "red",
+    "temp2_out_2": "red"
+  },
+  "fields": [
+    {
+      "source_id": "A-02:chg",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 41401,
+        "literal": "w(\"chg\",t(\"বদল ৳\",\"Change ৳\"),\"text\")",
+        "constructor_alias": "w",
+        "label_bn": "বদল ৳",
+        "label_en": "Change ৳"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "raw",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "raw_change",
+      "issue_id": "A017-F001",
+      "data_origin": "Paired same-UOM material purchase prices",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:new_prod",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 41455,
+        "literal": "l(\"new_prod\",t(\"নতুন পণ্যের বিক্রি (নতুন প্রোডাক্ট সিদ্ধান্ত শিট)\",\"Sales of new products (new product decision sheet)\"))",
+        "constructor_alias": "l",
+        "label_bn": "নতুন পণ্যের বিক্রি (নতুন প্রোডাক্ট সিদ্ধান্ত শিট)",
+        "label_en": "Sales of new products (new product decision sheet)"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "kpis",
+      "issue_id": "A017-F002",
+      "data_origin": "Scoped current and historical KPI snapshots and denominators",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:on_orders",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 41577,
+        "literal": "d(\"on_orders\",t(\"অনলাইন — অর্ডার\",\"Online — orders\"))",
+        "constructor_alias": "d",
+        "label_bn": "অনলাইন — অর্ডার",
+        "label_en": "Online — orders"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "kpis",
+      "issue_id": "A017-F002",
+      "data_origin": "Scoped current and historical KPI snapshots and denominators",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:on_sales",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 41631,
+        "literal": "l(\"on_sales\",t(\"অনলাইন — বিক্রি ৳\",\"Online — sales ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "অনলাইন — বিক্রি ৳",
+        "label_en": "Online — sales ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "kpis",
+      "issue_id": "A017-F002",
+      "data_origin": "Scoped current and historical KPI snapshots and denominators",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:on_cpo",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 41687,
+        "literal": "l(\"on_cpo\",t(\"অনলাইন — প্রতি অর্ডারে খরচ ৳\",\"Online — cost per order ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "অনলাইন — প্রতি অর্ডারে খরচ ৳",
+        "label_en": "Online — cost per order ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "kpis",
+      "issue_id": "A017-F002",
+      "data_origin": "Scoped current and historical KPI snapshots and denominators",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:emerg",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 41761,
+        "literal": "l(\"emerg\",t(\"জরুরি ক্রয় ৳\",\"Emergency purchases ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "জরুরি ক্রয় ৳",
+        "label_en": "Emergency purchases ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "kpis",
+      "issue_id": "A017-F002",
+      "data_origin": "Scoped current and historical KPI snapshots and denominators",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:days_text",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 41884,
+        "literal": "w(\"days_text\",t(\"মাসের দিন\",\"Days in the month\"),\"text\")",
+        "constructor_alias": "w",
+        "label_bn": "মাসের দিন",
+        "label_en": "Days in the month"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "kpis",
+      "issue_id": "A017-F002",
+      "data_origin": "Scoped current and historical KPI snapshots and denominators",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:cur",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 41955,
+        "literal": "w(\"cur\",t(\"এ মাস\",\"This month\"),\"text\")",
+        "constructor_alias": "w",
+        "label_bn": "এ মাস",
+        "label_en": "This month"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "kpi",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "kpis",
+      "issue_id": "A017-F002",
+      "data_origin": "Scoped current and historical KPI snapshots and denominators",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:prev",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 41995,
+        "literal": "a(\"prev\",t(\"গত মাস\",\"Last month\"))",
+        "constructor_alias": "a",
+        "label_bn": "গত মাস",
+        "label_en": "Last month"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "kpi",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "kpis",
+      "issue_id": "A017-F002",
+      "data_origin": "Scoped current and historical KPI snapshots and denominators",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:ly",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 42030,
+        "literal": "a(\"ly\",t(\"গত বছর এই মাস\",\"Same month last year\"))",
+        "constructor_alias": "a",
+        "label_bn": "গত বছর এই মাস",
+        "label_en": "Same month last year"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "kpi",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "kpis",
+      "issue_id": "A017-F002",
+      "data_origin": "Scoped current and historical KPI snapshots and denominators",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:dir",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 42080,
+        "literal": "v(\"dir\",t(\"দিক\",\"Direction\"),[[\"good\",t(\"ভালো\",\"Good\")],[\"bad\",t(\"খারাপ\",\"Bad\")]])",
+        "constructor_alias": "v",
+        "label_bn": "দিক",
+        "label_en": "Direction"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "kpi",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "kpis",
+      "issue_id": "A017-F002",
+      "data_origin": "Scoped current and historical KPI snapshots and denominators",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:leak",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 42219,
+        "literal": "w(\"leak\",t(\"লিক ৳\",\"Leak ৳\"),\"money\",{big:!0})",
+        "constructor_alias": "w",
+        "label_bn": "লিক ৳",
+        "label_en": "Leak ৳"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "leak",
+      "issue_id": "A017-F003",
+      "data_origin": "Cash variance, stock shortage, close/salary snapshots and exception queue",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:what",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 42344,
+        "literal": "a(\"what\",t(\"এ মাসের সিদ্ধান্ত\",\"This month's decision\"),{wide:!0})",
+        "constructor_alias": "a",
+        "label_bn": "এ মাসের সিদ্ধান্ত",
+        "label_en": "This month's decision"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "dec",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "decisions",
+      "issue_id": "A017-F004",
+      "data_origin": "Decision Book with independent reporting signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:who",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 42411,
+        "literal": "_(\"who\",t(\"দায়িত্বধারী\",\"Responsible\"),{req:e=>r(e.row.what)})",
+        "constructor_alias": "_",
+        "label_bn": "দায়িত্বধারী",
+        "label_en": "Responsible"
+      },
+      "type": "ST",
+      "requirements": "e=>r(e.row.what)",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "dec",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "decisions",
+      "issue_id": "A017-F004",
+      "data_origin": "Decision Book with independent reporting signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:deadline",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 42475,
+        "literal": "h(\"deadline\",t(\"সময়সীমা\",\"Deadline\"),{req:e=>r(e.row.what)})",
+        "constructor_alias": "h",
+        "label_bn": "সময়সীমা",
+        "label_en": "Deadline"
+      },
+      "type": "D",
+      "requirements": "e=>r(e.row.what)",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "dec",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "decisions",
+      "issue_id": "A017-F004",
+      "data_origin": "Decision Book with independent reporting signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:rec_sales",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 42630,
+        "literal": "p(\"rec_sales\",t(\"লাইন ১ = মাসের সব দৈনিক শোরুম শিটের যোগ\",\"Line 1 = total of all daily showroom sheets of the month\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "লাইন ১ = মাসের সব দৈনিক শোরুম শিটের যোগ",
+        "label_en": "Line 1 = total of all daily showroom sheets of the month"
+      },
+      "type": "CK",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "leak",
+      "issue_id": "A017-F003",
+      "data_origin": "Cash variance, stock shortage, close/salary snapshots and exception queue",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:rec_salary",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 42758,
+        "literal": "p(\"rec_salary\",t(\"লাইন ৫ = মাসিক বেতন শিট\",\"Line 5 = monthly salary sheet\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "লাইন ৫ = মাসিক বেতন শিট",
+        "label_en": "Line 5 = monthly salary sheet"
+      },
+      "type": "CK",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "leak",
+      "issue_id": "A017-F003",
+      "data_origin": "Cash variance, stock shortage, close/salary snapshots and exception queue",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:rec_leak",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 42844,
+        "literal": "p(\"rec_leak\",t(\"লিক ৳ শূন্য না হলে কারণ কাজের তালিকায়\",\"If leak ৳ is not zero, the reason is in the work list\"),{show:e=>e.v.leak_nonzero,req:e=>e.v.leak_nonzero})",
+        "constructor_alias": "p",
+        "label_bn": "লিক ৳ শূন্য না হলে কারণ কাজের তালিকায়",
+        "label_en": "If leak ৳ is not zero, the reason is in the work list"
+      },
+      "type": "CK",
+      "requirements": "e=>e.v.leak_nonzero",
+      "visibility": "e=>e.v.leak_nonzero",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "leak",
+      "issue_id": "A017-F003",
+      "data_origin": "Cash variance, stock shortage, close/salary snapshots and exception queue",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:prepared_by",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 43009,
+        "literal": "_(\"prepared_by\",t(\"প্রস্তুতকারী (Prepared by) — ব্যবস্থাপনা\",\"Prepared by — management\"),{req:!0})",
+        "constructor_alias": "_",
+        "label_bn": "প্রস্তুতকারী (Prepared by) — ব্যবস্থাপনা",
+        "label_en": "Prepared by — management"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "decisions",
+      "issue_id": "A017-F004",
+      "data_origin": "Decision Book with independent reporting signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:owner",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 43108,
+        "literal": "_(\"owner\",t(\"মালিক\",\"Owner\"))",
+        "constructor_alias": "_",
+        "label_bn": "মালিক",
+        "label_en": "Owner"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "decisions",
+      "issue_id": "A017-F004",
+      "data_origin": "Decision Book with independent reporting signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:checked_by",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 43249,
+        "literal": "_(\"checked_by\",t(\"যাচাইকারী (Checked by) — অন্য কেউ, প্রস্তুতকারী নন\",\"Checked by — someone else, not the preparer\"),{who:\"checker\",req:!0})",
+        "constructor_alias": "_",
+        "label_bn": "যাচাইকারী (Checked by) — অন্য কেউ, প্রস্তুতকারী নন",
+        "label_en": "Checked by — someone else, not the preparer"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "\"checker\"",
+      "collection": "checker section",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "decisions",
+      "issue_id": "A017-F004",
+      "data_origin": "Decision Book with independent reporting signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:shift",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 1760,
+        "literal": "g(\"shift\",t(\"শিফট\",\"Shift\"),[[\"m\",t(\"সকাল\",\"Morning\")],[\"a\",t(\"বিকাল\",\"Afternoon\")],[\"n\",t(\"রাত\",\"Night\")]],{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "শিফট",
+        "label_en": "Shift"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "opening",
+      "issue_id": "A017-F005",
+      "data_origin": "Scoped shift, calibrated equipment, worklist and independent signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:in_charge",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 1878,
+        "literal": "p(\"in_charge\",t(\"দায়িত্বে (নাম)\",\"In charge (name)\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "দায়িত্বে (নাম)",
+        "label_en": "In charge (name)"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "opening",
+      "issue_id": "A017-F005",
+      "data_origin": "Scoped shift, calibrated equipment, worklist and independent signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:handover_line",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 1942,
+        "literal": "n(\"handover_line\",t(\"শিফট হ্যান্ডওভার রেজিস্টারের লাইন নং\",\"Shift handover register line no.\"))",
+        "constructor_alias": "n",
+        "label_bn": "শিফট হ্যান্ডওভার রেজিস্টারের লাইন নং",
+        "label_en": "Shift handover register line no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "opening",
+      "issue_id": "A017-F005",
+      "data_origin": "Scoped shift, calibrated equipment, worklist and independent signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:safety_defect",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 2312,
+        "literal": "n(\"safety_defect\",t(\"ত্রুটির বিবরণ\",\"Defect details\"),{show:e=>\"defect\"===e.d.safety,req:e=>\"defect\"===e.d.safety})",
+        "constructor_alias": "n",
+        "label_bn": "ত্রুটির বিবরণ",
+        "label_en": "Defect details"
+      },
+      "type": "T",
+      "requirements": "e=>\"defect\"===e.d.safety",
+      "visibility": "e=>\"defect\"===e.d.safety",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "opening",
+      "issue_id": "A017-F005",
+      "data_origin": "Scoped shift, calibrated equipment, worklist and independent signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:name",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 2544,
+        "literal": "n(\"name\",t(\"যন্ত্র\",\"Equipment\"),{req:!0,wide:!0})",
+        "constructor_alias": "n",
+        "label_bn": "যন্ত্র",
+        "label_en": "Equipment"
+      },
+      "type": "T",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "machines",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "opening",
+      "issue_id": "A017-F005",
+      "data_origin": "Scoped shift, calibrated equipment, worklist and independent signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:state",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 2595,
+        "literal": "g(\"state\",t(\"অবস্থা\",\"Status\"),[[\"ok\",t(\"ঠিক\",\"OK\")],[\"defect\",t(\"ত্রুটি\",\"Defect\")]],{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "অবস্থা",
+        "label_en": "Status"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "machines",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "opening",
+      "issue_id": "A017-F005",
+      "data_origin": "Scoped shift, calibrated equipment, worklist and independent signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:machines_done",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 2701,
+        "literal": "l(\"machines_done\",t(\"যন্ত্রপাতি চেক সম্পন্ন\",\"Equipment check done\"))",
+        "constructor_alias": "l",
+        "label_bn": "যন্ত্রপাতি চেক সম্পন্ন",
+        "label_en": "Equipment check done"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "opening",
+      "issue_id": "A017-F005",
+      "data_origin": "Scoped shift, calibrated equipment, worklist and independent signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:scale_info",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 2771,
+        "literal": "w(\"scale_info\",t(\"পাল্লা যাচাইয়ের বস্তু ও সীমা (লোকেশন সেটিংস থেকে)\",\"Scale check object and limit (from settings)\"),\"text\")",
+        "constructor_alias": "w",
+        "label_bn": "পাল্লা যাচাইয়ের বস্তু ও সীমা (লোকেশন সেটিংস থেকে)",
+        "label_en": "Scale check object and limit (from settings)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "opening",
+      "issue_id": "A017-F005",
+      "data_origin": "Scoped shift, calibrated equipment, worklist and independent signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:scale",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 2897,
+        "literal": "g(\"scale\",t(\"পাল্লা — জানা ওজনের বস্তু দিয়ে চেক\",\"Scale: checked with a known-weight object\"),[[\"ok\",t(\"ঠিক\",\"OK\")],[\"off\",t(\"গরমিল\",\"Off\")]],{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "পাল্লা — জানা ওজনের বস্তু দিয়ে চেক",
+        "label_en": "Scale: checked with a known-weight object"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "opening",
+      "issue_id": "A017-F005",
+      "data_origin": "Scoped shift, calibrated equipment, worklist and independent signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:scale_listed",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 3222,
+        "literal": "l(\"scale_listed\",t(\"কাজের তালিকায় যোগ করা হয়েছে\",\"Added to the work list\"),{show:e=>\"off\"===e.d.scale,req:e=>\"off\"===e.d.scale})",
+        "constructor_alias": "l",
+        "label_bn": "কাজের তালিকায় যোগ করা হয়েছে",
+        "label_en": "Added to the work list"
+      },
+      "type": "CK",
+      "requirements": "e=>\"off\"===e.d.scale",
+      "visibility": "e=>\"off\"===e.d.scale",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "opening",
+      "issue_id": "A017-F005",
+      "data_origin": "Scoped shift, calibrated equipment, worklist and independent signoff",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:fridges",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 3353,
+        "literal": "b(\"fridges\",t(\"ফ্রিজ / চিলারের তাপমাত্রা (Temperature)\",\"Fridge / chiller temperature\"),I(1),{rows:M})",
+        "constructor_alias": "b",
+        "label_bn": "ফ্রিজ / চিলারের তাপমাত্রা (Temperature)",
+        "label_en": "Fridge / chiller temperature"
+      },
+      "type": "TABLE",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "cold_chain",
+      "issue_id": "A017-F006",
+      "data_origin": "Sensor or authenticated measurement record and scoped approved temperature policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:pots_done",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 3456,
+        "literal": "l(\"pots_done\",t(\"পাত্র ও মালশা — ধোয়া, উল্টে শুকানো, ফাটল চেক সম্পন্ন\",\"Pots and trays: washed, dried upside down, checked for cracks\"),{req:!0})",
+        "constructor_alias": "l",
+        "label_bn": "পাত্র ও মালশা — ধোয়া, উল্টে শুকানো, ফাটল চেক সম্পন্ন",
+        "label_en": "Pots and trays: washed, dried upside down, checked for cracks"
+      },
+      "type": "CK",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "hygiene",
+      "issue_id": "A017-F007",
+      "data_origin": "Sanitation event and independently verified completion per batch",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:pots_by",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 3603,
+        "literal": "p(\"pots_by\",t(\"সম্পাদনকারী (Performed by)\",\"Performed by\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "সম্পাদনকারী (Performed by)",
+        "label_en": "Performed by"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "hygiene",
+      "issue_id": "A017-F007",
+      "data_origin": "Sanitation event and independently verified completion per batch",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:pots_verify",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 3672,
+        "literal": "p(\"pots_verify\",t(\"যাচাইকারী\",\"Checked by\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "যাচাইকারী",
+        "label_en": "Checked by"
+      },
+      "type": "ST",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "hygiene",
+      "issue_id": "A017-F007",
+      "data_origin": "Sanitation event and independently verified completion per batch",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:hygiene_done",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 3726,
+        "literal": "l(\"hygiene_done\",t(\"কর্মীর ব্যক্তিগত পরিষ্কার ও পোশাক (Hygiene) সম্পন্ন\",\"Staff personal hygiene and uniform done\"))",
+        "constructor_alias": "l",
+        "label_bn": "কর্মীর ব্যক্তিগত পরিষ্কার ও পোশাক (Hygiene) সম্পন্ন",
+        "label_en": "Staff personal hygiene and uniform done"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "hygiene",
+      "issue_id": "A017-F007",
+      "data_origin": "Sanitation event and independently verified completion per batch",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:hygiene_verify",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 3843,
+        "literal": "p(\"hygiene_verify\",t(\"যাচাইকারী\",\"Checked by\"))",
+        "constructor_alias": "p",
+        "label_bn": "যাচাইকারী",
+        "label_en": "Checked by"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "hygiene",
+      "issue_id": "A017-F007",
+      "data_origin": "Sanitation event and independently verified completion per batch",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:batch1",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 4200,
+        "literal": "l(\"batch1\",t(\"ব্যাচ 1 পরিষ্কার\",\"Batch 1 cleaned\"))",
+        "constructor_alias": "l",
+        "label_bn": "ব্যাচ 1 পরিষ্কার",
+        "label_en": "Batch 1 cleaned"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "hygiene",
+      "issue_id": "A017-F007",
+      "data_origin": "Sanitation event and independently verified completion per batch",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:batch2",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 4252,
+        "literal": "l(\"batch2\",t(\"ব্যাচ 2 পরিষ্কার\",\"Batch 2 cleaned\"))",
+        "constructor_alias": "l",
+        "label_bn": "ব্যাচ 2 পরিষ্কার",
+        "label_en": "Batch 2 cleaned"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "hygiene",
+      "issue_id": "A017-F007",
+      "data_origin": "Sanitation event and independently verified completion per batch",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:batch3",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 4304,
+        "literal": "l(\"batch3\",t(\"ব্যাচ 3 পরিষ্কার\",\"Batch 3 cleaned\"))",
+        "constructor_alias": "l",
+        "label_bn": "ব্যাচ 3 পরিষ্কার",
+        "label_en": "Batch 3 cleaned"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "hygiene",
+      "issue_id": "A017-F007",
+      "data_origin": "Sanitation event and independently verified completion per batch",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:t2_time",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 4402,
+        "literal": "c(\"t2_time\",t(\"তাপমাত্রা — দ্বিতীয় পাঠের সময়\",\"Temperature, second reading: time\"),{req:!0})",
+        "constructor_alias": "c",
+        "label_bn": "তাপমাত্রা — দ্বিতীয় পাঠের সময়",
+        "label_en": "Temperature, second reading: time"
+      },
+      "type": "TM",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "cold_chain",
+      "issue_id": "A017-F006",
+      "data_origin": "Sensor or authenticated measurement record and scoped approved temperature policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:fridges2",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 4497,
+        "literal": "b(\"fridges2\",t(\"তাপমাত্রা (Temperature) — দ্বিতীয় পাঠ\",\"Temperature, second reading\"),I(2),{rows:M})",
+        "constructor_alias": "b",
+        "label_bn": "তাপমাত্রা (Temperature) — দ্বিতীয় পাঠ",
+        "label_en": "Temperature, second reading"
+      },
+      "type": "TABLE",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "cold_chain",
+      "issue_id": "A017-F006",
+      "data_origin": "Sensor or authenticated measurement record and scoped approved temperature policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:unplanned",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 4599,
+        "literal": "g(\"unplanned\",t(\"পরিকল্পনার বাইরে উৎপাদন (Unplanned Production)\",\"Unplanned production\"),[[\"no\",t(\"না\",\"No\")],[\"yes\",t(\"হ্যাঁ\",\"Yes\")]],{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "পরিকল্পনার বাইরে উৎপাদন (Unplanned Production)",
+        "label_en": "Unplanned production"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "interruption",
+      "issue_id": "A017-F008",
+      "data_origin": "Manufacturing exception, Maintenance request and affected lot inspection",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:unplanned_what",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 4745,
+        "literal": "n(\"unplanned_what\",t(\"কী ও কেন\",\"What and why\"),{show:e=>\"yes\"===e.d.unplanned,req:e=>\"yes\"===e.d.unplanned})",
+        "constructor_alias": "n",
+        "label_bn": "কী ও কেন",
+        "label_en": "What and why"
+      },
+      "type": "T",
+      "requirements": "e=>\"yes\"===e.d.unplanned",
+      "visibility": "e=>\"yes\"===e.d.unplanned",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "interruption",
+      "issue_id": "A017-F008",
+      "data_origin": "Manufacturing exception, Maintenance request and affected lot inspection",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:breakdown",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 4855,
+        "literal": "g(\"breakdown\",t(\"যন্ত্র বিকল (Breakdown)\",\"Equipment breakdown\"),[[\"no\",t(\"না\",\"No\")],[\"yes\",t(\"হ্যাঁ\",\"Yes\")]],{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "যন্ত্র বিকল (Breakdown)",
+        "label_en": "Equipment breakdown"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "interruption",
+      "issue_id": "A017-F008",
+      "data_origin": "Manufacturing exception, Maintenance request and affected lot inspection",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:bd_machine",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 4977,
+        "literal": "n(\"bd_machine\",t(\"কোন যন্ত্র\",\"Which equipment\"),{show:e=>\"yes\"===e.d.breakdown,req:e=>\"yes\"===e.d.breakdown})",
+        "constructor_alias": "n",
+        "label_bn": "কোন যন্ত্র",
+        "label_en": "Which equipment"
+      },
+      "type": "T",
+      "requirements": "e=>\"yes\"===e.d.breakdown",
+      "visibility": "e=>\"yes\"===e.d.breakdown",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "interruption",
+      "issue_id": "A017-F008",
+      "data_origin": "Manufacturing exception, Maintenance request and affected lot inspection",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:bd_time",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 5088,
+        "literal": "c(\"bd_time\",t(\"সময়\",\"Time\"),{show:e=>\"yes\"===e.d.breakdown})",
+        "constructor_alias": "c",
+        "label_bn": "সময়",
+        "label_en": "Time"
+      },
+      "type": "TM",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"yes\"===e.d.breakdown",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "interruption",
+      "issue_id": "A017-F008",
+      "data_origin": "Manufacturing exception, Maintenance request and affected lot inspection",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:bd_request",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 5150,
+        "literal": "n(\"bd_request\",t(\"মেইনটেন্যান্স অনুরোধ ও রেকর্ড নং\",\"Maintenance request & record no.\"),{show:e=>\"yes\"===e.d.breakdown,req:e=>\"yes\"===e.d.breakdown})",
+        "constructor_alias": "n",
+        "label_bn": "মেইনটেন্যান্স অনুরোধ ও রেকর্ড নং",
+        "label_en": "Maintenance request & record no."
+      },
+      "type": "T",
+      "requirements": "e=>\"yes\"===e.d.breakdown",
+      "visibility": "e=>\"yes\"===e.d.breakdown",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "interruption",
+      "issue_id": "A017-F008",
+      "data_origin": "Manufacturing exception, Maintenance request and affected lot inspection",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:bd_product",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 5300,
+        "literal": "g(\"bd_product\",t(\"বিকল অবস্থায় রাখা পণ্যের অবস্থা যাচাই\",\"Condition of product held during the breakdown checked\"),[[\"na\",t(\"প্রযোজ্য নয়\",\"Not applicable\")],[\"checked\",t(\"যাচাই করা হয়েছে\",\"Checked\")]],{req:!0})",
+        "constructor_alias": "g",
+        "label_bn": "বিকল অবস্থায় রাখা পণ্যের অবস্থা যাচাই",
+        "label_en": "Condition of product held during the breakdown checked"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "interruption",
+      "issue_id": "A017-F008",
+      "data_origin": "Manufacturing exception, Maintenance request and affected lot inspection",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "F-05:bd_result",
+      "source_file": "forms_factory.js",
+      "evidence": {
+        "offset_utf16": 5514,
+        "literal": "n(\"bd_result\",t(\"ফল\",\"Result\"),{show:e=>\"checked\"===e.d.bd_product,req:e=>\"checked\"===e.d.bd_product})",
+        "constructor_alias": "n",
+        "label_bn": "ফল",
+        "label_en": "Result"
+      },
+      "type": "T",
+      "requirements": "e=>\"checked\"===e.d.bd_product",
+      "visibility": "e=>\"checked\"===e.d.bd_product",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "interruption",
+      "issue_id": "A017-F008",
+      "data_origin": "Manufacturing exception, Maintenance request and affected lot inspection",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    }
+  ],
+  "owner_accepted": false,
+  "parity_certified": false,
+  "field_parity_certified": false,
+  "source_runtime_equivalent": false,
+  "production_ready": false,
+  "erp_posted": false
+}

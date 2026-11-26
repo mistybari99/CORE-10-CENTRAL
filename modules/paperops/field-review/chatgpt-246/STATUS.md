@@ -1,0 +1,66 @@
+# ChatGPT PaperOps 246 — isolated correction registry (2026-11-23)
+
+**Status: BUILD IN PROGRESS; no release, no signed backend posting.**
+Parent: Draft PR #132, branch build/paperops-foundation-20261122, creation SHA 98169c2bf6ebbf3bae875bdee11e51ff06766c48.
+Child: build/chatgpt-paperops-246-20261123 (Draft PR #149).
+Immutable source split: 86 critical linked + 150 exact declarations + 10 R-01 reserved = **246**; Codex's **1,000 are excluded**.
+
+## Implemented first slice
+- Recovered original source helpers from pinned frozen source blobs **forms.js f2cb1c5e09210496106ace1bf33ddc40d2d6df1d** and **entry.js 402eba6436f0e619ebcbd15bb99c7c3cd0853585**.
+- Original exact expressions: `O=e=>t=>!t.cf||n(t.d[e])` and `$=e=>!(null==e||""===e||!1===e)`. The original **zero is present**, while empty string / null / false are absent. Only synthetic local visibility logic was corrected. No protected legacy bytes were changed or run.
+- Fields touched: C-02:sum_cr, C-02:imprest_text, R-01:open_diff, R-01:imp_text. Negative/boundary/fail-closed tests added.
+- All ten reserved R-01 declarations were compared to frozen source, exact BN/EN label and constructor stored in closure-evidence.json. None is marked signed-integrated or Owner approved.
+- Full 246 distinct source IDs are recorded in closure-evidence.json, with original 11 gaps and 20 critical obligations in issue-registry.json, cross-linked by field ID to avoid double counting.
+
+## OPEN blockers / release gates
+- **11/11 functional gaps remain OPEN**; R01-02 has local helper source recovery only. Other gaps need Owner policy, canonical signed Auth/Money/Stock/Sales/Approval/Audit/Control, physical evidence, replay/reversal, immutable posted records and verified role separation.
+- **20/20 high-risk business obligations remain OPEN** for signed runtime and Owner policy acceptance; a shared field may appear in multiple obligations but is not an extra standalone defect.
+- No field has Owner parity approval; zero canonical signed post operations from this Draft PR.
+- Parent branch still retains the identical old source blob at root; canonical trunk preserved it under `legacy/islamia-erp/`. Source hash pins are the read-only authority, not pathname guessing.
+- **External Board/Decision Book: NOT WRITTEN**.
+- No migrations, SQL, Supabase staging/live writes, Cloudflare deploy, Codex audit edits, protected IMG edits, or trunk merge.
+
+## Additional real BUILD slices (2026-11-23)
+- R-01 original 10 field declarations: exact old labels/constructor calls are source-verified; no original calc(e) mentions for these 10. Implemented a **new strictly synthetic** source-event reconciliation gate for drawer/imprest segregation, handover count/serial/register continuity and independent actor evidence, stock room attestation, orders taken/delivered/opening backlog/pending-next, and source-referenced advances. It rejects duplicates, cross-tenant/site, unsafe amounts and contradictory events. **It does not authenticate original physical signatures or Sales/Money/Stock canonical records.**
+- C02-02: recovered and tested original yellow `no_receipt` and red `receipt_reason_missing` severity branches, without relaxing existing strict expense hold or approving an exception. Missing receipt remains an open Owner/Finance policy dependency.
+- The parent branch is behind trunk's frozen legacy relocation. A pinned SHA read-only accessor now works with parent-root/trunk-legacy layouts; full CI uses only an **ephemeral noncommitted symlink to the SAME frozen hash** to preserve unmodified historical test code. Neither original old file nor protected legacy git blob was edited.
+- All previous test steps are retained; Node 22 isolated GitHub CI after receipt correction [run 45105505041](https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45105505041) **163/163 PASS**, at commit `53c7d7c7af60f1f2a25a8aa05accf6db8e4b329d`. Registry follow-up commits must receive their own exact-head green status.
+
+## Second high-priority BUILD slice — C-01 / W-03 (2026-11-23)
+- **C01-01 (OPEN, locally guarded):** Pinned original C-01 calculator: handover = count - leave_float, diff = hub received - handover; original yellow `float_mismatch` and red `hub_diff` warnings. The original zero-hub-recount suppressed-warning quirk is deliberately held in stricter review. Added separate denomination recount, Control float source reference, independent sender/carrier/hub identity, seal/time sequence, voucher attachment verification, R-01 sheet and Money ledger backrefs, unique idempotency refs and controlled reversal/correction HOLD. These are synthetic source checks, not physical signature authentication or real Money posting.
+- **W03-01 (OPEN, locally guarded):** Pinned W-03 original movement condition and original variance/role warnings. Added scoped ledger snapshot, count window/freeze attestation, source movement reconciliation, independent witness/counter, externally supplied Control tolerances (no guessed policy), variance hold with explicit no-adjustment. Rejects cross-tenant/site, duplicate counts, stale inventory revisions, late movements and impossible negatives. Does not write Stock.
+- Recovered nine high-risk C-01/W-03 original constructor calls and BN/EN labels. The exact 246 ownership keys remain unchanged; all 11 original gaps and 20 obligations are OPEN for actual signed-runtime and Owner acceptance.
+- New positive/negative regression suites: `chatgpt-246-c01-cash-custody.test.cjs`, `chatgpt-246-w03-stock-count.test.cjs`, `chatgpt-246-c01-w03-evidence.test.cjs`. Exact-head CI on preceding commit `8d8378c31b60a906977da85a435a9e68bc308749` [run #45108240821](https://github.com/mistybari99/CORE-10-CENTRAL/actions/runs/45108240821): **177/177 PASS**, zero failures. After this documentation commit, verify current HEAD separately.
+- No protected legacy modified/executed, no Codex-owned files, no migrations, staging/live deployment, canonical signed ERP writes or trunk merge. External Board/Decision Book **NOT WRITTEN**.
+
+
+## Third high-priority BUILD slice — C-02 Money source / R-01 owned cashbook controls (2026-11-23)
+- **C02-03 original field `C-02:money_account_id`:** pinned actual frozen `moneySrc.formOpts('expense_10_2')` and conditional `hasAccounts('expense_10_2')` source expressions; new `c02-account-source.cjs` compares synthetic expense options and selection under one tenant/business/site, active/capable account, explicit payment-mode/account-kind, SALES_DRAWER exclusion, reference uniqueness, and absent provider options fail-closed. No Supabase session, signed account provider call or cryptographic signature is claimed.
+- **C02-01 `C-02:pay_mode`:** old print form explicitly documented empty = cash; no Owner-approved fallback behavior was inferred. New candidate **blocks blank mode until Owner policy acceptance** and records that source difference. Synthetic noncash option can match account kind but requires a separate signed business payment book for R-01 imprest.
+- **R01-03 `R-01:vouchers,v_no,v_amt,v_total`:** new `r01-money-day-ledger.cjs` traces source vouchers to matching cashbook entries, day reference, safe amounts, accountable two-role review, immutable event refs, paid-account selection and original R-01 expense total. Duplicate, replay, mismatched ledger entries and unsupported noncash expense flow fail closed. No original sales cash formula or production journal is executed.
+- **R01-04 `R-01:float_set,open_diff,imp_cash,imp_receipts`, plus reserved `R-01:advance_taken`:** Control-supplied float and fixed imprest, cash + receipt continuity and advance source totals are checked independently. Incoming general Money refund/deposit/reversal **external events are integrity-checked only**, held for independent signed Money/Audit/approval and do not implement or claim ownership of any Codex-assigned R-01 field (such as the actual form's refund, deposits or cash-count source fields). A correction/reversal never directly edits or posts ledger balances.
+- The precise source-split is still **246 ChatGPT / 1,000 Codex**. There are now **8 locally corrected original gap entries** (prior R01-02, C02-02, C01-01, W03-01 + C02-01, C02-03, R01-03, R01-04), **11/11 ORIGINAL functional gaps still OPEN**, and **20/20 high-risk obligations still OPEN** pending original signed ERP source-to-runtime proof and Owner approval. Zero field accepted for production, zero Money posting or signed posting test.
+- New suites: `chatgpt-246-c02-account-source.test.cjs`, `chatgpt-246-r01-money-day-ledger.test.cjs`, `chatgpt-246-c02-r01-closure.test.cjs`. Exact latest HEAD CI is required separately; no QA or release approval from synthetic green tests alone.
+- Parent branch #132 was independently repaired after PR #149 branch fork (parent advanced to `c68c97bad339f794dc02c395a14809668ff3599e`). **Do not mistake this child branch's earlier parent base for an already integrated branch**; before PR integration, an authorized integrator must reconcile the updated parent and rerun the now-mandatory canonical guard.
+- No protected legacy edit, Codex field edits, SQL/migration, staging/live deploy, permission/Control policy change, trunk merge or external Board/Decision Book write.
+
+
+## Fourth high-priority BUILD slice — W-02 / R-01 safety (2026-11-23)
+
+- **W02-02:** Exact original visibility from frozen \`forms.js\` source: W-02 \`order_no\` is shown when \`cust_order=yes\`; \`cash_amount\` is shown when \`pay=cash\`. Neither is declared \`req\` by the original, so new strict missing-proof denial is documented as a proposal, not original parity or Owner-approved policy. \`w02-customer-payment-source.cjs\` now checks synthetic tenant/business/site order register & challan link, source receipt and cash amount, payment method, cashier/checker separation, external advance and credit event HOLD, hidden-field leakage and source replay. No real signed Sales/Money call or account posting.
+- **R01-01:** Exact original \`safety_defect\`, \`expired_removed\`/\`expired_informed\`, peak-day \`t2_1\`/\`t2_2\` visibility, and original **red** out-of-range refrigerator warning (thresholds \`fridgeN_min\`/\`fridgeN_max\` from settings, NOT invented temperatures) source-pinned. \`r01-food-safety-review.cjs\` checks synthetic per-unit Control-supplied bounds, actual reading witnesses, mandatory candidate busy-day follow-up evidence, incident/escalation, expired-stock quarantine/management notice refs and duplicate/cross-site source prevention. Source-independent strict holds remain pending actual Owner food/Quality/Stock policy; no physical verification or production safety certification claimed.
+- 11 new focused W-02/R-01 safety tests plus two source-registry closure tests. \`W02-02\` and \`R01-01\` now each have local source-review code; total **10/11 original gaps with partial local corrections**, but **all 11/11 original functional gaps still OPEN** and **20/20 high-risk obligations still OPEN** pending signed canonical runtime and Owner acceptance.
+- Original 246/1000 branch ownership unchanged. Frozen IMG source hashes and legacy files unmodified. No SQL/migrations, Supabase, staging/live, deployment, merge, signed events or external Board write. New parent changes from PR #132 still require integration/rebase evaluation and exact combined canonical guard before a merge can be considered.
+
+## Fifth high-priority BUILD slice — W02-01 source returnables physical reconciliation (2026-11-24)
+
+- Six original manual W-02 `crates_sent/back/due` and `trays_sent/back/due` declarations rechecked by exact frozen source text, never by running historic code. The source does NOT define the proposed crate/tray carry-forward arithmetic as a source formula.
+- New `w02-returnables-reconciliation.cjs` composes the existing 5-event synthetic packaging book with exact challan declarations, scoped opening carry-forward record, distinct custody/reviewer evidence, independently counted physical crate/tray balances, duplicate/replay protection, strict integer quantities and cross-business/site denial. Any mismatch BLOCKS; no automatic adjustment or posting.
+- **11/11 original functional gaps now have some local synthetic/source control**, but **all 11/11 remain OPEN** for canonical signed integration, Owner business policy, authenticated approvals and real stock books. All 20 high-risk obligations remain OPEN; zero original parity approvals and zero signed ERP postings.
+- Owner split remains the exact original 246/1000 manifest; Codex lane and parent PR #132 are not modified. Frozen source unchanged/read-only, no Supabase/migrations/merge/deploy or external Board write.
+
+### W02-01 returnable evidence binding
+
+- The opening carry-forward proof supplies its own crate/tray counts. The physical Stock snapshot supplies the latest movement ID and its challan reference for the counted site pair. These are synthetic provider metadata for the six original manual fields.
+- The check blocks stale snapshots even when the final quantities match. Proofs cannot reuse a challan reference, including a challan later in the movement sequence. Cross-scope, independent witness and reconciliation checks remain in force.
+- Canonical Stock and approval providers, carry-forward policy and signed runtime acceptance remain open.

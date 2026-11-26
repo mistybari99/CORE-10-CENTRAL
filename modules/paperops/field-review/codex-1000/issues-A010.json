@@ -1,0 +1,223 @@
+[
+  {
+    "issue_id": "A010-F001",
+    "source_ids": [
+      "P-03:unit",
+      "P-03:qty",
+      "P-03:rate",
+      "P-03:total",
+      "P-03:grand",
+      "P-03:cs_text"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 29995,
+        "text": "total:a(t.qty)&&a(t.rate)?o(t.qty)*o(t.rate):void 0}));i.grand=n(l.map(e=>e.total));const d=O(e,\"quote_over\");if(null===d)s.push(\"quote_over\"),i.cs_text=x;else{const o=i.grand>d;i.cs_text=t(\"৳ \"+$(d)+\" এর উপরে "
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 30379,
+        "text": "S(\"po_no_cs\",\"red\",\"অর্ডার কোটেশন তুলনার সীমার উপরে কিন্তু কোটেশন তুলনা (CS) নং নেই\",\"Order is above the quotation limit but there is no CS number\",i.grand))}return e.d.cancel&&r.push(S(\"po_cancelled\",\"yellow\","
+      }
+    ],
+    "observed_gap": "Qty and rate required when active, line amount is qty×rate when both present, sum gives grand. Strictly above configured threshold with no CS raises red, including a cancelled PO. Unit uses lookup.",
+    "dependency": "Scoped item/UOM, quantity and price evidence from approved PO and quote record",
+    "correction": "Require independently authenticated canonical references for Scoped item/UOM, quantity and price evidence from approved PO and quote record",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A010-F002",
+    "source_ids": [
+      "P-03:t_short",
+      "P-03:t_return",
+      "P-03:t_rate",
+      "P-03:t_late",
+      "P-03:t_special",
+      "P-03:accepted",
+      "P-03:accepted_name",
+      "P-03:po_approved"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 29602,
+        "text": "s(\"accepted_name\",t(\"সাপ্লায়ারের পক্ষে নাম\",\"Name for the supplier\"),{show:e=>!!e.d.accepted})]},{who:\"checker\",title:t(\"অনুমোদন (ব্যবস্থাপনা)\",\"Approval (management)\"),fields:[u(\"po_approved\",t(\"অনুমোদনকারী ("
+      }
+    ],
+    "observed_gap": "Terms and acceptance are declared but absent from calc. Acceptance shows optional supplier name. Checker approval required only while active. No scope, supplier identity or signature enforcement proven.",
+    "dependency": "Supplier acceptance and independently approved versioned contract",
+    "correction": "Require independently authenticated canonical references for Supplier acceptance and independently approved versioned contract",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A010-F003",
+    "source_ids": [
+      "P-05:supplier",
+      "P-05:bill_no",
+      "P-05:bill_date",
+      "P-05:bill_amount",
+      "P-05:ok",
+      "P-05:grn_no",
+      "P-05:diff"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 34968,
+        "text": "const l=e=>String(e).trim().toLowerCase(),d=[0,1,2,3].map(e=>{const n=r[e]||{};if(!(a(n.po)&&a(n.grn)&&a(n.bill)))return{ok:\"\"};const s=0===e?l(n.po)===l(n.grn)&&l(n.grn)===l(n.bill):o(n.po)===o(n.grn)&&o(n.grn"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 36004,
+        "text": "S(\"bill_amount_differs\",\"red\",\"বিলের অঙ্ক ও “বিলে মোট” আলাদা\",\"Bill amount differs from the “total on the bill”\",o(e.d.bill_amount)-o(c.bill))),\"yes\"!==e.d.short||e.d.carrier_signed||n.push(S(\"short_no_carrier\""
+      }
+    ],
+    "observed_gap": "Only complete tri rows compare PO/GRN/bill. First compares trim/lowercase text; others numeric equality. Bill amount against GRN can set mismatch and against tri bill separately warns red. Display difference uses tri bill minus GRN first. Blank comparison does not itself flag mismatch.",
+    "dependency": "Immutable scoped PO, GRN and supplier invoice match lines",
+    "correction": "Require independently authenticated canonical references for Immutable scoped PO, GRN and supplier invoice match lines",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A010-F004",
+    "source_ids": [
+      "P-05:mism_what",
+      "P-05:todo",
+      "P-05:told",
+      "P-05:told_date",
+      "P-05:told_by"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 35518,
+        "text": "t?\"yellow\":\"red\",t?\"তিন কাগজে গরমিল — পেমেন্ট আটকে রাখা হয়েছে\":\"তিন কাগজে গরমিল — পেমেন্ট আটকানো হয়নি\",t?\"Three papers differ: payment is held\":\"Three papers differ: payment is not held\",void 0!==s.diff?Math."
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 35502,
+        "text": "\"bill_mismatch\",t?\"yellow\":\"red\",t?\"তিন কাগজে গরমিল — পেমেন্ট আটকে রাখা হয়েছে\":\"তিন কাগজে গরমিল — পেমেন্ট আটকানো হয়নি\",t?\"Three papers differ: payment is held\":\"Three papers differ: payment is not held\",void "
+      }
+    ],
+    "observed_gap": "Exception handling fields are recorded. Mismatch warning yellow if held, otherwise red. Warning does not establish notification, escalation or a real hold.",
+    "dependency": "Scoped accounts payable payment hold and exception notification trail",
+    "correction": "Require independently authenticated canonical references for Scoped accounts payable payment hold and exception notification trail",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A010-F005",
+    "source_ids": [
+      "P-05:short",
+      "P-05:short_qty",
+      "P-05:carrier_signed",
+      "P-05:returned",
+      "P-05:ret_qty",
+      "P-05:debit_no",
+      "P-05:debit_reason",
+      "P-05:ledger_deducted"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 33584,
+        "text": "req:e=>\"yes\"===e.d.short||\"yes\"===e.d.returned}),g(\"debit_reason\",t(\"কারণ\",\"Reason\"),[[\"short\",t(\"ঘাটতি\",\"Shortage\")],[\"return\",t(\"ফেরত\",\"Return\")],[\"quality\",t(\"মান — দর কমিয়ে গ্রহণ (মালামাল গ্রহণ রসিদ অনুযায"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 36194,
+        "text": "S(\"short_no_carrier\",\"yellow\",\"ঘাটতি আছে কিন্তু বহনকারীর স্বাক্ষর নেই\",\"Shortage but no carrier signature\",void 0)),\"owner\"===e.d.pay_way&&n.push(S(\"pay_owner\",\"yellow\",\"মালিকের ব্যক্তিগত টাকায় পেমেন্ট\",\"Payme"
+      }
+    ],
+    "observed_gap": "Shortage or return require quantities only in respective branches and debit reference when either yes. Missing carrier signature under shortage warns yellow. Ledger deduction checkbox is not a posted debit.",
+    "dependency": "Quality disposition, Stock return and linked canonical AP debit note",
+    "correction": "Require independently authenticated canonical references for Quality disposition, Stock return and linked canonical AP debit note",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A010-F006",
+    "source_ids": [
+      "P-05:pay_amount",
+      "P-05:pay_way",
+      "P-05:pay_other",
+      "P-05:due_date",
+      "P-05:prev_dues",
+      "P-05:only_matched",
+      "P-05:ledger_date",
+      "P-05:ledger_line"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 35749,
+        "text": "N(e.d.pay_amount)&&n.push(S(\"pay_on_mismatch\",\"red\",\"গরমিল থাকা সত্ত্বেও পেমেন্টের অঙ্ক লেখা হয়েছে\",\"A payment amount is written although the papers differ\",o(e.d.pay_amount)))}return a(e.d.bill_amount)&&a(c.b"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 35775,
+        "text": "S(\"pay_on_mismatch\",\"red\",\"গরমিল থাকা সত্ত্বেও পেমেন্টের অঙ্ক লেখা হয়েছে\",\"A payment amount is written although the papers differ\",o(e.d.pay_amount)))}return a(e.d.bill_amount)&&a(c.bill)&&o(e.d.bill_amount)!="
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 36340,
+        "text": "S(\"pay_owner\",\"yellow\",\"মালিকের ব্যক্তিগত টাকায় পেমেন্ট\",\"Payment from the owner's personal money\",a(e.d.pay_amount)?o(e.d.pay_amount):void 0)),{v:s,rows:{tri:d},flags:n,needs:[]}}},e.forms[\"P-06\"]={title:t(\"স"
+      }
+    ],
+    "observed_gap": "Nonzero payment on mismatch raises red and owner mode warns yellow. Other mode requires description. Matching attestation alone cannot validate completeness, date or ledger refs.",
+    "dependency": "Approved due schedule and authorized Money voucher from independently verified bill",
+    "correction": "Require independently authenticated canonical references for Approved due schedule and authorized Money voucher from independently verified bill",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A010-F007",
+    "source_ids": [
+      "P-06:page_no",
+      "P-06:keeper",
+      "P-06:supplier",
+      "P-06:items",
+      "P-06:kind",
+      "P-06:kind_other",
+      "P-06:phone",
+      "P-06:address"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 41455,
+        "text": "a(e.d.verifier)&&a(e.d.keeper)&&e.d.verifier===e.d.keeper&&r.push(S(\"verifier_is_keeper\",\"red\",\"হিসাবের তথ্যের যাচাইকারী ও হিসাবরক্ষক একই জন\",\"The account details checker is the ledger keeper\",void 0)),a(e.d.ch"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 41521,
+        "text": "S(\"verifier_is_keeper\",\"red\",\"হিসাবের তথ্যের যাচাইকারী ও হিসাবরক্ষক একই জন\",\"The account details checker is the ledger keeper\",void 0)),a(e.d.chg_approver)&&a(e.d.keeper)&&e.d.chg_approver===e.d.keeper&&r.push("
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 41731,
+        "text": "S(\"change_approver_is_keeper\",\"red\",\"তথ্য বদলের অনুমোদনকারী ও হিসাবরক্ষক একই জন\",\"The change approver is the ledger keeper\",void 0)),t.some(e=>o(e.pay)>0)&&!a(e.d.verifier)&&r.push(S(\"pay_before_verify\",\"red\",\""
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 41912,
+        "text": "S(\"pay_before_verify\",\"red\",\"হিসাবের তথ্য যাচাই ছাড়াই পেমেন্ট লেখা হয়েছে\",\"A payment is written before the account details were checked\",void 0)),{v:s,rows:{lines:l},flags:r,needs:[]}}};{const M=window.BOS_AP"
+      }
+    ],
+    "observed_gap": "Supplier profile fields are declaration-only in calc; kind Other shows optional text. Keeper identity is compared to verifier and change approver; same actor red. Positive payment without verifier red, but signed account and scope not proven.",
+    "dependency": "Supplier master, scoped ledger keeper and separately verified bank-change workflow",
+    "correction": "Require independently authenticated canonical references for Supplier master, scoped ledger keeper and separately verified bank-change workflow",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

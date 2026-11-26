@@ -1,0 +1,1305 @@
+{
+  "schema_version": 1,
+  "batch": "A012",
+  "source": {
+    "path": "forms.js",
+    "legacy_trunk_path": "legacy/islamia-erp/forms.js",
+    "git_blob": "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d",
+    "parent_commit": "456de1905707f125eaf9c0a82b5009698bf41156",
+    "sha256": "53ca5ac41a8f663fbcc76c4be5a7ec1d5a937d97dcf4020f709ff69eecae9e73",
+    "ci_compatibility": "Legacy tests use relocated path. CI stages a byte-identical copy of the pinned Git blob in the ephemeral checkout.",
+    "supplements": {
+      "forms_cash.js": "ce58ef83daa19273b766f3eac63db5f97cc741ffb26ed21076ab948032c14022",
+      "forms_stock.js": "f6d8cfb25718ab6ec90d23cbbfbc9a1b18b1489c693b8b1413c339e32e058e81",
+      "forms_sales.js": "cf0d825cf019ce77859265c2e5d4698cc38f31f121ad5661fc8a3c92e7590163"
+    }
+  },
+  "rules": {
+    "delivery": {
+      "behavior": "Home mode requires address; Other delivery mode reveals optional description. Date/time required; source compares date to order date with strict earlier-than red. No route capacity or address validation is shown.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 7874,
+          "text": "r(o.deliv_date)&&o.deliv_date<e.date&&i.push(q(\"delivery_past\",\"red\",\"ডেলিভারির তারিখ অর্ডারের তারিখের আগে\",\"Delivery date is before the order date\"));const l=P(e,\"discount_limit\");s(o.disco"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 7919,
+          "text": "q(\"delivery_past\",\"red\",\"ডেলিভারির তারিখ অর্ডারের তারিখের আগে\",\"Delivery date is before the order date\"));const l=P(e,\"discount_limit\");s(o.discount)>0&&(null===l&&a.push(\"discount_limit\"),("
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "items": {
+      "behavior": "Item and quantity declared required. No item code in any row triggers red; descriptions, design and personalization do not establish product compatibility or reserved stock.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 9120,
+          "text": "O(e.rows(\"items\"))&&i.push(q(\"no_items\",\"red\",\"অর্ডারে কোনো পণ্য লেখা নেই\",\"No item lines on the order\")),{v:n,flags:i,needs:a}}},"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 9147,
+          "text": "q(\"no_items\",\"red\",\"অর্ডারে কোনো পণ্য লেখা নেই\",\"No item lines on the order\")),{v:n,flags:i,needs:a}}},"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "payment": {
+      "behavior": "Balance rounds total minus discount and advance; negative with total present is red. Positive rounded discount exceeds configured threshold or treats missing threshold as unresolved; slip changes red to yellow. Positive advance shows mode; Other mode shows optional text.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 7684,
+          "text": "d=A(s(o.total)-s(o.discount)-s(o.advance));n.balance=d,r(o.total)&&d<0&&i.push(q(\"adv_over_total\",\"red\",\"অ্যাডভান্স ও ডিসকাউন্ট মোটের চেয়ে বেশি\",\"Advance and discount exceed the total\",d)),"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 7763,
+          "text": "q(\"adv_over_total\",\"red\",\"অ্যাডভান্স ও ডিসকাউন্ট মোটের চেয়ে বেশি\",\"Advance and discount exceed the total\",d)),r(o.deliv_date)&&o.deliv_date<e.date&&i.push(q(\"delivery_past\",\"red\",\"ডেলিভারির"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 8149,
+          "text": "\"discount_over\",r(o.disc_slip)?\"yellow\":\"red\",r(o.disc_slip)?\"ডিসকাউন্ট সীমার উপরে — স্লিপ আছে\":\"ডিসকাউন্ট সীমার উপরে — অনুমোদন স্লিপ (S-০২) লাগবে\",r(o.disc_slip)?\"Discount above the limit —"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "factory": {
+      "behavior": "On-board checkbox required. Same named board checker and taker warns yellow. Factory progress and transfer reference do not enter calc and are not authenticated by it.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 8932,
+          "text": "r(o.board_checker)&&o.board_checker===o.taker&&i.push(q(\"board_checker_is_maker\",\"yellow\",\"বোর্ড যাচাইকারী ও অর্ডার গ্রহণকারী একই জন\",\"Board checker and order taker are the same person\")),O("
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 8986,
+          "text": "q(\"board_checker_is_maker\",\"yellow\",\"বোর্ড যাচাইকারী ও অর্ডার গ্রহণকারী একই জন\",\"Board checker and order taker are the same person\")),O(e.rows(\"items\"))&&i.push(q(\"no_items\",\"red\",\"অর্ডারে ক"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "handover": {
+      "behavior": "M requires key checks only while not_collected falsy; representative name shows whenever rep and is required only while collected. Printed payment–verification–signature–board order is not enforced by calc.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 5520,
+          "text": "p(\"cust_signed\",t(\"৩ · কাস্টমারের স্বাক্ষর নেওয়া হয়েছে\",\"3 · Customer signed\"),{req:M}),c(\"sign_time\",t(\"সময়\",\"Time\")),v(\"received_by\",t(\"গ্রহণকারী (Received by)\",\"Received by\"),[[\"self\","
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "disposition": {
+      "behavior": "L exposes disposition on not_collected. Positive advance requires advance fate; goods fate, reason and decider always required in that branch. Missing hold rule requests setting only when not collected. Yellow for not collected and for custom refund.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 8632,
+          "text": "const c=P(e,\"order_hold_days\");return n.hold_text=null===c?D:t(C(c)+\" দিন\",C(c)+\" days\"),o.not_collected&&null===c&&a.push(\"order_hold_days\"),o.not_collected&&i.push(q(\"order_not_collected\","
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 8798,
+          "text": "q(\"order_not_collected\",\"yellow\",\"অর্ডার নেওয়া হয়নি / বাতিল\",\"Order not collected / cancelled\",s(o.advance)>0?s(o.advance):void 0)),r(o.board_checker)&&o.board_checker===o.taker&&i.push(q("
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 8481,
+          "text": "q(\"custom_refund\",\"yellow\",\"কাস্টম-মেইড অর্ডারের অ্যাডভান্স সাধারণত ফেরত নয়\",\"Advance on a custom-made order is normally not refunded\",s(o.advance)));const c=P(e,\"order_hold_days\");return n"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "references": {
+      "behavior": "Clock time and daily sheet and memo references are declared with no required syntax. Calc uses discount rows, not source reference identity.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 9316,
+          "text": "head:[c(\"time\",t(\"সময়\",\"Time\")),a(\"sheet_no\",t(\"দৈনিক শোরুম শিট নং\",\"Daily showroom sheet no.\")),a(\"memo_no\",t(\"অর্ডার / মেমো নং (থাকলে)\",\"Order / memo no. (if any)\"))],sections:[{title:t(\""
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    }
+  },
+  "warning_map": {
+    "delivery_past": "red",
+    "no_items": "red",
+    "adv_over_total": "red",
+    "discount_over": "yellow or red",
+    "board_checker_is_maker": "yellow",
+    "order_not_collected": "yellow",
+    "custom_refund": "yellow"
+  },
+  "fields": [
+    {
+      "source_id": "S-01:address",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 2202,
+        "literal": "a(\"address\",t(\"ঠিকানা (ডেলিভারি হলে)\",\"Address (if delivered)\"),{wide:!0,show:e=>\"home\"===e.d.deliv_mode,req:e=>\"home\"===e.d.deliv_mode})",
+        "constructor_alias": "a",
+        "label_bn": "ঠিকানা (ডেলিভারি হলে)",
+        "label_en": "Address (if delivered)"
+      },
+      "type": "T",
+      "requirements": "e=>\"home\"===e.d.deliv_mode",
+      "visibility": "e=>\"home\"===e.d.deliv_mode",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "delivery",
+      "issue_id": "A012-F001",
+      "data_origin": "Scoped delivery address and committed fulfillment time",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:deliv_by",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 2340,
+        "literal": "v(\"deliv_by\",t(\"ডেলিভারি মাধ্যম\",\"Delivery by\"),N)",
+        "constructor_alias": "v",
+        "label_bn": "ডেলিভারি মাধ্যম",
+        "label_en": "Delivery by"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "delivery",
+      "issue_id": "A012-F001",
+      "data_origin": "Scoped delivery address and committed fulfillment time",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:deliv_other",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 2391,
+        "literal": "a(\"deliv_other\",t(\"অন্য ডেলিভারি মাধ্যম\",\"Other delivery mode\"),{show:e=>\"other\"===e.d.deliv_by})",
+        "constructor_alias": "a",
+        "label_bn": "অন্য ডেলিভারি মাধ্যম",
+        "label_en": "Other delivery mode"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"other\"===e.d.deliv_by",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "delivery",
+      "issue_id": "A012-F001",
+      "data_origin": "Scoped delivery address and committed fulfillment time",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:deliv_date",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 2489,
+        "literal": "h(\"deliv_date\",t(\"ডেলিভারির তারিখ\",\"Delivery date\"),{req:!0})",
+        "constructor_alias": "h",
+        "label_bn": "ডেলিভারির তারিখ",
+        "label_en": "Delivery date"
+      },
+      "type": "D",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "delivery",
+      "issue_id": "A012-F001",
+      "data_origin": "Scoped delivery address and committed fulfillment time",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:deliv_time",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 2551,
+        "literal": "c(\"deliv_time\",t(\"সময়\",\"Time\"),{req:!0})",
+        "constructor_alias": "c",
+        "label_bn": "সময়",
+        "label_en": "Time"
+      },
+      "type": "TM",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "delivery",
+      "issue_id": "A012-F001",
+      "data_origin": "Scoped delivery address and committed fulfillment time",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:item",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 2659,
+        "literal": "m(\"item\",t(\"আইটেম কোড\",\"Item code\"),{req:!0,wide:!0})",
+        "constructor_alias": "m",
+        "label_bn": "আইটেম কোড",
+        "label_en": "Item code"
+      },
+      "type": "ITEM",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "items",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "items",
+      "issue_id": "A012-F002",
+      "data_origin": "Approved item/UOM and manufacturing order specifications",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:desc",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 2713,
+        "literal": "a(\"desc\",t(\"পণ্যের বিবরণ · আকার · ফ্লেভার\",\"Description · size · flavour\"),{wide:!0})",
+        "constructor_alias": "a",
+        "label_bn": "পণ্যের বিবরণ · আকার · ফ্লেভার",
+        "label_en": "Description · size · flavour"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "items",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "items",
+      "issue_id": "A012-F002",
+      "data_origin": "Approved item/UOM and manufacturing order specifications",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:qty",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 2799,
+        "literal": "d(\"qty\",t(\"পরিমাণ\",\"Quantity\"),{req:!0})",
+        "constructor_alias": "d",
+        "label_bn": "পরিমাণ",
+        "label_en": "Quantity"
+      },
+      "type": "N",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "items",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "items",
+      "issue_id": "A012-F002",
+      "data_origin": "Approved item/UOM and manufacturing order specifications",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:msg",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 2840,
+        "literal": "a(\"msg\",t(\"কেকে লিখিত বার্তা (বানানসহ)\",\"Message on the cake (with spelling)\"),{wide:!0})",
+        "constructor_alias": "a",
+        "label_bn": "কেকে লিখিত বার্তা (বানানসহ)",
+        "label_en": "Message on the cake (with spelling)"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "items",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "items",
+      "issue_id": "A012-F002",
+      "data_origin": "Approved item/UOM and manufacturing order specifications",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:design",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 2930,
+        "literal": "a(\"design\",t(\"ডিজাইন · রং\",\"Design · colour\"))",
+        "constructor_alias": "a",
+        "label_bn": "ডিজাইন · রং",
+        "label_en": "Design · colour"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "items",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "items",
+      "issue_id": "A012-F002",
+      "data_origin": "Approved item/UOM and manufacturing order specifications",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:special",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 2977,
+        "literal": "a(\"special\",t(\"বিশেষ নির্দেশ\",\"Special instruction\"),{wide:!0})",
+        "constructor_alias": "a",
+        "label_bn": "বিশেষ নির্দেশ",
+        "label_en": "Special instruction"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "items",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "items",
+      "issue_id": "A012-F002",
+      "data_origin": "Approved item/UOM and manufacturing order specifications",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:total",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 3086,
+        "literal": "l(\"total\",t(\"মোট\",\"Total\"),{req:!0})",
+        "constructor_alias": "l",
+        "label_bn": "মোট",
+        "label_en": "Total"
+      },
+      "type": "M",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "payment",
+      "issue_id": "A012-F003",
+      "data_origin": "Approved pricing, discount slip and independently reconciled Money advance",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:discount",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 3123,
+        "literal": "l(\"discount\",t(\"ডিসকাউন্ট\",\"Discount\"))",
+        "constructor_alias": "l",
+        "label_bn": "ডিসকাউন্ট",
+        "label_en": "Discount"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "payment",
+      "issue_id": "A012-F003",
+      "data_origin": "Approved pricing, discount slip and independently reconciled Money advance",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:disc_slip",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 3163,
+        "literal": "a(\"disc_slip\",t(\"ডিসকাউন্ট স্লিপ নং\",\"Discount slip no.\"),{show:e=>s(e.d.discount)>0})",
+        "constructor_alias": "a",
+        "label_bn": "ডিসকাউন্ট স্লিপ নং",
+        "label_en": "Discount slip no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>s(e.d.discount)>0",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "payment",
+      "issue_id": "A012-F003",
+      "data_origin": "Approved pricing, discount slip and independently reconciled Money advance",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:adv_mode",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 3289,
+        "literal": "f(\"adv_mode\",t(\"অ্যাডভান্স কীভাবে\",\"Advance paid by\"),I,{show:e=>s(e.d.advance)>0})",
+        "constructor_alias": "f",
+        "label_bn": "অ্যাডভান্স কীভাবে",
+        "label_en": "Advance paid by"
+      },
+      "type": "SEL",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>s(e.d.advance)>0",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "payment",
+      "issue_id": "A012-F003",
+      "data_origin": "Approved pricing, discount slip and independently reconciled Money advance",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:adv_other",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 3373,
+        "literal": "a(\"adv_other\",t(\"অন্য মাধ্যম\",\"Other mode\"),{show:e=>s(e.d.advance)>0&&\"other\"===e.d.adv_mode})",
+        "constructor_alias": "a",
+        "label_bn": "অন্য মাধ্যম",
+        "label_en": "Other mode"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>s(e.d.advance)>0&&\"other\"===e.d.adv_mode",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "payment",
+      "issue_id": "A012-F003",
+      "data_origin": "Approved pricing, discount slip and independently reconciled Money advance",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:on_board",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 3982,
+        "literal": "p(\"on_board\",t(\"পেন্ডিং বোর্ডে লেখা হয়েছে\",\"Written on the pending board\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "পেন্ডিং বোর্ডে লেখা হয়েছে",
+        "label_en": "Written on the pending board"
+      },
+      "type": "CK",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "factory",
+      "issue_id": "A012-F004",
+      "data_origin": "Sales queue, Manufacturing job and Stock transfer challan",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:board_time",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 4068,
+        "literal": "c(\"board_time\",t(\"সময়\",\"Time\"))",
+        "constructor_alias": "c",
+        "label_bn": "সময়",
+        "label_en": "Time"
+      },
+      "type": "TM",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "factory",
+      "issue_id": "A012-F004",
+      "data_origin": "Sales queue, Manufacturing job and Stock transfer challan",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:board_checker",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 4204,
+        "literal": "_(\"board_checker\",t(\"যাচাইকারী (Checked by)\",\"Checked by\"))",
+        "constructor_alias": "_",
+        "label_bn": "যাচাইকারী (Checked by)",
+        "label_en": "Checked by"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "factory",
+      "issue_id": "A012-F004",
+      "data_origin": "Sales queue, Manufacturing job and Stock transfer challan",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:sent_factory",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 4264,
+        "literal": "p(\"sent_factory\",t(\"কারখানার কপি প্রেরিত (Sent)\",\"Factory copy sent\"))",
+        "constructor_alias": "p",
+        "label_bn": "কারখানার কপি প্রেরিত (Sent)",
+        "label_en": "Factory copy sent"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "factory",
+      "issue_id": "A012-F004",
+      "data_origin": "Sales queue, Manufacturing job and Stock transfer challan",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:sent_time",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 4335,
+        "literal": "c(\"sent_time\",t(\"সময়\",\"Time\"))",
+        "constructor_alias": "c",
+        "label_bn": "সময়",
+        "label_en": "Time"
+      },
+      "type": "TM",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "factory",
+      "issue_id": "A012-F004",
+      "data_origin": "Sales queue, Manufacturing job and Stock transfer challan",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:factory_done",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 4467,
+        "literal": "p(\"factory_done\",t(\"কারখানা: উৎপাদন সম্পন্ন\",\"Factory: production done\"))",
+        "constructor_alias": "p",
+        "label_bn": "কারখানা: উৎপাদন সম্পন্ন",
+        "label_en": "Factory: production done"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "factory",
+      "issue_id": "A012-F004",
+      "data_origin": "Sales queue, Manufacturing job and Stock transfer challan",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:factory_sign",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 4541,
+        "literal": "_(\"factory_sign\",t(\"কারখানার স্বাক্ষর\",\"Factory signature\"))",
+        "constructor_alias": "_",
+        "label_bn": "কারখানার স্বাক্ষর",
+        "label_en": "Factory signature"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "factory",
+      "issue_id": "A012-F004",
+      "data_origin": "Sales queue, Manufacturing job and Stock transfer challan",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:xfer_no",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 4602,
+        "literal": "a(\"xfer_no\",t(\"ট্রান্সফার চালান নং\",\"Transfer challan no.\"))",
+        "constructor_alias": "a",
+        "label_bn": "ট্রান্সফার চালান নং",
+        "label_en": "Transfer challan no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "factory",
+      "issue_id": "A012-F004",
+      "data_origin": "Sales queue, Manufacturing job and Stock transfer challan",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:due_paid",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 5024,
+        "literal": "l(\"due_paid\",t(\"১ · প্রথমে বকেয়া পেমেন্ট — নেওয়া হলো\",\"1 · Due payment collected first\"),{req:M})",
+        "constructor_alias": "l",
+        "label_bn": "১ · প্রথমে বকেয়া পেমেন্ট — নেওয়া হলো",
+        "label_en": "1 · Due payment collected first"
+      },
+      "type": "M",
+      "requirements": "M",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:due_mode",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 5124,
+        "literal": "v(\"due_mode\",t(\"কীভাবে\",\"How\"),[[\"cash\",t(\"নগদ\",\"Cash\")],[\"digital\",t(\"ডিজিটাল\",\"Digital\")]])",
+        "constructor_alias": "v",
+        "label_bn": "কীভাবে",
+        "label_en": "How"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:due_time",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 5218,
+        "literal": "c(\"due_time\",t(\"সময়\",\"Time\"))",
+        "constructor_alias": "c",
+        "label_bn": "সময়",
+        "label_en": "Time"
+      },
+      "type": "TM",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:chk_item",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 5249,
+        "literal": "p(\"chk_item\",t(\"২ · কাস্টমারের উপস্থিতিতে যাচাই — পণ্য\",\"2 · Checked with the customer — goods\"),{req:M})",
+        "constructor_alias": "p",
+        "label_bn": "২ · কাস্টমারের উপস্থিতিতে যাচাই — পণ্য",
+        "label_en": "2 · Checked with the customer — goods"
+      },
+      "type": "CK",
+      "requirements": "M",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:chk_qty",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 5355,
+        "literal": "p(\"chk_qty\",t(\"পরিমাণ\",\"Quantity\"),{req:M})",
+        "constructor_alias": "p",
+        "label_bn": "পরিমাণ",
+        "label_en": "Quantity"
+      },
+      "type": "CK",
+      "requirements": "M",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:chk_msg",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 5399,
+        "literal": "p(\"chk_msg\",t(\"লিখিত বার্তা / বানান\",\"Written message / spelling\"),{req:M})",
+        "constructor_alias": "p",
+        "label_bn": "লিখিত বার্তা / বানান",
+        "label_en": "Written message / spelling"
+      },
+      "type": "CK",
+      "requirements": "M",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:chk_design",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 5475,
+        "literal": "p(\"chk_design\",t(\"ডিজাইন\",\"Design\"),{req:M})",
+        "constructor_alias": "p",
+        "label_bn": "ডিজাইন",
+        "label_en": "Design"
+      },
+      "type": "CK",
+      "requirements": "M",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:cust_signed",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 5520,
+        "literal": "p(\"cust_signed\",t(\"৩ · কাস্টমারের স্বাক্ষর নেওয়া হয়েছে\",\"3 · Customer signed\"),{req:M})",
+        "constructor_alias": "p",
+        "label_bn": "৩ · কাস্টমারের স্বাক্ষর নেওয়া হয়েছে",
+        "label_en": "3 · Customer signed"
+      },
+      "type": "CK",
+      "requirements": "M",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:sign_time",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 5610,
+        "literal": "c(\"sign_time\",t(\"সময়\",\"Time\"))",
+        "constructor_alias": "c",
+        "label_bn": "সময়",
+        "label_en": "Time"
+      },
+      "type": "TM",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:received_by",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 5642,
+        "literal": "v(\"received_by\",t(\"গ্রহণকারী (Received by)\",\"Received by\"),[[\"self\",t(\"কাস্টমার নিজে\",\"Customer himself\")],[\"rep\",t(\"প্রতিনিধি\",\"Representative\")]],{req:M})",
+        "constructor_alias": "v",
+        "label_bn": "গ্রহণকারী (Received by)",
+        "label_en": "Received by"
+      },
+      "type": "CH",
+      "requirements": "M",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:rep_name",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 5799,
+        "literal": "a(\"rep_name\",t(\"প্রতিনিধির নাম\",\"Representative name\"),{show:e=>\"rep\"===e.d.received_by,req:e=>\"rep\"===e.d.received_by&&M(e)})",
+        "constructor_alias": "a",
+        "label_bn": "প্রতিনিধির নাম",
+        "label_en": "Representative name"
+      },
+      "type": "T",
+      "requirements": "e=>\"rep\"===e.d.received_by&&M(e)",
+      "visibility": "e=>\"rep\"===e.d.received_by",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:off_board",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 5926,
+        "literal": "p(\"off_board\",t(\"৪ · বোর্ড থেকে সরানো হয়েছে\",\"4 · Removed from the board\"))",
+        "constructor_alias": "p",
+        "label_bn": "৪ · বোর্ড থেকে সরানো হয়েছে",
+        "label_en": "4 · Removed from the board"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:book_crossed",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 6003,
+        "literal": "p(\"book_crossed\",t(\"বইয়ের কপিতে দুই দাগের ক্রস, সময় ও স্বাক্ষর\",\"Book copy crossed with two lines, time and signature\"))",
+        "constructor_alias": "p",
+        "label_bn": "বইয়ের কপিতে দুই দাগের ক্রস, সময় ও স্বাক্ষর",
+        "label_en": "Book copy crossed with two lines, time and signature"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:complaint_no",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 6126,
+        "literal": "a(\"complaint_no\",t(\"অভিযোগ থাকলে রিটার্ন ও অভিযোগ রেজিস্টার নং\",\"Complaint register no. (if any)\"))",
+        "constructor_alias": "a",
+        "label_bn": "অভিযোগ থাকলে রিটার্ন ও অভিযোগ রেজিস্টার নং",
+        "label_en": "Complaint register no. (if any)"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "handover",
+      "issue_id": "A012-F005",
+      "data_origin": "Receipt, fulfilled order confirmation, proof of delivery and return/complaint record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:not_collected",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 6340,
+        "literal": "p(\"not_collected\",t(\"ডেলিভারি নেওয়া হয়নি (Not Collected) / বাতিল\",\"Not collected / cancelled\"))",
+        "constructor_alias": "p",
+        "label_bn": "ডেলিভারি নেওয়া হয়নি (Not Collected) / বাতিল",
+        "label_en": "Not collected / cancelled"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "disposition",
+      "issue_id": "A012-F006",
+      "data_origin": "Versioned hold rule, approved refund and Stock disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:call1",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 6438,
+        "literal": "c(\"call1\",t(\"ফোন করা হয়েছে — সময়\",\"First call — time\"),{show:L})",
+        "constructor_alias": "c",
+        "label_bn": "ফোন করা হয়েছে — সময়",
+        "label_en": "First call — time"
+      },
+      "type": "TM",
+      "requirements": "NOT_DECLARED",
+      "visibility": "L",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "disposition",
+      "issue_id": "A012-F006",
+      "data_origin": "Versioned hold rule, approved refund and Stock disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:call2",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 6505,
+        "literal": "c(\"call2\",t(\"দ্বিতীয়বার — সময়\",\"Second call — time\"),{show:L})",
+        "constructor_alias": "c",
+        "label_bn": "দ্বিতীয়বার — সময়",
+        "label_en": "Second call — time"
+      },
+      "type": "TM",
+      "requirements": "NOT_DECLARED",
+      "visibility": "L",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "disposition",
+      "issue_id": "A012-F006",
+      "data_origin": "Versioned hold rule, approved refund and Stock disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:hold_text",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 6570,
+        "literal": "w(\"hold_text\",t(\"পণ্য রাখা হবে (লোকেশন সেটিংস থেকে)\",\"Goods held for (from location settings)\"),\"text\",{show:L})",
+        "constructor_alias": "w",
+        "label_bn": "পণ্য রাখা হবে (লোকেশন সেটিংস থেকে)",
+        "label_en": "Goods held for (from location settings)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "L",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "disposition",
+      "issue_id": "A012-F006",
+      "data_origin": "Versioned hold rule, approved refund and Stock disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:adv_fate",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 6683,
+        "literal": "v(\"adv_fate\",t(\"অ্যাডভান্স (Advance)\",\"Advance\"),[[\"refund\",t(\"ফেরত\",\"Refund\")],[\"adjust\",t(\"সমন্বয়\",\"Adjust\")],[\"income\",t(\"ব্যবসার আয়ে\",\"To business income\")]],{show:L,req:e=>e.d.not_collected&&s(e.d.advance)>0})",
+        "constructor_alias": "v",
+        "label_bn": "অ্যাডভান্স (Advance)",
+        "label_en": "Advance"
+      },
+      "type": "CH",
+      "requirements": "e=>e.d.not_collected&&s(e.d.advance)>0",
+      "visibility": "L",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "disposition",
+      "issue_id": "A012-F006",
+      "data_origin": "Versioned hold rule, approved refund and Stock disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:goods_fate",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 6900,
+        "literal": "v(\"goods_fate\",t(\"পণ্য\",\"Goods\"),[[\"display\",t(\"ডিসপ্লেতে\",\"To display\")],[\"g2\",t(\"২য় গ্রেড\",\"2nd grade\")],[\"waste\",t(\"অপচয়\",\"Wastage\")]],{show:L,req:e=>e.d.not_collected})",
+        "constructor_alias": "v",
+        "label_bn": "পণ্য",
+        "label_en": "Goods"
+      },
+      "type": "CH",
+      "requirements": "e=>e.d.not_collected",
+      "visibility": "L",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "disposition",
+      "issue_id": "A012-F006",
+      "data_origin": "Versioned hold rule, approved refund and Stock disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:fate_reason",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 7075,
+        "literal": "a(\"fate_reason\",t(\"কারণ\",\"Reason\"),{show:L,req:e=>e.d.not_collected})",
+        "constructor_alias": "a",
+        "label_bn": "কারণ",
+        "label_en": "Reason"
+      },
+      "type": "T",
+      "requirements": "e=>e.d.not_collected",
+      "visibility": "L",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "disposition",
+      "issue_id": "A012-F006",
+      "data_origin": "Versioned hold rule, approved refund and Stock disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:decided_by",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 7145,
+        "literal": "_(\"decided_by\",t(\"সিদ্ধান্তগ্রহণকারী (Decided by)\",\"Decided by\"),{show:L,req:e=>e.d.not_collected})",
+        "constructor_alias": "_",
+        "label_bn": "সিদ্ধান্তগ্রহণকারী (Decided by)",
+        "label_en": "Decided by"
+      },
+      "type": "ST",
+      "requirements": "e=>e.d.not_collected",
+      "visibility": "L",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "disposition",
+      "issue_id": "A012-F006",
+      "data_origin": "Versioned hold rule, approved refund and Stock disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-01:manager",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 7593,
+        "literal": "_(\"manager\",t(\"শোরুম ম্যানেজার\",\"Showroom manager\"))",
+        "constructor_alias": "_",
+        "label_bn": "শোরুম ম্যানেজার",
+        "label_en": "Showroom manager"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "disposition",
+      "issue_id": "A012-F006",
+      "data_origin": "Versioned hold rule, approved refund and Stock disposition",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-02:time",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 9322,
+        "literal": "c(\"time\",t(\"সময়\",\"Time\"))",
+        "constructor_alias": "c",
+        "label_bn": "সময়",
+        "label_en": "Time"
+      },
+      "type": "TM",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "references",
+      "issue_id": "A012-F007",
+      "data_origin": "S-01 order or sales memo and R-01 close record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-02:sheet_no",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 9349,
+        "literal": "a(\"sheet_no\",t(\"দৈনিক শোরুম শিট নং\",\"Daily showroom sheet no.\"))",
+        "constructor_alias": "a",
+        "label_bn": "দৈনিক শোরুম শিট নং",
+        "label_en": "Daily showroom sheet no."
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "references",
+      "issue_id": "A012-F007",
+      "data_origin": "S-01 order or sales memo and R-01 close record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "S-02:memo_no",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 9414,
+        "literal": "a(\"memo_no\",t(\"অর্ডার / মেমো নং (থাকলে)\",\"Order / memo no. (if any)\"))",
+        "constructor_alias": "a",
+        "label_bn": "অর্ডার / মেমো নং (থাকলে)",
+        "label_en": "Order / memo no. (if any)"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "references",
+      "issue_id": "A012-F007",
+      "data_origin": "S-01 order or sales memo and R-01 close record",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    }
+  ],
+  "owner_accepted": false,
+  "parity_certified": false,
+  "field_parity_certified": false,
+  "source_runtime_equivalent": false,
+  "production_ready": false,
+  "erp_posted": false
+}

@@ -37,8 +37,28 @@
     },
     {
       "from": 300,
+      "to": 309,
+      "lane": "NP03B Sales core",
+      "owner": "open"
+    },
+    {
+      "from": 310,
+      "to": 313,
+      "lane": "NP03A Stock forward-port candidate",
+      "owner": "canonical integrator",
+      "note": "Original 0207–0210 exact blobs, proposed renumber for hosted max 0305; confirm Board before apply."
+    },
+    {
+      "from": 314,
+      "to": 315,
+      "lane": "PaperOps W02 forward-port candidate",
+      "owner": "canonical integrator",
+      "note": "Original 0211–0212 exact blobs; private publisher and nonposting boundary remain."
+    },
+    {
+      "from": 316,
       "to": 399,
-      "lane": "NP03B sales core, POS",
+      "lane": "NP03B Sales / later coordination",
       "owner": "open"
     },
     {

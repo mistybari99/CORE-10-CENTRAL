@@ -1,0 +1,106 @@
+name: PaperOps canonical port
+on:
+  pull_request:
+    branches: [ccr-15ed11dd-n3hw5h]
+    paths:
+      - 'modules/paperops/**'
+      - 'internal/migrations/031[0-5]_*.sql'
+      - 'tests/stock-paperops-forward-port.test.cjs'
+      - 'tests/migrations/np03a-*.sql'
+      - 'tests/migrations/np03a-*.sh'
+      - '.github/workflows/paperops-canonical-port.yml'
+permissions:
+  contents: read
+jobs:
+  source-and-isolation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact forward-port blobs and original field ownership
+        run: node --test tests/stock-paperops-forward-port.test.cjs
+      - name: Check source evidence and ownership without legacy execution
+        run: |
+          for check in legacy-rule-extractor field-routing field-batch-audit field-deep-source-recheck field-semantic-triage; do
+            node "modules/paperops/$check.cjs" --check
+          done
+          audit=modules/paperops/field-review/codex-1000
+          node "$audit/summary.cjs" --complete > "$RUNNER_TEMP/paperops-audit-summary.json"
+          node "$audit/completion-matrix.cjs" modules/paperops/field-review/chatgpt-246 --check
+          node --experimental-test-isolation=none --test modules/paperops/tests/*.test.cjs "$audit"/audit*.test.cjs
+      - name: Fetch the canonical classification guard's pinned preview objects
+        run: git fetch --no-tags origin refs/pull/109/head:refs/remotes/origin/pr109-head refs/pull/112/head:refs/remotes/origin/pr112-head
+      - name: Check all 463 frozen files, root and live-module boundaries
+        run: |
+          node --test tests/core10-file-classification.test.js tests/core10-legacy-move-integrity.test.js tests/core10-live-legacy-guard.test.js
+  w02-signed-disposable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: w02_disposable_local
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 15
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: w02_disposable_local
+      CORE10_W02_DISPOSABLE: W02_LOCAL_ONLY
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Genuine local GoTrue and canonical scoped Stock and Control reads
+        run: bash modules/paperops/tests/w02-signed/run.sh
+  np03a-ordered-publication:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: core10_w02_ordered
+          POSTGRES_PASSWORD: w02_disposable_local
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 15
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: w02_disposable_local
+      PGDATABASE: core10_w02_ordered
+      CORE10_W02_DISPOSABLE: W02_LOCAL_ONLY
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test ordered migration rollback and reapply
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          node --test tests/migrations/migration-contract.test.js
+          bash tests/migrations/run-updownup.sh
+          psql -X -v ON_ERROR_STOP=1 -f tests/migrations/control-registry-check.sql
+      - name: Stock supplier return, locations, lot lifecycle and BDT approval E2E
+        run: |
+          for test in supplier-return locations lots po-approval-bdt; do
+            psql -X -q -v ON_ERROR_STOP=1 -f "tests/migrations/np03a-$test-e2e.sql"
+          done
+          bash tests/migrations/np03a-supplier-return-race.sh
+          bash tests/migrations/np03a-lots-race.sh
+      - name: Rehearse signed publication with the pending versions present
+        run: bash modules/paperops/tests/w02-signed/run.sh

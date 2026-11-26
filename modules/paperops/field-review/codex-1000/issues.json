@@ -1,0 +1,244 @@
+[
+  {
+    "issue_id": "A001-F001",
+    "source_ids": [
+      "R-01:board_recon",
+      "R-01:board_cleared",
+      "R-01:delivery_orders",
+      "R-01:prior_adv_ok"
+    ],
+    "severity": "HIGH",
+    "evidence": {
+      "offset_utf16": 23388,
+      "text": "board_recon\",t(\"বোর্ড ও অর্ডার ফরমের বইয়ের রিকনসিলিয়েশন\",\"Board and order book reconciled\")),u(\"board_cleared\",t(\"আজকের সব অর্ডার বোর্ড থেকে মোছা\",\"Today's or"
+    },
+    "observed_gap": "No R-01 calculator enforces these attestations or checks the order references.",
+    "synthetic_reproduction": "See grouped behavior and associated test fixtures. Use synthetic records scoped to one site.",
+    "dependency": "Sales order book, delivery events and Money customer-advance allocations; board reconciliation and removal are human attestations. Preserve order IDs and pending balances before board clearance.",
+    "correction": "Require scoped order/delivery references and independent close reconciliation; preserve pending orders and prevent repeated advance allocation.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A001-F002",
+    "source_ids": [
+      "R-01:total_entered",
+      "R-01:cat_sum",
+      "R-01:cat_match"
+    ],
+    "severity": "HIGH",
+    "evidence": {
+      "offset_utf16": 32226,
+      "text": "const f=s(N.map(([e])=>o[\"cat_\"+e]));if(d.cat_sum=f,n(o.total_entered)){const e=f-r(o.total_entered);d.cat_match=0===e?t(\"মিল আছে ✓\",\"Matches ✓\"):t(\"অমিল ৳ \"+q("
+    },
+    "observed_gap": "Sum the eight N category inputs. When total_entered passes n(), subtract entered total from category sum. Nonzero emits red cat_total_mismatch. Otherwise cat_match is blank.",
+    "synthetic_reproduction": "See grouped behavior and associated test fixtures. Use synthetic records scoped to one site.",
+    "dependency": "Sales posted invoice and POS category projection by site and shift.",
+    "correction": "Reconcile immutable category totals against the sales ledger; define decimal and input-presence behavior.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A001-F003",
+    "source_ids": [
+      "R-01:online_sales"
+    ],
+    "severity": "MEDIUM",
+    "evidence": {
+      "offset_utf16": 24192,
+      "text": "c(\"online_sales\",t(\"এর মধ্যে অনলাইন\",\"of which online\")),c(\"party_cash\",t(\"পার্টি ও পাইকারি ক্যাশ\",\"Party & wholesale cash\")),a(\"party_invoice\",t(\"ইনভয়েস নং\",\""
+    },
+    "observed_gap": "Informational subset of total. The close calculator does not consume online_sales.",
+    "synthetic_reproduction": "See grouped behavior and associated test fixtures. Use synthetic records scoped to one site.",
+    "dependency": "Sales channel breakdown from posted invoices.",
+    "correction": "Generate from Sales channel metadata and reconcile to the site total.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A001-F004",
+    "source_ids": [
+      "R-01:party_cash",
+      "R-01:party_invoice",
+      "R-01:goods_based",
+      "R-01:retail",
+      "R-01:gm_text"
+    ],
+    "severity": "HIGH",
+    "evidence": {
+      "offset_utf16": 32560,
+      "text": "const w=r(o.total_entered),y=w-r(o.party_cash);if(d.retail=y,n(o.goods_based)){const e=r(o.goods_based)-y,n=c(\"goods_money_tol_pct\"),s=c(\"goods_money_tol_max\");"
+    },
+    "observed_gap": "goods_based is an entered amount; no stock-price join in R-01. When present, goods_based minus retail is compared with inclusive percentage (only for positive retail) OR absolute tolerance. Nonzero is yellow within either tolerance, red otherwise; absent both settings records missing settings.",
+    "synthetic_reproduction": "See grouped behavior and associated test fixtures. Use synthetic records scoped to one site.",
+    "dependency": "Sales wholesale invoices and Stock sale issues joined to the effective price list, scoped to business/site. Gross sales less party_cash gives retail.",
+    "correction": "Materialize a source-linked goods valuation and agree tolerance and effective price basis before use.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A001-F005",
+    "source_ids": [
+      "R-01:d_bkash",
+      "R-01:d_nagad",
+      "R-01:d_card",
+      "R-01:d_bank",
+      "R-01:d_other",
+      "R-01:d_total",
+      "R-01:d_phone",
+      "R-01:d_nopersonal"
+    ],
+    "severity": "HIGH",
+    "evidence": {
+      "offset_utf16": 33080,
+      "text": "d.d_total=s([\"d_bkash\",\"d_nagad\",\"d_card\",\"d_bank\",\"d_other\"].map(e=>o[e]));const g=(n(o.open_counted)?r(o.open_counted):null===l?0:l)+w-d.d_total+r(o.dues)+r(o"
+    },
+    "observed_gap": "Five amounts summed into d_total and deducted from expected drawer balance. Required checkboxes carry no source account or settlement identity.",
+    "synthetic_reproduction": "See grouped behavior and associated test fixtures. Use synthetic records scoped to one site.",
+    "dependency": "Money payment settlement by verified merchant account and tender; keep independent attestations for device and personal-account checks.",
+    "correction": "Resolve merchant account against authorized business scope and match settlement evidence; checkbox alone cannot validate the account.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A001-F006",
+    "source_ids": [
+      "R-01:dues",
+      "R-01:new_adv",
+      "R-01:prior_adv",
+      "R-01:rounding"
+    ],
+    "severity": "HIGH",
+    "evidence": {
+      "offset_utf16": 33226,
+      "text": "+r(o.dues)+r(o.new_adv)-r(o.prior_adv)-r(o.refund)-r(o.credit_sales)-r(o.midday_hub)+r(o.rounding),v=e.den(\"cash_count\");if(d.counted_total=v,d.expected=g,v>0){"
+    },
+    "observed_gap": "Add dues and new_adv; subtract prior_adv; add signed rounding. No R-01 transaction identity or adjustment cap is evidenced.",
+    "synthetic_reproduction": "See grouped behavior and associated test fixtures. Use synthetic records scoped to one site.",
+    "dependency": "Money receipts, customer advance liability entries and audited signed rounding adjustment.",
+    "correction": "Link allocations to unique source transactions and approval; apply exact currency and authorized rounding bounds.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A001-F007",
+    "source_ids": [
+      "R-01:disc_n",
+      "R-01:disc_amt",
+      "R-01:cancel_n"
+    ],
+    "severity": "MEDIUM",
+    "evidence": {
+      "offset_utf16": 25485,
+      "text": "d(\"disc_n\",t(\"ডিসকাউন্ট (টি)\",\"Discounts (no.)\")),c(\"disc_amt\",t(\"ডিসকাউন্ট ৳ (তথ্য)\",\"Discount ৳ (info)\")),d(\"cancel_n\",t(\"বাতিল বিক্রয় (টি)\",\"Cancelled sales"
+    },
+    "observed_gap": "Informational fields; no direct contribution to expected balance. Source does not prove whether the entered sales total is gross or net of these events.",
+    "synthetic_reproduction": "See grouped behavior and associated test fixtures. Use synthetic records scoped to one site.",
+    "dependency": "Sales discount and cancellation events and related approval audit entries.",
+    "correction": "Derive from posted sales events and prevent double subtraction in the close.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A001-F008",
+    "source_ids": [
+      "R-01:refund",
+      "R-01:refund_ref",
+      "R-01:credit_sales",
+      "R-01:credit_memo",
+      "R-01:midday_hub",
+      "R-01:midday_slip"
+    ],
+    "severity": "HIGH",
+    "evidence": {
+      "offset_utf16": 33264,
+      "text": "-r(o.refund)-r(o.credit_sales)-r(o.midday_hub)+r(o.rounding),v=e.den(\"cash_count\");if(d.counted_total=v,d.expected=g,v>0){const e=v-g;d.short_over=e,d.so_nonzer"
+    },
+    "observed_gap": "Each amount is subtracted. Each reference is visible when its corresponding amount parses greater than zero. No req syntax on these references and negative amounts reverse the arithmetic direction.",
+    "synthetic_reproduction": "See grouped behavior and associated test fixtures. Use synthetic records scoped to one site.",
+    "dependency": "Money linked refund/transfer vouchers and Sales credit memo or invoice with AR ledger reference; custody handoff for hub transfer.",
+    "correction": "Require verifiable linked documents for qualifying events and sign/precision checks at the canonical boundary.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A001-F009",
+    "source_ids": [
+      "R-01:cash_count",
+      "R-01:counted_total",
+      "R-01:expected",
+      "R-01:short_over",
+      "R-01:so_reason"
+    ],
+    "severity": "HIGH",
+    "evidence": {
+      "offset_utf16": 33156,
+      "text": "const g=(n(o.open_counted)?r(o.open_counted):null===l?0:l)+w-d.d_total+r(o.dues)+r(o.new_adv)-r(o.prior_adv)-r(o.refund)-r(o.credit_sales)-r(o.midday_hub)+r(o.r"
+    },
+    "observed_gap": "Expected starts with counted opening cash, else configured drawer_float, else 0. Add total, dues, advances and signed rounding; subtract digital, allocated advances, refunds, credit sales and midday transfers. Count from den(); short/over and reason only arise for count > 0 and reason only for nonzero difference. Red without tolerance or beyond it; yellow within inclusive tolerance.",
+    "synthetic_reproduction": "See grouped behavior and associated test fixtures. Use synthetic records scoped to one site.",
+    "dependency": "Denomination count by maker; Finance cash close projection and exception reason; retain scope and evidence per drawer/shift.",
+    "correction": "Represent counted zero separately from missing. Require reconciliation and exception evidence for a counted empty drawer.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A001-F010",
+    "source_ids": [
+      "R-01:witness",
+      "R-01:second_count"
+    ],
+    "severity": "HIGH",
+    "evidence": {
+      "offset_utf16": 33659,
+      "text": "n(o.second_count)&&v>0&&r(o.second_count)!==v&&a.push(x(\"second_count_mismatch\",\"red\",\"সাক্ষীর গণনা প্রথম গণনার সমান নয়\",\"Witness count differs from the first "
+    },
+    "observed_gap": "Witness show/req is !pin. Count required syntactically. Red second_count_mismatch only when first count > 0 and second entered differs. Red witness_is_maker when selected witness matches e.me.",
+    "synthetic_reproduction": "See grouped behavior and associated test fixtures. Use synthetic records scoped to one site.",
+    "dependency": "Independent authenticated count event and actor reference within the scoped drawer/site.",
+    "correction": "Bind each count to authenticated maker/checker; establish what PIN attests before any exemption.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A001-F011",
+    "source_ids": [
+      "R-01:leave_float",
+      "R-01:hub_deposit",
+      "R-01:slip_no",
+      "R-01:counterfoil",
+      "R-01:carrier",
+      "R-01:carry_time"
+    ],
+    "severity": "HIGH",
+    "evidence": {
+      "offset_utf16": 33986,
+      "text": "d.hub_deposit=v-r(o.leave_float),n(o.leave_float)&&null!==l&&r(o.leave_float)!==l&&a.push(x(\"float_left_diff\",\"yellow\",\"রেখে যাওয়া খুচরা নির্ধারিত খুচরার সমান "
+    },
+    "observed_gap": "Deposit = count minus leave_float, including zero count; fixed float mismatch yellow. No direct constraint here for negative deposit or linking the handoff metadata to an accepted receipt.",
+    "synthetic_reproduction": "See grouped behavior and associated test fixtures. Use synthetic records scoped to one site.",
+    "dependency": "Money custody transfer event with sender, carrier, receiver, immutable voucher serial and balanced ledger posting.",
+    "correction": "Validate custody amounts and receiver acknowledgement in the same scoped transfer workflow.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A001-F012",
+    "source_ids": [
+      "R-01:kept",
+      "R-01:exp_qty",
+      "R-01:exp_amt"
+    ],
+    "severity": "HIGH",
+    "evidence": {
+      "offset_utf16": 34412,
+      "text": "const S=s(C.map(e=>e.exp_amt));return S>0&&a.push(x(\"expired_loss\",\"yellow\",\"মেয়াদ শেষ পণ্যের ক্ষতি\",\"Loss on expired goods\",S)),o.second_sig&&o.second_sig===e"
+    },
+    "observed_gap": "Fixed stock rows by category. kept is free text and exp_qty is not consumed by the R-01 calculator. Sum exp_amt over stock rows; positive total emits yellow expired_loss. Quantity, expiration date and loss value are not correlated by this rule.",
+    "synthetic_reproduction": "See grouped behavior and associated test fixtures. Use synthetic records scoped to one site.",
+    "dependency": "Stock lot/expiry and quarantine events with item/UOM, cost basis and checker; use Finance valuation for loss evidence.",
+    "correction": "Use structured lot, quantity, UOM and expiry evidence; distinguish near expiry from expired, and keep custody and valuation traceable.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]

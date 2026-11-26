@@ -1,0 +1,115 @@
+{
+  "base": "82e53633d8eeab401ce91424d9467f3ac64778d9",
+  "stock_source": "ad4b956e1523cbc8e7d016f9392150bf3267774c",
+  "paperops_source": "348896d2d3f231a381cef38ad3dd1fc3c62a29aa",
+  "paperops_tree": "61e9547a55f1f57753c8a6d076a760a8d5eee5ed",
+  "migration_map": [
+    {
+      "original": "internal/migrations/0207_np03a_grn_cancel_supplier_return.down.sql",
+      "path": "internal/migrations/0310_np03a_grn_cancel_supplier_return.down.sql",
+      "sha": "29ee8aa127fa86749b23b828b10f73651eb2a156",
+      "source": "ad4b956e1523cbc8e7d016f9392150bf3267774c"
+    },
+    {
+      "original": "internal/migrations/0207_np03a_grn_cancel_supplier_return.up.sql",
+      "path": "internal/migrations/0310_np03a_grn_cancel_supplier_return.up.sql",
+      "sha": "cf0c6f598ec0fddc7928945101ed83c039811d96",
+      "source": "ad4b956e1523cbc8e7d016f9392150bf3267774c"
+    },
+    {
+      "original": "internal/migrations/0208_np03a_location_list.down.sql",
+      "path": "internal/migrations/0311_np03a_location_list.down.sql",
+      "sha": "fc0c63710fd1c6d2d9dcc6f3d755a9bfa7f402ca",
+      "source": "ad4b956e1523cbc8e7d016f9392150bf3267774c"
+    },
+    {
+      "original": "internal/migrations/0208_np03a_location_list.up.sql",
+      "path": "internal/migrations/0311_np03a_location_list.up.sql",
+      "sha": "0bd228413233add80f650d73c3d6c9fe69f07244",
+      "source": "ad4b956e1523cbc8e7d016f9392150bf3267774c"
+    },
+    {
+      "original": "internal/migrations/0209_np03a_lot_balances_fefo_recall.down.sql",
+      "path": "internal/migrations/0312_np03a_lot_balances_fefo_recall.down.sql",
+      "sha": "55aaffa6e3f8bd04fad12afdb403252b2470a012",
+      "source": "ad4b956e1523cbc8e7d016f9392150bf3267774c"
+    },
+    {
+      "original": "internal/migrations/0209_np03a_lot_balances_fefo_recall.up.sql",
+      "path": "internal/migrations/0312_np03a_lot_balances_fefo_recall.up.sql",
+      "sha": "c8fffa193343aee39b622a3fe7cc13d013e57099",
+      "source": "ad4b956e1523cbc8e7d016f9392150bf3267774c"
+    },
+    {
+      "original": "internal/migrations/0210_np03a_po_approval_bdt.down.sql",
+      "path": "internal/migrations/0313_np03a_po_approval_bdt.down.sql",
+      "sha": "7e32badb0e39dac44fa5d97d83e56ce9fdab8eb7",
+      "source": "ad4b956e1523cbc8e7d016f9392150bf3267774c"
+    },
+    {
+      "original": "internal/migrations/0210_np03a_po_approval_bdt.up.sql",
+      "path": "internal/migrations/0313_np03a_po_approval_bdt.up.sql",
+      "sha": "43600b75ca66689c4710506a9477cbee4f946820",
+      "source": "ad4b956e1523cbc8e7d016f9392150bf3267774c"
+    },
+    {
+      "original": "internal/migrations/0211_np03a_w02_custody_registry.down.sql",
+      "path": "internal/migrations/0314_np03a_w02_custody_registry.down.sql",
+      "sha": "858eacf61c13857782c4f64e6a2a6833e6ea1282",
+      "source": "348896d2d3f231a381cef38ad3dd1fc3c62a29aa"
+    },
+    {
+      "original": "internal/migrations/0211_np03a_w02_custody_registry.up.sql",
+      "path": "internal/migrations/0314_np03a_w02_custody_registry.up.sql",
+      "sha": "2c0837186d215a4a65f4a225058ce7a2ac574fd0",
+      "source": "348896d2d3f231a381cef38ad3dd1fc3c62a29aa"
+    },
+    {
+      "original": "internal/migrations/0212_np03a_w02_close_publication.down.sql",
+      "path": "internal/migrations/0315_np03a_w02_close_publication.down.sql",
+      "sha": "b516755dbf3f6befb466dfd1b3a694b90255a587",
+      "source": "348896d2d3f231a381cef38ad3dd1fc3c62a29aa"
+    },
+    {
+      "original": "internal/migrations/0212_np03a_w02_close_publication.up.sql",
+      "path": "internal/migrations/0315_np03a_w02_close_publication.up.sql",
+      "sha": "421b2d78becb628fe6917b3edc16c3fe1354c06c",
+      "source": "348896d2d3f231a381cef38ad3dd1fc3c62a29aa"
+    }
+  ],
+  "stock_tests": [
+    {
+      "path": "tests/migrations/np03a-locations-e2e.sql",
+      "sha": "e93ab041f7b352b033785d85438477db70bb00c2"
+    },
+    {
+      "path": "tests/migrations/np03a-lots-e2e.sql",
+      "sha": "21ef0ab580df545309c1d75dbc5c61d4d274eb44"
+    },
+    {
+      "path": "tests/migrations/np03a-lots-race-seed.sql",
+      "sha": "90f3ee5599de6c7972d208c8072bf123ece98540"
+    },
+    {
+      "path": "tests/migrations/np03a-lots-race.sh",
+      "sha": "5d090c469b22ac29d6b605ac8caa373e6a2acbee"
+    },
+    {
+      "path": "tests/migrations/np03a-po-approval-bdt-e2e.sql",
+      "sha": "68df11a172fcf7ce0854ef708ba1b2f248845e96"
+    },
+    {
+      "path": "tests/migrations/np03a-supplier-return-e2e.sql",
+      "sha": "20a7b32df26ee34d73dc7ab1ab9cbad023025fc8"
+    },
+    {
+      "path": "tests/migrations/np03a-supplier-return-race-seed.sql",
+      "sha": "9e9700f6d6267f8e09f6e0bb32994ad8c2bf1aa5"
+    },
+    {
+      "path": "tests/migrations/np03a-supplier-return-race.sh",
+      "sha": "ad79b96bf3ac5e26c2cc3def5eb46beed0e4921e"
+    }
+  ],
+  "state": "candidate; no hosted apply; Board confirmation and exact-head CI required"
+}

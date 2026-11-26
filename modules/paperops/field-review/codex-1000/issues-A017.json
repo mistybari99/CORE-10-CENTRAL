@@ -1,0 +1,256 @@
+[
+  {
+    "issue_id": "A017-F001",
+    "source_ids": [
+      "A-02:chg"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 44702,
+        "text": "chg:r(e.p_start)&&r(e.p_end)?(s(e.p_end)-s(e.p_start)>=0?\"+\":\"\")+C(s(e.p_end)-s(e.p_start)):\"\"}));return r(e.c.checked_by)&&r(o.prepared_by)&&e.c.checked_by===o.prepared_by&&a.push(q(\"checke"
+      }
+    ],
+    "observed_gap": "Row change shown only with both prices; result signed with plus sign for zero and positives. Separate raw summary can assume missing prices through conversion. No unit matching.",
+    "dependency": "Paired same-UOM material purchase prices",
+    "correction": "Link comparable valuation snapshots and treat missing pairs as incomplete.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A017-F002",
+    "source_ids": [
+      "A-02:new_prod",
+      "A-02:on_orders",
+      "A-02:on_sales",
+      "A-02:on_cpo",
+      "A-02:emerg",
+      "A-02:days_text",
+      "A-02:cur",
+      "A-02:prev",
+      "A-02:ly",
+      "A-02:dir"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 44207,
+        "text": "w=[r(o.sales)||f?R(f||d):\"—\",u(c,d),u(p,d),u(s(o.salary),d),s(o.headcount)>0?R(d/s(o.headcount)):\"—\",u(s(o.wastage),d),u(s(o.discount),d),R(m),y,v,R(s(o.receivables)),\"\",R(s(o.new_prod)),s(o"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 45125,
+        "text": "q(\"month_format\",\"red\",\"মাসের ফরম্যাট ভুল — বছর-মাস লিখুন (যেমন 2026-10)\",\"Month format is wrong — write year-month (e.g. 2026-10)\")),p<0&&s(o.reinvest_pct)>0&&a.push(q(\"reinvest_on_loss\",\"y"
+      }
+    ],
+    "observed_gap": "Current 15 KPI cells derive from literal report values; comparisons and direction are entered. Month formatting can normalize invalid numeric months. Ratios blank for nonpositive denominator; cost per order is a source input, not recomputed.",
+    "dependency": "Scoped current and historical KPI snapshots and denominators",
+    "correction": "Validate period, reuse approved source KPIs and separate missing and zero inputs.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A017-F003",
+    "source_ids": [
+      "A-02:leak",
+      "A-02:rec_sales",
+      "A-02:rec_salary",
+      "A-02:rec_leak"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 43966,
+        "text": "n.leak=m,n.leak_nonzero=0!==m;const u=(e,t)=>t>0?(e/t*100).toFixed(1)+\" %\":\"—\",y=_&&l>0?(s(o.close_stock)/(l/_)).toFixed(1):\"—\",v=_&&s(o.purchases)>0?(s(o.payables)/(s(o.purchases)/_)).toFix"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 45027,
+        "text": "q(\"leak_nonzero\",\"yellow\",\"লিক ৳ শূন্য নয়\",\"Leak ৳ is not zero\",m)),r(o.month)&&null===_&&a.push(q(\"month_format\",\"red\",\"মাসের ফরম্যাট ভুল — বছর-মাস লিখুন (যেমন 2026-10)\",\"Month format is w"
+      }
+    ],
+    "observed_gap": "Leak is rounded signed sum and nonzero triggers yellow and required attestation. Sales and payroll checkboxes required syntactically; calculator does not confirm records or existence of worklist entry.",
+    "dependency": "Cash variance, stock shortage, close/salary snapshots and exception queue",
+    "correction": "Reconcile source components against immutable snapshots and link reviewed exceptions.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A017-F004",
+    "source_ids": [
+      "A-02:what",
+      "A-02:who",
+      "A-02:deadline",
+      "A-02:prepared_by",
+      "A-02:owner",
+      "A-02:checked_by"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 44844,
+        "text": "e.c.checked_by===o.prepared_by&&a.push(q(\"checker_is_preparer\",\"red\",\"যাচাইকারী ও প্রস্তুতকারী একই জন\",\"Checker and preparer are the same person\",void 0,{src:\"check\"})),0!==m&&a.push(q(\"leak"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 44883,
+        "text": "q(\"checker_is_preparer\",\"red\",\"যাচাইকারী ও প্রস্তুতকারী একই জন\",\"Checker and preparer are the same person\",void 0,{src:\"check\"})),0!==m&&a.push(q(\"leak_nonzero\",\"yellow\",\"লিক ৳ শূন্য নয়\",\"L"
+      }
+    ],
+    "observed_gap": "Decision text requires assignee and deadline. Checker role and required declarations do not establish actual permission. Calculator warns red when checker equals preparer.",
+    "dependency": "Decision Book with independent reporting signoff",
+    "correction": "Bind author and checker to scoped distinct actors and record decisions as linked tasks.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A017-F005",
+    "source_ids": [
+      "F-05:shift",
+      "F-05:in_charge",
+      "F-05:handover_line",
+      "F-05:safety_defect",
+      "F-05:name",
+      "F-05:state",
+      "F-05:machines_done",
+      "F-05:scale_info",
+      "F-05:scale",
+      "F-05:scale_listed"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 8899,
+        "text": "n.scale_info=null===i?q:i,null===i&&o.push(\"scale_test\");const s=D(e,\"fridges\",\"temp_out_\",r,o),d=D(e,\"fridges2\",\"temp2_out_\",r,o);\"defect\"===t.safety&&r.push(v(\"safety_defect\",\"yellow\",\"গ্য"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 9058,
+        "text": "v(\"safety_defect\",\"yellow\",\"গ্যাস/বিদ্যুৎ/আগুনের নিরাপত্তায় ত্রুটি\",\"Gas / power / fire safety defect\")),e.rows(\"machines\").some(e=>a(e.name))||r.push(v(\"machines_not_recorded\",\"yellow\",\"যন"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 9210,
+        "text": "v(\"machines_not_recorded\",\"yellow\",\"যন্ত্রপাতি চেকে কোনো যন্ত্র লেখা হয়নি\",\"No equipment recorded in the equipment check\"));const c=e.rows(\"machines\").filter(e=>\"defect\"===e.state).length;c"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 9409,
+        "text": "v(\"machine_defect\",\"yellow\",\"যন্ত্রপাতিতে ত্রুটি\",\"Equipment defect\",c,{unit:\"qty\"})),\"off\"===t.scale&&r.push(v(\"scale_off\",\"yellow\",\"পাল্লায় গরমিল — ব্যবহার বন্ধ\",\"Scale is off: stop using"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 9519,
+        "text": "v(\"scale_off\",\"yellow\",\"পাল্লায় গরমিল — ব্যবহার বন্ধ\",\"Scale is off: stop using it\")),\"yes\"===t.unplanned&&r.push(v(\"unplanned_production\",\"yellow\",\"পরিকল্পনার বাইরে উৎপাদন\",\"Unplanned prod"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 9868,
+        "text": "v(\"self_yield_approval\",\"red\",\"ফলনের পার্থক্য উৎপাদনকারী নিজে অনুমোদন করেছেন\",\"Yield difference approved by the producer\")),[[\"pots_by\",\"pots_verify\"],[\"clean_by\",\"clean_verify\"]].some(([e,r"
+      }
+    ],
+    "observed_gap": "Shift and actor required. Safety defect requires description and warns yellow; equipment check absence or defect warn yellow. Scale displays setting, missing setting requested; off requires worklist attestation and warns yellow. Named in-charge equal to yield approver red.",
+    "dependency": "Scoped shift, calibrated equipment, worklist and independent signoff",
+    "correction": "Use actual equipment, shift and custody records and enforce outage/approval state separately.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A017-F006",
+    "source_ids": [
+      "F-05:fridges",
+      "F-05:t2_time",
+      "F-05:fridges2"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 8964,
+        "text": "D(e,\"fridges\",\"temp_out_\",r,o),d=D(e,\"fridges2\",\"temp2_out_\",r,o);\"defect\"===t.safety&&r.push(v(\"safety_defect\",\"yellow\",\"গ্যাস/বিদ্যুৎ/আগুনের নিরাপত্তায় ত্রুটি\",\"Gas / power / fire safety "
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 1139,
+        "text": "a=e>=l&&e<=p;m=a?t(\"সীমার মধ্যে ✓\",\"In range ✓\"):t(\"সীমার বাইরে\",\"Outside the limit\"),a||i.push(v(n+o,\"red\",\"ফ্রিজ / চিলার \"+o+\" এর তাপমাত্রা সীমার বাইরে\",\"Fridge / chiller \"+o+\" temperature out of ra"
+      }
+    ],
+    "observed_gap": "Both tables use two indexed units. Temperature outside inclusive configured min/max emits red temp_out_1/2 or temp2_out_1/2. Missing either bound requests both settings for a present reading. Missing reading does not produce out-of-range warning. t2_time required without ordering check in calc.",
+    "dependency": "Sensor or authenticated measurement record and scoped approved temperature policy",
+    "correction": "Require timestamped measurement and enforce approved response without inferring policy defaults.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A017-F007",
+    "source_ids": [
+      "F-05:pots_done",
+      "F-05:pots_by",
+      "F-05:pots_verify",
+      "F-05:hygiene_done",
+      "F-05:hygiene_verify",
+      "F-05:batch1",
+      "F-05:batch2",
+      "F-05:batch3"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 9992,
+        "text": "[[\"pots_by\",\"pots_verify\"],[\"clean_by\",\"clean_verify\"]].some(([e,r])=>a(t[e])&&t[e]===t[r])&&r.push(v(\"same_person_check\",\"yellow\",\"সম্পাদনকারী ও যাচাইকারী একই জন\",\"Doer and checker are the "
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 10092,
+        "text": "v(\"same_person_check\",\"yellow\",\"সম্পাদনকারী ও যাচাইকারী একই জন\",\"Doer and checker are the same person\"));const h=e.rows(\"incidents\").filter(e=>a(e.what)&&!e.solved).length;return h&&r.push(v"
+      }
+    ],
+    "observed_gap": "Pots completion and actors required. Same pots doer/checker or clean doer/checker warns yellow. Hygiene and batch cleaning declarations do not feed validation of each batch.",
+    "dependency": "Sanitation event and independently verified completion per batch",
+    "correction": "Bind independent checks to actual batch cleanup records and assets.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A017-F008",
+    "source_ids": [
+      "F-05:unplanned",
+      "F-05:unplanned_what",
+      "F-05:breakdown",
+      "F-05:bd_machine",
+      "F-05:bd_time",
+      "F-05:bd_request",
+      "F-05:bd_product",
+      "F-05:bd_result"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 9606,
+        "text": "\"yes\"===t.unplanned&&r.push(v(\"unplanned_production\",\"yellow\",\"পরিকল্পনার বাইরে উৎপাদন\",\"Unplanned production\")),\"yes\"===t.breakdown&&r.push(v(\"breakdown\",\"yellow\",\"যন্ত্র বিকল\",\"Equipment b"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 9634,
+        "text": "v(\"unplanned_production\",\"yellow\",\"পরিকল্পনার বাইরে উৎপাদন\",\"Unplanned production\")),\"yes\"===t.breakdown&&r.push(v(\"breakdown\",\"yellow\",\"যন্ত্র বিকল\",\"Equipment breakdown\")),a(t.yield_approv"
+      },
+      {
+        "source_file": "forms_factory.js",
+        "offset_utf16": 9747,
+        "text": "v(\"breakdown\",\"yellow\",\"যন্ত্র বিকল\",\"Equipment breakdown\")),a(t.yield_approver)&&t.yield_approver===t.in_charge&&r.push(v(\"self_yield_approval\",\"red\",\"ফলনের পার্থক্য উৎপাদনকারী নিজে অনুমোদন"
+      }
+    ],
+    "observed_gap": "Yes unplanned or breakdown warns yellow; details required and visible in each relevant branch. Product checked requires result independently. Breakdown time optional; no repair case or stock quarantine join shown.",
+    "dependency": "Manufacturing exception, Maintenance request and affected lot inspection",
+    "correction": "Record links to equipment incident and inspection of affected lots before release.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]
