@@ -7,6 +7,7 @@ on:
       - "docs/coordination/CENTRAL_SHELL_IMPORT_20261122.json"
       - "tests/core10-central-shell-provenance.test.js"
       - "tests/core10-central-sales-signed.test.cjs"
+      - "tests/core10-central-stock-signed.test.cjs"
       - "tests/core10-central-mobile-nav.test.cjs"
       - "tests/core10-central-signed-context.test.cjs"
       - "tests/core10-live-legacy-guard.test.js"
@@ -46,10 +47,13 @@ jobs:
         run: |
           node apps/central/build.mjs
           sha256sum apps/central/dist/worker.mjs
+          sha256sum apps/central/dist/worker.mjs > "$RUNNER_TEMP/core10-verified-worker.sha256"
       - name: Verify CURRENT site has only declared changes and bundle contains exact UI assets
         run: node --test tests/core10-central-shell-provenance.test.js
       - name: Signed Sales host lifecycle and exact canonical source pins
         run: node --test tests/core10-central-sales-signed.test.cjs
+      - name: Signed Stock regression in same release candidate job
+        run: node --test tests/core10-central-stock-signed.test.cjs
       - name: Install pinned Chromium outside the repository
         run: |
           mkdir -p "$RUNNER_TEMP/core10-playwright"
@@ -68,3 +72,25 @@ jobs:
         env:
           REVIEW_BASE: https://core10-central.mistybari99.workers.dev
         run: node apps/central/verify.cjs
+      - name: Package exact locally tested Worker and provenance (NO deploy)
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          sha256sum -c "$RUNNER_TEMP/core10-verified-worker.sha256"
+          mkdir -p "$RUNNER_TEMP/core10-release-candidate"
+          cp apps/central/dist/worker.mjs "$RUNNER_TEMP/core10-release-candidate/worker.mjs"
+          cd "$RUNNER_TEMP/core10-release-candidate"
+          sha256sum worker.mjs > SHA256SUMS
+          sha256sum -c SHA256SUMS
+          printf 'checkout_commit=%s\ncheckout_tree=%s\npr_head=%s\nworkflow_run=%s\nrun_attempt=%s\n' \
+            "$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)" \
+            "$(git -C "$GITHUB_WORKSPACE" rev-parse 'HEAD^{tree}')" \
+            "$PR_HEAD_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > provenance.txt
+          cat provenance.txt SHA256SUMS
+      - name: Upload tested immutable release candidate (NO deployment)
+        uses: actions/upload-artifact@v4
+        with:
+          name: core10-worker-tested-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/core10-release-candidate/
+          if-no-files-found: error
+          retention-days: 14
