@@ -177,7 +177,7 @@ test("B01 Master Data opens on the shell's verified business through its own sig
     await page.locator("#c10-shell-submit").click();
     await page.locator("#c10-context-signed").waitFor();
     await page.locator("#c10-business").selectOption("20");
-    await page.waitForFunction(() => document.querySelector("#c10-site").selectedOptions[0]?.textContent === "Demo Branch");
+    await page.waitForFunction(() => document.querySelector("#c10-site").selectedOptions[0]?.textContent === "Demo Branch · #201");
 
     const frame = page.frameLocator("#c10-frame");
     const master = frame.locator(".occ-controls select");
@@ -188,7 +188,7 @@ test("B01 Master Data opens on the shell's verified business through its own sig
     assert.deepEqual(await page.evaluate(() => window.fixture.masterBusinesses), [20]);
 
     await page.locator("#c10-business").selectOption("10");
-    await page.waitForFunction(() => document.querySelector("#c10-site").selectedOptions[0]?.textContent === "Demo Store");
+    await page.waitForFunction(() => document.querySelector("#c10-site").selectedOptions[0]?.textContent === "Demo Store · #101");
     assert.equal(await master.inputValue(), "20", "changing shell context must keep the open Master workspace intact");
     await goTo("home");
     await waitForText(page.locator("#c10-entry-status"), "Demo Sweets");

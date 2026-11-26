@@ -1,0 +1,106 @@
+name: CORE10 tested staging modules
+on:
+  pull_request:
+    branches: [ccr-15ed11dd-n3hw5h]
+    paths: ['apps/central/**', 'internal/migrations/**', '.github/workflows/core10-module-preview.yml', 'tests/core10-central-signed-context.test.cjs']
+  push:
+    branches: [ccr-15ed11dd-n3hw5h]
+    paths: ['apps/central/**', 'internal/migrations/**', '.github/workflows/core10-module-preview.yml', 'tests/core10-central-signed-context.test.cjs']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        ports: ['5432:5432']
+        env: {POSTGRES_PASSWORD: postgres}
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 20
+    env: {PGHOST: localhost, PGPORT: '5432', PGUSER: postgres, PGPASSWORD: postgres, PGDATABASE: postgres}
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: |
+          node --test tests/migrations/migration-contract.test.js
+          bash tests/migrations/run-updownup.sh
+      - run: |
+          node apps/central/build.mjs
+          node apps/central/build-clean.mjs
+          node apps/central/build-progress.mjs
+          node --test tests/core10-clean-release.test.cjs tests/core10-progress-gallery.test.cjs
+          npm install --prefix "$RUNNER_TEMP/ui" playwright@1.63.0
+          "$RUNNER_TEMP/ui/node_modules/.bin/playwright" install --with-deps chromium
+          NODE_PATH="$RUNNER_TEMP/ui/node_modules" node --test tests/core10-central-signed-context.test.cjs tests/core10-progress-browser.test.cjs
+          sha256sum apps/central/dist-progress/worker.mjs > preview.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tested-worker
+          path: |
+            apps/central/dist-progress/worker.mjs
+            preview.sha256
+  release:
+    needs: verify
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/ccr-15ed11dd-n3hw5h'
+    runs-on: ubuntu-latest
+    environment: core10-staging
+    concurrency:
+      group: core10-staging-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {name: tested-worker}
+      - name: Verify artifact, release credentials and target branch
+        env:
+          CF_TOKEN: ${{ secrets.CORE10_PREVIEW_WORKER_TOKEN }}
+        run: |
+          : "${CF_TOKEN:?CORE10 preview Worker token required}"
+          sha256sum -c preview.sha256
+          test "$(git ls-remote origin "$GITHUB_REF" | cut -f1)" = "$GITHUB_SHA"
+      - name: Apply verified forward migrations to CORE10 staging
+        env:
+          PGPASSWORD: ${{ secrets.CORE10_STAGING_DB_PASSWORD }}
+          PGHOST: ${{ vars.CORE10_STAGING_POOLER_HOST }}
+          PGUSER: postgres.rhrqhbyzrhaafynfhdaf
+          PGDATABASE: postgres
+          PGSSLMODE: verify-full
+        run: |
+          set -eu
+          : "${PGPASSWORD:?CORE10 staging database password required}"
+          [[ "$PGHOST" =~ ^[a-z0-9-]+\.pooler\.supabase\.com$ ]]
+          export PGSSLROOTCERT=/etc/ssl/certs/ca-certificates.crt
+          psql -XAt -v ON_ERROR_STOP=1 -c 'select name from core10.schema_migrations order by version' > /tmp/applied
+          test -s /tmp/applied
+          while read -r name; do [[ "$name" =~ ^[0-9]{4}_[a-z0-9_]+$ ]] && test -f "internal/migrations/$name.up.sql" || exit 1; done < /tmp/applied
+          bash internal/migrations/run.sh up
+      - name: Deploy tested Worker and verify its signed context asset
+        env:
+          CF_TOKEN: ${{ secrets.CORE10_PREVIEW_WORKER_TOKEN }}
+        run: |
+          set -eu
+          : "${CF_TOKEN:?CORE10 preview Worker token required}"
+          url=https://api.cloudflare.com/client/v4/accounts/382a468cf1bde26b7b3c480acc409732/workers/scripts/core10-central
+          curl -fsS -X PUT -H "Authorization: Bearer $CF_TOKEN" "$url" \
+            -F 'metadata={"main_module":"worker.mjs","compatibility_date":"2026-11-16"};type=application/json' \
+            -F 'worker.mjs=@apps/central/dist-progress/worker.mjs;type=application/javascript+module' | jq -e '.success'
+          curl -fsS -D /tmp/worker-headers -H "Authorization: Bearer $CF_TOKEN" "$url/content/v2" -o /tmp/worker-response
+          python - <<'PYTHON'
+          from email import policy
+          from email.parser import BytesParser
+          from pathlib import Path
+          headers = Path('/tmp/worker-headers').read_bytes().splitlines()
+          mime = next(line for line in reversed(headers) if line.lower().startswith(b'content-type:'))
+          message = BytesParser(policy=policy.default).parsebytes(mime + b'\r\n\r\n' + Path('/tmp/worker-response').read_bytes())
+          modules = [p.get_payload(decode=True) for p in message.iter_parts() if p.get_filename() == 'worker.mjs']
+          if modules != [Path('apps/central/dist-progress/worker.mjs').read_bytes()]:
+              raise SystemExit('Cloudflare readback differs from tested Worker')
+          PYTHON
+          for attempt in {1..12}; do
+            if curl -fsS https://core10-central.mistybari99.workers.dev/shell-context.js | cmp - apps/central/site/shell-context.js; then exit 0; fi
+            sleep 5
+          done
+          exit 1

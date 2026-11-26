@@ -55,11 +55,14 @@ test("§7b.4 browser: one sign-in, group/business/site scoped switching, role-sa
    assert.equal(await page.inputValue("#c10-group"),"1");
    assert.equal(await page.inputValue("#c10-business"),"10");
    assert.equal(await page.inputValue("#c10-site"),"101");
+   assert.match(await page.locator("#c10-site option:checked").innerText(),/#101$/);
+   assert.match(await page.locator("#c10-context-note").innerText(),/সাইট 2/);
    assert.equal(await page.locator("#c10-business").textContent().then(s=>s.includes("Other Workspace")),false);
    await page.locator("#c10-business").selectOption("20");
    await page.waitForFunction(()=>document.querySelector("#c10-business").value==="20"&&!document.querySelector("#c10-business").disabled);
    assert.equal(await page.locator("#c10-site option").count(),1);
    assert.equal(await page.inputValue("#c10-site"),"201");
+   assert.match(await page.locator("#c10-context-note").innerText(),/সাইট 1/);
    await page.locator("#c10-group").selectOption("2");
    await page.waitForFunction(()=>document.querySelector("#c10-group").value==="2"&&!document.querySelector("#c10-group").disabled);
    assert.equal(await page.inputValue("#c10-business"),"30");
@@ -69,7 +72,7 @@ test("§7b.4 browser: one sign-in, group/business/site scoped switching, role-sa
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
    await page.locator('[data-set-lang="en"]').click();
    assert.equal(await page.getAttribute("html","lang"),"en");
-   assert.equal(await page.locator("#c10-context-note").textContent().then(s=>/server-authorized/.test(s)),true);
+   assert.equal(await page.locator("#c10-context-note").textContent().then(s=>/Your authorized sites in this business: 1/.test(s)),true);
    // An account switch must revoke previously rendered business/site names.
    await page.evaluate(()=>window.__scopeTest.changeAccount());
    await page.locator("#c10-context-refresh").click();
