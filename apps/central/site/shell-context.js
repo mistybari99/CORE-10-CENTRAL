@@ -16,6 +16,42 @@ const cfg=win.CORE10_CONTROL_CENTRE_CONFIG;
 const TARGET="https://rhrqhbyzrhaafynfhdaf.supabase.co";
 let client=null,epoch=0,actor="",scope=null,chosen={tenant:null,business:null,site:null},blocked=false;
 let lastMessage=[];
+const locationDetails=$("c10-location-details"),locationStatus=$("c10-location-status"),locationList=$("c10-location-list");
+let locationRevision=0,locationMessage=[];
+function clearLocations(){
+  ++locationRevision;
+  locationDetails.open=false;locationDetails.hidden=true;
+  locationMessage=[];locationStatus.textContent="";locationList.replaceChildren();
+}
+function locationText(bn,en){
+  locationMessage=[bn,en];locationStatus.textContent=t(bn,en);
+}
+locationDetails.addEventListener("toggle",async()=>{
+  const revision=++locationRevision,contextEpoch=epoch;
+  locationList.replaceChildren();locationMessage=[];locationStatus.textContent="";
+  if(!locationDetails.open||blocked||!actor||!chosen.site)return;
+  const businessId=chosen.business,siteId=chosen.site,expectedActor=actor;
+  const current=()=>epoch===contextEpoch&&revision===locationRevision&&locationDetails.open;
+  locationText("লোকেশন পড়া হচ্ছে…","Loading stock locations…");
+  try{
+    if(await currentUser()!==expectedActor||!current())throw Error("SESSION_CHANGED");
+    const response=await client.schema("core10").rpc("inventory_list_locations_v1",{p_business:businessId,p_site:siteId});
+    if(!current())return;
+    if(await currentUser()!==expectedActor||response.error)throw Error("LOCATION_SCOPE");
+    if(!current())return;
+    const data=response.data;
+    if(data?.business_id!==businessId||data.site_id!==siteId||!Array.isArray(data.items)||
+       typeof data.truncated!=="boolean"||data.items.some(x=>x?.site_id!==siteId||!positive(x.location_id)||typeof x.code!=="string"))
+      throw Error("LOCATION_SCOPE");
+    for(const row of data.items){
+      const item=doc.createElement("li");item.textContent=row.code+" · #"+row.location_id;locationList.append(item);
+    }
+    locationText(data.truncated?"প্রথম ২০০০টি অনুমোদিত লোকেশন।":"অনুমোদিত লোকেশন "+data.items.length,
+      data.truncated?"First 2000 authorized locations.":"Authorized locations: "+data.items.length);
+  }catch(_){
+    if(current())locationText("এই সাইটের লোকেশন যাচাই করা যায়নি।","Could not verify locations for this site.");
+  }
+});
 const t=(bn,en)=>doc.documentElement.dataset.lang==="en"?en:bn;
 const businessRoles=new Set(["tenant_owner","business_owner","manager","investor","site_staff"]);
 const positive=(value)=>Number.isSafeInteger(Number(value))&&Number(value)>0&&/^[1-9]\d*$/.test(String(value));
@@ -35,6 +71,7 @@ function scrubEmbedded(){
   win.dispatchEvent(new Event("core10:signed-out"));
 }
 function clearPrivate(purge,state="signed-out"){
+  clearLocations();
   const had=!!actor||!!scope;
   ++epoch;actor="";scope=null;chosen={tenant:null,business:null,site:null};blocked=false;
   signed.hidden=true;anon.hidden=false;panel.hidden=true;open.setAttribute("aria-expanded","false");
@@ -92,6 +129,7 @@ function present(ctx,wanted){
   if(tId!==null)group.value=String(tId);
   if(bId!==null)business.value=String(bId);
   if(sId!==null)site.value=String(sId);
+  locationDetails.hidden=sId===null;
   anon.hidden=true;signed.hidden=false;panel.hidden=true;open.setAttribute("aria-expanded","false");
   if(bId===null){
     message("অনুমোদিত ব্যবসা নেই।","No authorized business.");
@@ -117,6 +155,7 @@ async function currentUser(){
 }
 async function load(wanted){
   if(!client)return;
+  clearLocations();
   const n=++epoch;
   blocked=true;signed.hidden=true;for(const el of [group,business,site,refresh,logout])el.disabled=true;
   message("অনুমোদিত সাইট যাচাই হচ্ছে…","Checking authorized sites…");
@@ -167,6 +206,7 @@ logout.addEventListener("click",async()=>{
 });
 win.addEventListener("core10:language-change",()=>{
   note.textContent=t(...lastMessage);
+  if(locationMessage.length)locationStatus.textContent=t(...locationMessage);
 });
 if(!configReady()){
   open.disabled=true;message("CORE10 স্টেজিং সাইন-ইন উপলব্ধ নয়।","CORE10 staging sign-in unavailable.");

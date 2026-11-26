@@ -26,7 +26,11 @@ jobs:
         with: {node-version: 22}
       - run: |
           node --test tests/migrations/migration-contract.test.js
+          # Bare PG17 lacks Supabase's anonymous role; provision it before migrations
+          # so the original ACL assertions exercise real migration revocations.
+          psql -X -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN"
           bash tests/migrations/run-updownup.sh
+          psql -X -q -v ON_ERROR_STOP=1 -f tests/migrations/np03a-locations-e2e.sql
       - run: |
           node apps/central/build.mjs
           node apps/central/build-clean.mjs
