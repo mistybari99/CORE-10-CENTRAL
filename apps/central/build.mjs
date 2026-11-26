@@ -13,6 +13,7 @@ export const PINS = {
   setup: { sha: "6f058dc", ref: "ccr-15ed11dd-n3hw5h", status: "TRUNK_INTEGRATED" },
   stock: { sha: "ac86ee8", ref: "ccr-15ed11dd-n3hw5h", status: "TRUNK_INTEGRATED" },
   pr109: { sha: "c7165af", ref: "PR #109 NP03B Sales (Draft)", status: "DRAFT_NOT_INTEGRATED" },
+  salesSigned: { sha: "3e008e8ec7db896f46a94ab8ca3d91271905d71d", ref: "ccr-15ed11dd-n3hw5h", status: "TRUNK_INTEGRATED" },
   pr112: { sha: "86851dc", ref: "PR #112 NP05A Sweets Manufacturing (Draft)", status: "DRAFT_NOT_INTEGRATED" },
 };
 const T = "trunk", S = "stock";
@@ -78,6 +79,7 @@ export function build() {
     add("/live/core10-build01-config.js", Buffer.from(out), { kind: "LEVEL2_CONFIG", commit: full("setup"), source: "core10-build01-config.js + STAGING (core10-staging mode)" });
   }
   for (const [k, p] of LIVE) add("/live/" + p, pinned(k, p), { kind: "ACTUAL_SOURCE", status: PINS[k].status, commit: full(k), source: p, git_blob: blob(k, p) });
+  for (const p of ["core10-sales-order.css","core10-sales-master-catalog.js","core10-sales-order-client.js","core10-sales-order-ui.js","core10-sales-invoice-ui.js","core10-sales-order-entry.js"]) add("/signed-sales/" + p, pinned("salesSigned", p), { kind: "ACTUAL_SOURCE", status: PINS.salesSigned.status, commit: full("salesSigned"), source: p, git_blob: blob("salesSigned", p) });
   const ws = {};
   for (const n of SAMPLES) ws[n] = JSON.parse(pinned(T, `tests/pack02/fixtures/${n}.json`).toString("utf8"));
   add("/view/workspace-data.js", Buffer.from("window.CORE10_PREVIEW_WORKSPACE=" + JSON.stringify(ws) + ";\n"),
