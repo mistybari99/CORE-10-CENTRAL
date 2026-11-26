@@ -25,7 +25,6 @@ jobs:
       PGUSER: postgres
       PGPASSWORD: baseline_disposable
       PGDATABASE: postgres
-      BASELINE_PG_CONTAINER: ${{ job.services.postgres.id }}
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
@@ -34,4 +33,6 @@ jobs:
       - name: Exact 71-to-20 coverage and byte verification
         run: node internal/baseline20/verify.mjs
       - name: Independent fresh PG17 builds and full catalog and seed parity
+        env:
+          BASELINE_PG_CONTAINER: ${{ job.services.postgres.id }}
         run: bash internal/baseline20/compare-ci.sh
