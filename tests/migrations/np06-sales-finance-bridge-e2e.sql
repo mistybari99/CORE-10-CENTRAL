@@ -187,6 +187,10 @@ SELECT bridge_test.ok(
   :issue_id,:cash_acct,'2026-11-22',250,'bridgeCollection01')
  = :'collection1'::jsonb,
  'exact-key collection replay does not create second Money journal');
+SELECT bridge_test.denies(format(
+ 'SELECT core10.finance_collect_sales_invoice_v1(%s,%s,%L,%s,%L)',
+ :issue_id,:cash_acct,'2026-11-22',251,'bridgeCollection01'),
+ 'FIN_SALES_COLLECTION_KEY_CONFLICT');
 SELECT bridge_test.ok(
  (SELECT count(*)=1 FROM core10.finance_sales_collections_v1
   WHERE issue_id=:issue_id AND amount=250),
@@ -246,6 +250,26 @@ SELECT bridge_test.denies(format(
  'SELECT core10.finance_collect_sales_invoice_v1(%s,%s,%L,%s,%L)',
  :issue_id,:cash_acct,'2026-11-22',1,'bridgeOverpaid02'),
  'FIN_ARAP_OVERALLOCATION');
+
+-- A customer refund must not be simulated by reversing an allocated journal.
+SELECT core10.control_set_v1(101,NULL,'finance.journal_reverse',true,0::smallint,
+ '{}'::jsonb,NULL,false,0,'Isolated allocated reversal boundary','bridgeReverseOn1');
+SELECT bridge_test.denies(format(
+ 'SELECT core10.finance_reverse_posted_journal_v1(%s,%L,%L,%L)',
+ :journal_id,'2026-11-23','customer_return','bridgeInvoiceUndo'),
+ 'FIN_ARAP_ALLOCATED_REVERSAL_NOT_CONNECTED');
+SELECT bridge_test.denies(format(
+ 'SELECT core10.finance_reverse_posted_journal_v1(%s,%L,%L,%L)',
+ (:'collection1'::jsonb->>'payment_journal_id')::bigint,'2026-11-23','customer_refund','bridgePaymentUndo'),
+ 'FIN_ARAP_ALLOCATED_REVERSAL_NOT_CONNECTED');
+SELECT bridge_test.ok(
+ (SELECT count(*)=0 FROM core10.finance_journals_v1
+ WHERE business_id=101 AND source_domain='finance_reversal'),
+ 'rejected refund and return shortcuts leave no reversal journal');
+SELECT bridge_test.ok(
+ (SELECT count(*)=2 AND sum(amount)=600
+ FROM core10.finance_arap_allocations_v1 WHERE link_id=:ar_link_id),
+ 'rejected reversal leaves the original invoice allocations intact');
 
 -- A disabled current Owner switch even denies replay. No bypass via history.
 SELECT core10.control_set_v1(101,NULL,'finance.sales_collection',false,0::smallint,
