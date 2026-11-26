@@ -17,9 +17,9 @@ const qty=v=>{if(!/^\d{1,7}(?:\.\d{1,3})?$/.test(String(v))||Number(v)<=0||Numbe
 const request=()=>{if(!win.crypto||!win.crypto.randomUUID)bad("SECURE_REQUEST_KEY_UNAVAILABLE");return "stock-"+win.crypto.randomUUID().replaceAll("-","");};
 const text=(v)=>String(v==null?"":v).trim();
 const permitted=["receive","issue","transfer","adjust_in","adjust_out"];
-const state={client:null,business:0,locations:[],items:[],commands:[],busy:false,epoch:0,actor:null,nextBefore:null,nextBalance:null,balances:[]};
+const state={client:null,business:0,locations:[],items:[],commands:[],busy:false,closed:false,epoch:0,actor:null,nextBefore:null,nextBalance:null,balances:[]};
 function scope(){return {epoch:state.epoch,business:state.business,actor:state.actor};}
-function current(x){return x.epoch===state.epoch&&x.business===state.business&&x.actor===state.actor;}
+function current(x){return !state.closed&&x.epoch===state.epoch&&x.business===state.business&&x.actor===state.actor;}
 function assertCurrent(x){if(!current(x))bad("STALE_SCOPE");}
 function errorText(e){
  const code=String(e?.message||e?.code||"SERVER_ERROR");
@@ -186,7 +186,7 @@ async function createDraft(ev){
  finally{state.busy=false;}
 }
 async function workbench(){
- const u=await state.client.auth.getUser();
+ const start=scope();const u=await state.client.auth.getUser();assertCurrent(start);
  if(u.error||!u.data?.user?.id)bad("SIGNED_SESSION_REQUIRED");
  state.actor=u.data.user.id;
  const r=await rpc("build01_context_v1",{});
@@ -237,7 +237,7 @@ async function workbench(){
  state.busy=true;try{await refresh();}finally{state.busy=false;}
 }
 function login(){
- purge();
+ if(state.closed)return;purge();
  const form=E("form");form.id="st-login";form.className="panel";
  form.append(E("h1",t("স্টক · সাইন ইন","Stock · Sign in")),
  field(t("ইমেইল","Email"),"email","st-email",true),
@@ -245,11 +245,11 @@ function login(){
  const submit=E("button",t("সাইন ইন","Sign in"));submit.type="submit";form.append(submit);
  const error=E("p");error.id="st-login-error";error.setAttribute("role","alert");form.append(error);
  form.addEventListener("submit",async ev=>{
- ev.preventDefault();submit.disabled=true;error.textContent="";
+ ev.preventDefault();if(state.closed||submit.disabled)return;const snap=scope();submit.disabled=true;error.textContent="";
  const pass=d.getElementById("st-password");
  try{
   const r=await state.client.auth.signInWithPassword({email:d.getElementById("st-email").value.trim(),password:pass.value});
-  pass.value="";
+  pass.value="";if(!current(snap))return;
   if(r.error||!r.data?.user){error.textContent=t("সাইন ইন ব্যর্থ হয়েছে।","Sign-in failed.");return;}
   await workbench();
  }catch(e){pass.value="";error.textContent=t("সাইন ইন ব্যর্থ হয়েছে।","Sign-in failed.");}
@@ -263,12 +263,14 @@ if(cfg?.url!==target||!cfg.key?.startsWith("sb_publishable_")||!win.supabase?.cr
 }
 state.client=win.supabase.createClient(cfg.url,cfg.key);
 state.client.auth.onAuthStateChange?.((event,session)=>{
- if(event==="SIGNED_OUT"||(state.actor&&session?.user?.id!==state.actor)){purge();win.setTimeout(login,0);}
+ if(state.closed)return;
+ if(event==="SIGNED_OUT"||(state.actor&&session?.user?.id!==state.actor)){purge();const n=state.epoch;win.setTimeout(()=>{if(n===state.epoch)login();},0);}
 });
-win.addEventListener?.("pagehide",purge);
+win.addEventListener?.("pagehide",()=>{state.closed=true;purge();});
 win.addEventListener?.("pageshow",ev=>{if(ev.persisted)win.location.reload();});
-state.client.auth.getUser().then(async r=>{
+const initial=scope();state.client.auth.getUser().then(async r=>{
+ if(!current(initial))return;
  if(!r?.data?.user||r.error)login();
- else try{await workbench();}catch(e){root.replaceChildren(E("p",t("Stock খোলা যাচ্ছে না: ","Cannot open stock: ")+(e.message||"SERVER_ERROR")));}
-}).catch(login);
+ else try{await workbench();}catch(e){if(!state.closed&&state.epoch===initial.epoch)root.replaceChildren(E("p",t("Stock খোলা যাচ্ছে না: ","Cannot open stock: ")+errorText(e)));}
+}).catch(()=>{if(current(initial))login();});
 })(window);
