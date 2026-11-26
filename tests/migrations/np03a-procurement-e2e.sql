@@ -199,5 +199,8 @@ SELECT pg_temp.ok(
  'signed PO detail supplies the invoice check with current ordered, accepted and returned quantities');
 RESET ROLE;
 \echo 'PASS Bakery T01.03 PO100/QC80/signed PO rollup/one stock movement after retry'
+\if :{?supplier_invoice_candidate}
+\ir supplier-invoice-evidence-candidate.sql
+\endif
 ROLLBACK;
 \echo 'PASS np03a-procurement-e2e'
