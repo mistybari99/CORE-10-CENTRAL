@@ -1,0 +1,1354 @@
+{
+  "schema_version": 1,
+  "batch": "A016",
+  "source": {
+    "path": "forms.js",
+    "legacy_trunk_path": "legacy/islamia-erp/forms.js",
+    "git_blob": "f2cb1c5e09210496106ace1bf33ddc40d2d6df1d",
+    "parent_commit": "456de1905707f125eaf9c0a82b5009698bf41156",
+    "sha256": "53ca5ac41a8f663fbcc76c4be5a7ec1d5a937d97dcf4020f709ff69eecae9e73",
+    "ci_compatibility": "Legacy tests use relocated path. CI stages a byte-identical copy of the pinned Git blob in the ephemeral checkout.",
+    "supplements": {
+      "forms_cash.js": "ce58ef83daa19273b766f3eac63db5f97cc741ffb26ed21076ab948032c14022",
+      "forms_stock.js": "f6d8cfb25718ab6ec90d23cbbfbc9a1b18b1489c693b8b1413c339e32e058e81",
+      "forms_sales.js": "cf0d825cf019ce77859265c2e5d4698cc38f31f121ad5661fc8a3c92e7590163"
+    }
+  },
+  "rules": {
+    "liabilities": {
+      "behavior": "Amounts are declared as entered hub-level liabilities. No summation, validation or loan balance reconciliation in weekly calculator.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 33376,
+          "text": "l(\"owner_liab\",t(\"হাব: মালিকের কাছে ব্যবসার দায় (Liability) ৳\",\"Hub: business liability to the owner ৳\")),l(\"outside_debt\",t(\"হাব: বাইরের ঋণ ৳\",\"Hub: outside debt ৳\")),p(\"split_seen\",t(\"দেখ"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "split": {
+      "behavior": "Review and split answer required. Exact yes requires and shows decision attestation and emits yellow. Calculator does not group vouchers automatically.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 36115,
+          "text": "\"yes\"===t.split&&o.push(q(\"split_expenses\",\"yellow\",\"সীমার নিচে ভাগ করা খরচ ধরা পড়েছে\",\"Split expenses below the limit found\")),r(t.prev_total)&&r(t.prev_done)&&r(t.prev_open)&&A(s(t.prev_d"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 36139,
+          "text": "q(\"split_expenses\",\"yellow\",\"সীমার নিচে ভাগ করা খরচ ধরা পড়েছে\",\"Split expenses below the limit found\")),r(t.prev_total)&&r(t.prev_done)&&r(t.prev_open)&&A(s(t.prev_done)+s(t.prev_open))!==A"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "online": {
+      "behavior": "Inputs are entered from marketing and online ledger per note; no ratio calculation, validation or level policy applied in calc.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 34373,
+          "text": "d(\"on_msgs\",t(\"মেসেজ / খোঁজ\",\"Messages / enquiries\")),d(\"on_orders\",t(\"অর্ডার\",\"Orders\")),l(\"on_sales\",t(\"অনলাইন বিক্রি ৳\",\"Online sales ৳\")),l(\"on_ads\",t(\"বিজ্ঞাপন-খরচ ৳\",\"Advertising cost "
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "last_week": {
+      "behavior": "Open count >0 reveals and requires reason. If all three counts present, rounded done+open unequal to rounded total warns yellow. Incomplete values do not trigger mismatch.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 36293,
+          "text": "A(s(t.prev_done)+s(t.prev_open))!==A(s(t.prev_total))&&o.push(q(\"prev_mismatch\",\"yellow\",\"গত সপ্তাহের সিদ্ধান্ত: সম্পন্ন + বাকি ≠ মোট\",\"Last week's decisions: done + open ≠ total\",A(s(t.prev"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 36355,
+          "text": "q(\"prev_mismatch\",\"yellow\",\"গত সপ্তাহের সিদ্ধান্ত: সম্পন্ন + বাকি ≠ মোট\",\"Last week's decisions: done + open ≠ total\",A(s(t.prev_done)+s(t.prev_open)-s(t.prev_total)),{unit:\"qty\"})),{v:{},fl"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "decision": {
+      "behavior": "Present action text makes assignee and deadline required. Worklist and attendance are entries, with no created task, real identity or quorum proven.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 35509,
+          "text": "_(\"who\",t(\"দায়িত্বধারী (Assigned to)\",\"Assigned to\"),{req:e=>r(e.row.what)}),h(\"deadline\",t(\"সময়সীমা\",\"Deadline\"),{req:e=>r(e.row.what)}),p(\"worklist\",t(\"কাজের তালিকায় যোগ\",\"Added to the "
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "period": {
+      "behavior": "Month regex restricts format to four digits and one or two digits, but Date normalizes out-of-range month numbers. Scope and name do not constrain calculator rows.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 43766,
+          "text": "Number(t[2]),0).getDate():null})(o.month);n.days_text=null===_?t(\"মাস লিখুন (যেমন 2026-10)\",\"Enter the month (e.g. 2026-10)\"):String(_);const m=A(s(o.cash_short)+s(o.gm_unexplained)+s(o.coun"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 45125,
+          "text": "q(\"month_format\",\"red\",\"মাসের ফরম্যাট ভুল — বছর-মাস লিখুন (যেমন 2026-10)\",\"Month format is wrong — write year-month (e.g. 2026-10)\")),p<0&&s(o.reinvest_pct)>0&&a.push(q(\"reinvest_on_loss\",\"y"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "pnl": {
+      "behavior": "COGS=opening+purchases−closing; gross=sales−COGS; net=gross−voucher categories−salary−charges. Each major subtotal rounds cents. Reinvestment=net×percentage/100, negative when loss and positive percentage, with warning. Negative COGS also warns red; no limit on percentage in calc.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 43627,
+          "text": "n.reinvest=A(p*s(o.reinvest_pct)/100);const _=(e=>{const t=/^(\\d{4})-(\\d{1,2})$/.exec(String(e||\"\").trim());return t?new Date(Number(t[1]),Number(t[2]),0).getDate():null})(o.month);n.days_te"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 45562,
+          "text": "q(\"cogs_negative\",\"red\",\"বিক্রি হওয়া মালামালের খরচ ঋণাত্মক — মজুদ/ক্রয় যাচাই করুন\",\"Cost of goods sold is negative — check stock/purchases\",l)),f>0&&r(o.sales)&&f!==d&&a.push(q(\"sales_by_g"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 45465,
+          "text": "q(\"net_loss\",\"yellow\",\"এ মাসে নিট ক্ষতি\",\"Net loss this month\",p)),l<0&&r(o.close_stock)&&a.push(q(\"cogs_negative\",\"red\",\"বিক্রি হওয়া মালামালের খরচ ঋণাত্মক — মজুদ/ক্রয় যাচাই করুন\",\"Cost of"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 45292,
+          "text": "q(\"reinvest_on_loss\",\"yellow\",\"নিট ক্ষতি — পুনর্বিনিয়োগের অঙ্ক ঋণাত্মক দেখাচ্ছে\",\"Net is a loss — the reinvestment figure is negative\",n.reinvest)),r(o.sales)&&p<0&&a.push(q(\"net_loss\",\"yel"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "sales_mix": {
+      "behavior": "One name field is location/brand, another is raw material. Preserve both at this manifest key. Sum entered sales_by rows; a positive subtotal unequal to line 1 warns yellow. Zero subtotal does not warn and display falls back to sales.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 44166,
+          "text": "f=A(i(e.rows(\"sales_by\").map(e=>e.amt))),w=[r(o.sales)||f?R(f||d):\"—\",u(c,d),u(p,d),u(s(o.salary),d),s(o.headcount)>0?R(d/s(o.headcount)):\"—\",u(s(o.wastage),d),u(s(o.discount),d),R(m),y,v,R("
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 45739,
+          "text": "q(\"sales_by_gap\",\"yellow\",\"লোকেশন-ব্র্যান্ড বিক্রির যোগ লাইন ১-এর সমান নয়\",\"Sales by location/brand do not add up to line 1\",A(f-d))),{v:n,rows:{kpi:w.map(e=>({cur:e})),raw:b},flags:a,needs"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "leak": {
+      "behavior": "Sales per employee only for positive headcount; wastage and discount ratios only for positive sales. Leak is rounded signed sum of three adjustments; nonzero yellow. Signed components can offset.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 43902,
+          "text": "const m=A(s(o.cash_short)+s(o.gm_unexplained)+s(o.count_short));n.leak=m,n.leak_nonzero=0!==m;const u=(e,t)=>t>0?(e/t*100).toFixed(1)+\" %\":\"—\",y=_&&l>0?(s(o.close_stock)/(l/_)).toFixed(1):\"—"
+        },
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 45027,
+          "text": "q(\"leak_nonzero\",\"yellow\",\"লিক ৳ শূন্য নয়\",\"Leak ৳ is not zero\",m)),r(o.month)&&null===_&&a.push(q(\"month_format\",\"red\",\"মাসের ফরম্যাট ভুল — বছর-মাস লিখুন (যেমন 2026-10)\",\"Month format is w"
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    },
+    "materials": {
+      "behavior": "Exactly five raw rows declared. Row change needs both prices, while summary can calculate a named row with only one price when any price is present in the table. No effective UOM normalization proven.",
+      "fragments": [
+        {
+          "source_file": "forms_sales.js",
+          "offset_utf16": 44671,
+          "text": "const b=e.rows(\"raw\").map(e=>({chg:r(e.p_start)&&r(e.p_end)?(s(e.p_end)-s(e.p_start)>=0?\"+\":\"\")+C(s(e.p_end)-s(e.p_start)):\"\"}));return r(e.c.checked_by)&&r(o.prepared_by)&&e.c.checked_by==="
+        }
+      ],
+      "helper_status": "Literal source checked. Runtime coercion or canonical permissions remain UNKNOWN.",
+      "target_authority": "PROPOSED"
+    }
+  },
+  "warning_map": {
+    "split_expenses": "yellow",
+    "prev_mismatch": "yellow",
+    "month_format": "red",
+    "cogs_negative": "red",
+    "net_loss": "yellow",
+    "reinvest_on_loss": "yellow",
+    "sales_by_gap": "yellow",
+    "leak_nonzero": "yellow"
+  },
+  "fields": [
+    {
+      "source_id": "A-01:owner_liab",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 33376,
+        "literal": "l(\"owner_liab\",t(\"হাব: মালিকের কাছে ব্যবসার দায় (Liability) ৳\",\"Hub: business liability to the owner ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "হাব: মালিকের কাছে ব্যবসার দায় (Liability) ৳",
+        "label_en": "Hub: business liability to the owner ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "liabilities",
+      "issue_id": "A016-F001",
+      "data_origin": "Scoped Money balances and loan source books",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:outside_debt",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 33483,
+        "literal": "l(\"outside_debt\",t(\"হাব: বাইরের ঋণ ৳\",\"Hub: outside debt ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "হাব: বাইরের ঋণ ৳",
+        "label_en": "Hub: outside debt ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "liabilities",
+      "issue_id": "A016-F001",
+      "data_origin": "Scoped Money balances and loan source books",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:split_seen",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 33545,
+        "literal": "p(\"split_seen\",t(\"দেখা হয়েছে (সপ্তাহের সব ব্যয় ভাউচার)\",\"Checked (all expense vouchers of the week)\"),{req:!0})",
+        "constructor_alias": "p",
+        "label_bn": "দেখা হয়েছে (সপ্তাহের সব ব্যয় ভাউচার)",
+        "label_en": "Checked (all expense vouchers of the week)"
+      },
+      "type": "CK",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "split",
+      "issue_id": "A016-F002",
+      "data_origin": "Weekly voucher audit grouped by payee, head and threshold policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:split",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 33659,
+        "literal": "v(\"split\",t(\"সীমার নিচে ভাগ করা খরচ বা পেমেন্ট — সপ্তাহের সব ব্যয় ভাউচার দেখে: একই খাতে বা একই জনকে সীমার নিচে একাধিক?\",\"Split expenses or payments below the limit — after checking all expense vouchers of the week: several below the limit on the same head or to the same person?\"),[[\"no\",t(\"না\",\"No\")],[\"yes\",t(\"হ্যাঁ\",\"Yes\")]],{req:!0})",
+        "constructor_alias": "v",
+        "label_bn": "সীমার নিচে ভাগ করা খরচ বা পেমেন্ট — সপ্তাহের সব ব্যয় ভাউচার দেখে: একই খাতে বা একই জনকে সীমার নিচে একাধিক?",
+        "label_en": "Split expenses or payments below the limit — after checking all expense vouchers of the week: several below the limit on the same head or to the same person?"
+      },
+      "type": "CH",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "split",
+      "issue_id": "A016-F002",
+      "data_origin": "Weekly voucher audit grouped by payee, head and threshold policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:split_in_decisions",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 33998,
+        "literal": "p(\"split_in_decisions\",t(\"হ্যাঁ হলে সিদ্ধান্তে যোগ করা হয়েছে\",\"If yes, added to the decisions\"),{show:e=>\"yes\"===e.d.split,req:e=>\"yes\"===e.d.split})",
+        "constructor_alias": "p",
+        "label_bn": "হ্যাঁ হলে সিদ্ধান্তে যোগ করা হয়েছে",
+        "label_en": "If yes, added to the decisions"
+      },
+      "type": "CK",
+      "requirements": "e=>\"yes\"===e.d.split",
+      "visibility": "e=>\"yes\"===e.d.split",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "split",
+      "issue_id": "A016-F002",
+      "data_origin": "Weekly voucher audit grouped by payee, head and threshold policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:on_msgs",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 34373,
+        "literal": "d(\"on_msgs\",t(\"মেসেজ / খোঁজ\",\"Messages / enquiries\"))",
+        "constructor_alias": "d",
+        "label_bn": "মেসেজ / খোঁজ",
+        "label_en": "Messages / enquiries"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "online",
+      "issue_id": "A016-F003",
+      "data_origin": "Sales and Marketing aggregates and owner-approved progression policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:on_orders",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 34427,
+        "literal": "d(\"on_orders\",t(\"অর্ডার\",\"Orders\"))",
+        "constructor_alias": "d",
+        "label_bn": "অর্ডার",
+        "label_en": "Orders"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "online",
+      "issue_id": "A016-F003",
+      "data_origin": "Sales and Marketing aggregates and owner-approved progression policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:on_sales",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 34463,
+        "literal": "l(\"on_sales\",t(\"অনলাইন বিক্রি ৳\",\"Online sales ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "অনলাইন বিক্রি ৳",
+        "label_en": "Online sales ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "online",
+      "issue_id": "A016-F003",
+      "data_origin": "Sales and Marketing aggregates and owner-approved progression policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:on_ads",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 34515,
+        "literal": "l(\"on_ads\",t(\"বিজ্ঞাপন-খরচ ৳\",\"Advertising cost ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "বিজ্ঞাপন-খরচ ৳",
+        "label_en": "Advertising cost ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "online",
+      "issue_id": "A016-F003",
+      "data_origin": "Sales and Marketing aggregates and owner-approved progression policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:on_cpo",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 34568,
+        "literal": "l(\"on_cpo\",t(\"প্রতি অর্ডারে খরচ ৳\",\"Cost per order ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "প্রতি অর্ডারে খরচ ৳",
+        "label_en": "Cost per order ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "online",
+      "issue_id": "A016-F003",
+      "data_origin": "Sales and Marketing aggregates and owner-approved progression policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:on_complaints",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 34624,
+        "literal": "d(\"on_complaints\",t(\"ফেরত / অভিযোগ\",\"Returns / complaints\"))",
+        "constructor_alias": "d",
+        "label_bn": "ফেরত / অভিযোগ",
+        "label_en": "Returns / complaints"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "online",
+      "issue_id": "A016-F003",
+      "data_origin": "Sales and Marketing aggregates and owner-approved progression policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:rev_good",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 34685,
+        "literal": "d(\"rev_good\",t(\"রিভিউ: ভালো\",\"Reviews: good\"))",
+        "constructor_alias": "d",
+        "label_bn": "রিভিউ: ভালো",
+        "label_en": "Reviews: good"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "online",
+      "issue_id": "A016-F003",
+      "data_origin": "Sales and Marketing aggregates and owner-approved progression policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:rev_bad",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 34732,
+        "literal": "d(\"rev_bad\",t(\"রিভিউ: খারাপ\",\"Reviews: bad\"))",
+        "constructor_alias": "d",
+        "label_bn": "রিভিউ: খারাপ",
+        "label_en": "Reviews: bad"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "online",
+      "issue_id": "A016-F003",
+      "data_origin": "Sales and Marketing aggregates and owner-approved progression policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:level",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 34778,
+        "literal": "v(\"level\",t(\"স্তর\",\"Level\"),[[\"0\",\"0\"],[\"1\",\"1\"],[\"2\",\"2\"],[\"3\",\"3\"],[\"4\",\"4\"]].map(([e,o])=>[e,t(o,o)]))",
+        "constructor_alias": "v",
+        "label_bn": "স্তর",
+        "label_en": "Level"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "online",
+      "issue_id": "A016-F003",
+      "data_origin": "Sales and Marketing aggregates and owner-approved progression policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:level_cond",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 34884,
+        "literal": "v(\"level_cond\",t(\"পরের স্তরে যাওয়ার শর্ত পূরণ (লোকেশন সেটিংস শিট)\",\"Condition for the next level met (location settings sheet)\"),[[\"yes\",t(\"হ্যাঁ\",\"Yes\")],[\"no\",t(\"না\",\"No\")]])",
+        "constructor_alias": "v",
+        "label_bn": "পরের স্তরে যাওয়ার শর্ত পূরণ (লোকেশন সেটিংস শিট)",
+        "label_en": "Condition for the next level met (location settings sheet)"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "online",
+      "issue_id": "A016-F003",
+      "data_origin": "Sales and Marketing aggregates and owner-approved progression policy",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:prev_total",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 35130,
+        "literal": "d(\"prev_total\",t(\"মোট (টি)\",\"Total\"))",
+        "constructor_alias": "d",
+        "label_bn": "মোট (টি)",
+        "label_en": "Total"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "last_week",
+      "issue_id": "A016-F004",
+      "data_origin": "Worklist snapshot and historical decision status",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:prev_done",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 35168,
+        "literal": "d(\"prev_done\",t(\"সম্পন্ন (টি)\",\"Done\"))",
+        "constructor_alias": "d",
+        "label_bn": "সম্পন্ন (টি)",
+        "label_en": "Done"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "last_week",
+      "issue_id": "A016-F004",
+      "data_origin": "Worklist snapshot and historical decision status",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:prev_open",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 35208,
+        "literal": "d(\"prev_open\",t(\"বাকি (টি)\",\"Open\"))",
+        "constructor_alias": "d",
+        "label_bn": "বাকি (টি)",
+        "label_en": "Open"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "last_week",
+      "issue_id": "A016-F004",
+      "data_origin": "Worklist snapshot and historical decision status",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:prev_reason",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 35245,
+        "literal": "a(\"prev_reason\",t(\"বাকি থাকার কারণ\",\"Why still open\"),{show:e=>s(e.d.prev_open)>0,req:e=>s(e.d.prev_open)>0})",
+        "constructor_alias": "a",
+        "label_bn": "বাকি থাকার কারণ",
+        "label_en": "Why still open"
+      },
+      "type": "T",
+      "requirements": "e=>s(e.d.prev_open)>0",
+      "visibility": "e=>s(e.d.prev_open)>0",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "last_week",
+      "issue_id": "A016-F004",
+      "data_origin": "Worklist snapshot and historical decision status",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:what",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 35445,
+        "literal": "a(\"what\",t(\"সিদ্ধান্ত / করণীয়\",\"Decision / action\"),{wide:!0})",
+        "constructor_alias": "a",
+        "label_bn": "সিদ্ধান্ত / করণীয়",
+        "label_en": "Decision / action"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "dec",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "decision",
+      "issue_id": "A016-F005",
+      "data_origin": "Decision Book and scoped worklist events",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:who",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 35509,
+        "literal": "_(\"who\",t(\"দায়িত্বধারী (Assigned to)\",\"Assigned to\"),{req:e=>r(e.row.what)})",
+        "constructor_alias": "_",
+        "label_bn": "দায়িত্বধারী (Assigned to)",
+        "label_en": "Assigned to"
+      },
+      "type": "ST",
+      "requirements": "e=>r(e.row.what)",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "dec",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "decision",
+      "issue_id": "A016-F005",
+      "data_origin": "Decision Book and scoped worklist events",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:deadline",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 35587,
+        "literal": "h(\"deadline\",t(\"সময়সীমা\",\"Deadline\"),{req:e=>r(e.row.what)})",
+        "constructor_alias": "h",
+        "label_bn": "সময়সীমা",
+        "label_en": "Deadline"
+      },
+      "type": "D",
+      "requirements": "e=>r(e.row.what)",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "dec",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "decision",
+      "issue_id": "A016-F005",
+      "data_origin": "Decision Book and scoped worklist events",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:worklist",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 35649,
+        "literal": "p(\"worklist\",t(\"কাজের তালিকায় যোগ\",\"Added to the work list\"))",
+        "constructor_alias": "p",
+        "label_bn": "কাজের তালিকায় যোগ",
+        "label_en": "Added to the work list"
+      },
+      "type": "CK",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "dec",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "decision",
+      "issue_id": "A016-F005",
+      "data_origin": "Decision Book and scoped worklist events",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:present1",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 35786,
+        "literal": "_(\"present1\",t(\"উপস্থিত (Present) — ১\",\"Present — 1\"))",
+        "constructor_alias": "_",
+        "label_bn": "উপস্থিত (Present) — ১",
+        "label_en": "Present — 1"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "decision",
+      "issue_id": "A016-F005",
+      "data_origin": "Decision Book and scoped worklist events",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:present2",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 35841,
+        "literal": "_(\"present2\",t(\"উপস্থিত (Present) — ২\",\"Present — 2\"))",
+        "constructor_alias": "_",
+        "label_bn": "উপস্থিত (Present) — ২",
+        "label_en": "Present — 2"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "decision",
+      "issue_id": "A016-F005",
+      "data_origin": "Decision Book and scoped worklist events",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-01:chair",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 35896,
+        "literal": "_(\"chair\",t(\"সভাপতি (Chair)\",\"Chair\"))",
+        "constructor_alias": "_",
+        "label_bn": "সভাপতি (Chair)",
+        "label_en": "Chair"
+      },
+      "type": "ST",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "decision",
+      "issue_id": "A016-F005",
+      "data_origin": "Decision Book and scoped worklist events",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:month",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 38361,
+        "literal": "a(\"month\",t(\"মাস (বছর-মাস, যেমন 2026-10)\",\"Month (year-month, e.g. 2026-10)\"),{req:!0})",
+        "constructor_alias": "a",
+        "label_bn": "মাস (বছর-মাস, যেমন 2026-10)",
+        "label_en": "Month (year-month, e.g. 2026-10)"
+      },
+      "type": "T",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "period",
+      "issue_id": "A016-F006",
+      "data_origin": "Versioned calendar period and authorized scoped reporting group",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:scope",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 38449,
+        "literal": "v(\"scope\",t(\"পরিধি\",\"Scope\"),[[\"all\",t(\"সব লোকেশন\",\"All locations\")],[\"loc\",t(\"একটি লোকেশন\",\"One location\")],[\"other\",t(\"অন্য\",\"Other\")]])",
+        "constructor_alias": "v",
+        "label_bn": "পরিধি",
+        "label_en": "Scope"
+      },
+      "type": "CH",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "Original choices or picker; see declaration and source evidence",
+      "rule_group": "period",
+      "issue_id": "A016-F006",
+      "data_origin": "Versioned calendar period and authorized scoped reporting group",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:scope_name",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 38588,
+        "literal": "a(\"scope_name\",t(\"লোকেশন / অন্য — নাম\",\"Location / other — name\"),{show:e=>\"loc\"===e.d.scope||\"other\"===e.d.scope})",
+        "constructor_alias": "a",
+        "label_bn": "লোকেশন / অন্য — নাম",
+        "label_en": "Location / other — name"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "e=>\"loc\"===e.d.scope||\"other\"===e.d.scope",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "period",
+      "issue_id": "A016-F006",
+      "data_origin": "Versioned calendar period and authorized scoped reporting group",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:sales",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 38949,
+        "literal": "l(\"sales\",t(\"১ · মোট বিক্রি (শোরুমের মাসের যোগ + পার্টি ও পাইকারির বাকি)\",\"1 · Total sales (showroom month total + party & wholesale credit)\"),{req:!0})",
+        "constructor_alias": "l",
+        "label_bn": "১ · মোট বিক্রি (শোরুমের মাসের যোগ + পার্টি ও পাইকারির বাকি)",
+        "label_en": "1 · Total sales (showroom month total + party & wholesale credit)"
+      },
+      "type": "M",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "pnl",
+      "issue_id": "A016-F007",
+      "data_origin": "Money close, valuation, procurement and approved payroll/expense journals",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:open_stock",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 39102,
+        "literal": "l(\"open_stock\",t(\"২ক · শুরুর মজুদ (স্টোর লেজার)\",\"2a · Opening stock (store ledger)\"),{req:!0})",
+        "constructor_alias": "l",
+        "label_bn": "২ক · শুরুর মজুদ (স্টোর লেজার)",
+        "label_en": "2a · Opening stock (store ledger)"
+      },
+      "type": "M",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "pnl",
+      "issue_id": "A016-F007",
+      "data_origin": "Money close, valuation, procurement and approved payroll/expense journals",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:purchases",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 39198,
+        "literal": "l(\"purchases\",t(\"২খ · মাসের ক্রয়\",\"2b · Purchases of the month\"),{req:!0})",
+        "constructor_alias": "l",
+        "label_bn": "২খ · মাসের ক্রয়",
+        "label_en": "2b · Purchases of the month"
+      },
+      "type": "M",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "pnl",
+      "issue_id": "A016-F007",
+      "data_origin": "Money close, valuation, procurement and approved payroll/expense journals",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:close_stock",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 39274,
+        "literal": "l(\"close_stock\",t(\"২গ · শেষের মজুদ\",\"2c · Closing stock\"),{req:!0})",
+        "constructor_alias": "l",
+        "label_bn": "২গ · শেষের মজুদ",
+        "label_en": "2c · Closing stock"
+      },
+      "type": "M",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "pnl",
+      "issue_id": "A016-F007",
+      "data_origin": "Money close, valuation, procurement and approved payroll/expense journals",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:expenses",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 39640,
+        "literal": "w(\"expenses\",t(\"৪ · খরচ (ব্যয় ভাউচারের যোগ)\",\"4 · Expenses (sum of expense vouchers)\"),\"money\")",
+        "constructor_alias": "w",
+        "label_bn": "৪ · খরচ (ব্যয় ভাউচারের যোগ)",
+        "label_en": "4 · Expenses (sum of expense vouchers)"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "pnl",
+      "issue_id": "A016-F007",
+      "data_origin": "Money close, valuation, procurement and approved payroll/expense journals",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:salary",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 39737,
+        "literal": "l(\"salary\",t(\"৫ · বেতন (মাসিক বেতন শিটের মোট)\",\"5 · Salary (month total of the salary sheet)\"),{req:!0})",
+        "constructor_alias": "l",
+        "label_bn": "৫ · বেতন (মাসিক বেতন শিটের মোট)",
+        "label_en": "5 · Salary (month total of the salary sheet)"
+      },
+      "type": "M",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "pnl",
+      "issue_id": "A016-F007",
+      "data_origin": "Money close, valuation, procurement and approved payroll/expense journals",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:bank_charges",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 39842,
+        "literal": "l(\"bank_charges\",t(\"৬ · ব্যাংক ও মোবাইলের চার্জ\",\"6 · Bank & mobile charges\"))",
+        "constructor_alias": "l",
+        "label_bn": "৬ · ব্যাংক ও মোবাইলের চার্জ",
+        "label_en": "6 · Bank & mobile charges"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "pnl",
+      "issue_id": "A016-F007",
+      "data_origin": "Money close, valuation, procurement and approved payroll/expense journals",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:reinvest_pct",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 40013,
+        "literal": "d(\"reinvest_pct\",t(\"মালিকের ঠিক করা ভাগ (%) — পুনর্বিনিয়োগ\",\"Owner's chosen share (%) — reinvestment\"),{req:!0})",
+        "constructor_alias": "d",
+        "label_bn": "মালিকের ঠিক করা ভাগ (%) — পুনর্বিনিয়োগ",
+        "label_en": "Owner's chosen share (%) — reinvestment"
+      },
+      "type": "N",
+      "requirements": "!0",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "pnl",
+      "issue_id": "A016-F007",
+      "data_origin": "Money close, valuation, procurement and approved payroll/expense journals",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:reinvest",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 40127,
+        "literal": "w(\"reinvest\",t(\"৮ · পুনর্বিনিয়োগ ফান্ডে = নিট লাভ × ভাগ\",\"8 · To the reinvestment fund = net profit × share\"),\"money\")",
+        "constructor_alias": "w",
+        "label_bn": "৮ · পুনর্বিনিয়োগ ফান্ডে = নিট লাভ × ভাগ",
+        "label_en": "8 · To the reinvestment fund = net profit × share"
+      },
+      "type": "CALC",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "pnl",
+      "issue_id": "A016-F007",
+      "data_origin": "Money close, valuation, procurement and approved payroll/expense journals",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:sales_by",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 40347,
+        "literal": "g(\"sales_by\",t(\"বিক্রি — লোকেশন ও ব্র্যান্ড ধরে\",\"Sales — by location and brand\"),[a(\"name\",t(\"লোকেশন · ব্র্যান্ড\",\"Location · brand\"),{wide:!0}),l(\"amt\",t(\"বিক্রি ৳\",\"Sales ৳\"))],{min:2})",
+        "constructor_alias": "g",
+        "label_bn": "বিক্রি — লোকেশন ও ব্র্যান্ড ধরে",
+        "label_en": "Sales — by location and brand"
+      },
+      "type": "TABLE",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "sales_mix",
+      "issue_id": "A016-F008",
+      "data_origin": "Scoped location/brand Sales aggregation and separate item master",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:name",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 40430,
+        "literal": "a(\"name\",t(\"লোকেশন · ব্র্যান্ড\",\"Location · brand\"),{wide:!0})",
+        "constructor_alias": "a",
+        "label_bn": "লোকেশন · ব্র্যান্ড",
+        "label_en": "Location · brand"
+      },
+      "alternate_evidence": {
+        "offset_utf16": 41254,
+        "literal": "a(\"name\",t(\"কাঁচামাল\",\"Raw material\"),{wide:!0})",
+        "constructor_alias": "a",
+        "label_bn": "কাঁচামাল",
+        "label_en": "Raw material"
+      },
+      "type": "T",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "sales_by and raw",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "sales_mix",
+      "issue_id": "A016-F008",
+      "data_origin": "Scoped location/brand Sales aggregation and separate item master",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:amt",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 40493,
+        "literal": "l(\"amt\",t(\"বিক্রি ৳\",\"Sales ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "বিক্রি ৳",
+        "label_en": "Sales ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "sales_by",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "sales_mix",
+      "issue_id": "A016-F008",
+      "data_origin": "Scoped location/brand Sales aggregation and separate item master",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:headcount",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 40536,
+        "literal": "d(\"headcount\",t(\"কর্মী-সংখ্যা (মাসিক হাজিরা রেজিস্টার)\",\"Headcount (monthly attendance register)\"))",
+        "constructor_alias": "d",
+        "label_bn": "কর্মী-সংখ্যা (মাসিক হাজিরা রেজিস্টার)",
+        "label_en": "Headcount (monthly attendance register)"
+      },
+      "type": "N",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "leak",
+      "issue_id": "A016-F009",
+      "data_origin": "Attendance, Stock wastage/counted shortage, Sales discount and cash reconciliation",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:wastage",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 40636,
+        "literal": "l(\"wastage\",t(\"অপচয় (Wastage) ৳\",\"Wastage ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "অপচয় (Wastage) ৳",
+        "label_en": "Wastage ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "leak",
+      "issue_id": "A016-F009",
+      "data_origin": "Attendance, Stock wastage/counted shortage, Sales discount and cash reconciliation",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:discount",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 40684,
+        "literal": "l(\"discount\",t(\"ডিসকাউন্ট ৳\",\"Discount ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "ডিসকাউন্ট ৳",
+        "label_en": "Discount ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "leak",
+      "issue_id": "A016-F009",
+      "data_origin": "Attendance, Stock wastage/counted shortage, Sales discount and cash reconciliation",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:cash_short",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 40728,
+        "literal": "l(\"cash_short\",t(\"ক্যাশ কম ৳ (পজিটিভ সংখ্যা)\",\"Cash short ৳ (positive number)\"))",
+        "constructor_alias": "l",
+        "label_bn": "ক্যাশ কম ৳ (পজিটিভ সংখ্যা)",
+        "label_en": "Cash short ৳ (positive number)"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "leak",
+      "issue_id": "A016-F009",
+      "data_origin": "Attendance, Stock wastage/counted shortage, Sales discount and cash reconciliation",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:gm_unexplained",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 40809,
+        "literal": "l(\"gm_unexplained\",t(\"মালামাল বনাম টাকার অব্যাখ্যাত ৳\",\"Unexplained goods-vs-money ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "মালামাল বনাম টাকার অব্যাখ্যাত ৳",
+        "label_en": "Unexplained goods-vs-money ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "leak",
+      "issue_id": "A016-F009",
+      "data_origin": "Attendance, Stock wastage/counted shortage, Sales discount and cash reconciliation",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:count_short",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 40897,
+        "literal": "l(\"count_short\",t(\"স্টক কাউন্টের ঘাটতি ৳\",\"Stock count shortfall ৳\"))",
+        "constructor_alias": "l",
+        "label_bn": "স্টক কাউন্টের ঘাটতি ৳",
+        "label_en": "Stock count shortfall ৳"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "leak",
+      "issue_id": "A016-F009",
+      "data_origin": "Attendance, Stock wastage/counted shortage, Sales discount and cash reconciliation",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:raw",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 41113,
+        "literal": "g(\"raw\",t(\"প্রধান ৫ কাঁচামালের দাম (স্টোর লেজার — মাসের শুরু বনাম শেষ)\",\"Top 5 raw materials price (store ledger — start vs end of month)\"),[a(\"name\",t(\"কাঁচামাল\",\"Raw material\"),{wide:!0}),l(\"p_start\",t(\"মাসের শুরুর দাম\",\"Price at start\")),l(\"p_end\",t(\"মাসের শেষের দাম\",\"Price at end\")),w(\"chg\",t(\"বদল ৳\",\"Change ৳\"),\"text\")],{min:5,max:5})",
+        "constructor_alias": "g",
+        "label_bn": "প্রধান ৫ কাঁচামালের দাম (স্টোর লেজার — মাসের শুরু বনাম শেষ)",
+        "label_en": "Top 5 raw materials price (store ledger — start vs end of month)"
+      },
+      "type": "TABLE",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "TOP_LEVEL",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "materials",
+      "issue_id": "A016-F010",
+      "data_origin": "Costing snapshots for the same item/UOM at period boundaries",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:p_start",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 41303,
+        "literal": "l(\"p_start\",t(\"মাসের শুরুর দাম\",\"Price at start\"))",
+        "constructor_alias": "l",
+        "label_bn": "মাসের শুরুর দাম",
+        "label_en": "Price at start"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "raw",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "materials",
+      "issue_id": "A016-F010",
+      "data_origin": "Costing snapshots for the same item/UOM at period boundaries",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    },
+    {
+      "source_id": "A-02:p_end",
+      "source_file": "forms_sales.js",
+      "evidence": {
+        "offset_utf16": 41354,
+        "literal": "l(\"p_end\",t(\"মাসের শেষের দাম\",\"Price at end\"))",
+        "constructor_alias": "l",
+        "label_bn": "মাসের শেষের দাম",
+        "label_en": "Price at end"
+      },
+      "type": "M",
+      "requirements": "NOT_DECLARED",
+      "visibility": "NOT_DECLARED",
+      "role": "NOT_DECLARED",
+      "collection": "raw",
+      "default": "NOT_DECLARED",
+      "option_source": "NOT_DECLARED",
+      "rule_group": "materials",
+      "issue_id": "A016-F010",
+      "data_origin": "Costing snapshots for the same item/UOM at period boundaries",
+      "target": "NOT_BUILT",
+      "confidence": "SOURCE_PROVED literal source; canonical enforcement UNKNOWN"
+    }
+  ],
+  "owner_accepted": false,
+  "parity_certified": false,
+  "field_parity_certified": false,
+  "source_runtime_equivalent": false,
+  "production_ready": false,
+  "erp_posted": false
+}

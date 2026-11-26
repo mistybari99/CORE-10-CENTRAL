@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "synthetic_only": true,
+  "disclaimer": "Illustrative paper-workload pilots, NOT actual Owner data, field parity, or approval. Print count is not time saved; continuing books/required tax/legal records remain independent.",
+  "day": "2026-11-22",
+  "businessName": "CORE10 TEST PAPER BUSINESS (SYNTHETIC)",
+  "cases": [
+    {
+      "id": "sweet_quiet",
+      "title": "Two showrooms and one factory, no custody events",
+      "industry": "sweets_bakery",
+      "sites": [
+        {
+          "id": "s1",
+          "name": "New Market Sweet Shop",
+          "kind": "showroom"
+        },
+        {
+          "id": "s2",
+          "name": "Rail Road Sweet Shop",
+          "kind": "showroom"
+        },
+        {
+          "id": "f1",
+          "name": "Central Sweet Factory",
+          "kind": "factory"
+        }
+      ],
+      "events": [],
+      "expect": {
+        "daily": 2,
+        "event": 0,
+        "forms": [
+          "OPS-DAILY",
+          "OPS-DAILY"
+        ]
+      }
+    },
+    {
+      "id": "sweet_jalebi_dispatch",
+      "title": "Jalebi shift, goods dispatch and cash custody change",
+      "industry": "sweets_bakery",
+      "sites": [
+        {
+          "id": "s1",
+          "name": "New Market Shop",
+          "kind": "showroom"
+        },
+        {
+          "id": "f1",
+          "name": "Central Factory",
+          "kind": "factory"
+        }
+      ],
+      "events": [
+        {
+          "type": "jalebi_shift",
+          "siteId": "f1",
+          "eventId": "JAL-01"
+        },
+        {
+          "type": "stock_transfer",
+          "siteId": "f1",
+          "eventId": "W02-01"
+        },
+        {
+          "type": "cash_handover",
+          "siteId": "s1",
+          "eventId": "C01-01"
+        }
+      ],
+      "expect": {
+        "daily": 1,
+        "event": 3,
+        "forms": [
+          "OPS-DAILY",
+          "SWT-JALEBI",
+          "STK-TRANSFER",
+          "CASH-HANDOVER"
+        ]
+      }
+    },
+    {
+      "id": "goods_mismatch_inbound",
+      "title": "Supplier delivery, bill match, and count discrepancy",
+      "industry": "sweets_bakery",
+      "sites": [
+        {
+          "id": "wh1",
+          "name": "Receiving Warehouse",
+          "kind": "warehouse"
+        }
+      ],
+      "events": [
+        {
+          "type": "supplier_delivery",
+          "siteId": "wh1",
+          "eventId": "GRN-11"
+        },
+        {
+          "type": "purchase_bill",
+          "siteId": "wh1",
+          "eventId": "BILL-11"
+        },
+        {
+          "type": "stock_count",
+          "siteId": "wh1",
+          "eventId": "COUNT-11"
+        }
+      ],
+      "expect": {
+        "daily": 0,
+        "event": 3,
+        "forms": [
+          "PUR-GRN",
+          "PUR-BILL-MATCH",
+          "STK-COUNT"
+        ]
+      }
+    },
+    {
+      "id": "ecommerce_return_recon",
+      "title": "E-commerce delivery and refund with independent settlement",
+      "industry": "ecommerce",
+      "sites": [
+        {
+          "id": "wh1",
+          "name": "Online Warehouse",
+          "kind": "warehouse"
+        }
+      ],
+      "events": [
+        {
+          "type": "ecommerce_delivery",
+          "siteId": "wh1",
+          "eventId": "ORD-1"
+        },
+        {
+          "type": "customer_return",
+          "siteId": "wh1",
+          "eventId": "RET-1"
+        },
+        {
+          "type": "digital_settlement",
+          "siteId": "wh1",
+          "eventId": "SETT-1"
+        }
+      ],
+      "expect": {
+        "daily": 0,
+        "event": 3,
+        "forms": [
+          "ECOM-FULFILL",
+          "SLS-RETURN",
+          "FIN-SETTLEMENT"
+        ]
+      }
+    },
+    {
+      "id": "paint_color_mix",
+      "title": "Paint mix at factory and GRN inspection at warehouse",
+      "industry": "paint_hardware",
+      "sites": [
+        {
+          "id": "f",
+          "name": "Tint Lab",
+          "kind": "factory"
+        },
+        {
+          "id": "wh",
+          "name": "Bulk Paint Store",
+          "kind": "warehouse"
+        }
+      ],
+      "events": [
+        {
+          "type": "paint_tint",
+          "siteId": "f",
+          "eventId": "TINT-07"
+        },
+        {
+          "type": "supplier_delivery",
+          "siteId": "wh",
+          "eventId": "GRN-PAINT-1"
+        }
+      ],
+      "expect": {
+        "daily": 0,
+        "event": 2,
+        "forms": [
+          "PAINT-TINT",
+          "PUR-GRN"
+        ]
+      }
+    },
+    {
+      "id": "construction_progress",
+      "title": "Construction supervisor daily source check",
+      "industry": "construction",
+      "sites": [
+        {
+          "id": "site",
+          "name": "Road Construction Project",
+          "kind": "project"
+        }
+      ],
+      "events": [
+        {
+          "type": "construction_daily",
+          "siteId": "site",
+          "eventId": "PRJ-DAILY-01"
+        }
+      ],
+      "expect": {
+        "daily": 0,
+        "event": 1,
+        "forms": [
+          "PROJECT-DAILY"
+        ]
+      }
+    },
+    {
+      "id": "restaurant_shift",
+      "title": "Restaurant service sales and kitchen prep",
+      "industry": "restaurant",
+      "sites": [
+        {
+          "id": "front",
+          "name": "Restaurant Front",
+          "kind": "showroom"
+        },
+        {
+          "id": "kitchen",
+          "name": "Cloud Kitchen",
+          "kind": "factory"
+        }
+      ],
+      "events": [
+        {
+          "type": "kitchen_prep",
+          "siteId": "kitchen",
+          "eventId": "PREP-01"
+        }
+      ],
+      "expect": {
+        "daily": 1,
+        "event": 1,
+        "forms": [
+          "OPS-DAILY",
+          "REST-KITCHEN"
+        ]
+      }
+    },
+    {
+      "id": "service_job",
+      "title": "Service agency approved client work",
+      "industry": "services",
+      "sites": [
+        {
+          "id": "o",
+          "name": "Service Office",
+          "kind": "office"
+        }
+      ],
+      "events": [
+        {
+          "type": "service_job",
+          "siteId": "o",
+          "eventId": "JOB-01"
+        }
+      ],
+      "expect": {
+        "daily": 0,
+        "event": 1,
+        "forms": [
+          "SERVICE-JOB"
+        ]
+      }
+    }
+  ]
+}

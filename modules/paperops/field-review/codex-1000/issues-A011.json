@@ -1,0 +1,231 @@
+[
+  {
+    "issue_id": "A011-F001",
+    "source_ids": [
+      "P-06:credit_days",
+      "P-06:account_no",
+      "P-06:first_date",
+      "P-06:m_cash",
+      "P-06:m_bank",
+      "P-06:m_mobile",
+      "P-06:m_owner",
+      "P-06:m_goods",
+      "P-06:m_other",
+      "P-06:m_other_text"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 37564,
+        "text": "u(\"m_other\",t(\"অন্য\",\"Other\")),s(\"m_other_text\",t(\"অন্য — লিখুন\",\"Other — write it\"),{show:e=>!!e.d.m_other})]},{title:t(\"হিসাবের তথ্য যাচাই — প্রথম পেমেন্টের আগে\",\"Account details check — before the "
+      }
+    ],
+    "observed_gap": "Credit days, account number and method checkboxes are recorded. Other text shows when checked. Calculator does not enforce approved account, terms or allowed settlement method.",
+    "dependency": "Supplier master terms, approved account and selectable payment methods",
+    "correction": "Resolve account and allowed method from versioned, restricted supplier records.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A011-F002",
+    "source_ids": [
+      "P-06:verifier",
+      "P-06:verify_date",
+      "P-06:verify_how",
+      "P-06:verify_other"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 41864,
+        "text": "t.some(e=>o(e.pay)>0)&&!a(e.d.verifier)&&r.push(S(\"pay_before_verify\",\"red\",\"হিসাবের তথ্য যাচাই ছাড়াই পেমেন্ট লেখা হয়েছে\",\"A payment is written before the account details were checked\",void 0)),{v:s"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 41521,
+        "text": "S(\"verifier_is_keeper\",\"red\",\"হিসাবের তথ্যের যাচাইকারী ও হিসাবরক্ষক একই জন\",\"The account details checker is the ledger keeper\",void 0)),a(e.d.chg_approver)&&a(e.d.keeper)&&e.d.chg_approver===e.d.keepe"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 41912,
+        "text": "S(\"pay_before_verify\",\"red\",\"হিসাবের তথ্য যাচাই ছাড়াই পেমেন্ট লেখা হয়েছে\",\"A payment is written before the account details were checked\",void 0)),{v:s,rows:{lines:l},flags:r,needs:[]}}};{const M=win"
+      }
+    ],
+    "observed_gap": "Verify-other shows on exact other. Equal verifier and keeper warns red. A positive payment without a named verifier warns red. A name alone can satisfy this branch even with no date or method evidence.",
+    "dependency": "Independently approved account-verification record with timestamp and evidence",
+    "correction": "Require authenticated verification of the effective account version before payment.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A011-F003",
+    "source_ids": [
+      "P-06:chg_new",
+      "P-06:chg_date",
+      "P-06:chg_approver",
+      "P-06:chg_struck"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 41657,
+        "text": "a(e.d.chg_approver)&&a(e.d.keeper)&&e.d.chg_approver===e.d.keeper&&r.push(S(\"change_approver_is_keeper\",\"red\",\"তথ্য বদলের অনুমোদনকারী ও হিসাবরক্ষক একই জন\",\"The change approver is the ledger keeper\",vo"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 41731,
+        "text": "S(\"change_approver_is_keeper\",\"red\",\"তথ্য বদলের অনুমোদনকারী ও হিসাবরক্ষক একই জন\",\"The change approver is the ledger keeper\",void 0)),t.some(e=>o(e.pay)>0)&&!a(e.d.verifier)&&r.push(S(\"pay_before_verif"
+      }
+    ],
+    "observed_gap": "Present new details require approval and old-details strikeout. Same change approver and keeper warns red. Change date is optional in declaration, and calc does not tie approval to an account version.",
+    "dependency": "Versioned supplier account changes and independent approval log",
+    "correction": "Invalidate previous verification on change and record exact before/after account version with independent approval.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A011-F004",
+    "source_ids": [
+      "P-06:opening",
+      "P-06:date",
+      "P-06:paper_no",
+      "P-06:desc",
+      "P-06:bill",
+      "P-06:debit",
+      "P-06:pay",
+      "P-06:bal",
+      "P-06:due"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 41095,
+        "text": "i+=o(e.bill)-o(e.debit)-o(e.pay),{bal:i}):{});return s.due=i,s.master_total=n(e.rows(\"master\").map(e=>e.m_due)),l.some(e=>void 0!==e.bal&&e.bal<0)&&r.push(S(\"overpaid\",\"yellow\",\"সাপ্লায়ারকে পাওনার চে"
+      },
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 41250,
+        "text": "S(\"overpaid\",\"yellow\",\"সাপ্লায়ারকে পাওনার চেয়ে বেশি দেওয়া হয়েছে (বকেয়া ঋণাত্মক)\",\"The supplier was paid more than is due (balance below zero)\",Math.min(...l.filter(e=>void 0!==e.bal).map(e=>e.bal"
+      }
+    ],
+    "observed_gap": "BP balance is opening plus bill less debit and payment for each populated line. Negative intermediate balance warns yellow even if later restored. Calculator does not deduplicate or validate source voucher IDs; no explicit rounding in running sum.",
+    "dependency": "Immutable AP entries, payment vouchers, debit notes and carry-forward",
+    "correction": "Compute from scoped posted AP movements, reject duplicate or invalid references and use defined currency precision.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A011-F005",
+    "source_ids": [
+      "P-06:p_total",
+      "P-06:p_late",
+      "P-06:p_short",
+      "P-06:p_poor",
+      "P-06:p_note"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 39698,
+        "text": "l(\"p_total\",t(\"মোট সরবরাহ (বার)\",\"Deliveries in total (times)\")),l(\"p_late\",t(\"দেরিতে ডেলিভারি (বার)\",\"Late deliveries (times)\")),l(\"p_short\",t(\"কম পরিমাণে ডেলিভারি (বার)\",\"Short deliveries (times)\"))"
+      }
+    ],
+    "observed_gap": "Manually entered period counters and note are not used by calc. Counts are not constrained against total deliveries in the form calculator.",
+    "dependency": "GRN and QC events by supplier and reporting period",
+    "correction": "Derive counts from surviving posted records and preserve the period definition.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A011-F006",
+    "source_ids": [
+      "P-06:m_month",
+      "P-06:name",
+      "P-06:m_items",
+      "P-06:m_phone",
+      "P-06:m_page",
+      "P-06:m_due",
+      "P-06:master_total",
+      "P-06:master_posted",
+      "P-06:mgmt_checked"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_stock.js",
+        "offset_utf16": 41156,
+        "text": "s.master_total=n(e.rows(\"master\").map(e=>e.m_due)),l.some(e=>void 0!==e.bal&&e.bal<0)&&r.push(S(\"overpaid\",\"yellow\",\"সাপ্লায়ারকে পাওনার চেয়ে বেশি দেওয়া হয়েছে (বকেয়া ঋণাত্মক)\",\"The supplier was pa"
+      }
+    ],
+    "observed_gap": "Master total sums provided month-end dues without link to each supplier page or deduplication. Posting is an attestation; management checkbox declares checker and required.",
+    "dependency": "Period-end AP aging projection, supplier master links and independent signoff",
+    "correction": "Use one scoped source balance per supplier and reconcile exact period-end postings before signoff.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A011-F007",
+    "source_ids": [
+      "S-01:taker",
+      "S-01:order_type",
+      "S-01:cust_name",
+      "S-01:cust_phone"
+    ],
+    "severity": "HIGH",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 8426,
+        "text": "\"custom\"===o.order_type&&\"refund\"===o.adv_fate&&i.push(q(\"custom_refund\",\"yellow\",\"কাস্টম-মেইড অর্ডারের অ্যাডভান্স সাধারণত ফেরত নয়\",\"Advance on a custom-made order is normally not refunded\",s(o.advan"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 8481,
+        "text": "q(\"custom_refund\",\"yellow\",\"কাস্টম-মেইড অর্ডারের অ্যাডভান্স সাধারণত ফেরত নয়\",\"Advance on a custom-made order is normally not refunded\",s(o.advance)));const c=P(e,\"order_hold_days\");return n.hold_text"
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 8986,
+        "text": "q(\"board_checker_is_maker\",\"yellow\",\"বোর্ড যাচাইকারী ও অর্ডার গ্রহণকারী একই জন\",\"Board checker and order taker are the same person\")),O(e.rows(\"items\"))&&i.push(q(\"no_items\",\"red\",\"অর্ডারে কোনো পণ্য ল"
+      }
+    ],
+    "observed_gap": "Required taker, type, name and phone are syntactic. Custom plus refund warns yellow; a named board checker equal to taker also warns yellow. These warnings do not prove identity, consent or refund approval.",
+    "dependency": "Canonical order taker session, customer party/contact and approval policy",
+    "correction": "Scope access to customer contact, validate identities and require governed custom refund approval.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  },
+  {
+    "issue_id": "A011-F008",
+    "source_ids": [
+      "S-01:channel",
+      "S-01:channel_other",
+      "S-01:online",
+      "S-01:online_other",
+      "S-01:deliv_mode"
+    ],
+    "severity": "MEDIUM",
+    "evidence": [
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 1619,
+        "text": "v(\"channel\",t(\"মাধ্যম (Channel)\",\"Channel\"),x,{req:!0}),a(\"channel_other\",t(\"অন্য মাধ্যম\",\"Other channel\"),{show:e=>\"other\"===e.d.channel}),v(\"online\",t(\"অনলাইন\",\"Online\"),S),a(\"online_other\",t(\"অন্য "
+      },
+      {
+        "source_file": "forms_sales.js",
+        "offset_utf16": 7919,
+        "text": "q(\"delivery_past\",\"red\",\"ডেলিভারির তারিখ অর্ডারের তারিখের আগে\",\"Delivery date is before the order date\"));const l=P(e,\"discount_limit\");s(o.discount)>0&&(null===l&&a.push(\"discount_limit\"),(null===l||"
+      }
+    ],
+    "observed_gap": "Channel and delivery mode required. Both other branches reveal optional free text. Channel and fulfillment mode do not enter calc; booking evidence for delivery date is a separate red warning on dates before order.",
+    "dependency": "Sales channel reference and fulfillment contract",
+    "correction": "Use scoped reference data and validate conditional details and fulfillment evidence at order confirmation.",
+    "owner_lane": "ChatGPT B",
+    "status": "OPEN"
+  }
+]
