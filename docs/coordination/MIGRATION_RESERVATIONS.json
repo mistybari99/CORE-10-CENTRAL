@@ -1,7 +1,7 @@
 {
   "rule": "Numeric order is apply order. A persistent database never receives a version lower than its highest applied version (internal/migrations/run.sh refuses with OUT_OF_ORDER). A range therefore only takes new files while no persistent database has applied a higher number; once that happens the board allocates the lane a new range above the persistent maximum, or the trunk owner renumbers an unapplied file at integration (file rename only, content and checksum unchanged).",
   "persistent_databases": {
-    "staging rhrqhbyzrhaafynfhdaf": "0001-0019,0100-0106,0110-0118,0150-0153,0200-0206,0300-0305 applied (52 ledger rows, max 0305 verified 2026-11-26). Sales 0300 previously hosted; 0301-0305 exact canonical scripts from 3e008e8 applied atomically after hosted rollback rehearsal; checksum readback matched. No Sales order rows; Sales default enabled controls zero. Pending Stock 0207-0210 and PaperOps 0211-0212 MUST be formally renumbered above 0305 before hosted application; do not alter previously applied migration bytes. Finance 040x and Manufacturing 050x still unapplied. No other projects touched."
+    "staging rhrqhbyzrhaafynfhdaf": "71 canonical migrations applied, max 0504; 0001–0019, 0100–0106, 0110–0118, 0150–0153, 0200–0206, 0300–0305, 0310–0315, 0400–0407, 0500–0504. Verified 2026-11-26. Exact source trunk 42e553ef6c542ab9f8c26bfd6637027e5b9b90bf. 0310–0313 Stock exact original 0207–0210, 0314–0315 PaperOps W02 exact original 0211–0212. 19 new versions applied atomically in two batches after combined hosted rollback rehearsal; security guards passed, 9 auth users/3 tenants/3 businesses preserved. Private same-project pre-release logical snapshot core10_release_backup_20261126; no raw rows in public repo. Any NEW hosted migration MUST be >0504, coordinate new range before allocating; do not reapply old versions."
   },
   "ranges": [
     {
@@ -9,69 +9,80 @@
       "to": 99,
       "lane": "NP01 access, approval, audit, setup",
       "owner": "ChatGPT",
-      "note": "0013-0019 on build/chatgpt-np01; must reach staging before 0100 does; new Control-dependent NP01 work goes to 0110-0149"
+      "note": "0013-0019 on build/chatgpt-np01; must reach staging before 0100 does; new Control-dependent NP01 work goes to 0110-0149",
+      "hosted_new_versions": "Do not allocate any new hosted version <=0504; retain historical ownership."
     },
     {
       "from": 100,
       "to": 109,
       "lane": "NP02 Owner Control port and registry",
-      "owner": "Claude"
+      "owner": "Claude",
+      "hosted_new_versions": "Do not allocate any new hosted version <=0504; retain historical ownership."
     },
     {
       "from": 110,
       "to": 149,
       "lane": "NP01 Control bindings and later NP01 work that depends on the Control port",
-      "owner": "ChatGPT"
+      "owner": "ChatGPT",
+      "hosted_new_versions": "Do not allocate any new hosted version <=0504; retain historical ownership."
     },
     {
       "from": 150,
       "to": 199,
       "lane": "NP02 master data",
-      "owner": "Claude"
+      "owner": "Claude",
+      "hosted_new_versions": "Do not allocate any new hosted version <=0504; retain historical ownership."
     },
     {
       "from": 200,
       "to": 299,
       "lane": "NP03A procurement, inventory, lot/QC",
-      "owner": "Claude"
+      "owner": "Claude",
+      "hosted_new_versions": "Do not allocate any new hosted version <=0504; retain historical ownership."
     },
     {
       "from": 300,
       "to": 309,
       "lane": "NP03B Sales core",
-      "owner": "open"
+      "owner": "open",
+      "hosted_new_versions": "Do not allocate any new hosted version <=0504; retain historical ownership."
     },
     {
       "from": 310,
       "to": 313,
-      "lane": "NP03A Stock forward-port candidate",
+      "lane": "NP03A Stock forward port (applied)",
       "owner": "canonical integrator",
-      "note": "Original 0207–0210 exact blobs, proposed renumber for hosted max 0305; confirm Board before apply."
+      "note": "0310–0313 exact 0207–0210 source; PR164 merged; hosted applied 2026-11-26.",
+      "hosted_new_versions": "Do not allocate any new hosted version <=0504; retain historical ownership."
     },
     {
       "from": 314,
       "to": 315,
-      "lane": "PaperOps W02 forward-port candidate",
+      "lane": "PaperOps W02 forward port (applied)",
       "owner": "canonical integrator",
-      "note": "Original 0211–0212 exact blobs; private publisher and nonposting boundary remain."
+      "note": "0314–0315 exact 0211–0212 source; PR164 merged; hosted applied 2026-11-26; private publisher remains nonposting.",
+      "hosted_new_versions": "Do not allocate any new hosted version <=0504; retain historical ownership."
     },
     {
       "from": 316,
       "to": 399,
       "lane": "NP03B Sales / later coordination",
-      "owner": "open"
+      "owner": "open",
+      "hosted_new_versions": "Do not allocate any new hosted version <=0504; retain historical ownership."
     },
     {
       "from": 400,
       "to": 499,
       "lane": "NP06 finance",
-      "owner": "ChatGPT"
+      "owner": "ChatGPT",
+      "hosted_new_versions": "Do not allocate any new hosted version <=0504; retain historical ownership."
     },
     {
       "from": 500,
       "to": 599,
       "lane": "NP05A manufacturing",
-      "owner": "open"
+      "owner": "open",
+      "hosted_new_versions": "Do not allocate any new hosted version <=0504; retain historical ownership."
     }
   ]
 }
