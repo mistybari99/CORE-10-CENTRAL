@@ -1,0 +1,19 @@
+name: CORE10 build gallery and isolated previews
+on:
+  pull_request:
+    paths: ['apps/central/progress/**','apps/central/build-progress.mjs','tests/core10-progress-gallery.test.cjs','.github/workflows/core10-progress-gallery-ci.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gallery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: git fetch origin '+refs/heads/*:refs/remotes/origin/*'
+      - run: node apps/central/build-clean.mjs && node --test tests/core10-clean-release.test.cjs
+      - run: node apps/central/build-progress.mjs && node --test tests/core10-progress-gallery.test.cjs
+      - run: sha256sum apps/central/dist-progress/worker.mjs > /tmp/progress.sha && node apps/central/build-progress.mjs && sha256sum -c /tmp/progress.sha
