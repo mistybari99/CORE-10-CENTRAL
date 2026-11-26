@@ -1,0 +1,79 @@
+{
+  "base": "82e53633d8eeab401ce91424d9467f3ac64778d9",
+  "finance_source": "951e28e13813d2fb3d5470c69fe8ed70f6c996a4",
+  "bridge_source": "7d33c1e0f7396cdfe4df23c473d5e52a45cbd3d9",
+  "guard_source": "daceb0f7394bd6e4c6f21b6855830d00cf5fa51a",
+  "migrations": [
+    {
+      "path": "internal/migrations/0402_np06_arap_links_allocations.down.sql",
+      "sha": "6904d139b420ee7b902847091b5e9e0817f5c274"
+    },
+    {
+      "path": "internal/migrations/0402_np06_arap_links_allocations.up.sql",
+      "sha": "12391e87f96a5efb4cab0e4e440c55cab963338f"
+    },
+    {
+      "path": "internal/migrations/0403_np06_arap_trace_integrity.down.sql",
+      "sha": "89a97e9ddcf8eb20410f3584d7d93fa3a67d8b50"
+    },
+    {
+      "path": "internal/migrations/0403_np06_arap_trace_integrity.up.sql",
+      "sha": "3c1fa1127b0d429de5defa5bab78a22d0a2a1e00"
+    },
+    {
+      "path": "internal/migrations/0404_np06_arap_trade_control.down.sql",
+      "sha": "58e2fb964b52472f60a260f9136d2d9512be9a01"
+    },
+    {
+      "path": "internal/migrations/0404_np06_arap_trade_control.up.sql",
+      "sha": "0e6a3823540a9935469c92c928858618567ca108"
+    },
+    {
+      "path": "internal/migrations/0405_np06_finance_gov002_post.down.sql",
+      "sha": "738fce61bdaf0926a500f771730a0ff539429f50"
+    },
+    {
+      "path": "internal/migrations/0405_np06_finance_gov002_post.up.sql",
+      "sha": "46a328cafe5d9da753b9744fa2479dfd1664586d"
+    },
+    {
+      "path": "internal/migrations/0406_np06_sales_invoice_issue.down.sql",
+      "sha": "f56c148b9d64674658cf915edb4bfe2bee06ebb1"
+    },
+    {
+      "path": "internal/migrations/0406_np06_sales_invoice_issue.up.sql",
+      "sha": "be5ae0f5f0254b2b0bc393521a0ba40da02003de"
+    },
+    {
+      "path": "internal/migrations/0407_np06_sales_collection.down.sql",
+      "sha": "86ba6b483c61c3346b2b71bc17ac21a9409c6114"
+    },
+    {
+      "path": "internal/migrations/0407_np06_sales_collection.up.sql",
+      "sha": "f87d92e0ae95c4ae4dc6d190bc4ed902e8872cb5"
+    }
+  ],
+  "test_source": [
+    {
+      "path": "tests/migrations/np06-finance-approval-e2e.sql",
+      "sha": "a7707a91a092b25c45895c135cde46ac92317be8"
+    },
+    {
+      "path": "tests/migrations/np06-finance-arap-e2e.sql",
+      "sha": "6ca93c594577f793a9c64777ea05c07c0be1f788"
+    },
+    {
+      "path": "tests/migrations/np06-finance-arap-race-seed.sql",
+      "sha": "d4327cdfdb28af0b7e7231fdc970f152433e13e1"
+    },
+    {
+      "path": "tests/migrations/np06-finance-arap-race.sh",
+      "sha": "cbb378a7c330db25f317a3f81718c1a209a15cfa"
+    }
+  ],
+  "bridge_test": {
+    "path": "tests/migrations/np06-sales-finance-bridge-e2e.sql",
+    "sha": "cf170e18bdc6772a2207a95b39717cb769cfb3b9"
+  },
+  "note": "0400/0401, canonical Sales 0300–0305 and Manufacturing 0500–0504 untouched; 0406/0407 need actual compatibility with canonical 0305; no hosted apply."
+}
