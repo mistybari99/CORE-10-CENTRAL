@@ -147,9 +147,19 @@ pilotDetails.addEventListener("toggle",async()=>{
     if(sites.some(x=>x.id===s&&x.kind==="factory")){
       const m=await read("mfg_inspect_v1",{p_business:b,p_site:s});
       if(!current())return;
-      const valid=Array.isArray(m?.recipes)&&m.recipes.every(x=>x.business_id===b&&x.site_id===s&&x.tenant_id===tenant&&positive(x.id)&&positive(x.version));
+      const valid=Array.isArray(m?.recipes)&&m.recipes.every(x=>x&&typeof x.recipe_code==="string"&&x.recipe_code.trim().length>0&&x.business_id===b&&x.site_id===s&&x.tenant_id===tenant&&positive(x.id)&&positive(x.version));
       if(valid){
-        const approved=m.recipes.filter(x=>x.status==="approved"&&typeof x.effective_from==="string"&&Number.isFinite(Date.parse(x.effective_from))&&Date.parse(x.effective_from)<=Date.now());
+        const latestByCode = new Map();
+        const asOf = Date.now();
+        for (const recipe of m.recipes) {
+          const effectiveFrom = Date.parse(recipe.effective_from);
+          if (recipe.status !== "approved" || !Number.isFinite(effectiveFrom) || effectiveFrom > asOf) continue;
+          const previous = latestByCode.get(recipe.recipe_code);
+          if (!previous || Number(recipe.version) > Number(previous.version)) {
+            latestByCode.set(recipe.recipe_code, recipe);
+          }
+        }
+        const approved = [...latestByCode.values()];
         offerRecipes(approved);
         rows.push(["কারখানার recipe revision: "+m.recipes.length+" · কার্যকর approved: "+approved.length,"Factory recipe revisions: "+m.recipes.length+" · effective approved: "+approved.length]);
       }else rows.push(["Recipe revision যাচাই হয়নি","Recipe revisions not verified"]);
