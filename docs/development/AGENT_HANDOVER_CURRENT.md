@@ -4,6 +4,14 @@ Any agent (Claude, ChatGPT/Codex, other) starting work: read THIS file first, th
 `docs/development/CLAUDE_TRUNK_HANDOFF.md`. When you stop: update §5 and append to §6, commit, push.
 Language to the Owner: short, clear Bangla.
 
+## 0. Latest Owner release authorization and execution — 2026-11-26
+- Owner withdrew the general RELEASE HOLD and authorized merge, SQL and live publication of technically ready CORE10 work. This supersedes earlier general release-hold statements; it does not waive technical, security, dependency, isolation or rollback gates. Keep legacy IMG-ERP-SG and other databases untouched; no main merge is needed for the existing Worker.
+- B01 PR #160 exact head `36a264e6554250f38e80ba189d03ca8569aaac5c`, 2/2 Actions success including local 56/56, merged to canonical trunk `ea4d4aea6f63e452eb49e95f642efada47bc9f8b`. No SQL needed for B01.
+- Sales 0301–0305 applied on CORE10 staging `rhrqhbyzrhaafynfhdaf` in one atomic transaction using the five prepared SQL scripts in `docs/development/staging-backups/2026-11-24-pre-sales-0300-0305/run-in-sql-editor/`, from exact source `3e008e8ec7db896f46a94ab8ca3d91271905d71d`. Source CI green, pre-Sales snapshot from 2026-11-24, hosted all-five BEGIN/ROLLBACK rehearsal PASS, then committed; ledger 52/max0305, all six Sales checksum rows verified. Zero core10 tables without RLS, zero SECURITY DEFINER without pinned search_path, zero anon executable SECURITY DEFINER; sales order count zero, default-enabled Sales controls zero. No signed hosted Sales write acceptance or UI activation yet.
+- Existing Cloudflare Worker `core10-central` deployed B01 100%: version `17238003-407c-4698-8299-b0858dde59e1`, deployment `7ff90633-f8d4-4349-ac02-955bed29ce79`, SHA256 `060dae1b385cc58eaba08b3edd75360a5b85c3a3c62ba919ecb6f672e9d14287` (byte-identical to exact CI-tested B01 deterministic build, reconstructed from previous verified Worker and exact seven site blobs; upload and readback SHA matched). Prior active rollback version `1a99371f-2cf2-4546-bc18-321f76224a7e`. Post-deploy public browser workflow rerun requested: run 45714780320, job 139557919640; pending at initial observation. Sales/Manufacturing replay UI unchanged.
+- NEXT: complete signed Sales staging acceptance and real Sales UI (do not mark live posting ready); renumber outstanding Stock 0207–0210 and PaperOps 0211–0212 above hosted max 0305 by board allocation before applying; reconcile Finance #120/#122/#117 and stacked tests with current trunk and forward-only 0305; then Manufacturing, Paint and Integration Worker. No uncontrolled posting or unallocated SQL. Keep cross-builder ownership. Update Decision Book/Board separately if available.
+
+
 ## 1. Goal (Owner)
 - Goal 1 (NOW): one platform for the Owner's own ~10 businesses (sweets, paint, …), each with 100–400
   branches/factories/warehouses; Owner has full control of the whole group and can enter each business
