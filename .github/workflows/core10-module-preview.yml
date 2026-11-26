@@ -54,8 +54,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with: {name: tested-worker}
-      - name: Verify artifact and target branch
+      - name: Verify artifact, release credentials and target branch
+        env:
+          CF_TOKEN: ${{ secrets.CORE10_PREVIEW_WORKER_TOKEN }}
         run: |
+          : "${CF_TOKEN:?CORE10 preview Worker token required}"
           sha256sum -c preview.sha256
           test "$(git ls-remote origin "$GITHUB_REF" | cut -f1)" = "$GITHUB_SHA"
       - name: Apply verified forward migrations to CORE10 staging
@@ -84,6 +87,18 @@ jobs:
           curl -fsS -X PUT -H "Authorization: Bearer $CF_TOKEN" "$url" \
             -F 'metadata={"main_module":"worker.mjs","compatibility_date":"2026-11-16"};type=application/json' \
             -F 'worker.mjs=@apps/central/dist-progress/worker.mjs;type=application/javascript+module' | jq -e '.success'
+          curl -fsS -D /tmp/worker-headers -H "Authorization: Bearer $CF_TOKEN" "$url/content/v2" -o /tmp/worker-response
+          python - <<'PYTHON'
+          from email import policy
+          from email.parser import BytesParser
+          from pathlib import Path
+          headers = Path('/tmp/worker-headers').read_bytes().splitlines()
+          mime = next(line for line in reversed(headers) if line.lower().startswith(b'content-type:'))
+          message = BytesParser(policy=policy.default).parsebytes(mime + b'\r\n\r\n' + Path('/tmp/worker-response').read_bytes())
+          modules = [p.get_payload(decode=True) for p in message.iter_parts() if p.get_filename() == 'worker.mjs']
+          if modules != [Path('apps/central/dist-progress/worker.mjs').read_bytes()]:
+              raise SystemExit('Cloudflare readback differs from tested Worker')
+          PYTHON
           for attempt in {1..12}; do
             if curl -fsS https://core10-central.mistybari99.workers.dev/shell-context.js | cmp - apps/central/site/shell-context.js; then exit 0; fi
             sleep 5
