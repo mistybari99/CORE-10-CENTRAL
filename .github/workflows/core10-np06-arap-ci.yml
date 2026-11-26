@@ -81,7 +81,7 @@ jobs:
         run: |
           # Higher empty-history Sales bridge and Manufacturing migrations exist on trunk.
           # Use canonical runner until exact 0404 is top; fail on any refusal.
-          while [ "$(psql -X -At -c \"SELECT max(version) FROM core10.schema_migrations\")" -gt 404 ]; do
+          while [ "$(psql -X -At -c "SELECT max(version) FROM core10.schema_migrations")" -gt 404 ]; do
             internal/migrations/run.sh down
           done
           test "$(psql -X -At -c "SELECT count(*) FROM core10.schema_migrations WHERE version=405")" = "0"
