@@ -41,3 +41,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: psql -X -v ON_ERROR_STOP=1 -f tests/server-integrations/lease-fixture.sql -f server/integrations/sql/lease-fence.candidate.sql -f tests/server-integrations/lease-fence.test.sql
+  canonical-pg17:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: synthetic_only
+          POSTGRES_DB: np11b_canonical
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d np11b_canonical"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: synthetic_only
+      PGDATABASE: np11b_canonical
+    steps:
+      - uses: actions/checkout@v4
+      - run: psql -X -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN;"
+      - run: bash internal/migrations/run.sh up
+      - run: psql -X -v ON_ERROR_STOP=1 -f tests/server-integrations/canonical-binding.test.sql
