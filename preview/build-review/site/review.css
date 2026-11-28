@@ -1,0 +1,49 @@
+:root{--bg:#f6f7f9;--card:#fff;--ink:#16191f;--muted:#5b6472;--line:#dde1e7;--accent:#1f5fbf;
+ --live:#0d7a43;--live-bg:#e3f5ea;--shot:#1f5fbf;--shot-bg:#e4edfb;--fix:#7a4b00;--fix-bg:#fbf0dc;
+ --nc:#a3261b;--nc-bg:#fbe5e2;--draft:#5b4bb3;--draft-bg:#ece9fb}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111418;--card:#1a1e24;--ink:#e8ebf0;--muted:#a3abb8;--line:#2c323b;--accent:#7fb0ff;
+ --live:#6fd6a0;--live-bg:#123222;--shot:#8fb7ff;--shot-bg:#16243d;--fix:#f2c46b;--fix-bg:#33270f;--nc:#ff9a8f;--nc-bg:#3a1714;--draft:#b9adff;--draft-bg:#231e3d}}
+:root[data-theme="dark"]{--bg:#111418;--card:#1a1e24;--ink:#e8ebf0;--muted:#a3abb8;--line:#2c323b;--accent:#7fb0ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI","Noto Sans Bengali","Noto Sans",sans-serif}
+html[data-lang="bn"] .en,html[data-lang="en"] .bn{display:none}
+a{color:var(--accent)}
+.rv-wrap{max-width:1180px;margin:0 auto;padding:16px}
+.rv-top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.rv-top h1{font-size:22px;margin:0}
+.rv-lang button{min-height:44px;min-width:56px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;font:inherit;cursor:pointer}
+.rv-lang button[aria-pressed="true"]{border-color:var(--accent);outline:2px solid var(--accent)}
+.rv-banner{margin:12px 0;padding:12px 14px;border:2px solid var(--nc);background:var(--nc-bg);border-radius:10px}
+.rv-banner strong{color:var(--nc)}
+.rv-legend{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;padding:0;list-style:none}
+.rv-legend li{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.rv-tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.02em;margin:0}
+.rv-tag-live{color:var(--live);background:var(--live-bg)}.rv-tag-shot{color:var(--shot);background:var(--shot-bg)}
+.rv-tag-fixture{color:var(--fix);background:var(--fix-bg)}.rv-tag-nc{color:var(--nc);background:var(--nc-bg)}.rv-tag-draft{color:var(--draft);background:var(--draft-bg)}
+.rv-toc{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}
+.rv-toc a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);text-decoration:none}
+section.rv-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:0 0 16px}
+.rv-card h2{font-size:18px;margin:0 0 6px}
+.rv-card h3{font-size:15px;margin:14px 0 6px}
+.rv-tags{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.rv-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.rv-btn{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600}
+@media (prefers-color-scheme:dark){.rv-btn{color:#0b1220}}
+.rv-shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.rv-shots figure{margin:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg)}
+.rv-shots img{display:block;width:100%;height:auto;max-height:420px;object-fit:cover;object-position:top}
+.rv-shots figcaption{padding:6px 8px;font-size:12px;color:var(--muted)}
+.rv-small{font-size:13px;color:var(--muted)}
+code{font-size:12.5px;word-break:break-all}
+.rv-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.rv-table th,.rv-table td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+.rv-scroll{overflow-x:auto}
+.rv-steps li{margin:4px 0}
+/* fixture host */
+body.rv-fixture{background:var(--bg)}
+.rv-fixbar{padding:12px 16px;border-bottom:1px solid var(--line);background:var(--card)}
+.rv-back{display:inline-flex;align-items:center;min-height:44px}
+.rv-fixnav{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.rv-fixnav a{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;border:1px solid var(--line);border-radius:8px;text-decoration:none;font-size:13px}
+.rv-fixnav a[aria-current="page"]{border-color:var(--accent);outline:2px solid var(--accent)}
+@media (max-width:480px){.rv-table{font-size:12.5px}.rv-top h1{font-size:19px}}
